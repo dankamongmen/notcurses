@@ -195,7 +195,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   uint32_t id = (uint32_t)-1;
   while(nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
-    logdebug("Candidate: %c (%d)\n", candidate, candidate);
+    logdebug("candidate: %c (%d)\n", candidate, candidate);
     if(state == PARAM1){
       // if !mouse and candidate is '>', set mouse. otherwise it ought be a
       // digit or a semicolon.
@@ -322,8 +322,17 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
   if(kpress == NCKEY_ESC){
     const esctrie* esc = nc->inputescapes;
     int candidate = 0;
-    while(esc && esc->special == NCKEY_INVALID && nc->inputbuf_occupied){
+    const esctrie* csi = NULL;
+    while(esc && nc->inputbuf_occupied){
+      if(esc->special != NCKEY_INVALID){
+        if(esc->special == NCKEY_CSI){
+          csi = NULL;
+        }else{
+          break;
+        }
+      }
       candidate = pop_input_keypress(nc);
+      logdebug("trie candidate: %c %d (%d)\n", candidate, esc->special, candidate);
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
@@ -331,12 +340,15 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
       }else{
         esc = esc->trie[candidate];
       }
+      logtrace("move to %p (%u)\n", esc, esc ? esc->special : 0);
     }
     if(esc && esc->special != NCKEY_INVALID){
-      if(esc->special == NCKEY_CSI){
-        return handle_csi(nc, ni, leftmargin, topmargin);
-      }
       return esc->special;
+    }
+    if(csi){
+      // FIXME might need to unpop more than one
+      unpop_keypress(nc, candidate);
+      return handle_csi(nc, ni, leftmargin, topmargin);
     }
     // interpret it as alt + candidate FIXME broken for first char matching
     // trie, second char not -- will read as alt+second char...
@@ -698,7 +710,7 @@ prep_special_keys(ncinputlayer* nc){
 //fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
       continue;
     }
-//fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
+    logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
     if(ncinputlayer_add_input_escape(nc, seq, k->key)){
       return -1;
     }
