@@ -117,6 +117,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_wipe = fbcon_wipe;
   ti->pixel_draw = fbcon_draw;
   ti->pixel_scrub = fbcon_scrub;
+  ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(fbcon_blit);
   sprite_init(ti, fd);
 }

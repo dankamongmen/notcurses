@@ -724,6 +724,7 @@ sprite_commit(tinfo* ti, FILE* out, sprixel* s, unsigned forcescroll){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  logdebug("rebuilding %d %d/%d\n", s->id, ycell, xcell);
   const int idx = s->dimx * ycell + xcell;
   int ret = 0;
   // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
@@ -731,9 +732,9 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
     s->n->tam[idx].state = SPRIXCELL_TRANSPARENT;
   }else if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
-    // sets the new state itself
     uint8_t* auxvec = s->n->tam[idx].auxvector;
     assert(auxvec);
+    // sets the new state itself
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
     if(ret > 0){
       free(auxvec);

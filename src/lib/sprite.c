@@ -193,12 +193,13 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0;
   }
-//fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, idx);
+  logdebug("wiping %p %d %d/%d\n", s->n->tam, idx, ycell, xcell);
   int r = nc->tcache.pixel_wipe(s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
   s->n->tam[idx].state = SPRIXCELL_ANNIHILATED;
+  assert(s->n->tam[idx].auxvector);
   return r;
 }
 

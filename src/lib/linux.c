@@ -9,7 +9,6 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   char* glyph = s->glyph;
   for(int y = 0 ; y < s->cellpxy ; ++y){
     size_t offset = (ycell * s->dimx + xcell) * 4;
-    // FIXME need preserve auxvec
     for(int x = 0 ; x < s->cellpxx ; ++x){
       const int vyx = (y % s->cellpxy) * s->cellpxx + (x % s->cellpxx);
       auxvec[vyx] = glyph[offset + 3];
@@ -17,6 +16,7 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
       offset += 4;
     }
   }
+  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
   return 0;
 }
 
