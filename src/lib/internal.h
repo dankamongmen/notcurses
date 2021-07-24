@@ -675,7 +675,7 @@ uint8_t* sprixel_auxiliary_vector(const sprixel* s);
 static inline int
 sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //sprixel_debug(s, stderr);
-  logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
   return n->tcache.pixel_scrub(p, s);
 }
 
@@ -685,7 +685,7 @@ static inline int
 sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
             int y, int x){
 //sprixel_debug(s, stderr);
-  logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
   return ti->pixel_draw(ti, p, s, out, y, x);
 }
 
@@ -695,7 +695,7 @@ static inline int
 sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
               int y, int x){
 //sprixel_debug(s, stderr);
-  logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
   if(s->invalidated == SPRIXEL_MOVED && ti->pixel_move){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
