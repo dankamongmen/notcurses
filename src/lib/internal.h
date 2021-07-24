@@ -682,28 +682,28 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out,
+sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
             int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
-  return n->tcache.pixel_draw(p, s, out, y, x);
+  return ti->pixel_draw(ti, p, s, out, y, x);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out,
+sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
               int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
-  if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
+  if(s->invalidated == SPRIXEL_MOVED && ti->pixel_move){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information.
-    bool noscroll = !n->tcache.sixel_maxy_pristine;
-    return n->tcache.pixel_move(s, out, noscroll);
+    bool noscroll = !ti->sixel_maxy_pristine;
+    return ti->pixel_move(s, out, noscroll);
   }else{
-    return n->tcache.pixel_draw(p, s, out, y, x);
+    return ti->pixel_draw(ti, p, s, out, y, x);
   }
 }
 

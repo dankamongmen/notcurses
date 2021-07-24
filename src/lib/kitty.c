@@ -952,7 +952,9 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 }
 
 // returns the number of bytes written
-int kitty_draw(const ncpile* p, sprixel* s, FILE* out, int y, int x){
+int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+               int y, int x){
+  (void)ti;
   (void)p;
   (void)y;
   (void)x;

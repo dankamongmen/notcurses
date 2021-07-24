@@ -26,9 +26,12 @@ int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 // spit out the control sequence and data.
-int iterm_draw(const ncpile *p, sprixel* s, FILE* out, int y, int x){
-  if(goto_location(p->nc, out, y, x)){
-    return -1;
+int iterm_draw(const tinfo* ti, const ncpile *p, sprixel* s, FILE* out, int y, int x){
+  (void)ti;
+  if(p){
+    if(goto_location(p->nc, out, y, x)){
+      return -1;
+    }
   }
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
     return -1;

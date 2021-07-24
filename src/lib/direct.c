@@ -515,7 +515,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(ncdirect_flush(n)){
       return -1;
     }
-    if(blocking_write(fileno(n->ttyfp), np->sprite->glyph, np->sprite->glyphlen) < 0){
+    if(sprite_draw(&n->tcache, NULL, np->sprite, n->ttyfp, 0, xoff)){
       return -1;
     }
     if(sprite_commit(&n->tcache, n->ttyfp, np->sprite, true)){
