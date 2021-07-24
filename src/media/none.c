@@ -4,8 +4,8 @@
 #include "internal.h"
 
 static void
-printbanner(const notcurses* nc){
-  fprintf(nc->ttyfp, "built without multimedia support\n");
+printbanner(fbuf* f){
+  fbuf_puts(f, "built without multimedia support\n");
 }
 
 const ncvisual_implementation local_visual_implementation = {

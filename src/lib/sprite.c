@@ -205,11 +205,11 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   return r;
 }
 
-int sprite_clear_all(const tinfo* t, FILE* fp){
+int sprite_clear_all(const tinfo* t, fbuf* f){
   if(t->pixel_clear_all == NULL){
     return 0;
   }
-  return t->pixel_clear_all(fp);
+  return t->pixel_clear_all(f);
 }
 
 int sprite_init(const tinfo* t, int fd){

@@ -508,12 +508,22 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(ncdirect_flush(n)){
       return -1;
     }
-    if(sprite_draw(&n->tcache, NULL, np->sprite, n->ttyfp, 0, xoff) < 0){
+    fbuf f = {};
+    if(fbuf_init_small(&f)){
       return -1;
     }
-    if(sprite_commit(&n->tcache, n->ttyfp, np->sprite, true)){
+    if(sprite_draw(&n->tcache, NULL, np->sprite, &f, 0, xoff) < 0){
       return -1;
     }
+    if(sprite_commit(&n->tcache, &f, np->sprite, true)){
+      fbuf_free(&f);
+      return -1;
+    }
+    if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1 || fflush(n->ttyfp)){
+      fbuf_free(&f);
+      return -1;
+    }
+    fbuf_free(&f);
     return 0;
   }
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
@@ -795,10 +805,13 @@ ncdirect_stop_minimal(void* vnc){
     rl_deprep_terminal();
 #endif
   }
-  if(nc->tcache.pixel_shutdown){
-    ret |= nc->tcache.pixel_shutdown(nc->ttyfp);
+  fbuf f = {};
+  if(fbuf_init_small(&f) == 0){
+    if(nc->tcache.pixel_shutdown){
+      ret |= nc->tcache.pixel_shutdown(&f);
+    }
+    ret |= reset_term_attributes(&nc->tcache, &f);
   }
-  ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
   if(nc->ctermfd >= 0){
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->ctermfd)){
@@ -920,9 +933,9 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
 }
 
 static inline int
-ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
+ncdirect_style_emit(ncdirect* n, unsigned stylebits, fbuf* f){
   unsigned normalized = 0;
-  int r = coerce_styles(out, &n->tcache, &n->stylemask, stylebits, &normalized);
+  int r = coerce_styles(f, &n->tcache, &n->stylemask, stylebits, &normalized);
   // sgr0 resets colors, so set them back up if not defaults and it was used
   if(normalized){
     // emitting an sgr resets colors. if we want to be default, that's no
@@ -964,9 +977,19 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   uint32_t stylemask = n->stylemask | stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
+  if(ncdirect_style_emit(n, stylemask, &f)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
   return 0;
 }
 
@@ -981,10 +1004,20 @@ unsigned ncdirect_styles(ncdirect* n){
 // turn off any specified stylebits
 int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
-  return 0;
+  if(ncdirect_style_emit(n, stylemask, &f)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
+  return -1;
 }
 
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
@@ -997,9 +1030,18 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   uint32_t stylemask = stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
+  if(ncdirect_style_emit(n, stylemask, &f)){
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
   return 0;
 }
 
@@ -1341,15 +1383,20 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
     if(lastid > -1){
       if(n->tcache.pixel_remove){
-        if(n->tcache.pixel_remove(lastid, n->ttyfp)){
+        fbuf f = {};
+        fbuf_init_small(&f);
+        if(n->tcache.pixel_remove(lastid, &f) || fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
+          fbuf_free(&f);
           ncvisual_destroy(ncv);
           return -1;
         }
+        fbuf_free(&f);
       }
     }
     streamer(ncv, vopts, NULL, curry);
     lastid = thisid;
   }while(ncvisual_decode(ncv) == 0);
+  ncdirect_flush(n);
   ncvisual_destroy(ncv);
   return 0;
 }

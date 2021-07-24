@@ -535,9 +535,9 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
   return -1;
 }
 
-int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll){
+int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   loginfo("Committing Kitty graphic id %u\n", s->id);
-  fprintf(fp, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
+  fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
   s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
 }
@@ -1055,9 +1055,9 @@ int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
                          KITTY_SELFREF);
 }
 
-int kitty_remove(int id, FILE* out){
+int kitty_remove(int id, fbuf* f){
   loginfo("Removing graphic %u\n", id);
-  if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
+  if(fbuf_printf(f, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
     return -1;
   }
   return 0;
@@ -1094,7 +1094,7 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 }
 
 // returns the number of bytes written
-int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
                int y, int x){
   (void)ti;
   (void)p;
@@ -1108,7 +1108,7 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
   int ret = s->glyph.used;
   logdebug("Writing out %zub for %u\n", s->glyph.used, s->id);
   if(ret){
-    if(fwrite(s->glyph.buf, s->glyph.used, 1, out) != 1){
+    if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
       ret = -1;
     }
   }
@@ -1122,10 +1122,10 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
 }
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
-int kitty_move(sprixel* s, FILE* out, unsigned noscroll){
+int kitty_move(sprixel* s, fbuf* f, unsigned noscroll){
   int ret = 0;
-  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
-             noscroll ? ",C=1" : "") < 0){
+  if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
+                 noscroll ? ",C=1" : "") < 0){
     ret = -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
@@ -1133,14 +1133,17 @@ int kitty_move(sprixel* s, FILE* out, unsigned noscroll){
 }
 
 // clears all kitty bitmaps
-int kitty_clear_all(FILE* fp){
+int kitty_clear_all(fbuf* f){
 //fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
-  return term_emit("\e_Ga=d,q=2\e\\", fp, false);
+  if(fbuf_putn(f, "\x1b_Ga=d,q=2\x1b\\", 12) < 0){
+    return -1;
+  }
+  return 0;
 }
 
-int kitty_shutdown(FILE* fp){
+int kitty_shutdown(fbuf* f){
   // FIXME need to close off any open kitty bitmap emission, or we will
   // lock up the terminal
-  (void)fp;
+  (void)f;
   return 0;
 }

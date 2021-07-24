@@ -107,12 +107,10 @@ typedef struct ncplane {
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct rasterstate {
-  // we assemble the encoded (rasterized) output in a POSIX memstream, and keep
-  // it around between uses. this could be a problem if it ever tremendously
-  // spiked, but that's a highly unlikely situation.
-  char* mstream;  // buffer for rasterizing memstream, see open_memstream(3)
-  FILE* mstreamfp;// FILE* for rasterizing memstream
-  size_t mstrsize;// size of rendering memstream
+  // we assemble the encoded (rasterized) output in an fbuf (a portable POSIX
+  // memstream, basically), and keep it around between uses. this could be a
+  // problem if it ever tremendously spiked, but that seems unlikely?
+  fbuf f;         // buffer for preparing raster glyph/escape stream
 
   // the current cursor position. this is independent of whether the cursor is
   // visible. it is the cell at which the next write will take place. this is
@@ -464,7 +462,7 @@ void sigwinch_handler(int signo);
 
 void init_lang(void);
 
-int reset_term_attributes(const tinfo* ti, FILE* fp);
+int reset_term_attributes(const tinfo* ti, fbuf* f);
 
 
 // if there were missing elements we wanted from terminfo, bitch about them here
@@ -508,7 +506,7 @@ logical_to_virtual(const ncplane* n, int y){
   return (y + n->logrow) % n->leny;
 }
 
-int clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush);
+int clear_and_home(notcurses* nc, tinfo* ti, fbuf* f);
 
 static inline int
 nfbcellidx(const ncplane* n, int row, int col){
@@ -704,7 +702,7 @@ sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start);
 int sprite_init(const tinfo* t, int fd);
-int sprite_clear_all(const tinfo* t, FILE* fp);
+int sprite_clear_all(const tinfo* t, fbuf* f);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
@@ -731,17 +729,17 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
             int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
-  return ti->pixel_draw(ti, p, s, out, y, x);
+  return ti->pixel_draw(ti, p, s, f, y, x);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
               int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
@@ -750,21 +748,21 @@ sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information.
     bool noscroll = !ti->sixel_maxy_pristine;
-    return ti->pixel_move(s, out, noscroll);
+    return ti->pixel_move(s, f, noscroll);
   }else{
-    return ti->pixel_draw(ti, p, s, out, y, x);
+    return ti->pixel_draw(ti, p, s, f, y, x);
   }
 }
 
 // present a loaded graphic. only defined for kitty.
 static inline int
-sprite_commit(tinfo* ti, FILE* out, sprixel* s, unsigned forcescroll){
+sprite_commit(tinfo* ti, fbuf* f, sprixel* s, unsigned forcescroll){
   if(ti->pixel_commit){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information. direct mode, meanwhile, sets forcescroll.
     bool noscroll = !ti->sixel_maxy_pristine && !forcescroll;
-    if(ti->pixel_commit(out, s, noscroll) < 0){
+    if(ti->pixel_commit(f, s, noscroll) < 0){
       return -1;
     }
   }
@@ -1113,7 +1111,7 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 // perform any work (even following a clearerr()), despite returning 0 from
 // that point on. thus, after a fflush() error, even on EAGAIN and friends,
 // you can't use the stream any further. doesn't this make fflush() pretty
-// much useless? it sure would seem to, which is why we use a memstream for
+// much useless? it sure would seem to, which is why we use an fbuf for
 // all our important I/O, which we then blit with blocking_write(). if you
 // care about your data, you'll do the same.
 static inline int
@@ -1141,19 +1139,19 @@ term_emit(const char* seq, FILE* out, bool flush){
 }
 
 static inline int
-term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+term_bg_palindex(const notcurses* nc, fbuf* f, unsigned pal){
   const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
   if(setab){
-    return term_emit(tiparm(setab, pal), out, false);
+    return fbuf_emit(f, tiparm(setab, pal));
   }
   return 0;
 }
 
 static inline int
-term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+term_fg_palindex(const notcurses* nc, fbuf* f, unsigned pal){
   const char* setaf = get_escape(&nc->tcache, ESCAPE_SETAF);
   if(setaf){
-    return term_emit(tiparm(setaf, pal), out, false);
+    return fbuf_emit(f, tiparm(setaf, pal));
   }
   return 0;
 }
@@ -1162,7 +1160,7 @@ term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
 // if they are different, and we have the necessary capability, write the
 // applicable terminfo entry to 'out'. returns -1 only on a true error.
 static int
-term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
+term_setstyle(fbuf* f, unsigned cur, unsigned targ, unsigned stylebit,
               const char* ton, const char* toff){
   int ret = 0;
   unsigned curon = cur & stylebit;
@@ -1170,11 +1168,11 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
   if(curon != targon){
     if(targon){
       if(ton){
-        ret = term_emit(ton, out, false);
+        ret = fbuf_emit(f, ton);
       }
     }else{
       if(toff){ // how did this happen? we can turn it on, but not off?
-        ret = term_emit(toff, out, false);
+        ret = fbuf_emit(f, toff);
       }
     }
   }
@@ -1188,26 +1186,26 @@ term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 // required an sgr0 (which resets colors), normalized will be non-zero upon
 // a successful return.
 static inline int
-coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
+coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
               uint16_t newstyle, unsigned* normalized){
   *normalized = 0; // we never currently use sgr0
   int ret = 0;
-  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BOLD,
+  ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_BOLD,
                        get_escape(ti, ESCAPE_BOLD), get_escape(ti, ESCAPE_NOBOLD));
-  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_ITALIC,
+  ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_ITALIC,
                        get_escape(ti, ESCAPE_SITM), get_escape(ti, ESCAPE_RITM));
-  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_STRUCK,
+  ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_STRUCK,
                        get_escape(ti, ESCAPE_SMXX), get_escape(ti, ESCAPE_RMXX));
   // underline and undercurl are exclusive. if we set one, don't go unsetting
   // the other.
   if(newstyle & NCSTYLE_UNDERLINE){ // turn on underline, or do nothing
-    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERLINE,
+    ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_UNDERLINE,
                          get_escape(ti, ESCAPE_SMUL), get_escape(ti, ESCAPE_RMUL));
   }else if(newstyle & NCSTYLE_UNDERCURL){ // turn on undercurl, or do nothing
-    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL,
+    ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_UNDERCURL,
                          get_escape(ti, ESCAPE_SMULX), get_escape(ti, ESCAPE_SMULNOX));
   }else{ // turn off any underlining
-    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL | NCSTYLE_UNDERLINE,
+    ret |= term_setstyle(f, *curstyle, newstyle, NCSTYLE_UNDERCURL | NCSTYLE_UNDERLINE,
                          NULL, get_escape(ti, ESCAPE_RMUL));
   }
   *curstyle = newstyle;
@@ -1230,10 +1228,9 @@ mouse_enable(FILE* out){
 }
 
 static inline int
-mouse_disable(FILE* out){
-  return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
-                   out, true);
+mouse_disable(fbuf* f){
+  return fbuf_emit(f, "\x1b[?" SET_BTN_EVENT_MOUSE ";"
+                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l");
 }
 
 // sync the drawing position to the specified location with as little overhead
@@ -1245,7 +1242,7 @@ mouse_disable(FILE* out){
 // if hardcursorpos is non-zero, we always perform a cup. this is done when we
 // don't know where the cursor currently is =].
 static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x){
+goto_location(notcurses* nc, fbuf* f, int y, int x){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
@@ -1256,13 +1253,13 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
-    if(term_emit(tiparm(hpa, x), out, false)){
+    if(fbuf_emit(f, tiparm(hpa, x))){
       return -1;
     }
   }else{
     // cup is required, no need to verify existence
     const char* cup = get_escape(&nc->tcache, ESCAPE_CUP);
-    if(term_emit(tiparm(cup, y, x), out, false)){
+    if(fbuf_emit(f, tiparm(cup, y, x))){
       return -1;
     }
   }
@@ -1584,7 +1581,7 @@ int drop_signals(void* nc);
 int block_signals(sigset_t* old_blocked_signals);
 int unblock_signals(const sigset_t* old_blocked_signals);
 
-void ncvisual_printbanner(const notcurses* nc);
+void ncvisual_printbanner(fbuf* f);
 
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to
 // (opaque, blended, and transparent). it's necessary that we display
@@ -1668,7 +1665,7 @@ ncdirect_bg_palindex_p(const ncdirect* nc){
   return ncchannels_bg_palindex_p(ncdirect_channels(nc));
 }
 
-int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b);
+int term_fg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b);
 
 const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
 
@@ -1746,7 +1743,7 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
 // prior to calling notcurses_core_init() (by notcurses_init()).
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
-  void (*visual_printbanner)(const struct notcurses* nc);
+  void (*visual_printbanner)(fbuf* f);
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
                      const struct blitset* bset, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
