@@ -18,7 +18,6 @@ extern "C" {
 // FIXME placeholders
 #define tcgetattr(x, y) -1
 #define tcsetattr(x, y, z) -1
-#define sigaction(x, y, z) -1
 #define ECHO      0
 #define ICANON    0
 #define ICRNL     0
@@ -35,13 +34,6 @@ typedef struct siginfo_t {
   int aieeee;
 } siginfo_t;
 #define sigset_t int
-typedef struct sigaction {
-  void (*sa_handler)(int);
-  void (*sa_sigaction)(int, siginfo_t *, void *);
-  sigset_t sa_mask;
-  int sa_flags;
-  void (*sa_restorer)(void);
-} sigaction;
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #else

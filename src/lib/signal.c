@@ -3,12 +3,42 @@
 #include <stdatomic.h>
 #include "internal.h"
 
+// primarily drive ownership off an atomic, safely used within a signal handler
+static void* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL);
+
+#ifdef __MINGW64__
+int drop_signals(void* nc){
+  int ret = -1;
+  void* expected = nc;
+  pthread_mutex_lock(&lock);
+  if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
+    ret = 0;
+  }
+  pthread_mutex_unlock(&lock);
+  return ret;
+}
+
+// this both sets up our signal handlers (unless that behavior has been
+// inhibited), and ensures that only one notcurses/ncdirect context is active
+// at any given time.
+int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
+                  int(*handler)(void*)){
+  (void)no_quit_sigs;
+  (void)no_winch_sigs;
+  void* expected = NULL;
+  // don't register ourselves if we don't intend to set up signal handlers
+  // we expect NULL (nothing registered), and want to register nc
+  if(!atomic_compare_exchange_strong(&signal_nc, &expected, vnc)){
+    loginfo("%p is already registered for signals (provided %p)\n", expected, vnc);
+    return -1;
+  }
+  return ret;
+}
+#else
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature. hold this lock over any of the shared data below.
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-// we still need an atomic signal_nc, despite guarding with the mutex, so that
-// it can be safely looked up within the signal handler.
-static void* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
+
 static bool handling_winch;
 static bool handling_fatals;
 
@@ -107,7 +137,7 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
 // this both sets up our signal handlers (unless that behavior has been
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
-int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
+int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
                   int(*handler)(void*)){
   notcurses* nc = vnc;
   void* expected = NULL;
@@ -118,7 +148,8 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
     loginfo("%p is already registered for signals (provided %p)\n", expected, nc);
     return -1;
   }
-  if(!no_winch_sig){
+  pthread_mutex_lock(&lock);
+  if(!no_winch_sigs){
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = sigwinch_handler;
     sigaddset(&sa.sa_mask, SIGWINCH);
@@ -128,6 +159,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
     ret |= sigaction(SIGCONT, &sa, &old_cont);
     if(ret){
       atomic_store(&signal_nc, NULL);
+      pthread_mutex_unlock(&lock);
       fprintf(stderr, "Error installing term signal handler (%s)\n", strerror(errno));
       return -1;
     }
@@ -155,6 +187,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
     ret |= sigaction(SIGTERM, &sa, &old_term);
     if(ret){
       atomic_store(&signal_nc, NULL);
+      pthread_mutex_unlock(&lock);
       fprintf(stderr, "Error installing fatal signal handlers (%s)\n", strerror(errno));
       return -1;
     }
@@ -165,5 +198,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
   sigaddset(&wblock_signals, SIGINT);
   sigaddset(&wblock_signals, SIGTERM);
   sigaddset(&wblock_signals, SIGQUIT);
+  pthread_mutex_unlock(&lock);
   return 0;
 }
+#endif

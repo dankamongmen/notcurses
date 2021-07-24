@@ -1189,7 +1189,7 @@ raster_and_write(notcurses* nc, ncpile* p, fbuf* f){
   unblock_signals(&oldmask);
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);
   if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", nc->rstate.f.buf);
+    fprintf(nc->renderfp, "%s\n", (const char*)nc->rstate.f.buf);
   }
   if(ret < 0){
     return ret;
