@@ -1011,7 +1011,7 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   if(fbuf_finalize(&f, n->ttyfp, false)){
     return -1;
   }
-  return -1;
+  return 0;
 }
 
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
@@ -1029,6 +1029,7 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   if(ncdirect_style_emit(n, stylemask, &f)){
+    fbuf_free(&f);
     return -1;
   }
   if(fbuf_finalize(&f, n->ttyfp, false)){
