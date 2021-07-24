@@ -509,7 +509,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       return -1;
     }
     fbuf f = {};
-    if(fbuf_init_small(&f)){
+    if(fbuf_init(&f)){
       return -1;
     }
     if(sprite_draw(&n->tcache, NULL, np->sprite, &f, 0, xoff) < 0){
