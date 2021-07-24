@@ -103,8 +103,8 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int ny = dimy / 4;
   int nx = dimx / 3;
-  int yoff = random() % (dimy - ny - 2) + 1; // don't start atop a border
-  int xoff = random() % (dimx - nx - 2) + 1;
+  int yoff = rand() % (dimy - ny - 2) + 1; // don't start atop a border
+  int xoff = rand() % (dimx - nx - 2) + 1;
   struct ncplane* l;
 
   // First we just create a plane with no styling and no glyphs.
@@ -125,8 +125,8 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   uint64_t deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
-  int velx = random() % 4 + 1;
-  int vely = random() % 4 + 1;
+  int velx = rand() % 4 + 1;
+  int vely = rand() % 4 + 1;
   l = legend(nc, "default background, all opaque, whitespace glyph");
   int err = slideitslideit(nc, n, deadlinens, &vely, &velx);
   if(err){

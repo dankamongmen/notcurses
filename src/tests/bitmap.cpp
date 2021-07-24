@@ -486,7 +486,7 @@ TEST_CASE("Bitmaps") {
     auto x = 2 * nc_->tcache.cellpixx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
-      e -= htole(random() % 0x1000000);
+      e -= htole(rand() % 0x1000000);
     }
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -524,7 +524,7 @@ TEST_CASE("Bitmaps") {
     auto x = 10 * nc_->tcache.cellpixx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
-      e -= htole(random() % 0x1000000);
+      e -= htole(rand() % 0x1000000);
     }
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);

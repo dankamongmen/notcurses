@@ -168,7 +168,7 @@ eagles(struct notcurses* nc, struct ncplane* n){
   } e[3];
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
     e[i].xoff = 0;
-    e[i].yoff = random() % ((truey - height) / 2);
+    e[i].yoff = rand() % ((truey - height) / 2);
     struct ncplane_options nopts = {
       .y = e[i].yoff,
       .x = e[i].xoff,
@@ -193,14 +193,14 @@ eagles(struct notcurses* nc, struct ncplane* n){
       if(e[i].xoff >= truex){
         continue;
       }
-      e[i].yoff += random() % (2 + i) - 1;
+      e[i].yoff += rand() % (2 + i) - 1;
       if(e[i].yoff < 0){
         e[i].yoff = 0;
       }else if(e[i].yoff + height >= truey){
         e[i].yoff = truey - height - 1;
       }
       int scale = truex >= 80 ? truex / 80 : 1;
-      e[i].xoff += (random() % scale) + 1;
+      e[i].xoff += (rand() % scale) + 1;
       ncplane_move_yx(e[i].n, e[i].yoff, e[i].xoff);
       ++eaglesmoved;
     }

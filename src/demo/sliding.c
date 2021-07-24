@@ -50,7 +50,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
   const uint64_t totalns = delayns * 5;
   const uint64_t deadline_ns = timespec_to_ns(&cur) + totalns;
   const uint64_t movens = totalns / MOVES;
-  int hole = random() % chunkcount;
+  int hole = rand() % chunkcount;
   int holex, holey;
   ncplane_yx(chunks[hole], &holey, &holex);
   ncplane_destroy(chunks[hole]);
@@ -66,7 +66,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
     int mover = chunkcount;
     int direction;
     do{
-      direction = random() % 4;
+      direction = rand() % 4;
       switch(direction){
         case 3: // up
           if(lastdir != 1 && hole >= CHUNKS_HORZ){ mover = hole - CHUNKS_HORZ; } break;
@@ -199,10 +199,10 @@ int sliding_puzzle_demo(struct notcurses* nc){
   int i;
   demo_nanosleep(nc, &demodelay);
   for(i = 0 ; i < 200 ; ++i){
-    int i0 = random() % chunkcount;
-    int i1 = random() % chunkcount;
+    int i0 = rand() % chunkcount;
+    int i1 = rand() % chunkcount;
     while(i1 == i0){
-      i1 = random() % chunkcount;
+      i1 = rand() % chunkcount;
     }
     int targy0, targx0;
     int targy, targx;

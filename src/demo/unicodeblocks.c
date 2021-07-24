@@ -83,7 +83,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   // see https://github.com/dankamongmen/notcurses/issues/259. we use a random
   // (but dark) background for the perimeter to force refreshing on the box,
   // when it might otherwise be molested by RTL text. hacky and gross :( FIXME
-  int rbg = random() % 20;
+  int rbg = rand() % 20;
   nccell_set_bg_rgb(&ul, rbg);
   nccell_set_bg_rgb(&ur, rbg);
   nccell_set_bg_rgb(&ll, rbg);

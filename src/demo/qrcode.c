@@ -1,5 +1,4 @@
 #include "demo.h"
-#include <sys/random.h>
 
 int qrcode_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
@@ -13,11 +12,11 @@ int qrcode_demo(struct notcurses* nc){
   struct ncplane* n = ncplane_dup(stdn, NULL);
   for(int i = 0 ; i < 1024 ; ++i){
     ncplane_erase(n);
-    size_t len = random() % sizeof(data) + 1;
+    size_t len = rand() % sizeof(data) + 1;
     size_t done = 0;
-    // done this tedious way because getrandom() doesn't exist on freebsd 11
+    // done this tedious way because getrand() doesn't exist on freebsd 11
     while(done < len){
-      long r = random();
+      long r = rand();
       memcpy(data + done, &r, sizeof(r));
       done += sizeof(r);
     }
@@ -28,7 +27,7 @@ int qrcode_demo(struct notcurses* nc){
     if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case
       ncplane_move_yx(n, (dimy - y) / 2, (dimx - x) / 2);
       ncplane_home(n);
-      ncplane_set_fg_rgb8(n, random() % 255 + 1, random() % 255 + 1, random() % 255 + 1); 
+      ncplane_set_fg_rgb8(n, rand() % 255 + 1, rand() % 255 + 1, rand() % 255 + 1); 
       DEMO_RENDER(nc);
     }
   }

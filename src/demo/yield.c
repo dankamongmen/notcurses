@@ -84,8 +84,8 @@ int yield_demo(struct notcurses* nc){
     int pfilled = 0;
     do{
       ++iters;
-      int x = random() % maxx;
-      int y = random() % maxy;
+      int x = rand() % maxx;
+      int y = rand() % maxy;
       uint32_t pixel = 0;
       if(ncvisual_at_yx(wmv, y, x, &pixel) < 0){
         ncvisual_destroy(wmv);
@@ -99,7 +99,7 @@ int yield_demo(struct notcurses* nc){
         continue;
       }
       ncpixel_set_a(&pixel, 0xfe);
-      ncpixel_set_rgb8(&pixel, (random() % 128) + 128, 0, ncpixel_b(pixel) / 4);
+      ncpixel_set_rgb8(&pixel, (rand() % 128) + 128, 0, ncpixel_b(pixel) / 4);
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);

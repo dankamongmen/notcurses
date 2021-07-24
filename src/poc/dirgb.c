@@ -33,12 +33,12 @@ print_gb(struct ncdirect* nc, int r, int total){
 
 static int
 print_rgb8(struct ncdirect* nc, int total){
-  if(random() % 2){
+  if(rand() % 2){
     if(ncdirect_off_styles(nc, NCSTYLE_ITALIC)){
       return -1;
     }
   }
-  if(random() % 16 == 0){
+  if(rand() % 16 == 0){
     if(ncdirect_on_styles(nc, NCSTYLE_ITALIC)){
       return -1;
     }

@@ -3,7 +3,7 @@
 
 int main(void){
   srand(time(NULL)); // gross
-  long guess, secret = random();
+  long guess, secret = rand();
   struct ncdirect* n = ncdirect_core_init(NULL, stdout, NCDIRECT_OPTION_INHIBIT_CBREAK);
   if(n == NULL){
     return EXIT_FAILURE;

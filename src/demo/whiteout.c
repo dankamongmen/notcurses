@@ -77,8 +77,8 @@ typedef struct worm {
 static void
 init_worm(worm* s, int dimy, int dimx){
   nccell_init(&s->lightup);
-  s->y = random() % dimy;
-  s->x = random() % dimx;
+  s->y = rand() % dimy;
+  s->x = rand() % dimx;
   s->prevx = 0;
   s->prevy = 0;
 }
@@ -101,7 +101,7 @@ wormy(worm* s, int dimy, int dimx){
   do{ // force a move
     s->y = oldy;
     s->x = oldx;
-    int direction = random() % 4;
+    int direction = rand() % 4;
     switch(direction){
       case 0: --s->y; break;
       case 1: ++s->x; break;
@@ -481,7 +481,7 @@ int witherworm_demo(struct notcurses* nc){
       }
       ncplane_set_bg_rgb8(n, 20, 20, 20);
       do{ // we fill up the screen, however large, bouncing around our strtable
-        s = strs + random() % ((sizeof(strs) / sizeof(*strs)) - 1);
+        s = strs + rand() % ((sizeof(strs) / sizeof(*strs)) - 1);
         size_t idx = 0;
         ncplane_cursor_yx(n, &y, &x);
         while((*s)[idx]){ // each multibyte char of string

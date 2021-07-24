@@ -135,8 +135,8 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     return -1;
   }
   struct ncvisual_options vopts = {
-    .y = 30,//random() % (ncplane_dim_y(notcurses_stdplane_const(nc)) - SHIPHEIGHT),
-    .x = 30,//random() % (ncplane_dim_x(notcurses_stdplane_const(nc)) - SHIPWIDTH),
+    .y = 30,//rand() % (ncplane_dim_y(notcurses_stdplane_const(nc)) - SHIPHEIGHT),
+    .x = 30,//rand() % (ncplane_dim_x(notcurses_stdplane_const(nc)) - SHIPWIDTH),
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_NODEGRADE,
   };
@@ -149,10 +149,10 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
       }
     }
     ncplane_move_below(ships[s].n, notcurses_stdplane(nc));
-    if((ships[s].vely = random() % 6 - 3) == 0){
+    if((ships[s].vely = rand() % 6 - 3) == 0){
       ships[s].vely = 3;
     }
-    if((ships[s].velx = random() % 6 - 3) == 0){
+    if((ships[s].velx = rand() % 6 - 3) == 0){
       ships[s].velx = 3;
     }
   }

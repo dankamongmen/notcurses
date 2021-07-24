@@ -121,10 +121,10 @@ tablet_thread(void* vtabletctx){
   tabletctx* tctx = vtabletctx;
   while(true){
     struct timespec ts;
-    ts.tv_sec = random() % 2 + MINSECONDS;
-    ts.tv_nsec = random() % 1000000000;
+    ts.tv_sec = rand() % 2 + MINSECONDS;
+    ts.tv_nsec = rand() % 1000000000;
     nanosleep(&ts, NULL);
-    int action = random() % 5;
+    int action = rand() % 5;
     pthread_mutex_lock(&tctx->lock);
     if(action < 2){
       tctx->lines -= (action + 1);
@@ -156,8 +156,8 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
   }
   pthread_mutex_init(&tctx->lock, NULL);
   tctx->pr = pr;
-  tctx->lines = random() % 10 + 2; // FIXME a nice gaussian would be swell
-  tctx->rgb = random() % (1u << 24u);
+  tctx->lines = rand() % 10 + 2; // FIXME a nice gaussian would be swell
+  tctx->rgb = rand() % (1u << 24u);
   tctx->id = ++*id;
   if((tctx->t = ncreel_add(pr, NULL, NULL, drawcb, tctx)) == NULL){
     pthread_mutex_destroy(&tctx->lock);

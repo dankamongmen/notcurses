@@ -129,8 +129,8 @@ int fission_demo(struct notcurses* nc){
         continue;
       }
       int newy, newx;
-      newy = random() % (maxy - 1) + 2;
-      newx = random() % (maxx - 1) + 2;
+      newy = rand() % (maxy - 1) + 2;
+      newx = rand() % (maxx - 1) + 2;
       if(x + newx >= dimx){
         newx = dimx - x;
       }

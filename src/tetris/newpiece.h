@@ -10,12 +10,12 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
   } tetriminos[] = { // OITLJSZ
     { 0xcbc900, "****"}, { 0x009caa, "    ****"}, { 0x952d98, " * ***"}, { 0xcf7900, "  ****"},
     { 0x0065bd, "*  ***"},   { 0x69be28, " **** "}, { 0xbd2939, "**  **"} };
-  const int tidx = random() % 7;
+  const int tidx = rand() % 7;
   const struct tetrimino* t = &tetriminos[tidx];
   const size_t cols = strlen(t->texture);
   int y, x;
   stdplane_->get_dim(&y, &x);
-  const int xoff = x / 2 - BOARD_WIDTH + 2 * (random() % (BOARD_WIDTH / 2));
+  const int xoff = x / 2 - BOARD_WIDTH + 2 * (rand() % (BOARD_WIDTH / 2));
   std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, board_top_y_ - 1, xoff, nullptr);
   if(n){
     uint64_t channels = 0;
