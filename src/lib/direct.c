@@ -519,11 +519,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       fbuf_free(&f);
       return -1;
     }
-    if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1 || fflush(n->ttyfp)){
-      fbuf_free(&f);
+    if(fbuf_finalize(&f, n->ttyfp, true)){
       return -1;
     }
-    fbuf_free(&f);
     return 0;
   }
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
@@ -985,11 +983,9 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, n->ttyfp, false)){
     return -1;
   }
-  fbuf_free(&f);
   return 0;
 }
 
@@ -1012,11 +1008,9 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, n->ttyfp, false)){
     return -1;
   }
-  fbuf_free(&f);
   return -1;
 }
 
@@ -1037,11 +1031,9 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
   if(ncdirect_style_emit(n, stylemask, &f)){
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, n->ttyfp, false)){
     return -1;
   }
-  fbuf_free(&f);
   return 0;
 }
 
