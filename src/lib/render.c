@@ -542,19 +542,19 @@ int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
 
 // write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
-term_putc(FILE* out, const egcpool* e, const nccell* c){
+term_putc(fbuf* f, const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
     // we must not have any 'cntrl' characters at this point
     if(c->gcluster == 0){
-      if(ncfputc(' ', out) == EOF){
+      if(fbuf_putc(f, ' ') < 0){
         return -1;
       }
-    }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
+    }else if(fbuf_puts(f, (const char*)&c->gcluster) == EOF){
       return -1;
     }
   }else{
-    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+    if(fbuf_puts(f, egcpool_extended_gcluster(e, c)) == EOF){
       return -1;
     }
   }
@@ -563,9 +563,9 @@ term_putc(FILE* out, const egcpool* e, const nccell* c){
 
 // write any escape sequences necessary to set the desired style
 static inline int
-term_setstyles(FILE* out, notcurses* nc, const nccell* c){
+term_setstyles(fbuf* f, notcurses* nc, const nccell* c){
   unsigned normalized = false;
-  int ret = coerce_styles(out, &nc->tcache, &nc->rstate.curattr,
+  int ret = coerce_styles(f, &nc->tcache, &nc->rstate.curattr,
                           nccell_styles(c), &normalized);
   if(normalized){
     nc->rstate.fgdefelidable = true;
@@ -598,15 +598,15 @@ static const char* const NUMBERS[] = {
 "241;", "242;", "243;", "244;", "245;", "246;", "247;", "248;", "249;", "250;", "251;", "252;", "253;", "254;", "255;", };
 
 static inline int
-term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
+term_esc_rgb(fbuf* f, bool foreground, unsigned r, unsigned g, unsigned b){
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
   // and gives rise to some inaccurate colors (possibly due to special handling
   // of values < 256; I'm not at this time sure). So we just cons up our own.
   /*if(esc == 4){
-    return term_emit("setab", tiparm(nc->setab, (int)((r << 16u) | (g << 8u) | b)), out, false);
+    return fbuf_emit(f, "setab", tiparm(nc->setab, (int)((r << 16u) | (g << 8u) | b)));
   }else if(esc == 3){
-    return term_emit("setaf", tiparm(nc->setaf, (int)((r << 16u) | (g << 8u) | b)), out, false);
+    return fbuf_emit(f, "setaf", tiparm(nc->setaf, (int)((r << 16u) | (g << 8u) | b)));
   }else{
     return -1;
   }*/
@@ -638,14 +638,14 @@ term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
   }
   rgbbuf[offset++] = 'm';
   rgbbuf[offset] = '\0';
-  if(fwrite(rgbbuf, offset, 1, out) != 1){
+  if(fbuf_putn(f, rgbbuf, offset) < 0){
     return -1;
   }
   return 0;
 }
 
 static inline int
-term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
+term_bg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
@@ -663,7 +663,7 @@ term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
         }
       }
     }
-    return term_esc_rgb(out, false, r, g, b);
+    return term_esc_rgb(f, false, r, g, b);
   }else{
     const char* setab = get_escape(ti, ESCAPE_SETAB);
     if(setab){
@@ -672,23 +672,23 @@ term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
       // a single screen, start... combining close ones? For 8-color mode, simple
       // interpolation. I have no idea what to do for 88 colors. FIXME
       if(ti->caps.colors >= 256){
-        return term_emit(tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
+        return fbuf_emit(f, tiparm(setab, rgb_quantize_256(r, g, b)));
       }else if(ti->caps.colors >= 8){
-        return term_emit(tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
+        return fbuf_emit(f, tiparm(setab, rgb_quantize_8(r, g, b)));
       }
     }
   }
   return 0;
 }
 
-int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
+int term_fg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(ti->caps.rgb){
-    return term_esc_rgb(out, true, r, g, b);
+    return term_esc_rgb(f, true, r, g, b);
   }else{
     const char* setaf = get_escape(ti, ESCAPE_SETAF);
     if(setaf){
@@ -697,9 +697,9 @@ int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b)
       // a single screen, start... combining close ones? For 8-color mode, simple
       // interpolation. I have no idea what to do for 88 colors. FIXME
       if(ti->caps.colors >= 256){
-        return term_emit(tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
+        return fbuf_emit(f, tiparm(setaf, rgb_quantize_256(r, g, b)));
       }else if(ti->caps.colors >= 8){
-        return term_emit(tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
+        return fbuf_emit(f, tiparm(setaf, rgb_quantize_8(r, g, b)));
       }
     }
   }
@@ -707,7 +707,7 @@ int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b)
 }
 
 static inline int
-update_palette(notcurses* nc, FILE* out){
+update_palette(notcurses* nc, fbuf* f){
   if(nc->tcache.caps.can_change_colors){
     const char* initc = get_escape(&nc->tcache, ESCAPE_INITC);
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
@@ -719,7 +719,9 @@ update_palette(notcurses* nc, FILE* out){
         r = r * 1000 / 255;
         g = g * 1000 / 255;
         b = b * 1000 / 255;
-        term_emit(tiparm(initc, damageidx, r, g, b), out, false);
+        if(fbuf_emit(f, tiparm(initc, damageidx, r, g, b)) < 0){
+          return -1;
+        }
         nc->palette_damage[damageidx] = false;
       }
     }
@@ -730,7 +732,7 @@ update_palette(notcurses* nc, FILE* out){
 // at least one of the foreground and background are the default. emit the
 // necessary return to default (if one is necessary), and update rstate.
 static inline int
-raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
+raster_defaults(notcurses* nc, bool fgdef, bool bgdef, fbuf* f){
   const char* op = get_escape(&nc->tcache, ESCAPE_OP);
   if(op == NULL){ // if we don't have op, we don't have fgop/bgop
     return 0;
@@ -743,7 +745,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     ++nc->stats.s.defaultelisions;
     return 0;
   }else if((mustsetfg && mustsetbg) || !fgop || !bgop){
-    if(term_emit(op, out, false)){
+    if(fbuf_emit(f, op)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
@@ -753,14 +755,14 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     nc->rstate.fgpalelidable = false;
     nc->rstate.bgpalelidable = false;
   }else if(mustsetfg){ // if we reach here, we must have fgop
-    if(term_emit(fgop, out, false)){
+    if(fbuf_emit(f, fgop)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
     nc->rstate.fgelidable = false;
     nc->rstate.fgpalelidable = false;
   }else{ // mustsetbg and !mustsetfg and bgop != NULL
-    if(term_emit(bgop, out, false)){
+    if(fbuf_emit(f, bgop)){
       return -1;
     }
     nc->rstate.bgdefelidable = true;
@@ -773,13 +775,13 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
 
 // these are unlikely, so we leave it uninlined
 static int
-emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
+emit_fg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
   unsigned palfg = nccell_fg_palindex(srccell);
   // we overload lastr for the palette index; both are 8 bits
   if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
     ++nc->stats.s.fgelisions;
   }else{
-    if(term_fg_palindex(nc, out, palfg)){
+    if(term_fg_palindex(nc, f, palfg)){
       return -1;
     }
     ++nc->stats.s.fgemissions;
@@ -792,12 +794,12 @@ emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 }
 
 static int
-emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
+emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
   unsigned palbg = nccell_bg_palindex(srccell);
   if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
     ++nc->stats.s.bgelisions;
   }else{
-    if(term_bg_palindex(nc, out, palbg)){
+    if(term_bg_palindex(nc, f, palbg)){
       return -1;
     }
     ++nc->stats.s.bgemissions;
@@ -822,7 +824,7 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 // are loaded, but old kitty graphics remain visible, and new/updated kitty
 // graphics are not yet visible, and they have not moved.
 static int64_t
-clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
+clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
@@ -859,10 +861,10 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       }
       // FIXME kitty graphics don't need the goto_location before a load, but only
       // before a presentation; we ought be able to eliminate this
-      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+      if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
-      int r = sprite_redraw(&nc->tcache, p, s, out, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_redraw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
@@ -882,11 +884,11 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
 
 // "%d tardies to work off, by far the most in the class!\n", p->scrolls
 static int
-rasterize_scrolls(ncpile* p, FILE* out){
+rasterize_scrolls(ncpile* p, fbuf* f){
   if(p->scrolls == 0){
     return 0;
   }
-  logdebug("Order-%d scroll\n", p->scrolls);
+  logdebug("order-%d scroll\n", p->scrolls);
   if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= p->scrolls;
     if(p->nc->rstate.logendy < 0){
@@ -898,7 +900,7 @@ rasterize_scrolls(ncpile* p, FILE* out){
     return -1;
   }
   while(p->scrolls){
-    if(ncfputc('\n', out) < 0){
+    if(fbuf_putc(f, '\n') < 0){
       return -1;
     }
     --p->scrolls;
@@ -916,7 +918,7 @@ rasterize_scrolls(ncpile* p, FILE* out){
 //
 // don't account for sprixelemissions here, as they were already counted.
 static int64_t
-rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
+rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   int64_t bytesemitted = 0;
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
@@ -926,7 +928,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       int y,x;
       ncplane_yx(s->n, &y, &x);
-      int r = sprite_draw(&nc->tcache, p, s, out, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_draw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
@@ -936,17 +938,17 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
       if(nc->tcache.pixel_commit){
         int y,x;
         ncplane_yx(s->n, &y, &x);
-        if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+        if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
           return -1;
         }
-        if(sprite_commit(&nc->tcache, out, s, false)){
+        if(sprite_commit(&nc->tcache, f, s, false)){
           return -1;
         }
         nc->rstate.hardcursorpos = true;
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
       if(nc->tcache.pixel_remove){
-        if(nc->tcache.pixel_remove(s->id, out) < 0){
+        if(nc->tcache.pixel_remove(s->id, f) < 0){
           return -1;
         }
         if( (*parent = s->next) ){
@@ -973,7 +975,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
+rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
   struct crender* rvec = p->crender;
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
@@ -997,12 +999,12 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // was not above a sprixel (and the cell is damaged). in the second
         // phase, we draw everything that remains damaged.
         ++nc->stats.s.cellemissions;
-        if(goto_location(nc, out, y, x)){
+        if(goto_location(nc, f, y, x)){
           return -1;
         }
         // set the style. this can change the color back to the default; if it
         // does, we need update our elision possibilities.
-        if(term_setstyles(out, nc, srccell)){
+        if(term_setstyles(f, nc, srccell)){
           return -1;
         }
         // if our cell has a default foreground *or* background, we can elide
@@ -1013,7 +1015,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         bool nobackground = cell_nobackground_p(srccell);
         if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
           if(raster_defaults(nc, nccell_fg_default_p(srccell),
-                            !nobackground && nccell_bg_default_p(srccell), out)){
+                             !nobackground && nccell_bg_default_p(srccell), f)){
             return -1;
           }
         }
@@ -1022,7 +1024,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         //  * the previous was non-default, and matches what we have now, or
         //  * we are a no-foreground glyph (iswspace() is true)
         if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
-          if(emit_fg_palindex(nc, out, srccell)){
+          if(emit_fg_palindex(nc, f, srccell)){
             return -1;
           }
         }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
@@ -1030,7 +1032,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.s.fgelisions;
           }else{
-            if(term_fg_rgb8(&nc->tcache, out, r, g, b)){
+            if(term_fg_rgb8(&nc->tcache, f, r, g, b)){
               return -1;
             }
             ++nc->stats.s.fgemissions;
@@ -1047,7 +1049,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         if(nobackground){
           ++nc->stats.s.bgelisions;
         }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
-          if(emit_bg_palindex(nc, out, srccell)){
+          if(emit_bg_palindex(nc, f, srccell)){
             return -1;
           }
         }else if(!nccell_bg_default_p(srccell)){ // rgb background
@@ -1055,7 +1057,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.s.bgelisions;
           }else{
-            if(term_bg_rgb8(&nc->tcache, out, br, bg, bb)){
+            if(term_bg_rgb8(&nc->tcache, f, br, bg, bb)){
               return -1;
             }
             ++nc->stats.s.bgemissions;
@@ -1076,7 +1078,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
             sprixel_invalidate(rvec[damageidx].sprixel, y, x);
           }
         }
-        if(term_putc(out, &nc->pool, srccell)){
+        if(term_putc(f, &nc->pool, srccell)){
           return -1;
         }
         rvec[damageidx].s.damaged = 0;
@@ -1098,26 +1100,26 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 // assuming success, it is non-0 if application-synchronized updates are
 // desired; in this case, a SUM footer is present at the end of the buffer.
 static int
-notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
+notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   logdebug("pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-  update_palette(nc, out);
-  if(rasterize_scrolls(p, out)){
+  update_palette(nc, f);
+  if(rasterize_scrolls(p, f)){
     return -1;
   }
   logdebug("Sprixel phase 1\n");
-  int64_t sprixelbytes = clean_sprixels(nc, p, out);
+  int64_t sprixelbytes = clean_sprixels(nc, p, f);
   if(sprixelbytes < 0){
     return -1;
   }
   logdebug("Glyph phase 1\n");
-  if(rasterize_core(nc, p, out, 0)){
+  if(rasterize_core(nc, p, f, 0)){
     return -1;
   }
   logdebug("Sprixel phase 2\n");
-  int64_t rasprixelbytes = rasterize_sprixels(nc, p, out);
+  int64_t rasprixelbytes = rasterize_sprixels(nc, p, f);
   if(rasprixelbytes < 0){
     return -1;
   }
@@ -1126,19 +1128,15 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     nc->stats.s.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->stats.lock);
   logdebug("Glyph phase 2\n");
-  if(rasterize_core(nc, p, out, 1)){
-    return -1;
-  }
-  // need to flush before doing SUMode size check, to update mstrsize
-  if(ncflush(out)){
+  if(rasterize_core(nc, p, f, 1)){
     return -1;
   }
 #define MIN_SUMODE_SIZE BUFSIZ
   if(*asu){
-    if(nc->rstate.mstrsize >= MIN_SUMODE_SIZE){
+    if(nc->rstate.f.used >= MIN_SUMODE_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);
       if(endasu){
-        if(fprintf(out, "%s", endasu) < 0 || ncflush(out)){
+        if(fbuf_puts(f, endasu) < 0){
           *asu = 0;
         }
       }else{
@@ -1149,13 +1147,13 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     }
   }
 #undef MIN_SUMODE_SIZE
-  return nc->rstate.mstrsize;
+  return nc->rstate.f.used;
 }
 
 // rasterize the rendered frame, and blockingly write it out to the terminal.
 static int
-raster_and_write(notcurses* nc, ncpile* p, FILE* out){
-  fseeko(out, 0, SEEK_SET);
+raster_and_write(notcurses* nc, ncpile* p, fbuf* f){
+  fbuf_reset(f);
   // will we be using application-synchronized updates? if this comes back as
   // non-zero, we are, and must emit the header. no SUM without a tty, and we
   // can't have the escape without being connected to one...
@@ -1164,11 +1162,11 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   // if we have SUM support, emit a BSU speculatively. if we do so, but don't
   // actually use an ESU, this BSUM must be skipped on write.
   if(useasu){
-    if(ncfputs(basu, out) == EOF){
+    if(fbuf_puts(f, basu) < 0){
       return -1;
     }
   }
-  if(notcurses_rasterize_inner(nc, p, out, &useasu) < 0){
+  if(notcurses_rasterize_inner(nc, p, f, &useasu) < 0){
     return -1;
   }
   // if we loaded a BSU into the front, but don't actually want to use it,
@@ -1184,19 +1182,19 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   int ret = 0;
   sigset_t oldmask;
   block_signals(&oldmask);
-  if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream + moffset,
-                    nc->rstate.mstrsize - moffset)){
+  if(blocking_write(fileno(nc->ttyfp), nc->rstate.f.buf + moffset,
+                    nc->rstate.f.used - moffset)){
     ret = -1;
   }
   unblock_signals(&oldmask);
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);
   if(nc->renderfp){
-    fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);
+    fprintf(nc->renderfp, "%s\n", nc->rstate.f.buf);
   }
   if(ret < 0){
     return ret;
   }
-  return nc->rstate.mstrsize;
+  return nc->rstate.f.used;
 }
 
 // if the cursor is enabled, store its location and disable it. then, once done
@@ -1204,17 +1202,17 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
 // during rasterization, we'll get grotesque flicker. 'out' is a memstream
 // used to collect a buffer.
 static inline int
-notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
+notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
   const int cursory = nc->cursory;
   const int cursorx = nc->cursorx;
   if(cursory >= 0){ // either both are good, or neither is
     notcurses_cursor_disable(nc);
   }
-  int ret = raster_and_write(nc, p, out);
+  int ret = raster_and_write(nc, p, f);
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
-    goto_location(nc, nc->ttyfp, nc->rstate.logendy, nc->rstate.logendx);
+    goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx);
     fflush(nc->ttyfp);
   }
   nc->last_pile = p;
@@ -1223,32 +1221,27 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
 
 // get the cursor to the upper-left corner by one means or another, clearing
 // the screen while doing so.
-int clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush){
+int clear_and_home(notcurses* nc, tinfo* ti, fbuf* f){
   // clear clears the screen and homes the cursor by itself
   const char* clearscr = get_escape(ti, ESCAPE_CLEAR);
   if(clearscr){
-    if(term_emit(clearscr, fp, flush) == 0){
+    if(fbuf_emit(f, clearscr) == 0){
       goto success;
     }
   }
   const ncplane* stdn = notcurses_stdplane_const(nc);
   // clearscr didn't fly. try scrolling everything off. first, go to the
   // bottom of the screen, then write N newlines.
-  if(goto_location(nc, fp, ncplane_dim_y(stdn) - 1, 0)){
+  if(goto_location(nc, f, ncplane_dim_y(stdn) - 1, 0)){
     return -1;
   }
   for(int y = 0 ; y < ncplane_dim_y(stdn) ; ++y){
-    if(ncfputc('\n', fp) == EOF){
+    if(fbuf_putc(f, '\n') < 0){
       return -1;
     }
   }
-  if(goto_location(nc, fp, 0, 0)){
+  if(goto_location(nc, f, 0, 0)){
     return -1;
-  }
-  if(flush){
-    if(ncflush(fp)){
-      return -1;
-    }
   }
 
 success:
@@ -1262,7 +1255,8 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(notcurses_resize(nc, dimy, dimx)){
     return -1;
   }
-  if(clear_and_home(nc, &nc->tcache, nc->ttyfp, true)){
+  fbuf_reset(&nc->rstate.f);
+  if(clear_and_home(nc, &nc->tcache, &nc->rstate.f)){
     return -1;
   }
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
@@ -1280,10 +1274,17 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   for(int i = 0 ; i < count ; ++i){
     p.crender[i].s.damaged = 1;
   }
-  int ret = notcurses_rasterize(nc, &p, nc->rstate.mstreamfp);
+  int ret = notcurses_rasterize(nc, &p, &nc->rstate.f);
   free(p.crender);
   if(ret < 0){
     return -1;
+  }
+  if(nc->rstate.f.used){
+    fwrite(nc->rstate.f.buf, nc->rstate.f.used, 1, nc->ttyfp);
+    fbuf_reset(&nc->rstate.f);
+    if(ncflush(nc->ttyfp)){
+      return -1;
+    }
   }
   ++nc->stats.s.refreshes;
   return 0;
@@ -1295,35 +1296,31 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
-  char* rastered = NULL;
-  size_t rastbytes = 0;
-  FILE* out = open_memstream(&rastered, &rastbytes);
-  if(out == NULL){
+  fbuf f = {};
+  if(fbuf_init(&f)){
     return -1;
   }
   const int count = (nc->lfdimx > p->dimx ? nc->lfdimx : p->dimx) *
                     (nc->lfdimy > p->dimy ? nc->lfdimy : p->dimy);
   p->crender = malloc(count * sizeof(*p->crender));
   if(p->crender == NULL){
-    fclose(out);
-    free(rastered);
+    fbuf_free(&f);
     return -1;
   }
   init_rvec(p->crender, count);
   for(int i = 0 ; i < count ; ++i){
     p->crender[i].s.damaged = 1;
   }
-  int ret = raster_and_write(nc, p, out);
+  int ret = raster_and_write(nc, p, &f);
   free(p->crender);
   if(ret > 0){
-    if(fprintf(fp, "%s", rastered) == ret){
+    if(fwrite(f.buf, f.used, 1, fp) == 1){
       ret = 0;
     }else{
       ret = -1;
     }
   }
-  fclose(out);
-  free(rastered);
+  fbuf_free(&f);
   return ret;
 }
 
@@ -1370,7 +1367,7 @@ int ncpile_rasterize(ncplane* n){
   const struct tinfo* ti = &ncplane_notcurses_const(n)->tcache;
   postpaint(ti, nc->lastframe, miny, minx, pile->crender, &nc->pool);
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
-  int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
+  int bytes = notcurses_rasterize(nc, pile, &nc->rstate.f);
   // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   pthread_mutex_lock(&nc->stats.lock);
@@ -1445,19 +1442,19 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   }
   notcurses* nc = ncplane_notcurses(p);
   unsigned useasu = false; // no SUM with file
-  fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
-  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
+  fbuf_reset(&nc->rstate.f);
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), &nc->rstate.f, &useasu);
   pthread_mutex_lock(&nc->stats.lock);
     update_render_bytes(&nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
   }
-  *buf = memdup(nc->rstate.mstreamfp, nc->rstate.mstrsize);
+  *buf = memdup(nc->rstate.f.buf, nc->rstate.f.used);
   if(buf == NULL){
     return -1;
   }
-  *buflen = nc->rstate.mstrsize;
+  *buflen = nc->rstate.f.used;
   return 0;
 }
 
@@ -1506,9 +1503,19 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
      && ncchannels_bg_rgb(nc->channels) == rgb){
     return 0;
   }
-  if(term_bg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
+  if(term_bg_rgb8(&nc->tcache, &f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
   ncchannels_set_bg_rgb(&nc->channels, rgb);
   return 0;
 }
@@ -1521,9 +1528,19 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
      && ncchannels_fg_rgb(nc->channels) == rgb){
     return 0;
   }
-  if(term_fg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
+  if(term_fg_rgb8(&nc->tcache, &f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
   ncchannels_set_fg_rgb(&nc->channels, rgb);
   return 0;
 }
@@ -1547,13 +1564,20 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0){
     return -1;
   }
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
+    return -1;
+  }
   // updates nc->rstate.cursor{y,x}
-  if(goto_location(nc, nc->ttyfp, y + nc->margin_t, x + nc->margin_l)){
+  if(goto_location(nc, &f, y + nc->margin_t, x + nc->margin_l)){
+    fbuf_free(&f);
     return -1;
   }
-  if(ncflush(nc->ttyfp)){
+  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1 || ncflush(nc->ttyfp)){
+    fbuf_free(&f);
     return -1;
   }
+  fbuf_free(&f);
   // if we were already positive, we're already visible, no need to write cnorm
   if(nc->cursory >= 0 && nc->cursorx >= 0){
     nc->cursory = y;

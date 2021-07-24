@@ -160,9 +160,9 @@ int fbcon_scrub(const struct ncpile* p, sprixel* s){
   return sixel_scrub(p, s);
 }
 
-int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
+int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
   (void)p;
-  (void)out; // we don't write to the stream
+  (void)f; // we don't write to the stream
   int wrote = 0;
   for(unsigned l = 0 ; l < (unsigned)s->pixy && l < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx

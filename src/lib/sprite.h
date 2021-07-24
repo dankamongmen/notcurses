@@ -174,24 +174,24 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int sixel_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               FILE* out, int y, int x);
+               fbuf* f, int y, int x);
 int kitty_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               FILE* out, int y, int x);
+               fbuf* f, int y, int x);
 int iterm_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               FILE* out, int y, int x);
-int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
+               fbuf* f, int y, int x);
+int kitty_move(sprixel* s, fbuf* f, unsigned noscroll);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
 int fbcon_scrub(const struct ncpile* p, sprixel* s);
-int kitty_remove(int id, FILE* out);
-int kitty_clear_all(FILE* fp);
+int kitty_remove(int id, fbuf* f);
+int kitty_clear_all(fbuf* f);
 int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
-int kitty_shutdown(FILE* fp);
-int sixel_shutdown(FILE* fp);
+int kitty_shutdown(fbuf* f);
+int sixel_shutdown(fbuf* f);
 uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
 uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
-int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
+int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit(struct ncplane* nc, int linesize, const void* data,
@@ -205,7 +205,7 @@ int kitty_blit_selfref(struct ncplane* nc, int linesize, const void* data,
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               FILE* out, int y, int x);
+               fbuf* f, int y, int x);
 
 typedef enum {
   // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same

@@ -24,9 +24,9 @@ int ncvisual_init(int logl){
   return 0;
 }
 
-void ncvisual_printbanner(const notcurses* nc){
+void ncvisual_printbanner(fbuf* f){
   if(visual_implementation.visual_printbanner){
-    visual_implementation.visual_printbanner(nc);
+    visual_implementation.visual_printbanner(f);
   }
 }
 

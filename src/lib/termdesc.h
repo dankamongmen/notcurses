@@ -12,6 +12,7 @@ extern "C" {
 #include <pthread.h>
 #include <stdbool.h>
 #include <notcurses/notcurses.h>
+#include "fbuf.h"
 
 struct ncpile;
 struct sprixel;
@@ -150,17 +151,17 @@ typedef struct tinfo {
   int (*pixel_wipe)(struct sprixel* s, int y, int x);
   // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
   int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
-  int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
+  int (*pixel_remove)(int id, fbuf* f); // kitty only, issue actual delete command
   int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
-                    struct sprixel* s, FILE* out, int y, int x);
+                    struct sprixel* s, fbuf* f, int y, int x);
   // execute move (erase old graphic, place at new location) if non-NULL
-  int (*pixel_move)(struct sprixel* s, FILE* out, unsigned noscroll);
+  int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll);
   int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
-  int (*pixel_shutdown)(FILE* fp);  // called during context shutdown
-  int (*pixel_clear_all)(FILE* fp); // called during context startup
+  int (*pixel_shutdown)(fbuf* f);   // called during context shutdown
+  int (*pixel_clear_all)(fbuf* f);  // called during context startup
   // make a loaded graphic visible. only used with kitty.
-  int (*pixel_commit)(FILE* fp, struct sprixel* s, unsigned noscroll);
+  int (*pixel_commit)(fbuf* f, struct sprixel* s, unsigned noscroll);
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based

@@ -141,11 +141,26 @@ fbuf_init_small(fbuf* f){
 
 // prepare f with an initial buffer.
 static inline int
+fbuf_init_small(fbuf* f){
+  f->used = 0;
+  f->size = 0;
+  f->buf = NULL;
+  return fbuf_grow(f, 0);
+}
+
+// prepare f with an initial buffer.
+static inline int
 fbuf_init(fbuf* f){
   f->used = 0;
   f->size = 0;
   f->buf = NULL;
   return fbuf_initgrow(f, 0);
+}
+
+// reset usage, but don't shrink the buffer or anything
+static inline void
+fbuf_reset(fbuf* f){
+  f->used = 0;
 }
 
 // reset usage, but don't shrink the buffer or anything
@@ -219,7 +234,11 @@ fbuf_emit(fbuf* f, const char* esc){
     return -1;
   }
   if(fbuf_puts(f, esc) < 0){
+<<<<<<< HEAD
     //logerror("error emitting escape (%s)\n", strerror(errno));
+=======
+    logerror("error emitting escape (%s)\n", strerror(errno));
+>>>>>>> 3ddb9554d (merrrge)
     return -1;
   }
   return 0;

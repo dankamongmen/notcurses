@@ -916,7 +916,7 @@ int sixel_scrub(const ncpile* p, sprixel* s){
 }
 
 // returns the number of bytes written
-int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
                int y, int x){
   (void)ti;
   // if we've wiped or rebuilt any cells, effect those changes now, or else
@@ -928,7 +928,7 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
     s->wipes_outstanding = false;
   }
   if(p){
-    if(goto_location(p->nc, out, y, x)){
+    if(goto_location(p->nc, f, y, x)){
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){
@@ -942,7 +942,7 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
       }
     }
   }
-  if(fwrite(s->glyph.buf, s->glyph.used, 1, out) != 1){
+  if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
     return -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
@@ -1015,8 +1015,8 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 // 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE
 // would be better, where they're supported.
-int sixel_shutdown(FILE* fp){
-  return term_emit("\e[?8452l", fp, false);
+int sixel_shutdown(fbuf* f){
+  return fbuf_emit(f, "\e[?8452l");
 }
 
 uint8_t* sixel_trans_auxvec(const tinfo* ti){

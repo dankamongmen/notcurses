@@ -195,8 +195,10 @@ auto oiio_destroy(ncvisual* ncv) -> void {
 }
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
-void oiio_printbanner(const struct notcurses* nc){
-  fprintf(nc->ttyfp, "openimageio %s\n", OIIO_VERSION_STRING);
+void oiio_printbanner(fbuf* f){
+  fbuf_puts(f, "openimageio ");
+  fbuf_puts(f, OIIO_VERSION_STRING);
+  fbuf_putc(f, '\n');
 }
 
 #endif

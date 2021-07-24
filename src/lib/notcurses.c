@@ -31,19 +31,19 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 
 // reset the current colors, styles, and palette. called on startup (to purge
 // any preexisting styling) and shutdown (to not affect further programs).
-int reset_term_attributes(const tinfo* ti, FILE* fp){
+int reset_term_attributes(const tinfo* ti, fbuf* f){
   int ret = 0;
   const char* esc;
-  if((esc = get_escape(ti, ESCAPE_RESTORECOLORS)) && term_emit(esc, fp, false)){
+  if((esc = get_escape(ti, ESCAPE_RESTORECOLORS)) && fbuf_emit(f, esc)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, false)){
+  if((esc = get_escape(ti, ESCAPE_OP)) && fbuf_emit(f, esc)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_SGR0)) && term_emit(esc, fp, false)){
+  if((esc = get_escape(ti, ESCAPE_SGR0)) && fbuf_emit(f, esc)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_OC)) && term_emit(esc, fp, false)){
+  if((esc = get_escape(ti, ESCAPE_OC)) && fbuf_emit(f, esc)){
     ret = -1;
   }
   return ret;
@@ -58,8 +58,8 @@ notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
   // collect output into the memstream buffer, and then dump it directly using
   // blocking_write(), to avoid problems with unreliable fflush().
-  FILE* out = nc->rstate.mstreamfp;
-  fseeko(out, 0, SEEK_SET);
+  fbuf* f = &nc->rstate.f;
+  fbuf_reset(f);
   int ret = 0;
   ret |= drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
@@ -69,32 +69,29 @@ notcurses_stop_minimal(void* vnc){
   // byte. if we leave an active escape open, it can lock up the terminal.
   // we only want to do it when in the middle of a rasterization, though. FIXME
   if(nc->tcache.pixel_shutdown){
-    ret |= nc->tcache.pixel_shutdown(out);
+    ret |= nc->tcache.pixel_shutdown(f);
   }
-  ret |= mouse_disable(out);
-  ret |= reset_term_attributes(&nc->tcache, out);
+  ret |= mouse_disable(f);
+  ret |= reset_term_attributes(&nc->tcache, f);
   if(nc->ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
-      if(sprite_clear_all(&nc->tcache, out)){
+      if(sprite_clear_all(&nc->tcache, f)){
         ret = -1;
       }
-      if(term_emit(esc, out, false)){
+      if(fbuf_emit(f, esc)){
         ret = -1;
       }
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
   }
-  if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && term_emit(esc, out, false)){
+  if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
   }
   const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-  if(cnorm && term_emit(cnorm, out, false)){
+  if(cnorm && fbuf_emit(f, cnorm)){
     ret = -1;
   }
-  if(fflush(out)){
-    return -1;
-  }
-  return blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize);
+  return blocking_write(fileno(nc->ttyfp), f->buf, f->used);
 }
 
 // make a heap-allocated wchar_t expansion of the multibyte string at s
@@ -895,38 +892,39 @@ init_banner_warnings(const notcurses* nc, FILE* out){
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to ttyfp. we are not yet on the alternate screen.
 static int
-init_banner(const notcurses* nc){
+init_banner(const notcurses* nc, fbuf* f){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
-    term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
-    fprintf(nc->ttyfp, "notcurses %s on %s %s\n", notcurses_version(),
-            nc->tcache.termname ? nc->tcache.termname : "?",
-            nc->tcache.termversion ? nc->tcache.termversion : "");
-    term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
+    term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
+    fbuf_printf(f, "notcurses %s on %s %s\n", notcurses_version(),
+                nc->tcache.termname ? nc->tcache.termname : "?",
+                nc->tcache.termversion ? nc->tcache.termversion : "");
+    term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      fprintf(nc->ttyfp, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %u colors",
-              nc->stdplane->leny, nc->tcache.cellpixy,
-              nc->stdplane->lenx, nc->tcache.cellpixx,
-              nc->stdplane->leny * nc->tcache.cellpixy,
-              nc->stdplane->lenx * nc->tcache.cellpixx,
-              sizeof(struct crender), nc->tcache.caps.colors);
+      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %u colors",
+                  nc->stdplane->leny, nc->tcache.cellpixy,
+                  nc->stdplane->lenx, nc->tcache.cellpixx,
+                  nc->stdplane->leny * nc->tcache.cellpixy,
+                  nc->stdplane->lenx * nc->tcache.cellpixx,
+                  sizeof(struct crender), nc->tcache.caps.colors);
     }else{
-      fprintf(nc->ttyfp, "%d rows %d cols (%sB) %zuB crend %d colors",
-              nc->stdplane->leny, nc->stdplane->lenx,
-              bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
-              sizeof(struct crender), nc->tcache.caps.colors);
+      fbuf_printf(f, "%d rows %d cols (%sB) %zuB crend %d colors",
+                  nc->stdplane->leny, nc->stdplane->lenx,
+                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
+                  sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
-      ncfputc('+', nc->ttyfp);
-      term_fg_rgb8(&nc->tcache, stdout, 0xe0, 0x60, 0x60);
-      ncfputc('R', nc->ttyfp);
-      term_fg_rgb8(&nc->tcache, stdout, 0x60, 0xe0, 0x60);
-      ncfputc('G', nc->ttyfp);
-      term_fg_rgb8(&nc->tcache, stdout, 0x20, 0x80, 0xff);
-      ncfputc('B', nc->ttyfp);
-      term_fg_palindex(nc, nc->ttyfp, nc->tcache.caps.colors <= 256 ?
+      fbuf_putc(f, '+');
+      term_fg_rgb8(&nc->tcache, f, 0xe0, 0x60, 0x60);
+      fbuf_putc(f, '+');
+      fbuf_putc(f, 'r');
+      term_fg_rgb8(&nc->tcache, f, 0x60, 0xe0, 0x60);
+      fbuf_putc(f, 'g');
+      term_fg_rgb8(&nc->tcache, f, 0x20, 0x80, 0xff);
+      fbuf_putc(f, 'b');
+      term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
     fprintf(nc->ttyfp, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
@@ -951,12 +949,12 @@ init_banner(const notcurses* nc){
 #error "No __BYTE_ORDER__ definition"
 #endif
             curses_version(), zlibVersion());
-    ncvisual_printbanner(nc);
-    init_banner_warnings(nc, nc->ttyfp);
+    ncvisual_printbanner(f);
+    init_banner_warnings(nc, f);
     const char* esc;
     if( (esc = get_escape(&nc->tcache, ESCAPE_SGR0)) ||
         (esc = get_escape(&nc->tcache, ESCAPE_OP))){
-      term_emit(esc, nc->ttyfp, false);
+      fbuf_emit(f, esc);
     }
   }
   return 0;
@@ -1050,8 +1048,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     return ret;
   }
   ret->last_pile = NULL;
-  ret->rstate.mstream = NULL;
-  ret->rstate.mstreamfp = NULL;
+  ret->rstate.f.buf = NULL;
+  ret->rstate.f.used = 0;
+  ret->rstate.f.size = 0;
   ret->loglevel = opts->loglevel;
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
@@ -1102,9 +1101,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  // mstreamfp is needed by notcurses_stop_minimal, so this must be done
+  // the fbuf is needed by notcurses_stop_minimal, so this must be done
   // before registering fatal signal handlers.
-  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
+  if(fbuf_init(&ret->rstate.f)){
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
@@ -1113,7 +1112,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
                    notcurses_stop_minimal)){
-    fclose(ret->rstate.mstreamfp);
+    fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
@@ -1126,7 +1125,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     drop_signals(ret);
-    fclose(ret->rstate.mstreamfp);
+    fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->stats.lock);
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
@@ -1168,7 +1167,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     logerror("Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
-  reset_term_attributes(&ret->tcache, ret->ttyfp);
+  reset_term_attributes(&ret->tcache, &ret->rstate.f);
   const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
   if(smkx && term_emit(smkx, ret->ttyfp, false)){
     free_plane(ret->stdplane);
@@ -1184,7 +1183,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  init_banner(ret);
+  ret->rstate.x = ret->rstate.y = -1;
+  init_banner(ret, &ret->rstate.f);
+  fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
+  fbuf_reset(&ret->rstate.f);
   if(ncflush(ret->ttyfp)){
     free_plane(ret->stdplane);
     goto err;
@@ -1217,7 +1219,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       // perform an explicit clear since the alternate screen was requested
       // (smcup *might* clear, but who knows? and it might not have been
       // available in any case).
-      if(clear_and_home(ret, &ret->tcache, ret->ttyfp, true)){
+      if(clear_and_home(ret, &ret->tcache, &ret->rstate.f)){
         goto err;
       }
       // no need to reestablish a preserved cursor -- that only affects the
@@ -1227,8 +1229,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // the sprite clear ought take place within the alternate screen, if it's
   // being used.
   if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
-    if(sprite_clear_all(&ret->tcache, ret->ttyfp) || fflush(ret->ttyfp)){
-      free_plane(ret->stdplane);
+    if(sprite_clear_all(&ret->tcache, &ret->rstate.f)){
+      goto err;
+    }
+  }
+  if(ret->rstate.f.used){
+    fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
+    fbuf_reset(&ret->rstate.f);
+    if(ncflush(ret->ttyfp)){
       goto err;
     }
   }
@@ -1237,10 +1245,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
 err:
   logpanic("Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
-  if(ret->rstate.mstreamfp){
-    fclose(ret->rstate.mstreamfp);
-  }
-  free(ret->rstate.mstream);
+  fbuf_free(&ret->rstate.f);
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
   drop_signals(ret);
   pthread_mutex_destroy(&ret->stats.lock);
@@ -1297,7 +1302,9 @@ int notcurses_stop(notcurses* nc){
         printf("\v");
         --targy;
       }
-      goto_location(nc, stdout, targy, 0);
+      fbuf_reset(&nc->rstate.f);
+      goto_location(nc, &nc->rstate.f, targy, 0);
+      fwrite(nc->rstate.f.buf, nc->rstate.f.used, 1, stdout);
       fflush(stdout);
     }
     ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
@@ -1305,15 +1312,12 @@ int notcurses_stop(notcurses* nc){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
     }
-    if(nc->rstate.mstreamfp){
-      fclose(nc->rstate.mstreamfp);
-    }
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
-    free(nc->rstate.mstream);
+    fbuf_free(&nc->rstate.f);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
     if(!nc->suppress_banner){
@@ -2226,9 +2230,19 @@ int notcurses_mouse_enable(notcurses* n){
 // this seems to work (note difference in suffix, 'l' vs 'h'), but what about
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
-  if(mouse_disable(n->ttyfp)){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
     return -1;
   }
+  if(mouse_disable(&f)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1 || fflush(n->ttyfp) == EOF){
+    fbuf_free(&f);
+    return -1;
+  }
+  fbuf_free(&f);
   return 0;
 }
 
