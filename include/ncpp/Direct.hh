@@ -16,10 +16,11 @@ namespace ncpp
 	class NCPP_API_EXPORT Direct : public Root
 	{
 	public:
-		explicit Direct (const char *termtype = nullptr, FILE *fp = nullptr, NotCurses *ncinst = nullptr)
+		explicit Direct (const char *termtype = nullptr, FILE *fp = nullptr,
+				             uint64_t flags = 0, NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
-			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp, 0);
+			direct = ncdirect_init (termtype, fp == nullptr ? stdout : fp, flags);
 			if (direct == nullptr)
 				throw init_error ("Notcurses failed to initialize direct mode");
 		}
