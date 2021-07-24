@@ -477,10 +477,6 @@ If things break or seem otherwise lackluster, **please** consult the
 * Portable: [terminfo(5)](http://man7.org/linux/man-pages/man5/terminfo.5.html)
 * Portable: [user_caps(5)](http://man7.org/linux/man-pages/man5/user_caps.5.html)
 
-### Grotesque vanity and meaningless metrics
-
-[![stargazers over time](https://starcharts.herokuapp.com/dankamongmen/notcurses.svg)](https://starcharts.herokuapp.com/dankamongmen/notcurses)
-
 > “Our fine arts were developed, their types and uses were established, in times
 very different from the present, by men whose power of action upon things was
 insignificant in comparison with ours. But the amazing growth of our
