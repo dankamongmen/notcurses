@@ -565,6 +565,7 @@ target_link_libraries(notcurses-input
 
 ############################################################################
 # nctetris
+if(NOT WIN32)
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(nctetris ${TETRISSRC})
 target_include_directories(nctetris
@@ -577,6 +578,7 @@ target_link_libraries(nctetris
   PRIVATE
     notcurses++
 )
+endif()
 
 ############################################################################
 # ncneofetch
@@ -601,7 +603,7 @@ file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
 file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 
 # all further binaries require multimedia support
-if(${USE_MULTIMEDIA} STREQUAL "none")
+if(${USE_MULTIMEDIA} STREQUAL "none" OR WIN32)
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncls.1.md")
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
 else()
