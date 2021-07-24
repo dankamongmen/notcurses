@@ -326,8 +326,12 @@ int perframe_direct(struct ncvisual* ncv, struct ncvisual_options* vopts,
 // argc/argv ought already be reduced to only the media arguments
 int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
                        ncblitter_e blitter, int lmargin,
-                       bool noninterp, unsigned transcolor){
-  Direct dm{};
+                       bool noninterp, unsigned transcolor,
+                       ncloglevel_e loglevel){
+  uint64_t flags = loglevel > NCLOGLEVEL_ERROR ?
+                    loglevel > NCLOGLEVEL_WARNING ?
+                     NCDIRECT_OPTION_VERY_VERBOSE : NCDIRECT_OPTION_VERBOSE : 0;
+  Direct dm{nullptr, nullptr, flags};
   if(!dm.canopen_images()){
     std::cerr << "Notcurses was compiled without multimedia support\n";
     return -1;
@@ -536,7 +540,7 @@ auto main(int argc, char** argv) -> int {
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
     r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter,
-                           ncopts.margin_l, noninterp, transcolor);
+                           ncopts.margin_l, noninterp, transcolor, ncopts.loglevel);
   }else{
     r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
                              quiet, loop, timescale, displaytime, noninterp, transcolor);
