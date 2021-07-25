@@ -11,9 +11,9 @@ int drop_signals(void* nc){
   int ret = -1;
   void* expected = nc;
   if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
-    ret = 0;
+    return -1;
   }
-  return ret;
+  return 0;
 }
 
 // this both sets up our signal handlers (unless that behavior has been
@@ -31,7 +31,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     loginfo("%p is already registered for signals (provided %p)\n", expected, vnc);
     return -1;
   }
-  return ret;
+  return 0;
 }
 #else
 // only one notcurses object can be the target of signal handlers, due to their
