@@ -42,6 +42,9 @@ void sprixel_debug(const sprixel* s, FILE* out){
 void sprixel_free(sprixel* s){
   if(s){
     loginfo("Destroying sprixel %u\n", s->id);
+    if(s->mstreamfp){
+      fclose(s->mstreamfp);
+    }
     if(s->n){
       s->n->sprite = NULL;
     }
