@@ -206,7 +206,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     int lastslot = ncp->slotstart ? ncp->slotstart - 1 : ncp->slotcount - 1; \
     ncplane_set_styles(ncp->ncp, ncp->legendstyle); \
     ncplane_set_channels(ncp->ncp, ncp->maxchannels); \
-    ncplane_printf_aligned(ncp->ncp, 0, NCALIGN_RIGHT, "%" PRIu64 "u", (uint64_t)ncp->slots[lastslot]); \
+    ncplane_printf_aligned(ncp->ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
   } \
   ncplane_home(ncp->ncp); \
   return 0; \
