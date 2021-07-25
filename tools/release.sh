@@ -34,6 +34,7 @@ for i in doc/man/man*/*.md cffi/notcurses-*.md cffi/ncdirect-*.md; do
 done
 sed -i -e "s/v$OLDVERSION/v$VERSION/g" doc/man/index.html
 sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" cffi/setup.py
+sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" python/setup.py
 sed -i -e "s/^version = \"$OLDVERSION\"$/version = \"$VERSION\"/" rust/Cargo.toml
 sed -i -e "s/atleast_version(\"$OLDVERSION\")/atleast_version(\"$VERSION\")/" rust/build/build.rs
 
