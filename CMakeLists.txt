@@ -792,7 +792,7 @@ configure_file(tools/builddef.h.in include/builddef.h)
 
 configure_package_config_file(tools/NotcursesConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/Notcurses
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses
 )
 
 write_basic_package_version_file(
@@ -802,7 +802,7 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/NotcursesCoreConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/NotcursesCore
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NotcursesCore
 )
 
 write_basic_package_version_file(
@@ -812,7 +812,7 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/Notcurses++Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/Notcurses++
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++
 )
 
 write_basic_package_version_file(
@@ -862,8 +862,8 @@ list(FILTER TESTDATA EXCLUDE REGEX ".*osp$")
 install(FILES ${TESTDATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses)
 endif()
 
-install(FILES ${MANPAGES1} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
-install(FILES ${MANPAGES3} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3)
+install(FILES ${MANPAGES1} DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man1)
+install(FILES ${MANPAGES3} DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man3)
 file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
 list(FILTER MARKDOWN EXCLUDE REGEX "INSTALL.md")
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
