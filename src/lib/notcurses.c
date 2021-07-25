@@ -902,17 +902,19 @@ init_banner(const notcurses* nc, fbuf* f){
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %u colors",
+      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d %luB crend %u colors",
                   nc->stdplane->leny, nc->tcache.cellpixy,
                   nc->stdplane->lenx, nc->tcache.cellpixx,
                   nc->stdplane->leny * nc->tcache.cellpixy,
                   nc->stdplane->lenx * nc->tcache.cellpixx,
-                  sizeof(struct crender), nc->tcache.caps.colors);
+                  (unsigned long)sizeof(struct crender),
+                  nc->tcache.caps.colors);
     }else{
-      fbuf_printf(f, "%d rows %d cols (%sB) %zuB crend %d colors",
+      fbuf_printf(f, "%d rows %d cols (%sB) %luB crend %u colors",
                   nc->stdplane->leny, nc->stdplane->lenx,
                   bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
-                  sizeof(struct crender), nc->tcache.caps.colors);
+                  (unsigned long)sizeof(struct crender),
+                  nc->tcache.caps.colors);
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
@@ -927,7 +929,7 @@ init_banner(const notcurses* nc, fbuf* f){
       term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
-    fprintf(nc->ttyfp, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
+    fbuf_printf(f, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
 #ifdef __clang__
             "", // name is contained in __VERSION__
 #else
