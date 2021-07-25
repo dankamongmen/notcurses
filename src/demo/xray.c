@@ -182,7 +182,6 @@ int xray_demo(struct notcurses* nc){
   marsh.lplane = NULL;
   marsh.dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier;
   int ret = -1;
-  // FIXME need do something about SIGINT here, which can leave us locked up
   if(pthread_create(&tid1, NULL, xray_thread, NULL)){
     goto err;
   }

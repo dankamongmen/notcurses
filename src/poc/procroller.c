@@ -72,7 +72,7 @@ int main(int argc, char** argv){
   ncplane_set_fg_rgb(std, 0x00bcaa);
   ncplane_printf_aligned(std, -1, NCALIGN_CENTER, "press any key to continue (%s)", *argv);
   notcurses_render(nc);
-  notcurses_getc(nc, NULL, NULL, NULL);
+  notcurses_get(nc, NULL, NULL);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
