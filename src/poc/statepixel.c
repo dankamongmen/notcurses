@@ -62,7 +62,7 @@ handle(struct notcurses* nc, const char* fn){
     ncvisual_destroy(ncv);
     return -1;
   }
-  uint64_t channels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0xff, 0xff, 0xff);
   ncplane_set_base(t, " ", 0, channels);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ds, NULL);
