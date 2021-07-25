@@ -172,6 +172,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int sixel_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
                FILE* out, int y, int x);
 int kitty_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
@@ -199,10 +200,28 @@ int iterm_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const struct blitterargs* bargs);
+int kitty_blit_selfref(struct ncplane* nc, int linesize, const void* data,
+                       int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
                FILE* out, int y, int x);
+
+typedef enum {
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  KITTY_ALWAYS_SCROLLS,
+  // until 0.21.3's introduction of 't=z' for self-reference, we had to
+  // keep a complete copy of the RGBA data, in case a wiped cell needed to
+  // be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  KITTY_ANIMATION,
+  // with 0.21.3, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  KITTY_SELFREF,
+} kitty_graphics_e;
 
 #ifdef __cplusplus
 }
