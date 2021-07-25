@@ -8,7 +8,7 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   }
   char* glyph = s->glyph;
   for(int y = 0 ; y < s->cellpxy ; ++y){
-    size_t offset = (ycell * s->dimx + xcell) * 4;
+    size_t offset = ((ycell * s->cellpxy + y) * s->dimx * s->cellpxx + xcell * s->cellpxx) * 4;
     for(int x = 0 ; x < s->cellpxx ; ++x){
       const int vyx = (y % s->cellpxy) * s->cellpxx + (x % s->cellpxx);
       auxvec[vyx] = glyph[offset + 3];
@@ -21,13 +21,34 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
 }
 
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  // FIXME build back from transparency values in auxvec
-  (void)s;
-  (void)ycell;
-  (void)xcell;
-  (void)auxvec;
-  logerror("Not yet implemented\n");
-  return -1;
+  if(auxvec == NULL){
+    return -1;
+  }
+  sprixcell_e state = SPRIXCELL_TRANSPARENT;
+  for(int y = 0 ; y < s->cellpxy ; ++y){
+    size_t offset = ((ycell * s->cellpxy + y) * s->dimx * s->cellpxx + xcell * s->cellpxx) * 4;
+    for(int x = 0 ; x < s->cellpxx ; ++x){
+      const int vyx = (y % s->cellpxy) * s->cellpxx + (x % s->cellpxx);
+      if(x == 0 && y == 0){
+        if(auxvec[vyx] == 0){
+          state = SPRIXCELL_TRANSPARENT;
+        }else{
+          state = SPRIXCELL_OPAQUE_KITTY;
+        }
+      }else{
+        if(auxvec[vyx] == 0 && state == SPRIXCELL_OPAQUE_KITTY){
+          state = SPRIXCELL_MIXED_KITTY;
+        }else if(auxvec[vyx] && state == SPRIXCELL_TRANSPARENT){
+          state = SPRIXCELL_MIXED_KITTY;
+        }
+      }
+      s->glyph[offset + 3] = auxvec[vyx];
+      offset += 4;
+    }
+  }
+  s->n->tam[s->dimx * ycell + xcell].state = state;
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
 }
 
 int fbcon_blit(struct ncplane* n, int linesize, const void* data,
