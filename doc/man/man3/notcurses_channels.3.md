@@ -27,7 +27,7 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t ncchannel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**int ncchannel_set_rgb8(uint32_t* ***channel***, int ***r***, int ***g***, int ***b***);**
+**unsigned ncchannel_set_rgb8(uint32_t* ***channel***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
 **int ncchannel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
 
@@ -71,9 +71,9 @@ notcurses_channels - operations on notcurses channels
 
 **unsigned ncchannels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int ncchannels_set_fg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
+**int ncchannels_set_fg_rgb8(uint64_t* ***channels***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncchannels_set_bg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
+**int ncchannels_set_bg_rgb8(uint64_t* ***channels***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
 **bool ncchannels_fg_default_p(uint64_t ***channels***);**
 

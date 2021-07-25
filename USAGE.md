@@ -1710,8 +1710,8 @@ ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned*
 // interpreted in some lossy fashion. None of r, g, or b may exceed 255.
 // "HP-like" terminals require setting foreground and background at the same
 // time using "color pairs"; Notcurses will manage color pairs transparently.
-int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);
-int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);
+int ncplane_set_fg_rgb8(struct ncplane* n, unsigned r, unsigned g, unsigned b);
+int ncplane_set_bg_rgb8(struct ncplane* n, unsigned r, unsigned g, unsigned b);
 
 // Same, but clipped to [0..255].
 void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
@@ -2109,7 +2109,7 @@ nccell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-nccell_set_fg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_fg_rgb8(nccell* cl, unsigned r, unsigned g, unsigned b){
   return ncchannels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
@@ -2128,7 +2128,7 @@ nccell_set_fg_rgb(nccell* c, uint32_t channel){
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-nccell_set_bg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_bg_rgb8(nccell* cl, unsigned r, unsigned g, unsigned b){
   return ncchannels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
@@ -2870,11 +2870,8 @@ channel_rgb8(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged.
 static inline int
-channel_set_rgb8(unsigned* channel, int r, int g, int b){
+channel_set_rgb8(unsigned* channel, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
-    return -1;
-  }
-  if(r < 0 || g < 0 || b < 0){
     return -1;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
@@ -2989,7 +2986,7 @@ ncchannels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
 // Set the r, g, and b channels for the foreground component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-ncchannels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
+ncchannels_set_fg_rgb8(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   unsigned channel = ncchannels_fchannel(*channels);
   if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
@@ -3001,7 +2998,7 @@ ncchannels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-ncchannels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
+ncchannels_set_bg_rgb8(uint64_t* channels, unsigned r, unsigned g, unsigned b){
   unsigned channel = ncchannels_bchannel(*channels);
   if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
@@ -3389,7 +3386,7 @@ ncpixel_set_b(uint32_t* pixel, int b){
 
 // set the RGB values of an RGB pixel
 static inline int
-ncpixel_set_rgb8(uint32_t* pixel, int r, int g, int b){
+ncpixel_set_rgb8(uint32_t* pixel, unsigned r, unsigned g, unsigned b){
   if(pixel_set_r(pixel, r) || pixel_set_g(pixel, g) || pixel_set_b(pixel, b)){
     return -1;
   }

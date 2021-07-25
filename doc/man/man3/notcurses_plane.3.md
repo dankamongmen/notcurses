@@ -155,9 +155,9 @@ typedef struct ncplane_options {
 
 **static inline unsigned ncplane_bg_rgb8(struct ncplane* ***n***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int ncplane_set_fg_rgb8(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
+**int ncplane_set_fg_rgb8(struct ncplane* ***n***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncplane_set_bg_rgb8(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
+**int ncplane_set_bg_rgb8(struct ncplane* ***n***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
 **void ncplane_set_fg_rgb8_clipped(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 

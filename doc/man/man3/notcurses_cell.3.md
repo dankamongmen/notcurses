@@ -96,9 +96,9 @@ typedef struct nccell {
 
 **unsigned nccell_bg_rgb8(const ncell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int nccell_set_fg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**int nccell_set_fg_rgb8(nccell* ***c***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int nccell_set_bg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**int nccell_set_bg_rgb8(nccell* ***c***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
 **void nccell_set_fg_rgb8_clipped(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
 
