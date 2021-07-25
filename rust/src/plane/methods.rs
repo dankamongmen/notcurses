@@ -309,7 +309,7 @@ impl NcPlane {
     pub fn set_fg_rgb8(&mut self, red: NcComponent, green: NcComponent, blue: NcComponent) {
         unsafe {
             // Can't fail because of type enforcing.
-            let _ = crate::ncplane_set_fg_rgb8(self, red as i32, green as i32, blue as i32);
+            let _ = crate::ncplane_set_fg_rgb8(self, red as u32, green as u32, blue as u32);
         }
     }
 
@@ -326,7 +326,7 @@ impl NcPlane {
     pub fn set_bg_rgb8(&mut self, red: NcComponent, green: NcComponent, blue: NcComponent) {
         unsafe {
             // Can't fail because of type enforcing.
-            let _ = crate::ncplane_set_bg_rgb8(self, red as i32, green as i32, blue as i32);
+            let _ = crate::ncplane_set_bg_rgb8(self, red as u32, green as u32, blue as u32);
         }
     }
 
