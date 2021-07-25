@@ -29,6 +29,7 @@ extern "C" {
 #define sigset_t int
 #define sigemptyset(x)
 #define O_CLOEXEC O_NOINHERIT
+#define O_NONBLOCK 0
 #define O_DIRECTORY 0
 #define S_IFLNK 0
 #else // bsd
