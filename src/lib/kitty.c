@@ -578,10 +578,12 @@ add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[s
   return 0;
 }
 
+// writes to |*animated| based on normalized |level|
 static int
-prep_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
+prep_deflator(kitty_graphics_e level, z_stream* zctx, int pixy, int pixx,
+              unsigned* animated){
   memset(zctx, 0, sizeof(*zctx));
-  if(animated){
+  if(level >= KITTY_ANIMATION){
     int zret;
     // 2 seems to work well for things that are going to compress up
     // meaningfully at all, while not taking too much time.
@@ -598,6 +600,9 @@ prep_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
     }
     zctx->avail_out = b;
     zctx->next_out = buf;
+    *animated = true;
+  }else{
+    *animated = false;
   }
   return 0;
 }
@@ -617,7 +622,7 @@ destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
-                 tament* tam, int* parse_start, unsigned animated){
+                 tament* tam, int* parse_start, kitty_graphics_e level){
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     logerror("Stride (%d) badly aligned\n", linesize);
@@ -626,7 +631,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   // we only deflate if we're using animation, since otherwise we need be able
   // to edit the encoded bitmap in-place for wipes/restores.
   z_stream zctx;
-  if(prep_deflator(animated, &zctx, leny, lenx)){
+  unsigned animated;
+  if(prep_deflator(level, &zctx, leny, lenx, &animated)){
     return -1;
   }
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
@@ -769,12 +775,35 @@ err:
   return -1;
 }
 
+// with t=z, we can reference the original frame, and say "redraw this region",
+// thus avoiding the need to carry the original data around in our auxvecs.
+int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  (void)auxvec;
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  FILE* fp = s->mstreamfp;
+  const int ystart = ycell * s->cellpxy;
+  const int xstart = xcell * s->cellpxx;
+  const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
+  const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
+  logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->id, ycell, xcell, ylen, xlen);
+  fprintf(fp, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,q=2;\x1b\\",
+          xcell * s->cellpxx, ycell * s->cellpxy,
+          xcell * s->cellpxx, ycell * s->cellpxy,
+          xlen, ylen, s->id);
+  const int tyx = xcell + ycell * s->dimx;
+  s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 0;
+}
+
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   if(init_sprixel_animation(s)){
     return -1;
   }
   FILE* fp = s->mstreamfp;
-  logdebug("Rebuilding sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  logdebug("rebuilding %u at %d/%d\n", s->id, ycell, xcell);
   const int ystart = ycell * s->cellpxy;
   const int xstart = xcell * s->cellpxx;
   const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
@@ -848,8 +877,9 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
-int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
-                    const blitterargs* bargs, unsigned animated){
+static inline int
+kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
+                    const blitterargs* bargs, kitty_graphics_e level){
 //fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
@@ -876,10 +906,10 @@ int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int le
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   if(write_kitty_data(s->mstreamfp, linesize, leny, lenx, cols, data,
-                      bargs, tam, &parse_start, animated)){
+                      bargs, tam, &parse_start, level)){
     goto error;
   }
-  if(!animated){
+  if(level == KITTY_ALWAYS_SCROLLS){
     if(fclose(s->mstreamfp)){
       goto error;
     }
@@ -905,12 +935,20 @@ error:
 
 int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs){
-  return kitty_blit_core(n, linesize, data, leny, lenx, bargs, false);
+  return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
+                         KITTY_ALWAYS_SCROLLS);
 }
 
 int kitty_blit_animated(ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const blitterargs* bargs){
-  return kitty_blit_core(n, linesize, data, leny, lenx, bargs, true);
+  return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
+                         KITTY_ANIMATION);
+}
+
+int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
+                       int leny, int lenx, const blitterargs* bargs){
+  return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
+                         KITTY_SELFREF);
 }
 
 int kitty_remove(int id, FILE* out){
