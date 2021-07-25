@@ -45,7 +45,7 @@ tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
 }
 
 static int
-braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
+braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
             const char* indent, wchar_t suit,
             const wchar_t* bounds, wchar_t r8, wchar_t l8,
             const char* trailer){
@@ -197,8 +197,8 @@ vertviz(struct ncplane* n, wchar_t l, wchar_t li, wchar_t ri, wchar_t r,
 }
 
 static int
-unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
-  if(ti->caps.utf8){
+unicodedumper(struct ncplane* n, const char* indent){
+  if(notcurses_canutf8(ncplane_notcurses_const(n))){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls ⎧", indent, NCQUADBLOCKS);
     sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
@@ -295,13 +295,15 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
 }
 
 static int
-display_logo(const tinfo* ti, struct ncplane* n, const char* path){
+display_logo(struct ncplane* n, const char* path){
+  int cpixy, cpixx;
+  ncplane_pixelgeom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
     return -1;
   }
   // FIXME ought be exactly 4:1
-  if(ncvisual_resize(ncv, 3 * ti->cellpixy, 24 * ti->cellpixx)){
+  if(ncvisual_resize(ncv, 3 * cpixy, 24 * cpixx)){
     ncvisual_destroy(ncv);
     return -1;
   }
@@ -432,10 +434,10 @@ int main(int argc, const char** argv){
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
-  unicodedumper(stdn, &nc->tcache, indent);
+  unicodedumper(stdn, indent);
   char* path = prefix_data("notcurses.png");
   if(path){
-    display_logo(&nc->tcache, stdn, path);
+    display_logo(stdn, path);
     free(path);
   }
   if(notcurses_render(nc)){
