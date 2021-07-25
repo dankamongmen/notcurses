@@ -10,11 +10,9 @@ static void* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL);
 int drop_signals(void* nc){
   int ret = -1;
   void* expected = nc;
-  pthread_mutex_lock(&lock);
   if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
     ret = 0;
   }
-  pthread_mutex_unlock(&lock);
   return ret;
 }
 
@@ -25,6 +23,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
                   int(*handler)(void*)){
   (void)no_quit_sigs;
   (void)no_winch_sigs;
+  (void)handler;
   void* expected = NULL;
   // don't register ourselves if we don't intend to set up signal handlers
   // we expect NULL (nothing registered), and want to register nc
