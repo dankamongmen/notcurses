@@ -375,6 +375,36 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   return 1;
 }
 
+// FIXME merge back with kitty_wipe_animation
+int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  FILE* fp = s->mstreamfp;
+  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
+          xcell * s->cellpxx,
+          ycell * s->cellpxy,
+          s->cellpxx,
+          s->cellpxy,
+          s->id);
+  // FIXME ought be smaller around the fringes!
+  int totalp = s->cellpxy * s->cellpxx;
+  // FIXME preserve so long as cellpixel geom stays constant?
+  for(int p = 0 ; p + 3 <= totalp ; p += 3){
+    ncfputs("AAAAAAAAAAAAAAAA", fp);
+  }
+  if(totalp % 3 == 1){
+    ncfputs("AAAAAA==", fp);
+  }else if(totalp % 3 == 2){
+    ncfputs("AAAAAAAAAAA=", fp);
+  }
+  // FIXME need chunking for cells of 768+ pixels
+  fprintf(fp, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id);
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
+
 sprixel* kitty_recycle(ncplane* n){
   assert(n->sprite);
   sprixel* hides = n->sprite;
@@ -790,7 +820,7 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
   const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
   logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->id, ycell, xcell, ylen, xlen);
-  fprintf(fp, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,c=2,r=1,q=2;\x1b\\",
+  fprintf(fp, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,c=2,q=2;\x1b\\",
           xcell * s->cellpxx, ycell * s->cellpxy,
           xcell * s->cellpxx, ycell * s->cellpxy,
           xlen, ylen, s->id);

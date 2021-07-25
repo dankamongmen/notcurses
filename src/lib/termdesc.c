@@ -103,13 +103,14 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     ti->sixel_maxy_pristine = INT_MAX;
     set_pixel_blitter(kitty_blit);
   }else{
-    ti->pixel_wipe = kitty_wipe_animation;
     if(level == KITTY_ANIMATION){
+      ti->pixel_wipe = kitty_wipe_animation;
       ti->pixel_rebuild = kitty_rebuild_animation;
       set_pixel_blitter(kitty_blit_animated);
     }else{
+      ti->pixel_wipe = kitty_wipe_selfref;
       ti->pixel_rebuild = kitty_rebuild_selfref;
-      set_pixel_blitter(kitty_blit_selfref);
+      set_pixel_blitter(kitty_blit_animated);
     }
   }
   sprite_init(ti, fd);
@@ -507,7 +508,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    if(compare_versions(ti->termversion, "0.21.3") >= 0){
+    if(compare_versions(ti->termversion, "0.21.2") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
     }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_ANIMATION);
