@@ -883,10 +883,10 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
 // "%d tardies to work off, by far the most in the class!\n", p->scrolls
 static int
 rasterize_scrolls(ncpile* p, FILE* out){
-  logdebug("Order-%d scroll\n", p->scrolls);
   if(p->scrolls == 0){
     return 0;
   }
+  logdebug("Order-%d scroll\n", p->scrolls);
   if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= p->scrolls;
     if(p->nc->rstate.logendy < 0){
