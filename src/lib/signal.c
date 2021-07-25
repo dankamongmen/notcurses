@@ -7,8 +7,17 @@
 static void* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL);
 
 #ifdef __MINGW64__
+int block_signals(sigset_t* old_blocked_signals){
+  (void)old_blocked_signals;
+  return 0;
+}
+
+int unblock_signals(const sigset_t* old_blocked_signals){
+  (void)old_blocked_signals;
+  return 0;
+}
+
 int drop_signals(void* nc){
-  int ret = -1;
   void* expected = nc;
   if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
     return -1;
