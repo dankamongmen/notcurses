@@ -98,7 +98,7 @@ typedef enum {
 #define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
 
 // We typically install a signal handler for SIGWINCH that generates a resize
-// event in the notcurses_getc() queue. Set to inhibit this handler.
+// event in the notcurses_get() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004
 
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
@@ -575,20 +575,20 @@ control timing. Notcurses brooks no delay; all characters of an escape sequence
 must be readable without delay for it to be interpreted as such.
 
 ```c
-// All input is currently taken from stdin, though this will likely change. We
-// attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
-// Extended Grapheme Cluster. It is also possible that we will read a special
-// keypress, i.e. anything that doesn't correspond to a Unicode codepoint (e.g.
-// arrow keys, function keys, screen resize events, etc.). These are mapped
-// into Unicode's Supplementary Private Use Area-B, starting at U+100000.
+// All input is taken from stdin. We attempt to read a single UTF8-encoded
+// Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
+// possible that we will read a special keypress, i.e. anything that doesn't
+// correspond to a Unicode codepoint (e.g. arrow keys, function keys, screen
+// resize events, etc.). These are mapped into Unicode's Supplementary
+// Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
 //
-// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
-// notcurses_getc_blocking() blocks until a codepoint or special key is read,
-// or until interrupted by a signal.
+// notcurses_getc_nblock() is nonblocking. notcurses_getc_blocking() blocks
+// until a codepoint or special key is read, or until interrupted by a signal.
+// notcurses_get() allows an optional timeout to be controlled.
 //
 // In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
-// returned to indicate that no input was available, but only by
-// notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
+// returned to indicate that no input was available. Otherwise (including on
+// EOF) (uint32_t)-1 is returned.
 
 #define suppuabize(w) ((w) + 0x100000)
 
@@ -627,7 +627,7 @@ must be readable without delay for it to be interpreted as such.
 #define NCKEY_EXIT    suppuabize(133)
 #define NCKEY_PRINT   suppuabize(134)
 #define NCKEY_REFRESH suppuabize(135)
-// Mouse events. We try to encode some details into the char32_t (i.e. which
+// Mouse events. We try to encode some details into the uint32_t (i.e. which
 // button was pressed), but some is embedded in the ncinput event. The release
 // event is generic across buttons; callers must maintain state, if they care.
 #define NCKEY_BUTTON1  suppuabize(201)
@@ -636,15 +636,15 @@ must be readable without delay for it to be interpreted as such.
 // ... up to 11 mouse buttons
 #define NCKEY_RELEASE  suppuabize(212)
 
-// Is this char32_t a Supplementary Private Use Area-B codepoint?
+// Is this uint32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
-nckey_supppuab_p(char32_t w){
+nckey_supppuab_p(uint32_t w){
   return w >= 0x100000 && w <= 0x10fffd;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse events.
 typedef struct ncinput {
-  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  uint32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
   int y;           // y cell coordinate of event, -1 for undefined
   int x;           // x cell coordinate of event, -1 for undefined
   bool alt;        // was alt held?
@@ -653,33 +653,28 @@ typedef struct ncinput {
   uint64_t seqnum; // input event number
 } ncinput;
 
-// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-// Signals in sigmask (less several we handle internally) will be atomically
-// masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
-// be NULL. Returns 0 on a timeout. If an event is processed, the return value
-// is the 'id' field from that event. 'ni' may be NULL.
-char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                        sigset_t* sigmask, ncinput* ni);
+// Read a UTF-32-encoded Unicode codepoint from input. This might only be part
+// of a larger EGC. Provide a NULL 'ts' to block at length, and otherwise a
+// timespec to bound blocking. Returns a single Unicode code point, or
+// (uint32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an
+// event is processed, the return value is the 'id' field from that event.
+// 'ni' may be NULL.
+uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
+                       ncinput* ni)
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
-static inline char32_t
+static inline uint32_t
 notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask, ni);
+  return notcurses_get(n, &ts, ni);
 }
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
-static inline char32_t
+static inline uint32_t
 notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask, ni);
+  return notcurses_get(n, NULL, ni);
 }
 
 static inline bool
@@ -712,7 +707,7 @@ successful call to `notcurses_mouse_enable()`, and can later be disabled.
 ```c
 // Enable the mouse in "button-event tracking" mode with focus detection and
 // UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_getc().
+// is returned, and mouse events will be published to notcurses_get().
 int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
@@ -720,7 +715,7 @@ int notcurses_mouse_disable(struct notcurses* n);
 
 // Is the event a synthesized mouse event?
 static inline bool
-nckey_mouse_p(char32_t r){
+nckey_mouse_p(uint32_t r){
   return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
 }
 ```

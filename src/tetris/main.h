@@ -2,7 +2,7 @@ bool IOLoop(ncpp::NotCurses& nc, Tetris& t, std::atomic_bool& gameover) {
   ncpp::Plane* stdplane = nc.get_stdplane();
   char32_t input = 0;
   ncinput ni;
-  while(!gameover && (input = nc.getc(true, &ni)) != (char32_t)-1){
+  while(!gameover && (input = nc.get(true, &ni)) != (char32_t)-1){
     if(input == 'q'){
       break;
     }

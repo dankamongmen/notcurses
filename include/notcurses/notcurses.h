@@ -94,7 +94,7 @@ typedef enum {
 // -1 if a non-printable/illegal character is encountered.
 API int ncstrwidth(const char* mbs);
 
-// input functions like notcurses_getc() return ucs32-encoded uint32_t. convert
+// input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 // a series of uint32_t to utf8. result must be at least 4 bytes per input
 // uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
 // the number of bytes used is returned, or -1 if passed illegal ucs32, or too
@@ -857,7 +857,7 @@ typedef enum {
 #define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
 
 // We typically install a signal handler for SIGWINCH that generates a resize
-// event in the notcurses_getc() queue. Set to inhibit this handler.
+// event in the notcurses_get() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 
 // We typically install a signal handler for SIG{INT, ILL, SEGV, ABRT, TERM,
@@ -976,20 +976,20 @@ API struct ncplane* notcurses_bottom(struct notcurses* n);
 // Destroy all ncplanes other than the stdplane.
 API void notcurses_drop_planes(struct notcurses* nc);
 
-// All input is currently taken from stdin, though this will likely change. We
-// attempt to read a single UTF8-encoded Unicode codepoint, *not* an entire
-// Extended Grapheme Cluster. It is also possible that we will read a special
-// keypress, i.e. anything that doesn't correspond to a Unicode codepoint (e.g.
-// arrow keys, function keys, screen resize events, etc.). These are mapped
-// into Unicode's Supplementary Private Use Area-B, starting at U+100000.
+// All input is taken from stdin. We attempt to read a single UTF8-encoded
+// Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
+// possible that we will read a special keypress, i.e. anything that doesn't
+// correspond to a Unicode codepoint (e.g. arrow keys, function keys, screen
+// resize events, etc.). These are mapped into Unicode's Supplementary
+// Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
 //
-// notcurses_getc() and notcurses_getc_nblock() are both nonblocking.
-// notcurses_getc_blocking() blocks until a codepoint or special key is read,
-// or until interrupted by a signal.
+// notcurses_getc_nblock() is nonblocking. notcurses_getc_blocking() blocks
+// until a codepoint or special key is read, or until interrupted by a signal.
+// notcurses_get() allows an optional timeout to be controlled.
 //
 // In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
-// returned to indicate that no input was available, but only by
-// notcurses_getc(). Otherwise (including on EOF) (uint32_t)-1 is returned.
+// returned to indicate that no input was available. Otherwise (including on
+// EOF) (uint32_t)-1 is returned.
 
 // Is this uint32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
@@ -1031,15 +1031,14 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   return true;
 }
 
-// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-// Signals in sigmask (less several we handle internally) will be atomically
-// masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (uint32_t)-1 on error. 'sigmask' may
-// be NULL. Returns 0 on a timeout. If an event is processed, the return value
-// is the 'id' field from that event. 'ni' may be NULL.
-API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            const sigset_t* sigmask, ncinput* ni)
+// Read a UTF-32-encoded Unicode codepoint from input. This might only be part
+// of a larger EGC. Provide a NULL 'ts' to block at length, and otherwise a
+// timespec to bound blocking. Returns a single Unicode code point, or
+// (uint32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an
+// event is processed, the return value is the 'id' field from that event.
+// 'ni' may be NULL.
+API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
+                           ncinput* ni)
   __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
@@ -1053,19 +1052,15 @@ API int notcurses_inputready_fd(struct notcurses* n)
 // is ready, returns 0.
 static inline uint32_t
 notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return notcurses_getc(n, &ts, &sigmask, ni);
+  return notcurses_get(n, &ts, ni);
 }
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
 static inline uint32_t
 notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  return notcurses_getc(n, NULL, &sigmask, ni);
+  return notcurses_get(n, NULL, ni);
 }
 
 static inline bool
@@ -1075,7 +1070,7 @@ ncinput_nomod_p(const ncinput* ni){
 
 // Enable the mouse in "button-event tracking" mode with focus detection and
 // UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_getc().
+// is returned, and mouse events will be published to notcurses_get().
 API int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
@@ -4407,6 +4402,12 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
+
+// Backwards-compatibility wrapper; this will be removed for ABI3.
+// Use notcurses_get() in new code.
+API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+                            const void* unused, ncinput* ni)
+  __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
 
 #define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT

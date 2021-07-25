@@ -131,19 +131,19 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     struct timespec interval;
     clock_gettime(CLOCK_MONOTONIC, &interval);
     uint64_t nsnow = timespec_to_ns(&interval);
-    char32_t keyp;
+    uint32_t keyp;
     ncinput ni;
     if(absnow > nsnow){
       ns_to_timespec(absnow - nsnow, &interval);
-      keyp = nc.getc(&interval, nullptr, &ni);
+      keyp = nc.get(&interval, &ni);
     }else{
-      keyp = nc.getc();
+      keyp = nc.get();
     }
-    if(keyp == (char32_t)-1){
+    if(keyp == (uint32_t)-1){
       break;
     }
     if(keyp == ' '){
-      if((keyp = nc.getc(true)) == (char32_t)-1){
+      if((keyp = nc.get(true)) == (uint32_t)-1){
         return -1;
       }
     }
@@ -438,8 +438,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               ncplane_destroy(n);
               return -1;
             }
-            char32_t ie = nc.getc(true);
-            if(ie == (char32_t)-1){
+            uint32_t ie = nc.get(true);
+            if(ie == (uint32_t)-1){
               return -1;
             }else if(ie == 'q'){
               return 0;

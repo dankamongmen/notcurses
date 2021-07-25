@@ -15,7 +15,7 @@ struct timespec;
 struct notcurses;
 
 typedef struct ncinput {
-  char32_t id;     // Unicode codepoint
+  uint32_t id;     // Unicode codepoint
   int y;           // Y cell coordinate of event, -1 for undefined
   int x;           // X cell coordinate of event, -1 for undefined
   bool alt;        // Was Alt held during the event?
@@ -25,15 +25,15 @@ typedef struct ncinput {
 } ncinput;
 ```
 
-**bool nckey_mouse_p(char32_t ***r***);**
+**bool nckey_mouse_p(uint32_t ***r***);**
 
 **bool ncinput_nomod_p(const ncinput* ***ni***);**
 
-**char32_t notcurses_getc(struct notcurses* ***n***, const struct timespec* ***ts***, const sigset_t* ***sigmask***, ncinput* ***ni***);**
+**uint32_t notcurses_get(struct notcurses* ***n***, const struct timespec* ***ts***, ncinput* ***ni***);**
 
-**char32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
+**uint32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**char32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
+**uint32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
 
 **int notcurses_mouse_enable(struct notcurses* ***n***);**
 
@@ -62,8 +62,8 @@ non-canonical mode (see **termios(3)**), and thus keys are received without line
 notcurses maintains its own buffer of input characters, which it will attempt
 to fill whenever it reads.
 
-**notcurses_getc** allows a **struct timespec** to be specified as a timeout.
-If **ts** is **NULL**, **notcurses_getc** will block until it reads input, or
+**notcurses_get** allows a **struct timespec** to be specified as a timeout.
+If **ts** is **NULL**, **notcurses_get** will block until it reads input, or
 is interrupted by a signal. If its values are zeroes, there will be no blocking.
 Otherwise, **ts** specifies a minimum time to wait for input before giving up.
 On timeout, 0 is returned. Signals in **sigmask** will be masked and blocked in
@@ -72,7 +72,7 @@ details will be reported in **ni**, unless **ni** is NULL.
 
 **notcurses_inputready_fd** provides a file descriptor suitable for use with
 I/O multiplexors such as **poll(2)**. This file descriptor might or might not
-be the actual input file descriptor. If it readable, **notcurses_getc** can
+be the actual input file descriptor. If it readable, **notcurses_get** can
 be called without the possibility of blocking.
 
 **ncinput_equal_p** compares two **ncinput** structs for data equality (i.e.
@@ -122,11 +122,11 @@ generated.
 
 # RETURN VALUES
 
-On error, the **getc** family of functions return **(char32_t)-1**. The cause of the error may be determined
-using **errno(3)**. Unless the error was a temporary one (especially e.g. **EINTR**),
-**notcurses_getc** probably cannot be usefully called forthwith. On a
-timeout, 0 is returned. Otherwise, the UCS-32 value of a Unicode codepoint, or
-a synthesized event, is returned.
+On error, the **get** family of functions return **(uint32_t)-1**. The cause
+of the error may be determined using **errno(3)**. Unless the error was a
+temporary one (especially e.g. **EINTR**), **notcurses_get** probably cannot
+be usefully called forthwith. On a timeout, 0 is returned. Otherwise, the
+UCS-32 value of a Unicode codepoint, or a synthesized event, is returned.
 
 **notcurses_mouse_enable** returns 0 on success, and non-zero on failure, as
 does **notcurses_mouse_disable**.
@@ -137,12 +137,12 @@ the same input (though not necessarily the same input event), and
 
 # NOTES
 
-Like any other notcurses function, it is an error to call **notcurses_getc**
+Like any other notcurses function, it is an error to call **notcurses_get**
 during or after a call to **notcurses_stop**. If a thread is always sitting
 on blocking input, it can be tricky to guarantee that this doesn't happen.
 
 Only one thread may call into the input stack at once, but unlike almost every
-other function in notcurses, **notcurses_getc** and friends can be called
+other function in notcurses, **notcurses_get** and friends can be called
 concurrently with **notcurses_render**.
 
 Do not simply **poll** the input file descriptor. Instead, use the file

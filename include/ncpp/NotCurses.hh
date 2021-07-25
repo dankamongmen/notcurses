@@ -240,12 +240,12 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
-		uint32_t getc (const timespec *ts, sigset_t *sigmask = nullptr, ncinput *ni = nullptr) const noexcept
+		uint32_t get (const timespec *ts, ncinput *ni = nullptr) const noexcept
 		{
-			return notcurses_getc (nc, ts, sigmask, ni);
+			return notcurses_get (nc, ts, ni);
 		}
 
-		uint32_t getc (bool blocking = false, ncinput *ni = nullptr) const noexcept
+		uint32_t get (bool blocking = false, ncinput *ni = nullptr) const noexcept
 		{
 			if (blocking)
 				return notcurses_getc_blocking (nc, ni);

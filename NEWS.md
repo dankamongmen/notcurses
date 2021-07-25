@@ -2,6 +2,17 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.12 (not yet released)
+  * `notcurses_getc()` and `ncdirect_getc()` no longer accept a `sigset_t*`
+    as their third argument. Instead, they accept a `void*`, with which
+    they will do nothing. This is due to POSIX signals being unportable in
+    addition to terrible, and this one wart complicating wrappers a great
+    deal. If you were using this functionality, you were probably using it
+    incorrectly, no offense. If you're certain you were doing it right,
+    roll your own with `pthread_sigmask()`, and accept the race condition.
+    For ABI3, these functions will be dropped entirely; for now they have
+    only been marked deprecated. New functions `ncdirect_get()` and
+    `notcurses_get()` elide this parameter entirely, and ought be used in
+    new code. All callers have been updated.
 
 * 2.3.11 (2021-07-20)
   * Notcurses now requires libz to build. In exchange, it can now generate

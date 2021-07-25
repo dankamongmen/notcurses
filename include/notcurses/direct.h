@@ -306,15 +306,13 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             int ylen, int xlen, unsigned ctlword)
   __attribute__ ((nonnull (1)));
 
-// See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-// of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-// Signals in sigmask (less several we handle internally) will be atomically
-// masked and unmasked per ppoll(2). '*sigmask' should generally contain all
-// signals. Returns a single Unicode code point, or (uint32_t)-1 on error.
-// 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the
-// return value is the 'id' field from that event. 'ni' may be NULL.
-API uint32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
-                           sigset_t* sigmask, ncinput* ni)
+// Provide a NULL 'ts' to block at length, a 'ts' of 0 for non-blocking
+// operation, and otherwise a timespec to bound blocking. Returns a single
+// Unicode code point, or (uint32_t)-1 on error. Returns 0 on a timeout. If
+// an event is processed, the return value is the 'id' field from that
+// event. 'ni' may be NULL.
+API uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* ts,
+                          ncinput* ni)
   __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
@@ -328,19 +326,15 @@ API int ncdirect_inputready_fd(struct ncdirect* n)
 // is ready, returns 0.
 static inline uint32_t
 ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
-  sigset_t sigmask;
-  sigfillset(&sigmask);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-  return ncdirect_getc(n, &ts, &sigmask, ni);
+  return ncdirect_get(n, &ts, ni);
 }
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
 static inline uint32_t
 ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  return ncdirect_getc(n, NULL, &sigmask, ni);
+  return ncdirect_get(n, NULL, ni);
 }
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
@@ -494,6 +488,11 @@ ncdirect_canbraille(const struct ncdirect* nc){
 // u7 terminfo capability, and that we are connected to an actual terminal.
 API bool ncdirect_canget_cursor(const struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
+
+// Deprecated, to be removed for ABI3. Use ncdirect_get() in new code.
+API uint32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
+                           const void* unused, ncinput* ni)
+  __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
 
 #undef ALLOC
 #undef API

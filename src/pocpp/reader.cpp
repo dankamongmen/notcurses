@@ -56,7 +56,7 @@ auto main(int argc, const char** argv) -> int {
   }
   ncinput ni;
   nc.render();
-  while(nc.getc(true, &ni) != (char32_t)-1){
+  while(nc.get(true, &ni) != (char32_t)-1){
     if(ni.ctrl && ni.id == 'L'){
       notcurses_refresh(nc, NULL, NULL);
     }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){

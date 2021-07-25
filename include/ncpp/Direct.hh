@@ -207,16 +207,16 @@ namespace ncpp
 			return error_guard (ncdirect_flush (direct), -1);
 		}
 
-		char32_t getc (ncinput *ni, bool blocking) const noexcept
+		char32_t get (ncinput *ni, bool blocking) const noexcept
 		{
 			if (blocking)
 				return ncdirect_getc_blocking (direct, ni);
 			return ncdirect_getc_nblock (direct, ni);
 		}
 
-		char32_t getc (const struct timespec *ts, sigset_t *sigmask, ncinput *ni) const noexcept
+		char32_t get (const struct timespec *ts, ncinput *ni) const noexcept
 		{
-			return ncdirect_getc (direct, ts, sigmask, ni);
+			return ncdirect_get (direct, ts, ni);
 		}
 
 		int get_inputready_fd () const noexcept

@@ -391,39 +391,27 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 
 // blocks up through ts (infinite with NULL ts), returning number of events
 // (0 on timeout) or -1 on error/interruption.
+#ifndef __MINGW64__
 static int
-block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
+block_on_input(int fd, const struct timespec* ts){
   struct pollfd pfd = {
     .fd = fd,
     .events = POLLIN,
     .revents = 0,
   };
-  // we don't want to persistently modify the provided sigmask
-  sigset_t scratchmask;
-  if(sigmask){
-    memcpy(&scratchmask, sigmask, sizeof(*sigmask));
-  }else{
-    sigfillset(&scratchmask);
-  }
-  sigdelset(&scratchmask, SIGCONT);
-  sigdelset(&scratchmask, SIGWINCH);
-  sigdelset(&scratchmask, SIGILL);
-  sigdelset(&scratchmask, SIGFPE);
-  sigdelset(&scratchmask, SIGSEGV);
-  sigdelset(&scratchmask, SIGABRT);
-  // now add those which we don't want while writing
-  sigaddset(&scratchmask, SIGINT);
-  sigaddset(&scratchmask, SIGQUIT);
-  sigaddset(&scratchmask, SIGTERM);
+  sigset_t smask;
+  sigfillset(&smask);
+  sigdelset(&smask, SIGCONT);
+  sigdelset(&smask, SIGWINCH);
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
   int events;
 #ifdef __APPLE__
   int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
-  while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME scratchmask?
+  while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
 #else
-  while((events = ppoll(&pfd, 1, ts, &scratchmask)) < 0){
+  while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
 #endif
     if(events == 0){
       return 0;
@@ -437,6 +425,9 @@ block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   }
   return events;
 }
+#else
+// FIXME windows block_on_input()
+#endif
 
 static inline size_t
 input_queue_space(const ncinputlayer* nc){
@@ -563,14 +554,13 @@ handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 // helper so we can do counter increment at a single location
 static inline uint32_t
 ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
-                      const sigset_t* sigmask, ncinput* ni, int leftmargin,
-                      int topmargin){
+                      ncinput* ni, int leftmargin, int topmargin){
 //fprintf(stderr, "PRESTAMP OCCUPADO: %d\n", nc->inputbuf_occupied);
   if(nc->inputbuf_occupied){
     return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
   errno = 0;
-  if(block_on_input(nc->infd, ts, sigmask) > 0){
+  if(block_on_input(nc->infd, ts) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin);
   }
@@ -579,9 +569,8 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
 }
 
 // infp has already been set non-blocking
-uint32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
-                        const sigset_t* sigmask, ncinput* ni){
-  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni,
+uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
+  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, ni,
                                      nc->margin_l, nc->margin_t);
   if(r != (uint32_t)-1){
     uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
@@ -593,16 +582,27 @@ uint32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
   return r;
 }
 
-uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
-                       sigset_t* sigmask, ncinput* ni){
-  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni, 0, 0);
+uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,
+                        const void* unused, ncinput* ni){
+  (void)unused; // FIXME remove for abi3
+  return notcurses_get(nc, ts, ni);
+}
+
+uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* ts, ncinput* ni){
+  uint32_t r = ncinputlayer_prestamp(&n->tcache.input, ts, ni, 0, 0);
   if(r != (uint32_t)-1){
-    uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
+    uint64_t stamp = n->tcache.input.input_events++; // need increment even if !ni
     if(ni){
       ni->seqnum = stamp;
     }
   }
   return r;
+}
+
+uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
+                       const void* unused, ncinput* ni){
+  (void)unused; // FIXME remove for abi3
+  return ncdirect_get(nc, ts, ni);
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
@@ -1527,7 +1527,7 @@ void ncinput_extract_clrs(ncinputlayer* ni){
       // specify a NULL timeout, meaning we block as long as we need, until
       // there's input available, or we are interrupted by a signal.
       logdebug("Blocking on input");
-      if(block_on_input(ni->infd, NULL, NULL) < 1){
+      if(block_on_input(ni->infd, NULL) < 1){
         pthread_mutex_lock(&ni->lock); // interrupted?
         break;
       }

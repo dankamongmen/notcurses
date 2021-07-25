@@ -252,7 +252,7 @@ int input_demo(ncpp::NotCurses* nc) {
   start = timenow_to_ns();
   std::thread tid(Ticker, nc);
   ncinput ni;
-  while(errno = 0, (r = nc->getc(true, &ni)) != (char32_t)-1){
+  while(errno = 0, (r = nc->get(true, &ni)) != (char32_t)-1){
     if(r == 0){ // interrupted by signal
       continue;
     }

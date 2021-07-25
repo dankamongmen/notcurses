@@ -27,7 +27,6 @@ extern "C" {
 #define wcwidth(w) 1
 #define wcswidth(w, s) (s)
 #define sigset_t int
-#define sigfillset(x)
 #define sigemptyset(x)
 #define O_CLOEXEC O_NOINHERIT
 #define O_DIRECTORY 0
