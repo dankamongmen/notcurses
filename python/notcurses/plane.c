@@ -1138,9 +1138,9 @@ NcPlane_set_bchannel(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_set_fg_rgb8(NcPlaneObject *self, PyObject *args)
 {
-    int r = 0, g = 0, b = 0;
+    unsigned r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_fg_rgb8(self->ncplane_ptr, r, g, b));
 
@@ -1150,9 +1150,9 @@ NcPlane_set_fg_rgb8(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_set_bg_rgb8(NcPlaneObject *self, PyObject *args)
 {
-    int r = 0, g = 0, b = 0;
+    unsigned r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_bg_rgb8(self->ncplane_ptr, r, g, b));
 
