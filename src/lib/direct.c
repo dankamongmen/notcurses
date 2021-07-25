@@ -959,11 +959,14 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
 }
 
 int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
-  uint32_t stylemask = n->stylemask | stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
-    return 0;
+  if((stylebits & n->tcache.supported_styles) < stylebits){ // unsupported styles
+    return -1;
   }
-  return -1;
+  uint32_t stylemask = n->stylemask | stylebits;
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+    return -1;
+  }
+  return 0;
 }
 
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
@@ -977,10 +980,10 @@ unsigned ncdirect_styles(ncdirect* n){
 // turn off any specified stylebits
 int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
-    return 0;
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+    return -1;
   }
-  return -1;
+  return 0;
 }
 
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
