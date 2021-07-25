@@ -106,13 +106,11 @@ sex_viz(struct ncplane* n, const wchar_t* sex, wchar_t r, const wchar_t* post){
   if(ncplane_putwc(n, r) <= 0){
     ncplane_putchar(n, ' ');
   }
-  ncplane_putchar(n, ' ');
   for(const wchar_t* p = post ; *p ; ++p){
     if(ncplane_putwc(n, *p) <= 0){
       ncplane_putchar(n, ' ');
     }
   }
-  ncplane_putchar(n, ' ');
   return 0;
 }
 
@@ -172,7 +170,6 @@ triviz(struct ncplane* n, const wchar_t* w1, const wchar_t* w2, const wchar_t* w
   wvizn(n, wf, 2);
   wvizn(n, w10, 1);
   ncplane_putchar(n, ' ');
-  ncplane_putchar(n, ' ');
   wvizn(n, w11, 2);
   wvizn(n, w12, 1);
   ncplane_putchar(n, ' ');
@@ -204,32 +201,32 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls ⎧", indent, NCQUADBLOCKS);
-    sex_viz(n, NCSEXBLOCKS, L'⎫', L"🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
+    sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
     vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', "┌╥─╥─╥┐🭩");
-    ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗     ⎩", indent);
-    sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
+    ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗ ⫷⫸  ⎩", indent);
+    sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"♦♣\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
     vertviz(n, L'⎪', NCEIGHTHSR[1], NCEIGHTHSL[1], L'⎪', "├╜╓╫╖╙┤🭫");
     ncplane_printf(n, "%s╾╳╼ ", indent);
     triviz(n, NCWHITESQUARESW, NCWHITECIRCLESW, NCDIAGONALSW, &NCDIAGONALSW[4],
            NCCIRCULARARCSW, NCWHITETRIANGLESW, NCSHADETRIANGLESW, NCBLACKTRIANGLESW,
            NCBOXLIGHTW, &NCBOXLIGHTW[4], NCBOXHEAVYW, &NCBOXHEAVYW[4], NCBOXROUNDW,
            &NCBOXROUNDW[4], NCBOXDOUBLEW, &NCBOXDOUBLEW[4], NCBOXOUTERW, &NCBOXOUTERW[4],
-           L"▵△▹▷▿▽◃◁", NCARROWW);
+           L"⩘▵△▹▷▿▽◃◁", NCARROWW);
     vertviz(n, L'⎪', NCEIGHTHSR[2], NCEIGHTHSL[2], L'⎪', "├─╨╫╨─┤┇");
     ncplane_printf(n, "%s╱╽╲ ", indent);
     triviz(n, &NCWHITESQUARESW[2], &NCWHITECIRCLESW[2], &NCDIAGONALSW[2], &NCDIAGONALSW[6],
            &NCCIRCULARARCSW[2], &NCWHITETRIANGLESW[2], &NCSHADETRIANGLESW[2], &NCBLACKTRIANGLESW[2],
            &NCBOXLIGHTW[2], &NCBOXLIGHTW[5], &NCBOXHEAVYW[2], &NCBOXHEAVYW[5], &NCBOXROUNDW[2],
            &NCBOXROUNDW[5], &NCBOXDOUBLEW[2], &NCBOXDOUBLEW[5], &NCBOXOUTERW[2], &NCBOXOUTERW[5],
-           L"▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
+           L"⩗▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
     vertviz(n, L'⎪', NCEIGHTHSR[3], NCEIGHTHSL[3], L'⎪', "╞═╤╬╤═╡┋");
-    braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L'♠', L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4],
+    braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L' ', L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4],
                 "╞╕╘╬╛╒╡┊");
-    braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L'♥', L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5],
+    braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L' ', L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5],
                 "└┴─╨─┴┘╏");
-    braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L'♦', L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6],
+    braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L' ', L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6],
                 "╭──╮⟬⟭╔╗");
-    braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L'♣', L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7],
+    braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L' ', L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7],
                 "│╭╮│╔═╝║");
     legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
     wviz(n, L"🭨🭪  ");
