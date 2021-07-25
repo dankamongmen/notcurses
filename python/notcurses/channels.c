@@ -94,9 +94,9 @@ static PyObject *
 python_ncchannel_set_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long ncchannel = {0};
-    int r, g, b = {0};
+    unsigned r, g, b = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kiii", &ncchannel, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkkk", &ncchannel, &r, &g, &b));
 
     uint32_t ncchannel_fixed_size = (uint32_t)ncchannel;
 
@@ -353,9 +353,9 @@ static PyObject *
 python_ncchannels_set_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long ncchannels = {0};
-    int r, g, b = {0};
+    unsigned r, g, b = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &ncchannels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kkkk", &ncchannels, &r, &g, &b));
 
     uint64_t ncchannels_fixed_size = (uint64_t)ncchannels;
 
@@ -428,9 +428,9 @@ static PyObject *
 python_ncchannels_set_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long ncchannels = {0};
-    int r, g, b = {0};
+    unsigned r, g, b = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &ncchannels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kkkk", &ncchannels, &r, &g, &b));
 
     uint64_t ncchannels_fixed_size = (uint64_t)ncchannels;
 
