@@ -85,9 +85,10 @@ setup_iterm_bitmaps(tinfo* ti, int fd){
 }
 
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
-// lacked animation, and thus requires the older interface.
+// lacked animation, and must thus redraw the complete image every time it
+// changes. requires the older interface.
 static inline void
-setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
+setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
@@ -95,16 +96,21 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
   ti->pixel_clear_all = kitty_clear_all;
-  ti->sixel_maxy_pristine = sixel_maxy_pristine;
-  if(sixel_maxy_pristine){
+  if(level == KITTY_ALWAYS_SCROLLS){
     ti->pixel_wipe = kitty_wipe;
     ti->pixel_trans_auxvec = kitty_trans_auxvec;
     ti->pixel_rebuild = kitty_rebuild;
+    ti->sixel_maxy_pristine = INT_MAX;
     set_pixel_blitter(kitty_blit);
   }else{
     ti->pixel_wipe = kitty_wipe_animation;
-    ti->pixel_rebuild = kitty_rebuild_animation;
-    set_pixel_blitter(kitty_blit_animated);
+    if(level == KITTY_ANIMATION){
+      ti->pixel_rebuild = kitty_rebuild_animation;
+      set_pixel_blitter(kitty_blit_animated);
+    }else{
+      ti->pixel_rebuild = kitty_rebuild_selfref;
+      set_pixel_blitter(kitty_blit_selfref);
+    }
   }
   sprite_init(ti, fd);
 }
@@ -501,11 +507,12 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    // kitty only introduced C=1 in 0.20.0
-    if(compare_versions(ti->termversion, "0.20.0") < 0){
-      setup_kitty_bitmaps(ti, fd, INT_MAX);
+    if(compare_versions(ti->termversion, "0.21.3") >= 0){
+      setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
+    }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
+      setup_kitty_bitmaps(ti, fd, KITTY_ANIMATION);
     }else{
-      setup_kitty_bitmaps(ti, fd, 0);
+      setup_kitty_bitmaps(ti, fd, KITTY_ALWAYS_SCROLLS);
     }
     if(add_pushcolors_escapes(ti, tablelen, tableused)){
       return -1;
