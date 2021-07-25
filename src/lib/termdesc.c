@@ -109,8 +109,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   sprite_init(ti, fd);
 }
 
-// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
-// lacked animation, and thus requires the older interface.
+#ifdef __linux__
 static inline void
 setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_rebuild = fbcon_rebuild;
@@ -121,6 +120,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   set_pixel_blitter(fbcon_blit);
   sprite_init(ti, fd);
 }
+#endif
 
 static bool
 query_rgb(void){
@@ -658,7 +658,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
-#ifdef __linux__
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
@@ -668,7 +667,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       // FIXME set up pixel-drawing API for framebuffer #1369
     }
   }
-#endif
   if(fd >= 0){
     bool minimal = (qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(fd, minimal)){

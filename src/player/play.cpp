@@ -95,7 +95,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   stdn->set_fg_rgb(0x80c080);
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
-  intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
   marsh->blitter = vopts->blitter;
   if(marsh->blitter == NCBLIT_DEFAULT){
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
@@ -110,11 +110,11 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(subtitle){
     handle_subtitle(subtitle, marsh, vopts);
   }
-  const intmax_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
+  const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
-  const intmax_t m = ns / (60 * NANOSECS_IN_SEC);
+  const int64_t m = ns / (60 * NANOSECS_IN_SEC);
   ns -= m * (60 * NANOSECS_IN_SEC);
-  const intmax_t s = ns / NANOSECS_IN_SEC;
+  const int64_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
   if(!marsh->quiet){
     stdn->printf(0, NCAlign::Right, "%02" PRId64 ":%02" PRId64 ":%02" PRId64 ".%04" PRId64,

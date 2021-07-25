@@ -70,9 +70,11 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
     // 1,024). That can overflow with large 64-bit values, but we can first
     // divide both sides by mult, and then scale by 100.
     if(omitdec && (val % dv) == 0){
-      sprintfed = sprintf(buf, "%" PRIu64 "%lc", val / dv, (wint_t)prefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%" PRIu64 "%lc", (uint64_t)(val / dv),
+                          (wint_t)prefixes[consumed - 1]);
     }else{
-      sprintfed = sprintf(buf, "%.2f%lc", (double)val / dv, (wint_t)prefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%.2f%lc", (double)val / dv,
+                          (wint_t)prefixes[consumed - 1]);
     }
     if(uprefix){
       buf[sprintfed] = uprefix;
@@ -84,13 +86,15 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   // val / decimal < dv (or we ran out of prefixes)
   if(omitdec && val % decimal == 0){
     if(consumed){
-      sprintfed = sprintf(buf, "%" PRIu64 "%lc", val / decimal, (wint_t)subprefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%" PRIu64 "%lc", (uint64_t)(val / decimal),
+                          (wint_t)subprefixes[consumed - 1]);
     }else{
-      sprintfed = sprintf(buf, "%" PRIu64, val / decimal);
+      sprintfed = sprintf(buf, "%" PRIu64, (uint64_t)(val / decimal));
     }
   }else{
     if(consumed){
-      sprintfed = sprintf(buf, "%.2f%lc", (double)val / decimal, (wint_t)subprefixes[consumed - 1]);
+      sprintfed = sprintf(buf, "%.2f%lc", (double)val / decimal,
+                          (wint_t)subprefixes[consumed - 1]);
     }else{
       sprintfed = sprintf(buf, "%.2f", (double)val / decimal);
     }
