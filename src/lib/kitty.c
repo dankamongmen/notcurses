@@ -352,7 +352,7 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   }
   logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   FILE* fp = s->mstreamfp;
-  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,c=1,q=2;",
+  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,q=2;",
           xcell * s->cellpxx,
           ycell * s->cellpxy,
           s->cellpxx,
