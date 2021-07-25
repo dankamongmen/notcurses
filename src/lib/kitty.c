@@ -695,18 +695,20 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
-        // animated auxvecs carry the entirety of the replacement data in
-        // them. on the first pixel of the cell, ditch the previous auxvec
-        // in its entirety, and copy over the entire cell.
-        if(animated && x % cdimx == 0 && y % cdimy == 0){
-          uint8_t* tmp;
-          tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
-                                  data, linesize, tam[tyx].auxvector,
-                                  transcolor);
-          if(tmp == NULL){
-            goto err;
+        // old-style animated auxvecs carry the entirety of the replacement
+        // data in them. on the first pixel of the cell, ditch the previous
+        // auxvec in its entirety, and copy over the entire cell.
+        if(level == KITTY_ANIMATION){
+          if(x % cdimx == 0 && y % cdimy == 0){
+            uint8_t* tmp;
+            tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
+                                    data, linesize, tam[tyx].auxvector,
+                                    transcolor);
+            if(tmp == NULL){
+              goto err;
+            }
+            tam[tyx].auxvector = tmp;
           }
-          tam[tyx].auxvector = tmp;
         }
         if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
           if(!animated){
