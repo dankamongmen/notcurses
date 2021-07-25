@@ -46,7 +46,7 @@ sudo apt-get update
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 ![Windows](https://img.shields.io/badge/-Windows-grey?logo=windows)
-![macOS](https://img.shields.io/badge/-OSX-grey?logo=osx)
+![macOS](https://img.shields.io/badge/-macOS-grey?logo=macos)
 [![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
