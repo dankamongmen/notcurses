@@ -728,7 +728,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         // old-style animated auxvecs carry the entirety of the replacement
         // data in them. on the first pixel of the cell, ditch the previous
         // auxvec in its entirety, and copy over the entire cell.
-// FIXME HERE
         if(x % cdimx == 0 && y % cdimy == 0){
           if(level == KITTY_ANIMATION){
             uint8_t* tmp;
@@ -740,7 +739,11 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
             }
             tam[tyx].auxvector = tmp;
           }else if(level == KITTY_SELFREF){
-            tam[tyx].auxvector = malloc(1);
+            tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
+            if(tam[tyx].auxvector == NULL){
+              goto err;
+            }
+            memcpy(tam[tyx].auxvector, &tam[tyx].state, sizeof(tam[tyx].state));
           }
         }
         if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
@@ -813,7 +816,6 @@ err:
 // with t=z, we can reference the original frame, and say "redraw this region",
 // thus avoiding the need to carry the original data around in our auxvecs.
 int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  (void)auxvec;
   if(init_sprixel_animation(s)){
     return -1;
   }
@@ -828,7 +830,7 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
           xcell * s->cellpxx, ycell * s->cellpxy,
           xlen, ylen, s->id);
   const int tyx = xcell + ycell * s->dimx;
-  s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+  memcpy(&s->n->tam[tyx].state, auxvec, sizeof(s->n->tam[tyx].state));
   s->invalidated = SPRIXEL_INVALIDATED;
   return 0;
 }
