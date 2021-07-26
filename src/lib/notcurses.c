@@ -1559,7 +1559,7 @@ void scroll_down(ncplane* n){
 }
 
 int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
-  return c->width ? c->width : 1;
+  return nccell_cols(c);
 }
 
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
@@ -1619,18 +1619,25 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     return 0;
   }
   // A wide character obliterates anything to its immediate right (and marks
-  // that cell as wide). Any character placed atop one half of a wide character
-  // obliterates the other half. Note that a wide char can thus obliterate two
-  // wide chars, totalling four columns.
+  // that cell as wide). Any character placed atop one cell of a wide character
+  // obliterates all cells. Note that a two-cell glyph can thus obliterate two
+  // other two-cell glyphs, totalling four columns.
   nccell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
-  if(n->x > 0){
-    if(nccell_wide_right_p(targ)){
-      // right half will never be on the first column of a row
-      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
-    }else if(nccell_wide_left_p(targ)){
-      // left half will never be on the last column of a row
-      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
-    }
+  // we're always starting on the leftmost cell of our output glyph. check the
+  // target, and find the leftmost cell of the glyph it will be displacing.
+  // obliterate as we go along.
+  int idx = n->x;
+  nccell* lmc = targ;
+  while(nccell_wide_right_p(lmc)){
+    nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, idx)]);
+    lmc = ncplane_cell_ref_yx(n, n->y, --idx);
+  }
+  // we're now on the leftmost cell of the target glyph.
+  int twidth = nccell_cols(targ);
+  nccell_release(n, &n->fb[nfbcellidx(n, n->y, idx)]);
+  twidth -= n->x - idx;
+  while(--twidth > 0){
+    nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + twidth)]);
   }
   targ->stylemask = stylemask;
   targ->channels = channels;
@@ -1642,10 +1649,11 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   ++n->x;
   for(int i = 1 ; i < cols ; ++i){
     nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
-    if(nccell_wide_left_p(candidate)){
-      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
+    int off = nccell_cols(candidate);
+    nccell_release(n, &n->fb[nfbcellidx(n, n->y, n->x)]);
+    while(--off > 0){
+      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + off)]);
     }
-    nccell_release(n, candidate);
     candidate->channels = targ->channels;
     candidate->stylemask = targ->stylemask;
     candidate->width = targ->width;
@@ -1655,7 +1663,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
-  const int cols = nccell_width(n, c);
+  const int cols = nccell_cols(c);
   const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }

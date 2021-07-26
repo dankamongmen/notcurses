@@ -13,6 +13,9 @@ rearrangements of Notcurses.
     only been marked deprecated. New functions `ncdirect_get()` and
     `notcurses_get()` elide this parameter entirely, and ought be used in
     new code. All callers have been updated.
+  * Added `nccell_cols()`, which is just `nccell_width()` except it doesn't
+    require the first `const ncplane*` argument, and it's `static inline`.
+    `nccell_width()` has been deprecated, and will be removed in ABI3.
 
 * 2.3.11 (2021-07-20)
   * Notcurses now requires libz to build. In exchange, it can now generate
