@@ -728,8 +728,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         // old-style animated auxvecs carry the entirety of the replacement
         // data in them. on the first pixel of the cell, ditch the previous
         // auxvec in its entirety, and copy over the entire cell.
-        if(level == KITTY_ANIMATION){
-          if(x % cdimx == 0 && y % cdimy == 0){
+// FIXME HERE
+        if(x % cdimx == 0 && y % cdimy == 0){
+          if(level == KITTY_ANIMATION){
             uint8_t* tmp;
             tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
                                     data, linesize, tam[tyx].auxvector,
@@ -738,6 +739,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
               goto err;
             }
             tam[tyx].auxvector = tmp;
+          }else if(level == KITTY_SELFREF){
+            tam[tyx].auxvector = malloc(1);
           }
         }
         if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){

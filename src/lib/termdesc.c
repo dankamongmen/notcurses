@@ -110,7 +110,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     }else{
       ti->pixel_wipe = kitty_wipe_selfref;
       ti->pixel_rebuild = kitty_rebuild_selfref;
-      set_pixel_blitter(kitty_blit_animated);
+      set_pixel_blitter(kitty_blit_selfref);
     }
   }
   sprite_init(ti, fd);
