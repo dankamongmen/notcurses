@@ -757,8 +757,10 @@ API __attribute__ ((returns_nonnull)) const char* nccell_extended_gcluster(const
 
 // return the number of columns occupied by 'c'. see ncstrwidth() for an
 // equivalent for multiple EGCs.
-// FIXME promote to static inline for ABI3
-API int nccell_width(const struct ncplane* n, const nccell* c);
+static inline int
+nccell_cols(const nccell* c){
+  return c->width ? c->width : 1;
+}
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
@@ -4405,6 +4407,8 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
                             const void* unused, ncinput* ni)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
+
+__attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
 
 #define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT

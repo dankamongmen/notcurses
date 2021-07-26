@@ -16,19 +16,19 @@ TEST_CASE("Cell") {
   SUBCASE("EGCs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(2 == nccell_load(n_, &c, "é"));
-    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_cols(&c));
     int cols;
     CHECK(3 == nccell_load(n_, &c, "\x41\u0301"));
-    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_cols(&c));
     CHECK(4 == nccell_load(n_, &c, " ி"));
-    cols = nccell_width(n_, &c);
+    cols = nccell_cols(&c);
 #if defined(__linux__) || defined(__APPLE__)
     CHECK(2 == cols);
 #else
     CHECK(1 == cols);
 #endif
     CHECK(4 == nccell_load(n_, &c, " ि"));
-    cols = nccell_width(n_, &c);
+    cols = nccell_cols(&c);
 #if defined(__linux__) || defined(__APPLE__)
     CHECK(2 == cols);
 #else
@@ -38,9 +38,9 @@ TEST_CASE("Cell") {
     // ought be 1). not sure whether i've got a bug (s390x is big-endian), or
     // whether it does. just relaxed the tests for now FIXME.
     CHECK(5 == nccell_load(n_, &c, "◌̈"));
-    WARN(1 == nccell_width(n_, &c));
+    WARN(1 == nccell_cols(&c));
     CHECK(9 == nccell_load(n_, &c, "นี้"));
-    WARN(1 == nccell_width(n_, &c));
+    WARN(1 == nccell_cols(&c));
   }
 
   SUBCASE("Loadchar") {

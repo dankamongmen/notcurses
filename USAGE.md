@@ -1916,8 +1916,12 @@ int nccell_duplicate(struct ncplane* n, nccell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 void nccell_release(struct ncplane* n, nccell* c);
 
-// Get the number of columns occupied by 'c'.
-int nccell_width(const struct ncplane* n, const nccell* c);
+// return the number of columns occupied by 'c'. see ncstrwidth() for an
+// equivalent for multiple EGCs.
+static inline int
+nccell_cols(const nccell* c){
+  return c->width ? c->width : 1;
+}
 
 #define NCSTYLE_MASK      0xffffu
 #define NCSTYLE_ITALIC    0x0020u

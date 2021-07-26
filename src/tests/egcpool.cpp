@@ -37,18 +37,18 @@ TEST_CASE("EGCpool") {
     const char* w3 = "\u0061"; // (utf8: 61)
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(2 == nccell_load(n_, &c, w1));
-    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_cols(&c));
     CHECK(3 == nccell_load(n_, &c, w2));
-    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_cols(&c));
     CHECK(1 == nccell_load(n_, &c, w3));
-    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_cols(&c));
   }
 
   SUBCASE("AddAndRemove") {
     const char* wstr = "\U0001242B"; // cuneiform numeric sign nine shar2
     nccell c = CELL_TRIVIAL_INITIALIZER;
     auto ulen = nccell_load(n_, &c, wstr);
-    CHECK(1 == nccell_width(n_, &c)); // not considered wide, believe it or not
+    CHECK(1 == nccell_cols(&c)); // not considered wide, believe it or not
     REQUIRE(0 <= egcpool_stash(&pool_, wstr, ulen));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool, wstr));
@@ -73,8 +73,8 @@ TEST_CASE("EGCpool") {
     int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(0 <= o1);
     REQUIRE(o1 < o2);
-    CHECK(2 == nccell_width(n_, &c1));
-    CHECK(nccell_width(n_, &c1) == nccell_width(n_, &c2));
+    CHECK(2 == nccell_cols(&c1));
+    CHECK(nccell_cols(&c1) == nccell_cols(&c2));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool + o1, wstr));
     CHECK(!strcmp(pool_.pool + o2, wstr));
@@ -97,8 +97,8 @@ TEST_CASE("EGCpool") {
     int o1 = egcpool_stash(&pool_, wstr, u1);
     int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(o1 < o2);
-    CHECK(2 == nccell_width(n_, &c1));
-    CHECK(nccell_width(n_, &c2) == nccell_width(n_, &c1));
+    CHECK(2 == nccell_cols(&c1));
+    CHECK(nccell_cols(&c2) == nccell_cols(&c1));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool + o1, wstr));
     CHECK(!strcmp(pool_.pool + o2, wstr));

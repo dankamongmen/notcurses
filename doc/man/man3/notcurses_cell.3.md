@@ -44,7 +44,7 @@ typedef struct nccell {
 
 **void nccell_release(struct ncplane* ***n***, nccell* ***c***);**
 
-**int nccell_width(const struct ncplane* ***n***, const nccell* ***c***);**
+**int nccell_cols(const nccell* ***c***);**
 
 **void nccell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
 
@@ -155,7 +155,7 @@ less than, equal to, or more than ***c2***, respectively.
 **nccell_extended_gcluster** returns **NULL** if called on a sprixel (see
 **notcurses_visual(3)**.
 
-**nccell_width** returns the number of columns occupied by ***c***, according
+**nccell_cols** returns the number of columns occupied by ***c***, according
 to **wcwidth(3)***. **ncstrwidth** is an equivalent for strings.
 
 # NOTES
