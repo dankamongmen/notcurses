@@ -2568,7 +2568,8 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 
 // Open a visual at 'file', extract a codec and parameters, decode the first
 // image to memory.
-API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
+API ALLOC struct ncvisual* ncvisual_from_file(const char* file)
+  __attribute__ ((nonnull (1)));
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' is laid out as 'rows' lines, each of which is
@@ -2577,25 +2578,38 @@ API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 // of padding). The total size of 'rgba' is thus (rows * rowstride) bytes, of
 // which (rows * cols * 4) bytes are actual non-padding data.
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
-                                              int rowstride, int cols);
+                                              int rowstride, int cols)
+  __attribute__ ((nonnull (1)));
 
 // ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
 // throughout using 'alpha'.
 API ALLOC struct ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows,
                                                     int rowstride, int cols,
-                                                    int alpha);
+                                                    int alpha)
+  __attribute__ ((nonnull (1)));
 
 // ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
 // throughout using 'alpha'. rowstride must be a multiple of 4.
 API ALLOC struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
                                                    int rowstride, int cols,
-                                                   int alpha);
+                                                   int alpha)
+  __attribute__ ((nonnull (1)));
 
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA. note that this is a
 // byte-oriented layout, despite being bunched in 32-bit pixels; the lowest
 // memory address ought be B, and A is reached by adding 3 to that address.
 API ALLOC struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows,
-                                              int rowstride, int cols);
+                                              int rowstride, int cols)
+  __attribute__ ((nonnull (1)));
+
+// ncvisual_from_rgba(), but 'data' is 'pstride'-byte palette-indexed pixels,
+// arranged in 'rows' lines of 'rowstride' bytes each, composed of 'cols'
+// pixels. 'palette' is an array of at least 'palsize' ncchannels.
+API ALLOC struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
+                                                int rowstride, int cols,
+                                                int palsize, int pstride,
+                                                const uint32_t* palette)
+  __attribute__ ((nonnull (1, 7)));
 
 // Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
 // half blocks, and full blocks. The latter will be checked, and any other

@@ -20,6 +20,7 @@ rearrangements of Notcurses.
     the media of an `ncvisual`. As a result, it now returns a `ncplane*`
     rather than `char*`. I don't think anyone was using this, so hopefully
     that's ok.
+  * Add `ncvisual_from_palidx()`, which does what you would think.
 
 * 2.3.11 (2021-07-20)
   * Notcurses now requires libz to build. In exchange, it can now generate
