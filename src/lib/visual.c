@@ -1140,7 +1140,6 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
     // FIXME improve this hrmmmmm
     ncplane* subncp = curry;
     if(subncp->blist){
-fprintf(stderr, "KILLING %p\n", subncp->blist);
       ncplane_destroy(subncp->blist);
       subncp->blist = NULL;
     }
