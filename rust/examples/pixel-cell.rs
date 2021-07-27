@@ -15,6 +15,7 @@ fn main() -> NcResult<()> {
     let mut nc = Nc::new()?;
 
     if !nc.check_pixel_support()? {
+        nc.stop()?;
         return Err(NcError::new_msg("Current terminal doesn't support pixels."));
     }
 
