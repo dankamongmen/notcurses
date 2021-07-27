@@ -55,7 +55,6 @@ braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
     }
   }
   ncplane_putwc(n, r);
-  ncplane_set_bg_rgb(n, 0x0);
   ncplane_putwc(n, bounds[0]);
   if(ncplane_putwc(n, r8) <= 0){
     ncplane_putchar(n, ' ');
@@ -256,10 +255,10 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint32_t lr = NCCHANNEL_INITIALIZER(0x80, 0x80, 0x80);
     ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
     // the horizontal eighths
-    ul = NCCHANNEL_INITIALIZER(0x60, 0x7d, 0x3b);
-    lr = NCCHANNEL_INITIALIZER(0x02, 0x8a, 0x0f);
+    ul = NCCHANNEL_INITIALIZER(0x02, 0x8a, 0x0f);
+    lr = NCCHANNEL_INITIALIZER(0x08, 0x3d, 0x3b);
     ncplane_cursor_move_yx(n, y - 10, 66);
-    ncplane_stain(n, y - 1, 79, lr, ul, lr, ul);
+    ncplane_stain(n, y - 1, 79, ul, ul, lr, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 6, 0);
     ul = NCCHANNEL_INITIALIZER(0x2f, 0x25, 0x24);
@@ -279,8 +278,8 @@ unicodedumper(struct ncplane* n, const char* indent){
     ncplane_cursor_move_yx(n, y - 15, 0);
     ncplane_stain(n, y - 11, 70, lr, ul, lr, ul);
 
-    ncplane_set_fg_rgb(n, 0x00c0c0);
-    ncplane_set_styles(n, NCSTYLE_BOLD);
+    ncplane_set_fg_rgb(n, 0x00c080);
+    ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 11, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_fg_default(n);
