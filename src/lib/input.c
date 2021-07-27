@@ -8,7 +8,7 @@
 
 // CSI (Control Sequence Indicators) originate in the terminal itself, and are
 // not reported in their bare form to the user. For our purposes, these usually
-// indicate a mouse event.
+// indicate a mouse event or a cursor location report.
 #define CSIPREFIX "\x1b["
 static const uint32_t NCKEY_CSI = 0x90; // guaranteed not to match anything else
 
@@ -326,7 +326,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
     while(esc && nc->inputbuf_occupied){
       if(esc->special != NCKEY_INVALID){
         if(esc->special == NCKEY_CSI){
-          csi = NULL;
+          csi = esc;
         }else{
           break;
         }
