@@ -145,6 +145,8 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
   return n;
 }
 
+static uint32_t palette[256];
+
 struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
     // it is possible that there are more than one subtitle rects present,
@@ -165,9 +167,39 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       // only try to work with the first FIXME?
       if(rect->linesize[0] != rect->w){
 //logwarn("bitmap subtitle size %d != width %d\n", rect->linesize[0], rect->w);
+        continue;
+      }
+      struct notcurses* nc = ncplane_notcurses(parent);
+      if(nc->tcache.cellpixy <= 0 || nc->tcache.cellpixx <= 0){
+        continue;
+      }
+      struct ncvisual* v = ncvisual_from_palidx(rect->data[0], rect->h,
+                                                rect->w, rect->w, 256, 1,
+                                                palette);
+      if(v == NULL){
         return NULL;
       }
-      // FIXME interpret the bytes of each line
+      struct ncplane_options nopts = {
+        .rows = (rect->h + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
+        .cols = (rect->w + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
+      };
+      struct ncplane* vn = ncplane_create(parent, &nopts);
+      if(vn == NULL){
+        ncvisual_destroy(v);
+        return NULL;
+      }
+      struct ncvisual_options vopts = {
+        .n = vn,
+        .blitter = NCBLIT_PIXEL,
+        .scaling = NCSCALE_STRETCH,
+      };
+      if(ncvisual_render(nc, v, &vopts) == NULL){
+        ncplane_destroy(vn);
+        ncvisual_destroy(v);
+        return NULL;
+      }
+      ncvisual_destroy(v);
+      return vn;
     }
   }
   return NULL;
