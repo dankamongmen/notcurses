@@ -241,6 +241,7 @@ int intro(struct notcurses* nc){
   do{
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
+    int err;
     if(!on){
       if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
         on = orcashow(nc, rows, cols);
@@ -249,11 +250,10 @@ int intro(struct notcurses* nc){
         }
       }
     }else{
-      if(orcaride(nc, on, expected_iter)){
-        return -1;
+      if((err = orcaride(nc, on, expected_iter))){
+        return err;
       }
     }
-    int err;
     if( (err = animate(nc, ncp, &flipmode)) ){
       return err;
     }
