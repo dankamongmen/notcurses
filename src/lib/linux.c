@@ -33,13 +33,13 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
         if(auxvec[vyx] == 0){
           state = SPRIXCELL_TRANSPARENT;
         }else{
-          state = SPRIXCELL_OPAQUE_KITTY;
+          state = SPRIXCELL_OPAQUE_SIXEL;
         }
       }else{
-        if(auxvec[vyx] == 0 && state == SPRIXCELL_OPAQUE_KITTY){
-          state = SPRIXCELL_MIXED_KITTY;
+        if(auxvec[vyx] == 0 && state == SPRIXCELL_OPAQUE_SIXEL){
+          state = SPRIXCELL_MIXED_SIXEL;
         }else if(auxvec[vyx] && state == SPRIXCELL_TRANSPARENT){
-          state = SPRIXCELL_MIXED_KITTY;
+          state = SPRIXCELL_MIXED_SIXEL;
         }
       }
       s->glyph[offset + 3] = auxvec[vyx];
@@ -105,15 +105,15 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
           if(c % cdimx == 0 && l % cdimy == 0){
             tam[tyx].state = SPRIXCELL_TRANSPARENT;
-          }else if(tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
-            tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+          }else if(tam[tyx].state == SPRIXCELL_OPAQUE_SIXEL){
+            tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
           }
           dst[3] = 0;
         }else{
           if(c % cdimx == 0 && l % cdimy == 0){
-            tam[tyx].state = SPRIXCELL_OPAQUE_KITTY;
+            tam[tyx].state = SPRIXCELL_OPAQUE_SIXEL;
           }else if(tam[tyx].state == SPRIXCELL_TRANSPARENT){
-            tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+            tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
           }
           memcpy(dst + 3, src + 3, 1);
         }
