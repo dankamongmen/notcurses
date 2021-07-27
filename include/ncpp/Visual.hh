@@ -76,10 +76,10 @@ namespace ncpp
 			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, timescale, streamer, vopts, curry), -1);
 		}
 
-		ncplane* subtitle (Plane& p) const noexcept
+		/*char* subtitle () const noexcept
 		{
-			return ncvisual_subtitle (p, visual);
-		}
+			return ncvisual_subtitle (visual);
+		}*/
 
 		bool rotate (double rads) const NOEXCEPT_MAYBE
 		{

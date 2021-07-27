@@ -73,7 +73,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
   }
-  struct ncplane* subp = ncvisual_subtitle(*stdn, ncv);
+  struct ncplane* subp = ncvisual_subtitle_plane(*stdn, ncv);
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);
