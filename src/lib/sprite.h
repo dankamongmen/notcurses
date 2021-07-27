@@ -213,12 +213,12 @@ typedef enum {
   // time as animation. prior to this, graphics had to be entirely redrawn
   // on any change, and it wasn't possible to use the bottom line.
   KITTY_ALWAYS_SCROLLS,
-  // until 0.21.3's introduction of 't=z' for self-reference, we had to
-  // keep a complete copy of the RGBA data, in case a wiped cell needed to
-  // be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
   // the auxvec on the fly.
   KITTY_ANIMATION,
-  // with 0.21.3, we only ever write transparent cells after writing the
+  // with 0.22.0, we only ever write transparent cells after writing the
   // original image (which we now deflate, since we needn't unpack it later).
   // the only data we need keep is the auxvecs.
   KITTY_SELFREF,
