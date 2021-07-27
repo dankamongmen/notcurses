@@ -2745,10 +2745,11 @@ ncvisualplane_create(struct ncplane* n, const struct ncplane_options* opts,
   return newn;
 }
 
-// If a subtitle ought be displayed at this time, return a heap-allocated copy
-// of the UTF8 text.
-API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
-  __attribute__ ((nonnull (1)));
+// If a subtitle ought be displayed at this time, return a new plane (bound
+// to 'parent' containing the subtitle, which might be text or graphics
+// (depending on the input format).
+API ALLOC struct ncplane* ncvisual_subtitle(struct ncplane* parent, const struct ncvisual* ncv)
+  __attribute__ ((nonnull (1, 2)));
 
 // Get the default *media* (not plot) blitter for this environment when using
 // the specified scaling method. Currently, this means:

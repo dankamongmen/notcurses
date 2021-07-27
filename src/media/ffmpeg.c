@@ -115,15 +115,59 @@ deass(const char* ass){
   return dup;
 }
 
-char* ffmpeg_subtitle(const ncvisual* ncv){
+static struct ncplane*
+subtitle_plane_from_text(ncplane* parent, const char* text){
+  if(parent == NULL){
+//logerror("need a parent plane\n");
+    return NULL;
+  }
+  int width = ncstrwidth(text);
+  if(width <= 0){
+//logwarn("couldn't extract subtitle from %s\n", text);
+    return NULL;
+  }
+  int rows = (width + ncplane_dim_x(parent) - 1) / ncplane_dim_x(parent);
+  struct ncplane_options nopts = {
+    .y = ncplane_dim_y(parent) - (rows + 1),
+    .rows = rows,
+    .cols = ncplane_dim_x(parent),
+  };
+  struct ncplane* n = ncplane_create(parent, &nopts);
+  if(n == NULL){
+//logerror("error creating subtitle plane\n");
+    return NULL;
+  }
+  uint64_t channels = 0;
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncplane_set_base(n, "", 0, channels);
+  ncplane_puttext(n, 0, NCALIGN_LEFT, text, NULL);
+  return n;
+}
+
+struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
+    // it is possible that there are more than one subtitle rects present,
+    // but we only bother dealing with the first one we find FIXME?
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
-      return deass(rect->ass);
+      char* ass = deass(rect->ass);
+      struct ncplane* n = NULL;
+      if(ass){
+        n = subtitle_plane_from_text(parent, ass);
+      }
+      free(ass);
+      return n;
     }else if(rect->type == SUBTITLE_TEXT){;
-      return strdup(rect->text);
+      return subtitle_plane_from_text(parent, rect->text);
     }else if(rect->type == SUBTITLE_BITMAP){
-      // FIXME
+      // there are technically up to AV_NUM_DATA_POINTERS planes, but we
+      // only try to work with the first FIXME?
+      if(rect->linesize[0] != rect->w){
+//logwarn("bitmap subtitle size %d != width %d\n", rect->linesize[0], rect->w);
+        return NULL;
+      }
+      // FIXME interpret the bytes of each line
     }
   }
   return NULL;
