@@ -755,12 +755,9 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tam){
-//fprintf(stderr, "IT'S A REUSE %d %d\n", rows, cols);
     if(n->leny == rows && n->lenx == cols){
       tam = n->tam;
       reuse = true;
-    }else{
-      // FIXME free up old TAM (well, shrink it anyway)
     }
   }
   if(!reuse){
@@ -806,20 +803,27 @@ int sixel_scrub(const ncpile* p, sprixel* s){
       if(r->sprixel){
         s = r->sprixel;
       }
-      if(s->n){
-        sprixcell_e state = sprixel_state(s, yy - s->movedfromy,
-                                          xx - s->movedfromx);
-//fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->movedfromy - s->n->absy, xx - s->movedfromx - s->n->absx, state, yy, xx);
-        if(state == SPRIXCELL_TRANSPARENT || state == SPRIXCELL_MIXED_SIXEL){
-          r->s.damaged = 1;
-        }else if(s->invalidated == SPRIXEL_MOVED){
-          // ideally, we wouldn't damage our annihilated sprixcells, but if
-          // we're being annihilated only during this cycle, we need to go
-          // ahead and damage it.
-          r->s.damaged = 1;
-        }
-      }else{
+      if(!s->n){
         // need this to damage cells underneath a sprixel we're removing
+        r->s.damaged = 1;
+        continue;
+      }
+      if(yy >= s->n->leny || yy - s->n->absy < 0){
+        r->s.damaged = 1;
+        continue;
+      }
+      if(xx >= s->n->lenx || xx - s->n->absx < 0){
+        r->s.damaged = 1;
+        continue;
+      }
+      sprixcell_e state = sprixel_state(s, yy, xx);
+//fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->movedfromy - s->n->absy, xx - s->movedfromx - s->n->absx, state, yy, xx);
+      if(state == SPRIXCELL_TRANSPARENT || state == SPRIXCELL_MIXED_SIXEL){
+        r->s.damaged = 1;
+      }else if(s->invalidated == SPRIXEL_MOVED){
+        // ideally, we wouldn't damage our annihilated sprixcells, but if
+        // we're being annihilated only during this cycle, we need to go
+        // ahead and damage it.
         r->s.damaged = 1;
       }
     }

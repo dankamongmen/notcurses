@@ -996,7 +996,7 @@ int kitty_remove(int id, FILE* out){
   return 0;
 }
 
-// damages cells underneath the graphic which weren't SPRIXCELL_OPAQUE
+// damages cells underneath the graphic which were OPAQUE
 int kitty_scrub(const ncpile* p, sprixel* s){
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
