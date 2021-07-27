@@ -144,6 +144,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }
     if(keyp == ' '){
       if((keyp = nc.get(true)) == (uint32_t)-1){
+        ncplane_destroy(subp);
         return -1;
       }
     }
@@ -175,8 +176,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       // FIXME move backwards
       continue;
     }
+    ncplane_destroy(subp);
     return 1;
   }
+  ncplane_destroy(subp);
   return 0;
 }
 
