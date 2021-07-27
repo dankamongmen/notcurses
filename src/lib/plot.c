@@ -45,12 +45,14 @@ typedef struct nc##X##plot { \
 \
 int redraw_plot_##T(nc##X##plot* ncp){ \
   ncplane_erase(ncp->plot.ncp); \
-  const int scale = ncp->plot.bset->width; \
+  const int scale = ncp->plot.bset->geom == NCBLIT_PIXEL ? \
+      ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx : ncp->plot.bset->width; \
   int dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
   const int scaleddim = dimx * scale; \
   /* each transition is worth this much change in value */ \
-  const size_t states = ncp->plot.bset->height + 1; \
+  const size_t states = (ncp->plot.bset->geom == NCBLIT_PIXEL ? \
+      ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy : ncp->plot.bset->height) + 1; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
      interval is one row's range (for linear plots), or the base (base^slots== \
      maxy-miny) of the range (for exponential plots). */ \
@@ -138,68 +140,70 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
       calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
                              ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
       ncplane_set_channels(ncp->plot.ncp, channels); \
-      size_t egcidx = 0, sumidx = 0; \
-      /* if we've got at least one interval's worth on the number of positions \
-         times the number of intervals per position plus the starting offset, \
-         we're going to print *something* */ \
-      for(int i = 0 ; i < scale ; ++i){ \
-        sumidx *= states; \
-        if(intervalbase < gvals[i]){ \
-          if(ncp->plot.exponentiali){ \
-            /* we want the log-base-interval of gvals[i] */ \
-            double scaled = log(gvals[i] - ncp->miny) / log(interval); \
-            double sival = intervalbase ? log(intervalbase) / log(interval) : 0; \
-            egcidx = scaled - sival; \
+      if(egc){ \
+        size_t egcidx = 0, sumidx = 0; \
+        /* if we've got at least one interval's worth on the number of positions \
+          times the number of intervals per position plus the starting offset, \
+          we're going to print *something* */ \
+        for(int i = 0 ; i < scale ; ++i){ \
+          sumidx *= states; \
+          if(intervalbase < gvals[i]){ \
+            if(ncp->plot.exponentiali){ \
+              /* we want the log-base-interval of gvals[i] */ \
+              double scaled = log(gvals[i] - ncp->miny) / log(interval); \
+              double sival = intervalbase ? log(intervalbase) / log(interval) : 0; \
+              egcidx = scaled - sival; \
+            }else{ \
+              egcidx = (gvals[i] - intervalbase) / interval; \
+            } \
+            if(egcidx >= states){ \
+              egcidx = states - 1; \
+              done = false; \
+            } \
+            sumidx += egcidx; \
           }else{ \
-            egcidx = (gvals[i] - intervalbase) / interval; \
+            egcidx = 0; \
           } \
-          if(egcidx >= states){ \
-            egcidx = states - 1; \
-            done = false; \
-          } \
-          sumidx += egcidx; \
-        }else{ \
-          egcidx = 0; \
+  /* printf(stderr, "y: %d i(scale): %d gvals[%d]: %ju egcidx: %zu sumidx: %zu interval: %f intervalbase: %ju\n", y, i, i, gvals[i], egcidx, sumidx, interval, intervalbase); */ \
         } \
-/* printf(stderr, "y: %d i(scale): %d gvals[%d]: %ju egcidx: %zu sumidx: %zu interval: %f intervalbase: %ju\n", y, i, i, gvals[i], egcidx, sumidx, interval, intervalbase); */ \
-      } \
-      /* if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise \
-         we would have errored out during construction). even then, however, \
-         we need handle ASCII differently, since it can't print full block. \
-         in ASCII mode, sumidx != 0 means swap colors and use space. in all \
-         modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
-/* if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]); */ \
-      if(sumidx){ \
-        if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
-          char utf8[MB_CUR_MAX + 1]; \
-          int bytes = wctomb(utf8, egc[sumidx]); \
-          if(bytes < 0){ \
-            return -1; \
+        /* if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise \
+          we would have errored out during construction). even then, however, \
+          we need handle ASCII differently, since it can't print full block. \
+          in ASCII mode, sumidx != 0 means swap colors and use space. in all \
+          modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
+  /* if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]); */ \
+        if(sumidx){ \
+          if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
+            char utf8[MB_CUR_MAX + 1]; \
+            int bytes = wctomb(utf8, egc[sumidx]); \
+            if(bytes < 0){ \
+              return -1; \
+            } \
+            utf8[bytes] = '\0'; \
+            nccell* c = ncplane_cell_ref_yx(ncp->plot.ncp, dimy - y - 1, x); \
+            cell_set_bchannel(c, ncchannels_bchannel(channels)); \
+            cell_set_fchannel(c, ncchannels_fchannel(channels)); \
+            nccell_set_styles(c, NCSTYLE_NONE); \
+            if(pool_blit_direct(&ncp->plot.ncp->pool, c, utf8, bytes, 1) <= 0){ \
+              return -1; \
+            } \
+          }else{ \
+            const uint64_t swapbg = ncchannels_bchannel(channels); \
+            const uint64_t swapfg = ncchannels_fchannel(channels); \
+            ncchannels_set_bchannel(&channels, swapfg); \
+            ncchannels_set_fchannel(&channels, swapbg); \
+            ncplane_set_channels(ncp->plot.ncp, channels); \
+            if(ncplane_putchar_yx(ncp->plot.ncp, dimy - y - 1, x, ' ') <= 0){ \
+              return -1; \
+            } \
+            ncchannels_set_bchannel(&channels, swapbg); \
+            ncchannels_set_fchannel(&channels, swapfg); \
+            ncplane_set_channels(ncp->plot.ncp, channels); \
           } \
-          utf8[bytes] = '\0'; \
-          nccell* c = ncplane_cell_ref_yx(ncp->plot.ncp, dimy - y - 1, x); \
-          cell_set_bchannel(c, ncchannels_bchannel(channels)); \
-          cell_set_fchannel(c, ncchannels_fchannel(channels)); \
-          nccell_set_styles(c, NCSTYLE_NONE); \
-          if(pool_blit_direct(&ncp->plot.ncp->pool, c, utf8, bytes, 1) <= 0){ \
-            return -1; \
-          } \
-        }else{ \
-          const uint64_t swapbg = ncchannels_bchannel(channels); \
-          const uint64_t swapfg = ncchannels_fchannel(channels); \
-          ncchannels_set_bchannel(&channels, swapfg); \
-          ncchannels_set_fchannel(&channels, swapbg); \
-          ncplane_set_channels(ncp->plot.ncp, channels); \
-          if(ncplane_putchar_yx(ncp->plot.ncp, dimy - y - 1, x, ' ') <= 0){ \
-            return -1; \
-          } \
-          ncchannels_set_bchannel(&channels, swapbg); \
-          ncchannels_set_fchannel(&channels, swapfg); \
-          ncplane_set_channels(ncp->plot.ncp, channels); \
         } \
-      } \
-      if(done){ \
-        break; \
+        if(done){ \
+          break; \
+        } \
       } \
       if(ncp->plot.exponentiali){ \
         intervalbase = ncp->miny + pow(interval, (y + 1) * states - 1); \
