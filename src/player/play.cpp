@@ -44,7 +44,8 @@ struct marshal {
   ncblitter_e blitter; // can be changed while streaming, must propagate out
 };
 
-auto handle_subtitle(char* subtitle, struct marshal* marsh,
+/*
+auto handle_subtitle(struct ncplane* subp, struct marshal* marsh,
                      const ncvisual_options* vopts) -> void {
   if(!marsh->subtitle_plane){
     int dimx, dimy;
@@ -72,9 +73,8 @@ auto handle_subtitle(char* subtitle, struct marshal* marsh,
   }else{
     ncplane_erase(marsh->subtitle_plane);
   }
-  ncplane_printf_yx(marsh->subtitle_plane, 0, 0, "%s", subtitle);
-  free(subtitle);
 }
+*/
 
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
@@ -106,10 +106,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
   }
-  char* subtitle = ncvisual_subtitle(ncv);
-  if(subtitle){
-    handle_subtitle(subtitle, marsh, vopts);
-  }
+  struct ncplane* subp = ncvisual_subtitle(*stdn, ncv);
+  //if(subtitle){
+  //  handle_subtitle(subtitle, marsh, vopts);
+  //}
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);

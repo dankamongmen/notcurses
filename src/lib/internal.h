@@ -1710,7 +1710,7 @@ typedef struct ncvisual_implementation {
   int (*visual_decode_loop)(struct ncvisual* nc);
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
                        ncstreamcb streamer, const struct ncvisual_options* vopts, void* curry);
-  char* (*visual_subtitle)(const struct ncvisual* ncv);
+  struct ncplane* (*visual_subtitle)(struct ncplane* parent, const struct ncvisual* ncv);
   int rowalign; // rowstride base, can be 0 for no padding
   // do a persistent resize, changing the ncv itself
   int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);

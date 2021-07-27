@@ -90,7 +90,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
 
-**char* ncvisual_subtitle(const struct ncvisual* ***ncv***);**
+**struct ncplane* ncvisual_subtitle(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
 
 **int notcurses_lex_scalemode(const char* ***op***, ncscale_e* ***scaling***);**
 

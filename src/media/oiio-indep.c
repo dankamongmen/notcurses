@@ -64,11 +64,6 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
   return -1;
 }
 
-char* oiio_subtitle(const ncvisual* ncv) { // no support in OIIO
-  (void)ncv;
-  return NULL;
-}
-
 int oiio_init(int logl __attribute__ ((unused))) {
   // FIXME set OIIO global attribute "debug" based on loglevel
   // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
@@ -85,7 +80,6 @@ const ncvisual_implementation local_visual_implementation = {
   .visual_decode = oiio_decode,
   .visual_decode_loop = oiio_decode_loop,
   .visual_stream = oiio_stream,
-  .visual_subtitle = oiio_subtitle,
   .visual_resize = oiio_resize,
   .visual_destroy = oiio_destroy,
   .canopen_images = true,

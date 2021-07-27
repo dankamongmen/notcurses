@@ -63,11 +63,11 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return visual_implementation.visual_stream(nc, ncv, timescale, streamer, vopts, curry);
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){
+ncplane* ncvisual_subtitle(ncplane* parent, const ncvisual* ncv){
   if(!visual_implementation.visual_subtitle){
     return NULL;
   }
-  return visual_implementation.visual_subtitle(ncv);
+  return visual_implementation.visual_subtitle(parent, ncv);
 }
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
@@ -1084,14 +1084,14 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   }
   int ret = 0;
   if(curry){
+    // FIXME improve this hrmmmmm
     ncplane* subncp = curry;
-    char* subtitle = ncvisual_subtitle(ncv);
-    if(subtitle){
-      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
-        ret = -1;
-      }
-      free(subtitle);
+    if(subncp->blist){
+fprintf(stderr, "KILLING %p\n", subncp->blist);
+      ncplane_destroy(subncp->blist);
+      subncp->blist = NULL;
     }
+    struct ncplane* subtitle = ncvisual_subtitle(subncp, ncv);
   }
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   return ret;
