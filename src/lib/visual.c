@@ -566,6 +566,9 @@ static inline size_t
 pad_for_image(size_t stride, int cols){
   if(visual_implementation.rowalign == 0){
     return 4 * cols;
+  }else if(stride < cols * 4u){
+    return (4 * cols + visual_implementation.rowalign) /
+            visual_implementation.rowalign * visual_implementation.rowalign;
   }else if(stride % visual_implementation.rowalign == 0){
     return stride;
   }
