@@ -1208,7 +1208,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // the sprite clear ought take place within the alternate screen, if it's
   // being used.
   if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
-    if(sprite_clear_all(&ret->tcache, ret->ttyfp)){
+    if(sprite_clear_all(&ret->tcache, ret->ttyfp) || fflush(ret->ttyfp)){
       free_plane(ret->stdplane);
       goto err;
     }
