@@ -693,6 +693,47 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   return ncv;
 }
 
+ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
+                               int cols, int palsize, int pstride,
+                               const uint32_t* palette){
+  if(rowstride % pstride){
+    logerror("bad pstride (%d) for rowstride (%d)\n", pstride, rowstride);
+    return NULL;
+  }
+  ncvisual* ncv = ncvisual_create();
+  if(ncv){
+    ncv->rowstride = pad_for_image(rowstride, cols);
+    ncv->pixx = cols;
+    ncv->pixy = rows;
+    uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
+    if(data == NULL){
+      ncvisual_destroy(ncv);
+      return NULL;
+    }
+    for(int y = 0 ; y < rows ; ++y){
+      for(int x = 0 ; x < cols ; ++x){
+        int palidx = ((const unsigned char*)pdata)[y * rowstride + x * pstride];
+        if(palidx >= palsize){
+          free(data);
+          ncvisual_destroy(ncv);
+          logerror("invalid palette idx %d >= %d\n", palidx, palsize);
+          return NULL;
+        }
+        uint32_t src = palette[palidx];
+        uint32_t* dst = &data[ncv->rowstride * y / 4 + x];
+        ncpixel_set_a(dst, 255);
+        ncpixel_set_r(dst, 255);
+        ncpixel_set_g(dst, 255);
+        ncpixel_set_b(dst, 255); // FIXME pull out of palette
+//fprintf(stderr, "BGRA PIXEL: %02x%02x%02x%02x RGBA result: %02x%02x%02x%02x\n", ((const char*)&src)[0], ((const char*)&src)[1], ((const char*)&src)[2], ((const char*)&src)[3], ((const char*)dst)[0], ((const char*)dst)[1], ((const char*)dst)[2], ((const char*)dst)[3]);
+      }
+    }
+    ncvisual_set_data(ncv, data, true);
+    ncvisual_details_seed(ncv);
+  }
+  return ncv;
+}
+
 int ncvisual_resize(ncvisual* n, int rows, int cols){
   if(!visual_implementation.visual_resize){
     return ncvisual_resize_noninterpolative(n, rows, cols);

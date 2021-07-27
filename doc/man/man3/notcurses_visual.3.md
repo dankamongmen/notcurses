@@ -62,6 +62,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_bgra(const void* ***bgra***, int ***rows***, int ***rowstride***, int ***cols***);**
 
+**struct ncvisual* ncvisual_from_palidx(const void* ***data***, int ***rows***, int ***rowstride***, int ***cols***, int ***palsize***, int ***pstride***, const uint32_t* ***palette***);**
+
 **struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
 **int ncvisual_blitter_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, int* ***y***, int* ***x***, int* ***scaley***, int* ***scalex***, ncblitter_e* ***blitter***);**
@@ -137,6 +139,10 @@ resulting plane will be ceil(**rows**/2) rows, and **cols** columns.
 **ncvisual_from_rgb_packed** performs the same using 3-byte RGB source data.
 **ncvisual_from_rgb_loose** uses 4-byte RGBx source data. Both will fill in
 the alpha component of every target pixel with the specified **alpha**.
+
+**ncvisual_from_palidx** requires a ***palette*** of at least ***palsize***
+**ncchannel**s. Pixels are ***pstride*** bytes each, arranged as ***cols*** pixels
+per row, with each row occupying ***rowstride*** bytes, across ***rows*** rows.
 
 **ncvisual_from_plane** requires specification of a rectangle via ***begy***,
 ***begx***, ***leny***, and ***lenx***, and also a blitter. The only valid

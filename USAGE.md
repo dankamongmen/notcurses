@@ -3134,6 +3134,13 @@ struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
 // ncvisual_from_rgba(), but for BGRA.
 struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
                                     int rows, int rowstride, int cols);
+
+// ncvisual_from_rgba(), but 'data' is 'pstride'-byte palette-indexed pixels,
+// arranged in 'rows' lines of 'rowstride' bytes each, composed of 'cols'
+// pixels. 'palette' is an array of at least 'palsize' ncchannels.
+struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
+                                      int rowstride, int cols, int palsize,
+                                      int pstride, const uint32_t* palette);
 ```
 
 `ncvisual`s can also be loaded from the contents of a plane:
