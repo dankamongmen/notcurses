@@ -23,11 +23,11 @@ auto main() -> int {
   b = 0;
   ncplane_set_fg_rgb8(n, 0x40, 0x20, 0x40);
   for(y = 0 ; y < dimy ; ++y){
+    if(ncplane_cursor_move_yx(n, y, 0)){
+      goto err;
+    }
     for(x = 0 ; x < dimx ; ++x){
       if(ncplane_set_bg_rgb8(n, r, g, b)){
-        goto err;
-      }
-      if(ncplane_cursor_move_yx(n, y, x)){
         goto err;
       }
       if(ncplane_putchar(n, 'x') <= 0){
