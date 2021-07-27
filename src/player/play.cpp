@@ -38,43 +38,10 @@ void usage(std::ostream& o, const char* name, int exitcode){
 }
 
 struct marshal {
-  struct ncplane* subtitle_plane;
   int framecount;
   bool quiet;
   ncblitter_e blitter; // can be changed while streaming, must propagate out
 };
-
-/*
-auto handle_subtitle(struct ncplane* subp, struct marshal* marsh,
-                     const ncvisual_options* vopts) -> void {
-  if(!marsh->subtitle_plane){
-    int dimx, dimy;
-    ncplane_dim_yx(vopts->n, &dimy, &dimx);
-    struct ncplane_options nopts = {
-      .y = dimy - 1,
-      .x = 0,
-      .rows = 1,
-      .cols = dimx,
-      .userptr = nullptr,
-      .name = "subt",
-      .resizecb = nullptr,
-      .flags = 0,
-      .margin_b = 0,
-      .margin_r = 0,
-    };
-    marsh->subtitle_plane = ncplane_create(vopts->n, &nopts);
-    uint64_t channels = 0;
-    ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
-    ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-    ncplane_set_base(marsh->subtitle_plane, "", 0, channels);
-    ncplane_set_fg_rgb(marsh->subtitle_plane, 0x00ffff);
-    ncplane_set_fg_alpha(marsh->subtitle_plane, NCALPHA_HIGHCONTRAST);
-    ncplane_set_bg_alpha(marsh->subtitle_plane, NCALPHA_TRANSPARENT);
-  }else{
-    ncplane_erase(marsh->subtitle_plane);
-  }
-}
-*/
 
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
@@ -107,9 +74,6 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
                  notcurses_str_blitter(vopts->blitter));
   }
   struct ncplane* subp = ncvisual_subtitle(*stdn, ncv);
-  //if(subtitle){
-  //  handle_subtitle(subtitle, marsh, vopts);
-  //}
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
   const int64_t m = ns / (60 * NANOSECS_IN_SEC);
@@ -424,7 +388,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     ncplane_erase(n);
     do{
       struct marshal marsh = {
-        .subtitle_plane = nullptr,
         .framecount = 0,
         .quiet = quiet,
         .blitter = vopts.blitter,
