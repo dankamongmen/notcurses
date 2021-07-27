@@ -1217,11 +1217,9 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
       return -1;
     }
   }
-  if(nc->rstate.logendy >= 0){
-    if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
-      nc->rstate.logendy = y;
-      nc->rstate.logendx = x;
-    }
+  if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
+    nc->rstate.logendy = y;
+    nc->rstate.logendx = x;
   }
   nc->rstate.x = x;
   nc->rstate.y = y;

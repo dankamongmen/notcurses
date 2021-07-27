@@ -1151,12 +1151,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   reset_term_attributes(&ret->tcache, ret->ttyfp);
-  if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
-    if(sprite_clear_all(&ret->tcache, ret->ttyfp)){
-      free_plane(ret->stdplane);
-      goto err;
-    }
-  }
   const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
   if(smkx && term_emit(smkx, ret->ttyfp, false)){
     free_plane(ret->stdplane);
@@ -1209,6 +1203,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       }
       // no need to reestablish a preserved cursor -- that only affects the
       // standard plane, not the physical cursor that was just disrupted.
+    }
+  }
+  // the sprite clear ought take place within the alternate screen, if it's
+  // being used.
+  if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
+    if(sprite_clear_all(&ret->tcache, ret->ttyfp)){
+      free_plane(ret->stdplane);
+      goto err;
     }
   }
   return ret;
@@ -1270,19 +1272,11 @@ int notcurses_stop(notcurses* nc){
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen, *unless*
     // PRESERVE_CURSOR was used, which is a bit more complex.
-    if(!(nc->flags & NCOPTION_PRESERVE_CURSOR)){
-      if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
-        // if ldimy is 0, we've not yet written anything; leave it untouched
-        if(nc->lfdimy){
-          int targy = nc->lfdimy + nc->margin_t - 1;
-          // cup is required, no need to test for existence
-          tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
-        }
-      }
-    }else{
+    if((nc->flags & NCOPTION_PRESERVE_CURSOR) || !get_escape(&nc->tcache, ESCAPE_SMCUP)){
       int targy = nc->rstate.logendy;
       if(++targy >= nc->lfdimy){
-        --targy; // FIXME do we need to scroll here?
+        printf("\v");
+        --targy;
       }
       goto_location(nc, stdout, targy, 0);
       fflush(stdout);
