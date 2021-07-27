@@ -2762,7 +2762,8 @@ ncvisualplane_create(struct ncplane* n, const struct ncplane_options* opts,
 // If a subtitle ought be displayed at this time, return a new plane (bound
 // to 'parent' containing the subtitle, which might be text or graphics
 // (depending on the input format).
-API ALLOC struct ncplane* ncvisual_subtitle(struct ncplane* parent, const struct ncvisual* ncv)
+API ALLOC struct ncplane* ncvisual_subtitle_plane(struct ncplane* parent,
+                                                  const struct ncvisual* ncv)
   __attribute__ ((nonnull (1, 2)));
 
 // Get the default *media* (not plot) blitter for this environment when using
@@ -4424,6 +4425,9 @@ API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
 
 __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
+
+API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT

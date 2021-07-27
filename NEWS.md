@@ -16,10 +16,10 @@ rearrangements of Notcurses.
   * Added `nccell_cols()`, which is just `nccell_width()` except it doesn't
     require the first `const ncplane*` argument, and it's `static inline`.
     `nccell_width()` has been deprecated, and will be removed in ABI3.
-  * `ncvisual_subtitles()` now handles Type-1 DVB subtitles when found in
-    the media of an `ncvisual`. As a result, it now returns a `ncplane*`
-    rather than `char*`. I don't think anyone was using this, so hopefully
-    that's ok.
+  * `ncvisual_subtitle_plane()` now handles all LibAV subtitle types,
+    including Type-1 DVB (bitmap subtitles), so long as a pixel blitter is
+    available. `ncvisual_subtitle()` has been deprecated, and will be
+    removed in ABI3.
   * Add `ncvisual_from_palidx()`, which does what you would think.
 
 * 2.3.11 (2021-07-20)
