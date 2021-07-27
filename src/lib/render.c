@@ -894,6 +894,9 @@ rasterize_scrolls(ncpile* p, FILE* out){
       p->nc->rstate.logendx = 0;
     }
   }
+  if(goto_location(p->nc, out, p->dimy, 0)){
+    return -1;
+  }
   while(p->scrolls){
     if(ncfputc('\n', out) < 0){
       return -1;
