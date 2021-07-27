@@ -179,9 +179,11 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       if(v == NULL){
         return NULL;
       }
+      int rows = (rect->h + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
       struct ncplane_options nopts = {
-        .rows = (rect->h + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
+        .rows = rows,
         .cols = (rect->w + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
+        .y = ncplane_dim_y(parent) - rows - 1,
       };
       struct ncplane* vn = ncplane_create(parent, &nopts);
       if(vn == NULL){
