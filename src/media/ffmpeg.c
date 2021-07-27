@@ -131,6 +131,7 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
     .y = ncplane_dim_y(parent) - (rows + 1),
     .rows = rows,
     .cols = ncplane_dim_x(parent),
+    .name = "subt",
   };
   struct ncplane* n = ncplane_create(parent, &nopts);
   if(n == NULL){
@@ -138,10 +139,13 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
     return NULL;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-  ncplane_set_base(n, "", 0, channels);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_HIGHCONTRAST);
+  ncchannels_set_fg_rgb8(&channels, 0x88, 0x88, 0x88);
+  ncplane_stain(n, -1, -1, channels, channels, channels, channels);
+  ncchannels_set_fg_default(&channels);
   ncplane_puttext(n, 0, NCALIGN_LEFT, text, NULL);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncplane_set_base(n, " ", 0, channels);
   return n;
 }
 
@@ -184,6 +188,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
         .rows = rows,
         .cols = (rect->w + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
         .y = ncplane_dim_y(parent) - rows - 1,
+        .name = "t1st",
       };
       struct ncplane* vn = ncplane_create(parent, &nopts);
       if(vn == NULL){
