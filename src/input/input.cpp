@@ -227,7 +227,7 @@ int input_demo(ncpp::NotCurses* nc) {
   popts.minchannels = popts.maxchannels = 0;
   ncchannels_set_fg_rgb8(&popts.minchannels, 0x40, 0x50, 0xb0);
   ncchannels_set_fg_rgb8(&popts.maxchannels, 0x40, 0xff, 0xd0);
-  popts.gridtype = static_cast<ncblitter_e>(NCBLIT_8x1);
+  popts.gridtype = static_cast<ncblitter_e>(NCBLIT_PIXEL);
   plot = ncuplot_create(pplane, &popts, 0, 0);
   if(!plot){
     return EXIT_FAILURE;
