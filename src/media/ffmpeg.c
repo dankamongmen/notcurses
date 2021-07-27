@@ -314,6 +314,7 @@ int ffmpeg_decode(ncvisual* n){
       unref = true;
       if(n->details->packet->stream_index == n->details->sub_stream_index){
         int result = 0, ret;
+        avsubtitle_free(&n->details->subtitle);
         ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
         if(ret >= 0 && result){
           // FIXME?
