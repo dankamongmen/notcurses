@@ -703,6 +703,10 @@ ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
     logerror("bad pstride (%d) for rowstride (%d)\n", pstride, rowstride);
     return NULL;
   }
+  if(palsize > 256 || palsize <= 0){
+    logerror("palettes size (%d) is unsupported\n", palsize);
+    return NULL;
+  }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = pad_for_image(rowstride, cols);
@@ -724,10 +728,15 @@ ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
         }
         uint32_t src = palette[palidx];
         uint32_t* dst = &data[ncv->rowstride * y / 4 + x];
-        ncpixel_set_a(dst, 255);
-        ncpixel_set_r(dst, 255);
-        ncpixel_set_g(dst, 255);
-        ncpixel_set_b(dst, 255); // FIXME pull out of palette
+        if(ncchannel_default_p(src)){
+          // FIXME use default color as detected, or just 0xffffff
+          ncpixel_set_a(dst, 255 - palidx);
+          ncpixel_set_r(dst, palidx);
+          ncpixel_set_g(dst, 220 - (palidx / 2));
+          ncpixel_set_b(dst, palidx);
+        }else{
+          *dst = 0;
+        }
 //fprintf(stderr, "BGRA PIXEL: %02x%02x%02x%02x RGBA result: %02x%02x%02x%02x\n", ((const char*)&src)[0], ((const char*)&src)[1], ((const char*)&src)[2], ((const char*)&src)[3], ((const char*)dst)[0], ((const char*)dst)[1], ((const char*)dst)[2], ((const char*)dst)[3]);
       }
     }
