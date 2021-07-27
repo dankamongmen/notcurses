@@ -281,7 +281,7 @@ unicodedumper(struct ncplane* n, const char* indent){
 
     ncplane_set_fg_rgb(n, 0x00c0c0);
     ncplane_set_styles(n, NCSTYLE_BOLD);
-    ncplane_cursor_move_yx(n, y - 11, 52);
+    ncplane_cursor_move_yx(n, y - 11, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_fg_default(n);
     ncplane_set_styles(n, NCSTYLE_NONE);
@@ -307,7 +307,7 @@ display_logo(struct ncplane* n, const char* path){
   struct ncvisual_options vopts = {
     .n = n,
     .y = y - 3,
-    .x = 53,
+    .x = 54,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
