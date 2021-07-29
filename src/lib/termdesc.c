@@ -356,12 +356,16 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // XTSMGRAPHICS query for the maximum supported geometry.
 #define GEOMXTSM "\x1b[?1;1;0S"
 
+// non-standard CSI for total pixel geometry
+#define GEOMPIXEL "\x1b[14t"
+
 #define DIRECTIVES CSI_BGQ \
                    DSRCPR \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
                    GEOMXTSM \
+                   GEOMPIXEL \
                    PRIDEVATTR
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can

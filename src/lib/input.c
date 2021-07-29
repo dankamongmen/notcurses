@@ -780,8 +780,13 @@ typedef enum {
   STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   STATE_APPSYNC_REPORT, // got DECRPT ?2026
   STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
-  STATE_CURSOR, // reading row of cursor location to ';'
-  STATE_CURSOR_COL, // reading col of cursor location to 'R'
+  // a cursor location report comes back as CSI row ; col R. a pixel geometry
+  // report comes back as CSI 4 ; height ; width t. so we handle them the same
+  // until we hit either a second semicolon or an 'R'. at the second ';', we
+  // verify that the first variable was '4', and continue to 't'.
+  STATE_CURSOR_OR_PIXELGEOM, // reading row of cursor location to ';'
+  STATE_CURSOR_COL, // reading col of cursor location to 'R' or ';'
+  STATE_PIXELS_WIDTH,  // reading screen width in pixels to ';'
 } initstates_e;
 
 typedef struct query_state {
@@ -797,7 +802,11 @@ typedef struct query_state {
   char runstring[80];    // running string
   size_t stridx;         // position to write in string
   uint32_t bg;           // queried default background or 0
+  int pixelwidth;        // screen width in pixels
+  int pixelheight;       // screen height in pixels
   int cursor_y, cursor_x;// cursor location
+  int cursor_or_pixel;   // holding cell until we determine which state
+
   bool xtgettcap_good;   // high when we've received DCS 1
   bool appsync;          // application-synchronized updates advertised
 } query_state;
@@ -1056,18 +1065,18 @@ pump_control_read(query_state* inits, unsigned char c){
         if(ruts_numeric(&inits->numeric, c)){
           return -1;
         }
-        inits->state = STATE_CURSOR;
+        inits->state = STATE_CURSOR_OR_PIXELGEOM;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
       }
       break;
-    case STATE_CURSOR:
+    case STATE_CURSOR_OR_PIXELGEOM:
       if(isdigit(c)){
         if(ruts_numeric(&inits->numeric, c)){
           return -1;
         }
       }else if(c == ';'){
-        inits->cursor_y = inits->numeric;
+        inits->cursor_or_pixel = inits->numeric;
         inits->state = STATE_CURSOR_COL;
         inits->numeric = 0;
       }else{
@@ -1082,6 +1091,28 @@ pump_control_read(query_state* inits, unsigned char c){
       }else if(c == 'R'){
 //fprintf(stderr, "CURSOR X: %d\n", inits->numeric);
         inits->cursor_x = inits->numeric;
+        inits->cursor_y = inits->cursor_or_pixel;
+        inits->state = STATE_NULL;
+      }else if(c == ';'){
+        if(inits->cursor_or_pixel != 4){
+          logerror("expected 4 to lead pixel report, got %d\n", inits->cursor_or_pixel);
+          return -1;
+        }
+        inits->pixelheight = inits->numeric;
+        inits->state = STATE_PIXELS_WIDTH;
+        inits->numeric = 0;
+      }else{
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_PIXELS_WIDTH:
+      if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == 't'){
+//fprintf(stderr, "CURSOR X: %d\n", inits->numeric);
+        inits->pixelwidth = inits->numeric;
         inits->state = STATE_NULL;
       }else{
         inits->state = STATE_NULL;
@@ -1457,6 +1488,10 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     }
     if(cursor_y){
       *cursor_y = inits.cursor_y - 1;
+    }
+    if(inits.pixelwidth && inits.pixelheight){
+      tcache->pixy = inits.pixelheight;
+      tcache->pixx = inits.pixelwidth;
     }
   }
   return 0;

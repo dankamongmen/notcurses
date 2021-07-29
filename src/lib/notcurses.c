@@ -274,6 +274,8 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
         tcache->pixx = ws.ws_xpixel;
       }
     }
+    // update even if we didn't get values just now, because we need set
+    // cellpix{y,x} up from an initial CSI14n, which set only pix{y,x}.
     tcache->cellpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
     tcache->cellpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
     if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
