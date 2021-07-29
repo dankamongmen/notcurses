@@ -1,6 +1,8 @@
 # History
 
+* 2021-07-29: Notcurses [2.3.12 "drop a gem on 'em"](https://github.com/dankamongmen/notcurses/releases/tag/v2.3.12) is added to [Homebrew](https://github.com/Homebrew/homebrew-core/pull/82112).
 * 2021-07-12: OS X support is added during the 2.3.10 development period, with lots of help from Michael Bradley Jr. (@michaelsbradleyjr).
+  * The [Notcurses III video](https://www.youtube.com/watch?v=dcjkezf1ARY) tears it up.
 * 2021-05-09: Notcurses [2.3.0 "triumph"](https://github.com/dankamongmen/notcurses/releases/tag/v2.3.0).
 * 2021-02-08: Notcurses [2.2.0 "no one man should have all that power"](https://github.com/dankamongmen/notcurses/releases/tag/v2.2.0).
 * 2021-02-06: [Lightning talk](https://www.youtube.com/watch?v=fq963c6Fl5E) at [FOSDEM 2021](https://fosdem.org/2021/schedule/event/notcurses/).
