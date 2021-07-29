@@ -508,12 +508,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    // FIXME not yet ready
-    //   https://github.com/kovidgoyal/kitty/issues/3874#issuecomment-887636216
-    //   https://github.com/dankamongmen/notcurses/issues/1990
-    /*if(compare_versions(ti->termversion, "0.22.0") >= 0){
+    if(compare_versions(ti->termversion, "0.22.0") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
-    }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
+    }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_ANIMATION);
     }else{
       setup_kitty_bitmaps(ti, fd, KITTY_ALWAYS_SCROLLS);
