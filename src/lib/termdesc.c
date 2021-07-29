@@ -496,7 +496,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       ti->termversion = NULL;
     }
   }
-  // st had neithercaps.sextants nor caps.quadrants last i checked (0.8.4)
+  // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
   if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
     termname = "Kitty";
