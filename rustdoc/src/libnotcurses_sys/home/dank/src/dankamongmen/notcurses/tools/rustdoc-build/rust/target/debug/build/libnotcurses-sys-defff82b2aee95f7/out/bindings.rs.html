@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-589fdf39d7042df3/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script src="../../../../../../../../../../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-defff82b2aee95f7/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script src="../../../../../../../../../../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../../../../../../../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../../../../../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../../../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../../../../../../../../../../../../settings.html"><img src="../../../../../../../../../../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -4450,6 +4450,160 @@
 <span id="4447">4447</span>
 <span id="4448">4448</span>
 <span id="4449">4449</span>
+<span id="4450">4450</span>
+<span id="4451">4451</span>
+<span id="4452">4452</span>
+<span id="4453">4453</span>
+<span id="4454">4454</span>
+<span id="4455">4455</span>
+<span id="4456">4456</span>
+<span id="4457">4457</span>
+<span id="4458">4458</span>
+<span id="4459">4459</span>
+<span id="4460">4460</span>
+<span id="4461">4461</span>
+<span id="4462">4462</span>
+<span id="4463">4463</span>
+<span id="4464">4464</span>
+<span id="4465">4465</span>
+<span id="4466">4466</span>
+<span id="4467">4467</span>
+<span id="4468">4468</span>
+<span id="4469">4469</span>
+<span id="4470">4470</span>
+<span id="4471">4471</span>
+<span id="4472">4472</span>
+<span id="4473">4473</span>
+<span id="4474">4474</span>
+<span id="4475">4475</span>
+<span id="4476">4476</span>
+<span id="4477">4477</span>
+<span id="4478">4478</span>
+<span id="4479">4479</span>
+<span id="4480">4480</span>
+<span id="4481">4481</span>
+<span id="4482">4482</span>
+<span id="4483">4483</span>
+<span id="4484">4484</span>
+<span id="4485">4485</span>
+<span id="4486">4486</span>
+<span id="4487">4487</span>
+<span id="4488">4488</span>
+<span id="4489">4489</span>
+<span id="4490">4490</span>
+<span id="4491">4491</span>
+<span id="4492">4492</span>
+<span id="4493">4493</span>
+<span id="4494">4494</span>
+<span id="4495">4495</span>
+<span id="4496">4496</span>
+<span id="4497">4497</span>
+<span id="4498">4498</span>
+<span id="4499">4499</span>
+<span id="4500">4500</span>
+<span id="4501">4501</span>
+<span id="4502">4502</span>
+<span id="4503">4503</span>
+<span id="4504">4504</span>
+<span id="4505">4505</span>
+<span id="4506">4506</span>
+<span id="4507">4507</span>
+<span id="4508">4508</span>
+<span id="4509">4509</span>
+<span id="4510">4510</span>
+<span id="4511">4511</span>
+<span id="4512">4512</span>
+<span id="4513">4513</span>
+<span id="4514">4514</span>
+<span id="4515">4515</span>
+<span id="4516">4516</span>
+<span id="4517">4517</span>
+<span id="4518">4518</span>
+<span id="4519">4519</span>
+<span id="4520">4520</span>
+<span id="4521">4521</span>
+<span id="4522">4522</span>
+<span id="4523">4523</span>
+<span id="4524">4524</span>
+<span id="4525">4525</span>
+<span id="4526">4526</span>
+<span id="4527">4527</span>
+<span id="4528">4528</span>
+<span id="4529">4529</span>
+<span id="4530">4530</span>
+<span id="4531">4531</span>
+<span id="4532">4532</span>
+<span id="4533">4533</span>
+<span id="4534">4534</span>
+<span id="4535">4535</span>
+<span id="4536">4536</span>
+<span id="4537">4537</span>
+<span id="4538">4538</span>
+<span id="4539">4539</span>
+<span id="4540">4540</span>
+<span id="4541">4541</span>
+<span id="4542">4542</span>
+<span id="4543">4543</span>
+<span id="4544">4544</span>
+<span id="4545">4545</span>
+<span id="4546">4546</span>
+<span id="4547">4547</span>
+<span id="4548">4548</span>
+<span id="4549">4549</span>
+<span id="4550">4550</span>
+<span id="4551">4551</span>
+<span id="4552">4552</span>
+<span id="4553">4553</span>
+<span id="4554">4554</span>
+<span id="4555">4555</span>
+<span id="4556">4556</span>
+<span id="4557">4557</span>
+<span id="4558">4558</span>
+<span id="4559">4559</span>
+<span id="4560">4560</span>
+<span id="4561">4561</span>
+<span id="4562">4562</span>
+<span id="4563">4563</span>
+<span id="4564">4564</span>
+<span id="4565">4565</span>
+<span id="4566">4566</span>
+<span id="4567">4567</span>
+<span id="4568">4568</span>
+<span id="4569">4569</span>
+<span id="4570">4570</span>
+<span id="4571">4571</span>
+<span id="4572">4572</span>
+<span id="4573">4573</span>
+<span id="4574">4574</span>
+<span id="4575">4575</span>
+<span id="4576">4576</span>
+<span id="4577">4577</span>
+<span id="4578">4578</span>
+<span id="4579">4579</span>
+<span id="4580">4580</span>
+<span id="4581">4581</span>
+<span id="4582">4582</span>
+<span id="4583">4583</span>
+<span id="4584">4584</span>
+<span id="4585">4585</span>
+<span id="4586">4586</span>
+<span id="4587">4587</span>
+<span id="4588">4588</span>
+<span id="4589">4589</span>
+<span id="4590">4590</span>
+<span id="4591">4591</span>
+<span id="4592">4592</span>
+<span id="4593">4593</span>
+<span id="4594">4594</span>
+<span id="4595">4595</span>
+<span id="4596">4596</span>
+<span id="4597">4597</span>
+<span id="4598">4598</span>
+<span id="4599">4599</span>
+<span id="4600">4600</span>
+<span id="4601">4601</span>
+<span id="4602">4602</span>
+<span id="4603">4603</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/* automatically generated by rust-bindgen 0.57.0 */</span>
 
@@ -4567,6 +4721,103 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">true_</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">false_</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__bool_true_false_are_defined</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_SYS_POLL_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLIN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLPRI</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLOUT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLRDNORM</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLRDBAND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLWRNORM</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLWRBAND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">512</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLERR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLHUP</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">POLLNVAL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_TERMIOS_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_HAVE_STRUCT_TERMIOS_C_ISPEED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_HAVE_STRUCT_TERMIOS_C_OSPEED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IGNBRK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BRKINT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IGNPAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PARMRK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INPCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ISTRIP</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INLCR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IGNCR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ICRNL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IUCLC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">512</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IXON</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1024</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IXANY</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2048</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IXOFF</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4096</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IMAXBEL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8192</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IUTF8</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16384</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPOST</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OLCUC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ONLCR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OCRNL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ONOCR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ONLRET</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OFILL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OFDEL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRDLY</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1536</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR0</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR1</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">512</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR2</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1024</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR3</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1536</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BSDLY</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8192</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BS0</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BS1</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8192</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FFDLY</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32768</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FF0</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FF1</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32768</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B0</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B50</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B75</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B110</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B134</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B150</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B200</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B300</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B600</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B1200</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B1800</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B2400</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B4800</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B9600</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B19200</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B38400</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B57600</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4097</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B115200</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4098</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B230400</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4099</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B460800</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4100</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B500000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4101</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B576000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4102</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B921600</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4103</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B1000000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4104</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B1152000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4105</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B1500000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4106</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B2000000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4107</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B2500000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4108</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B3000000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4109</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B3500000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4110</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">B4000000</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4111</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CSIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">48</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CS5</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CS6</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CS7</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CS8</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">48</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CSTOPB</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CREAD</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PARENB</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PARODD</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">512</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLOCAL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2048</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ISIG</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ICANON</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHO</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHOE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHOK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHONL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IEXTEN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32768</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_BYTESWAP_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_NETINET_IN_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_SYS_SOCKET_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
@@ -5189,6 +5440,42 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Put in SET all signals that are blocked and waiting to be delivered.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigpending</span>(<span class="ident">__set</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sigset_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Type used for the number of file descriptors.&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">nfds_t</span> <span class="op">=</span> <span class="ident">cty</span>::<span class="ident">c_ulong</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Data structure describing a polling request.&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">pollfd</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; File descriptor to poll.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">fd</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Types of events poller cares about.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">events</span>: <span class="ident">cty</span>::<span class="ident">c_short</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Types of events that actually occurred.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">revents</span>: <span class="ident">cty</span>::<span class="ident">c_short</span>,
+}
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">cc_t</span> <span class="op">=</span> <span class="ident">cty</span>::<span class="ident">c_uchar</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">speed_t</span> <span class="op">=</span> <span class="ident">cty</span>::<span class="ident">c_uint</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">tcflag_t</span> <span class="op">=</span> <span class="ident">cty</span>::<span class="ident">c_uint</span>;
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">termios</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; input mode flags&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_iflag</span>: <span class="ident">tcflag_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; output mode flags&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_oflag</span>: <span class="ident">tcflag_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; control mode flags&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_cflag</span>: <span class="ident">tcflag_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; local mode flags&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_lflag</span>: <span class="ident">tcflag_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; line discipline&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_line</span>: <span class="ident">cc_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; control characters&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_cc</span>: [<span class="ident">cc_t</span>; <span class="number">32usize</span>],
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; input speed&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_ispeed</span>: <span class="ident">speed_t</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; output speed&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">c_ospeed</span>: <span class="ident">speed_t</span>,
+}
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Structure for scatter/gather I/O.&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -5556,7 +5843,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncstrwidth</span>(<span class="ident">mbs</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty</span>::<span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; input functions like notcurses_getc() return ucs32-encoded uint32_t. convert&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; input functions like notcurses_get() return ucs32-encoded uint32_t. convert&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; a series of uint32_t to utf8. result must be at least 4 bytes per input&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; the number of bytes used is returned, or -1 if passed illegal ucs32, or too&quot;</span>]</span>
@@ -5652,12 +5939,6 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; return a pointer to the NUL-terminated EGC referenced by &#39;c&#39;. this pointer&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; can be invalidated by any further operation on the plane &#39;n&#39;, so...watch out!&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_extended_gcluster</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncplane</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">nccell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty</span>::<span class="ident">c_char</span>;
-}
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; return the number of columns occupied by &#39;c&#39;. see ncstrwidth() for an&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; equivalent for multiple EGCs.&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; FIXME promote to static inline for ABI3&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_width</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncplane</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">nccell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; default. print nothing once fullscreen service begins&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncloglevel_e_NCLOGLEVEL_SILENT</span>: <span class="ident">ncloglevel_e</span> <span class="op">=</span> <span class="number">0</span>;
@@ -5841,19 +6122,13 @@
     <span class="kw">pub</span> <span class="ident">seqnum</span>: <span class="ident">u64</span>,
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; See ppoll(2) for more detail. Provide a NULL &#39;ts&#39; to block at length, a &#39;ts&#39;&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; of 0 for non-blocking operation, and otherwise a timespec to bound blocking.&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Signals in sigmask (less several we handle internally) will be atomically&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; masked and unmasked per ppoll(2). It should generally contain all signals.&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Returns a single Unicode code point, or (uint32_t)-1 on error. &#39;sigmask&#39; may&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; be NULL. Returns 0 on a timeout. If an event is processed, the return value&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; is the &#39;id&#39; field from that event. &#39;ni&#39; may be NULL.&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc</span>(
-        <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>,
-        <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>,
-        <span class="ident">sigmask</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">sigset_t</span>,
-        <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Read a UTF-32-encoded Unicode codepoint from input. This might only be part&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; of a larger EGC. Provide a NULL &#39;ts&#39; to block at length, and otherwise a&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; timespec to bound blocking. Returns a single Unicode code point, or&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; (uint32_t)-1 on error. &#39;sigmask&#39; may be NULL. Returns 0 on a timeout. If an&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; event is processed, the return value is the &#39;id&#39; field from that event.&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; &#39;ni&#39; may be NULL.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_get</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>, <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>, <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Get a file descriptor suitable for input event poll()ing. When this&quot;</span>]</span>
@@ -5865,7 +6140,7 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Enable the mouse in \&quot;button-event tracking\&quot; mode with focus detection and&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; UTF8-style extended coordinates. On failure, -1 is returned. On success, 0&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; is returned, and mouse events will be published to notcurses_getc().&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; is returned, and mouse events will be published to notcurses_get().&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_mouse_enable</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -6876,17 +7151,17 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; time using \&quot;color pairs\&quot;; Notcurses will manage color pairs transparently.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_set_fg_rgb8</span>(
         <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>,
-        <span class="ident">r</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
-        <span class="ident">g</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
-        <span class="ident">b</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">r</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
+        <span class="ident">g</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
+        <span class="ident">b</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_set_bg_rgb8</span>(
         <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>,
-        <span class="ident">r</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
-        <span class="ident">g</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
-        <span class="ident">b</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">r</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
+        <span class="ident">g</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
+        <span class="ident">b</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -7096,6 +7371,20 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncvisual</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ncvisual_from_rgba(), but &#39;data&#39; is &#39;pstride&#39;-byte palette-indexed pixels,&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; arranged in &#39;rows&#39; lines of &#39;rowstride&#39; bytes each, composed of &#39;cols&#39;&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; pixels. &#39;palette&#39; is an array of at least &#39;palsize&#39; ncchannels.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncvisual_from_palidx</span>(
+        <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty</span>::<span class="ident">c_void</span>,
+        <span class="ident">rows</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">rowstride</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">cols</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">palsize</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">pstride</span>: <span class="ident">cty</span>::<span class="ident">c_int</span>,
+        <span class="ident">palette</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncvisual</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Promote an ncplane &#39;n&#39; to an ncvisual. The plane may contain only spaces,&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; half blocks, and full blocks. The latter will be checked, and any other&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; glyph will result in a NULL being returned. This function exists so that&quot;</span>]</span>
@@ -7268,9 +7557,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; If a subtitle ought be displayed at this time, return a heap-allocated copy&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; of the UTF8 text.&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncvisual_subtitle</span>(<span class="ident">ncv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncvisual</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty</span>::<span class="ident">c_char</span>;
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; If a subtitle ought be displayed at this time, return a new plane (bound&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; to &#39;parent&#39; containing the subtitle, which might be text or graphics&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; (depending on the input format).&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncvisual_subtitle_plane</span>(<span class="ident">parent</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>, <span class="ident">ncv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncvisual</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Get the default *media* (not plot) blitter for this environment when using&quot;</span>]</span>
@@ -8465,6 +8755,22 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_debug_caps</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">notcurses</span>, <span class="ident">debugfp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>);
 }
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Backwards-compatibility wrapper; this will be removed for ABI3.&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Use notcurses_get() in new code.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc</span>(
+        <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>,
+        <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>,
+        <span class="ident">unused</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty</span>::<span class="ident">c_void</span>,
+        <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_width</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncplane</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">nccell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncvisual_subtitle</span>(<span class="ident">ncv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncvisual</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty</span>::<span class="ident">c_char</span>;
+}
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ncdirect</span> {
@@ -8711,19 +9017,12 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty</span>::<span class="ident">c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; See ppoll(2) for more detail. Provide a NULL &#39;ts&#39; to block at length, a &#39;ts&#39;&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; of 0 for non-blocking operation, and otherwise a timespec to bound blocking.&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Signals in sigmask (less several we handle internally) will be atomically&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; masked and unmasked per ppoll(2). &#39;*sigmask&#39; should generally contain all&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; signals. Returns a single Unicode code point, or (uint32_t)-1 on error.&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; &#39;sigmask&#39; may be NULL. Returns 0 on a timeout. If an event is processed, the&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; return value is the &#39;id&#39; field from that event. &#39;ni&#39; may be NULL.&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_getc</span>(
-        <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncdirect</span>,
-        <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>,
-        <span class="ident">sigmask</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sigset_t</span>,
-        <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Provide a NULL &#39;ts&#39; to block at length, a &#39;ts&#39; of 0 for non-blocking&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; operation, and otherwise a timespec to bound blocking. Returns a single&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Unicode code point, or (uint32_t)-1 on error. Returns 0 on a timeout. If&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; an event is processed, the return value is the &#39;id&#39; field from that&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; event. &#39;ni&#39; may be NULL.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_get</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncdirect</span>, <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>, <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Get a file descriptor suitable for input event poll()ing. When this&quot;</span>]</span>
@@ -8885,6 +9184,15 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Is there support for acquiring the cursor&#39;s current position? Requires the&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; u7 terminfo capability, and that we are connected to an actual terminal.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_canget_cursor</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncdirect</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Deprecated, to be removed for ABI3. Use ncdirect_get() in new code.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_getc</span>(
+        <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncdirect</span>,
+        <span class="ident">ts</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">timespec</span>,
+        <span class="ident">unused</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty</span>::<span class="ident">c_void</span>,
+        <span class="ident">ni</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncinput</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 }
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__builtin_va_list</span> <span class="op">=</span> [<span class="ident">__va_list_tag</span>; <span class="number">1usize</span>];
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>

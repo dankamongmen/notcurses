@@ -2362,7 +2362,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcComponent</span>, <span class="ident">green</span>: <span class="ident">NcComponent</span>, <span class="ident">blue</span>: <span class="ident">NcComponent</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Can&#39;t fail because of type enforcing.</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">green</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">i32</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">green</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">u32</span>);
         }
     }
 
@@ -2379,7 +2379,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcComponent</span>, <span class="ident">green</span>: <span class="ident">NcComponent</span>, <span class="ident">blue</span>: <span class="ident">NcComponent</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Can&#39;t fail because of type enforcing.</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">green</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">i32</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">green</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">u32</span>);
         }
     }
 

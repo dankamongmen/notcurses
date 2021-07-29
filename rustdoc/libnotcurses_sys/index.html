@@ -311,10 +311,7 @@ whether they're actively supported or not.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nccell_styles.html" title='libnotcurses_sys::nccell_styles fn'>nccell_styles</a></td><td class='docblock-short'><p>Extracts the <a href="../libnotcurses_sys/type.NcStyle.html" title="NcStyle"><code>NcStyle</code></a> bits from an <a href="../libnotcurses_sys/type.NcCell.html" title="NcCell"><code>NcCell</code></a>.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nccell_wide_left_p.html" title='libnotcurses_sys::nccell_wide_left_p fn'>nccell_wide_left_p</a></td><td class='docblock-short'><p>Is this the left half of a wide character?</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nccell_wide_right_p.html" title='libnotcurses_sys::nccell_wide_right_p fn'>nccell_wide_right_p</a></td><td class='docblock-short'><p>Is this the right half of a wide character?</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.nccell_width.html" title='libnotcurses_sys::nccell_width fn'>nccell_width</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>return the number of columns occupied by 'c'. see ncstrwidth() for an
-equivalent for multiple EGCs.
-FIXME promote to static inline for ABI3</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.nccellcmp.html" title='libnotcurses_sys::nccellcmp fn'>nccellcmp</a></td><td class='docblock-short'><p>Returns true if the two cells are distinct <code>EGC</code>s, attributes, or channels.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.nccell_width.html" title='libnotcurses_sys::nccell_width fn'>nccell_width</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.nccellcmp.html" title='libnotcurses_sys::nccellcmp fn'>nccellcmp</a></td><td class='docblock-short'><p>Returns true if the two cells are distinct <code>EGC</code>s, attributes, or channels.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nccells_double_box.html" title='libnotcurses_sys::nccells_double_box fn'>nccells_double_box</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.nccells_load_box.html" title='libnotcurses_sys::nccells_load_box fn'>nccells_load_box</a></td><td class='docblock-short'><p>Loads up six cells with the <code>EGC</code>s necessary to draw a box.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nccells_rounded_box.html" title='libnotcurses_sys::nccells_rounded_box fn'>nccells_rounded_box</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncchannel_alpha.html" title='libnotcurses_sys::ncchannel_alpha fn'>ncchannel_alpha</a></td><td class='docblock-short'><p>Gets the <a href="../libnotcurses_sys/type.NcAlphaBits.html" title="NcAlphaBits"><code>NcAlphaBits</code></a> from an <a href="../libnotcurses_sys/type.NcChannel.html" title="NcChannel"><code>NcChannel</code></a>.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncchannel_b.html" title='libnotcurses_sys::ncchannel_b fn'>ncchannel_b</a></td><td class='docblock-short'><p>Gets the blue <a href="../libnotcurses_sys/type.NcComponent.html" title="NcComponent"><code>NcComponent</code></a> from an <a href="../libnotcurses_sys/type.NcChannel.html" title="NcChannel"><code>NcChannel</code></a>.</p>
@@ -411,13 +408,7 @@ doesn't reply in a way we understand, the results might be deleterious.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_dim_x.html" title='libnotcurses_sys::ncdirect_dim_x fn'>ncdirect_dim_x</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Get the current number of columns/rows.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_dim_y.html" title='libnotcurses_sys::ncdirect_dim_y fn'>ncdirect_dim_y</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_double_box.html" title='libnotcurses_sys::ncdirect_double_box fn'>ncdirect_double_box</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>ncdirect_box() with the double box-drawing characters</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_flush.html" title='libnotcurses_sys::ncdirect_flush fn'>ncdirect_flush</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Force a flush. Returns 0 on success, -1 on failure.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_getc.html" title='libnotcurses_sys::ncdirect_getc fn'>ncdirect_getc</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-Signals in sigmask (less several we handle internally) will be atomically
-masked and unmasked per ppoll(2). '*sigmask' should generally contain all
-signals. Returns a single Unicode code point, or (uint32_t)-1 on error.
-'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the
-return value is the 'id' field from that event. 'ni' may be NULL.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_getc.html" title='libnotcurses_sys::ncdirect_getc fn'>ncdirect_getc</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Deprecated, to be removed for ABI3. Use ncdirect_get() in new code.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_getc_blocking.html" title='libnotcurses_sys::ncdirect_getc_blocking fn'>ncdirect_getc_blocking</a></td><td class='docblock-short'><p>'input' may be NULL if the caller is uninterested in event details.
 Blocks until an event is processed or a signal is received.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_getc_nblock.html" title='libnotcurses_sys::ncdirect_getc_nblock fn'>ncdirect_getc_nblock</a></td><td class='docblock-short'><p>If no event is ready, returns 0.</p>
@@ -1016,9 +1007,7 @@ streamer(). 'timescale' allows the frame duration time to be scaled. For a
 visual naturally running at 30FPS, a 'timescale' of 0.1 will result in
 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 supply 'timescale' less than or equal to 0.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncvisual_subtitle.html" title='libnotcurses_sys::ncvisual_subtitle fn'>ncvisual_subtitle</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>If a subtitle ought be displayed at this time, return a heap-allocated copy
-of the UTF8 text.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_align.html" title='libnotcurses_sys::notcurses_align fn'>notcurses_align</a></td><td class='docblock-short'><p>Returns the offset into <code>availcols</code> at which <code>cols</code> ought be output given
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncvisual_subtitle.html" title='libnotcurses_sys::ncvisual_subtitle fn'>ncvisual_subtitle</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_align.html" title='libnotcurses_sys::notcurses_align fn'>notcurses_align</a></td><td class='docblock-short'><p>Returns the offset into <code>availcols</code> at which <code>cols</code> ought be output given
 the requirements of <code>align</code>.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_at_yx.html" title='libnotcurses_sys::notcurses_at_yx fn'>notcurses_at_yx</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Retrieve the contents of the specified cell as last rendered. Returns the EGC
 or NULL on error. This EGC must be free()d by the caller. The stylemask and
@@ -1049,13 +1038,8 @@ planes, from all piles. No line has more than 80 columns' worth of output.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_detected_terminal.html" title='libnotcurses_sys::notcurses_detected_terminal fn'>notcurses_detected_terminal</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Returns the name (and sometimes version) of the terminal, as Notcurses
 has been best able to determine.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_drop_planes.html" title='libnotcurses_sys::notcurses_drop_planes fn'>notcurses_drop_planes</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Destroy all ncplanes other than the stdplane.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_getc.html" title='libnotcurses_sys::notcurses_getc fn'>notcurses_getc</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
-of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
-Signals in sigmask (less several we handle internally) will be atomically
-masked and unmasked per ppoll(2). It should generally contain all signals.
-Returns a single Unicode code point, or (uint32_t)-1 on error. 'sigmask' may
-be NULL. Returns 0 on a timeout. If an event is processed, the return value
-is the 'id' field from that event. 'ni' may be NULL.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_getc.html" title='libnotcurses_sys::notcurses_getc fn'>notcurses_getc</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Backwards-compatibility wrapper; this will be removed for ABI3.
+Use notcurses_get() in new code.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_getc_blocking.html" title='libnotcurses_sys::notcurses_getc_blocking fn'>notcurses_getc_blocking</a></td><td class='docblock-short'><p>Blocks until an event is processed or a signal is received.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_getc_nblock.html" title='libnotcurses_sys::notcurses_getc_nblock fn'>notcurses_getc_nblock</a></td><td class='docblock-short'><p>If no event is ready, returns 0.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_init.html" title='libnotcurses_sys::notcurses_init fn'>notcurses_init</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Initialize a Notcurses context on the connected terminal at 'fp'. 'fp' must
@@ -1079,7 +1063,7 @@ SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z), if disabled.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_mouse_disable.html" title='libnotcurses_sys::notcurses_mouse_disable fn'>notcurses_mouse_disable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Disable mouse events. Any events in the input queue can still be delivered.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_mouse_enable.html" title='libnotcurses_sys::notcurses_mouse_enable fn'>notcurses_mouse_enable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Enable the mouse in &quot;button-event tracking&quot; mode with focus detection and
 UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-is returned, and mouse events will be published to notcurses_getc().</p>
+is returned, and mouse events will be published to notcurses_get().</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_palette_size.html" title='libnotcurses_sys::notcurses_palette_size fn'>notcurses_palette_size</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Returns the number of simultaneous colors claimed to be supported, or 1 if
 there is no color support. Note that several terminal emulators advertise
 more colors than they actually support, downsampling internally.</p>
@@ -1110,7 +1094,7 @@ indicated as supported if the terminal can support it together with color.
 For more information, see the &quot;ncv&quot; capability in terminfo(5).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_term_dim_yx.html" title='libnotcurses_sys::notcurses_term_dim_yx fn'>notcurses_term_dim_yx</a></td><td class='docblock-short'><p>Returns our current idea of the terminal dimensions in rows and cols.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_top.html" title='libnotcurses_sys::notcurses_top fn'>notcurses_top</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Return the topmost ncplane of the standard pile.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_ucs32_to_utf8.html" title='libnotcurses_sys::notcurses_ucs32_to_utf8 fn'>notcurses_ucs32_to_utf8</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>input functions like notcurses_getc() return ucs32-encoded uint32_t. convert
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_ucs32_to_utf8.html" title='libnotcurses_sys::notcurses_ucs32_to_utf8 fn'>notcurses_ucs32_to_utf8</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 a series of uint32_t to utf8. result must be at least 4 bytes per input
 uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
 the number of bytes used is returned, or -1 if passed illegal ucs32, or too
