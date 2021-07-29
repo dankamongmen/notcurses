@@ -822,7 +822,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(cursor_x && cursor_y){
     if(*cursor_x >= 0 && *cursor_y >= 0){
       if(add_u7_escape(ti, &tablelen, &tableused)){
-        return -1;
+        goto err;
       }
     }
   }
