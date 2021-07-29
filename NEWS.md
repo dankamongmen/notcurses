@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.12 (not yet released)
+* 2.3.12 (2021-07-29)
   * `notcurses_getc()` and `ncdirect_getc()` no longer accept a `sigset_t*`
     as their third argument. Instead, they accept a `void*`, with which
     they will do nothing. This is due to POSIX signals being unportable in
