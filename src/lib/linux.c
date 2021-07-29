@@ -1,6 +1,8 @@
 #include "linux.h"
 #include "internal.h"
 
+// auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
+// and store the original alpha value.
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
   if(auxvec == NULL){
@@ -8,12 +10,19 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   }
   char* glyph = s->glyph;
   for(int y = 0 ; y < s->cellpxy ; ++y){
-    size_t offset = ((ycell * s->cellpxy + y) * s->dimx * s->cellpxx + xcell * s->cellpxx) * 4;
+    if(ycell * s->cellpxy + y >= s->pixy){
+      break;
+    }
+    // number of pixels total above our pixel row
+    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
     for(int x = 0 ; x < s->cellpxx ; ++x){
-      const int vyx = (y % s->cellpxy) * s->cellpxx + (x % s->cellpxx);
+      if(xcell * s->cellpxx + x >= s->pixx){
+        break;
+      }
+      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
+      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
       auxvec[vyx] = glyph[offset + 3];
       glyph[offset + 3] = 0;
-      offset += 4;
     }
   }
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
@@ -26,9 +35,16 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   }
   sprixcell_e state = SPRIXCELL_TRANSPARENT;
   for(int y = 0 ; y < s->cellpxy ; ++y){
-    size_t offset = ((ycell * s->cellpxy + y) * s->dimx * s->cellpxx + xcell * s->cellpxx) * 4;
+    if(ycell * s->cellpxy + y >= s->pixy){
+      break;
+    }
+    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
     for(int x = 0 ; x < s->cellpxx ; ++x){
-      const int vyx = (y % s->cellpxy) * s->cellpxx + (x % s->cellpxx);
+      if(xcell * s->cellpxx + x >= s->pixx){
+        break;
+      }
+      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
+      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
       if(x == 0 && y == 0){
         if(auxvec[vyx] == 0){
           state = SPRIXCELL_TRANSPARENT;
@@ -140,9 +156,7 @@ error:
 }
 
 int fbcon_scrub(const struct ncpile* p, sprixel* s){
-  (void)p;
-  (void)s;
-  return 0;
+  return sixel_scrub(p, s);
 }
 
 int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
