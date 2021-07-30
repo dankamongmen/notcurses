@@ -103,6 +103,26 @@ TEST_CASE("Plane") {
     CHECK(0 > ncplane_set_fg_rgb8(n_, 256, 256, 256));
   }
 
+  // Verify we can emit a NUL character, and it advances the cursor after
+  // wiping out whatever we printed it atop.
+  SUBCASE("EmitNULCell") {
+    nccell c = CELL_CHAR_INITIALIZER('a');
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    CHECK(0 == strcmp("a", ncplane_at_yx(n_, 0, 0, nullptr, nullptr)));
+    int y, x;
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(1 == x);
+    CHECK(0 == notcurses_render(nc_));
+    c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
+    CHECK(0 == strcmp("", ncplane_at_yx(n_, 0, 0, nullptr, nullptr)));
+    ncplane_cursor_yx(n_, &y, &x);
+    CHECK(0 == y);
+    CHECK(1 == x);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   // Verify we can emit a multibyte character, and it advances the cursor
   SUBCASE("EmitCell") {
     const char cchar[] = "✔";
