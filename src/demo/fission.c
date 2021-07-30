@@ -171,7 +171,7 @@ int fission_demo(struct notcurses* nc){
             if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
-              if(!nccell_double_wide_p(&c) || usex + 1 < x + newx){
+              if(!nccell_double_wide_p(&c) || usex + nccell_cols(&c) - 1 < x + newx){
                 nccell_release(n, &c);
                 goto err;
               }
