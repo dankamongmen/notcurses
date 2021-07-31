@@ -409,7 +409,6 @@ set(NCPP_COMPILE_OPTIONS
   -Wno-c99-extensions
   -fno-strict-aliasing
   -ffunction-sections
-  -fstack-protector
   -fno-rtti
   -fpic
   )
