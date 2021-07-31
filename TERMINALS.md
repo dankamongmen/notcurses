@@ -98,8 +98,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Yakuake](https://github.com/KDE/yakuake)         |                    |  ?    |?       | ?                               | |
 
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
-atop the common GNOME [VTE ("Virtual
-TErminal")](https://gitlab.gnome.org/GNOME/vte) library.
+atop the common GNOME [VTE ("Virtual TErminal")](https://gitlab.gnome.org/GNOME/vte) library.
 
 ### Kitty
 

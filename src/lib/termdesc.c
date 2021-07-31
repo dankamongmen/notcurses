@@ -657,6 +657,29 @@ build_supported_styles(tinfo* ti){
   }
 }
 
+#ifdef __APPLE__
+// Terminal.App is a wretched piece of shit that can't handle even the most
+// basic of queries, instead bleeing them through to stdout like a great
+// wounded hippopotamus. it does export "TERM_PROGRAM=Apple_Terminal", becuase
+// it is a committee on sewage and drainage where all the members have
+// tourette's. on mac os, if TERM_PROGRAM=Apple_Terminal, accept this hideous
+// existence, circumvent all queries, and may god have mercy on our souls.
+// of course that means if a terminal launched from Terminal.App doesn't clear
+// or reset this environment variable, they're cursed to live as Terminal.App.
+static queried_terminals_e
+macos_early_matches(const char* termname){
+  (void)termname;
+  const char* tp = getenv("TERM_PROGRAM");
+  if(tp == NULL){
+    return TERMINAL_UNKNOWN;
+  }
+  if(strcmp(tp, "Apple_Terminal")){
+    return TERMINAL_UNKNOWN;
+  }
+  return TERMINAL_APPLE;
+}
+#endif
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
@@ -670,6 +693,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+#ifdef __APPLE__
+  qterm = macos_early_matches(termname);
+#endif
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
