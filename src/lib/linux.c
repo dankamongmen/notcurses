@@ -29,44 +29,6 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   return 0;
 }
 
-int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  if(auxvec == NULL){
-    return -1;
-  }
-  sprixcell_e state = SPRIXCELL_TRANSPARENT;
-  for(int y = 0 ; y < s->cellpxy ; ++y){
-    if(ycell * s->cellpxy + y >= s->pixy){
-      break;
-    }
-    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
-    for(int x = 0 ; x < s->cellpxx ; ++x){
-      if(xcell * s->cellpxx + x >= s->pixx){
-        break;
-      }
-      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
-      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
-      if(x == 0 && y == 0){
-        if(auxvec[vyx] == 0){
-          state = SPRIXCELL_TRANSPARENT;
-        }else{
-          state = SPRIXCELL_OPAQUE_SIXEL;
-        }
-      }else{
-        if(auxvec[vyx] == 0 && state == SPRIXCELL_OPAQUE_SIXEL){
-          state = SPRIXCELL_MIXED_SIXEL;
-        }else if(auxvec[vyx] && state == SPRIXCELL_TRANSPARENT){
-          state = SPRIXCELL_MIXED_SIXEL;
-        }
-      }
-      s->glyph.buf[offset + 3] = auxvec[vyx];
-      offset += 4;
-    }
-  }
-  s->n->tam[s->dimx * ycell + xcell].state = state;
-  s->invalidated = SPRIXEL_INVALIDATED;
-  return 1;
-}
-
 int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   uint32_t transcolor = bargs->transcolor;
@@ -191,6 +153,44 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int
 #include <linux/fb.h>
 #include <linux/kd.h>
 #include <sys/ioctl.h>
+
+int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  if(auxvec == NULL){
+    return -1;
+  }
+  sprixcell_e state = SPRIXCELL_TRANSPARENT;
+  for(int y = 0 ; y < s->cellpxy ; ++y){
+    if(ycell * s->cellpxy + y >= s->pixy){
+      break;
+    }
+    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
+    for(int x = 0 ; x < s->cellpxx ; ++x){
+      if(xcell * s->cellpxx + x >= s->pixx){
+        break;
+      }
+      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
+      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
+      if(x == 0 && y == 0){
+        if(auxvec[vyx] == 0){
+          state = SPRIXCELL_TRANSPARENT;
+        }else{
+          state = SPRIXCELL_OPAQUE_SIXEL;
+        }
+      }else{
+        if(auxvec[vyx] == 0 && state == SPRIXCELL_OPAQUE_SIXEL){
+          state = SPRIXCELL_MIXED_SIXEL;
+        }else if(auxvec[vyx] && state == SPRIXCELL_TRANSPARENT){
+          state = SPRIXCELL_MIXED_SIXEL;
+        }
+      }
+      s->glyph.buf[offset + 3] = auxvec[vyx];
+      offset += 4;
+    }
+  }
+  s->n->tam[s->dimx * ycell + xcell].state = state;
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
 
 // each row is a contiguous set of bits, starting at the msb
 static inline size_t
@@ -661,6 +661,14 @@ bool is_linux_framebuffer(tinfo* ti){
   return true;
 }
 #else
+int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  (void)auxvec;
+  return 0;
+}
+
 bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   (void)fd;
   (void)no_font_changes;
