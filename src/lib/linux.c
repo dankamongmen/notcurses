@@ -669,18 +669,6 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 0;
 }
 
-bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
-  (void)fd;
-  (void)no_font_changes;
-  (void)quadrants;
-  return false;
-}
-
-bool is_linux_framebuffer(tinfo* ti){
-  (void)ti;
-  return false;
-}
-
 int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
   (void)ti;
   (void)ypix;
