@@ -152,11 +152,12 @@ int demo_input_fd(void){
 // listens for events, handling mouse events directly and making other ones
 // available to demos. returns -1 if already spawned or resource failures.
 int input_dispatcher(struct notcurses* nc){
+#ifndef __MINGW64__ // FIXME
   if(input_pipefds[0] >= 0){
     return -1;
   }
   // freebsd doesn't have eventfd :/ and apple doesn't even have pipe2() =[ =[
-#if defined(__APPLE__) || defined(__MINGW64__)
+#if defined(__APPLE__)
   if(pipe(input_pipefds)){
 #else
   if(pipe2(input_pipefds, O_CLOEXEC | O_NONBLOCK)){
@@ -170,6 +171,7 @@ int input_dispatcher(struct notcurses* nc){
     input_pipefds[0] = input_pipefds[1] = -1;
     return -1;
   }
+#endif
   return 0;
 }
 
