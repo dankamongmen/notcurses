@@ -410,7 +410,11 @@ block_on_input(int fd, const struct timespec* ts){
   int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
   while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
 #else
+#ifdef __MINGW64__
+  while((events = WSAPoll(&pfd, 1, 0)) < 0){
+#else
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
+#endif
 #endif
     if(events == 0){
       return 0;
