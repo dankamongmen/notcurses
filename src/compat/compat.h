@@ -36,12 +36,16 @@ typedef struct siginfo_t {
 #define sigset_t int
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
+pid_t waitpid(pid_t pid, int* ret, int flags);
+#define WNOHANG 0
 #else
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #endif
+
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
 static inline uint64_t
 timespec_to_ns(const struct timespec* ts){
