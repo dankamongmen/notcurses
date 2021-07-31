@@ -21,6 +21,7 @@
 * [termbox-go](https://github.com/nsf/termbox-go) (Go)
 * [terminedia](https://github.com/jsbueno/terminedia) (Python)
 * [termion](https://github.com/redox-os/termion) (Rust)
+* [termpaint](https://github.com/termpaint/termpaint) (C++)
 * [termui](https://github.com/gizak/termui) (Go)
 * [termwiz](https://github.com/wez/wezterm/tree/master/termwiz) (Rust)
 * [tui-rs](https://github.com/fdehau/tui-rs) (Rust)
