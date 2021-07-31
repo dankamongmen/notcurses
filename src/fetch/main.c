@@ -521,7 +521,11 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   free(fi->term);
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
   ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
+#ifndef __MINGW64__
   ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());
+#else
+  ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %s ", "FIXME"); // FIXME
+#endif
   ncplane_set_styles(infop, NCSTYLE_ITALIC);
   ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
