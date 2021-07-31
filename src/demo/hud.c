@@ -82,6 +82,7 @@ count_debug_lines(const char* output, size_t outputlen){
 
 static void
 debug_toggle(struct notcurses* nc){
+#ifndef __MINGW64__ // FIXME
   ncmenu_rollup(menu);
   if(debug){
     ncplane_destroy(debug);
@@ -134,6 +135,7 @@ debug_toggle(struct notcurses* nc){
   }
   ncplane_putstr_aligned(n, ncplane_dim_y(n) - 1, NCALIGN_CENTER, "Press Alt+d to hide this window");
   debug = n;
+#endif
 }
 
 static void
