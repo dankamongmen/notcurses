@@ -69,10 +69,11 @@ int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* s
   return 0;
 }
 
-// if |directories| is true, only print details of |p|, and return. otherwise,
-// if |recursedirs| or |toplevel| is set, we will recurse, passing false as
-// toplevel (but preserving |recursedirs|).
-int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct stat* st, const lsContext& ctx, bool toplevel){
+// if |ctx->directories| is true, only print details of |p|, and return.
+// otherwise, if |ctx->recursedirs| or |toplevel| is set, we will recurse,
+// passing false for toplevel (but preserving |ctx|).
+int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p,
+               const struct stat* st, const lsContext& ctx, bool toplevel){
   if(ctx.directories){
     return handle_inode(pdir, p, st, ctx);
   }
