@@ -37,6 +37,8 @@ typedef struct siginfo_t {
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #else
+#include <sys/wait.h>
+#include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #endif

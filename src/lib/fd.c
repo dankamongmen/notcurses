@@ -3,9 +3,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "internal.h"
-#ifndef __MINGW64__
-#include <sys/wait.h>
-#include <sys/time.h>
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."
 #endif
@@ -80,6 +77,7 @@ ncfdplane_thread(void* vncfp){
   return NULL;
 }
 
+#ifndef __MINGW64__
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   int flags = fcntl(fd, F_GETFL, 0);
   if(flags < 0){
@@ -104,6 +102,12 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   }
   return 0;
 }
+#else
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
+  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
+  return -1;
+}
+#endif
 
 static ncfdplane*
 ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
@@ -463,12 +467,6 @@ int ncsubproc_destroy(ncsubproc* n){
   }
   return ret;
 }
-#else
-int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
-  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
-  return -1;
-}
-#endif
 
 ncplane* ncsubproc_plane(ncsubproc* n){
   return n->nfp->ncp;
