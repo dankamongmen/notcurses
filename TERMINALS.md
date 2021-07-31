@@ -91,7 +91,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki) | ✅    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit`| `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | [WezTerm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
-| [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
+| [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | Nice [escape docs](https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences).|
 | [wterm](https://github.com/majestrate/wterm)           |                    |  ?    |?       | ?                               | |
 | [XFCE4 Terminal](https://gitlab.xfce.org/apps/xfce4-terminal)  | ❌                 |  ✅   |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
 | [XTerm](https://invisible-island.net/xterm/xterm.html)           | ✅                 |  ?    |❌      |`TERM=xterm+256color2` `COLORTERM=24bit` | See note about DirectColor. Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
