@@ -82,7 +82,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [GNU Screen](https://www.gnu.org/software/screen/)      | ✅                 |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | [st ("suckless")](https://st.suckless.org/) | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | Many features are maintained as external patches; users often roll their own instance, composing from these patches. |
 | [Tabby](https://github.com/Eugeny/tabby) | ? | ? | ? | ? | |
-| [Terminal.app](https://en.wikipedia.org/wiki/Terminal_(macOS)) | ? | ? | ? | `TERM=xterm-256color`| No RGB |
+| [Terminal.app](https://en.wikipedia.org/wiki/Terminal_(macOS)) | ✅ | ❌ | ❌ | `TERM=xterm-256color`| No RGB; no `ccc` despite wanting `xterm-256color`. |
 | [Terminator](https://github.com/software-jessies-org/jessies/wiki/Terminatorhttps://github.com/software-jessies-org/jessies/wiki/Terminator)      | ✅                 |  ?    |?       | ?                               | |
 | [Terminology](https://github.com/borisfaure/terminology)     | ❌                 |  ❌   |?       | `TERM=terminology`              | Identified via DA3. 256 colors, no RGB. |
 | [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
