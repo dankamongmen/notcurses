@@ -41,7 +41,11 @@ fdthread(ncfdplane* ncfp, int pidfd){
     pfds[1].events = NCPOLLEVENTS;
   }
   ssize_t r = 0;
+#ifndef __MINGW64__
   while(poll(pfds, fdcount, -1) >= 0 || errno == EINTR){
+#else
+  while(WSAPoll(pfds, fdcount, -1) >= 0){
+#endif
     if(pfds[0].revents){
       while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
         if(r == 0){
@@ -76,38 +80,6 @@ ncfdplane_thread(void* vncfp){
   fdthread(vncfp, -1);
   return NULL;
 }
-
-#ifndef __MINGW64__
-int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
-  int flags = fcntl(fd, F_GETFL, 0);
-  if(flags < 0){
-    return -1;
-  }
-  if(oldstate){
-    *oldstate = flags & O_NONBLOCK;
-  }
-  if(state){
-    if(flags & O_NONBLOCK){
-      return 0;
-    }
-    flags |= O_NONBLOCK;
-  }else{
-    if(!(flags & O_NONBLOCK)){
-      return 0;
-    }
-    flags &= ~O_NONBLOCK;
-  }
-  if(fcntl(fd, F_SETFL, flags)){
-    return -1;
-  }
-  return 0;
-}
-#else
-int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
-  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
-  return -1;
-}
-#endif
 
 static ncfdplane*
 ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
@@ -175,6 +147,7 @@ int ncfdplane_destroy(ncfdplane* n){
 // parent then returns.
 static pid_t
 launch_pipe_process(int* pipefd, int* pidfd){
+#ifndef __MINGW64__
   *pidfd = -1;
   int pipes[2];
 #if (defined(__linux__))
@@ -195,7 +168,6 @@ launch_pipe_process(int* pipefd, int* pidfd){
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
   clargs.exit_signal = SIGCHLD;
   p = syscall(__NR_clone3, &clargs, sizeof(clargs));
-#else
 #endif
   if(p < 0){
     p = fork();
@@ -210,12 +182,18 @@ launch_pipe_process(int* pipefd, int* pidfd){
     set_fd_nonblocking(*pipefd, 1, NULL);
   }
   return p;
+#else
+  (void)pipefd;
+  (void)pidfd;
+  return NULL;
+#endif
 }
 
 // nuke the just-spawned process, and reap it. called before the subprocess
 // reader thread is launched (which otherwise reaps the subprocess).
 static int
 kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
+#ifndef __MINGW64__
   int ret = -1;
   // on linux, we try pidfd_send_signal, if the pidfd has been defined.
   // otherwise, we fall back to regular old kill();
@@ -236,6 +214,12 @@ kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
     return -1;
   }
   return 0;
+#else
+  (void)pid;
+  (void)pidfd;
+  (void)status;
+  return -1;
+#endif
 }
 
 // need a poll on both main fd and pidfd
@@ -404,6 +388,9 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
 #elif defined(__APPLE__)
     (void)env;
     execvp(bin, arg); // FIXME env?
+#elif defined(__MINGW64__)
+    (void)arg;
+    (void)env;
 #else
     exect(bin, arg, env);
 #endif
@@ -428,6 +415,7 @@ int ncsubproc_destroy(ncsubproc* n){
   if(n){
     void* vret = NULL;
 //fprintf(stderr, "pid: %u pidfd: %d waittid: %u\n", n->pid, n->pidfd, n->waittid);
+#ifndef __MINGW64__
 #ifdef USING_PIDFD
     if(n->pidfd >= 0){
       loginfo("Sending SIGKILL to pidfd %d\n", n->pidfd);
@@ -442,6 +430,7 @@ int ncsubproc_destroy(ncsubproc* n){
       kill(n->pid, SIGKILL);
     }
     pthread_mutex_unlock(&n->lock);
+#endif
 #endif
     // the thread waits on the subprocess via pidfd (iff pidfd >= 0), and
     // then exits. don't try to cancel the thread in that case; rely instead on

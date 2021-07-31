@@ -1,5 +1,3 @@
-#ifndef __linux__
-#ifndef __FreeBSD__
 #ifdef  __MINGW64__
 #include <string.h>
 #include <stdlib.h>
@@ -16,10 +14,47 @@ char* strndup(const char* str, size_t size){
   }
   return r;
 }
-#else
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
+  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
+  return -1;
+}
+pid_t waitpid(pid_t pid, int* state, int options){
+  (void)options; // FIXME honor WNOHANG
+  WaitForSingleObject(pid, INFINITE);
+  GetExitCodeProcess(pid, state);
+  CloseHandle(pid);
+  return pid;
+}
+#else // not windows
 #include <time.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "compat/compat.h"
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
+  int flags = fcntl(fd, F_GETFL, 0);
+  if(flags < 0){
+    return -1;
+  }
+  if(oldstate){
+    *oldstate = flags & O_NONBLOCK;
+  }
+  if(state){
+    if(flags & O_NONBLOCK){
+      return 0;
+    }
+    flags |= O_NONBLOCK;
+  }else{
+    if(!(flags & O_NONBLOCK)){
+      return 0;
+    }
+    flags &= ~O_NONBLOCK;
+  }
+  if(fcntl(fd, F_SETFL, flags)){
+    return -1;
+  }
+  return 0;
+}
 #if !defined(__DragonFly_version) || __DragonFly_version < 500907
 // clock_nanosleep is unavailable on DragonFly BSD and Mac OS X
 int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request,
@@ -44,7 +79,5 @@ int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request
   return 0;
 
 }
-#endif
-#endif
 #endif
 #endif
