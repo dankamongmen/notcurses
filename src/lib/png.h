@@ -8,10 +8,11 @@ extern "C" {
 #include <stdio.h>
 
 struct fbuf;
-struct ncvisual;
+struct tament;
 
 // create the PNG, encode it using base64, and write it to |fp|
-int write_png_b64(const void* data, int rows, int rowstride, int cols, fbuf* f);
+int write_png_b64(struct tament* tam, const void* data, int rows, int rowstride,
+                  int cols, struct fbuf* f);
 
 #ifdef __cplusplus
 }

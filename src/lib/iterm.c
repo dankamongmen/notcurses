@@ -41,12 +41,11 @@ int iterm_draw(const tinfo* ti, const ncpile *p, sprixel* s, fbuf* f, int y, int
 }
 
 static int
-write_iterm_graphic(const void* data, int leny, int stride, int lenx, fbuf *f){
+write_iterm_graphic(tament* tam, const void* data, int leny, int stride, int lenx, fbuf *f){
   if(fbuf_puts(f, "\e]1337;File=inline=1:") < 0){
     return -1;
   }
-  // FIXME won't we need to pass TAM into write_png_b64()?
-  if(write_png_b64(data, leny, stride, lenx, f)){
+  if(write_png_b64(tam, data, leny, stride, lenx, f)){
     return -1;
   }
   if(fbuf_puts(f, "\x1b\\") < 0){
@@ -83,7 +82,7 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     free(tam);
     return -1;
   }
-  if(write_iterm_graphic(data, leny, linesize, lenx, &s->glyph)){
+  if(write_iterm_graphic(tam, data, leny, linesize, lenx, &s->glyph)){
     if(!reuse){
       free(tam);
     }

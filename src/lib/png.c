@@ -228,7 +228,7 @@ fbuf_putn64(fbuf* f, const void* src, size_t osize, struct b64ctx* bctx){
 }
 
 static size_t
-fwrite_idats(fbuf* f, const unsigned char* data, size_t dlen,
+fwrite_idats(tament* tam, fbuf* f, const unsigned char* data, size_t dlen,
              struct b64ctx* bctx){
   static const char ctype[] = "IDAT";
   uint32_t written = 0;
@@ -244,6 +244,8 @@ fwrite_idats(fbuf* f, const unsigned char* data, size_t dlen,
        fbuf_putn64(f, data + dwritten, thischunk, bctx) != 1){
       return 0;
     }
+    // FIXME use the TAM!
+    (void)tam;
 // FIXME horrible; PoC; do not retain!
 unsigned char* crcbuf = malloc(thischunk + 8);
 memcpy(crcbuf, &nclen, 4);
@@ -262,7 +264,8 @@ free(crcbuf); // FIXME well a bit more
   return written;
 }
 
-int write_png_b64(const void* data, int rows, int rowstride, int cols, fbuf* f){
+int write_png_b64(tament* tam, const void* data, int rows, int rowstride,
+                  int cols, fbuf* f){
   void* deflated;
   size_t dlen;
   compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
@@ -280,7 +283,7 @@ int write_png_b64(const void* data, int rows, int rowstride, int cols, fbuf* f){
     free(deflated);
     return -1;
   }
-  if(fwrite_idats(f, deflated, dlen, &bctx) == 0){
+  if(fwrite_idats(tam, f, deflated, dlen, &bctx) == 0){
     free(deflated);
     return -1;
   }

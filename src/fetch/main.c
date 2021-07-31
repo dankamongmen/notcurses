@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <sys/sysinfo.h>
-#else
+#elif !defined(__MINGW64__)
 #include <sys/sysctl.h>
 #endif
 #include <sys/utsname.h>
@@ -81,7 +81,7 @@ static distro_info distros[] = {
 
 static int
 fetch_bsd_cpuinfo(fetched_info* fi){
-#if defined(__linux__) || defined(__gnu_hurd__)
+#if defined(__linux__) || defined(__gnu_hurd__) || defined(__MINGW64__)
   (void)fi;
 #else
   size_t len = sizeof(fi->core_count);
