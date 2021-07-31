@@ -1634,8 +1634,8 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     lmc = ncplane_cell_ref_yx(n, n->y, --idx);
   }
   // we're now on the leftmost cell of the target glyph.
-  int twidth = nccell_cols(targ);
-  nccell_release(n, &n->fb[nfbcellidx(n, n->y, idx)]);
+  int twidth = nccell_cols(lmc);
+  nccell_release(n, lmc);
   twidth -= n->x - idx;
   while(--twidth > 0){
     nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + twidth)]);
