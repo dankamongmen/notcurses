@@ -416,26 +416,29 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
     return -1;
   }
   logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
-  FILE* fp = s->mstreamfp;
-  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
-          xcell * s->cellpxx,
-          ycell * s->cellpxy,
-          s->cellpxx,
-          s->cellpxy,
-          s->id);
+  fbuf* f = &s->glyph;
+  fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
+              xcell * s->cellpxx, ycell * s->cellpxy,
+              s->cellpxx, s->cellpxy, s->id);
   // FIXME ought be smaller around the fringes!
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
+  #define TRINULLALPHA "AAAAAAAAAAAAAAAA"
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    ncfputs("AAAAAAAAAAAAAAAA", fp);
+    fbuf_putn(f, TRINULLALPHA, strlen(TRINULLALPHA));
   }
+  #undef TRINULLALPHA
   if(totalp % 3 == 1){
-    ncfputs("AAAAAA==", fp);
+  #define UNUMNULLALPHA "AAAAAA=="
+    fbuf_putn(f, UNUMNULLALPHA, strlen(UNUMNULLALPHA));
+  #undef UNUMNULLALPHA
   }else if(totalp % 3 == 2){
-    ncfputs("AAAAAAAAAAA=", fp);
+  #define DUONULLALPHA "AAAAAAAAAAA="
+    fbuf_putn(f, DUONULLALPHA, strlen(DUONULLALPHA));
+  #undef DUONULLALPHA
   }
   // FIXME need chunking for cells of 768+ pixels
-  fprintf(fp, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id);
+  fbuf_printf(f, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id);
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -871,16 +874,16 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   if(init_sprixel_animation(s)){
     return -1;
   }
-  FILE* fp = s->mstreamfp;
+  fbuf* f = &s->glyph;
   const int ystart = ycell * s->cellpxy;
   const int xstart = xcell * s->cellpxx;
   const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
   const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
   logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->id, ycell, xcell, ylen, xlen);
-  fprintf(fp, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,c=2,q=2;\x1b\\",
-          xcell * s->cellpxx, ycell * s->cellpxy,
-          xcell * s->cellpxx, ycell * s->cellpxy,
-          xlen, ylen, s->id);
+  fbuf_printf(f, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,c=2,q=2;\x1b\\",
+              xcell * s->cellpxx, ycell * s->cellpxy,
+              xcell * s->cellpxx, ycell * s->cellpxy,
+              xlen, ylen, s->id);
   const int tyx = xcell + ycell * s->dimx;
   memcpy(&s->n->tam[tyx].state, auxvec, sizeof(s->n->tam[tyx].state));
   s->invalidated = SPRIXEL_INVALIDATED;
@@ -990,7 +993,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
 static inline int
 kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
-                    const blitterargs* bargs, kitty_graphics_e level){
+                const blitterargs* bargs, kitty_graphics_e level){
 //fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
@@ -1016,7 +1019,8 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  if(write_kitty_data(s->mstreamfp, linesize, leny, lenx, cols, data,
+  fbuf* f = &s->glyph;
+  if(write_kitty_data(f, linesize, leny, lenx, cols, data,
                       bargs, tam, &parse_start, level)){
     goto error;
   }

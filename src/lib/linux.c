@@ -58,7 +58,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
           state = SPRIXCELL_MIXED_SIXEL;
         }
       }
-      s->glyph[offset + 3] = auxvec[vyx];
+      s->glyph.buf[offset + 3] = auxvec[vyx];
       offset += 4;
     }
   }
@@ -75,6 +75,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
   sprixel* s = bargs->u.pixel.spx;
   int cdimx = s->cellpxx;
   int cdimy = s->cellpxy;
+  // FIXME this will need be a copy of the tinfo's fbuf map
   size_t flen = leny * lenx * 4;
   s->glyph.buf = malloc(flen);
   if(s->glyph.buf == NULL){
