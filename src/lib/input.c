@@ -390,7 +390,6 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 
 // blocks up through ts (infinite with NULL ts), returning number of events
 // (0 on timeout) or -1 on error/interruption.
-#ifndef __MINGW64__
 static int
 block_on_input(int fd, const struct timespec* ts){
   struct pollfd pfd = {
@@ -411,6 +410,7 @@ block_on_input(int fd, const struct timespec* ts){
   while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
 #else
 #ifdef __MINGW64__
+  // FIXME i doubt this even works
   while((events = WSAPoll(&pfd, 1, 0)) < 0){
 #else
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
@@ -428,9 +428,6 @@ block_on_input(int fd, const struct timespec* ts){
   }
   return events;
 }
-#else
-// FIXME windows block_on_input()
-#endif
 
 static inline size_t
 input_queue_space(const ncinputlayer* nc){
