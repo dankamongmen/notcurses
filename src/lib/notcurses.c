@@ -259,9 +259,12 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
     *cols = ws.ws_col;
   }
   if(tcache){
+#ifdef __linux__
     if(tcache->linux_fb_fd >= 0){
       get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
-    }else{
+    }else
+#endif
+    {
       // we might have the pixel geometry from CSI14t, so don't override a
       // valid earlier response with 0s from the ioctl. we do want to fire
       // off a fresh CSI14t in this case, though FIXME.
