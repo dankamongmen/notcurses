@@ -939,20 +939,28 @@ init_banner(const notcurses* nc){
       term_fg_palindex(nc, nc->ttyfp, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
-    fprintf(nc->ttyfp, "\ncompiled with gcc-%s, %zuB %s-endian cells\n"
-            "terminfo from %s zlib %s\n",
+    fprintf(nc->ttyfp, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
+#ifdef __clang__
+            "", // name is contained in __VERSION__
+#else
+#ifdef __GNUC__
+            "gcc-",
+#else
+#error "Unknown compiler"
+#endif
+#endif
             __VERSION__,
             sizeof(nccell),
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-            "little"
+            "LE",
 #else
-            "big"
+            "BE",
 #endif
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            , curses_version(), zlibVersion());
+            curses_version(), zlibVersion());
     ncvisual_printbanner(nc);
     init_banner_warnings(nc, nc->ttyfp);
     const char* esc;
