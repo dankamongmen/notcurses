@@ -566,7 +566,12 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
   unsigned long totw = zctx->total_out;
   unsigned char* buf = zctx_origbuf(zctx, pixy, pixx);
   // need to terminate the header, requiring semicolon
-  if(fbuf_printf(f, "%s;", totw > 4096 * 3 / 4 ? ",m=1" : "") < 0){
+  if(totw > 4096 * 3 / 4){
+    if(fbuf_putn(f, ",m=1", 4) < 0){
+      return -1;
+    }
+  }
+  if(fbuf_putc(f, ';') < 0){
     return -1;
   }
   bool first = true;
