@@ -615,32 +615,23 @@ term_esc_rgb(fbuf* f, bool foreground, unsigned r, unsigned g, unsigned b){
   // not supported by several terminal emulators :/.
   #define RGBESC2 "8;2;"
   // fprintf() was sitting atop our profiles, so we put the effort into a fast solution
-  // here. assemble a buffer using constants and a lookup table. we can use 20
-  // bytes in the worst case.
-  char rgbbuf[20] = RGBESC1 " " RGBESC2;
-  if(foreground){
-    rgbbuf[2] = '3';
-  }else{
-    rgbbuf[2] = '4';
-  }
-  size_t offset = 7;
+  // here. assemble a buffer using constants and a lookup table.
+  fbuf_putn(f, RGBESC1, strlen(RGBESC1));
+  fbuf_putc(f, foreground ? '3' : '4');
+  fbuf_putn(f, RGBESC2, strlen(RGBESC2));
   const char* s = NUMBERS[r];
   while(*s){
-    rgbbuf[offset++] = *s++;
+    fbuf_putc(f, *s++);
   }
   s = NUMBERS[g];
   while(*s){
-    rgbbuf[offset++] = *s++;
+    fbuf_putc(f, *s++);
   }
   s = NUMBERS[b];
   while(*s != ';'){
-    rgbbuf[offset++] = *s++;
+    fbuf_putc(f, *s++);
   }
-  rgbbuf[offset++] = 'm';
-  rgbbuf[offset] = '\0';
-  if(fbuf_putn(f, rgbbuf, offset) < 0){
-    return -1;
-  }
+  fbuf_putc(f, 'm');
   return 0;
 }
 
