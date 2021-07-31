@@ -397,10 +397,6 @@ block_on_input(int fd, const struct timespec* ts){
     .events = POLLIN,
     .revents = 0,
   };
-  sigset_t smask;
-  sigfillset(&smask);
-  sigdelset(&smask, SIGCONT);
-  sigdelset(&smask, SIGWINCH);
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
@@ -413,6 +409,10 @@ block_on_input(int fd, const struct timespec* ts){
   // FIXME i doubt this even works
   while((events = WSAPoll(&pfd, 1, 0)) < 0){
 #else
+  sigset_t smask;
+  sigfillset(&smask);
+  sigdelset(&smask, SIGCONT);
+  sigdelset(&smask, SIGWINCH);
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
 #endif
 #endif
