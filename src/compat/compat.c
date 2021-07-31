@@ -1,6 +1,8 @@
+#include "compat/compat.h"
 #ifdef  __MINGW64__
 #include <string.h>
 #include <stdlib.h>
+#include <synchapi.h>
 char* strndup(const char* str, size_t size){
   size_t t = strlen(str);
   if(t > size){
@@ -32,7 +34,6 @@ pid_t waitpid(pid_t pid, int* state, int options){
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "compat/compat.h"
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   int flags = fcntl(fd, F_GETFL, 0);
   if(flags < 0){
