@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/stat.h>
-#include <filesystem>
 #include <sys/types.h>
 #include <ncpp/Direct.hh>
 #ifndef __linux__
@@ -34,9 +33,18 @@ void usage(std::ostream& os, const char* name, int code){
 }
 
 struct job {
-  std::filesystem::path dir;
+  // FIXME ought be a const std::string, but Mojave and maybe other
+  // platforms (any prior to C++17 for sure) are lamely lacking
+  // std::filesystem. alas.
+  // FIXME ideally we'd be handing off a dirfd, not a path.
+  std::string dir;
   std::string p;
 };
+
+// FIXME see above; we ought have std::filesystem
+auto path_join(const std::string& dir, const std::string& p) -> std::string {
+  return dir + p;
+}
 
 static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t outmtx = PTHREAD_MUTEX_INITIALIZER; // guards standard out
@@ -56,10 +64,10 @@ struct lsContext {
   ncscale_e scaling;
 };
 
-int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
+int handle_path(int dirfd, const std::string& dir, const char* p, const lsContext& ctx, bool toplevel);
 
 // handle a single inode of arbitrary type
-int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
+int handle_inode(const std::string& dir, const char* p, const struct stat* st, const lsContext& ctx){
   (void)st; // FIXME handle symlink (dereflinks)
   (void)ctx; // FIXME handle symlink (dereflinks)
   pthread_mutex_lock(&mtx);
@@ -72,7 +80,7 @@ int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* s
 // if |ctx->directories| is true, only print details of |p|, and return.
 // otherwise, if |ctx->recursedirs| or |toplevel| is set, we will recurse,
 // passing false for toplevel (but preserving |ctx|).
-int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p,
+int handle_dir(int dirfd, const std::string& pdir, const char* p,
                const struct stat* st, const lsContext& ctx, bool toplevel){
   if(ctx.directories){
     return handle_inode(pdir, p, st, ctx);
@@ -89,7 +97,6 @@ int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p,
     return -1;
   }
   DIR* dir = fdopendir(newdir);
-  auto subdir = pdir / p;
   if(dir == nullptr){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
     close(newdir);
@@ -98,7 +105,7 @@ int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p,
   struct dirent* dent;
   int r = 0;
   while(errno = 0, (dent = readdir(dir))){
-    r |= handle_path(newdir, subdir, dent->d_name, ctx, false);
+    r |= handle_path(newdir, path_join(pdir, p), dent->d_name, ctx, false);
   }
   if(errno){
     std::cerr << "Error reading from " << p << ": " << strerror(errno) << std::endl;
@@ -120,7 +127,7 @@ int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
 
 // handle some path |p|, either absolute or relative to |dirfd|. |toplevel| is
 // true iff the path was directly listed on the command line.
-int handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsContext& ctx, bool toplevel){
+int handle_path(int dirfd, const std::string& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
   if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
@@ -147,7 +154,7 @@ void ncls_thread(const lsContext* ctx) {
       job j = work.front();
       work.pop();
       pthread_mutex_unlock(&mtx);
-      auto s = j.dir / j.p;
+      auto s = path_join(j.dir, j.p);
       auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, ctx->scaling, 0, 0);
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
@@ -173,8 +180,7 @@ int list_paths(const char* const * argv, const lsContext& ctx){
   }
   int ret = 0;
   while(*argv){
-    std::filesystem::path s;
-    ret |= handle_path(dirfd, s, *argv, ctx, true);
+    ret |= handle_path(dirfd, "", *argv, ctx, true);
     ++argv;
   }
   close(dirfd);
@@ -188,6 +194,8 @@ int main(int argc, char* const * argv){
   bool dereflinks = false;
   ncpp::NCAlign alignment = ncpp::NCAlign::Right;
   ncblitter_e blitter = NCBLIT_PIXEL;
+  // FIXME use NCSCALE_NONE by default unless it's hella big, in which case go
+  // ahead and use NCSCALE_SCALE_HIRES. this makes small images too big. =[
   ncscale_e scale = NCSCALE_SCALE_HIRES;
   const struct option opts[] = {
     { "align", 1, nullptr, 'a' },
