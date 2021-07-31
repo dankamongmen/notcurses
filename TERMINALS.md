@@ -20,25 +20,28 @@ Otherwise, if it is determined that the process is connected to a terminal
 (see `isatty(3)`), Notcurses writes a series of queries to it. Several are
 related to terminal identification:
 
-* Send Tertiary Device Attributes (`CSI = 0 c`)
+* Send Tertiary Device Attributes (`CSI = c`)
   * Identifies VTE and foot
+* Send Secondary Device Attributes (`CSI > c`)
+  * Identifies Alacritty's version number
 * `XTVERSION` (`CSI > 0 q`)
   * Identifies XTerm, WezTerm, and Contour
 * `XTGETTCAP` for the `TN` key (`DCS + q 544e ST`)
   * Identifies Kitty and MLterm
 * Send Primary Device Attributes (`CSI c`)
 
-Note that Secondary Device Attributes (`CSI > c`) is *not* queried, because
-no terminals requiring special handling identify themselves via this query.
-This also applies to Primary Device Attributes, but we send this because all
-known terminals respond to it with *something*, preventing us from hanging,
-waiting for input (if a terminal does *not* reply in a recognizable way to
-Primary Device Attributes, `notcurses_init()` will **hang**).
+No terminals requiring special handling identify themselves via Primary Device
+Attributes, but we send this because all known terminals respond to it with
+*something*, preventing us from hanging, waiting for input (**if a terminal does
+*not* reply in a recognizable way to Primary Device Attributes,
+`notcurses_init()` will hang**).
 
 Even if the terminal responds unambiguously to one of these queries, Notcurses
 must have code to recognize the response, and bind it to some terminal
 definition. Assuming the terminal to be thus identified, Notcurses enables or
 disables certain capabilities based on built-in knowledge.
+
+Terminal.App exports `TERM_PROGRAM=Apple_Terminal`.
 
 ## The `COLORTERM` environment variable
 
