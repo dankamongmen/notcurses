@@ -2,7 +2,10 @@
 #ifdef  __MINGW64__
 #include <string.h>
 #include <stdlib.h>
+#include <windows.h>
 #include <synchapi.h>
+#include <handleapi.h>
+#include <processthreadsapi.h>
 char* strndup(const char* str, size_t size){
   size_t t = strlen(str);
   if(t > size){
