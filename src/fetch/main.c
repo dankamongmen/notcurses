@@ -16,6 +16,7 @@
 #endif
 #include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
+#include "compat/compat.h"
 #include "ncart.h"
 
 typedef struct distro_info {
@@ -25,7 +26,7 @@ typedef struct distro_info {
 
 typedef struct fetched_info {
   char* username;              // we borrow a reference
-  char hostname[_POSIX_HOST_NAME_MAX];
+  char* hostname; 
   const distro_info* distro;
   char* logo;                  // strdup() from /etc/os-release
   char* distro_pretty;         // strdup() from /etc/os-release
@@ -288,6 +289,21 @@ getusername(fetched_info* fi){
   fi->username = strdup(p->pw_name);
   return 0;
 }
+
+static int
+getlocalhostname(fetched_info* fi){
+  char hostname[_POSIX_HOST_NAME_MAX + 1];
+  if(gethostname(hostname, sizeof(hostname)) == 0){
+    char* fqdn = strchr(hostname, '.');
+    if(fqdn){
+      *fqdn = '\0';
+    }
+    if( (fi->hostname = strdup(hostname)) ){
+      return 0;
+    }
+  }
+  return -1;
+}
 #else
 static int
 getusername(fetched_info* fi){
@@ -303,19 +319,18 @@ getusername(fetched_info* fi){
   fi->username = un;
   return 0;
 }
-#endif
 
 static int
-unix_gethostname(fetched_info* fi){
-  if(gethostname(fi->hostname, sizeof(fi->hostname)) == 0){
-    char* fqdn = strchr(fi->hostname, '.');
-    if(fqdn){
-      *fqdn = '\0';
+getlocalhostname(fetched_info* fi){
+  char lp[MAX_COMPUTERNAME_LENGTH + 1];
+  if(GetComputerNameA(lp, sizeof(lp))){
+    if( (fi->hostname = strdup(lp)) ){
+      return 0;
     }
-    return 0;
   }
   return -1;
 }
+#endif
 
 typedef enum {
   NCNEO_LINUX,
@@ -665,7 +680,7 @@ ncneofetch(struct ncdirect* nc){
   };
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
-  unix_gethostname(&fi);
+  getlocalhostname(&fi);
   getusername(&fi);
   fetch_env_vars(nc, &fi);
   fetch_x_props(&fi);
