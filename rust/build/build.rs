@@ -41,11 +41,17 @@ fn main() {
         .blacklist_function("n[^co].*")
         .blacklist_function("s[^i].*") // allow sig*
         // clean more unneeded types
+        .blacklist_item("B[0-9]+")
         .blacklist_item("_BITS.*")
         .blacklist_item("_POSIX.*")
         .blacklist_item("__[A-Z].*")
         .blacklist_item("[ADHJ-MQ-Z].*")
+        .blacklist_item("IN.*")
+        .blacklist_item("in.*")
         .blacklist_item("IP[^R].*")
+        .blacklist_item("ip.*")
+        .blacklist_item("sock.*")
+        .blacklist_item("m.*")
         .blacklist_item("PF.*")
         .blacklist_item("MSG_.*")
         .blacklist_item("N[^C].*")
