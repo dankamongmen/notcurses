@@ -63,7 +63,6 @@ pub use ffi::{
     nccell_extended_gcluster,
     nccell_load,
     nccell_release,
-    nccell_width,
     nccells_double_box,
     nccells_rounded_box,
 };

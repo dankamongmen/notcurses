@@ -289,6 +289,22 @@ pub fn nccell_set_styles(cell: &mut NcCell, stylebits: NcStyle) {
 
 // Chars -----------------------------------------------------------------------
 
+/// Returns the number of columns occupied by 'c'. see ncstrwidth() for an
+/// equivalent for multiple EGCs.
+#[inline]
+pub const fn nccell_cols(cell: &NcCell) -> u8 {
+    if cell.width != 0 {
+        cell.width
+    } else {
+        1
+    }
+}
+
+#[deprecated]
+pub fn nccell_width(plane: &NcPlane, cell: &NcCell) -> NcIntResult {
+    unsafe { crate::ffi::nccell_width(plane, cell) }
+}
+
 /// Does the [`NcCell`] contain an East Asian Wide codepoint?
 ///
 /// *Method: NcCell.[double_wide_p()][NcCell#method.double_wide_p].*

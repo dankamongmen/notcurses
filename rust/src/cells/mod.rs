@@ -7,7 +7,6 @@
 // ------------------------------------------
 //…  nccell_extended_gcluster
 //…  nccell_load
-//   nccell_width
 //W  nccells_double_box
 //W  nccells_rounded_box
 //W  nccell_duplicate
@@ -26,6 +25,7 @@
 //W# nccell_bg_palindex_p
 //W# nccell_bg_rgb
 //W# nccell_bg_rgb8
+// + nccell_cols
 //W+ nccell_double_wide_p
 //W+ nccell_extract
 //W# nccell_fchannel
