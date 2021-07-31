@@ -15,7 +15,9 @@ char* strndup(const char* str, size_t size){
   return r;
 }
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
-  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
+  (void)fd;
+  (void)state;
+  (void)oldstate;
   return -1;
 }
 pid_t waitpid(pid_t pid, int* state, int options){
