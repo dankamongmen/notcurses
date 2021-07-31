@@ -2,7 +2,6 @@
 #ifdef  __MINGW64__
 #include <string.h>
 #include <stdlib.h>
-#include <windows.h>
 #include <synchapi.h>
 #include <handleapi.h>
 #include <processthreadsapi.h>

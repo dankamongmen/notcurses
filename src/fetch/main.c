@@ -1,4 +1,3 @@
-#include <pwd.h>
 #include <errno.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -271,8 +270,10 @@ linux_ncneofetch(fetched_info* fi){
   return dinfo;
 }
 
+#ifndef __MINGW64__
+#include <pwd.h>
 static int
-unix_getusername(fetched_info* fi){
+getusername(fetched_info* fi){
   if( (fi->username = getenv("LOGNAME")) ){
     if( (fi->username = strdup(fi->username)) ){
       return 0;
@@ -286,6 +287,22 @@ unix_getusername(fetched_info* fi){
   fi->username = strdup(p->pw_name);
   return 0;
 }
+#else
+static int
+getusername(fetched_info* fi){
+  DWORD unlen = UNLEN + 1;
+  char* un = malloc(unlen);
+  if(un == NULL){
+    return -1;
+  }
+  if(GetUserName(un, &unlen)){ // FIXME probably want GetUserNameEx
+    free(un);
+    return -1;
+  }
+  fi->username = un;
+  return 0;
+}
+#endif
 
 static int
 unix_gethostname(fetched_info* fi){
@@ -644,7 +661,7 @@ ncneofetch(struct ncdirect* nc){
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
   unix_gethostname(&fi);
-  unix_getusername(&fi);
+  getusername(&fi);
   fetch_env_vars(nc, &fi);
   fetch_x_props(&fi);
   if(kern == NCNEO_LINUX){
