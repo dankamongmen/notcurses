@@ -9,10 +9,11 @@
 #include <sys/types.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <sys/sysinfo.h>
+#include <sys/utsname.h>
 #elif !defined(__MINGW64__)
 #include <sys/sysctl.h>
-#endif
 #include <sys/utsname.h>
+#endif
 #include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
 #include "ncart.h"
@@ -326,6 +327,7 @@ typedef enum {
 
 static ncneo_kernel_e
 get_kernel(fetched_info* fi){
+#ifndef __MINGW64__
   struct utsname uts;
   if(uname(&uts)){
     fprintf(stderr, "Failure invoking uname (%s)\n", strerror(errno));
@@ -343,6 +345,9 @@ get_kernel(fetched_info* fi){
     return NCNEO_XNU;
   }
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
+#else
+  (void)fi;
+#endif
   return NCNEO_UNKNOWN;
 }
 
