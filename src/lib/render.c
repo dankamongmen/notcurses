@@ -896,7 +896,7 @@ rasterize_scrolls(ncpile* p, fbuf* f){
       p->nc->rstate.logendx = 0;
     }
   }
-  if(goto_location(p->nc, out, p->dimy, 0)){
+  if(goto_location(p->nc, f, p->dimy, 0)){
     return -1;
   }
   while(p->scrolls){
