@@ -146,6 +146,8 @@ int unicodeblocks_demo(struct notcurses* nc){
     const char* name;
     uint32_t start;
   } blocks[] = {
+    // FIXME use full titles, and give several rows to the block name, using
+    //       ncplane_puttext(NCALIGN_CENTER). some here are truncated.
     { .name = "Basic Latin, Latin 1 Supplement, Latin Extended", .start = 0, },
     { .name = "IPA Extensions, Spacing Modifiers, Greek and Coptic", .start = 0x200, },
     { .name = "Cyrillic, Cyrillic Supplement, Armenian, Hebrew", .start = 0x400, },
