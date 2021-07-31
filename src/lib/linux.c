@@ -123,29 +123,6 @@ int fbcon_scrub(const struct ncpile* p, sprixel* s){
   return sixel_scrub(p, s);
 }
 
-int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
-  (void)p;
-  (void)f; // we don't write to the stream
-  int wrote = 0;
-  for(unsigned l = 0 ; l < (unsigned)s->pixy && l < ti->pixy ; ++l){
-    // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
-    size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
-    uint8_t* tl = ti->linux_fbuffer + offset;
-    const char* src = (char*)s->glyph.buf + (l * s->pixx * 4);
-    for(unsigned c = 0 ; c < (unsigned)s->pixx && c < ti->pixx ; ++c){
-      uint32_t pixel;
-      memcpy(&pixel, src, 4);
-      if(!rgba_trans_p(pixel, 0)){
-        memcpy(tl, &pixel, 4);
-        wrote += 4;
-      }
-      src += 4;
-      tl += 4;
-    }
-  }
-  return wrote;
-}
-
 #ifdef __linux__
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -190,6 +167,29 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   s->n->tam[s->dimx * ycell + xcell].state = state;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
+}
+
+int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
+  (void)p;
+  (void)f; // we don't write to the stream
+  int wrote = 0;
+  for(unsigned l = 0 ; l < (unsigned)s->pixy && l < ti->pixy ; ++l){
+    // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
+    size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
+    uint8_t* tl = ti->linux_fbuffer + offset;
+    const char* src = (char*)s->glyph.buf + (l * s->pixx * 4);
+    for(unsigned c = 0 ; c < (unsigned)s->pixx && c < ti->pixx ; ++c){
+      uint32_t pixel;
+      memcpy(&pixel, src, 4);
+      if(!rgba_trans_p(pixel, 0)){
+        memcpy(tl, &pixel, 4);
+        wrote += 4;
+      }
+      src += 4;
+      tl += 4;
+    }
+  }
+  return wrote;
 }
 
 // each row is a contiguous set of bits, starting at the msb
@@ -666,6 +666,16 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   (void)ycell;
   (void)xcell;
   (void)auxvec;
+  return 0;
+}
+
+int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
+  (void)ti;
+  (void)p;
+  (void)s;
+  (void)f;
+  (void)y;
+  (void)x;
   return 0;
 }
 
