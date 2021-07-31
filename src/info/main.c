@@ -308,7 +308,7 @@ display_logo(struct ncplane* n, const char* path){
     .y = y - 3,
     .x = 54,
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_CHILDPLANE,
+    .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_NODEGRADE,
   };
   struct ncplane* bitm = ncvisual_render(ncplane_notcurses(n), ncv, &vopts);
   if(bitm == NULL){
@@ -431,7 +431,7 @@ int main(int argc, const char** argv){
   unicodedumper(stdn, indent);
   char* path = prefix_data("notcurses.png");
   if(path){
-    display_logo(stdn, path);
+    display_logo(stdn, path); // let it fail
     free(path);
   }
   if(notcurses_render(nc)){
