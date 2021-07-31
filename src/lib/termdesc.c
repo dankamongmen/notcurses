@@ -669,6 +669,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
 #ifdef __APPLE__
   qterm = macos_early_matches(tname);
 #endif
+#ifdef __linux__
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
@@ -678,6 +679,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
       // FIXME set up pixel-drawing API for framebuffer #1369
     }
   }
+#endif
   if(fd >= 0){
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
