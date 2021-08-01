@@ -88,6 +88,30 @@ braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
   return 0;
 }
 
+static void
+finish_line(struct ncplane* n){
+  int x;
+  ncplane_cursor_yx(n, NULL, &x);
+  while(x++ < 78){
+    ncplane_putchar(n, ' ');
+  }
+  ncplane_putchar(n, '\n');
+}
+
+static int
+emoji_viz(struct ncplane* n){
+  static const char emoji[] = "🥆💣🗡🔫⚗️⚛️";
+  ncplane_set_bg_rgb(n, 0);
+  int bytes;
+  for(const char* e = emoji ; *e ; e += bytes){
+    if(ncplane_putegc(n, e, &bytes) < 0){
+      break;
+    }
+  }
+  finish_line(n);
+  return 0;
+}
+
 // symbols for legacy computing
 static int
 legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
@@ -236,6 +260,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     wviz(n, NCEIGHTHST);
     wviz(n, L" ⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩");
     ncplane_putchar(n, '\n');
+    emoji_viz(n);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     /*
@@ -250,37 +275,37 @@ unicodedumper(struct ncplane* n, const char* indent){
     ncplane_printf_aligned(n, y - 1, NCALIGN_RIGHT, "⎣⎝⎠⎦");
     */
     // the symbols for legacy computing
-    ncplane_cursor_move_yx(n, y - 2, 0);
+    ncplane_cursor_move_yx(n, y - 3, 0);
     uint32_t ul = NCCHANNEL_INITIALIZER(0x30, 0x30, 0x30);
     uint32_t lr = NCCHANNEL_INITIALIZER(0x80, 0x80, 0x80);
-    ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
+    ncplane_stain(n, y - 2, 65, ul, lr, ul, lr);
     // the horizontal eighths
     ul = NCCHANNEL_INITIALIZER(0x02, 0x8a, 0x0f);
     lr = NCCHANNEL_INITIALIZER(0x08, 0x3d, 0x3b);
-    ncplane_cursor_move_yx(n, y - 10, 66);
-    ncplane_stain(n, y - 1, 77, ul, ul, lr, lr);
+    ncplane_cursor_move_yx(n, y - 11, 66);
+    ncplane_stain(n, y - 2, 77, ul, ul, lr, lr);
     // the braille
-    ncplane_cursor_move_yx(n, y - 6, 0);
+    ncplane_cursor_move_yx(n, y - 7, 0);
     ul = NCCHANNEL_INITIALIZER(0x2f, 0x25, 0x24);
     lr = NCCHANNEL_INITIALIZER(0x74, 0x25, 0x2f);
-    ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
+    ncplane_stain(n, y - 4, 65, ul, lr, ul, lr);
     // the sextants
-    ncplane_cursor_move_yx(n, y - 10, 27);
+    ncplane_cursor_move_yx(n, y - 11, 27);
     lr = NCCHANNEL_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = NCCHANNEL_INITIALIZER(0x19, 0x19, 0x70);
-    ncplane_stain(n, y - 9, 57, lr, ul, lr, ul);
+    ncplane_stain(n, y - 10, 57, lr, ul, lr, ul);
     // the boxes + quadrants
-    ncplane_cursor_move_yx(n, y - 10, 0);
-    ncplane_stain(n, y - 7, 65, lr, ul, lr, ul);
+    ncplane_cursor_move_yx(n, y - 11, 0);
+    ncplane_stain(n, y - 8, 65, lr, ul, lr, ul);
     // the capabilities
     ul = NCCHANNEL_INITIALIZER(0x1B, 0xb8, 0x8E);
     lr = NCCHANNEL_INITIALIZER(0x19, 0x19, 0x70);
-    ncplane_cursor_move_yx(n, y - 15, 0);
-    ncplane_stain(n, y - 11, 77, lr, ul, lr, ul);
+    ncplane_cursor_move_yx(n, y - 16, 0);
+    ncplane_stain(n, y - 12, 77, lr, ul, lr, ul);
 
     ncplane_set_fg_rgb(n, 0x00c080);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-    ncplane_cursor_move_yx(n, y - 11, 54);
+    ncplane_cursor_move_yx(n, y - 12, 54);
     ncplane_set_bg_rgb(n, 0);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_fg_default(n);
@@ -318,16 +343,6 @@ display_logo(struct ncplane* n, const char* path){
   }
   ncvisual_destroy(ncv);
   return 0;
-}
-
-static void
-finish_line(struct ncplane* n){
-  int x;
-  ncplane_cursor_yx(n, NULL, &x);
-  while(x++ < ncplane_dim_x(n) - 1){
-    ncplane_putchar(n, ' ');
-  }
-  ncplane_putchar(n, '\n');
 }
 
 static void
