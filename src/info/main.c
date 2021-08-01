@@ -258,7 +258,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     ul = NCCHANNEL_INITIALIZER(0x02, 0x8a, 0x0f);
     lr = NCCHANNEL_INITIALIZER(0x08, 0x3d, 0x3b);
     ncplane_cursor_move_yx(n, y - 10, 66);
-    ncplane_stain(n, y - 1, 79, ul, ul, lr, lr);
+    ncplane_stain(n, y - 1, 77, ul, ul, lr, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 6, 0);
     ul = NCCHANNEL_INITIALIZER(0x2f, 0x25, 0x24);
@@ -276,11 +276,12 @@ unicodedumper(struct ncplane* n, const char* indent){
     ul = NCCHANNEL_INITIALIZER(0x1B, 0xb8, 0x8E);
     lr = NCCHANNEL_INITIALIZER(0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 15, 0);
-    ncplane_stain(n, y - 11, 70, lr, ul, lr, ul);
+    ncplane_stain(n, y - 11, 77, lr, ul, lr, ul);
 
     ncplane_set_fg_rgb(n, 0x00c080);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 11, 54);
+    ncplane_set_bg_rgb(n, 0);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_fg_default(n);
     ncplane_set_styles(n, NCSTYLE_NONE);
@@ -320,33 +321,45 @@ display_logo(struct ncplane* n, const char* path){
 }
 
 static void
+finish_line(struct ncplane* n){
+  int x;
+  ncplane_cursor_yx(n, NULL, &x);
+  while(x++ < ncplane_dim_x(n) - 1){
+    ncplane_putchar(n, ' ');
+  }
+  ncplane_putchar(n, '\n');
+}
+
+static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
-  ncplane_printf(n, "%sdefbg 0x%06lx %sconsidered transparent\n", indent,
+  ncplane_printf(n, "%sdefbg 0x%06lx %sconsidered transparent", indent,
                  ti->bg_collides_default & 0xfffffful,
                  (ti->bg_collides_default & 0x01000000) ? "" : "not ");
+  finish_line(n);
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
-    ncplane_printf(n, "%sno bitmap graphics detected\n", indent);
+    ncplane_printf(n, "%sno bitmap graphics detected", indent);
   }else{ // we do have support; draw one
     if(ti->color_registers){
       if(ti->sixel_maxy){
-        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
+        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
                       indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
       }else{
-        ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
+        ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
       }
     }else if(ti->linux_fb_fd >= 0){
-      ncplane_printf(n, "%sframebuffer graphics supported\n", indent);
+      ncplane_printf(n, "%sframebuffer graphics supported", indent);
     }else if(ti->pixel_move == NULL){
-      ncplane_printf(n, "%siTerm2 graphics support\n", indent);
+      ncplane_printf(n, "%siTerm2 graphics support", indent);
     }else if(ti->sixel_maxy_pristine){
-      ncplane_printf(n, "%srgba pixel graphics support\n", indent);
+      ncplane_printf(n, "%srgba pixel graphics support", indent);
     }else{
-      ncplane_printf(n, "%srgba pixel animation support\n", indent);
+      ncplane_printf(n, "%srgba pixel animation support", indent);
     }
   }
+  finish_line(n);
   /*
   ncplane_putstr(n, "\U0001F918");
   ncplane_putstr(n, "\U0001F918\u200d\U0001F3FB");
@@ -369,7 +382,8 @@ tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0), ' ');
   tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP), ' ');
   tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP), ' ');
-  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), '\n');
+  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), ' ');
+  finish_line(n);
 }
 
 static void
@@ -383,7 +397,8 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, ' ');
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), ' ');
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, ' ');
-  tinfo_debug_cap(n, "rgb", ti->caps.rgb, '\n');
+  tinfo_debug_cap(n, "rgb", ti->caps.rgb, ' ');
+  finish_line(n);
   ncplane_set_fg_default(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8, ' ');
@@ -391,7 +406,8 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "sex", ti->caps.sextants, ' ');
   tinfo_debug_cap(n, "braille", ti->caps.braille, ' ');
   tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), ' ');
-  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc), '\n');
+  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc), ' ');
+  finish_line(n);
   ncplane_set_fg_default(n);
 }
 
