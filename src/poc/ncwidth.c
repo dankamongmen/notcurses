@@ -85,8 +85,7 @@ int main(int argc, char **argv){
     ncdirect_cursor_yx(n, &y, &x);
     // throw up a background color for invisible glyphs
     uint64_t chan = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0x80, 0);
-    int expy, expx;
-    int scrolls = 0;
+    int scrolls = 0, newscrolls = 0;
     while(**argv){
       int sbytes;
       int cols;
@@ -95,20 +94,27 @@ int main(int argc, char **argv){
       }
       fflush(stdout);
       ncdirect_cursor_yx(n, &newy, &newx);
-      if(newy != y + scrolls){
+//fprintf(stderr, "NE: %d %d %d %d\n", newy, newx, y, x);
+      if(newy != y){
         newx += ncdirect_dim_x(n) * (newy - y);
       }
       if(x + cols != newx){
+        newscrolls = 0;
         ++scrolls;
         for(int k = 0 ; k < scrolls ; ++k){
-          putchar('\v');
+          if(newy >= ncdirect_dim_y(n)){
+            ++newscrolls;
+            putchar('\v');
+          }else{
+            ncdirect_cursor_down(n, 1);
+            ++newy;
+          }
         }
-        int r = printf("True width: %d wcwidth: %d [%.*s]", newx - x, cols, sbytes, *argv);
-        ncdirect_cursor_yx(n, &expy, &expx);
-        ncdirect_cursor_up(n, scrolls);
+        printf("True width: %d wcwidth: %d [%.*s]", newx - x, cols, sbytes, *argv);
+        ncdirect_cursor_move_yx(n, newy - newscrolls, newx);
       }
       *argv += sbytes;
-      y = newy - scrolls;
+      y = newy + newscrolls;
       x = newx;
     }
     for(i = 0 ; i < scrolls + 1 ; ++i){
