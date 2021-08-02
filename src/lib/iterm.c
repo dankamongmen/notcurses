@@ -98,11 +98,4 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   return 1;
-
-error:
-  if(!reuse){
-    free(tam);
-  }
-  free(s->glyph);
-  return -1;
 }
