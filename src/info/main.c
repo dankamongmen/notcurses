@@ -105,7 +105,9 @@ emoji_viz(struct ncplane* n){
   int bytes;
   for(const char* e = emoji ; *e ; e += bytes){
     if(ncplane_putegc(n, e, &bytes) < 0){
-      break;
+      if(ncplane_putchar(n, ' ') < 0){
+        break;
+      }
     }
   }
   finish_line(n);

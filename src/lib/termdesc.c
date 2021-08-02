@@ -594,6 +594,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
     setup_iterm_bitmaps(ti, fd);
+  }else if(qterm == TERMINAL_APPLE){
+    termname = "Terminal.app";
+    // no quadrants, no sextants, no rgb, but it does have braille
 #ifdef __linux__
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
