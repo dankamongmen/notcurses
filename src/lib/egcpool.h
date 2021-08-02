@@ -97,6 +97,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
   mbstate_t mbt;
   memset(&mbt, 0, sizeof(mbt));
   wchar_t wc, prevw = 0;
+  bool injoin = false;
   do{
     r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
     if(r < 0){
@@ -104,7 +105,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
       logerror("Invalid UTF8: %s\n", gcluster);
       return -1;
     }
-    if(prevw && uc_is_grapheme_break(prevw, wc)){
+    if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
     int cols = wcwidth(wc);
@@ -115,6 +116,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
       logerror("Prohibited or invalid Unicode: 0x%x\n", wc);
       return -1;
     }
+    injoin = (wc == L'\u200d');
     *colcount += cols;
     ret += r;
     gcluster += r;

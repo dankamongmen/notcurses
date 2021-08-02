@@ -74,7 +74,7 @@ terminal, and will refuse to run in anything smaller than 80x24.
 **-V**|**--version**: Print the program name and version, and exit with success.
 
 ***demospec***: Select which demos to run, and what order to run them in. The
-default is **ixetunchdmbkywgarvlsfjqzo**. See above for a list of demos.
+default is **ixetunchmdbkywgarvlsfjqzo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
