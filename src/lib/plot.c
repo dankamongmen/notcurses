@@ -351,16 +351,6 @@ int window_slide_##T(nc##X##plot* ncp, int64_t x){ \
 static int update_domain_##T(nc##X##plot* ncp, uint64_t x); \
 static void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset); \
 \
-int set_sample_##T(nc##X##plot* ncpp, uint64_t x, T y){ \
-  if(window_slide_##T(ncpp, x)){ \
-    return -1; \
-  } \
-  update_sample_##T(ncpp, x, y, true); \
-  if(update_domain_##T(ncpp, x)){ \
-    return -1; \
-  } \
-  return redraw_plot_##T(ncpp); \
-} \
 /* Add to or set the value corresponding to this x. If x is beyond the current \
    x window, the x window is advanced to include x, and values passing beyond \
    the window are lost. The first call will place the initial window. The plot \
@@ -482,7 +472,14 @@ int ncuplot_add_sample(ncuplot* n, uint64_t x, uint64_t y){
 }
 
 int ncuplot_set_sample(ncuplot* n, uint64_t x, uint64_t y){
-  return set_sample_uint64_t(n, x, y);
+  if(window_slide_uint64_t(n, x)){
+    return -1;
+  }
+  update_sample_uint64_t(n, x, y, true);
+  if(update_domain_uint64_t(n, x)){
+    return -1;
+  }
+  return redraw_plot_uint64_t(n);
 }
 
 void ncuplot_destroy(ncuplot* n){
@@ -516,7 +513,14 @@ int ncdplot_add_sample(ncdplot* n, uint64_t x, double y){
 }
 
 int ncdplot_set_sample(ncdplot* n, uint64_t x, double y){
-  return set_sample_double(n, x, y);
+  if(window_slide_double(n, x)){
+    return -1;
+  }
+  update_sample_double(n, x, y, true);
+  if(update_domain_double(n, x)){
+    return -1;
+  }
+  return redraw_plot_double(n);
 }
 
 int ncuplot_sample(const ncuplot* n, uint64_t x, uint64_t* y){
