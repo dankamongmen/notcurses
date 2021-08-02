@@ -100,7 +100,16 @@ finish_line(struct ncplane* n){
 
 static int
 emoji_viz(struct ncplane* n){
-  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️🌿🎱🏧💉💊📡🤻🦑🇮🇱🇦🇶🚱🪤🧬🔬🏴‍☠️";
+  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️🌿🎱🏧"
+                              "💉💊📡🤻🦑🇮🇱🇦🇶"
+                              "\U0001faa4" // mouse trap
+                              "\U0001f6b1" // non-potable water
+                              "\u270a\U0001f3ff" // type-6 raised fist
+                              "\U0001f52c" // microscope
+                              "\U0001f9ec" // dna double helix
+                              "\U0001f3f4\u200d\u2620\ufe0f" // pirate flag
+                              "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f" // type-3 woman playing water polo
+                              ;
   ncplane_set_bg_rgb(n, 0);
   int bytes;
   for(const char* e = emoji ; *e ; e += bytes){
