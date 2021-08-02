@@ -417,28 +417,38 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
   }
   logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   fbuf* f = &s->glyph;
-  fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
-              xcell * s->cellpxx, ycell * s->cellpxy,
-              s->cellpxx, s->cellpxy, s->id);
+  if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
+                 xcell * s->cellpxx, ycell * s->cellpxy,
+                 s->cellpxx, s->cellpxy, s->id) < 0){
+    return -1;
+  }
   // FIXME ought be smaller around the fringes!
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
   #define TRINULLALPHA "AAAAAAAAAAAAAAAA"
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    fbuf_putn(f, TRINULLALPHA, strlen(TRINULLALPHA));
+    if(fbuf_putn(f, TRINULLALPHA, strlen(TRINULLALPHA)) < 0){
+      return -1;
+    }
   }
   #undef TRINULLALPHA
   if(totalp % 3 == 1){
   #define UNUMNULLALPHA "AAAAAA=="
-    fbuf_putn(f, UNUMNULLALPHA, strlen(UNUMNULLALPHA));
+    if(fbuf_putn(f, UNUMNULLALPHA, strlen(UNUMNULLALPHA)) < 0){
+      return -1;
+    }
   #undef UNUMNULLALPHA
   }else if(totalp % 3 == 2){
   #define DUONULLALPHA "AAAAAAAAAAA="
-    fbuf_putn(f, DUONULLALPHA, strlen(DUONULLALPHA));
+    if(fbuf_putn(f, DUONULLALPHA, strlen(DUONULLALPHA)) < 0){
+      return -1;
+    }
   #undef DUONULLALPHA
   }
   // FIXME need chunking for cells of 768+ pixels
-  fbuf_printf(f, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id);
+  if(fbuf_printf(f, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id) < 0){
+    return -1;
+  }
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -586,11 +596,15 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
     unsigned long max = i + 4096 * 3 / 4;
     while(i < max){
       base64x3(buf + i, b64d);
-      fbuf_putn(f, b64d, 4);
+      if(fbuf_putn(f, b64d, 4) < 0){
+        return -1;
+      }
       i += 3;
     }
     first = false;
-    fbuf_putn(f, "\x1b\\", 2);
+    if(fbuf_putn(f, "\x1b\\", 2) < 0){
+      return -1;
+    }
   }
   if(!first){
     if(fbuf_putn(f, "\x1b_Gm=0;", 7) < 0){
@@ -600,15 +614,21 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
   while(i < totw){
     if(totw - i < 3){
       base64final(buf + i, b64d, totw - i);
-      fbuf_putn(f, b64d, 4);
+      if(fbuf_putn(f, b64d, 4) < 0){
+        return -1;
+      }
       i += totw - i;
     }else{
       base64x3(buf + i, b64d);
-      fbuf_putn(f, b64d, 4);
+      if(fbuf_putn(f, b64d, 4) < 0){
+        return -1;
+      }
       i += 3;
     }
   }
-  fbuf_putn(f, "\x1b\\", 2);
+  if(fbuf_putn(f, "\x1b\\", 2) < 0){
+    return -1;
+  }
   return 0;
 }
 
