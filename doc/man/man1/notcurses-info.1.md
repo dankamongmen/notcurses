@@ -42,19 +42,45 @@ The next five lines describe properties of the terminal environment:
 
 * The first line indicates that a given capability is present with a plus sign
   ('+'), or not present/detected with a minus sign ('-'):
-  * rgb: Colors can be specified as RGB wit eight bits/channel
-  * ccc: Palette can be reprogrammed
   * af: Foreground color can be set
   * ab: Background color can be set
   * sum: Synchronized Update Mode is supported
-  * u7: Cursor position reporting
-  * cup: Cursor can be arbitrarily placed
+  * cup: Arbitrary cursor moves
   * vpa: Cursor can be moved to an absolute vertical coordinate
   * hpa: Cursor can be moved to an absolute horizontal coordinate
   * sgr0: Styling can be reset via a single escape
   * op: Colors can be reset via a single escape
   * fgop: Foreground can be reset via a single escape
   * bgop: Background can be reset via a single escape
+
+* The second line is more of the same:
+  * bold: Boldface is available
+  * ital: Italics are available
+  * struck: Strikethrough is available
+  * ucurl: Curled underlines are available
+  * uline: Straight underlines are available
+  * u7: Cursor position reporting
+  * ccc: Palette can be reprogrammed
+  * rgb: Colors can be specified as RGB wit eight bits/channel
+
+* The third line covers UTF8 and decoding capabilities:
+  * utf8: This is a UTF8 environment
+  * quad: Quadrant characters are available
+  * sex: Sextant characters are available
+  * braille: Braille characters are available
+  * images: Images can be decoded
+  * video: Video can be decoded
+
+* The fourth line indicates the default background color, and whether that
+  color is treated as transparent.
+
+* The fifth line describes the available bitmap graphics. If Sixels are
+  available, the maximum number of color registers and maximum Sixel
+  geometry are reported. If the iTerm2 protocol or Linux framebuffer graphics
+  are available, that is reported. If the Kitty graphics protocol is
+  detected, that will be reported with "rgba graphics are available"; if
+  Kitty's animation support is also present, that will be reported with
+  "rgba pixel animation support".
 
 The final eleven lines, only printed when in a UTF8 locale, show various
 Unicode glyphs. The first four lines include the quadrant, sextant, and
