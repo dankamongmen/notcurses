@@ -862,7 +862,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   // we don't need a controlling tty for everything we do; allow a failure here
   ret->ctermfd = get_tty_fd(ret->ttyfp);
   // FIXME factor this out, and share it with rendered mode #2023
-#ifndef __MINGW__
+#ifndef __MINGW64__
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr)){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
