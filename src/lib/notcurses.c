@@ -1070,7 +1070,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   bool utf8;
   if(encoding && !strcmp(encoding, "UTF-8")){
     utf8 = true;
-  }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") || !strcmp(encoding, "US-ASCII"))){
+  }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") ||
+                        !strcmp(encoding, "US-ASCII") ||
+                        !strcmp(encoding, "ASCII"))){
     utf8 = false;
   }else{
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
