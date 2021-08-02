@@ -117,30 +117,35 @@ void sprixel_invalidate(sprixel* s, int y, int x){
 
 sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
-  if(ret){
-    memset(ret, 0, sizeof(*ret));
-    ret->n = n;
-    ret->dimy = dimy;
-    ret->dimx = dimx;
-    ret->id = ++sprixelid_nonce;
-    if(ret->id >= 0x1000000){
-      ret->id = 1;
-      sprixelid_nonce = 1;
-    }
+  if(ret == NULL){
+    return NULL;
+  }
+  memset(ret, 0, sizeof(*ret));
+  if(fbuf_init(&ret->glyph)){
+    free(ret);
+    return NULL;
+  }
+  ret->n = n;
+  ret->dimy = dimy;
+  ret->dimx = dimx;
+  ret->id = ++sprixelid_nonce;
+  if(ret->id >= 0x1000000){
+    ret->id = 1;
+    sprixelid_nonce = 1;
+  }
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
-    ret->cellpxy = ti->cellpixy;
-    ret->cellpxx = ti->cellpixx;
-    if(ncplane_pile(ret->n)){ // rendered mode
-      ncpile* np = ncplane_pile(ret->n);
-      if( (ret->next = np->sprixelcache) ){
-        ret->next->prev = ret;
-      }
-      np->sprixelcache = ret;
-      ret->prev = NULL;
-//fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
-    }else{ // ncdirect case
-      ret->next = ret->prev = NULL;
+  ret->cellpxy = ti->cellpixy;
+  ret->cellpxx = ti->cellpixx;
+  if(ncplane_pile(ret->n)){ // rendered mode
+    ncpile* np = ncplane_pile(ret->n);
+    if( (ret->next = np->sprixelcache) ){
+      ret->next->prev = ret;
     }
+    np->sprixelcache = ret;
+    ret->prev = NULL;
+//fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
+  }else{ // ncdirect case
+    ret->next = ret->prev = NULL;
   }
   return ret;
 }

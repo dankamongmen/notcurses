@@ -21,11 +21,7 @@ extern "C" {
 typedef struct fbuf {
   uint64_t size;
   uint64_t used;
-#ifdef __MINGW64__
-  LPVOID buf;
-#else
   char* buf;
-#endif
 } fbuf;
 
 // header-only so that we can test it from notcurses-tester
@@ -139,28 +135,13 @@ fbuf_init_small(fbuf* f){
   return fbuf_initgrow(f, 1);
 }
 
-// prepare f with an initial buffer.
-static inline int
-fbuf_init_small(fbuf* f){
-  f->used = 0;
-  f->size = 0;
-  f->buf = NULL;
-  return fbuf_grow(f, 0);
-}
-
-// prepare f with an initial buffer.
+// prepare f with a large initial buffer.
 static inline int
 fbuf_init(fbuf* f){
   f->used = 0;
   f->size = 0;
   f->buf = NULL;
   return fbuf_initgrow(f, 0);
-}
-
-// reset usage, but don't shrink the buffer or anything
-static inline void
-fbuf_reset(fbuf* f){
-  f->used = 0;
 }
 
 // reset usage, but don't shrink the buffer or anything

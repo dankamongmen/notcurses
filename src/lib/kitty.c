@@ -218,7 +218,9 @@ init_sprixel_animation(sprixel* s){
   if(s->animating){
     return 0;
   }
-  fbuf_free(&s->glyph);
+  if(fbuf_init(&s->glyph)){
+    return -1;
+  }
   s->animating = true;
   return 0;
 }
