@@ -373,15 +373,16 @@ int sample_##T(const nc##X##plot* ncp, int64_t x, T* y){ \
   } \
   *y = ncp->slots[x % ncp->plot.slotcount]; \
   return 0; \
-} \
-void destroy_##T(nc##X##plot* ncpp){ \
-  free(ncpp->plot.title); \
-  free(ncpp->slots); \
-  ncplane_destroy(ncpp->plot.ncp); \
 }
 
 CREATE(uint64_t, u)
 CREATE(double, d)
+
+static void
+ncplot_destroy(ncplot* n){
+  free(n->title);
+  ncplane_destroy(n->ncp);
+}
 
 /* if we're doing domain detection, update the domain to reflect the value we
    just set. if we're not, check the result against the known ranges, and
@@ -484,7 +485,8 @@ int ncuplot_set_sample(ncuplot* n, uint64_t x, uint64_t y){
 
 void ncuplot_destroy(ncuplot* n){
   if(n){
-    destroy_uint64_t(n);
+    ncplot_destroy(&n->plot);
+    free(n->slots);
     free(n);
   }
 }
@@ -533,7 +535,8 @@ int ncdplot_sample(const ncdplot* n, uint64_t x, double* y){
 
 void ncdplot_destroy(ncdplot* n) {
   if(n){
-    destroy_double(n);
+    ncplot_destroy(&n->plot);
+    free(n->slots);
     free(n);
   }
 }
