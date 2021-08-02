@@ -614,6 +614,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   }else if(qterm == TERMINAL_TERMINOLOGY){
     termname = "Terminology";
     ti->caps.rgb = false; // as of at least 1.9.0
+    ti->caps.quadrants = true;
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
