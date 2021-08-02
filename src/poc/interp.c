@@ -7,11 +7,15 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   ncplane_printf_yx(stdn, 10, 0, "press any key to continue");
   size_t rands = cellpixy * cellpixx * 3;
   unsigned char* randrgb = malloc(rands);
+  if(randrgb == NULL){
+    return -1;
+  }
   for(size_t r = 0 ; r < rands ; ++r){
     randrgb[r] = rand() % 256;
   }
   struct ncvisual* ncv = ncvisual_from_rgb_packed(randrgb, cellpixy, cellpixx * 3, cellpixx, 0xff);
   if(ncv == NULL){
+    free(randrgb);
     return -1;
   }
   struct ncvisual_options vopts = {
@@ -20,6 +24,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   };
   struct ncplane* ncvp = ncvisual_render(nc, ncv, &vopts);
   if(ncvp == NULL){
+    free(randrgb);
     return -1;
   }
   struct ncplane_options popts = {
@@ -34,6 +39,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.scaling = NCSCALE_STRETCH;
   popts.x += ncplane_dim_x(scalep) + 1;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    free(randrgb);
     return -1;
   }
   ncplane_putstr_yx(stdn, 2, 4, "scale");
@@ -41,26 +47,31 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.n = scalepni;
   vopts.flags = NCVISUAL_OPTION_NOINTERPOLATE;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    free(randrgb);
     return -1;
   }
   ncplane_putstr_yx(stdn, 2, 15, "scale(no)");
   popts.x += ncplane_dim_x(scalepni) + 1;
   struct ncplane* resizep = ncplane_create(stdn, &popts);
   if(resizep == NULL){
+    free(randrgb);
     return -1;
   }
   if(ncvisual_resize(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
+    free(randrgb);
     return -1;
   }
   vopts.flags = 0;
   vopts.n = resizep;
   vopts.scaling = NCSCALE_NONE;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    free(randrgb);
     return -1;
   }
   ncplane_putstr_yx(stdn, 2, 30, "resize");
   ncvisual_destroy(ncv);
   ncv = ncvisual_from_rgb_packed(randrgb, cellpixy, cellpixx * 3, cellpixx, 0xff);
+  free(randrgb);
   popts.x += ncplane_dim_x(scalepni) + 1;
   struct ncplane* inflatep = ncplane_create(stdn, &popts);
   if(inflatep == NULL){
