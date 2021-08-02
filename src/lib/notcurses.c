@@ -883,27 +883,18 @@ int ncplane_destroy_family(ncplane *ncp){
 // the environment / terminal definition. returns the number of lines printed.
 static int
 init_banner_warnings(const notcurses* nc, FILE* out){
-  int liness = 0;
   term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
-  if(!nc->tcache.caps.rgb){
-    liness += 2;
-    fprintf(out, " Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4\n");
-    fprintf(out, "  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
-  }
   if(!notcurses_canutf8(nc)){
-    liness += 1;
     fprintf(out, " Warning! Encoding is not UTF-8; output may be degraded.\n");
   }
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
-    liness += 1;
     fprintf(out, " Warning! No absolute horizontal placement.\n");
   }
-  return liness;
+  return 0;
 }
 
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to ttyfp. we are not yet on the alternate screen.
-// returns the number of lines printed.
 static int
 init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
