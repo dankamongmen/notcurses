@@ -65,8 +65,7 @@ write_iterm_graphic(sprixel* s, const void* data, int leny, int stride, int lenx
 
 err:
   fclose(fp);
-  free(s->glyph);
-  s->glyph = NULL;
+  // s->glyph is freed by caller
   return -1;
 }
 
@@ -78,7 +77,6 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
   sprixel* s = bargs->u.pixel.spx;
   tament* tam = NULL;
   bool reuse = false;
-  void* png = NULL;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tam){
@@ -108,7 +106,6 @@ error:
   if(!reuse){
     free(tam);
   }
-  free(png);
   free(s->glyph);
   return -1;
 }
