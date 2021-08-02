@@ -17,6 +17,8 @@ extern "C" {
 // come after. uses mmap (with huge pages, if possible) on unix and
 // virtualalloc on windows. it can grow arbitrarily large. it does
 // *not* maintain a NUL terminator, and can hold binary data.
+// on Windows, we're using VirtualAlloc(). on BSD, we're using realloc().
+// on Linux, we're using mmap()+mremap().
 
 typedef struct fbuf {
   uint64_t size;

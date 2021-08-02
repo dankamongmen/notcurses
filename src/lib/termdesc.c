@@ -679,6 +679,8 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
       // FIXME set up pixel-drawing API for framebuffer #1369
     }
   }
+#else
+  (void)nonewfonts;
 #endif
   if(fd >= 0){
     if(tcgetattr(fd, &ti->tpreserved)){
