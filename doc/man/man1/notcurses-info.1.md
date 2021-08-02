@@ -8,7 +8,7 @@ notcurses-info - Display information about the terminal environment
 
 # SYNOPSIS
 
-**notcurses-info**
+**notcurses-info** [**-v**]
 
 # DESCRIPTION
 
@@ -56,7 +56,15 @@ The next five lines describe properties of the terminal environment:
   * fgop: Foreground can be reset via a single escape
   * bgop: Background can be reset via a single escape
 
+The final eleven lines, only printed when in a UTF8 locale, show various
+Unicode glyphs. The first four lines include the quadrant, sextant, and
+box-drawing characters. The next four lines include the entire Braille set.
+The following two lines include many of the Symbols for Legacy Computing
+introduced in Unicode 13. The final line includes many emoji.
+
 # OPTIONS
+
+**-v**: Be verbose.
 
 # NOTES
 
