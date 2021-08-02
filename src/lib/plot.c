@@ -348,17 +348,6 @@ int window_slide_##T(nc##X##plot* ncp, int64_t x){ \
   return 0; \
 } \
 \
-/* x must be within n's window at this point */ \
-void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset){ \
-  const int64_t diff = ncp->plot.slotx - x; /* amount behind */ \
-  const int idx = (ncp->plot.slotstart + ncp->plot.slotcount - diff) % ncp->plot.slotcount; \
-  if(reset){ \
-    ncp->slots[idx] = y; \
-  }else{ \
-    ncp->slots[idx] += y; \
-  } \
-} \
-\
 /* if we're doing domain detection, update the domain to reflect the value we \
    just set. if we're not, check the result against the known ranges, and \
    return -1 if the value is outside of that range. */ \
@@ -380,6 +369,9 @@ int update_domain_##T(nc##X##plot* ncp, uint64_t x){ \
   } \
   return 0; \
 } \
+\
+static void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset); \
+\
 int set_sample_##T(nc##X##plot* ncpp, uint64_t x, T y){ \
   if(window_slide_##T(ncpp, x)){ \
     return -1; \
@@ -421,6 +413,30 @@ void destroy_##T(nc##X##plot* ncpp){ \
 
 CREATE(uint64_t, u)
 CREATE(double, d)
+
+/* x must be within n's window at this point */
+static void
+update_sample_uint64_t(ncuplot* ncp, int64_t x, uint64_t y, bool reset){
+  const int64_t diff = ncp->plot.slotx - x; /* amount behind */
+  const int idx = (ncp->plot.slotstart + ncp->plot.slotcount - diff) % ncp->plot.slotcount;
+  if(reset){
+    ncp->slots[idx] = y;
+  }else{
+    ncp->slots[idx] += y;
+  }
+}
+
+/* x must be within n's window at this point */
+static void
+update_sample_double(ncdplot* ncp, int64_t x, double y, bool reset){
+  const int64_t diff = ncp->plot.slotx - x; /* amount behind */
+  const int idx = (ncp->plot.slotstart + ncp->plot.slotcount - diff) % ncp->plot.slotcount;
+  if(reset){
+    ncp->slots[idx] = y;
+  }else{
+    ncp->slots[idx] += y;
+  }
+}
 
 // takes ownership of n on all paths
 ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy){
