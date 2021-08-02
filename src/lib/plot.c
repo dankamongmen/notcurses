@@ -348,28 +348,7 @@ int window_slide_##T(nc##X##plot* ncp, int64_t x){ \
   return 0; \
 } \
 \
-/* if we're doing domain detection, update the domain to reflect the value we \
-   just set. if we're not, check the result against the known ranges, and \
-   return -1 if the value is outside of that range. */ \
-int update_domain_##T(nc##X##plot* ncp, uint64_t x){ \
-  const T val = ncp->slots[x % ncp->plot.slotcount]; \
-  if(ncp->plot.detectdomain){ \
-    if(val > ncp->maxy){ \
-      ncp->maxy = val; \
-    } \
-    if(!ncp->plot.detectonlymax){ \
-      if(val < ncp->miny){ \
-        ncp->miny = val; \
-      } \
-    } \
-    return 0; \
-  } \
-  if(val > ncp->maxy || val < ncp->miny){ \
-    return -1; \
-  } \
-  return 0; \
-} \
-\
+static int update_domain_##T(nc##X##plot* ncp, uint64_t x); \
 static void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset); \
 \
 int set_sample_##T(nc##X##plot* ncpp, uint64_t x, T y){ \
@@ -413,6 +392,47 @@ void destroy_##T(nc##X##plot* ncpp){ \
 
 CREATE(uint64_t, u)
 CREATE(double, d)
+
+/* if we're doing domain detection, update the domain to reflect the value we
+   just set. if we're not, check the result against the known ranges, and
+   return -1 if the value is outside of that range. */
+int update_domain_uint64_t(ncuplot* ncp, uint64_t x){
+  const uint64_t val = ncp->slots[x % ncp->plot.slotcount];
+  if(ncp->plot.detectdomain){
+    if(val > ncp->maxy){
+      ncp->maxy = val;
+    }
+    if(!ncp->plot.detectonlymax){
+      if(val < ncp->miny){
+        ncp->miny = val;
+      }
+    }
+    return 0;
+  }
+  if(val > ncp->maxy || val < ncp->miny){
+    return -1;
+  }
+  return 0;
+}
+
+int update_domain_double(ncdplot* ncp, uint64_t x){
+  const double val = ncp->slots[x % ncp->plot.slotcount];
+  if(ncp->plot.detectdomain){
+    if(val > ncp->maxy){
+      ncp->maxy = val;
+    }
+    if(!ncp->plot.detectonlymax){
+      if(val < ncp->miny){
+        ncp->miny = val;
+      }
+    }
+    return 0;
+  }
+  if(val > ncp->maxy || val < ncp->miny){
+    return -1;
+  }
+  return 0;
+}
 
 /* x must be within n's window at this point */
 static void

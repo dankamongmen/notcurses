@@ -100,7 +100,7 @@ finish_line(struct ncplane* n){
 
 static int
 emoji_viz(struct ncplane* n){
-  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️🌿🎱🏧💉💊📡🦑🇮🇱🇦🇶🚱🪤🧬🔬🏴‍☠️";
+  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️🌿🎱🏧💉💊📡🤻🦑🇮🇱🇦🇶🚱🪤🧬🔬🏴‍☠️";
   ncplane_set_bg_rgb(n, 0);
   int bytes;
   for(const char* e = emoji ; *e ; e += bytes){
