@@ -512,7 +512,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    if(compare_versions(ti->termversion, "0.22.0") >= 0){
+    if(compare_versions(ti->termversion, "0.22.1") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
     }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, fd, KITTY_ANIMATION);

@@ -739,9 +739,11 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
             }
             tam[tyx].auxvector = tmp;
           }else if(level == KITTY_SELFREF){
-            tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
             if(tam[tyx].auxvector == NULL){
-              goto err;
+              tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
+              if(tam[tyx].auxvector == NULL){
+                goto err;
+              }
             }
             memcpy(tam[tyx].auxvector, &tam[tyx].state, sizeof(tam[tyx].state));
           }
