@@ -77,7 +77,7 @@ endif()
 # global compiler flags
 add_compile_definitions(_FORTIFY_SOURCE=2)
 add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
-                    -fexceptions -fstrict-aliasing -fanalyzer)
+                    -fexceptions -fstrict-aliasing)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
