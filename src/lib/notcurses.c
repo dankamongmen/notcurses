@@ -1087,7 +1087,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->lfdimy = 0;
   ret->lfdimx = 0;
   egcpool_init(&ret->pool);
-  if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
+  if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < NCLOGLEVEL_SILENT){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
     free(ret);
     return NULL;
