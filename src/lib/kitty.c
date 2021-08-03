@@ -14,7 +14,8 @@
 // (768pix * 4Bpp * 4/3 base64 overhead == 4096B).
 //
 // 0.20.0 introduced an animation protocol which drastically reduces the
-// bandwidth necessary for wipe-and-rebuild. we thus have two strategies:
+// bandwidth necessary for wipe-and-rebuild. 0.21.1 improved it further.
+// we thus have three strategies:
 //
 // pre-0.20.0: keep an auxvec for each wiped cell, with a byte per pixel.
 //  on wipe, copy the alphas into the auxvec, and set them to 0 in the
@@ -22,12 +23,16 @@
 //  operations require delicate edits directly to the encoded form. the
 //  graphic is updated by completely retransmitting it.
 //
-// 0.20.0+: we make a copy of the RGBA data, populating all auxvecs upon
+// 0.20.0: we make a copy of the RGBA data, populating all auxvecs upon
 //  blit. to wipe, we generate a cell's woth of 0s, and merge them into
 //  the existing image. to rebuild, we merge the original data into the
 //  existing image. this cuts down on bandwidth--unchanged cells are not
 //  retransmitted. it does require a fairly expensive copy of the source,
 //  even though we might never use it.
+//
+// 0.21.1+: our auxvecs are now a single word -- the sprixcell state prior
+//  to annihilation. we never need retransmit the original RGBA on
+//  restore, as we can instead use composition with reflection.
 //
 // if a graphic needs be moved, we can move it with a control operation,
 // rather than erasing it and redrawing it manually.

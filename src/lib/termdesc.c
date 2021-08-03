@@ -346,8 +346,8 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // thing is, if we get a response to this, we know we can use it for u7!
 #define DSRCPR "\x1b[6n"
 
-// check for Synchronized Update Mode support. the p is necessary, but Konsole
-// doesn't consume it, so we have to handle that in our state machine =[.
+// check for Synchronized Update Mode support. the p is necessary, but at
+// least Konsole and Terminal.app fail to consume it =[.
 #define SUMQUERY "\x1b[?2026$p"
 
 // XTSMGRAPHICS query for the number of color registers.
@@ -369,7 +369,7 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
                    PRIDEVATTR
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
-// currently take advantage of; we need at least 64 to use sixel at all.
+// currently take advantage of; we need at least 64 to use sixel at all).
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
 // send any identification queries (we've already identified the terminal).
@@ -571,8 +571,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
         return -1;
       }
     }
-    // we don't yet want to use the iterm2 protocol in place of sixel
-    //setup_iterm_bitmaps(ti, fd);
+    // wezterm supports iTerm2's graphic protocol, but we'd rather use Sixel.
+    // once it adds Kitty, we'll prefer that.
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
     // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
@@ -663,13 +663,14 @@ build_supported_styles(tinfo* ti){
 
 #ifdef __APPLE__
 // Terminal.App is a wretched piece of shit that can't handle even the most
-// basic of queries, instead bleeing them through to stdout like a great
+// basic of queries, instead bleeding them through to stdout like a great
 // wounded hippopotamus. it does export "TERM_PROGRAM=Apple_Terminal", becuase
 // it is a committee on sewage and drainage where all the members have
 // tourette's. on mac os, if TERM_PROGRAM=Apple_Terminal, accept this hideous
 // existence, circumvent all queries, and may god have mercy on our souls.
 // of course that means if a terminal launched from Terminal.App doesn't clear
 // or reset this environment variable, they're cursed to live as Terminal.App.
+// i'm likewise unsure what we're supposed to do should you ssh anywhere =[.
 static queried_terminals_e
 macos_early_matches(const char* termname){
   (void)termname;
