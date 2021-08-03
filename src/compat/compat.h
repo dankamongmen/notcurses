@@ -31,9 +31,6 @@ extern "C" {
 #define SA_SIGINFO 0
 #define SA_RESETHAND 0
 #define SIGQUIT 0
-#define A_ITALIC 0
-#define A_BOLD 0
-#define A_UNDERLINE 0
 #define sigdelset(x, y)
 #define sigaddset(x, y)
 typedef struct siginfo_t {

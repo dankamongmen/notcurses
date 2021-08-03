@@ -7,6 +7,7 @@ extern "C" {
 
 #include "version.h"
 #include "builddef.h"
+#include "notcurses/notcurses.h"
 #include "compat/compat.h"
 
 #include <term.h>
@@ -29,7 +30,6 @@ extern "C" {
 #ifndef __MINGW64__
 #include <langinfo.h>
 #endif
-#include "notcurses/notcurses.h"
 #include "termdesc.h"
 #include "egcpool.h"
 #include "sprite.h"
