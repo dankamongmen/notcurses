@@ -18,6 +18,7 @@ void sigwinch_handler(int signo){
 }
 
 int cbreak_mode(int ttyfd, const struct termios* tpreserved){
+#ifndef __MINGW64__
   if(ttyfd < 0){
     return 0;
   }
@@ -36,11 +37,15 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved){
     return -1;
   }
   return 0;
+#else
+  return -1; // FIXME
+#endif
 }
 
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
 int notcurses_linesigs_disable(notcurses* n){
+#ifndef __MINGW64__
   if(n->ttyfd < 0){
     return 0;
   }
@@ -55,11 +60,15 @@ int notcurses_linesigs_disable(notcurses* n){
     return -1;
   }
   return 0;
+#else
+  return -1; // FIXME
+#endif
 }
 
 // Restore signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
 int notcurses_linesigs_enable(notcurses* n){
+#ifndef __MINGW64__
   if(n->ttyfd < 0){
     return 0;
   }
@@ -74,6 +83,9 @@ int notcurses_linesigs_enable(notcurses* n){
     return -1;
   }
   return 0;
+#else
+  return -1; // FIXME
+#endif
 }
 
 static inline int
