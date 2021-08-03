@@ -226,7 +226,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   }
   ncplane_greyscale(notcurses_stdplane(nc));
   int pbarrow = 4 + BLOCKSIZE / CHUNKSIZE + 4;
-  if(pbarrow > maxy - 1){
+  if(pbarrow > maxy - 2){
     pbarrow = -1;
   }
   struct ncprogbar* pbar = pbar_make(nc, pbarrow);
