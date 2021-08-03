@@ -1331,7 +1331,9 @@ int notcurses_stop(notcurses* nc){
     if(!nc->suppress_banner){
       summarize_stats(nc);
     }
+#ifndef __MINGW64__
     del_curterm(cur_term);
+#endif
     ret |= pthread_mutex_destroy(&nc->stats.lock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
     free_terminfo_cache(&nc->tcache);
