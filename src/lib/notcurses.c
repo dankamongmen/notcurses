@@ -5,7 +5,6 @@
 #include "internal.h"
 #include <zlib.h>
 #include <time.h>
-#include <term.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
