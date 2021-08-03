@@ -880,13 +880,13 @@ int ncplane_destroy_family(ncplane *ncp){
 // only invoked without suppress banners flag. prints various warnings based on
 // the environment / terminal definition. returns the number of lines printed.
 static int
-init_banner_warnings(const notcurses* nc, FILE* out){
-  term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
+init_banner_warnings(const notcurses* nc, fbuf* f){
+  term_fg_palindex(nc, f, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   if(!notcurses_canutf8(nc)){
-    fprintf(out, " Warning! Encoding is not UTF-8; output may be degraded.\n");
+    fbuf_puts(f, " Warning! Encoding is not UTF-8; output may be degraded.\n");
   }
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
-    fprintf(out, " Warning! No absolute horizontal placement.\n");
+    fbuf_puts(f, " Warning! No absolute horizontal placement.\n");
   }
   return 0;
 }

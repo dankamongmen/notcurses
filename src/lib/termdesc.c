@@ -695,6 +695,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     }
     // enter cbreak mode regardless of user preference until we've performed
     // terminal interrogation. at that point, we might restore original mode.
+#ifndef __MINGW64__
     if(cbreak_mode(fd, &ti->tpreserved)){
       return -1;
     }
@@ -705,6 +706,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
       fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
       return -1;
     }
+#endif
   }
   ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
