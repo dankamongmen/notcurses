@@ -149,47 +149,6 @@ query_rgb(void){
   return rgb;
 }
 
-static int
-terminfostr(char** gseq, const char* name){
-  *gseq = tigetstr(name);
-  if(*gseq == NULL || *gseq == (char*)-1){
-    *gseq = NULL;
-    return -1;
-  }
-  // terminfo syntax allows a number N of milliseconds worth of pause to be
-  // specified using $<N> syntax. this is then honored by tputs(). but we don't
-  // use tputs(), instead preferring the much faster stdio+tiparm() (at the
-  // expense of terminals which do require these delays). to avoid dumping
-  // "$<N>" sequences all over stdio, we chop them out. real text can follow
-  // them, so we continue on, copying back once out of the delay.
-  char* wnext = NULL; // NULL until we hit a delay, then place to write
-  bool indelay = false; // true iff we're in a delay section
-  // we consider it a delay as soon as we see '$', and the delay ends at '>'
-  for(char* cur = *gseq ; *cur ; ++cur){
-    if(!indelay){
-      // if we're not in a delay section, make sure we're not starting one,
-      // and otherwise copy the current character back (if necessary).
-      if(*cur == '$'){
-        wnext = cur;
-        indelay = true;
-      }else{
-        if(wnext){
-          *wnext++ = *cur;
-        }
-      }
-    }else{
-      // we are in a delay section. make sure we're not ending one.
-      if(*cur == '>'){
-        indelay = false;
-      }
-    }
-  }
-  if(wnext){
-    *wnext = '\0';
-  }
-  return 0;
-}
-
 // we couldn't get a terminal from interrogation, so let's see if the TERM
 // matches any of our known terminals. this can only be as accurate as the
 // TERM setting is (and as up-to-date and complete as we are).
@@ -256,6 +215,61 @@ compare_versions(const char* restrict v1, const char* restrict v2){
   }
   if(*v2 == '.'){
     return -1;
+  }
+  return 0;
+}
+
+static inline int
+terminfostr(char** gseq, const char* name){
+  *gseq = tigetstr(name);
+  if(*gseq == NULL || *gseq == (char*)-1){
+    *gseq = NULL;
+    return -1;
+  }
+  // terminfo syntax allows a number N of milliseconds worth of pause to be
+  // specified using $<N> syntax. this is then honored by tputs(). but we don't
+  // use tputs(), instead preferring the much faster stdio+tiparm() (at the
+  // expense of terminals which do require these delays). to avoid dumping
+  // "$<N>" sequences all over stdio, we chop them out. real text can follow
+  // them, so we continue on, copying back once out of the delay.
+  char* wnext = NULL; // NULL until we hit a delay, then place to write
+  bool indelay = false; // true iff we're in a delay section
+  // we consider it a delay as soon as we see '$', and the delay ends at '>'
+  for(char* cur = *gseq ; *cur ; ++cur){
+    if(!indelay){
+      // if we're not in a delay section, make sure we're not starting one,
+      // and otherwise copy the current character back (if necessary).
+      if(*cur == '$'){
+        wnext = cur;
+        indelay = true;
+      }else{
+        if(wnext){
+          *wnext++ = *cur;
+        }
+      }
+    }else{
+      // we are in a delay section. make sure we're not ending one.
+      if(*cur == '>'){
+        indelay = false;
+      }
+    }
+  }
+  if(wnext){
+    *wnext = '\0';
+  }
+  return 0;
+}
+
+static inline int
+init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
+                  size_t* tablelen, size_t* tableused){
+  char* tstr;
+  if(terminfostr(&tstr, name) == 0){
+    if(grow_esc_table(ti, tstr, idx, tablelen, tableused)){
+      return -1;
+    }
+  }else{
+    ti->escindices[idx] = 0;
   }
   return 0;
 }
@@ -350,20 +364,6 @@ send_initial_queries(int fd, bool minimal){
   }
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
-  }
-  return 0;
-}
-
-static int
-init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
-                  size_t* tablelen, size_t* tableused){
-  char* tstr;
-  if(terminfostr(&tstr, name) == 0){
-    if(grow_esc_table(ti, tstr, idx, tablelen, tableused)){
-      return -1;
-    }
-  }else{
-    ti->escindices[idx] = 0;
   }
   return 0;
 }
@@ -668,8 +668,14 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
   memset(ti, 0, sizeof(*ti));
 #ifdef __APPLE__
   qterm = macos_early_matches(tname);
-#endif
-#ifdef __linux__
+  (void)nonewfonts;
+#elif defined(__MINGW64__)
+  if(prepare_windows_terminal(ti)){
+    return -1;
+  }
+  qterm = TERMINAL_MSTERMINAL;
+  (void)nonewfonts;
+#elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font

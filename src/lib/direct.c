@@ -5,13 +5,13 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef USE_READLINE
-#include <readline/readline.h>
-#endif
 #include "version.h"
 #include "visual-details.h"
 #include "notcurses/direct.h"
 #include "internal.h"
+#ifdef USE_READLINE
+#include <readline/readline.h>
+#endif
 
 // conform to the foreground and background channels of 'channels'
 static int
