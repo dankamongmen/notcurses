@@ -1,7 +1,6 @@
 #include "input.h"
 #include "internal.h"
 #include "notcurses/direct.h"
-#include <term.h>
 #include <ctype.h>
 #include <signal.h>
 

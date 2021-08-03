@@ -26,7 +26,6 @@ extern "C" {
 #include <unictype.h>
 #ifndef __MINGW64__
 #include <langinfo.h>
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #endif
 #include "notcurses/notcurses.h"
 #include "termdesc.h"
