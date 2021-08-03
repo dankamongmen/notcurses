@@ -344,6 +344,10 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 
 // FIXME ought be using the u7 terminfo string here, if it exists. the great
 // thing is, if we get a response to this, we know we can use it for u7!
+// we send this first because terminals which don't consume the entire escape
+// sequences following will bleed the excess into the terminal, and we want
+// to blow any such output away (or at least return to the cell where such
+// output started).
 #define DSRCPR "\x1b[6n"
 
 // check for Synchronized Update Mode support. the p is necessary, but at
@@ -360,7 +364,6 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 #define GEOMPIXEL "\x1b[14t"
 
 #define DIRECTIVES CSI_BGQ \
-                   DSRCPR \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
@@ -377,9 +380,9 @@ static int
 send_initial_queries(int fd, bool minimal){
   const char *queries;
   if(minimal){
-    queries = DIRECTIVES;
+    queries = DSRCPR DIRECTIVES;
   }else{
-    queries = IDQUERIES DIRECTIVES;
+    queries = DSRCPR IDQUERIES DIRECTIVES;
   }
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
@@ -711,11 +714,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   if(fd >= 0){
-    bool minimal = (qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(fd, minimal)){
-      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
-      return -1;
-    }
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
       return -1;
@@ -723,6 +721,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     // enter cbreak mode regardless of user preference until we've performed
     // terminal interrogation. at that point, we might restore original mode.
     if(cbreak_mode(fd, &ti->tpreserved)){
+      return -1;
+    }
+    // if we already know our terminal (e.g. on the linux console), there's no
+    // need to send the identification queries. the controls are sufficient.
+    bool minimal = (qterm != TERMINAL_UNKNOWN);
+    if(send_initial_queries(fd, minimal)){
+      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
       return -1;
     }
   }
@@ -841,7 +846,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(!cursor_y){
     cursor_y = &foolcursor_y;
   }
-  *cursor_x = *cursor_y = 0;
+  *cursor_x = *cursor_y = -1;
   if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised,
                        cursor_y, cursor_x, stats)){
     goto err;
@@ -854,11 +859,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  if(cursor_x && cursor_y){
-    if(*cursor_x >= 0 && *cursor_y >= 0){
-      if(add_u7_escape(ti, &tablelen, &tableused)){
-        goto err;
-      }
+  if(*cursor_x >= 0 && *cursor_y >= 0){
+    if(add_u7_escape(ti, &tablelen, &tableused)){
+      goto err;
     }
   }
   if(appsync_advertised){

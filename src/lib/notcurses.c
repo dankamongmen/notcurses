@@ -1144,6 +1144,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                           &ret->stats)){
     goto err;
   }
+  ret->rstate.x = ret->rstate.y = -1;
+  if(opts->flags & NCOPTION_PRESERVE_CURSOR){
+    // the u7 led the queries so that we would get a cursor position
+    // unaffected by any query spill (unconsumed control sequences). move
+    // us back to that location, in case there was any such spillage.
+    if(goto_location(ret, ret->ttyfp, ret->rstate.logendy, ret->rstate.logendx)){
+    }
+  }
   int dimy, dimx;
   if(update_term_dimensions(ret->ttyfd, &dimy, &dimx, &ret->tcache,
                             ret->margin_b)){
@@ -1174,7 +1182,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  ret->rstate.x = ret->rstate.y = -1;
   init_banner(ret);
   if(ncflush(ret->ttyfp)){
     free_plane(ret->stdplane);
