@@ -1136,20 +1136,25 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   const char* shortname_term = termname(); // longname() is also available
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
+  ret->rstate.x = ret->rstate.y = -1;
+  ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
+  int fakecursory, fakecursorx;
+  int* cursory = opts->flags & NCOPTION_PRESERVE_CURSOR ?
+                  &ret->rstate.logendy : &fakecursory;
+  int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
+                  &ret->rstate.logendx : &fakecursorx;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
-                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendy : NULL,
-                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendx : NULL,
-                          &ret->stats)){
+                          cursory, cursorx, &ret->stats)){
     goto err;
   }
-  ret->rstate.x = ret->rstate.y = -1;
-  if(opts->flags & NCOPTION_PRESERVE_CURSOR){
+  if((opts->flags & NCOPTION_PRESERVE_CURSOR) || !ret->suppress_banner){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
-    if(goto_location(ret, ret->ttyfp, ret->rstate.logendy, ret->rstate.logendx)){
+    if(goto_location(ret, ret->ttyfp, *cursory, *cursorx)){
+      goto err;
     }
   }
   int dimy, dimx;
@@ -1157,7 +1162,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                             ret->margin_b)){
     goto err;
   }
-  ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   if(ncvisual_init(ret->loglevel)){
     goto err;
   }
