@@ -80,14 +80,16 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
   };
   int odimy, odimx, scaley, scalex;
   ncvisual_blitter_geom(nc, ncv, &vopts, &odimy, &odimx, &scaley, &scalex, NULL);
-  int rows = (odimy / scaley) + !!(odimy % scaley);
-  int cols = (odimx / scalex) + !!(odimx % scalex);
-  if(cols > dimx || rows > dimy - 1){
-    ncvisual_destroy(ncv);
-    return NULL;
+  vopts.leny = (odimy / scaley) + !!(odimy % scaley);
+  vopts.lenx = (odimx / scalex) + !!(odimx % scalex);
+  if(vopts.lenx > dimx - 1){
+    vopts.lenx = dimx - 1;
   }
-  vopts.y = dimy - rows - 1;
-  vopts.x = dimx - cols;
+  if(vopts.leny > dimy - 1){
+    vopts.leny = dimy - 1;
+  }
+  vopts.y = dimy - vopts.leny - 1;
+  vopts.x = dimx - vopts.lenx - 1;
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
   return n;
