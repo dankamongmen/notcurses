@@ -22,7 +22,7 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
   (void)fd;
   (void)state;
   (void)oldstate;
-  return -1;
+  return 0;
 }
 #define INFINITE 0xffffffff // FIXME
 pid_t waitpid(pid_t pid, int* state, int options){
