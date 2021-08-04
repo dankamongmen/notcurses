@@ -34,14 +34,10 @@ print_gb(struct ncdirect* nc, int r, int total){
 static int
 print_rgb8(struct ncdirect* nc, int total){
   if(rand() % 2){
-    if(ncdirect_off_styles(nc, NCSTYLE_ITALIC)){
-      return -1;
-    }
+    ncdirect_off_styles(nc, NCSTYLE_ITALIC);
   }
   if(rand() % 16 == 0){
-    if(ncdirect_on_styles(nc, NCSTYLE_ITALIC)){
-      return -1;
-    }
+    ncdirect_on_styles(nc, NCSTYLE_ITALIC);
   }
   for(int r = 0 ; r <= total && r < 256 ; r += 4){
     if(print_gb(nc, r, total)){
@@ -93,9 +89,7 @@ int main(void){
     goto err;
   }
 
-  if(ncdirect_set_styles(nc, NCSTYLE_ITALIC)){
-    goto err;
-  }
+  ncdirect_set_styles(nc, NCSTYLE_ITALIC);
   for(int t = 768 ; t ; t -= 4){
     if(print_rgb8(nc, t)){
       goto err;
