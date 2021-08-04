@@ -33,6 +33,7 @@ typedef enum {
     TERMINAL_ITERM,         // XTVERSION == 'iTerm2 [ver]'
     TERMINAL_TERMINOLOGY,   // TDA: "~~TY"
     TERMINAL_APPLE,         // Terminal.App, determined by TERM_PROGRAM + macOS
+    TERMINAL_MSTERMINAL,    // Microsoft Windows Terminal
 } queried_terminals_e;
 
 // sets up the input layer, building a trie of escape sequences and their

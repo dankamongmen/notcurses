@@ -29,42 +29,42 @@ struct ncsharedstats;
 
 // indexes into the table of fixed-width (16-bit) indices
 typedef enum {
-  ESCAPE_CUP,      // "cup" move cursor to absolute x, y position
-  ESCAPE_HPA,      // "hpa" move cursor to absolute horizontal position
-  ESCAPE_VPA,      // "vpa" move cursor to absolute vertical position
-  ESCAPE_SETAF,    // "setaf" set foreground color
-  ESCAPE_SETAB,    // "setab" set background color
-  ESCAPE_OP,       // "op" set foreground and background color to defaults
-  ESCAPE_FGOP,     // set foreground only to default
-  ESCAPE_BGOP,     // set background only to default
-  ESCAPE_SGR0,     // "sgr0" turn off all styles
-  ESCAPE_CIVIS,    // "civis" make the cursor invisiable
-  ESCAPE_CNORM,    // "cnorm" restore the cursor to normal
-  ESCAPE_OC,       // "oc" restore original colors
-  ESCAPE_SITM,     // "sitm" start italics
-  ESCAPE_RITM,     // "ritm" end italics
-  ESCAPE_CUU,      // "cuu" move n cells up
-  ESCAPE_CUB,      // "cub" move n cells back (left)
-  ESCAPE_CUF,      // "cuf" move n cells forward (right)
-  ESCAPE_BOLD,     // "bold" enter bold mode
-  ESCAPE_NOBOLD,   // disable bold (ANSI but not terminfo, SGR 22)
-  ESCAPE_CUD,      // "cud" move n cells down
-  ESCAPE_SMKX,     // "smkx" keypad_xmit (keypad transmit mode)
-  ESCAPE_RMKX,     // "rmkx" keypad_local
-  ESCAPE_SMCUP,    // "smcup" enter alternate screen
-  ESCAPE_RMCUP,    // "rmcup" leave alternate screen
-  ESCAPE_SMXX,     // "smxx" start struckout
-  ESCAPE_SMUL,     // "smul" start underline
-  ESCAPE_RMUL,     // "rmul" end underline
-  ESCAPE_SMULX,    // "Smulx" deparameterized: start extended underline
-  ESCAPE_SMULNOX,  // "Smulx" deparameterized: kill underline
-  ESCAPE_RMXX,     // "rmxx" end struckout
-  ESCAPE_SC,       // "sc" push the cursor onto the stack
-  ESCAPE_RC,       // "rc" pop the cursor off the stack
-  ESCAPE_CLEAR,    // "clear" clear screen and home cursor
-  ESCAPE_INITC,    // "initc" set up palette entry
-  ESCAPE_GETM,     // "getm" get mouse events
-  ESCAPE_DSRCPR,   // "u7" cursor position report
+  ESCAPE_CUP,     // "cup" move cursor to absolute x, y position
+  ESCAPE_HPA,     // "hpa" move cursor to absolute horizontal position
+  ESCAPE_VPA,     // "vpa" move cursor to absolute vertical position
+  ESCAPE_SETAF,   // "setaf" set foreground color
+  ESCAPE_SETAB,   // "setab" set background color
+  ESCAPE_OP,      // "op" set foreground and background color to defaults
+  ESCAPE_FGOP,    // set foreground only to default
+  ESCAPE_BGOP,    // set background only to default
+  ESCAPE_SGR0,    // "sgr0" turn off all styles
+  ESCAPE_CIVIS,   // "civis" make the cursor invisiable
+  ESCAPE_CNORM,   // "cnorm" restore the cursor to normal
+  ESCAPE_OC,      // "oc" restore original colors
+  ESCAPE_SITM,    // "sitm" start italics
+  ESCAPE_RITM,    // "ritm" end italics
+  ESCAPE_CUU,     // "cuu" move n cells up
+  ESCAPE_CUB,     // "cub" move n cells back (left)
+  ESCAPE_CUF,     // "cuf" move n cells forward (right)
+  ESCAPE_BOLD,    // "bold" enter bold mode
+  ESCAPE_NOBOLD,  // disable bold (ANSI but not terminfo, SGR 22)
+  ESCAPE_CUD,     // "cud" move n cells down
+  ESCAPE_SMKX,    // "smkx" keypad_xmit (keypad transmit mode)
+  ESCAPE_RMKX,    // "rmkx" keypad_local
+  ESCAPE_SMCUP,   // "smcup" enter alternate screen
+  ESCAPE_RMCUP,   // "rmcup" leave alternate screen
+  ESCAPE_SMXX,    // "smxx" start struckout
+  ESCAPE_SMUL,    // "smul" start underline
+  ESCAPE_RMUL,    // "rmul" end underline
+  ESCAPE_SMULX,   // "Smulx" deparameterized: start extended underline
+  ESCAPE_SMULNOX, // "Smulx" deparameterized: kill underline
+  ESCAPE_RMXX,    // "rmxx" end struckout
+  ESCAPE_SC,      // "sc" push the cursor onto the stack
+  ESCAPE_RC,      // "rc" pop the cursor off the stack
+  ESCAPE_CLEAR,   // "clear" clear screen and home cursor
+  ESCAPE_INITC,   // "initc" set up palette entry
+  ESCAPE_GETM,    // "getm" get mouse events
+  ESCAPE_U7,      // "u7" cursor position report
   // Application synchronized updates, not present in terminfo
   // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
   ESCAPE_BSUM,     // Begin Synchronized Update Mode
@@ -230,6 +230,41 @@ void free_terminfo_cache(tinfo* ti);
 char* termdesc_longterm(const tinfo* ti);
 
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x);
+
+// tlen -- size of escape table. tused -- used bytes in same.
+// returns -1 if the starting location is >= 65535. otherwise,
+// copies tstr into the table, and sets up 1-biased index.
+static inline int
+grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
+               size_t* tlen, size_t* tused){
+  // the actual table can grow past 64KB, but we can't start there, as
+  // we only have 16-bit indices.
+  if(*tused >= 65535){
+    fprintf(stderr, "Can't add escape %d to full table\n", esc);
+    return -1;
+  }
+  if(get_escape(ti, esc)){
+    fprintf(stderr, "Already defined escape %d (%s)\n",
+            esc, get_escape(ti, esc));
+    return -1;
+  }
+  size_t slen = strlen(tstr) + 1; // count the nul term
+  if(*tlen - *tused < slen){
+    // guaranteed to give us enough space to add tstr (and then some)
+    size_t newsize = *tlen + 4020 + slen; // don't pull two pages ideally
+    char* tmp = (char*)realloc(ti->esctable, newsize); // cast for c++
+    if(tmp == NULL){
+      return -1;
+    }
+    ti->esctable = tmp;
+    *tlen = newsize;
+  }
+  // we now are guaranteed sufficient space to copy tstr
+  memcpy(ti->esctable + *tused, tstr, slen);
+  ti->escindices[esc] = *tused + 1; // one-bias
+  *tused += slen;
+  return 0;
+}
 
 #ifdef __cplusplus
 }

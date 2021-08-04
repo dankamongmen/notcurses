@@ -424,7 +424,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, ' ');
   tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL, ' ');
   tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, ' ');
-  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), ' ');
+  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7), ' ');
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, ' ');
   tinfo_debug_cap(n, "rgb", ti->caps.rgb, ' ');
   finish_line(n);

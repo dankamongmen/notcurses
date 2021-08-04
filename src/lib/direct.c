@@ -255,7 +255,7 @@ cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   const char* hpa = get_escape(&n->tcache, ESCAPE_HPA);
   const char* vpa = get_escape(&n->tcache, ESCAPE_VPA);
-  const char* u7 = get_escape(&n->tcache, ESCAPE_DSRCPR);
+  const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
   if(y == -1){ // keep row the same, horizontal move only
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
@@ -410,7 +410,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(n->ctermfd < 0){
     return -1;
   }
-  const char* u7 = get_escape(&n->tcache, ESCAPE_DSRCPR);
+  const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
   if(u7 == NULL){
     fprintf(stderr, "Terminal doesn't support cursor reporting\n");
     return -1;
@@ -1411,7 +1411,7 @@ const nccapabilities* ncdirect_capabilities(const ncdirect* n){
 }
 
 bool ncdirect_canget_cursor(const ncdirect* n){
-  if(get_escape(&n->tcache, ESCAPE_DSRCPR) == NULL){
+  if(get_escape(&n->tcache, ESCAPE_U7) == NULL){
     return false;
   }
   if(n->ctermfd < 0){

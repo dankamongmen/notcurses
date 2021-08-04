@@ -1,0 +1,37 @@
+#include "termdesc.h"
+#include "internal.h"
+#include "windows.h"
+
+// ti has been memset to all zeroes. windows configuration is static.
+int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
+  const struct wtermdesc {
+    escape_e esc;
+    const char* tinfo;
+  } wterms[] = {
+    { ESCAPE_CUP,   "\x1b[%i%p1%d;%p2%dH", },
+    { ESCAPE_RMKX,  "\x1b[?1l", },
+    { ESCAPE_SMKX,  "\x1b[?1h", },
+    { ESCAPE_VPA,   "\x1b[%i%p1%dd", },
+    { ESCAPE_HPA,   "\x1b[%i%p1%dG", },
+    { ESCAPE_SC,    "\x1b[s", },
+    { ESCAPE_RC,    "\x1b[u", },
+    { ESCAPE_CLEAR, "\x1b[2J", },
+    { ESCAPE_SMCUP, "\x1b[?1049h", },
+    { ESCAPE_RMCUP, "\x1b[?1049l", },
+    { ESCAPE_SETAF, "\x1b[38;5;%i%p1%dm", },
+    { ESCAPE_SETAB, "\x1b[48;5;%i%p1%dm", },
+    { ESCAPE_OP,    "\x1b[39;49m", },
+    { ESCAPE_CIVIS, "\x1b[?25l", },
+    { ESCAPE_CNORM, "\x1b[?25h", },
+    { ESCAPE_U7,    "\x1b[6n", },
+    { ESCAPE_MAX, NULL, }
+  }, *w; 
+  for(w = wterms ; w->tinfo; ++w){
+    if(grow_esc_table(ti, w->tinfo, w->esc, tablelen, tableused)){
+      return -1;
+    }
+  }
+  ti->caps.rgb = true;
+  ti->caps.colors = 256;
+  return 0;
+}

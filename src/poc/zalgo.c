@@ -6,6 +6,9 @@ int main(void){
     .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_core_init(&nops, NULL);
+  if(nc == NULL){
+    return EXIT_FAILURE;
+  }
   struct ncplane* n = notcurses_stdplane(nc);
   const int y = 10;
   ncplane_putstr_aligned(n, y + 0, NCALIGN_CENTER, "Pack my box with five dozen liquor jugs.");

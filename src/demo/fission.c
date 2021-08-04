@@ -88,7 +88,7 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
   }
   arr = tmp;
   // location of new element
-  int pos = random() % (count + 1);
+  int pos = rand() % (count + 1);
   if(pos < count){
     // move everything, starting at our new location, one spot right
     memmove(arr + pos + 1, arr + pos, sizeof(*arr) * (count - pos));

@@ -824,17 +824,18 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 // does not use this full granularity. The log level does not affect the opening
 // and closing banners, which can be disabled via the notcurses_option struct's
 // 'suppress_banner'. Note that if stderr is connected to the same terminal on
-// which we're rendering, any kind of logging will disrupt the output.
+// which we're rendering, any kind of logging will disrupt the output (which is
+// undesirable). The "default" zero value is NCLOGLEVEL_PANIC.
 typedef enum {
-  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
-  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
-  NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
-  NCLOGLEVEL_ERROR,   // we can't keep doing this, but we can do other things
-  NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
-  NCLOGLEVEL_INFO,    // "standard information"
-  NCLOGLEVEL_VERBOSE, // "detailed information"
-  NCLOGLEVEL_DEBUG,   // this is honestly a bit much
-  NCLOGLEVEL_TRACE,   // there's probably a better way to do what you want
+  NCLOGLEVEL_SILENT = -1,// default. print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC = 0,  // print diagnostics related to catastrophic failure
+  NCLOGLEVEL_FATAL = 1,  // we're hanging around, but we've had a horrible fault
+  NCLOGLEVEL_ERROR = 2,  // we can't keep doing this, but we can do other things
+  NCLOGLEVEL_WARNING = 3,// you probably don't want what's happening to happen
+  NCLOGLEVEL_INFO = 4,   // "standard information"
+  NCLOGLEVEL_VERBOSE = 5,// "detailed information"
+  NCLOGLEVEL_DEBUG = 6,  // this is honestly a bit much
+  NCLOGLEVEL_TRACE = 7,  // there's probably a better way to do what you want
 } ncloglevel_e;
 
 // Bits for notcurses_options->flags.

@@ -261,41 +261,6 @@ compare_versions(const char* restrict v1, const char* restrict v2){
   return 0;
 }
 
-// tlen -- size of escape table. tused -- used bytes in same.
-// returns -1 if the starting location is >= 65535. otherwise,
-// copies tstr into the table, and sets up 1-biased index.
-static int
-grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
-               size_t* tlen, size_t* tused){
-  // the actual table can grow past 64KB, but we can't start there, as
-  // we only have 16-bit indices.
-  if(*tused >= 65535){
-    fprintf(stderr, "Can't add escape %d to full table\n", esc);
-    return -1;
-  }
-  if(get_escape(ti, esc)){
-    fprintf(stderr, "Already defined escape %d (%s)\n",
-            esc, get_escape(ti, esc));
-    return -1;
-  }
-  size_t slen = strlen(tstr) + 1; // count the nul term
-  if(*tlen - *tused < slen){
-    // guaranteed to give us enough space to add tstr (and then some)
-    size_t newsize = *tlen + 4020 + slen; // don't pull two pages ideally
-    char* tmp = realloc(ti->esctable, newsize);
-    if(tmp == NULL){
-      return -1;
-    }
-    ti->esctable = tmp;
-    *tlen = newsize;
-  }
-  // we now are guaranteed sufficient space to copy tstr
-  memcpy(ti->esctable + *tused, tstr, slen);
-  ti->escindices[esc] = *tused + 1; // one-bias
-  *tused += slen;
-  return 0;
-}
-
 // Tertiary Device Attributes, necessary to identify VTE.
 // https://vt100.net/docs/vt510-rm/DA3.html
 // Replies with DCS ! | ... ST
@@ -408,11 +373,11 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // terminal supports it, hah.
 static int
 add_u7_escape(tinfo* ti, size_t* tablelen, size_t* tableused){
-  const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
+  const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7){
     return 0; // already present
   }
-  if(grow_esc_table(ti, DSRCPR, ESCAPE_DSRCPR, tablelen, tableused)){
+  if(grow_esc_table(ti, DSRCPR, ESCAPE_U7, tablelen, tableused)){
     return -1;
   }
   return 0;
@@ -777,7 +742,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_CLEAR, "clear", },
     { ESCAPE_OC, "oc", },
     { ESCAPE_RMKX, "rmkx", },
-    { ESCAPE_DSRCPR, "u7", },
+    { ESCAPE_U7, "u7", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -942,7 +907,7 @@ locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
-  const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
+  const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7 == NULL){
     logwarn("No support in terminfo\n");
     return -1;

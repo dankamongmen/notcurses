@@ -27,7 +27,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -k: use direct mode (cannot be used with -L or -d)\n";
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
-  o << " -l loglevel: integer between 0 and 8, goes to stderr'\n";
+  o << " -l loglevel: integer between 0 and 7, goes to stderr'\n";
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
@@ -259,11 +259,11 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         int ll;
         ss >> ll;
         if(ll < NCLogLevel::Silent || ll > NCLogLevel::Trace){
-          std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
+          std::cerr << "Invalid log level [" << optarg << "] (wanted [-1..7])\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         if(ll == 0 && strcmp(optarg, "0")){
-          std::cerr << "Invalid log level [" << optarg << "] (wanted [0..8])\n";
+          std::cerr << "Invalid log level [" << optarg << "] (wanted [-1..7])\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         opts.loglevel = static_cast<ncloglevel_e>(ll);
@@ -486,11 +486,6 @@ auto main(int argc, char** argv) -> int {
     std::cerr << "Couldn't set locale based off LANG\n";
     return EXIT_FAILURE;
   }
-  sigset_t sigmask;
-  // ensure SIGWINCH is delivered only to a thread doing input
-  sigemptyset(&sigmask);
-  sigaddset(&sigmask, SIGWINCH);
-  pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
