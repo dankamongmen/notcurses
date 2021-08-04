@@ -1158,7 +1158,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
-    if(goto_location(ret, ret->ttyfp, *cursory, *cursorx)){
+    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx)){
       goto err;
     }
   }
@@ -1307,7 +1307,7 @@ int notcurses_stop(notcurses* nc){
     if((nc->flags & NCOPTION_PRESERVE_CURSOR) || !get_escape(&nc->tcache, ESCAPE_SMCUP)){
       int targy = nc->rstate.logendy;
       if(++targy >= nc->lfdimy){
-        printf("\v");
+        printf("\n");
         --targy;
       }
       fbuf_reset(&nc->rstate.f);
