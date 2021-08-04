@@ -20,9 +20,7 @@ extern "C" {
 #include <libkern/OSByteOrder.h>
 #define htole(x) (OSSwapInt32(htonl(x)))
 #elif defined(__MINGW64__)
-#include <winsock2.h>
-#include <winsock.h>
-#define htole(x) (_byteswap_ulong(htonl(x)))
+#define htole(x) (x) // FIXME
 // FIXME placeholders, need real solutions here
 #define wcwidth(w) 1
 #define wcswidth(w, s) (s)

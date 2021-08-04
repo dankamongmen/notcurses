@@ -24,6 +24,7 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
   (void)oldstate;
   return -1;
 }
+#define INFINITE 0xffffffff // FIXME
 pid_t waitpid(pid_t pid, int* state, int options){
   (void)options; // FIXME honor WNOHANG
   WaitForSingleObject(pid, INFINITE);

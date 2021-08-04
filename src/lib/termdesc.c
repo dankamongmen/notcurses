@@ -4,6 +4,7 @@
 #include <sys/utsname.h>
 #endif
 #include "internal.h"
+#include "windows.h"
 #include "input.h"
 #include "linux.h"
 
@@ -264,6 +265,9 @@ static inline int
 init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                   size_t* tablelen, size_t* tableused){
   char* tstr;
+  if(ti->escindices[idx]){
+    return 0;
+  }
   if(terminfostr(&tstr, name) == 0){
     if(grow_esc_table(ti, tstr, idx, tablelen, tableused)){
       return -1;
@@ -666,11 +670,13 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
   const char* tname = termname(); // longname() is also available
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+  size_t tablelen = 0;
+  size_t tableused = 0;
 #ifdef __APPLE__
   qterm = macos_early_matches(tname);
   (void)nonewfonts;
 #elif defined(__MINGW64__)
-  if(prepare_windows_terminal(ti)){
+  if(prepare_windows_terminal(ti, &tablelen, &tableused)){
     return -1;
   }
   qterm = TERMINAL_MSTERMINAL;
@@ -759,8 +765,6 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     { ESCAPE_U7, "u7", },
     { ESCAPE_MAX, NULL, },
   };
-  size_t tablelen = 0;
-  size_t tableused = 0;
   for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
     if(init_terminfo_esc(ti, strtdesc->tinfo, strtdesc->esc, &tablelen, &tableused)){
       goto err;
@@ -789,11 +793,11 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     ti->escindices[ESCAPE_SMCUP] = 0;
     ti->escindices[ESCAPE_RMCUP] = 0;
   }
-  // ensure that the terminal provides automatic margins
+  /* // ensure that the terminal provides automatic margins
   if(tigetflag("am") != 1){
     fprintf(stderr, "Required terminfo capability 'am' not defined\n");
     goto err;
-  }
+  } */
   if(get_escape(ti, ESCAPE_CIVIS) == NULL){
     char* chts;
     if(terminfostr(&chts, "chts") == 0){

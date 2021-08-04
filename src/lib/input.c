@@ -1,3 +1,6 @@
+#ifdef __MINGW64__
+#include <winsock2.h>
+#endif
 #include "input.h"
 #include "internal.h"
 #include "notcurses/direct.h"
@@ -403,11 +406,19 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 // (0 on timeout) or -1 on error/interruption.
 static int
 block_on_input(int fd, const struct timespec* ts){
+#ifndef __MINGW64__
   struct pollfd pfd = {
     .fd = fd,
     .events = POLLIN,
     .revents = 0,
   };
+#else
+  WSAPOLLFD pfd = {
+    .fd = fd,
+    .events = POLLIN,
+    .revents = 0,
+  };
+#endif
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
