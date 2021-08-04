@@ -97,10 +97,11 @@ fbuf_initgrow(fbuf* f, unsigned small){
   // we start with 2MiB, the huge page size on all of x86+PAE,
   // ARMv7+LPAE, ARMv8, and x86-64.
   // FIXME use GetLargePageMinimum() and sysconf
-  size_t size = small ? (4096 > BUFSIZ ? 4096 : BUFSIZ) : 0x200000lu;
+  size_t size = small ? (4096 > BUFSIZ ? 4096 : BUFSIZ) : 0x2000000lu;
 #if defined(__linux__)
-  static bool hugepages_failed = false; // FIXME atomic
+  /*static bool hugepages_failed = false; // FIXME atomic
   if(!hugepages_failed && !small){
+    // hugepages don't seem to work with mremap() =[
     // mmap(2): hugetlb results in automatic stretch out to cover hugepage
     f->buf = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_HUGETLB |
                          MAP_PRIVATE | MAP_ANONYMOUS | MAPFLAGS , -1, 0);
@@ -109,10 +110,10 @@ fbuf_initgrow(fbuf* f, unsigned small){
       f->buf = NULL;
     }
   }
-  if(f->buf == NULL){ // try again without MAP_HUGETLB
-    f->buf = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE,
-                         MAP_PRIVATE | MAP_ANONYMOUS | MAPFLAGS , -1, 0);
-  }
+  if(f->buf == NULL){ // try again without MAP_HUGETLB */
+  f->buf = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE,
+                        MAP_PRIVATE | MAP_ANONYMOUS | MAPFLAGS , -1, 0);
+  //}
   if(f->buf == MAP_FAILED){
     f->buf = NULL;
     return -1;
