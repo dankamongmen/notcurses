@@ -13,6 +13,9 @@
 #elif !defined(__MINGW64__)
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
+#else
+#include <windows.h>
+#include <sysinfoapi.h>
 #endif
 #include <notcurses/direct.h>
 #include <notcurses/notcurses.h>

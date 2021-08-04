@@ -16,13 +16,13 @@ extern "C" {
 #endif
 
 #ifdef  __MINGW64__
-#include <winsock2.h>
 #include <Lmcons.h>
 #define tcgetattr(x, y) -1
 #define tcsetattr(x, y, z) -1
 #define ECHO      0
 #define ICANON    0
 #define ICRNL     0
+#define INLCR     0
 #define ISIG      0
 #define TCSAFLUSH 0
 #define TCSANOW   0

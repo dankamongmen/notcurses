@@ -6,6 +6,9 @@
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."
 #endif
+#ifdef __MINGW64__
+#include <winsock2.h>
+#endif
 #if (defined(__linux__))
 #include <linux/wait.h>
 #include <asm/unistd.h>
