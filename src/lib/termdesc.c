@@ -695,13 +695,13 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
   (void)nonewfonts;
 #endif
   if(fd >= 0){
+#ifndef __MINGW64__
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
       return -1;
     }
     // enter cbreak mode regardless of user preference until we've performed
     // terminal interrogation. at that point, we might restore original mode.
-#ifndef __MINGW64__
     if(cbreak_mode(fd, &ti->tpreserved)){
       return -1;
     }
