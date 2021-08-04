@@ -307,7 +307,7 @@ getlocalhostname(fetched_info* fi){
   }
   return -1;
 }
-#else
+#else // windows
 static int
 getusername(fetched_info* fi){
   DWORD unlen = UNLEN + 1;
@@ -326,7 +326,8 @@ getusername(fetched_info* fi){
 static int
 getlocalhostname(fetched_info* fi){
   char lp[MAX_COMPUTERNAME_LENGTH + 1];
-  if(GetComputerNameA(lp, sizeof(lp))){
+  size_t s = sizeof(lp);
+  if(GetComputerNameA(lp, &s)){
     if( (fi->hostname = strdup(lp)) ){
       return 0;
     }

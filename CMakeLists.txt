@@ -605,7 +605,7 @@ file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 # all further binaries require multimedia support
 if(${USE_MULTIMEDIA} STREQUAL "none" OR WIN32)
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncls.1.md")
-  list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
+  #list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
 else()
 ############################################################################
 # ncls
