@@ -82,6 +82,7 @@ int handle_inode(const std::string& dir, const char* p, const struct stat* st, c
 // passing false for toplevel (but preserving |ctx|).
 int handle_dir(int dirfd, const std::string& pdir, const char* p,
                const struct stat* st, const lsContext& ctx, bool toplevel){
+#ifndef __MINGW64__
   if(ctx.directories){
     return handle_inode(pdir, p, st, ctx);
   }
@@ -116,6 +117,9 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
   closedir(dir);
   close(newdir);
   return 0;
+#else
+  return -1;
+#endif
 }
 
 int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
@@ -129,6 +133,7 @@ int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
 // true iff the path was directly listed on the command line.
 int handle_path(int dirfd, const std::string& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
+#ifndef __MINGW64__
   if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
     return -1;
@@ -141,6 +146,9 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
     }
   }
   return handle_inode(pdir, p, &st, ctx);
+#else
+  return -1;
+#endif
 }
 
 // return long-term return code
