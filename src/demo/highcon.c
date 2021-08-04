@@ -128,7 +128,7 @@ int highcontrast_demo(struct notcurses* nc){
           goto err;
       }
     }
-  }while(++offset < totcells / 2);
+  }while(++offset <= totcells / 2);
   ret = 0;
 
 err:
