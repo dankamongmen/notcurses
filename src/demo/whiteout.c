@@ -459,7 +459,7 @@ int witherworm_demo(struct notcurses* nc){
   ncplane_set_scrolling(n, true);
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
-    wchar_t key = NCKEY_INVALID;
+    uint32_t key = NCKEY_INVALID;
     nccell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);

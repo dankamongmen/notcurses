@@ -172,7 +172,7 @@ new_tabletctx(struct ncreel* pr, unsigned *id){
   return tctx;
 }
 
-static wchar_t
+static uint32_t
 handle_input(struct notcurses* nc, const struct timespec* deadline,
              ncinput* ni){
   int64_t deadlinens = timespec_to_ns(deadline);
@@ -183,7 +183,7 @@ handle_input(struct notcurses* nc, const struct timespec* deadline,
     return 0;
   }
   ns_to_timespec(deadlinens - curns, &pollspec);
-  wchar_t r = demo_getc(nc, &pollspec, ni);
+  uint32_t r = demo_getc(nc, &pollspec, ni);
   return r;
 }
 
@@ -265,7 +265,7 @@ ncreel_demo_core(struct notcurses* nc){
     ncplane_off_styles(std, NCSTYLE_BOLD);
     // FIXME wclrtoeol(w);
     ncplane_set_fg_rgb8(std, 0, 55, 218);
-    wchar_t rw;
+    uint32_t rw;
     ncinput ni;
     pthread_mutex_lock(&renderlock);
     ncreel_redraw(nr);
@@ -279,7 +279,7 @@ ncreel_demo_core(struct notcurses* nc){
       ncreel_destroy(nr);
       return renderret;
     }
-    if((rw = handle_input(nc, &deadline, &ni)) == (wchar_t)-1){
+    if((rw = handle_input(nc, &deadline, &ni)) == (uint32_t)-1){
       break;
     }
     // FIXME clrtoeol();
