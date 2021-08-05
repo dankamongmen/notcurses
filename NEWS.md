@@ -1,7 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.13 (not yet released)
+* 2.3.13 (2021-08-04)
+  * Added the portable utility functions `notcurses_accountname()` and
+    `notcurses_hostname()`.
 
 * 2.3.12 (2021-07-29)
   * `notcurses_getc()` and `ncdirect_getc()` no longer accept a `sigset_t*`

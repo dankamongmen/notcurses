@@ -94,6 +94,12 @@ typedef enum {
 // -1 if a non-printable/illegal character is encountered.
 API int ncstrwidth(const char* mbs);
 
+// Returns a heap-allocated copy of the user name under which we are running.
+API ALLOC char* notcurses_accountname(void);
+
+// Returns a heap-allocated copy of the local host name.
+API ALLOC char* notcurses_hostname(void);
+
 // input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 // a series of uint32_t to utf8. result must be at least 4 bytes per input
 // uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
