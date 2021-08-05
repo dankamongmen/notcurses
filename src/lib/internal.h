@@ -30,6 +30,7 @@ extern "C" {
 #include "termdesc.h"
 #include "egcpool.h"
 #include "sprite.h"
+#include "fbuf.h"
 
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
@@ -642,6 +643,53 @@ plane_debug(const ncplane* n, bool details){
       }
     }
   }
+}
+
+static inline void
+ncpile_debug(const ncpile* p, fbuf* f){
+  fbuf_printf(f, "  ************************* %16p pile ****************************\n", p);
+  const ncplane* n = p->top;
+  const ncplane* prev = NULL;
+  int planeidx = 0;
+  while(n){
+    fbuf_printf(f, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %p %.4s\n",
+               planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x, n, n->name);
+    if(n->boundto || n->bnext || n->bprev || n->blist){
+      fbuf_printf(f, " bound %p ← %p → %p binds %p\n",
+                 n->boundto, n->bprev, n->bnext, n->blist);
+    }
+    if(n->bprev && (*n->bprev != n)){
+      fbuf_printf(f, " WARNING: expected *->bprev %p, got %p\n", n, *n->bprev);
+    }
+    if(n->above != prev){
+      fbuf_printf(f, " WARNING: expected ->above %p, got %p\n", prev, n->above);
+    }
+    if(ncplane_pile_const(n) != p){
+      fbuf_printf(f, " WARNING: expected pile %p, got %p\n", p, ncplane_pile_const(n));
+    }
+    prev = n;
+    n = n->below;
+    ++planeidx;
+  }
+  if(p->bottom != prev){
+    fbuf_printf(f, " WARNING: expected ->bottom %p, got %p\n", prev, p->bottom);
+  }
+}
+
+static inline void
+notcurses_debug_fbuf(const notcurses* nc, fbuf* f){
+  const ncpile* p = ncplane_pile(nc->stdplane);
+  fbuf_printf(f, " -------------------------- notcurses debug state -----------------------------\n");
+  const ncpile* p0 = p;
+  do{
+    ncpile_debug(p0, f);
+    const ncpile* prev = p0;
+    p0 = p0->next;
+    if(p0->prev != prev){
+      fbuf_printf(f, "WARNING: expected ->prev %p, got %p\n", prev, p0->prev);
+    }
+  }while(p != p0);
+  fbuf_printf(f, " ______________________________________________________________________________\n");
 }
 
 // cell coordinates *within the sprixel*, not absolute

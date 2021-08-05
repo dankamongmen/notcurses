@@ -1,6 +1,8 @@
 #include "demo.h"
 #include <pthread.h>
 #include <inttypes.h>
+#include "lib/fbuf.h"
+#include "lib/internal.h"
 
 // we provide a heads-up display throughout the demo, detailing the demos we're
 // about to run, running, and just runned. the user can move this HUD with
@@ -69,13 +71,13 @@ hud_standard_bg_rgb(struct ncplane* n){
 
 static int
 count_debug_lines(const char* output, size_t outputlen){
-  int lines = 0;
+  int ll = 0;
   for(size_t i = 0 ; i < outputlen ; ++i){
     if(output[i] == '\n'){
-      ++lines;
+      ++ll;
     }
   }
-  return lines;
+  return ll;
 }
 
 static void
@@ -88,20 +90,15 @@ debug_toggle(struct notcurses* nc){
   }
   int dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
-  char* output = NULL;
-  size_t outputlen = 0;
-  FILE* mstream = open_memstream(&output, &outputlen);
-  if(mstream == NULL){
+  fbuf f;
+  if(fbuf_init_small(&f)){
     return;
   }
-  notcurses_debug(nc, mstream);
-  if(fclose(mstream)){
-    return;
-  }
+  notcurses_debug_fbuf(nc, &f);
   ncplane_options nopts = {
     .y = 3,
     .x = NCALIGN_CENTER,
-    .rows = count_debug_lines(output, outputlen) + 1,
+    .rows = count_debug_lines(f.buf, f.used) + 1,
     // make it one column longer than the maximum debug output, so that a full
     // line of output doesn't cause trigger a newline. we'll make the last
     // column transparent.
@@ -111,7 +108,7 @@ debug_toggle(struct notcurses* nc){
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
-    free(output);
+    fbuf_free(&f);
     return;
   }
   uint64_t channels = 0;
@@ -121,11 +118,13 @@ debug_toggle(struct notcurses* nc){
   ncplane_set_scrolling(n, true);
   ncplane_set_fg_rgb(n, 0x0a0a0a);
   ncplane_set_bg_rgb(n, 0xffffe5);
-  if(ncplane_puttext(n, 0, NCALIGN_LEFT, output, &outputlen) < 0){
-    free(output);
+  size_t b = f.used;
+  if(ncplane_puttext(n, 0, NCALIGN_LEFT, f.buf, &b) < 0){
+    fbuf_free(&f);
     ncplane_destroy(n);
     return;
   }
+  fbuf_free(&f);
   for(int y = 0 ; y < ncplane_dim_y(n) ; ++y){
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
@@ -134,7 +133,6 @@ debug_toggle(struct notcurses* nc){
     nccell_release(n, &c);
   }
   ncplane_putstr_aligned(n, ncplane_dim_y(n) - 1, NCALIGN_CENTER, "Press Alt+d to hide this window");
-  free(output);
   debug = n;
 }
 

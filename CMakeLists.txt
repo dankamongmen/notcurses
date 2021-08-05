@@ -90,7 +90,7 @@ set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 find_package(ZLIB)
 set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
 # platform-specific logics
-if(MSYS OR WIN32)
+if(WIN32)
   set(LIBRT_LIBRARIES wsock32 ws2_32)
 elseif(NOT APPLE)
   find_library(LIBM m REQUIRED)
@@ -107,10 +107,12 @@ pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
+if(NOT WIN32)
 if(${USE_READLINE})
 pkg_search_module(READLINE REQUIRED readline>=8.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND readline)
 set_package_properties(readline PROPERTIES TYPE REQUIRED)
+endif()
 endif()
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
@@ -207,20 +209,20 @@ target_link_libraries(notcurses-core
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
-    "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
     Threads::Threads
+    "${LIBRT_LIBRARIES}"
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
     "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
-    "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
     Threads::Threads
+    "${LIBRT_LIBRARIES}"
 )
 target_link_directories(notcurses-core
   PRIVATE
@@ -271,6 +273,14 @@ target_include_directories(notcurses-static
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
+)
+target_compile_definitions(notcurses
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+target_compile_definitions(notcurses-static
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
 )
 target_link_libraries(notcurses
   PUBLIC
@@ -519,6 +529,10 @@ target_link_libraries(notcurses-demo
 # notcurses-info
 file(GLOB INFOSRCS CONFIGURE_DEPENDS src/info/*.c)
 add_executable(notcurses-info ${INFOSRCS} ${COMPATSRC})
+target_compile_definitions(notcurses-info
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
 target_include_directories(notcurses-info
   PRIVATE
     src
@@ -572,6 +586,7 @@ target_include_directories(ncneofetch
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
+    src
 )
 target_link_libraries(ncneofetch
   PRIVATE
@@ -870,8 +885,8 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS nctetris DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
+install(TARGETS nctetris DESTINATION bin)
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncplayer DESTINATION bin)
