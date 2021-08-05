@@ -1198,7 +1198,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
         goto err;
       }
     }
-    ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
+    if(opts->flags & NCOPTION_PRESERVE_CURSOR){
+      ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
+    }
   }
   if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
     goto err;
