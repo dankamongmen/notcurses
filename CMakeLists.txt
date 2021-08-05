@@ -565,7 +565,6 @@ target_link_libraries(notcurses-input
 
 ############################################################################
 # nctetris
-if(NOT WIN32)
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(nctetris ${TETRISSRC})
 target_include_directories(nctetris
@@ -578,7 +577,6 @@ target_link_libraries(nctetris
   PRIVATE
     notcurses++
 )
-endif()
 
 ############################################################################
 # ncneofetch
