@@ -1231,7 +1231,6 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   mbstate_t ps = {};
   size_t bytes;
-fprintf(stderr, "________________edges: %u\n", edges);
   if((bytes = wcrtomb(hl, wchars[4], &ps)) == (size_t)-1){
     return -1;
   }
@@ -1251,7 +1250,6 @@ fprintf(stderr, "________________edges: %u\n", edges);
     ncdirect_cursor_right(n, xlen - 2);
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
-fprintf(stderr, "*******************edges: %u\n", edges);
   if(edges >= box_corner_needs(ctlword)){
     if(activate_channels(n, ur)){
       return -1;
@@ -1287,7 +1285,6 @@ fprintf(stderr, "*******************edges: %u\n", edges);
   ncdirect_cursor_down(n, 1);
   // bottom line
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
-fprintf(stderr, "|||||||||||||||||\edges: %u\n", edges);
   if(edges >= box_corner_needs(ctlword)){
     if(activate_channels(n, ll)){
       return -1;
@@ -1308,7 +1305,6 @@ fprintf(stderr, "|||||||||||||||||\edges: %u\n", edges);
     ncdirect_cursor_right(n, xlen - 2);
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
-fprintf(stderr, "44444444444444444444edges: %u\n", edges);
   if(edges >= box_corner_needs(ctlword)){
     if(activate_channels(n, lr)){
       return -1;
