@@ -9,6 +9,7 @@ extern "C" {
 #include "builddef.h"
 
 #include <term.h>
+#include <ncurses.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>

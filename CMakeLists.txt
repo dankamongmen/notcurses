@@ -515,6 +515,7 @@ target_include_directories(notcurses-demo
   PRIVATE
     include
     src
+    "${TERMINFO_INCLUDE_DIRS}"
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )

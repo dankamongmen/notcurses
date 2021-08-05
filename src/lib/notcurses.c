@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <unistr.h>
 #include <locale.h>
-#include <ncurses.h>
 #include <uniwbrk.h>
 #include <inttypes.h>
 #include <notcurses/direct.h>
