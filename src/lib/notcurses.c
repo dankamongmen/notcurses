@@ -922,7 +922,6 @@ init_banner(const notcurses* nc, fbuf* f){
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
       fbuf_putc(f, '+');
       term_fg_rgb8(&nc->tcache, f, 0xe0, 0x60, 0x60);
-      fbuf_putc(f, '+');
       fbuf_putc(f, 'r');
       term_fg_rgb8(&nc->tcache, f, 0x60, 0xe0, 0x60);
       fbuf_putc(f, 'g');
