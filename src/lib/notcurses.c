@@ -1126,6 +1126,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // don't set loglevel until we've acquired the signal handler, lest we
   // change the loglevel out from under a running instance
   loglevel = opts->loglevel;
+#ifndef __MINGW64__
+// windows doesn't really have a concept of terminfo. you might ssh into other
+// machines, but they'll use the terminfo installed thereon (putty, etc.).
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
@@ -1136,6 +1139,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+#endif
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;

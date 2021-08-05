@@ -57,6 +57,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_DOCTEST=off \
             -DUSE_PANDOC=off \
+            -DUSE_READLINE=off \
             -DUSE_QRCODEGEN=on
 
       - name: make
