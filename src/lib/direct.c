@@ -1,5 +1,6 @@
 #include "version.h"
 #include "builddef.h"
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
