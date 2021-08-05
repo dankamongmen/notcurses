@@ -46,7 +46,8 @@ typedef enum {
 int ncinputlayer_init(struct tinfo* tcache, FILE* infp,
                       queried_terminals_e* detected, unsigned* appsync,
                       int* cursor_y, int* cursor_x,
-                      struct ncsharedstats* stats);
+                      struct ncsharedstats* stats,
+                      unsigned* kittygraphs);
 
 void ncinputlayer_stop(struct ncinputlayer* nilayer);
 

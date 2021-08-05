@@ -777,6 +777,9 @@ typedef enum {
   STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
   STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
   STATE_DCS_DRAIN,  // throw away input until we hit escape
+  STATE_APC,        // application programming command, starts with \x1b_
+  STATE_APC_DRAIN,  // looking for \x1b
+  STATE_APC_ST,     // looking for ST
   STATE_BG1,        // got '1'
   STATE_BG2,        // got second '1'
   STATE_BGSEMI,     // got '11;', draining string to ESC ST
@@ -831,6 +834,7 @@ typedef struct query_state {
 
   bool xtgettcap_good;   // high when we've received DCS 1
   bool appsync;          // application-synchronized updates advertised
+  bool kittygraphics;    // kitty graphics were advertised
 } query_state;
 
 static int
@@ -1038,6 +1042,26 @@ pump_control_read(query_state* inits, unsigned char c){
         inits->state = STATE_NULL;
       }else if(c == '1'){
         inits->state = STATE_BG1;
+      }else if(c == '_'){
+        inits->state = STATE_APC;
+      }
+      break;
+    case STATE_APC:
+      if(c == 'G'){
+        inits->kittygraphics = true;
+      }
+      inits->state = STATE_APC_DRAIN;
+      break;
+    case STATE_APC_DRAIN:
+      if(c == '\x1b'){
+        inits->state = STATE_APC_ST;
+      }
+      break;
+    case STATE_APC_ST:
+      if(c == '\\'){
+        inits->state = STATE_NULL;
+      }else{
+        inits->state = STATE_APC_DRAIN;
       }
       break;
     case STATE_BG1:
@@ -1464,7 +1488,7 @@ err:
 
 int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
                       unsigned* appsync, int* cursor_y, int* cursor_x,
-                      ncsharedstats* stats){
+                      ncsharedstats* stats, unsigned* kittygraphs){
   ncinputlayer* nilayer = &tcache->input;
   if(pthread_mutex_init(&nilayer->lock, NULL)){
     return -1;
@@ -1514,6 +1538,13 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     if(inits.pixelwidth && inits.pixelheight){
       tcache->pixy = inits.pixelheight;
       tcache->pixx = inits.pixelwidth;
+    }
+    if(inits.kittygraphics){ // kitty trumps sixel
+      loginfo("advertised kitty; disabling sixel\n");
+      tcache->color_registers = 0;
+      tcache->sixel_maxx = 0;
+      tcache->sixel_maxy = 0;
+      *kittygraphs = true;
     }
   }
   return 0;

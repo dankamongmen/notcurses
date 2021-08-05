@@ -345,7 +345,12 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // non-standard CSI for total pixel geometry
 #define GEOMPIXEL "\x1b[14t"
 
+// query for kitty graphics. if they are supported, we'll get a response to
+// this using the kitty response syntax. otherwise, we'll get nothing.
+#define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
+
 #define DIRECTIVES CSI_BGQ \
+                   KITTYQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
@@ -542,8 +547,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
         return -1;
       }
     }
-    // wezterm supports iTerm2's graphic protocol, but we'd rather use Sixel.
-    // once it adds Kitty, we'll prefer that.
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
     // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
@@ -830,8 +833,9 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     cursor_y = &foolcursor_y;
   }
   *cursor_x = *cursor_y = -1;
+  unsigned kittygraphs = 0;
   if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised,
-                       cursor_y, cursor_x, stats)){
+                       cursor_y, cursor_x, stats, &kittygraphs)){
     goto err;
   }
   if(nocbreak){
@@ -859,11 +863,16 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     goto err;
   }
   build_supported_styles(ti);
-  // our current sixel quantization algorithm requires at least 64 color
-  // registers. we make use of no more than 256. this needs to happen
-  // after heuristics, since the choice of sixel_init() depends on it.
-  if(ti->color_registers >= 64){
-    setup_sixel_bitmaps(ti, fd, invertsixel);
+  if(ti->pixel_draw == NULL){
+    if(kittygraphs){
+      setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
+    }
+    // our current sixel quantization algorithm requires at least 64 color
+    // registers. we make use of no more than 256. this needs to happen
+    // after heuristics, since the choice of sixel_init() depends on it.
+    if(ti->color_registers >= 64){
+      setup_sixel_bitmaps(ti, fd, invertsixel);
+    }
   }
   return 0;
 
