@@ -43,5 +43,6 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   ti->caps.colors = 256;
   ti->caps.quadrants = true;
   ti->caps.braille = true;
+  ti->termname = "Windows Terminal";
   return 0;
 }
