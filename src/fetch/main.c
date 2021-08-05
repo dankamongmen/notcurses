@@ -275,67 +275,6 @@ linux_ncneofetch(fetched_info* fi){
   return dinfo;
 }
 
-#ifndef __MINGW64__
-#include <pwd.h>
-static int
-getusername(fetched_info* fi){
-  if( (fi->username = getenv("LOGNAME")) ){
-    if( (fi->username = strdup(fi->username)) ){
-      return 0;
-    }
-  }
-  uid_t uid = getuid();
-  struct passwd* p = getpwuid(uid);
-  if(p == NULL){
-    return -1;
-  }
-  fi->username = strdup(p->pw_name);
-  return 0;
-}
-
-static int
-getlocalhostname(fetched_info* fi){
-  char hostname[_POSIX_HOST_NAME_MAX + 1];
-  if(gethostname(hostname, sizeof(hostname)) == 0){
-    char* fqdn = strchr(hostname, '.');
-    if(fqdn){
-      *fqdn = '\0';
-    }
-    if( (fi->hostname = strdup(hostname)) ){
-      return 0;
-    }
-  }
-  return -1;
-}
-#else // windows
-static int
-getusername(fetched_info* fi){
-  DWORD unlen = UNLEN + 1;
-  char* un = malloc(unlen);
-  if(un == NULL){
-    return -1;
-  }
-  if(GetUserName(un, &unlen)){ // FIXME probably want GetUserNameEx
-    free(un);
-    return -1;
-  }
-  fi->username = un;
-  return 0;
-}
-
-static int
-getlocalhostname(fetched_info* fi){
-  char lp[MAX_COMPUTERNAME_LENGTH + 1];
-  size_t s = sizeof(lp);
-  if(GetComputerNameA(lp, &s)){
-    if( (fi->hostname = strdup(lp)) ){
-      return 0;
-    }
-  }
-  return -1;
-}
-#endif
-
 typedef enum {
   NCNEO_LINUX,
   NCNEO_FREEBSD,
@@ -688,8 +627,8 @@ ncneofetch(struct ncdirect* nc){
   };
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
-  getlocalhostname(&fi);
-  getusername(&fi);
+  fi.hostname = notcurses_hostname();
+  fi.username = notcurses_accountname();
   fetch_env_vars(nc, &fi);
   fetch_x_props(&fi);
   if(kern == NCNEO_LINUX){
