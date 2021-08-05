@@ -1,6 +1,8 @@
 #ifndef __MINGW64__
 #include <pwd.h>
 #include <unistd.h>
+#else
+#include <winsock2.h>
 #endif
 #include "internal.h"
 
