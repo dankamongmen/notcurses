@@ -10,13 +10,13 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 ### APT
 
-On an APT-based distribution, run:
+Install build dependencies:
 
 `apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
-If you only intend to build core Notcurses (without multimedia support), run:
-
-`apt-get install build-essential cmake doctest-dev zlib1g-dev libncurses-dev libreadline-dev libqrcodegen-dev libunistring-dev pandoc pkg-config`
+If you only intend to build core Notcurses (without multimedia support), you
+can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
+list.
 
 If you want to build the Python wrappers, you'll also need:
 
@@ -28,7 +28,25 @@ If you want to build the Rust wrappers, you'll also need:
 
 ### RPM
 
+Install build dependencies:
+
 `dnf install cmake doctest-devel zlib-devel ncurses-devel readline-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+
+If you only intend to build core Notcurses (without multimedia support), you
+can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
+RPM Fusion), you might want to use FFmpeg rather than OpenImageIO.
+
+### Microsoft Windows
+
+Currently, building on Windows requires [MSYS2](https://www.msys2.org/) in its
+64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
+and EXEs, though it does not use Visual Studio. Install build dependencies:
+
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-rust mingw-w64-ucrt-x86_64-toolchain`
+
+If you only intend to build core Notcurses (without multimedia support), you
+can omit `mingw-w64-ucrt-x86_64-ffmpeg`. The Windows build never uses GNU
+Readline, so don't worry about that.
 
 ## Building
 
@@ -95,4 +113,5 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
+* `USE_READLINE`: build readline support for Direct Mode
 * `USE_STATIC`: build static libraries (in addition to shared ones)
