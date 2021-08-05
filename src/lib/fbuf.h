@@ -97,7 +97,7 @@ fbuf_initgrow(fbuf* f, unsigned small){
   // we start with 2MiB, the huge page size on all of x86+PAE,
   // ARMv7+LPAE, ARMv8, and x86-64.
   // FIXME use GetLargePageMinimum() and sysconf
-  size_t size = small ? (4096 > BUFSIZ ? 4096 : BUFSIZ) : 0x2000000lu;
+  size_t size = small ? (4096 > BUFSIZ ? 4096 : BUFSIZ) : 0x200000lu;
 #if defined(__linux__)
   /*static bool hugepages_failed = false; // FIXME atomic
   if(!hugepages_failed && !small){
