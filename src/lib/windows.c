@@ -24,6 +24,14 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     { ESCAPE_CIVIS, "\x1b[?25l", },
     { ESCAPE_CNORM, "\x1b[?25h", },
     { ESCAPE_U7,    "\x1b[6n", },
+    { ESCAPE_BOLD,  "\x1b[1m", },
+    { ESCAPE_SITM,  "\x1b[3m", },
+    { ESCAPE_RITM,  "\x1b[23m", },
+    { ESCAPE_SMUL,  "\x1b[4m", },
+    { ESCAPE_RMUL,  "\x1b[24m", },
+    { ESCAPE_SMULX, "\x1b[4:3m", },
+    { ESCAPE_SMULNOX,  "\x1b[4:0m", },
+    { ESCAPE_SGR0,  "\x1b[0m", },
     { ESCAPE_MAX, NULL, }
   }, *w; 
   for(w = wterms ; w->tinfo; ++w){
@@ -33,5 +41,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   }
   ti->caps.rgb = true;
   ti->caps.colors = 256;
+  ti->caps.quadrants = true;
+  ti->caps.braille = true;
   return 0;
 }

@@ -219,7 +219,7 @@ term_supported_styles(const tinfo* ti){
 // console, identified via ioctl(2)s), pass it as qterm; otherwise use
 // TERMINAL_UNKNOWN. |stats| may be NULL; either way, it will be handed to the
 // input layer so that its stats can be recorded.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
+int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
                          struct ncsharedstats* stats);

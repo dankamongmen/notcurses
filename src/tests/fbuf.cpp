@@ -38,7 +38,7 @@ TEST_CASE("Fbuf") {
   }
 
   // fill the fbuf with one large write
-  SUBCASE("FbufPutsCover") {
+  SUBCASE("FbufPutsCoverSingle") {
     fbuf f{};
     CHECK(0 == fbuf_init(&f));
     CHECK(0 < f.size);
@@ -56,7 +56,7 @@ TEST_CASE("Fbuf") {
   }
 
   // fill the fbuf with random writes
-  SUBCASE("FbufPutsCover") {
+  SUBCASE("FbufPutsCoverRandom") {
     fbuf f{};
     CHECK(0 == fbuf_init(&f));
     CHECK(0 < f.size);

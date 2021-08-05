@@ -1,6 +1,6 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <ncurses.h>
 #ifdef __linux__
 #include <sys/utsname.h>
 #endif
@@ -661,13 +661,14 @@ macos_early_matches(const char* termname){
 // Device Attributes, allowing us to get a negative response if our queries
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
+int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
+                         unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
+  const char* tname = termname(); // longname() is also available
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
 #ifdef __APPLE__
-  qterm = macos_early_matches(termname);
+  qterm = macos_early_matches(tname);
 #endif
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
@@ -702,13 +703,15 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
   // for several terminals known to always support 8bpc rgb setaf/setab.
-  int colors = tigetnum("colors");
-  if(colors <= 0){
-    ti->caps.colors = 1;
-  }else{
-    ti->caps.colors = colors;
+  if(ti->caps.colors == 0){
+    int colors = tigetnum("colors");
+    if(colors <= 0){
+      ti->caps.colors = 1;
+    }else{
+      ti->caps.colors = colors;
+    }
+    ti->caps.rgb = query_rgb(); // independent of colors
   }
-  ti->caps.rgb = query_rgb(); // independent of colors
   const struct strtdesc {
     escape_e esc;
     const char* tinfo;
@@ -757,7 +760,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     goto err;
   }
-  if(colors){
+  if(ti->caps.colors > 1){
     const char* initc = get_escape(ti, ESCAPE_INITC);
     if(initc){
       ti->caps.can_change_colors = tigetflag("ccc") == 1;
@@ -835,7 +838,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   bool invertsixel = false;
-  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused,
+  if(apply_term_heuristics(ti, tname, fd, qterm, &tablelen, &tableused,
                            &invertsixel)){
     ncinputlayer_stop(&ti->input);
     goto err;

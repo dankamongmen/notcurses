@@ -1,6 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "main.h"
-#include <term.h>
 #include <fcntl.h>
 #include <clocale>
 #include <cstring>

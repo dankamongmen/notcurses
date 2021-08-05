@@ -1,6 +1,5 @@
 #include "version.h"
 #include "builddef.h"
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -857,16 +856,14 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   ret->ctermfd = get_tty_fd(ret->ttyfp);
-  const char* shortname_term;
   int termerr;
-  if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
+  if(setupterm(termtype, ret->ctermfd, &termerr)){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
-  shortname_term = termname();
   int cursor_y = -1;
   int cursor_x = -1;
-  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8,
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, utf8,
                           1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
                           TERMINAL_UNKNOWN, &cursor_y, &cursor_x, NULL)){
     goto err;

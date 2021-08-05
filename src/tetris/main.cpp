@@ -1,7 +1,6 @@
 #define NCPP_EXCEPTIONS_PLEASE
 #include <mutex>
 #include <array>
-#include <pwd.h>
 #include <atomic>
 #include <thread>
 #include <chrono>

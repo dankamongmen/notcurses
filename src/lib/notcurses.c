@@ -3,7 +3,6 @@
 #include "version.h"
 #include "egcpool.h"
 #include "internal.h"
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <zlib.h>
 #include <time.h>
 #include <term.h>
@@ -16,6 +15,7 @@
 #include <stdlib.h>
 #include <unistr.h>
 #include <locale.h>
+#include <ncurses.h>
 #include <uniwbrk.h>
 #include <inttypes.h>
 #include <notcurses/direct.h>
@@ -1133,7 +1133,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  const char* shortname_term = termname(); // longname() is also available
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
@@ -1143,7 +1142,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                   &ret->rstate.logendy : &fakecursory;
   int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendx : &fakecursorx;
-  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats)){
