@@ -47,7 +47,6 @@ fn main() {
         .blacklist_item("__[A-Z].*")
         .blacklist_item("[ADHJ-MQ-Z].*")
         .blacklist_item("IN.*")
-        .blacklist_item("in.*")
         .blacklist_item("IP[^R].*")
         .blacklist_item("ip.*")
         .blacklist_item("sock.*")
