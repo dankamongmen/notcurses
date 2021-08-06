@@ -113,6 +113,7 @@ emoji_viz(struct ncplane* n){
                               "\U0001f3f4\u200d\u2620\ufe0f" // pirate flag
                               "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f" // type-3 woman playing water polo
                               ;
+  ncplane_set_fg_rgb(n, 0xffffff);
   ncplane_set_bg_rgb(n, 0);
   int bytes;
   for(const char* e = emoji ; *e ; e += bytes){
@@ -290,30 +291,30 @@ unicodedumper(struct ncplane* n, const char* indent){
     */
     // the symbols for legacy computing
     ncplane_cursor_move_yx(n, y - 3, 0);
-    uint32_t ul = NCCHANNEL_INITIALIZER(0x30, 0x30, 0x30);
-    uint32_t lr = NCCHANNEL_INITIALIZER(0x80, 0x80, 0x80);
+    uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x30, 0x30, 0x30);
+    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x80, 0x80, 0x80);
     ncplane_stain(n, y - 2, 65, ul, lr, ul, lr);
     // the horizontal eighths
-    ul = NCCHANNEL_INITIALIZER(0x02, 0x8a, 0x0f);
-    lr = NCCHANNEL_INITIALIZER(0x08, 0x3d, 0x3b);
+    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x02, 0x8a, 0x0f);
+    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x08, 0x3d, 0x3b);
     ncplane_cursor_move_yx(n, y - 11, 66);
     ncplane_stain(n, y - 2, 77, ul, ul, lr, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 7, 0);
-    ul = NCCHANNEL_INITIALIZER(0x2f, 0x25, 0x24);
-    lr = NCCHANNEL_INITIALIZER(0x74, 0x25, 0x2f);
+    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x2f, 0x25, 0x24);
+    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x74, 0x25, 0x2f);
     ncplane_stain(n, y - 4, 65, ul, lr, ul, lr);
     // the sextants
     ncplane_cursor_move_yx(n, y - 11, 27);
-    lr = NCCHANNEL_INITIALIZER(0x7B, 0x68, 0xEE);
-    ul = NCCHANNEL_INITIALIZER(0x19, 0x19, 0x70);
+    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x7B, 0x68, 0xEE);
+    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_stain(n, y - 10, 57, lr, ul, lr, ul);
     // the boxes + quadrants
     ncplane_cursor_move_yx(n, y - 11, 0);
     ncplane_stain(n, y - 8, 65, lr, ul, lr, ul);
     // the capabilities
-    ul = NCCHANNEL_INITIALIZER(0x1B, 0xb8, 0x8E);
-    lr = NCCHANNEL_INITIALIZER(0x19, 0x19, 0x70);
+    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xb8, 0x8E);
+    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 16, 0);
     ncplane_stain(n, y - 12, 77, lr, ul, lr, ul);
 
@@ -322,7 +323,6 @@ unicodedumper(struct ncplane* n, const char* indent){
     ncplane_cursor_move_yx(n, y - 12, 54);
     ncplane_set_bg_rgb(n, 0);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
-    ncplane_set_fg_default(n);
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
   return 0;
