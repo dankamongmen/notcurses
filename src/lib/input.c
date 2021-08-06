@@ -1327,9 +1327,11 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_DA_1:
 //fprintf(stderr, "DA1: %c\n", c);
-      if(c >= 0x40 && c <= 0x7E){
+      if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
       }else if(c == ';'){
         inits->state = STATE_DA_1_SEMI;
       } // FIXME error?
@@ -1345,18 +1347,22 @@ pump_control_read(query_state* inits, unsigned char c){
       } // FIXME error?
       break;
     case STATE_DA_1_SEMI_2:
-      if(c == 'S'){
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+        return 1;
+      }else if(c == 'S'){
         inits->state = STATE_NULL;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
-        return 1;
       }
       break;
     case STATE_DA_1_0:
 //fprintf(stderr, "DA_!_0: %c\n", c);
-      if(c >= 0x40 && c <= 0x7E){
+      if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
       }else if(c == ';'){
         inits->state = STATE_SIXEL_CREGS;
       } // FIXME error?
@@ -1371,16 +1377,20 @@ pump_control_read(query_state* inits, unsigned char c){
       }
       break;
     case STATE_DA_6:
-      if(c >= 0x40 && c <= 0x7E){
+      if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
       }
       // FIXME
       break;
     case STATE_DA_DRAIN:
-      if(c >= 0x40 && c <= 0x7E){
+      if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
       }
       break;
     case STATE_SIXEL:
@@ -1472,7 +1482,7 @@ control_read(int ttyfd, query_state* qstate){
         int r = pump_control_read(qstate, buf[idx]);
         if(r == 1){ // success!
           free(buf);
-  //fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
+//fprintf(stderr, "at end, derived terminal %d\n", qstate->qterm);
           return 0;
         }else if(r < 0){
           goto err;
