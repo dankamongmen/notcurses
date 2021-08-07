@@ -256,6 +256,60 @@ TEST_CASE("Scrolling") {
     // FIXME
   }
 
+  // ensure that bound planes are scrolled along with us
+  SUBCASE("BoundScroll") {
+    int starty = 4;
+    struct ncplane_options nopts = {
+      .y = starty,
+      .x = 4,
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
+    };
+    ncplane_set_scrolling(n_, true);
+    auto np = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != np);
+    nccell c = CELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
+    CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
+    CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
+    CHECK(0 == notcurses_render(nc_));
+    for(int i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
+      CHECK(starty - i == ncplane_y(np));
+      CHECK(0 == ncplane_putchar(n_, '\n'));
+      CHECK(0 == notcurses_render(nc_));
+    }
+    CHECK(0 == ncplane_destroy(np));
+  }
+
+  // ensure that bound planes are *not* scrolled along with us when the
+  // NCPLANE_OPTION_FIXED flag is used
+  SUBCASE("BoundScrollFixed") {
+    int starty = 4;
+    struct ncplane_options nopts = {
+      .y = starty,
+      .x = 4,
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr,
+      .flags = NCPLANE_OPTION_FIXED,
+      .margin_b = 0, .margin_r = 0,
+    };
+    ncplane_set_scrolling(n_, true);
+    auto np = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != np);
+    nccell c = CELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
+    CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
+    CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
+    CHECK(0 == notcurses_render(nc_));
+    for(int i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
+      CHECK(starty == ncplane_y(np));
+      CHECK(0 == ncplane_putchar(n_, '\n'));
+      CHECK(0 == notcurses_render(nc_));
+    }
+    CHECK(0 == ncplane_destroy(np));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
