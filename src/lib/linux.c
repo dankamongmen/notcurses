@@ -1,6 +1,10 @@
 #include "linux.h"
 #include "internal.h"
 
+void fbcon_scroll(tinfo* ti, int rows){
+  // FIXME
+}
+
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
 // and store the original alpha value.
 int fbcon_wipe(sprixel* s, int ycell, int xcell){

@@ -58,6 +58,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_remove = NULL;
   ti->pixel_move = NULL;
   ti->pixel_shutdown = sixel_shutdown;
+  ti->pixel_scroll = NULL;
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
@@ -76,6 +77,7 @@ setup_iterm_bitmaps(tinfo* ti, int fd){
   ti->pixel_move = NULL;
   ti->color_registers = 0;
   ti->pixel_scrub = sixel_scrub;
+  ti->pixel_scroll = NULL;
   ti->pixel_draw = iterm_draw;
   ti->pixel_wipe = iterm_wipe;
   ti->pixel_rebuild = iterm_rebuild;
@@ -94,6 +96,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_draw = kitty_draw;
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
+  ti->pixel_scroll = NULL;
   ti->pixel_shutdown = kitty_shutdown;
   ti->pixel_clear_all = kitty_clear_all;
   if(level == KITTY_ALWAYS_SCROLLS){
@@ -122,6 +125,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_rebuild = fbcon_rebuild;
   ti->pixel_wipe = fbcon_wipe;
   ti->pixel_draw = fbcon_draw;
+  ti->pixel_scroll = fbcon_scroll;
   ti->pixel_scrub = fbcon_scrub;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(fbcon_blit);
