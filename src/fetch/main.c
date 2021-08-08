@@ -53,10 +53,10 @@ free_fetched_info(fetched_info* fi){
 }
 
 static int
-fetch_env_vars(struct ncdirect* nc, fetched_info* fi){
+fetch_env_vars(struct notcurses* nc, fetched_info* fi){
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
   fi->shell = getenv("SHELL");
-  fi->term = ncdirect_detected_terminal(nc);
+  fi->term = notcurses_detected_terminal(nc);
   fi->lang = getenv("LANG");
   return 0;
 }
@@ -343,17 +343,18 @@ xnu_ncneofetch(fetched_info* fi){
 }
 
 static int
-drawpalette(struct ncdirect* nc){
-  int psize = ncdirect_palette_size(nc);
+drawpalette(struct notcurses* nc){
+  int psize = notcurses_palette_size(nc);
   if(psize > 256){
     psize = 256;
   }
-  int dimx = ncdirect_dim_x(nc);
+  int dimy, dimx;
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   if(dimx < 64){
     return -1;
   }
   for(int y = 0 ; y < (psize + 63) / 64 ; ++y){
-    if(ncdirect_cursor_move_yx(nc, -1, (dimx - 64) / 2)){
+    if(ncplane_cursor_move_yx(n, -1, (dimx - 64) / 2)){
       return -1;
     }
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
@@ -361,52 +362,19 @@ drawpalette(struct ncdirect* nc){
       if(y * 64 + truex >= psize){
         break;
       }
-      if(ncdirect_set_bg_palindex(nc, y * 64 + truex)){
+      if(ncplane_set_bg_palindex(n, y * 64 + truex)){
         return -1;
       }
-      if(putchar(' ') == EOF){
+      if(ncplane_putchar(n, ' ') == EOF){
         return -1;
       }
     }
-    if(ncdirect_set_bg_default(nc)){
-      return -1;
-    }
-    if(putchar('\n') == EOF){
+    ncplane_set_bg_default(n);
+    if(ncplane_putchar(n, '\n') == EOF){
       return -1;
     }
   }
   return 0;
-}
-
-// FIXME look for an area without background logo in it. pick the one
-// closest to the center horizontally, and lowest vertically. if none
-// can be found, just center it on the bottom as we do now
-static struct notcurses*
-place_infoplane(struct ncdirect* ncd, int planeheight){
-  const int dimy = ncdirect_dim_y(ncd);
-  int cury, curx;
-  if(ncdirect_cursor_yx(ncd, &cury, &curx)){
-    ncdirect_stop(ncd);
-    return NULL;
-  }
-  struct notcurses_options opts = {
-    .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
-              | NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_NO_CLEAR_BITMAPS,
-    .margin_t = cury,
-    .margin_b = dimy - (cury + planeheight),
-  };
-  // if we're at the bottom of the screen, we need scroll it up, and adjust
-  while(opts.margin_b < 0){
-    if(putchar('\n') == EOF){
-      return NULL;
-    }
-    ++opts.margin_b;
-    --opts.margin_t;
-  }
-  if(ncdirect_stop(ncd)){
-    return NULL;
-  }
-  return notcurses_init(&opts, NULL);
 }
 
 static int
@@ -509,19 +477,15 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 }
 
 static int
-infoplane(struct ncdirect* ncd, const fetched_info* fi){
+infoplane(struct notcurses* nc, const fetched_info* fi){
   const int planeheight = 8;
-  struct notcurses* nc = place_infoplane(ncd, planeheight);
-  if(nc == NULL){
-    return -1;
-  }
   int r = infoplane_notcurses(nc, fi, planeheight);
   r |= notcurses_stop(nc);
   return r;
 }
 
 struct marshal {
-  struct ncdirect* nc;
+  struct notcurses* nc;
   const distro_info* dinfo;
   const char* logo; // read from /etc/os-release (or builtin), may be NULL
   const char* neologo; // fallback from neofetch, text with color sub templates
@@ -530,7 +494,7 @@ struct marshal {
 // present a neofetch-style logo. we want to substitute colors for ${cN} inline
 // sequences, and center the logo.
 static int
-neologo_present(struct ncdirect* nc, const char* nlogo){
+neologo_present(struct notcurses* nc, const char* nlogo){
   // find the maximum line length in columns by iterating over the logo
   size_t maxlinelen = 0;
   size_t linelen; // length in bytes, including newline
@@ -576,7 +540,8 @@ static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-  if(ncdirect_canopen_images(m->nc)){
+  notcurses_render(m->nc);
+  if(notcurses_canopen_images(m->nc)){
     if(m->logo){
       if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
                                NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
@@ -598,7 +563,7 @@ display_thread(void* vmarshal){
 }
 
 static int
-ncneofetch(struct ncdirect* nc){
+ncneofetch(struct notcurses* nc){
   fetched_info fi = {};
   ncneo_kernel_e kern = get_kernel(&fi);
   switch(kern){
@@ -655,10 +620,17 @@ int main(void){
   if(setlocale(LC_ALL, "") == NULL){
     fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
   }
-  struct ncdirect* nc = ncdirect_init(NULL, NULL, 0);
+  struct notcurses_options opts = {
+    .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
+              | NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_NO_CLEAR_BITMAPS
+              | NCOPTION_PRESERVE_CURSOR,
+  };
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  ncplane_set_scrolling(stdn, true);
   int r = ncneofetch(nc);
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
