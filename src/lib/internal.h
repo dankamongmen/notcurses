@@ -10,11 +10,10 @@ extern "C" {
 #include "notcurses/notcurses.h"
 #include "compat/compat.h"
 
+#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
-#include <ncurses.h>
 #include <time.h>
 #include <term.h>
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>

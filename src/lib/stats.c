@@ -165,41 +165,45 @@ void summarize_stats(notcurses* nc){
   char minbuf[BPREFIXSTRLEN + 1];
   char maxbuf[BPREFIXSTRLEN + 1];
   char avgbuf[BPREFIXSTRLEN + 1];
-  qprefix(stats->render_ns, NANOSECS_IN_SEC, totalbuf, 0);
-  qprefix(stats->render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
-  qprefix(stats->render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-  qprefix(stats->renders ? stats->render_ns / stats->renders : 0,
-          NANOSECS_IN_SEC, avgbuf, 0);
-  fprintf(stderr, "%"PRIu64" render%s, %ss (%ss min, %ss avg, %ss max)\n",
-          stats->renders, stats->renders == 1 ? "" : "s",
-          totalbuf, minbuf, avgbuf, maxbuf);
-  qprefix(stats->raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
-  qprefix(stats->raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
-  qprefix(stats->raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-  qprefix((stats->writeouts || stats->failed_writeouts) ?
-          stats->raster_ns / (stats->writeouts + stats->failed_writeouts)
-          : 0, NANOSECS_IN_SEC, avgbuf, 0);
-  fprintf(stderr, "%"PRIu64" raster%s, %ss (%ss min, %ss avg, %ss max)\n",
-          stats->writeouts, stats->writeouts == 1 ? "" : "s",
-          totalbuf, minbuf, avgbuf, maxbuf);
-  qprefix(stats->writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
-  qprefix(stats->writeout_ns ? stats->writeout_min_ns : 0,
-          NANOSECS_IN_SEC, minbuf, 0);
-  qprefix(stats->writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-  qprefix(stats->writeouts ? stats->writeout_ns / stats->writeouts : 0,
-          NANOSECS_IN_SEC, avgbuf, 0);
-  fprintf(stderr, "%"PRIu64" write%s, %ss (%ss min, %ss avg, %ss max)\n",
-          stats->writeouts, stats->writeouts == 1 ? "" : "s",
-          totalbuf, minbuf, avgbuf, maxbuf);
-  bprefix(stats->render_bytes, 1, totalbuf, 1),
-  bprefix(stats->render_bytes ? stats->render_min_bytes : 0,
-          1, minbuf, 1),
-  bprefix(stats->renders ? stats->render_bytes / stats->renders : 0, 1, avgbuf, 1);
-  bprefix(stats->render_max_bytes, 1, maxbuf, 1),
-  fprintf(stderr, "%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s\n",
-          totalbuf, minbuf, avgbuf, maxbuf,
-          stats->input_events,
-          stats->input_events == 1 ? "" : "s");
+  if(stats->renders){
+    qprefix(stats->render_ns, NANOSECS_IN_SEC, totalbuf, 0);
+    qprefix(stats->render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+    qprefix(stats->render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+    qprefix(stats->render_ns / stats->renders, NANOSECS_IN_SEC, avgbuf, 0);
+    fprintf(stderr, "%"PRIu64" render%s, %ss (%ss min, %ss avg, %ss max)\n",
+            stats->renders, stats->renders == 1 ? "" : "s",
+            totalbuf, minbuf, avgbuf, maxbuf);
+  }
+  if(stats->writeouts || stats->failed_writeouts){
+    qprefix(stats->raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
+    qprefix(stats->raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+    qprefix(stats->raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+    qprefix(stats->raster_ns / (stats->writeouts + stats->failed_writeouts),
+            NANOSECS_IN_SEC, avgbuf, 0);
+    fprintf(stderr, "%"PRIu64" raster%s, %ss (%ss min, %ss avg, %ss max)\n",
+            stats->writeouts, stats->writeouts == 1 ? "" : "s",
+            totalbuf, minbuf, avgbuf, maxbuf);
+    qprefix(stats->writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
+    qprefix(stats->writeout_ns ? stats->writeout_min_ns : 0,
+            NANOSECS_IN_SEC, minbuf, 0);
+    qprefix(stats->writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+    qprefix(stats->writeouts ? stats->writeout_ns / stats->writeouts : 0,
+            NANOSECS_IN_SEC, avgbuf, 0);
+    fprintf(stderr, "%"PRIu64" write%s, %ss (%ss min, %ss avg, %ss max)\n",
+            stats->writeouts, stats->writeouts == 1 ? "" : "s",
+            totalbuf, minbuf, avgbuf, maxbuf);
+  }
+  if(stats->renders || stats->input_events){
+    bprefix(stats->render_bytes, 1, totalbuf, 1),
+    bprefix(stats->render_bytes ? stats->render_min_bytes : 0,
+            1, minbuf, 1),
+    bprefix(stats->renders ? stats->render_bytes / stats->renders : 0, 1, avgbuf, 1);
+    bprefix(stats->render_max_bytes, 1, maxbuf, 1),
+    fprintf(stderr, "%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s\n",
+            totalbuf, minbuf, avgbuf, maxbuf,
+            stats->input_events,
+            stats->input_events == 1 ? "" : "s");
+  }
   fprintf(stderr, "%"PRIu64" failed render%s, %"PRIu64" failed raster%s, %"PRIu64" refresh%s, %"PRIu64" input error%s\n",
           stats->failed_renders, stats->failed_renders == 1 ? "" : "s",
           stats->failed_writeouts, stats->failed_writeouts == 1 ? "" : "s",

@@ -188,7 +188,7 @@ launch_pipe_process(int* pipefd, int* pidfd){
 #else
   (void)pipefd;
   (void)pidfd;
-  return NULL;
+  return -1;
 #endif
 }
 
