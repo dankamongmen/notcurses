@@ -703,7 +703,8 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
-set_tests_properties(ncpp_build ncpp_build_exceptions rgb rgbbg
+set_tests_properties(
+  notcurses-info ncpp_build ncpp_build_exceptions sgr-direct sgr-full rgb rgbbg
   PROPERTIES RUN_SERIAL TRUE
 )
 endif()
