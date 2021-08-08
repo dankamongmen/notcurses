@@ -1,25 +1,6 @@
 #include "linux.h"
 #include "internal.h"
 
-void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
-  if(ti->cellpixy){
-    return;
-  }
-  int totalrows = ti->cellpixy * p->dimy;
-  int srows = rows * ti->cellpixy; // number of lines being scrolled
-  uint8_t* targ = ti->linux_fbuffer;
-  uint8_t* src = ti->linux_fbuffer + srows * ti->cellpixx * p->dimx * 4;
-  for(int r = 0 ; r < totalrows - srows ; ++r){
-    memcpy(targ, src, ti->cellpixx * p->dimx * 4);
-    targ += ti->cellpixx * p->dimx * 4;
-    src += ti->cellpixx * p->dimx * 4;
-  }
-  for(int r = totalrows - srows ; r < totalrows ; ++r){
-    memset(targ, 0, ti->cellpixx * p->dimx * 4);
-    targ += ti->cellpixx * p->dimx * 4;
-  }
-}
-
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
 // and store the original alpha value.
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
@@ -209,6 +190,25 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int
     }
   }
   return wrote;
+}
+
+void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
+  if(ti->cellpixy){
+    return;
+  }
+  int totalrows = ti->cellpixy * p->dimy;
+  int srows = rows * ti->cellpixy; // number of lines being scrolled
+  uint8_t* targ = ti->linux_fbuffer;
+  uint8_t* src = ti->linux_fbuffer + srows * ti->cellpixx * p->dimx * 4;
+  for(int r = 0 ; r < totalrows - srows ; ++r){
+    memcpy(targ, src, ti->cellpixx * p->dimx * 4);
+    targ += ti->cellpixx * p->dimx * 4;
+    src += ti->cellpixx * p->dimx * 4;
+  }
+  for(int r = totalrows - srows ; r < totalrows ; ++r){
+    memset(targ, 0, ti->cellpixx * p->dimx * 4);
+    targ += ti->cellpixx * p->dimx * 4;
+  }
 }
 
 // each row is a contiguous set of bits, starting at the msb
@@ -696,6 +696,12 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int
   (void)y;
   (void)x;
   return 0;
+}
+
+void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
+  (void)p;
+  (void)ti;
+  (void)rows;
 }
 
 int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
