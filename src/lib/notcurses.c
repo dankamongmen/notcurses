@@ -1158,11 +1158,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
-  const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
-  if(smkx && term_emit(smkx, ret->ttyfp, false)){
-    free_plane(ret->stdplane);
-    goto err;
-  }
   const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
   if(cinvis && term_emit(cinvis, ret->ttyfp, false)){
     free_plane(ret->stdplane);

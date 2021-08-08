@@ -882,14 +882,6 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(loglevel)){
     goto err;
   }
-  // if the keypad neen't be explicitly enabled, smkx is not present
-  const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
-  if(smkx){
-    if(term_emit(tiparm(smkx), ret->ttyfp, true) < 0){
-      fprintf(stderr, "Error entering keypad transmit mode\n");
-      goto err;
-    }
-  }
   update_term_dimensions(NULL, NULL, &ret->tcache, 0);
   ncdirect_set_styles(ret, 0);
   return ret;

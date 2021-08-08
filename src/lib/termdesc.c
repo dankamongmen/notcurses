@@ -701,22 +701,18 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 #ifndef __MINGW64__
   if(ti->ttyfd >= 0){
     if(tcgetattr(ti->ttyfd, &ti->tpreserved)){
-      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
-      del_curterm(cur_term);
+      logpanic("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
       return -1;
     }
     // enter cbreak mode regardless of user preference until we've performed
     // terminal interrogation. at that point, we might restore original mode.
     if(cbreak_mode(ti->ttyfd, &ti->tpreserved)){
-      del_curterm(cur_term);
       return -1;
     }
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(ti->ttyfd, minimal)){
-      fprintf(stderr, "Error issuing terminal queries on %d\n", ti->ttyfd);
-      del_curterm(cur_term);
       return -1;
     }
   }
@@ -787,8 +783,16 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   // verify that the terminal provides cursor addressing (absolute movement)
   if(ti->escindices[ESCAPE_CUP] == 0){
-    fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
+    logpanic("Required terminfo capability 'cup' not defined\n");
     goto err;
+  }
+  // if the keypad neen't be explicitly enabled, smkx is not present
+  const char* smkx = get_escape(ti, ESCAPE_SMKX);
+  if(smkx){
+    if(tty_emit(tiparm(smkx), ti->ttyfd) < 0){
+      logpanic("Error enabling keypad transmit mode\n");
+      goto err;
+    }
   }
   if(ti->caps.colors > 1){
     const char* initc = get_escape(ti, ESCAPE_INITC);
@@ -808,11 +812,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     ti->escindices[ESCAPE_SMCUP] = 0;
     ti->escindices[ESCAPE_RMCUP] = 0;
   }
-  /* // ensure that the terminal provides automatic margins
-  if(tigetflag("am") != 1){
-    fprintf(stderr, "Required terminfo capability 'am' not defined\n");
-    goto err;
-  } */
   if(get_escape(ti, ESCAPE_CIVIS) == NULL){
     char* chts;
     if(terminfostr(&chts, "chts") == 0){
