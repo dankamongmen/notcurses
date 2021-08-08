@@ -1093,7 +1093,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  ret->ttyfd = get_tty_fd(ret->ttyfp);
   if(recursive_lock_init(&ret->pilelock)){
     logfatal("Couldn't initialize pile mutex\n");
     free(ret);
@@ -1124,6 +1123,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // don't set loglevel until we've acquired the signal handler, lest we
   // change the loglevel out from under a running instance
   loglevel = opts->loglevel;
+  ret->ttyfd = get_tty_fd(ret->ttyfp);
 #ifndef __MINGW64__
 // windows doesn't really have a concept of terminfo. you might ssh into other
 // machines, but they'll use the terminfo installed thereon (putty, etc.).

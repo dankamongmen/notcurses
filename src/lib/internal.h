@@ -271,7 +271,7 @@ typedef struct nctabbed {
 typedef struct ncdirect {
   ncpalette palette;         // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
-  int ctermfd;               // fd for controlling terminal
+  int ttyfd;                 // fd for controlling terminal
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles

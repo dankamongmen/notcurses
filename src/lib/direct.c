@@ -140,8 +140,8 @@ int ncdirect_clear(ncdirect* nc){
 
 int ncdirect_dim_x(ncdirect* nc){
   int x;
-  if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, NULL, &x, &nc->tcache, 0) == 0){
+  if(nc->ttyfd >= 0){
+    if(update_term_dimensions(nc->ttyfd, NULL, &x, &nc->tcache, 0) == 0){
       return x;
     }
   }else{
@@ -152,8 +152,8 @@ int ncdirect_dim_x(ncdirect* nc){
 
 int ncdirect_dim_y(ncdirect* nc){
   int y;
-  if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, NULL, &nc->tcache, 0) == 0){
+  if(nc->ttyfd >= 0){
+    if(update_term_dimensions(nc->ttyfd, &y, NULL, &nc->tcache, 0) == 0){
       return y;
     }
   }else{
@@ -248,7 +248,7 @@ cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
 }
 
 // if we're lacking hpa/vpa, *and* -1 is passed for one of x/y, *and* we've
-// not got a real ctermfd, we're pretty fucked. we just punt and substitute
+// not got a real ttyfd, we're pretty fucked. we just punt and substitute
 // 0 for that case, which hopefully only happens when running headless unit
 // tests under TERM=vt100. if we need to truly rigourize things, we could
 // cub/cub1 the width or cuu/cuu1 the height, then cuf/cub back? FIXME
@@ -259,8 +259,8 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   if(y == -1){ // keep row the same, horizontal move only
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
-    }else if(n->ctermfd >= 0 && u7){
-      if(cursor_yx_get(n->ctermfd, u7, &y, NULL)){
+    }else if(n->ttyfd >= 0 && u7){
+      if(cursor_yx_get(n->ttyfd, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -269,8 +269,8 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   }else if(x == -1){ // keep column the same, vertical move only
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
-    }else if(n->ctermfd >= 0 && u7){
-      if(cursor_yx_get(n->ctermfd, u7, NULL, &x)){
+    }else if(n->ttyfd >= 0 && u7){
+      if(cursor_yx_get(n->ttyfd, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -309,11 +309,11 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
   if(rows <= 1 || cols <= 1){ // FIXME can this be made to work in 1 dimension?
     return -1;
   }
-  if(cursor_yx_get(n->ctermfd, u7, y, x)){
+  if(cursor_yx_get(n->ttyfd, u7, y, x)){
     return -1;
   }
   // do not use normal ncdirect_cursor_*() commands, because those go to ttyfp
-  // instead of ctermfd. since we always talk directly to the terminal, we need
+  // instead of ttyfd. since we always talk directly to the terminal, we need
   // to move the cursor directly via the terminal.
   const char* cuu = get_escape(&n->tcache, ESCAPE_CUU);
   const char* cuf = get_escape(&n->tcache, ESCAPE_CUF);
@@ -326,26 +326,26 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
   int movex;
   int movey;
   if(*x == cols && *y == 1){
-    if(tty_emit(tiparm(cud, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cud, 1), n->ttyfd)){
       return -1;
     }
-    if(tty_emit(tiparm(cub, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cub, 1), n->ttyfd)){
       return -1;
     }
     movex = 1;
     movey = -1;
   }else{
-    if(tty_emit(tiparm(cuu, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cuu, 1), n->ttyfd)){
       return -1;
     }
-    if(tty_emit(tiparm(cuf, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cuf, 1), n->ttyfd)){
       return -1;
     }
     movex = -1;
     movey = 1;
   }
   int newy, newx;
-  if(cursor_yx_get(n->ctermfd, u7, &newy, &newx)){
+  if(cursor_yx_get(n->ttyfd, u7, &newy, &newx)){
     return -1;
   }
   if(*x == cols && *y == 1){ // need to swap values, since we moved opposite
@@ -354,10 +354,10 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
     *y = newy;
     newy = 1;
   }
-  if(tty_emit(tiparm(movex == 1 ? cuf : cub, 1), n->ctermfd)){
+  if(tty_emit(tiparm(movex == 1 ? cuf : cub, 1), n->ttyfd)){
     return -1;
   }
-  if(tty_emit(tiparm(movey == 1 ? cud : cuu, 1), n->ctermfd)){
+  if(tty_emit(tiparm(movey == 1 ? cud : cuu, 1), n->ttyfd)){
     return -1;
   }
   if(*y == newy && *x == newx){
@@ -388,7 +388,7 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
 static int
 detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
   // if we're not on a real terminal, there's no point in running this
-  if(n->ctermfd < 0){
+  if(n->ttyfd < 0){
     return 0;
   }
   const int toty = ncdirect_dim_y(n);
@@ -397,7 +397,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
   // (push/pop cursor), rather than undoing itself. problem is, some
   // terminals lack sc/rc (they need cursor moves to run the detection
   // algorithm in the first place), and our versions go to ttyfp instead
-  // of ctermfd, as needed by cursor interrogation.
+  // of ttyfd, as needed by cursor interrogation.
   return detect_cursor_inversion(n, u7, toty, totx, y, x);
 }
 
@@ -408,7 +408,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
 #ifndef __MINGW64__ // FIXME
   struct termios termio, oldtermios;
   // this is only meaningful for real terminals
-  if(n->ctermfd < 0){
+  if(n->ttyfd < 0){
     return -1;
   }
   const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
@@ -416,17 +416,17 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     fprintf(stderr, "Terminal doesn't support cursor reporting\n");
     return -1;
   }
-  if(tcgetattr(n->ctermfd, &termio)){
-    fprintf(stderr, "Couldn't get terminal info from %d (%s)\n", n->ctermfd, strerror(errno));
+  if(tcgetattr(n->ttyfd, &termio)){
+    fprintf(stderr, "Couldn't get terminal info from %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   memcpy(&oldtermios, &termio, sizeof(termio));
   // we might already be in cbreak mode from ncdirect_init(), but just in case
   // it got changed by the client code since then, duck into cbreak mode anew.
   termio.c_lflag &= ~(ICANON | ECHO);
-  if(tcsetattr(n->ctermfd, TCSAFLUSH, &termio)){
+  if(tcsetattr(n->ttyfd, TCSAFLUSH, &termio)){
     fprintf(stderr, "Couldn't put terminal into cbreak mode via %d (%s)\n",
-            n->ctermfd, strerror(errno));
+            n->ttyfd, strerror(errno));
     return -1;
   }
   int ret, yval, xval;
@@ -439,7 +439,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!n->tcache.detected_cursor_inversion){
     ret = detect_cursor_inversion_wrapper(n, u7, y, x);
   }else{
-    ret = cursor_yx_get(n->ctermfd, u7, y, x);
+    ret = cursor_yx_get(n->ttyfd, u7, y, x);
   }
   if(ret == 0){
     if(n->tcache.inverted_cursor){
@@ -451,9 +451,9 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     --*y;
     --*x;
   }
-  if(tcsetattr(n->ctermfd, TCSANOW, &oldtermios)){
+  if(tcsetattr(n->ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
-            n->ctermfd, strerror(errno)); // don't return error for this
+            n->ttyfd, strerror(errno)); // don't return error for this
   }
   return ret;
 #else
@@ -814,13 +814,13 @@ ncdirect_stop_minimal(void* vnc){
     }
     ret |= reset_term_attributes(&nc->tcache, &f);
   }
-  if(nc->ctermfd >= 0){
+  if(nc->ttyfd >= 0){
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-    if(cnorm && tty_emit(cnorm, nc->ctermfd)){
+    if(cnorm && tty_emit(cnorm, nc->ttyfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tcache.tpreserved);
-    ret |= close(nc->ctermfd);
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= close(nc->ttyfd);
   }
   ret |= ncdirect_flush(nc);
   free_terminfo_cache(&nc->tcache);
@@ -828,11 +828,11 @@ ncdirect_stop_minimal(void* vnc){
 }
 
 ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
-  if(flags > (NCDIRECT_OPTION_VERY_VERBOSE << 1)){ // allow them through with warning
-    logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
-  }
   if(outfp == NULL){
     outfp = stdout;
+  }
+  if(flags > (NCDIRECT_OPTION_VERY_VERBOSE << 1)){ // allow them through with warning
+    logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   ncdirect* ret = malloc(sizeof(ncdirect));
   if(ret == NULL){
@@ -864,18 +864,18 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     loglevel = NCLOGLEVEL_SILENT;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
-  ret->ctermfd = get_tty_fd(ret->ttyfp);
+  ret->ttyfd = get_tty_fd(ret->ttyfp);
   // FIXME factor this out, and share it with rendered mode #2023
 #ifndef __MINGW64__
   int termerr;
-  if(setupterm(termtype, ret->ctermfd, &termerr)){
+  if(setupterm(termtype, ret->ttyfd, &termerr)){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
 #endif
   int cursor_y = -1;
   int cursor_x = -1;
-  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, utf8,
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, utf8,
                           1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
                           TERMINAL_UNKNOWN, &cursor_y, &cursor_x, NULL)){
     goto err;
@@ -899,13 +899,13 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
       goto err;
     }
   }
-  update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache, 0);
+  update_term_dimensions(ret->ttyfd, NULL, NULL, &ret->tcache, 0);
   ncdirect_set_styles(ret, 0);
   return ret;
 
 err:
-  if(ret->ctermfd >= 0){
-    (void)tcsetattr(ret->ctermfd, TCSANOW, &ret->tcache.tpreserved);
+  if(ret->ttyfd >= 0){
+    (void)tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
   }
   drop_signals(ret);
   free(ret);
@@ -1452,7 +1452,7 @@ bool ncdirect_canget_cursor(const ncdirect* n){
   if(get_escape(&n->tcache, ESCAPE_U7) == NULL){
     return false;
   }
-  if(n->ctermfd < 0){
+  if(n->ttyfd < 0){
     return false;
   }
   return true;
