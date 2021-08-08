@@ -887,6 +887,9 @@ rasterize_scrolls(ncpile* p, fbuf* f){
       p->nc->rstate.logendx = 0;
     }
   }
+  if(p->nc->tcache.pixel_scroll){
+    p->nc->tcache.pixel_scroll(&p->nc->tcache, p->scrolls);
+  }
   if(goto_location(p->nc, f, p->dimy, 0)){
     return -1;
   }
