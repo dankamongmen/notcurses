@@ -34,8 +34,9 @@ jobs:
             mingw-w64-ucrt-x86_64-ffmpeg
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
-            #mingw-w64-ucrt-x86_64-rust
             mingw-w64-ucrt-x86_64-toolchain
+
+            #mingw-w64-ucrt-x86_64-rust
 
       - uses: actions/checkout@v2
 
