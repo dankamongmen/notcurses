@@ -688,6 +688,10 @@ add_test(
   COMMAND ncpp_build_exceptions
 )
 add_test(
+  NAME sgr-direct
+  COMMAND sgr-direct
+)
+add_test(
   NAME sgr-full
   COMMAND sgr-full
 )
