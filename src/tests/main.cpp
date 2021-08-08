@@ -25,9 +25,10 @@ auto testing_notcurses() -> struct notcurses* {
 template <typename T> using uniqptr = std::unique_ptr<T,free_deleter>;
 
 auto find_data(const char* datum) -> uniqptr<char> {
-  std::filesystem::path p = datadir;
-  p /= datum;
-  uniqptr<char> uptr(strdup(p.c_str()));
+  std::string s = datadir;
+  s += path_seperator();
+  s += datum;
+  uniqptr<char> uptr(strdup(s.c_str()));
   return uptr;
 }
 
