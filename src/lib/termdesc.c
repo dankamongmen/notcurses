@@ -786,12 +786,14 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     logpanic("Required terminfo capability 'cup' not defined\n");
     goto err;
   }
-  // if the keypad neen't be explicitly enabled, smkx is not present
-  const char* smkx = get_escape(ti, ESCAPE_SMKX);
-  if(smkx){
-    if(tty_emit(tiparm(smkx), ti->ttyfd) < 0){
-      logpanic("Error enabling keypad transmit mode\n");
-      goto err;
+  if(ti->ttyfd >= 0){
+    // if the keypad neen't be explicitly enabled, smkx is not present
+    const char* smkx = get_escape(ti, ESCAPE_SMKX);
+    if(smkx){
+      if(tty_emit(tiparm(smkx), ti->ttyfd) < 0){
+        logpanic("Error enabling keypad transmit mode\n");
+        goto err;
+      }
     }
   }
   if(ti->caps.colors > 1){
