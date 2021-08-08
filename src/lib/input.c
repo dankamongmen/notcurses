@@ -49,17 +49,17 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved){
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
 int notcurses_linesigs_disable(notcurses* n){
 #ifndef __MINGW64__
-  if(n->ttyfd < 0){
+  if(n->tcache.ttyfd < 0){
     return 0;
   }
   struct termios tios;
-  if(tcgetattr(n->ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+  if(tcgetattr(n->tcache.ttyfd, &tios)){
+    logerror("Couldn't preserve terminal state for %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag &= ~ISIG;
-  if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
+  if(tcsetattr(n->tcache.ttyfd, TCSANOW, &tios)){
+    logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
   return 0;
@@ -72,17 +72,17 @@ int notcurses_linesigs_disable(notcurses* n){
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
 int notcurses_linesigs_enable(notcurses* n){
 #ifndef __MINGW64__
-  if(n->ttyfd < 0){
+  if(n->tcache.ttyfd < 0){
     return 0;
   }
   struct termios tios;
-  if(tcgetattr(n->ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+  if(tcgetattr(n->tcache.ttyfd, &tios)){
+    logerror("Couldn't preserve terminal state for %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag |= ~ISIG;
-  if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
+  if(tcsetattr(n->tcache.ttyfd, TCSANOW, &tios)){
+    logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
   return 0;

@@ -459,10 +459,8 @@ add_pushcolors_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
 // though, so it's something of a worst-of-all-worlds deal where TERM still
 // needs be correct, even though we identify the terminal. le sigh.
 static int
-apply_term_heuristics(tinfo* ti, const char* termname, int fd,
-                      queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused,
-                      bool* invertsixel){
+apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm,
+                      size_t* tablelen, size_t* tableused, bool* invertsixel){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -489,11 +487,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       return -1;
     }
     if(compare_versions(ti->termversion, "0.22.1") >= 0){
-      setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
+      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
     }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
-      setup_kitty_bitmaps(ti, fd, KITTY_ANIMATION);
+      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
     }else{
-      setup_kitty_bitmaps(ti, fd, KITTY_ALWAYS_SCROLLS);
+      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ALWAYS_SCROLLS);
     }
     if(add_pushcolors_escapes(ti, tablelen, tableused)){
       return -1;
@@ -567,7 +565,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "iTerm2";
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    setup_iterm_bitmaps(ti, fd);
+    setup_iterm_bitmaps(ti, ti->ttyfd);
   }else if(qterm == TERMINAL_APPLE){
     termname = "Terminal.app";
     // no quadrants, no sextants, no rgb, but it does have braille
@@ -659,20 +657,32 @@ macos_early_matches(const char* termname){
 }
 #endif
 
-// termname is just the TERM environment variable. some details are not
-// exposed via terminfo, and we must make heuristic decisions based on
-// the detected terminal type, yuck :/.
+// if |termtype| is not NULL, it is used to look up the terminfo database entry
+// via setupterm(). the value of the TERM environment variable is otherwise
+// (implicitly) used. some details are not exposed via terminfo, and we must
+// make heuristic decisions based on the detected terminal type, yuck :/.
 // the first thing we do is fire off any queries we have (XTSMGRAPHICS, etc.)
 // with a trailing Device Attributes. all known terminals will reply to a
 // Device Attributes, allowing us to get a negative response if our queries
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
-int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
-                         unsigned nocbreak, unsigned nonewfonts,
+int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
+                         unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
-  const char* tname = termname(); // longname() is also available
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+  // we don't need a controlling tty for everything we do; allow a failure here
+  ti->ttyfd = get_tty_fd(out);
+#ifndef __MINGW64__
+// windows doesn't really have a concept of terminfo. you might ssh into other
+// machines, but they'll use the terminfo installed thereon (putty, etc.).
+  int termerr;
+  if(setupterm(termtype, ti->ttyfd, &termerr)){
+    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    return -1;
+  }
+  const char* tname = termname(); // longname() is also available
+#endif
   size_t tablelen = 0;
   size_t tableused = 0;
 #ifdef __APPLE__
@@ -688,7 +698,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
-  if(is_linux_console(fd, nonewfonts, &ti->caps.quadrants)){
+  if(is_linux_console(ti->ttyfd, nonewfonts, &ti->caps.quadrants)){
     qterm = TERMINAL_LINUX;
     if(is_linux_framebuffer(ti)){
       // FIXME set up pixel-drawing API for framebuffer #1369
@@ -697,22 +707,25 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
 #else
   (void)nonewfonts;
 #endif
-  if(fd >= 0){
+  if(ti->ttyfd >= 0){
 #ifndef __MINGW64__
-    if(tcgetattr(fd, &ti->tpreserved)){
-      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
+    if(tcgetattr(ti->ttyfd, &ti->tpreserved)){
+      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+      del_curterm(cur_term);
       return -1;
     }
     // enter cbreak mode regardless of user preference until we've performed
     // terminal interrogation. at that point, we might restore original mode.
-    if(cbreak_mode(fd, &ti->tpreserved)){
+    if(cbreak_mode(ti->ttyfd, &ti->tpreserved)){
+      del_curterm(cur_term);
       return -1;
     }
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(fd, minimal)){
-      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
+    if(send_initial_queries(ti->ttyfd, minimal)){
+      fprintf(stderr, "Error issuing terminal queries on %d\n", ti->ttyfd);
+      del_curterm(cur_term);
       return -1;
     }
 #endif
@@ -839,8 +852,8 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     goto err;
   }
   if(nocbreak){
-    if(fd >= 0){
-      if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
+    if(ti->ttyfd >= 0){
+      if(tcsetattr(ti->ttyfd, TCSANOW, &ti->tpreserved)){
         ncinputlayer_stop(&ti->input);
         goto err;
       }
@@ -857,21 +870,20 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
     }
   }
   bool invertsixel = false;
-  if(apply_term_heuristics(ti, tname, fd, qterm, &tablelen, &tableused,
-                           &invertsixel)){
+  if(apply_term_heuristics(ti, tname, qterm, &tablelen, &tableused, &invertsixel)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL){
     if(kittygraphs){
-      setup_kitty_bitmaps(ti, fd, KITTY_SELFREF);
+      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
     }
     // our current sixel quantization algorithm requires at least 64 color
     // registers. we make use of no more than 256. this needs to happen
     // after heuristics, since the choice of sixel_init() depends on it.
     if(ti->color_registers >= 64){
-      setup_sixel_bitmaps(ti, fd, invertsixel);
+      setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
     }
   }
   return 0;
@@ -879,6 +891,7 @@ int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8, unsigned noaltscreen,
 err:
   free(ti->esctable);
   free(ti->termversion);
+  del_curterm(cur_term);
   return -1;
 }
 

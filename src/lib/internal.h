@@ -271,7 +271,6 @@ typedef struct nctabbed {
 typedef struct ncdirect {
   ncpalette palette;         // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
-  int ttyfd;                 // fd for controlling terminal
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
@@ -364,7 +363,6 @@ typedef struct notcurses {
   ncstats stashed_stats; // retain across a context reset, for closing banner
 
   FILE* ttyfp;    // FILE* for writing rasterized data
-  int ttyfd;      // file descriptor for controlling tty
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
@@ -913,8 +911,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int keepleny, int keeplenx, int yoff, int xoff,
                             int ylen, int xlen);
 
-int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
-                           int margin_b);
+int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b);
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){

@@ -72,7 +72,7 @@ notcurses_stop_minimal(void* vnc){
   }
   ret |= mouse_disable(f);
   ret |= reset_term_attributes(&nc->tcache, f);
-  if(nc->ttyfd >= 0){
+  if(nc->tcache.ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){
         ret = -1;
@@ -81,7 +81,7 @@ notcurses_stop_minimal(void* vnc){
         ret = -1;
       }
     }
-    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, &nc->tcache.tpreserved);
   }
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
@@ -220,10 +220,9 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
-int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
-                           int margin_b){
+int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
   // if we're not a real tty, we presumably haven't changed geometry, return
-  if(fd < 0){
+  if(tcache->ttyfd < 0){
     if(rows){
       *rows = tcache->default_rows;
     }
@@ -239,14 +238,14 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
 // FIXME
 #ifndef __MINGW64__
   struct winsize ws;
-  int i = ioctl(fd, TIOCGWINSZ, &ws);
+  int i = ioctl(tcache->ttyfd, TIOCGWINSZ, &ws);
   if(i < 0){
-    logerror("TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
+    logerror("TIOCGWINSZ failed on %d (%s)\n", tcache->ttyfd, strerror(errno));
     return -1;
   }
   if(ws.ws_row <= 0 || ws.ws_col <= 0){
     logerror("Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
-           fd, ws.ws_row, ws.ws_col);
+             tcache->ttyfd, ws.ws_row, ws.ws_col);
     return -1;
   }
   int rowsafe;
@@ -1123,21 +1122,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // don't set loglevel until we've acquired the signal handler, lest we
   // change the loglevel out from under a running instance
   loglevel = opts->loglevel;
-  ret->ttyfd = get_tty_fd(ret->ttyfp);
-#ifndef __MINGW64__
-// windows doesn't really have a concept of terminfo. you might ssh into other
-// machines, but they'll use the terminfo installed thereon (putty, etc.).
-  int termerr;
-  if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
-    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
-    drop_signals(ret);
-    fbuf_free(&ret->rstate.f);
-    pthread_mutex_destroy(&ret->stats.lock);
-    pthread_mutex_destroy(&ret->pilelock);
-    free(ret);
-    return NULL;
-  }
-#endif
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
@@ -1147,7 +1131,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                   &ret->rstate.logendy : &fakecursory;
   int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendx : &fakecursorx;
-  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, utf8,
+  if(interrogate_terminfo(&ret->tcache, opts->termtype, ret->ttyfp, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats)){
@@ -1162,8 +1146,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     }
   }
   int dimy, dimx;
-  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx, &ret->tcache,
-                            ret->margin_b)){
+  if(update_term_dimensions(&dimy, &dimx, &ret->tcache, ret->margin_b)){
     goto err;
   }
   if(ncvisual_init(ret->loglevel)){
@@ -1199,7 +1182,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->rstate.logendy >= 0){ // if either is set, both are
-    if(!ret->suppress_banner && ret->ttyfd >= 0){
+    if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
       if(locate_cursor(&ret->tcache, &ret->rstate.logendy, &ret->rstate.logendx)){
         free_plane(ret->stdplane);
         goto err;
@@ -1214,7 +1197,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   // if not connected to an actual terminal, we're not going to try entering
   // the alternate screen; we're not even going to bother clearing the screen.
-  if(ret->ttyfd >= 0){
+  if(ret->tcache.ttyfd >= 0){
     if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
       if(smcup){
@@ -1253,8 +1236,9 @@ err:
   logpanic("Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
   fbuf_free(&ret->rstate.f);
-  tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
+  tcsetattr(ret->tcache.ttyfd, TCSANOW, &ret->tcache.tpreserved);
   drop_signals(ret);
+  del_curterm(cur_term);
   pthread_mutex_destroy(&ret->stats.lock);
   pthread_mutex_destroy(&ret->pilelock);
   free(ret);
@@ -1319,8 +1303,8 @@ int notcurses_stop(notcurses* nc){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
     }
-    if(nc->ttyfd >= 0){
-      ret |= close(nc->ttyfd);
+    if(nc->tcache.ttyfd >= 0){
+      ret |= close(nc->tcache.ttyfd);
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);

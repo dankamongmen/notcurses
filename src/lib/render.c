@@ -23,7 +23,7 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   int oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
-  if(update_term_dimensions(n->ttyfd, rows, cols, &n->tcache, n->margin_b)){
+  if(update_term_dimensions(rows, cols, &n->tcache, n->margin_b)){
     return -1;
   }
   *rows -= n->margin_t + n->margin_b;
@@ -1552,7 +1552,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->cursory == y && nc->cursorx == x){
     return 0;
   }
-  if(nc->ttyfd < 0){
+  if(nc->tcache.ttyfd < 0){
     return -1;
   }
   fbuf f = {};
@@ -1576,7 +1576,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     return 0;
   }
   const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-  if(!cnorm || tty_emit(cnorm, nc->ttyfd)){
+  if(!cnorm || tty_emit(cnorm, nc->tcache.ttyfd)){
     return -1;
   }
   nc->cursory = y;
@@ -1589,10 +1589,10 @@ int notcurses_cursor_disable(notcurses* nc){
     logerror("Cursor is not enabled\n");
     return -1;
   }
-  if(nc->ttyfd >= 0){
+  if(nc->tcache.ttyfd >= 0){
     const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
     if(cinvis){
-      if(!tty_emit(cinvis, nc->ttyfd) && !ncflush(nc->ttyfp)){
+      if(!tty_emit(cinvis, nc->tcache.ttyfd) && !ncflush(nc->ttyfp)){
         nc->cursory = -1;
         nc->cursorx = -1;
         return 0;

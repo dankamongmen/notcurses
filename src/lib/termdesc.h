@@ -127,6 +127,7 @@ typedef struct ncinputlayer {
 // can change over the program's life (don't cache them locally).
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
+  int ttyfd;                       // connected to true terminal, might be -1
   char* esctable;                  // packed table of escape sequences
   nccapabilities caps;             // exported to the user, when requested
   unsigned pixy;                   // total pixel geometry, height
@@ -216,16 +217,14 @@ term_supported_styles(const tinfo* ti){
   return ti->supported_styles;
 }
 
-// load |ti| from the terminfo database, which must already have been
-// initialized. set |utf8| if we've verified UTF8 output encoding.
-// set |noaltscreen| to inhibit alternate screen detection. |fd| ought
-// be connected to a terminal device, or -1 if no terminal is available.
-// if already *certain* of the terminal type (basically, if it's the Linux
-// console, identified via ioctl(2)s), pass it as qterm; otherwise use
-// TERMINAL_UNKNOWN. |stats| may be NULL; either way, it will be handed to the
-// input layer so that its stats can be recorded.
-int interrogate_terminfo(tinfo* ti, int fd, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak,
+// prepare |ti| from the terminfo database and other sources. set |utf8| if
+// we've verified UTF8 output encoding. set |noaltscreen| to inhibit alternate
+// screen detection. |stats| may be NULL; either way, it will be handed to the
+// input layer so that its stats can be recorded. if |termtype| is not NULL, it
+// will be used to look up the terminfo database entry; the value of TERM is
+// otherwise used.
+int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out,
+                         unsigned utf8, unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
                          struct ncsharedstats* stats);
 
