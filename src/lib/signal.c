@@ -19,7 +19,7 @@ int unblock_signals(const sigset_t* old_blocked_signals){
 
 int drop_signals(void* nc){
   void* expected = nc;
-  if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
+  if(!atomic_compare_exchange_strong(&signal_nc, &expected, NULL)){
     return -1;
   }
   return 0;
@@ -37,7 +37,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
   // don't register ourselves if we don't intend to set up signal handlers
   // we expect NULL (nothing registered), and want to register nc
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, vnc)){
-    loginfo("%p is already registered for signals (provided %p)\n", expected, vnc);
+    logpanic("%p is already registered for signals (provided %p)\n", expected, vnc);
     return -1;
   }
   return 0;
