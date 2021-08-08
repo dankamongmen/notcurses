@@ -25,7 +25,6 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     { ESCAPE_CNORM, "\x1b[?25h", },
     { ESCAPE_U7,    "\x1b[6n", },
     { ESCAPE_BOLD,  "\x1b[1m", },
-    { ESCAPE_NOBOLD,"\x1b[22m", },
     { ESCAPE_SITM,  "\x1b[3m", },
     { ESCAPE_RITM,  "\x1b[23m", },
     { ESCAPE_SMUL,  "\x1b[4m", },
