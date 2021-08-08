@@ -1,8 +1,13 @@
 #include "linux.h"
 #include "internal.h"
 
-void fbcon_scroll(tinfo* ti, int rows){
-  // FIXME
+void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
+  if(ti->cellpixy){
+    return;
+  }
+  int totalrows = ti->cellpixy * p->dimy;
+  // FIXME iterate from 0.. dimy - rows, copy from |rows| down
+  // FIXME clear out bottom |rows| rows
 }
 
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,

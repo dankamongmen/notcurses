@@ -164,7 +164,7 @@ typedef struct tinfo {
   // make a loaded graphic visible. only used with kitty.
   int (*pixel_commit)(fbuf* f, struct sprixel* s, unsigned noscroll);
   // scroll all graphics up. only used with fbcon.
-  void (*pixel_scroll)(struct tinfo*, int rows);
+  void (*pixel_scroll)(const struct ncpile* p, struct tinfo*, int rows);
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based
