@@ -31,13 +31,7 @@ contain many small C and C++ programs respectively. `notcurses-demo` covers
 most of the functionality of Notcurses.
 
 **If you're running Notcurses applications in a Docker, please consult
-"[Environment notes](#environment-notes)" below.** If you need Notcurses on
-Ubuntu Focal (20.04 LTS), you can run:
-
-```sh
-sudo add-apt-repository ppa:dankamongmen/notcurses
-sudo apt-get update
-```
+"[Environment notes](#environment-notes)" below.**
 
 <a href="https://repology.org/project/notcurses/versions">
 <img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
