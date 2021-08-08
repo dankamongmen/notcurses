@@ -720,6 +720,20 @@ prep_special_keys(ncinputlayer* nc){
     { .tinfo = "kext",  .key = NCKEY_EXIT, },
     { .tinfo = "kprt",  .key = NCKEY_PRINT, },
     { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
+    { .tinfo = "kPRV",  .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV2", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV3", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV4", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV5", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV6", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV7", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kNXT",  .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT2", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT3", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT4", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT5", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT6", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT7", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = NULL,    .key = NCKEY_INVALID, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){
