@@ -644,8 +644,7 @@ build_supported_styles(tinfo* ti){
 // or reset this environment variable, they're cursed to live as Terminal.App.
 // i'm likewise unsure what we're supposed to do should you ssh anywhere =[.
 static queried_terminals_e
-macos_early_matches(const char* termname){
-  (void)termname;
+macos_early_matches(void){
   const char* tp = getenv("TERM_PROGRAM");
   if(tp == NULL){
     return TERMINAL_UNKNOWN;
@@ -673,20 +672,11 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   memset(ti, 0, sizeof(*ti));
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
-#ifndef __MINGW64__
-// windows doesn't really have a concept of terminfo. you might ssh into other
-// machines, but they'll use the terminfo installed thereon (putty, etc.).
-  int termerr;
-  if(setupterm(termtype, ti->ttyfd, &termerr)){
-    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
-    return -1;
-  }
-  const char* tname = termname(); // longname() is also available
-#endif
   size_t tablelen = 0;
   size_t tableused = 0;
+  const char* tname = NULL;
 #ifdef __APPLE__
-  qterm = macos_early_matches(tname);
+  qterm = macos_early_matches();
   (void)nonewfonts;
 #elif defined(__MINGW64__)
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
@@ -694,6 +684,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   qterm = TERMINAL_MSTERMINAL;
   (void)nonewfonts;
+  (void)termtype;
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
@@ -707,8 +698,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 #else
   (void)nonewfonts;
 #endif
-  if(ti->ttyfd >= 0){
 #ifndef __MINGW64__
+  if(ti->ttyfd >= 0){
     if(tcgetattr(ti->ttyfd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
       del_curterm(cur_term);
@@ -728,8 +719,16 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       del_curterm(cur_term);
       return -1;
     }
-#endif
   }
+  // windows doesn't really have a concept of terminfo. you might ssh into other
+  // machines, but they'll use the terminfo installed thereon (putty, etc.).
+  int termerr;
+  if(setupterm(termtype, ti->ttyfd, &termerr)){
+    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    return -1;
+  }
+  tname = termname(); // longname() is also available
+#endif
   ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
   ti->caps.utf8 = utf8;
