@@ -720,13 +720,54 @@ prep_special_keys(ncinputlayer* nc){
     { .tinfo = "kext",  .key = NCKEY_EXIT, },
     { .tinfo = "kprt",  .key = NCKEY_PRINT, },
     { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
-    { .tinfo = "kPRV",  .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV2", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV3", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV4", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV5", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV6", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV7", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kDC",   .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC1",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC2",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC3",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC4",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC5",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC6",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC7",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDN",   .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN1",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN2",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN3",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN4",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN5",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN6",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN7",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kEND",  .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND1", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND2", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND3", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND4", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND5", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND6", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND7", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kHOM",  .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM1", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM2", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM3", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM4", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM5", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM6", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM7", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kIC",   .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC1",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC2",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC3",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC4",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC5",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC6",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC7",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kLFT",  .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT1", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT2", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT3", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT4", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT5", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT6", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT7", .key = NCKEY_LEFT, }, // FIXME plus modifier
     { .tinfo = "kNXT",  .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT2", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT3", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
@@ -734,6 +775,29 @@ prep_special_keys(ncinputlayer* nc){
     { .tinfo = "kNXT5", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT6", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT7", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kPRV",  .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV2", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV3", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV4", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV5", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV6", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV7", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kRIT",  .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT1", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT2", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT3", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT4", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT5", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT6", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT7", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kUP",   .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP1",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP2",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP3",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP4",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP5",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP6",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP7",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = NULL,    .key = NCKEY_INVALID, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){
