@@ -6,8 +6,18 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
     return;
   }
   int totalrows = ti->cellpixy * p->dimy;
-  // FIXME iterate from 0.. dimy - rows, copy from |rows| down
-  // FIXME clear out bottom |rows| rows
+  int srows = rows * ti->cellpixy; // number of lines being scrolled
+  uint8_t* targ = ti->linux_fbuffer;
+  uint8_t* src = ti->linux_fbuffer + srows * ti->cellpixx * p->dimx * 4;
+  for(int r = 0 ; r < totalrows - srows ; ++r){
+    memcpy(targ, src, ti->cellpixx * p->dimx * 4);
+    targ += ti->cellpixx * p->dimx * 4;
+    src += ti->cellpixx * p->dimx * 4;
+  }
+  for(int r = totalrows - srows ; r < totalrows ; ++r){
+    memset(targ, 0, ti->cellpixx * p->dimx * 4);
+    targ += ti->cellpixx * p->dimx * 4;
+  }
 }
 
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
