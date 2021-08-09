@@ -1562,7 +1562,7 @@ control_read(int ttyfd, query_state* qstate){
           free(buf);
 //fprintf(stderr, "at end, derived terminal %d\n", qstate->qterm);
           return 0;
-        }else if(r < 0){
+        }else if (r < 0 && (errno != EINTR && errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK)){
           goto err;
         }
       }
