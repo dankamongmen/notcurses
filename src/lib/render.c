@@ -1203,11 +1203,14 @@ notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
     notcurses_cursor_disable(nc);
   }
   int ret = raster_and_write(nc, p, f);
+  fbuf_reset(f);
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
     goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx);
-    fflush(nc->ttyfp);
+    if(fbuf_flush(f, nc->ttyfp, true)){
+      ret = -1;
+    }
   }
   nc->last_pile = p;
   return ret;
@@ -1272,13 +1275,6 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   free(p.crender);
   if(ret < 0){
     return -1;
-  }
-  if(nc->rstate.f.used){
-    fwrite(nc->rstate.f.buf, nc->rstate.f.used, 1, nc->ttyfp);
-    fbuf_reset(&nc->rstate.f);
-    if(ncflush(nc->ttyfp)){
-      return -1;
-    }
   }
   ++nc->stats.s.refreshes;
   return 0;
@@ -1416,14 +1412,14 @@ int ncpile_render(ncplane* n){
 }
 
 int notcurses_render(notcurses* nc){
-//fprintf(stderr, "--------------- BEGIN RENDER\n");
+//fprintf(stderr, "--------------- BEGIN RENDER %d/%d\n", nc->rstate.y, nc->rstate.x);
 //notcurses_debug(nc, stderr);
   ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
   }
   int i = ncpile_rasterize(stdn);
-//fprintf(stderr, "----------------- END RENDER\n");
+//fprintf(stderr, "----------------- END RENDER %d/%d\n", nc->rstate.y, nc->rstate.x);
   return i;
 }
 
@@ -1567,11 +1563,9 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1 || ncflush(nc->ttyfp)){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, nc->ttyfp, true)){
     return -1;
   }
-  fbuf_free(&f);
   // if we were already positive, we're already visible, no need to write cnorm
   if(nc->cursory >= 0 && nc->cursorx >= 0){
     nc->cursory = y;
