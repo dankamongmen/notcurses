@@ -1168,7 +1168,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  ret->rstate.x = ret->rstate.y = -1;
   init_banner(ret, &ret->rstate.f);
   fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
   fbuf_reset(&ret->rstate.f);
