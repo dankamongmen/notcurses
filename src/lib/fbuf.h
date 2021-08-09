@@ -244,6 +244,23 @@ fbuf_free(fbuf* f){
 }
 
 // attempt to write the contents of |f| to the FILE |fp|, if there are any
+// contents. reset the fbuf either way. if |flushfp| is set, fflush(fp).
+static inline int
+fbuf_flush(fbuf* f, FILE* fp, bool flushfp){
+  int ret = 0;
+  if(f->used){
+    if(fwrite(f->buf, f->used, 1, fp) != 1){
+      ret = -1;
+    }
+  }
+  if(flushfp && ret == 0 && fflush(fp) == EOF){
+    ret = -1;
+  }
+  fbuf_reset(f);
+  return ret;
+}
+
+// attempt to write the contents of |f| to the FILE |fp|, if there are any
 // contents, and free the fbuf either way. if |flushfp| is set, fflush(fp).
 static inline int
 fbuf_finalize(fbuf* f, FILE* fp, bool flushfp){
