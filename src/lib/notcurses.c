@@ -1289,8 +1289,7 @@ int notcurses_stop(notcurses* nc){
       }
       fbuf_reset(&nc->rstate.f);
       goto_location(nc, &nc->rstate.f, targy, 0);
-      fwrite(nc->rstate.f.buf, nc->rstate.f.used, 1, stdout);
-      fflush(stdout);
+      fbuf_finalize(&nc->rstate.f, stdout, true);
     }
     ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
@@ -1302,7 +1301,6 @@ int notcurses_stop(notcurses* nc){
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
-    fbuf_free(&nc->rstate.f);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
     if(!nc->suppress_banner){
