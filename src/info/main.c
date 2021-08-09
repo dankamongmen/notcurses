@@ -113,7 +113,6 @@ emoji_viz(struct ncplane* n){
                               "\U0001f3f4\u200d\u2620\ufe0f" // pirate flag
                               "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f" // type-3 woman playing water polo
                               ;
-  ncplane_set_fg_rgb(n, 0xffffff);
   ncplane_set_bg_rgb(n, 0);
   int bytes;
   for(const char* e = emoji ; *e ; e += bytes){
@@ -237,28 +236,28 @@ unicodedumper(struct ncplane* n, const char* indent){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls⎧", indent, NCQUADBLOCKS);
     sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
-    vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', L"┌╥─╥─╥┐🭩");
+    vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', L"┌╥─╥─╥┐🭩⎛⎞");
     ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗ ⫷⫸ ⎩", indent);
     sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"♦♣\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
-    vertviz(n, L'⎪', NCEIGHTHSR[1], NCEIGHTHSL[1], L'⎪', L"├╜╓╫╖╙┤🭫");
+    vertviz(n, L'⎪', NCEIGHTHSR[1], NCEIGHTHSL[1], L'⎪', L"├╜╓╫╖╙┤🭫⎜⎟");
     ncplane_printf(n, "%s╾╳╼ ", indent);
     triviz(n, NCWHITESQUARESW, NCWHITECIRCLESW, NCDIAGONALSW, &NCDIAGONALSW[4],
            NCCIRCULARARCSW, NCWHITETRIANGLESW, NCSHADETRIANGLESW, NCBLACKTRIANGLESW,
            NCBOXLIGHTW, &NCBOXLIGHTW[4], NCBOXHEAVYW, &NCBOXHEAVYW[4], NCBOXROUNDW,
            &NCBOXROUNDW[4], NCBOXDOUBLEW, &NCBOXDOUBLEW[4], NCBOXOUTERW, &NCBOXOUTERW[4],
            L"⩘▵△▹▷▿▽◃◁", NCARROWW);
-    vertviz(n, L'⎪', NCEIGHTHSR[2], NCEIGHTHSL[2], L'⎪', L"├─╨╫╨─┤┇");
+    vertviz(n, L'⎪', NCEIGHTHSR[2], NCEIGHTHSL[2], L'⎪', L"├─╨╫╨─┤┇⎜⎟");
     ncplane_printf(n, "%s╱╽╲ ", indent);
     triviz(n, &NCWHITESQUARESW[2], &NCWHITECIRCLESW[2], &NCDIAGONALSW[2], &NCDIAGONALSW[6],
            &NCCIRCULARARCSW[2], &NCWHITETRIANGLESW[2], &NCSHADETRIANGLESW[2], &NCBLACKTRIANGLESW[2],
            &NCBOXLIGHTW[2], &NCBOXLIGHTW[5], &NCBOXHEAVYW[2], &NCBOXHEAVYW[5], &NCBOXROUNDW[2],
            &NCBOXROUNDW[5], &NCBOXDOUBLEW[2], &NCBOXDOUBLEW[5], &NCBOXOUTERW[2], &NCBOXOUTERW[5],
            L"⩗▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
-    vertviz(n, L'⎪', NCEIGHTHSR[3], NCEIGHTHSL[3], L'⎪', L"╞═╤╬╤═╡┋");
+    vertviz(n, L'⎪', NCEIGHTHSR[3], NCEIGHTHSL[3], L'⎪', L"╞═╤╬╤═╡┋⎜⎟");
     braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4],
-                L"╞╕╘╬╛╒╡┊");
+                L"╞╕╘╬╛╒╡┊⎜⎟");
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5],
-                L"└┴─╨─┴┘╏");
+                L"└┴─╨─┴┘╏⎝⎠");
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6],
                 L"╭──╮⟬⟭╔╗");
     braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L"⎪⎪", NCEIGHTHSR[7], NCEIGHTHSL[7],
@@ -278,50 +277,14 @@ unicodedumper(struct ncplane* n, const char* indent){
     emoji_viz(n);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
-    /*
-    ncplane_printf_aligned(n, y - 9, NCALIGN_RIGHT, "⎡⎛⎞⎤");
-    ncplane_printf_aligned(n, y - 8, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 7, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 6, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 5, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 4, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 3, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 2, NCALIGN_RIGHT, "⎢⎜⎟⎥");
-    ncplane_printf_aligned(n, y - 1, NCALIGN_RIGHT, "⎣⎝⎠⎦");
-    */
-    // the symbols for legacy computing
-    ncplane_cursor_move_yx(n, y - 3, 0);
-    uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x30, 0x30, 0x30);
-    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x80, 0x80, 0x80);
-    ncplane_stain(n, y - 2, 65, ul, lr, ul, lr);
-    // the horizontal eighths
-    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x02, 0x8a, 0x0f);
-    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x08, 0x3d, 0x3b);
-    ncplane_cursor_move_yx(n, y - 11, 66);
-    ncplane_stain(n, y - 2, 77, ul, ul, lr, lr);
-    // the braille
-    ncplane_cursor_move_yx(n, y - 7, 0);
-    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x2f, 0x25, 0x24);
-    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x74, 0x25, 0x2f);
-    ncplane_stain(n, y - 4, 65, ul, lr, ul, lr);
-    // the sextants
-    ncplane_cursor_move_yx(n, y - 11, 27);
-    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x7B, 0x68, 0xEE);
-    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
-    ncplane_stain(n, y - 10, 57, lr, ul, lr, ul);
-    // the boxes + quadrants
-    ncplane_cursor_move_yx(n, y - 11, 0);
-    ncplane_stain(n, y - 8, 65, lr, ul, lr, ul);
-    // the capabilities
-    ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xb8, 0x8E);
-    lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
+    uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xd8, 0x8E);
+    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
+    uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
+    uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 16, 0);
-    ncplane_stain(n, y - 12, 77, lr, ul, lr, ul);
-
-    ncplane_set_fg_rgb(n, 0x00c080);
+    ncplane_stain(n, y - 2, 79, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-    ncplane_cursor_move_yx(n, y - 12, 54);
-    ncplane_set_bg_rgb(n, 0);
+    ncplane_cursor_move_yx(n, y - 13, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
@@ -361,13 +324,10 @@ display_logo(struct ncplane* n, const char* path){
 
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
-  ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
   ncplane_printf(n, "%sdefbg 0x%06lx %sconsidered transparent", indent,
                  ti->bg_collides_default & 0xfffffful,
                  (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   finish_line(n);
-  ncplane_set_fg_default(n);
-  ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
     ncplane_printf(n, "%sno bitmap graphics detected", indent);
   }else{ // we do have support; draw one
@@ -430,7 +390,6 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, ' ');
   tinfo_debug_cap(n, "rgb", ti->caps.rgb, ' ');
   finish_line(n);
-  ncplane_set_fg_default(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8, ' ');
   tinfo_debug_cap(n, "quad", ti->caps.quadrants, ' ');
@@ -439,7 +398,6 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), ' ');
   tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc), ' ');
   finish_line(n);
-  ncplane_set_fg_default(n);
 }
 
 static int
