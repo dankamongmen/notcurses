@@ -92,7 +92,7 @@ static void
 finish_line(struct ncplane* n){
   int x;
   ncplane_cursor_yx(n, NULL, &x);
-  while(x++ < 78){
+  while(x++ < 80){
     ncplane_putchar(n, ' ');
   }
   ncplane_putchar(n, '\n');
@@ -259,20 +259,20 @@ unicodedumper(struct ncplane* n, const char* indent){
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5],
                 L"└┴─╨─┴┘╏⎝⎠");
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6],
-                L"╭──╮⟬⟭╔╗");
+                L"╭──╮⟬⟭╔╗≶≷");
     braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L"⎪⎪", NCEIGHTHSR[7], NCEIGHTHSL[7],
-                L"│╭╮│╔═╝║");
+                L"│╭╮│╔═╝║⊆⊇");
     legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
     wviz(n, NCDIGITSSUBW);
     wviz(n, L" ⎛");
     wviz(n, NCEIGHTHSB);
-    wviz(n, L" ⎞⎪🭨🭪⎪╰╯││║╔═╝");
+    wviz(n, L" ⎞⎪🭨🭪⎪╰╯││║╔═╝⊴⊵");
     ncplane_putchar(n, '\n');
     legacy_viz(n, indent, L"▏🭰🭱🭲🭳🭴🭵▕", NCANGLESTR, NCANGLESTL);
     wviz(n, NCDIGITSSUPERW);
     wviz(n, L" ⎝");
     wviz(n, NCEIGHTHST);
-    wviz(n, L" ⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩");
+    wviz(n, L" ⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩⟃⟄");
     ncplane_putchar(n, '\n');
     emoji_viz(n);
     int y, x;
