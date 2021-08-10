@@ -1567,7 +1567,7 @@ control_read(int ttyfd, query_state* qstate){
         }
       }
     }
-  }while(errno == EINTR || errno == EAGAIN);
+  }while(errno == EINTR || errno == EAGAIN || errno == EBUSY || errno == EWOULDBLOCK);
 err:
   fprintf(stderr, "Reading control replies failed on %d (%s)\n", ttyfd, strerror(errno));
   free(buf);
