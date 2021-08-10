@@ -150,25 +150,35 @@ TEST_CASE("Plane") {
 
   // Verify we can emit a multibyte string, and it advances the cursor
   SUBCASE("EmitStr") {
-    const char s[] = "Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
-    int wrote = ncplane_putstr(n_, s);
-    CHECK(ncstrwidth(s) == wrote);
+    const char* ss[] = { "Σιβυλλα τι θελεις;",
+                         " respondebat illa:",
+                         " αποθανειν θελω.", NULL };
+    for(const char** s = ss ; *s ; ++s){
+      CHECK(0 == ncplane_cursor_move_yx(n_, s - ss, 0));
+      int wrote = ncplane_putstr(n_, *s);
+      CHECK(ncstrwidth(*s) == wrote);
+    }
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
-    CHECK(0 == y);
-    CHECK(1 <= x); // FIXME tighten in on this
+    CHECK(2 == y);
+    CHECK(10 <= x);
     CHECK(0 == notcurses_render(nc_));
   }
 
   // Verify we can emit a wide string, and it advances the cursor
   SUBCASE("EmitWideStr") {
-    const wchar_t s[] = L"Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
-    int wrote = ncplane_putwstr(n_, s);
-    CHECK(0 < wrote);
+    const wchar_t* ss[] = { L"Σιβυλλα τι θελεις;",
+                            L" respondebat illa:",
+                            L" αποθανειν θελω.", NULL };
+    for(const wchar_t** s = ss ; *s ; ++s){
+      CHECK(0 == ncplane_cursor_move_yx(n_, s - ss, 0));
+      int wrote = ncplane_putwstr(n_, *s);
+      CHECK(0 < wrote);
+    }
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
-    CHECK(0 == y);
-    CHECK(1 <= x); // FIXME tighten in on this
+    CHECK(2 == y);
+    CHECK(10 <= x);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -643,7 +653,7 @@ TEST_CASE("Plane") {
 
   // test that we read back correct attrs/colors despite changing defaults
   SUBCASE("PlaneAtCursorAttrs"){
-    const char STR1[] = "this has been a world destroyer production";
+    const char STR1[] = "this was a world destroyer prod";
     const char STR2[] = "not to mention dank";
     const char STR3[] = "da chronic lives";
     ncplane_set_styles(n_, NCSTYLE_BOLD);
@@ -695,7 +705,7 @@ TEST_CASE("Plane") {
       for(auto x0 = 0 ; x0 < 4 ; ++x0){
         CHECK(0 == ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
         CHECK(0 == ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                      sidesz, sidesz, gradmask << 4u));
+                                     sidesz, sidesz, gradmask << 4u));
         ++gradmask;
       }
     }
@@ -704,7 +714,7 @@ TEST_CASE("Plane") {
       for(auto x0 = 0 ; x0 < 4 ; ++x0){
         CHECK(0 == ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1) + (4 * (sidesz + 1))));
         CHECK(0 == ncplane_box_sized(n_, &ul, &ur, &ll, &lr, &hl, &vl,
-                                      sidesz, sidesz, gradmask << 4u));
+                                     sidesz, sidesz, gradmask << 4u));
         ++gradmask;
       }
     }
@@ -751,17 +761,19 @@ TEST_CASE("Plane") {
 
   SUBCASE("RightToLeft") {
     // give us some room on both sides
-    CHECK(0 == ncplane_cursor_move_yx(n_, 1, 10));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 1, 5));
     int sbytes = -1;
     CHECK(0 < ncplane_putegc(n_, "־", &sbytes));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_cursor_move_yx(n_, 3, 10));
-    CHECK(0 < ncplane_putstr(n_, "I can write English with מילים בעברית in the same sentence."));
-    CHECK(0 == ncplane_cursor_move_yx(n_, 5, 10));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 3, 5));
+    CHECK(0 < ncplane_putstr(n_, "I write English + מילים בעברית together."));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 5, 5));
     CHECK(0 < ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
-    CHECK(0 == ncplane_cursor_move_yx(n_, 7, 10));
 #ifndef __APPLE__ // FIXME
-    CHECK(0 < ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 7, 5));
+    CHECK(0 < ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐"));
+    CHECK(0 == ncplane_cursor_move_yx(n_, 8, 5));
+    CHECK(0 < ncplane_putstr(n_, "㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
 #endif
     CHECK(0 == notcurses_render(nc_));
   }

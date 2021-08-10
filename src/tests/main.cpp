@@ -142,8 +142,8 @@ auto lang_and_term() -> void {
   std::cout << "Running with TERM=" << term << " (" << dimx << 'x'
             << dimy << ")" << std::endl;
   notcurses_stop(nc);
-  if(dimx < 80 || dimy < 24){ // minimum assumed geometry
-    std::cerr << "Terminal was too small for tests (minimum 80x24)" << std::endl;
+  if(dimx < 50 || dimy < 24){ // minimum assumed geometry
+    std::cerr << "Terminal was too small for tests (minimum 50x24)" << std::endl;
     exit(EXIT_FAILURE);
   }
 }
