@@ -84,7 +84,9 @@ braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
   if(trailer){
     wviz(n, trailer);
   }
-  ncplane_putchar(n, '\n');
+  if(ncplane_dim_x(n) > 80){
+    ncplane_putchar(n, '\n');
+  }
   return 0;
 }
 
@@ -95,7 +97,9 @@ finish_line(struct ncplane* n){
   while(x++ < 80){
     ncplane_putchar(n, ' ');
   }
-  ncplane_putchar(n, '\n');
+  if(ncplane_dim_x(n) > 80){
+    ncplane_putchar(n, '\n');
+  }
 }
 
 static int
@@ -227,7 +231,9 @@ vertviz(struct ncplane* n, wchar_t l, wchar_t li, wchar_t ri, wchar_t r,
     ncplane_putchar(n, ' ');
   }
   wviz(n, trail);
-  ncplane_putchar(n, '\n');
+  if(ncplane_dim_x(n) > 80){
+    ncplane_putchar(n, '\n');
+  }
 }
 
 static int
@@ -267,13 +273,17 @@ unicodedumper(struct ncplane* n, const char* indent){
     wviz(n, L" ⎛");
     wviz(n, NCEIGHTHSB);
     wviz(n, L" ⎞⎪🭨🭪⎪╰╯││║╔═╝⊴⊵");
-    ncplane_putchar(n, '\n');
+    if(ncplane_dim_x(n) > 80){
+      ncplane_putchar(n, '\n');
+    }
     legacy_viz(n, indent, L"▏🭰🭱🭲🭳🭴🭵▕", NCANGLESTR, NCANGLESTL);
     wviz(n, NCDIGITSSUPERW);
     wviz(n, L" ⎝");
     wviz(n, NCEIGHTHST);
     wviz(n, L" ⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩⟃⟄");
-    ncplane_putchar(n, '\n');
+    if(ncplane_dim_x(n) > 80){
+      ncplane_putchar(n, '\n');
+    }
     emoji_viz(n);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
