@@ -873,6 +873,42 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   return bytesemitted;
 }
 
+// scroll the lastframe data |rows| up, to reflect scrolling reality
+static void
+scroll_lastframe(notcurses* nc, int rows){
+  // the top |rows| rows need be released (though not more than the actual
+  // number of rows!)
+  if(rows > nc->lfdimy){
+    rows = nc->lfdimy;
+  }
+  for(int targy = 0 ; targy < rows ; ++targy){
+    for(int targx = 0 ; targx < nc->lfdimx ; ++targx){
+      const size_t damageidx = targy * nc->lfdimx + targx;
+      nccell* c = &nc->lastframe[damageidx];
+      pool_release(&nc->pool, c);
+    }
+  }
+  // now for all rows subsequent, up through lfdimy - rows, move them back.
+  // if we scrolled all rows, we will not move anything (and we just
+  // released everything).
+  for(int targy = 0 ; targy < nc->lfdimy - rows ; ++targy){
+    const size_t dstidx = targy * nc->lfdimx;
+    nccell* dst = &nc->lastframe[dstidx];
+    const size_t srcidx = dstidx + rows * nc->lfdimx;
+    const nccell* src = &nc->lastframe[srcidx];
+    memcpy(dst, src, sizeof(*dst) * nc->lfdimx);
+  }
+  // now for the last |rows| rows, initialize them to 0. FIXME might need to
+  // look at bce (back color erase) property, erp?
+  int targy = nc->lfdimy - rows;
+  while(targy < nc->lfdimy){
+    const size_t dstidx = targy * nc->lfdimx;
+    nccell* dst = &nc->lastframe[dstidx];
+    memset(dst, 0, sizeof(*dst) * nc->lfdimx);
+    ++targy;
+  }
+}
+
 // "%d tardies to work off, by far the most in the class!\n", p->scrolls
 static int
 rasterize_scrolls(ncpile* p, fbuf* f){
@@ -1394,6 +1430,7 @@ engorge_crender_vector(ncpile* n){
 }
 
 int ncpile_render(ncplane* n){
+  scroll_lastframe(ncplane_notcurses(n), ncplane_pile(n)->scrolls);
   struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   notcurses* nc = ncplane_notcurses(n);
