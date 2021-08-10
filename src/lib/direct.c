@@ -447,10 +447,13 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
       int tmp = *y;
       *y = *x;
       *x = tmp;
+    }else{
+      // we use 0-based coordinates, but known terminals use 1-based
+      // coordinates. the only known exception is kmscon, which is
+      // incidentally the only one which inverts its response.
+      --*y;
+      --*x;
     }
-    // we use 0-based coordinates, but known terminals use 1-based coordinates
-    --*y;
-    --*x;
   }
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
