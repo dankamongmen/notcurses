@@ -1059,37 +1059,6 @@ int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
                   const blitterargs* bargs);
 
-// write(2) until we've written it all. uses poll(2) to avoid spinning on
-// EAGAIN, at the possible cost of some small latency.
-static inline int
-blocking_write(int fd, const char* buf, size_t buflen){
-//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
-  size_t written = 0;
-  while(written < buflen){
-    ssize_t w = write(fd, buf + written, buflen - written);
-    if(w < 0){
-      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
-        logerror("Error writing out data on %d (%s)\n", fd, strerror(errno));
-        return -1;
-      }
-    }else{
-      written += w;
-    }
-    // FIXME ought use WSAPoll() on windows
-#ifndef __MINGW64__
-    if(written < buflen){
-      struct pollfd pfd = {
-        .fd = fd,
-        .events = POLLOUT,
-        .revents = 0,
-      };
-      poll(&pfd, 1, -1);
-    }
-#endif
-  }
-  return 0;
-}
-
 static inline int
 tty_emit(const char* seq, int fd){
   if(!seq){

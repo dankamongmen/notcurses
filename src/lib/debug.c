@@ -14,6 +14,5 @@ void notcurses_debug(const notcurses* nc, FILE* debugfp){
     return;
   }
   notcurses_debug_fbuf(nc, &f);
-  fbuf_finalize(&f, debugfp, true);
-  fbuf_free(&f);
+  fbuf_finalize(&f, debugfp);
 }

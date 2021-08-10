@@ -524,7 +524,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       fbuf_free(&f);
       return -1;
     }
-    if(fbuf_finalize(&f, n->ttyfp, true)){
+    if(fbuf_finalize(&f, n->ttyfp)){
       return -1;
     }
     return 0;
@@ -973,7 +973,7 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
     fbuf_free(&f);
     return -1;
   }
-  if(fbuf_finalize(&f, n->ttyfp, false)){
+  if(fbuf_finalize(&f, n->ttyfp)){
     return -1;
   }
   return 0;
@@ -998,7 +998,7 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
     fbuf_free(&f);
     return -1;
   }
-  if(fbuf_finalize(&f, n->ttyfp, false)){
+  if(fbuf_finalize(&f, n->ttyfp)){
     return -1;
   }
   return 0;
@@ -1022,7 +1022,7 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
     fbuf_free(&f);
     return -1;
   }
-  if(fbuf_finalize(&f, n->ttyfp, false)){
+  if(fbuf_finalize(&f, n->ttyfp)){
     return -1;
   }
   return 0;

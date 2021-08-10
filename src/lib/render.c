@@ -1244,7 +1244,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
     goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx);
-    if(fbuf_flush(f, nc->ttyfp, true)){
+    if(fbuf_flush(f, nc->ttyfp)){
       ret = -1;
     }
   }
@@ -1449,14 +1449,14 @@ int ncpile_render(ncplane* n){
 }
 
 int notcurses_render(notcurses* nc){
-//fprintf(stderr, "--------------- BEGIN RENDER %d/%d\n", nc->rstate.y, nc->rstate.x);
+//fprintf(stderr, "--------------- BEGIN RENDER\n");
 //notcurses_debug(nc, stderr);
   ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
   }
   int i = ncpile_rasterize(stdn);
-//fprintf(stderr, "----------------- END RENDER %d/%d\n", nc->rstate.y, nc->rstate.x);
+//fprintf(stderr, "----------------- END RENDER\n");
   return i;
 }
 
@@ -1600,7 +1600,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     fbuf_free(&f);
     return -1;
   }
-  if(fbuf_finalize(&f, nc->ttyfp, true)){
+  if(fbuf_finalize(&f, nc->ttyfp)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm

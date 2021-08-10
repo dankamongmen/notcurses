@@ -1289,7 +1289,7 @@ int notcurses_stop(notcurses* nc){
       }
       fbuf_reset(&nc->rstate.f);
       goto_location(nc, &nc->rstate.f, targy, 0);
-      fbuf_finalize(&nc->rstate.f, stdout, true);
+      fbuf_finalize(&nc->rstate.f, stdout);
     }
     ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){

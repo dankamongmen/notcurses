@@ -9,8 +9,10 @@ extern "C" {
 #include <assert.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <inttypes.h>
 #include "compat/compat.h"
+#include "logging.h"
 
 // a growable buffer into which one can perform formatted i/o, like the
 // ten thousand that came before it, and the ten trillion which shall
@@ -243,35 +245,60 @@ fbuf_free(fbuf* f){
   }
 }
 
-// attempt to write the contents of |f| to the FILE |fp|, if there are any
-// contents. reset the fbuf either way. if |flushfp| is set, fflush(fp).
+// write(2) until we've written it all. uses poll(2) to avoid spinning on
+// EAGAIN, at the possible cost of some small latency.
 static inline int
-fbuf_flush(fbuf* f, FILE* fp, bool flushfp){
+blocking_write(int fd, const char* buf, size_t buflen){
+//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
+  size_t written = 0;
+  while(written < buflen){
+    ssize_t w = write(fd, buf + written, buflen - written);
+    if(w < 0){
+      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR && errno != EBUSY){
+        logerror("Error writing out data on %d (%s)\n", fd, strerror(errno));
+        return -1;
+      }
+    }else{
+      written += w;
+    }
+    // FIXME ought probably use WSAPoll() on windows
+#ifndef __MINGW64__
+    if(written < buflen){
+      struct pollfd pfd = {
+        .fd = fd,
+        .events = POLLOUT,
+        .revents = 0,
+      };
+      poll(&pfd, 1, -1);
+    }
+#endif
+  }
+  return 0;
+}
+
+// attempt to write the contents of |f| to the FILE |fp|, if there are any
+// contents. reset the fbuf either way.
+static inline int
+fbuf_flush(fbuf* f, FILE* fp){
   int ret = 0;
   if(f->used){
-    if(fwrite(f->buf, f->used, 1, fp) != 1){
+    if(blocking_write(fileno(fp), f->buf, f->used)){
       ret = -1;
     }
-  }
-  if(flushfp && ret == 0 && fflush(fp) == EOF){
-    ret = -1;
   }
   fbuf_reset(f);
   return ret;
 }
 
 // attempt to write the contents of |f| to the FILE |fp|, if there are any
-// contents, and free the fbuf either way. if |flushfp| is set, fflush(fp).
+// contents, and free the fbuf either way.
 static inline int
-fbuf_finalize(fbuf* f, FILE* fp, bool flushfp){
+fbuf_finalize(fbuf* f, FILE* fp){
   int ret = 0;
   if(f->used){
-    if(fwrite(f->buf, f->used, 1, fp) != 1){
+    if(blocking_write(fileno(fp), f->buf, f->used)){
       ret = -1;
     }
-  }
-  if(flushfp && ret == 0 && fflush(fp) == EOF){
-    ret = -1;
   }
   fbuf_free(f);
   return ret;
