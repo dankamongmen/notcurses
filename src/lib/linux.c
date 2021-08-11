@@ -173,7 +173,7 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int
   (void)p;
   (void)f; // we don't write to the stream
   int wrote = 0;
-  for(unsigned l = 0 ; l < (unsigned)s->pixy && l < ti->pixy ; ++l){
+  for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
