@@ -464,7 +464,8 @@ add_pushcolors_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
 // needs be correct, even though we identify the terminal. le sigh.
 static int
 apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused, bool* invertsixel){
+                      size_t* tablelen, size_t* tableused, bool* invertsixel,
+                      unsigned nonewfonts){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -478,6 +479,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       ti->termversion = NULL;
     }
   }
+  // FIXME clean this shit up; use a table for chrissakes
   // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
   if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
@@ -562,11 +564,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_ITERM){
+    termname = "iTerm2";
     // iTerm implements DCS ASU, but has no detection for it
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
-    termname = "iTerm2";
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
     setup_iterm_bitmaps(ti, ti->ttyfd);
@@ -579,13 +581,16 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(uname(&un) == 0){
       ti->termversion = strdup(un.release);
     }
-    if(ti->linux_fb_fd >= 0){
+    if(is_linux_framebuffer(ti)){
       termname = "Linux framebuffer";
       setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
     }else{
       termname = "Linux console";
     }
+    reprogram_console_font(ti->linux_fb_fd, nonewfonts, &ti->caps.quadrants);
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+#else
+(void)nonewfonts;
 #endif
   }else if(qterm == TERMINAL_TERMINOLOGY){
     termname = "Terminology";
@@ -681,26 +686,19 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   const char* tname = NULL;
 #ifdef __APPLE__
   qterm = macos_early_matches();
-  (void)nonewfonts;
 #elif defined(__MINGW64__)
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
     return -1;
   }
   qterm = TERMINAL_MSTERMINAL;
-  (void)nonewfonts;
   (void)termtype;
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
-  if(is_linux_console(ti->ttyfd, nonewfonts, &ti->caps.quadrants)){
+  if(is_linux_console(ti->ttyfd)){
     qterm = TERMINAL_LINUX;
-    if(is_linux_framebuffer(ti)){
-      // FIXME set up pixel-drawing API for framebuffer #1369
-    }
   }
-#else
-  (void)nonewfonts;
 #endif
 #ifndef __MINGW64__
   if(ti->ttyfd >= 0){
@@ -874,7 +872,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
   }
   bool invertsixel = false;
-  if(apply_term_heuristics(ti, tname, qterm, &tablelen, &tableused, &invertsixel)){
+  if(apply_term_heuristics(ti, tname, qterm, &tablelen, &tableused,
+                           &invertsixel, nonewfonts)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
