@@ -587,7 +587,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }else{
       termname = "Linux console";
     }
-    reprogram_console_font(ti->linux_fb_fd, nonewfonts, &ti->caps.quadrants);
+    reprogram_console_font(ti, nonewfonts, &ti->caps.quadrants);
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
 #else
 (void)nonewfonts;

@@ -573,7 +573,7 @@ reprogram_linux_font(int fd, struct console_font_op* cfo,
   return 0;
 }
 
-int reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
+int reprogram_console_font(tinfo* ti, unsigned no_font_changes, bool* quadrants){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
     .charcount = 512,
@@ -595,7 +595,7 @@ int reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(fd, &cfo, &map, no_font_changes, quadrants);
+  int r = reprogram_linux_font(ti->linux_fb_fd, &cfo, &map, no_font_changes, quadrants);
   free(cfo.data);
   free(map.entries);
   return r;
