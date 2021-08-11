@@ -573,8 +573,7 @@ reprogram_linux_font(int fd, struct console_font_op* cfo,
   return 0;
 }
 
-static int
-reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
+int reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
     .charcount = 512,
@@ -605,7 +604,7 @@ reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
 // is the provided fd a Linux console? if so, returns true. if it is indeed
 // a Linux console, and the console font has the quadrant glyphs (either
 // because they were already present, or we added them), quadrants is set high.
-bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
+bool is_linux_console(int fd){
   if(fd < 0){
     return false;
   }
@@ -615,7 +614,6 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
     return false;
   }
   loginfo("Verified Linux console, mode %d\n", mode);
-  reprogram_console_font(fd, no_font_changes, quadrants);
   return true;
 }
 
