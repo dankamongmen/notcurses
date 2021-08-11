@@ -193,7 +193,7 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int
 }
 
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
-  if(ti->cellpixy){
+  if(ti->cellpixy < 1){
     return;
   }
   int totalrows = ti->cellpixy * p->dimy;
