@@ -15,7 +15,7 @@ bool is_linux_console(int fd);
 // attempt to reprogram the console font, if necessary, to include all the
 // quadrant glyphs. |quadrants| will be true if the quadrants are available,
 // whether that required a reprogramming or not.
-int reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants);
+int reprogram_console_font(struct tinfo* ti, unsigned no_font_changes, bool* quadrants);
 
 // if is_linux_console() returned true, call this to determine whether it is
 // a drawable framebuffer console. do not call if not a verified console!
