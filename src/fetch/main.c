@@ -519,20 +519,22 @@ neologo_present(struct notcurses* nc, const char* nlogo){
       maxlinelen = collen;
     }
   }
-  const int leftpad = (ncdirect_dim_x(nc) - maxlinelen) / 2;
+  int dimy, dimx;
+  struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  const int leftpad = (dimx - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
     printf("%*.*s%s", leftpad, leftpad, "", lines[i]);
     free(lines[i]);
   }
   free(lines);
-  ncdirect_set_fg_default(nc);
-  ncdirect_on_styles(nc, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  if(ncdirect_canopen_images(nc)){
-    ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
+  ncplane_set_fg_default(n);
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  if(notcurses_canopen_images(nc)){
+    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
   }else{
-    ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
+    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
   }
-  ncdirect_off_styles(nc, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+  ncplane_off_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   return 0;
 }
 
