@@ -504,12 +504,13 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   if(np->sprite){
-    if(xoff){
-      // doing an x-move without specifying the y coordinate requires asking
-      // the terminal where the cursor currently is.
-      if(ncdirect_cursor_move_yx(n, -1, xoff)){
-        return -1;
-      }
+    int y;
+    const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
+    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+      return -1;
+    }
+    if(ncdirect_cursor_move_yx(n, y, xoff)){
+      return -1;
     }
     // flush our FILE*, as we're about to use UNIX I/O (since we can't rely on
     // stdio to transfer large amounts at once).
@@ -520,7 +521,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(fbuf_init(&f)){
       return -1;
     }
-    if(sprite_draw(&n->tcache, NULL, np->sprite, &f, 0, xoff) < 0){
+    if(sprite_draw(&n->tcache, NULL, np->sprite, &f, y, xoff) < 0){
       return -1;
     }
     if(sprite_commit(&n->tcache, &f, np->sprite, true)){
