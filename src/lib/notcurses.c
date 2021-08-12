@@ -1544,6 +1544,43 @@ void scroll_down(ncplane* n){
   }
 }
 
+int ncplane_scrollup(ncplane* n, int r){
+  if(!ncplane_scrolling_p(n)){
+    logerror("can't scroll %d on non-scrolling plane\n", r);
+    return -1;
+  }
+  if(r < 0){
+    logerror("can't scroll %d lines\n", r);
+    return -1;
+  }
+  while(r-- > 0){
+    scroll_down(n);
+  }
+  return 0;
+}
+
+// Scroll |n| up until |child| is no longer hidden beneath it. Returns an
+// error if |child| is not a child of |n|, or |n| is not scrolling, or |child|
+// is fixed. Returns the number of scrolling events otherwise (might be 0).
+int ncplane_scrollup_child(ncplane* n, const ncplane* child){
+  if(ncplane_parent_const(child) != n){
+    logerror("not a child of specified plane\n");
+    return -1;
+  }
+  if(child->fixedbound){
+    logerror("child plane is fixed\n");
+    return -1;
+  }
+  int parend = ncplane_abs_y(n) + ncplane_dim_y(n); // where parent ends
+  int chend = ncplane_abs_y(child) + ncplane_dim_y(child); // where child ends
+  if(chend <= parend){
+    return 0;
+  }
+  int r = chend - parend; // how many rows we need scroll parent
+  int ret = ncplane_scrollup(n, r);
+  return ret;
+}
+
 int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
   return nccell_cols(c);
 }

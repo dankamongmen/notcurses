@@ -933,7 +933,13 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     }
     if(s->invalidated == SPRIXEL_MOVED){
       for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
+        if(yy < 0){
+          continue;
+        }
         for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
+          if(xx < 0){
+            continue;
+          }
           struct crender *r = &p->crender[yy * p->dimx + xx];
           if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE_SIXEL){
             r->s.damaged = 1;

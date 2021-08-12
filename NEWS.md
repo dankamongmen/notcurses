@@ -2,6 +2,10 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.14 (not yet released)
+  * `ncneofetch` has been changed to use "CLI mode" instead of Direct Mode,
+    as a proof of concept. It is very likely that Direct Mode will be
+    deprecated for ABI3. New code ought not be written using it.
+  * Added `ncplane_scrollup()` and `ncplane_scrollup_child()`.
   * Fixed grotesque errors in `ncplane_set_*_palindex()`.
 
 * 2.3.13 (2021-08-04)

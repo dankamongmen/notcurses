@@ -1145,10 +1145,8 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   }
   if(animated){
     fbuf_free(&s->glyph);
-    s->invalidated = SPRIXEL_LOADED;
-  }else{
-    s->invalidated = SPRIXEL_LOADED;
   }
+  s->invalidated = SPRIXEL_LOADED;
   return ret;
 }
 
