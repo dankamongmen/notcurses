@@ -338,7 +338,7 @@ xnu_ncneofetch(fetched_info* fi){
     .logofile = "/System/Library/PrivateFrameworks/LoginUIKit.framework/Versions/A/Frameworks/LoginUICore.framework/Versions/A/Resources/apple@2x.png",
   };
   fi->neologo = get_neofetch_art("Darwin");
-  fi->distro_pretty = "OS X 11.4 (Big Sur)";
+  fi->distro_pretty = "OS X 11.4 (Big Sur)"; // FIXME
   return &fbsd;
 }
 
