@@ -542,20 +542,27 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   notcurses_render(m->nc);
+  // we've just rendered, so any necessary scrolling has been performed. draw
+  // our image wherever the palette ended, and then scroll as necessary to
+  // make that new plane visible.
   if(notcurses_canopen_images(m->nc)){
-    /*
+    struct ncvisual* ncv = NULL;
     if(m->logo){
-      if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
-                               NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
-        return NULL;
-      }
+      ncv = ncvisual_from_file(m->logo);
     }else if(m->dinfo && m->dinfo->logofile){
-      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
-                               NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
-        return NULL;
-      }
+      ncv = ncvisual_from_file(m->dinfo->logofile);
     }
-    */
+    if(ncv){
+      struct ncvisual_options vopts = {
+        .x = NCALIGN_CENTER,
+        .blitter = NCBLIT_PIXEL,
+        .scaling = NCSCALE_SCALE_HIRES,
+        .flags = NCVISUAL_OPTION_HORALIGNED,
+      };
+      struct ncplane* iplane = ncvisual_render(m->nc, ncv, &vopts);
+      ncvisual_destroy(ncv);
+      notcurses_render(m->nc);
+    }
   }
   if(m->neologo){
     if(neologo_present(m->nc, m->neologo) == 0){
