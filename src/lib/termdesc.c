@@ -317,10 +317,18 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // Replies with CSI > \d \d ; Pv ; [01] c
 #define SECDEVATTR "\x1b[>c"
 
-// these three queries (terminated with a Primary Device Attributes, to which
+// query for kitty graphics. if they are supported, we'll get a response to
+// this using the kitty response syntax. otherwise, we'll get nothing. we
+// send this with the other identification queries, since APCs tend not to
+// be consumed by certain terminal emulators (looking at you, Linux console)
+// which can be identified directly, sans queries.
+#define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
+
+// these queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
 // identify the terminal to which we are talking.
-#define IDQUERIES TRIDEVATTR \
+#define IDQUERIES KITTYQUERY \
+                  TRIDEVATTR \
                   XTVERSION \
                   XTGETTCAPTN \
                   SECDEVATTR
@@ -349,12 +357,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // non-standard CSI for total pixel geometry
 #define GEOMPIXEL "\x1b[14t"
 
-// query for kitty graphics. if they are supported, we'll get a response to
-// this using the kitty response syntax. otherwise, we'll get nothing.
-#define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
-
 #define DIRECTIVES CSI_BGQ \
-                   KITTYQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
