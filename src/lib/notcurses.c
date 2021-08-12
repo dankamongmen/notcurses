@@ -1378,27 +1378,11 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
 }
 
 int ncplane_set_fg_palindex(ncplane* n, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
-    return -1;
-  }
-  n->channels |= NC_FGDEFAULT_MASK;
-  n->channels |= NC_FG_PALETTE;
-  ncchannels_set_fg_alpha(&n->channels, NCALPHA_OPAQUE);
-  n->stylemask &= 0xffff00ff;
-  n->stylemask |= (idx << 8u);
-  return 0;
+  return ncchannels_set_fg_palindex(&n->channels, idx);
 }
 
 int ncplane_set_bg_palindex(ncplane* n, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
-    return -1;
-  }
-  n->channels |= NC_BGDEFAULT_MASK;
-  n->channels |= NC_BG_PALETTE;
-  ncchannels_set_bg_alpha(&n->channels, NCALPHA_OPAQUE);
-  n->stylemask &= 0xffffff00;
-  n->stylemask |= idx;
-  return 0;
+  return ncchannels_set_bg_palindex(&n->channels, idx);
 }
 
 int ncplane_set_base_cell(ncplane* ncp, const nccell* c){

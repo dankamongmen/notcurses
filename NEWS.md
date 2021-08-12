@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.14 (not yet released)
+  * Fixed grotesque errors in `ncplane_set_*_palindex()`.
+
 * 2.3.13 (2021-08-04)
   * Added the portable utility functions `notcurses_accountname()` and
     `notcurses_hostname()`.
