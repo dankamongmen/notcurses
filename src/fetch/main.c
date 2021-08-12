@@ -48,7 +48,12 @@ typedef struct fetched_info {
 static void
 free_fetched_info(fetched_info* fi){
   free(fi->cpu_model);
+  free(fi->hostname);
   free(fi->username);
+  free(fi->kernel);
+  free(fi->kernver);
+  free(fi->distro_pretty);
+  free(fi->term);
 }
 
 static int
@@ -337,7 +342,7 @@ xnu_ncneofetch(fetched_info* fi){
     .logofile = "/System/Library/PrivateFrameworks/LoginUIKit.framework/Versions/A/Frameworks/LoginUICore.framework/Versions/A/Resources/apple@2x.png",
   };
   fi->neologo = get_neofetch_art("Darwin");
-  fi->distro_pretty = "OS X 11.4 (Big Sur)"; // FIXME
+  fi->distro_pretty = strdup("OS X 11.4 (Big Sur)"); // FIXME
   return &fbsd;
 }
 
@@ -380,9 +385,11 @@ static int
 infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
   const int planewidth = 72;
   int dimy;
+  int y;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
+  ncplane_cursor_yx(std, &y, NULL);
   struct ncplane_options nopts = {
-    .y = dimy - planeheight,
+    .y = y,
     .x = NCALIGN_CENTER,
     .rows = planeheight,
     .cols = planewidth,
@@ -428,7 +435,6 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
-  free(fi->term);
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
   ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
 #ifndef __MINGW64__
@@ -469,6 +475,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   ncchannels_set_fg_rgb8(&channels, 0, 0, 0);
   ncchannels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
+  ncplane_scrollup_child(std, infop);
   if(notcurses_render(nc)){
     return -1;
   }
@@ -522,7 +529,7 @@ neologo_present(struct notcurses* nc, const char* nlogo){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int leftpad = (dimx - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
-    printf("%*.*s%s", leftpad, leftpad, "", lines[i]);
+    ncplane_printf(n, "%*.*s%s", leftpad, leftpad, "", lines[i]);
     free(lines[i]);
   }
   free(lines);
@@ -542,6 +549,8 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   notcurses_render(m->nc);
+  ncplane_set_bg_default(notcurses_stdplane(m->nc));
+  ncplane_set_fg_default(notcurses_stdplane(m->nc));
   // we've just rendered, so any necessary scrolling has been performed. draw
   // our image wherever the palette ended, and then scroll as necessary to
   // make that new plane visible.
@@ -553,6 +562,8 @@ display_thread(void* vmarshal){
       ncv = ncvisual_from_file(m->dinfo->logofile);
     }
     if(ncv){
+      int y;
+      ncplane_cursor_yx(notcurses_stdplane_const(m->nc), &y, NULL);
       struct ncvisual_options vopts = {
         .x = NCALIGN_CENTER,
         .blitter = NCBLIT_PIXEL,
@@ -561,7 +572,14 @@ display_thread(void* vmarshal){
       };
       struct ncplane* iplane = ncvisual_render(m->nc, ncv, &vopts);
       ncvisual_destroy(ncv);
-      notcurses_render(m->nc);
+      if(iplane){
+        ncplane_move_yx(iplane, y, 0);
+        ncplane_scrollup_child(notcurses_stdplane(m->nc), iplane);
+        notcurses_render(m->nc);
+        ncplane_cursor_move_yx(notcurses_stdplane(m->nc),
+                               ncplane_abs_y(iplane) + ncplane_dim_y(iplane), 0);
+        return NULL;
+      }
     }
   }
   if(m->neologo){
@@ -627,13 +645,11 @@ ncneofetch(struct notcurses* nc){
 }
 
 int main(void){
-  if(setlocale(LC_ALL, "") == NULL){
-    fprintf(stderr, "Warning: couldn't set locale based off LANG\n");
-  }
   struct notcurses_options opts = {
-    .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
-              | NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_NO_CLEAR_BITMAPS
-              | NCOPTION_PRESERVE_CURSOR,
+    .flags = NCOPTION_SUPPRESS_BANNERS
+             | NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_NO_CLEAR_BITMAPS
+             | NCOPTION_PRESERVE_CURSOR,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){

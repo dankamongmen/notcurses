@@ -840,7 +840,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
       }
       continue; // don't account as an elision
     }
-    if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
+    if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_UNSEEN){
       int y, x;
       ncplane_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
@@ -929,6 +929,7 @@ rasterize_scrolls(ncpile* p, fbuf* f){
   if(goto_location(p->nc, f, p->dimy, 0)){
     return -1;
   }
+  // FIXME if bce is set, we need reset background color
   while(p->scrolls){
     if(fbuf_putc(f, '\n') < 0){
       return -1;
@@ -955,9 +956,9 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   while( (s = *parent) ){
 //fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
-//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
-      int y,x;
+      int y, x;
       ncplane_yx(s->n, &y, &x);
+//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       int r = sprite_draw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
@@ -966,7 +967,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
       nc->rstate.hardcursorpos = true;
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
-        int y,x;
+        int y, x;
         ncplane_yx(s->n, &y, &x);
         if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
           return -1;

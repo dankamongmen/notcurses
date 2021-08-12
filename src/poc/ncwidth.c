@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <compat/compat.h>
 #include <notcurses/direct.h>
 
 static int

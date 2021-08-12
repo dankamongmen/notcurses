@@ -5,36 +5,29 @@
 extern "C" {
 #endif
 
-// take host byte order and turn it into network (reverse on LE, no-op on BE),
-// then reverse that, guaranteeing LE. htole(x) == ltohe(x).
-#if defined(__linux__) || defined(__gnu_hurd__)
-#include <poll.h>
-#include <termios.h>
-#include <byteswap.h>
-#include <netinet/in.h>
-#define htole(x) (__bswap_32(htonl(x)))
-#elif defined(__APPLE__)
-#include <poll.h>
-#include <termios.h>
-#include <netinet/in.h>
-#include <libkern/OSByteOrder.h>
-#define htole(x) (OSSwapInt32(htonl(x)))
-#elif defined(__MINGW64__)
-#define htole(x) (x) // FIXME
+// Platform-dependent preprocessor material (includes and definitions) needed
+// to compile against Notcurses. A critical definition is htole(), which forces
+// 32-bit values to little-endian (as used in the nccell gcluster field). This
+// ought be defined so that it's a a no-op on little-endian builds.
+
+#if defined(__MINGW64__)                          // Windows
 // FIXME placeholders, need real solutions here
 #define wcwidth(w) 1
-#define wcswidth(w, s) (s)
-#define sigset_t int
-#define sigemptyset(x)
-#define O_CLOEXEC O_NOINHERIT
-#define O_NONBLOCK 0
-#define O_DIRECTORY 0
-#define S_IFLNK 0
-#else // bsd
+#define htole(x) (x) // FIXME are all windows installs LE?
+#else                                             // Non-Windows, UNIX-common
 #include <poll.h>
 #include <netinet/in.h>
+#include <termios.h>
+#if defined(__linux__) || defined(__gnu_hurd__)   // Linux/Hurd
+#include <byteswap.h>
+#define htole(x) (__bswap_32(htonl(x)))
+#elif defined(__APPLE__)                          // macOS
+#include <libkern/OSByteOrder.h>
+#define htole(x) (OSSwapInt32(htonl(x)))
+#else                                             // BSD
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
+#endif
 #endif
 
 #ifdef __cplusplus

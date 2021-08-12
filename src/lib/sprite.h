@@ -17,8 +17,9 @@ struct blitterargs;
 
 typedef enum {
   SPRIXEL_QUIESCENT,   // up-to-date and visible at the proper place
+  SPRIXEL_UNSEEN,      // not yet loaded, invisible, but wants loading
   SPRIXEL_LOADED,      // loaded, but not yet made visible (kitty-only)
-  SPRIXEL_INVALIDATED, // not up-to-date, need reload, trumps MOVED
+  SPRIXEL_INVALIDATED, // not up-to-date, need reload
   SPRIXEL_HIDE,        // queued for destruction
   SPRIXEL_MOVED,       // visible, up-to-date, but in the wrong place
 } sprixel_e;

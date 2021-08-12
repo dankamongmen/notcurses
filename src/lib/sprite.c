@@ -67,7 +67,7 @@ sprixel* sprixel_recycle(ncplane* n){
 // store the original (absolute) coordinates from which we moved, so that
 // we can invalidate them in sprite_draw().
 void sprixel_movefrom(sprixel* s, int y, int x){
-  if(s->invalidated != SPRIXEL_HIDE){
+  if(s->invalidated != SPRIXEL_HIDE && s->invalidated != SPRIXEL_UNSEEN){
     if(s->invalidated != SPRIXEL_MOVED){
     // FIXME if we're Sixel, we need to effect any wipes that were run
     // (we normally don't because redisplaying sixel doesn't change
@@ -168,7 +168,7 @@ int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
     fbuf_free(&spx->glyph);
     memcpy(&spx->glyph, f, sizeof(*f));
   }
-  spx->invalidated = SPRIXEL_INVALIDATED;
+  spx->invalidated = SPRIXEL_UNSEEN;
   spx->pixx = pixx;
   spx->pixy = pixy;
   spx->parse_start = parse_start;

@@ -200,8 +200,8 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "CJK Compatibility Ideographs, Alphabetic Presentation Forms", .start = 0xfa00, },
     { .name = "Arabic Presentation Forms-A", .start = 0xfc00, },
     { .name = "Halfwidth and Fullwidth Forms", .start = 0xfe00, },
-    { .name = "Linear B Syllabary, Linear B Ideograms, Aegean Numbers, Phaistos Disc", .start = 0x10000, },
-    { .name = "Lycian, Carian, Coptic Epact Numbers, Old Italic, Gothic, Old Permic", .start = 0x10200, },
+    { .name = "Linear B Syllabary, Linear B Ideograms, Aegean, Phaistos Disc", .start = 0x10000, },
+    { .name = "Lycian, Carian, Coptic Epact, Old Italic, Gothic, Old Permic", .start = 0x10200, },
     { .name = "Cuneiform", .start = 0x12000, },
     { .name = "Cuneiform (cont.)", .start = 0x12200, },
     { .name = "Byzantine Musical Symbols, Musical Symbols", .start = 0x1d000, },
@@ -278,10 +278,10 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_set_fg_rgb8(n, 0x40, 0xc0, 0x40)){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 2)){
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 4)){
       return -1;
     }
-    if(ncplane_printf(n, "%*.*s", maxx - 4, maxx - 4, "") <= 0){
+    if(ncplane_printf(n, "%*.*s", maxx - 8, maxx - 8, "") <= 0){
       return -1;
     }
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){

@@ -883,6 +883,15 @@ scrolling is enabled).
 // controlled with ncplane_set_scrolling(). Returns true if scrolling was
 // previously enabled, or false if it was disabled.
 bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+
+// Effect |r| scroll events on the plane |n|. Returns an error if |n| is not
+// a scrolling plane, and otherwise returns the number of lines scrolled.
+int ncplane_scrollup(struct ncplane* n, int r);
+
+// Scroll |n| up until |child| is no longer hidden beneath it. Returns an
+// error if |child| is not a child of |n|, or |n| is not scrolling, or |child|
+// is fixed. Returns the number of scrolling events otherwise (might be 0).
+int ncplane_scrollup_child(struct ncplane* n, const struct ncplane* child);
 ```
 
 Planes can be freely resized, though they must retain a positive size in

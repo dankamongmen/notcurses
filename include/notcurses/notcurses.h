@@ -1570,8 +1570,23 @@ API int ncplane_move_below(struct ncplane* RESTRICT n,
                            struct ncplane* RESTRICT below);
 
 // Return the plane below this one, or NULL if this is at the bottom.
-API struct ncplane* ncplane_below(struct ncplane* n);
-API struct ncplane* ncplane_above(struct ncplane* n);
+API struct ncplane* ncplane_below(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Return the plane above this one, or NULL if this is at the top.
+API struct ncplane* ncplane_above(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Effect |r| scroll events on the plane |n|. Returns an error if |n| is not
+// a scrolling plane, and otherwise returns the number of lines scrolled.
+API int ncplane_scrollup(struct ncplane* n, int r)
+  __attribute__ ((nonnull (1)));
+
+// Scroll |n| up until |child| is no longer hidden beneath it. Returns an
+// error if |child| is not a child of |n|, or |n| is not scrolling, or |child|
+// is fixed. Returns the number of scrolling events otherwise (might be 0).
+API int ncplane_scrollup_child(struct ncplane* n, const struct ncplane* child)
+  __attribute__ ((nonnull (1, 2)));
 
 // Rotate the plane π/2 radians clockwise or counterclockwise. This cannot
 // be performed on arbitrary planes, because glyphs cannot be arbitrarily

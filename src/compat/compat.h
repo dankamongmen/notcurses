@@ -17,6 +17,7 @@ extern "C" {
 
 #ifdef  __MINGW64__
 #include <Lmcons.h>
+#define wcswidth(w, s) (s)
 #define tcgetattr(x, y) -1
 #define tcsetattr(x, y, z) -1
 #define ECHO      0
@@ -27,6 +28,10 @@ extern "C" {
 #define TCSAFLUSH 0
 #define TCSANOW   0
 #define O_NOCTTY  0
+#define O_CLOEXEC O_NOINHERIT
+#define O_NONBLOCK 0
+#define O_DIRECTORY 0
+#define S_IFLNK 0
 #define SA_SIGINFO 0
 #define SA_RESETHAND 0
 #define SIGQUIT 0
