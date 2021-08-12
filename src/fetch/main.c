@@ -17,7 +17,6 @@
 #include <windows.h>
 #include <sysinfoapi.h>
 #endif
-#include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
 #include "compat/compat.h"
 #include "ncart.h"
@@ -37,7 +36,7 @@ typedef struct fetched_info {
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
   const char* shell;           // getenv("SHELL")
-  char* term;                  // ncdirect_detected_terminal(), heap-alloced
+  char* term;                  // notcurses_detected_terminal(), heap-alloced
   char* lang;                  // getenv("LANG")
   int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet
@@ -544,6 +543,7 @@ display_thread(void* vmarshal){
   drawpalette(m->nc);
   notcurses_render(m->nc);
   if(notcurses_canopen_images(m->nc)){
+    /*
     if(m->logo){
       if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
                                NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
@@ -555,6 +555,7 @@ display_thread(void* vmarshal){
         return NULL;
       }
     }
+    */
   }
   if(m->neologo){
     if(neologo_present(m->nc, m->neologo) == 0){
