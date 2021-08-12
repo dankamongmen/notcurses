@@ -11,9 +11,9 @@ extern "C" {
 // ought be defined so that it's a a no-op on little-endian builds.
 
 #if defined(__MINGW64__)                          // Windows
-// FIXME placeholders, need real solutions here
-#define wcwidth(w) 1
-#define htole(x) (x) // FIXME are all windows installs LE?
+#define wcwidth(w) 1       // FIXME lol, no
+#define wcswidth(w, s) (s) // FIXME lol, no
+#define htole(x) (x)       // FIXME are all windows installs LE? ugh
 #else                                             // Non-Windows, UNIX-common
 #include <poll.h>
 #include <netinet/in.h>

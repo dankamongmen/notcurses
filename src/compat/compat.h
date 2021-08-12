@@ -17,9 +17,8 @@ extern "C" {
 
 #ifdef  __MINGW64__
 #include <Lmcons.h>
-#define wcswidth(w, s) (s)
-#define tcgetattr(x, y) -1
-#define tcsetattr(x, y, z) -1
+#define tcgetattr(x, y) (-1)
+#define tcsetattr(x, y, z) (-1)
 #define ECHO      0
 #define ICANON    0
 #define ICRNL     0
@@ -35,7 +34,6 @@ extern "C" {
 #define SA_SIGINFO 0
 #define SA_RESETHAND 0
 #define SIGQUIT 0
-#define sigdelset(x, y)
 #define sigaddset(x, y)
 typedef struct siginfo_t {
   int aieeee;
