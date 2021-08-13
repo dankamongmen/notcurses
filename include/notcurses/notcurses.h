@@ -172,7 +172,7 @@ ncchannel_b(uint32_t channel){
 
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
-ncchannel_alpha(unsigned channel){
+ncchannel_alpha(uint32_t channel){
   return channel & NC_BG_ALPHA_MASK;
 }
 
@@ -193,7 +193,7 @@ ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
-  unsigned c = (r << 16u) | (g << 8u) | b;
+  uint32_t c = (r << 16u) | (g << 8u) | b;
   *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
   return 0;
 }
@@ -202,7 +202,7 @@ ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
 // the default color. Retain the other bits unchanged. r, g, and b will be
 // clipped to the range [0..255].
 static inline void
-ncchannel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
+ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
   if(r >= 256){
     r = 255;
   }
@@ -221,13 +221,13 @@ ncchannel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
   if(b <= -1){
     b = 0;
   }
-  unsigned c = (r << 16u) | (g << 8u) | b;
+  uint32_t c = (r << 16u) | (g << 8u) | b;
   *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
 }
 
 // Same, but provide an assembled, packed 24 bits of rgb.
 static inline int
-ncchannel_set(unsigned* channel, unsigned rgb){
+ncchannel_set(uint32_t* channel, uint32_t rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -242,7 +242,7 @@ ncchannel_palindex(uint32_t channel){
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
-ncchannel_set_alpha(unsigned* channel, unsigned alpha){
+ncchannel_set_alpha(uint32_t* channel, unsigned alpha){
   if(alpha & ~NC_BG_ALPHA_MASK){
     return -1;
   }
@@ -268,19 +268,19 @@ ncchannel_set_palindex(uint32_t* channel, int idx){
 
 // Is this ncchannel using the "default color" rather than RGB/palette-indexed?
 static inline bool
-ncchannel_default_p(unsigned channel){
+ncchannel_default_p(uint32_t channel){
   return !(channel & NC_BGDEFAULT_MASK);
 }
 
 // Is this channel using palette-indexed color rather than RGB?
 static inline bool
-ncchannel_palindex_p(unsigned channel){
+ncchannel_palindex_p(uint32_t channel){
   return !ncchannel_default_p(channel) && (channel & NC_BG_PALETTE);
 }
 
 // Mark the channel as using its default color, which also marks it opaque.
-static inline unsigned
-ncchannel_set_default(unsigned* channel){
+static inline uint32_t
+ncchannel_set_default(uint32_t* channel){
   return *channel &= ~(NC_BGDEFAULT_MASK | NCALPHA_HIGHCONTRAST);
 }
 
@@ -340,13 +340,13 @@ ncchannels_bg_palindex(uint64_t channels){
 }
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncchannels_fg_rgb(uint64_t channels){
   return ncchannels_fchannel(channels) & NC_BG_RGB_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncchannels_bg_rgb(uint64_t channels){
   return ncchannels_bchannel(channels) & NC_BG_RGB_MASK;
 }
@@ -364,13 +364,13 @@ ncchannels_bg_alpha(uint64_t channels){
 }
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
-static inline unsigned
+static inline uint32_t
 ncchannels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
   return ncchannel_rgb8(ncchannels_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
-static inline unsigned
+static inline uint32_t
 ncchannels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
   return ncchannel_rgb8(ncchannels_bchannel(channels), r, g, b);
 }
@@ -1824,6 +1824,7 @@ API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align,
                                 size_t s, const char* gclustarr);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
+// FIXME do this as a loop over ncplane_putegc_yx and save the big allocation+copy
 static inline int
 ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   // maximum of six UTF8-encoded bytes per wchar_t

@@ -2925,13 +2925,13 @@ channel_set_alpha(unsigned* channel, unsigned alpha){
 
 // Is this channel using the "default color" rather than its RGB?
 static inline bool
-channel_default_p(unsigned channel){
+ncchannel_default_p(uint32_t channel){
   return !(channel & NC_BGDEFAULT_MASK);
 }
 
 // Mark the channel as using its default color.
-static inline unsigned
-channel_set_default(unsigned* channel){
+static inline uint32_t
+ncchannel_set_default(uint32_t* channel){
   return *channel &= ~NC_BGDEFAULT_MASK;
 }
 
@@ -2942,7 +2942,7 @@ ncchannels_bchannel(uint64_t channels){
 }
 
 // Extract the 32-bit foreground channel from a channel pair.
-static inline unsigned
+static inline uint32_t
 ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
 }

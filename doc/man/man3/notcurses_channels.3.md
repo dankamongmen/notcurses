@@ -27,7 +27,7 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t ncchannel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**unsigned ncchannel_set_rgb8(uint32_t* ***channel***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
+**int ncchannel_set_rgb8(uint32_t* ***channel***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
 **int ncchannel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
 
@@ -43,13 +43,13 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t ncchannel_set_default(uint32_t* ***channel***);**
 
-**unsigned ncchannels_fg_rgb(uint64_t ***channels***);**
+**uint32_t ncchannels_fg_rgb(uint64_t ***channels***);**
 
-**unsigned ncchannels_bg_rgb(uint64_t ***channels***);**
+**uint32_t ncchannels_bg_rgb(uint64_t ***channels***);**
 
-**int ncchannels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+**int ncchannels_set_fg_rgb(uint64_t* ***channels***, uint32_t ***rgb***);**
 
-**int ncchannels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+**int ncchannels_set_bg_rgb(uint64_t* ***channels***, uint32_t ***rgb***);**
 
 **unsigned ncchannels_fg_alpha(uint64_t ***channels***);**
 
@@ -67,9 +67,9 @@ notcurses_channels - operations on notcurses channels
 
 **int ncchannels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
 
-**unsigned ncchannels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**uint32_t ncchannels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**unsigned ncchannels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**uint32_t ncchannels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
 **int ncchannels_set_fg_rgb8(uint64_t* ***channels***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
