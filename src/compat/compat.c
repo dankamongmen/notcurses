@@ -28,7 +28,9 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
 pid_t waitpid(pid_t pid, int* state, int options){
   (void)options; // FIXME honor WNOHANG
   WaitForSingleObject(pid, INFINITE);
-  GetExitCodeProcess(pid, state);
+  long unsigned pstate;
+  GetExitCodeProcess(pid, &pstate);
+  *state = pstate;
   CloseHandle(pid);
   return pid;
 }
