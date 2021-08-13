@@ -898,8 +898,7 @@ scroll_lastframe(notcurses* nc, int rows){
     const nccell* src = &nc->lastframe[srcidx];
     memcpy(dst, src, sizeof(*dst) * nc->lfdimx);
   }
-  // now for the last |rows| rows, initialize them to 0. FIXME might need to
-  // look at bce (back color erase) property, erp?
+  // now for the last |rows| rows, initialize them to 0.
   int targy = nc->lfdimy - rows;
   while(targy < nc->lfdimy){
     const size_t dstidx = targy * nc->lfdimx;
@@ -929,7 +928,13 @@ rasterize_scrolls(ncpile* p, fbuf* f){
   if(goto_location(p->nc, f, p->dimy, 0)){
     return -1;
   }
-  // FIXME if bce is set, we need reset background color
+  // terminals advertising 'bce' will scroll in the current background color;
+  // switch back to the default explicitly.
+  if(p->nc->tcache.bce){
+    if(raster_defaults(p->nc, false, true, f)){
+      return -1;
+    }
+  }
   while(p->scrolls){
     if(fbuf_putc(f, '\n') < 0){
       return -1;

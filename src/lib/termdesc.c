@@ -801,6 +801,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       }
     }
   }
+  if(tigetflag("bce") > 0){
+    ti->bce = true;
+  }
   if(ti->caps.colors > 1){
     const char* initc = get_escape(ti, ESCAPE_INITC);
     if(initc){

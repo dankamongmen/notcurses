@@ -202,6 +202,7 @@ typedef struct tinfo {
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
   bool detected_cursor_inversion; // have we performed inversion testing?
   bool inverted_cursor;      // does the terminal return inverted coordinates?
+  bool bce;                  // is the bce property advertised?
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
