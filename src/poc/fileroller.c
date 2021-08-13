@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <compat/compat.h>
 #include <notcurses/notcurses.h>
 
 static bool fddone;

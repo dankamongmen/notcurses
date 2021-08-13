@@ -612,6 +612,7 @@ add_executable(ncls ${LSSRC})
 target_include_directories(ncls
   PRIVATE
     include
+    src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
