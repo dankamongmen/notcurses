@@ -413,7 +413,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   if(fi->distro_pretty){
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   }
-  ncplane_set_styles(infop, NCSTYLE_NONE);
+  ncplane_set_styles(infop, NCSTYLE_BOLD);
 #ifdef __linux__
   struct sysinfo sinfo;
   sysinfo(&sinfo);
@@ -448,7 +448,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 #else
   ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %s ", "FIXME"); // FIXME
 #endif
-  ncplane_set_styles(infop, NCSTYLE_ITALIC);
+  ncplane_set_styles(infop, NCSTYLE_ITALIC | NCSTYLE_BOLD);
   ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
