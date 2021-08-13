@@ -19,7 +19,7 @@ capboolbool(unsigned utf8, bool cap){
 }
 
 static void
-tinfo_debug_cap(struct ncplane* n, const char* name, bool yn, char ch){
+tinfo_debug_cap(struct ncplane* n, const char* name, bool yn){
   if(!yn){
     ncplane_set_styles(n, NCSTYLE_ITALIC);
   }
@@ -27,7 +27,7 @@ tinfo_debug_cap(struct ncplane* n, const char* name, bool yn, char ch){
   ncplane_set_styles(n, NCSTYLE_BOLD);
   ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), yn));
   ncplane_set_styles(n, NCSTYLE_NONE);
-  ncplane_putchar(n, ch);
+  ncplane_putchar(n, ' ');
 }
 
 static void
@@ -374,16 +374,17 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
 static void
 tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_printf(n, "%s", indent);
-  tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), ' ');
-  tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), ' ');
-  tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM), ' ');
-  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), ' ');
-  tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), ' ');
-  tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA), ' ');
-  tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0), ' ');
-  tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP), ' ');
-  tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP), ' ');
-  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), ' ');
+  tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF));
+  tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB));
+  tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM));
+  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP));
+  tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA));
+  tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA));
+  tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0));
+  tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP));
+  tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP));
+  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP));
+  tinfo_debug_cap(n, "bce", ti->bce);
   finish_line(n);
 }
 
@@ -396,17 +397,17 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, ' ');
   tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL, ' ');
   tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, ' ');
-  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7), ' ');
-  tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, ' ');
-  tinfo_debug_cap(n, "rgb", ti->caps.rgb, ' ');
+  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7));
+  tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors);
+  tinfo_debug_cap(n, "rgb", ti->caps.rgb);
   finish_line(n);
   ncplane_putstr(n, indent);
-  tinfo_debug_cap(n, "utf8", ti->caps.utf8, ' ');
-  tinfo_debug_cap(n, "quad", ti->caps.quadrants, ' ');
-  tinfo_debug_cap(n, "sex", ti->caps.sextants, ' ');
-  tinfo_debug_cap(n, "braille", ti->caps.braille, ' ');
-  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), ' ');
-  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc), ' ');
+  tinfo_debug_cap(n, "utf8", ti->caps.utf8);
+  tinfo_debug_cap(n, "quad", ti->caps.quadrants);
+  tinfo_debug_cap(n, "sex", ti->caps.sextants);
+  tinfo_debug_cap(n, "braille", ti->caps.braille);
+  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc));
+  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc));
   finish_line(n);
 }
 
