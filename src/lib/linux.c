@@ -120,7 +120,10 @@ error:
 }
 
 int fbcon_scrub(const struct ncpile* p, sprixel* s){
-  return sixel_scrub(p, s);
+  (void)p;
+  (void)s;
+  return 0;
+  //return sixel_scrub(p, s);
 }
 
 #ifdef __linux__
