@@ -1154,7 +1154,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
-    logerror("Couldn't create the initial plane (bad margins?)\n");
+    logpanic("Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
