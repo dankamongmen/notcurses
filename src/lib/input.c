@@ -1597,6 +1597,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->user_wants_data = false;
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
+  // widnows terminal doesn't seem to reply to any queries =/
+#ifndef __MINGW64__
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
     query_state inits = {
@@ -1635,6 +1637,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       *kittygraphs = true;
     }
   }
+#endif
   return 0;
 }
 

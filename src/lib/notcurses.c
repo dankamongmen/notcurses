@@ -279,6 +279,13 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
       tcache->pixel_draw = NULL; // disable support
     }
   }
+#else
+  if(rows){
+    *rows = tcache->default_rows;
+  }
+  if(cols){
+    *cols = tcache->default_cols;
+  }
 #endif
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
@@ -1154,7 +1161,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
-    logerror("Couldn't create the initial plane (bad margins?)\n");
+    logpanic("Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
