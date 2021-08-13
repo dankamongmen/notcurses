@@ -140,13 +140,14 @@ API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
 // extract these bits to get the foreground alpha mask
 #define NC_FG_ALPHA_MASK      (NC_BG_ALPHA_MASK << 32u)
 
-// initialize a 64-bit channel pair with specified RGB fg/bg
-#define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
-  (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
-   (((br) << 16u) + ((bg) << 8u) + (bb)) + NC_BGDEFAULT_MASK + NC_FGDEFAULT_MASK)
-
+// initialize a 32-bit channel pair with specified RGB
 #define NCCHANNEL_INITIALIZER(r, g, b) \
   (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + NC_BGDEFAULT_MASK)
+
+// initialize a 64-bit channel pair with specified RGB fg/bg
+#define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
+  ((NCCHANNEL_INITIALIZER(fr, fg, fb) << 32ull) + \
+   (NCCHANNEL_INITIALIZER(br, bg, bb)))
 
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
 // Users will typically manipulate ncplane and nccell channels through those
