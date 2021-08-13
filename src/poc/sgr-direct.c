@@ -29,7 +29,9 @@ int main(void){
       printf("\n");
     }
   }
-  printf("\n");
+  if(e % 8){
+    printf("\n");
+  }
   ncdirect_stop(nc);
   return EXIT_SUCCESS;
 }

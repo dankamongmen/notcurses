@@ -3638,6 +3638,7 @@ maketitle(struct ncplane* std){
     ncplane_destroy(title);
     return NULL;
   }
+  ncplane_set_styles(title, NCSTYLE_BOLD);
   ncplane_set_fg_rgb(title, 0xe0b0b0);
   if(ncplane_putstr_aligned(title, 0, NCALIGN_CENTER, "mojibake 文字化けmodʑibake (english: \"garbled\")") < 0){
     ncplane_destroy(title);
