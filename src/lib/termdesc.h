@@ -60,12 +60,15 @@ typedef enum {
   ESCAPE_SMULX,   // "Smulx" deparameterized: start extended underline
   ESCAPE_SMULNOX, // "Smulx" deparameterized: kill underline
   ESCAPE_RMXX,    // "rmxx" end struckout
+  ESCAPE_IND,     // "ind" scroll 1 line up
+  ESCAPE_INDN,    // "indn" scroll n lines up
   ESCAPE_SC,      // "sc" push the cursor onto the stack
   ESCAPE_RC,      // "rc" pop the cursor off the stack
   ESCAPE_CLEAR,   // "clear" clear screen and home cursor
   ESCAPE_INITC,   // "initc" set up palette entry
   ESCAPE_GETM,    // "getm" get mouse events
   ESCAPE_U7,      // "u7" cursor position report
+  ESCAPE_CSR,     // "csr" change scroll region
   // Application synchronized updates, not present in terminfo
   // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
   ESCAPE_BSUM,     // Begin Synchronized Update Mode

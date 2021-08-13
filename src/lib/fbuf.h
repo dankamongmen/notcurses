@@ -282,7 +282,9 @@ static inline int
 fbuf_flush(fbuf* f, FILE* fp){
   int ret = 0;
   if(f->used){
-    if(blocking_write(fileno(fp), f->buf, f->used)){
+    if(fflush(fp) == EOF){
+      ret = -1;
+    }else if(blocking_write(fileno(fp), f->buf, f->used)){
       ret = -1;
     }
   }
@@ -296,7 +298,9 @@ static inline int
 fbuf_finalize(fbuf* f, FILE* fp){
   int ret = 0;
   if(f->used){
-    if(blocking_write(fileno(fp), f->buf, f->used)){
+    if(fflush(fp) == EOF){
+      ret = -1;
+    }else if(blocking_write(fileno(fp), f->buf, f->used)){
       ret = -1;
     }
   }

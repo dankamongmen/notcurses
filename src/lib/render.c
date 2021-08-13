@@ -935,8 +935,22 @@ rasterize_scrolls(ncpile* p, fbuf* f){
       return -1;
     }
   }
-  while(p->scrolls){
-    if(fbuf_putc(f, '\n') < 0){
+  if(p->scrolls > 1){
+    const char* indn = get_escape(&p->nc->tcache, ESCAPE_INDN);
+    if(indn){
+      if(fbuf_emit(f, tiparm(indn, p->scrolls)) < 0){
+        return -1;
+      }
+      p->scrolls = 0;
+      return 0;
+    }
+  }
+  const char* ind = get_escape(&p->nc->tcache, ESCAPE_IND);
+  if(ind == NULL){
+    ind = "\v";
+  }
+  while(p->scrolls > 0){
+    if(fbuf_emit(f, ind) < 0){
       return -1;
     }
     --p->scrolls;
