@@ -3,7 +3,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+#ifndef __APPLE__
 #define NOEXCEPT noexcept
+#else
+#define NOEXCEPT
+#endif
 #else
 #define NOEXCEPT
 #endif
