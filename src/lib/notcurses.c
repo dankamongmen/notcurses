@@ -279,6 +279,13 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
       tcache->pixel_draw = NULL; // disable support
     }
   }
+#else
+  if(rows){
+    *rows = tcache->default_rows;
+  }
+  if(cols){
+    *cols = tcache->default_cols;
+  }
 #endif
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
