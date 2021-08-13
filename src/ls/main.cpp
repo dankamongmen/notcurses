@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <compat/compat.h>
 #include <ncpp/Direct.hh>
 #ifndef __linux__
 #define AT_NO_AUTOMOUNT 0 // not defined on freebsd
