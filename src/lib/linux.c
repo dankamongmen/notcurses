@@ -197,18 +197,17 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
     return;
   }
   int totalrows = ti->cellpixy * p->dimy;
-  int srows = rows * ti->cellpixy; // number of lines being scrolled
+  int srows = rows * ti->cellpixy; // number of pixel rows being scrolled
+  if(srows > totalrows){
+    srows = totalrows;
+  }
+  int rowbytes = ti->cellpixx * p->dimx * 4;
   uint8_t* targ = ti->linux_fbuffer;
-  uint8_t* src = ti->linux_fbuffer + srows * ti->cellpixx * p->dimx * 4;
-  for(int r = 0 ; r < totalrows - srows ; ++r){
-    memcpy(targ, src, ti->cellpixx * p->dimx * 4);
-    targ += ti->cellpixx * p->dimx * 4;
-    src += ti->cellpixx * p->dimx * 4;
-  }
-  for(int r = totalrows - srows ; r < totalrows ; ++r){
-    memset(targ, 0, ti->cellpixx * p->dimx * 4);
-    targ += ti->cellpixx * p->dimx * 4;
-  }
+  uint8_t* src = ti->linux_fbuffer + srows * rowbytes;
+  unsigned tocopy = rowbytes * (totalrows - srows);
+  memmove(targ, src, tocopy);
+  targ += tocopy;
+  memset(targ, 0, srows * rowbytes);
 }
 
 // each row is a contiguous set of bits, starting at the msb

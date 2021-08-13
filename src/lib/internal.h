@@ -1210,7 +1210,7 @@ mouse_disable(fbuf* f){
 // don't know where the cursor currently is =].
 static inline int
 goto_location(notcurses* nc, fbuf* f, int y, int x){
-//fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
+//fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, nc->rstate.hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
   // TERM i know supporting cup sans hpa is vt100, and vt100 can suck it.

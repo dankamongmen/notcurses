@@ -358,7 +358,13 @@ drawpalette(struct notcurses* nc){
     return -1;
   }
   for(int y = 0 ; y < (psize + 63) / 64 ; ++y){
-    if(ncplane_cursor_move_yx(n, -1, (dimx - 64) / 2)){
+    // we show a maximum of 64 palette entries per line
+    int toshow = psize - y * 64;
+    if(toshow > 64){
+      toshow = 64;
+    }
+    // center based on the number being shown on this line
+    if(ncplane_cursor_move_yx(n, -1, (dimx - toshow) / 2)){
       return -1;
     }
     for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
