@@ -114,8 +114,9 @@ unpop_keypress(ncinputlayer* nc, int kpress){
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
-  uint32_t special;       // composed key terminating here
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
+  uint32_t special;       // composed key terminating here
+  bool shift, ctrl, alt;
 } esctrie;
 
 static esctrie*
@@ -124,6 +125,9 @@ create_esctrie_node(int special){
   if(e){
     e->special = special;
     e->trie = NULL;
+    e->shift = 0;
+    e->ctrl = 0;
+    e->alt = 0;
   }
   return e;
 }
@@ -147,9 +151,10 @@ input_free_esctrie(esctrie** eptr){
 
 // multiple input escapes might map to the same input
 static int
-ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t special){
+ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t special,
+                              unsigned shift, unsigned ctrl, unsigned alt){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    logerror("Not an escape: %s (0x%x)\n", esc, special);
+    logerror("not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -179,9 +184,12 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t specia
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
   if((*cur)->special != NCKEY_INVALID){ // already had one here!
-    logwarn("Warning: already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+    logwarn("already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
   }else{
     (*cur)->special = special;
+    (*cur)->shift = shift;
+    (*cur)->ctrl = ctrl;
+    (*cur)->alt = alt;
   }
   return 0;
 }
@@ -353,6 +361,9 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
       logtrace("move to %p (%u)\n", esc, esc ? esc->special : 0);
     }
     if(esc && esc->special != NCKEY_INVALID){
+      ni->shift = esc->shift;
+      ni->ctrl = esc->ctrl;
+      ni->alt = esc->alt;
       return esc->special;
     }
     if(csi){
@@ -630,8 +641,9 @@ prep_special_keys(ncinputlayer* nc){
   static const struct {
     const char* tinfo;
     uint32_t key;
+    bool shift, ctrl, alt;
   } keys[] = {
-    { .tinfo = "kcbt",  .key = '\t', }, // FIXME plus shift
+    { .tinfo = "kcbt",  .key = '\t', .shift = true, },
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
     { .tinfo = "kcuu1", .key = NCKEY_UP, },
@@ -718,82 +730,82 @@ prep_special_keys(ncinputlayer* nc){
     { .tinfo = "kext",  .key = NCKEY_EXIT, },
     { .tinfo = "kprt",  .key = NCKEY_PRINT, },
     { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
-    { .tinfo = "kDC",   .key = NCKEY_DEL, }, // FIXME plus modifier
-    { .tinfo = "kDC1",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC",   .key = NCKEY_DEL, .shift = 1, },
+    { .tinfo = "kDC1",  .key = NCKEY_DEL, },
     { .tinfo = "kDC2",  .key = NCKEY_DEL, }, // FIXME plus modifier
     { .tinfo = "kDC3",  .key = NCKEY_DEL, }, // FIXME plus modifier
     { .tinfo = "kDC4",  .key = NCKEY_DEL, }, // FIXME plus modifier
-    { .tinfo = "kDC5",  .key = NCKEY_DEL, }, // FIXME plus modifier
+    { .tinfo = "kDC5",  .key = NCKEY_DEL, .ctrl = 1, },
     { .tinfo = "kDC6",  .key = NCKEY_DEL, }, // FIXME plus modifier
     { .tinfo = "kDC7",  .key = NCKEY_DEL, }, // FIXME plus modifier
-    { .tinfo = "kDN",   .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN",   .key = NCKEY_DOWN, .shift = 1, },
     { .tinfo = "kDN1",  .key = NCKEY_DOWN, }, // FIXME plus modifier
     { .tinfo = "kDN2",  .key = NCKEY_DOWN, }, // FIXME plus modifier
     { .tinfo = "kDN3",  .key = NCKEY_DOWN, }, // FIXME plus modifier
     { .tinfo = "kDN4",  .key = NCKEY_DOWN, }, // FIXME plus modifier
-    { .tinfo = "kDN5",  .key = NCKEY_DOWN, }, // FIXME plus modifier
+    { .tinfo = "kDN5",  .key = NCKEY_DOWN, .ctrl = 1, },
     { .tinfo = "kDN6",  .key = NCKEY_DOWN, }, // FIXME plus modifier
     { .tinfo = "kDN7",  .key = NCKEY_DOWN, }, // FIXME plus modifier
-    { .tinfo = "kEND",  .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND",  .key = NCKEY_END, .shift = 1, },
     { .tinfo = "kEND1", .key = NCKEY_END, }, // FIXME plus modifier
     { .tinfo = "kEND2", .key = NCKEY_END, }, // FIXME plus modifier
     { .tinfo = "kEND3", .key = NCKEY_END, }, // FIXME plus modifier
     { .tinfo = "kEND4", .key = NCKEY_END, }, // FIXME plus modifier
-    { .tinfo = "kEND5", .key = NCKEY_END, }, // FIXME plus modifier
+    { .tinfo = "kEND5", .key = NCKEY_END, .ctrl = 1, },
     { .tinfo = "kEND6", .key = NCKEY_END, }, // FIXME plus modifier
     { .tinfo = "kEND7", .key = NCKEY_END, }, // FIXME plus modifier
-    { .tinfo = "kHOM",  .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM",  .key = NCKEY_HOME, .shift = 1, },
     { .tinfo = "kHOM1", .key = NCKEY_HOME, }, // FIXME plus modifier
     { .tinfo = "kHOM2", .key = NCKEY_HOME, }, // FIXME plus modifier
     { .tinfo = "kHOM3", .key = NCKEY_HOME, }, // FIXME plus modifier
     { .tinfo = "kHOM4", .key = NCKEY_HOME, }, // FIXME plus modifier
-    { .tinfo = "kHOM5", .key = NCKEY_HOME, }, // FIXME plus modifier
+    { .tinfo = "kHOM5", .key = NCKEY_HOME, .ctrl = 1, },
     { .tinfo = "kHOM6", .key = NCKEY_HOME, }, // FIXME plus modifier
     { .tinfo = "kHOM7", .key = NCKEY_HOME, }, // FIXME plus modifier
-    { .tinfo = "kIC",   .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC",   .key = NCKEY_INS, .shift = 1, },
     { .tinfo = "kIC1",  .key = NCKEY_INS, }, // FIXME plus modifier
     { .tinfo = "kIC2",  .key = NCKEY_INS, }, // FIXME plus modifier
     { .tinfo = "kIC3",  .key = NCKEY_INS, }, // FIXME plus modifier
     { .tinfo = "kIC4",  .key = NCKEY_INS, }, // FIXME plus modifier
-    { .tinfo = "kIC5",  .key = NCKEY_INS, }, // FIXME plus modifier
+    { .tinfo = "kIC5",  .key = NCKEY_INS, .ctrl = 1, },
     { .tinfo = "kIC6",  .key = NCKEY_INS, }, // FIXME plus modifier
     { .tinfo = "kIC7",  .key = NCKEY_INS, }, // FIXME plus modifier
-    { .tinfo = "kLFT",  .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT",  .key = NCKEY_LEFT, .shift = 1, },
     { .tinfo = "kLFT1", .key = NCKEY_LEFT, }, // FIXME plus modifier
     { .tinfo = "kLFT2", .key = NCKEY_LEFT, }, // FIXME plus modifier
     { .tinfo = "kLFT3", .key = NCKEY_LEFT, }, // FIXME plus modifier
     { .tinfo = "kLFT4", .key = NCKEY_LEFT, }, // FIXME plus modifier
-    { .tinfo = "kLFT5", .key = NCKEY_LEFT, }, // FIXME plus modifier
+    { .tinfo = "kLFT5", .key = NCKEY_LEFT, .ctrl = 1, },
     { .tinfo = "kLFT6", .key = NCKEY_LEFT, }, // FIXME plus modifier
     { .tinfo = "kLFT7", .key = NCKEY_LEFT, }, // FIXME plus modifier
-    { .tinfo = "kNXT",  .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT",  .key = NCKEY_PGDOWN, .shift = 1, },
     { .tinfo = "kNXT2", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT3", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT4", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
-    { .tinfo = "kNXT5", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
+    { .tinfo = "kNXT5", .key = NCKEY_PGDOWN, .ctrl = 1, },
     { .tinfo = "kNXT6", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
     { .tinfo = "kNXT7", .key = NCKEY_PGDOWN, }, // FIXME plus modifier
-    { .tinfo = "kPRV",  .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV",  .key = NCKEY_PGUP, .shift = 1, },
     { .tinfo = "kPRV2", .key = NCKEY_PGUP, }, // FIXME plus modifier
     { .tinfo = "kPRV3", .key = NCKEY_PGUP, }, // FIXME plus modifier
     { .tinfo = "kPRV4", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kPRV5", .key = NCKEY_PGUP, }, // FIXME plus modifier
+    { .tinfo = "kPRV5", .key = NCKEY_PGUP, .ctrl = 1, },
     { .tinfo = "kPRV6", .key = NCKEY_PGUP, }, // FIXME plus modifier
     { .tinfo = "kPRV7", .key = NCKEY_PGUP, }, // FIXME plus modifier
-    { .tinfo = "kRIT",  .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT",  .key = NCKEY_RIGHT, .shift = 1, },
     { .tinfo = "kRIT1", .key = NCKEY_RIGHT, }, // FIXME plus modifier
     { .tinfo = "kRIT2", .key = NCKEY_RIGHT, }, // FIXME plus modifier
     { .tinfo = "kRIT3", .key = NCKEY_RIGHT, }, // FIXME plus modifier
     { .tinfo = "kRIT4", .key = NCKEY_RIGHT, }, // FIXME plus modifier
-    { .tinfo = "kRIT5", .key = NCKEY_RIGHT, }, // FIXME plus modifier
+    { .tinfo = "kRIT5", .key = NCKEY_RIGHT, .ctrl = 1, },
     { .tinfo = "kRIT6", .key = NCKEY_RIGHT, }, // FIXME plus modifier
     { .tinfo = "kRIT7", .key = NCKEY_RIGHT, }, // FIXME plus modifier
-    { .tinfo = "kUP",   .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP",   .key = NCKEY_UP, .shift = 1, },
     { .tinfo = "kUP1",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = "kUP2",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = "kUP3",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = "kUP4",  .key = NCKEY_UP, }, // FIXME plus modifier
-    { .tinfo = "kUP5",  .key = NCKEY_UP, }, // FIXME plus modifier
+    { .tinfo = "kUP5",  .key = NCKEY_UP, .ctrl = 1, },
     { .tinfo = "kUP6",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = "kUP7",  .key = NCKEY_UP, }, // FIXME plus modifier
     { .tinfo = NULL,    .key = NCKEY_INVALID, }
@@ -805,15 +817,15 @@ prep_special_keys(ncinputlayer* nc){
       continue;
     }
     if(seq[0] != NCKEY_ESC){
-//fprintf(stderr, "Terminfo's %s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
+      loginfo("%s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
       continue;
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
-    if(ncinputlayer_add_input_escape(nc, seq, k->key)){
+    if(ncinputlayer_add_input_escape(nc, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
   }
-  if(ncinputlayer_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
+  if(ncinputlayer_add_input_escape(nc, CSIPREFIX, NCKEY_CSI, 0, 0, 0)){
     return -1;
   }
   return 0;
