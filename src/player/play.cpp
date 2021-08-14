@@ -27,7 +27,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -k: use direct mode (cannot be used with -L or -d)\n";
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
-  o << " -l loglevel: integer between 0 and 7, goes to stderr'\n";
+  o << " -l loglevel: integer between 0 and 7, goes to stderr\n";
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
