@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 #ifdef  __MINGW64__
-#include <WinCon.h>
 #include <Lmcons.h>
 #define tcgetattr(x, y) (-1)
 #define tcsetattr(x, y, z) (-1)
