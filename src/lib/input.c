@@ -145,14 +145,11 @@ input_free_esctrie(esctrie** eptr){
   }
 }
 
+// multiple input escapes might map to the same input
 static int
 ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t special){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
     logerror("Not an escape: %s (0x%x)\n", esc, special);
-    return -1;
-  }
-  if(!nckey_supppuab_p(special) && special != NCKEY_CSI){
-    logerror("Not a supplementary-b PUA char: %u (0x%x)\n", special, special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -634,6 +631,7 @@ prep_special_keys(ncinputlayer* nc){
     const char* tinfo;
     uint32_t key;
   } keys[] = {
+    { .tinfo = "kcbt",  .key = '\t', }, // FIXME plus shift
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
     { .tinfo = "kcuu1", .key = NCKEY_UP, },
