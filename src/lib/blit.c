@@ -930,7 +930,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   // without bitmap support, NCBLIT_PIXEL decays to NCBLIT_3x2
-  if(!tcache->pixel_draw && setid == NCBLIT_PIXEL){
+  if(!tcache->pixel_draw && !tcache->pixel_draw_late && setid == NCBLIT_PIXEL){
     if(may_degrade){
       setid = NCBLIT_3x2;
     }else{

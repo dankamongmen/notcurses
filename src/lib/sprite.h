@@ -205,8 +205,7 @@ int kitty_blit_selfref(struct ncplane* nc, int linesize, const void* data,
                        int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
-int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               fbuf* f, int y, int x);
+int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x);
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
 
 typedef enum {

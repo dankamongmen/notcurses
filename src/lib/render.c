@@ -975,15 +975,14 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   while( (s = *parent) ){
 //fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
-      int y, x;
-      ncplane_yx(s->n, &y, &x);
-//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
-      int r = sprite_draw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
+//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, nc->margin_t, nc->margin_l, s->n);
+      int r = sprite_draw(&nc->tcache, p, s, f, nc->margin_t, nc->margin_l);
       if(r < 0){
         return -1;
+      }else if(r > 0){
+        bytesemitted += r;
+        nc->rstate.hardcursorpos = true;
       }
-      bytesemitted += r;
-      nc->rstate.hardcursorpos = true;
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
         int y, x;
@@ -1007,6 +1006,34 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
         sprixel_free(s);
         continue;
       }
+    }
+    parent = &s->next;
+  }
+  return bytesemitted;
+}
+
+// bitmap backends which don't use the bytestream (currently only fbcon)
+// need go at the very end, following writeout. pass again, invoking
+// pixel_draw_late if defined.
+static int64_t
+rasterize_sprixels_post(notcurses* nc, ncpile* p){
+  if(!nc->tcache.pixel_draw_late){
+    return 0;
+  }
+  int64_t bytesemitted = 0;
+  sprixel* s;
+  sprixel** parent = &p->sprixelcache;
+  while( (s = *parent) ){
+//fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
+    if(s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_UNSEEN){
+      int offy, offx;
+      ncplane_yx(s->n, &offy, &offx);
+//fprintf(stderr, "5 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, nc->margin_t + offy, nc->margin_l + offx, s->n);
+      int r = nc->tcache.pixel_draw_late(&nc->tcache, s, nc->margin_t + offy, nc->margin_l + offx);
+      if(r < 0){
+        return -1;
+      }
+      bytesemitted += r;
     }
     parent = &s->next;
   }
@@ -1237,6 +1264,7 @@ raster_and_write(notcurses* nc, ncpile* p, fbuf* f){
     ret = -1;
   }
   unblock_signals(&oldmask);
+  rasterize_sprixels_post(nc, p);
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", (const char*)nc->rstate.f.buf);

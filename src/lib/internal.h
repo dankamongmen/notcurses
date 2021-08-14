@@ -730,9 +730,14 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 static inline int
 sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
             int y, int x){
+  if(!ti->pixel_draw){
+    return 0;
+  }
+  int offy, offx;
+  ncplane_yx(s->n, &offy, &offx);
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
-  return ti->pixel_draw(ti, p, s, f, y, x);
+  return ti->pixel_draw(ti, p, s, f, y + offy, x + offx);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
@@ -749,6 +754,9 @@ sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     bool noscroll = !ti->sixel_maxy_pristine;
     return ti->pixel_move(s, f, noscroll);
   }else{
+    if(!ti->pixel_draw){
+      return 0;
+    }
     return ti->pixel_draw(ti, p, s, f, y, x);
   }
 }

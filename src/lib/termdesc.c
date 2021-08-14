@@ -53,6 +53,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
     ti->pixel_init = sixel_init;
   }
   ti->pixel_draw = sixel_draw;
+  ti->pixel_draw_late = NULL;
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_wipe = sixel_wipe;
   ti->pixel_remove = NULL;
@@ -79,6 +80,7 @@ setup_iterm_bitmaps(tinfo* ti, int fd){
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_scroll = NULL;
   ti->pixel_draw = iterm_draw;
+  ti->pixel_draw_late = NULL;
   ti->pixel_wipe = iterm_wipe;
   ti->pixel_rebuild = iterm_rebuild;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
@@ -94,6 +96,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
+  ti->pixel_draw_late = NULL;
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_scroll = NULL;
@@ -124,7 +127,8 @@ static inline void
 setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_rebuild = fbcon_rebuild;
   ti->pixel_wipe = fbcon_wipe;
-  ti->pixel_draw = fbcon_draw;
+  ti->pixel_draw = NULL;
+  ti->pixel_draw_late = fbcon_draw;
   ti->pixel_scroll = fbcon_scroll;
   ti->pixel_scrub = fbcon_scrub;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
@@ -887,7 +891,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     goto err;
   }
   build_supported_styles(ti);
-  if(ti->pixel_draw == NULL){
+  if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
     if(kittygraphs){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
     }
