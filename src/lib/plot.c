@@ -111,7 +111,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   if(pixels == NULL){ \
     return -1; \
   } \
-  memset(pixels, 0, dimy * dimx * states * scale); \
+  memset(pixels, 0, dimy * dimx * states * scale * sizeof(*pixels)); \
   int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
   for(int x = finalx ; x >= startx ; --x){ \
     /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
@@ -186,7 +186,21 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
   } \
   ncplane_home(ncp->plot.ncp); \
-fprintf(stderr, "PIXELS: %p\n", pixels); free(pixels); /* FIXME */ \
+  struct ncvisual* ncv = ncvisual_from_rgba(pixels, dimy * states, dimx * scale * 4, dimx * scale); \
+  free(pixels); \
+  if(ncv == NULL){ \
+    return -1; \
+  } \
+  struct ncvisual_options vopts = { \
+    .n = ncp->plot.ncp, \
+    .blitter = NCBLIT_PIXEL, \
+    .flags = NCVISUAL_OPTION_NODEGRADE, \
+  }; \
+  if(ncvisual_render(ncplane_notcurses(ncp->plot.ncp), ncv, &vopts) == NULL){ \
+    ncvisual_destroy(ncv); \
+    return -1; \
+  } \
+  ncvisual_destroy(ncv); \
   return 0; \
 } \
 \
