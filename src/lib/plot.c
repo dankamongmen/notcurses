@@ -43,19 +43,204 @@ typedef struct nc##X##plot { \
   ncplot plot; \
 } nc##X##plot; \
 \
-int redraw_plot_##T(nc##X##plot* ncp){ \
-  ncplane_erase(ncp->plot.ncp); \
-  const int scale = ncp->plot.bset->geom == NCBLIT_PIXEL ? \
-      ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx : ncp->plot.bset->width; \
+int redraw_pixelplot_##T(nc##X##plot* ncp){ \
+  const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
   int dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
   const int scaleddim = dimx * scale; \
   /* each transition is worth this much change in value */ \
-  const size_t states = (ncp->plot.bset->geom == NCBLIT_PIXEL ? \
-      ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy : ncp->plot.bset->height) + 1; \
+  const size_t states = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
-     interval is one row's range (for linear plots), or the base (base^slots== \
-     maxy-miny) of the range (for exponential plots). */ \
+     interval is one row's range (for linear plots), or the base \
+     (base^slots == maxy-miny) of the range (for exponential plots). */ \
+  double interval; \
+  if(ncp->plot.exponentiali){ \
+    if(ncp->maxy > ncp->miny){ \
+      interval = pow(ncp->maxy - ncp->miny, (double)1 / (dimy * states)); \
+/* fprintf(stderr, "miny: %ju maxy: %ju dimy: %d states: %zu\n", miny, maxy, dimy, states); */ \
+    }else{ \
+      interval = 0; \
+    } \
+  }else{ \
+    interval = ncp->maxy < ncp->miny ? 0 : (ncp->maxy - ncp->miny) / ((double)dimy * states); \
+  } \
+  const int startx = ncp->plot.labelaxisd ? PREFIXCOLUMNS : 0; /* plot cols begin here */ \
+  /* if we want fewer slots than there are available columns, our final column \
+     will be other than the plane's final column. most recent x goes here. */ \
+  const int finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
+                     startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
+  ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
+  if(ncp->plot.labelaxisd){ \
+    /* show the *top* of each interval range */ \
+    for(int y = 0 ; y < dimy ; ++y){ \
+      uint64_t channels = 0; \
+      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, 0, dimy, dimx); \
+      ncplane_set_channels(ncp->plot.ncp, channels); \
+      char buf[PREFIXSTRLEN + 1]; \
+      if(ncp->plot.exponentiali){ \
+        if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
+          ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
+        }else{ \
+          ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0'); \
+        } \
+      }else{ \
+        ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
+      } \
+      if(y == dimy - 1 && strlen(ncp->plot.title)){ \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s %s", buf, ncp->plot.title); \
+      }else{ \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf); \
+      } \
+    } \
+  }else if(strlen(ncp->plot.title)){ \
+    uint64_t channels = 0; \
+    calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                           ncp->plot.maxchannels, ncp->plot.maxchannels, dimy - 1, 0, dimy, dimx); \
+    ncplane_set_channels(ncp->plot.ncp, channels); \
+    ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
+  } \
+  ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
+  if(finalx < startx){ /* exit on pathologically narrow planes */ \
+    return 0; \
+  } \
+  if(!interval){ \
+    interval = 1; \
+  } \
+  uint32_t* pixels = malloc(dimy * dimx * states * scale); \
+  if(pixels == NULL){ \
+    return -1; \
+  } \
+  memset(pixels, 0, dimy * dimx * states * scale); \
+  int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
+  for(int x = finalx ; x >= startx ; --x){ \
+    /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
+    T gvals[scale]; \
+    /* load it retaining the same ordering we have in the actual array */ \
+    for(int i = scale - 1 ; i >= 0 ; --i){ \
+      gvals[i] = ncp->slots[idx]; /* clip the value at the limits of the graph */ \
+      if(gvals[i] < ncp->miny){ \
+        gvals[i] = ncp->miny; \
+      } \
+      if(gvals[i] > ncp->maxy){ \
+        gvals[i] = ncp->maxy; \
+      } \
+      /* FIXME if there are an odd number, only go up through the valid ones... */ \
+      if(--idx < 0){ \
+        idx = ncp->plot.slotcount - 1; \
+      } \
+    } \
+    /* starting from the least-significant row, progress in the more significant \
+       direction, prepping pixels, aborting early if we can't draw anything in a \
+       given cell. */ \
+    T intervalbase = ncp->miny; \
+    const wchar_t* egc = ncp->plot.bset->plotegcs; \
+    bool done = !ncp->plot.bset->fill; \
+    for(int y = 0 ; y < dimy ; ++y){ \
+      uint64_t channels = 0; \
+      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
+      ncplane_set_channels(ncp->plot.ncp, channels); \
+      if(egc){ \
+        size_t egcidx = 0, sumidx = 0; \
+        /* if we've got at least one interval's worth on the number of positions \
+          times the number of intervals per position plus the starting offset, \
+          we're going to print *something* */ \
+        for(int i = 0 ; i < scale ; ++i){ \
+          sumidx *= states; \
+          if(intervalbase < gvals[i]){ \
+            if(ncp->plot.exponentiali){ \
+              /* we want the log-base-interval of gvals[i] */ \
+              double scaled = log(gvals[i] - ncp->miny) / log(interval); \
+              double sival = intervalbase ? log(intervalbase) / log(interval) : 0; \
+              egcidx = scaled - sival; \
+            }else{ \
+              egcidx = (gvals[i] - intervalbase) / interval; \
+            } \
+            if(egcidx >= states){ \
+              egcidx = states - 1; \
+              done = false; \
+            } \
+            sumidx += egcidx; \
+          }else{ \
+            egcidx = 0; \
+          } \
+  /* printf(stderr, "y: %d i(scale): %d gvals[%d]: %ju egcidx: %zu sumidx: %zu interval: %f intervalbase: %ju\n", y, i, i, gvals[i], egcidx, sumidx, interval, intervalbase); */ \
+        } \
+        /* if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise \
+          we would have errored out during construction). even then, however, \
+          we need handle ASCII differently, since it can't print full block. \
+          in ASCII mode, sumidx != 0 means swap colors and use space. in all \
+          modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
+  /* if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]); */ \
+        if(sumidx){ \
+          if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
+            char utf8[MB_CUR_MAX + 1]; \
+            int bytes = wctomb(utf8, egc[sumidx]); \
+            if(bytes < 0){ \
+              free(pixels); \
+              return -1; \
+            } \
+            utf8[bytes] = '\0'; \
+            nccell* c = ncplane_cell_ref_yx(ncp->plot.ncp, dimy - y - 1, x); \
+            cell_set_bchannel(c, ncchannels_bchannel(channels)); \
+            cell_set_fchannel(c, ncchannels_fchannel(channels)); \
+            nccell_set_styles(c, NCSTYLE_NONE); \
+            if(pool_blit_direct(&ncp->plot.ncp->pool, c, utf8, bytes, 1) <= 0){ \
+              free(pixels); \
+              return -1; \
+            } \
+          }else{ \
+            const uint64_t swapbg = ncchannels_bchannel(channels); \
+            const uint64_t swapfg = ncchannels_fchannel(channels); \
+            ncchannels_set_bchannel(&channels, swapfg); \
+            ncchannels_set_fchannel(&channels, swapbg); \
+            ncplane_set_channels(ncp->plot.ncp, channels); \
+            if(ncplane_putchar_yx(ncp->plot.ncp, dimy - y - 1, x, ' ') <= 0){ \
+              free(pixels); \
+              return -1; \
+            } \
+            ncchannels_set_bchannel(&channels, swapbg); \
+            ncchannels_set_fchannel(&channels, swapfg); \
+            ncplane_set_channels(ncp->plot.ncp, channels); \
+          } \
+        } \
+        if(done){ \
+          break; \
+        } \
+      } \
+      if(ncp->plot.exponentiali){ \
+        intervalbase = ncp->miny + pow(interval, (y + 1) * states - 1); \
+      }else{ \
+        intervalbase += (states * interval); \
+      } \
+    } \
+  } \
+  if(ncp->plot.printsample){ \
+    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
+    ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
+    ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+  } \
+  ncplane_home(ncp->plot.ncp); \
+fprintf(stderr, "PIXELS: %p\n", pixels); free(pixels); /* FIXME */ \
+  return 0; \
+} \
+\
+int redraw_plot_##T(nc##X##plot* ncp){ \
+  if(ncp->plot.bset->geom == NCBLIT_PIXEL){ \
+    return redraw_pixelplot_##T(ncp); \
+  } \
+  ncplane_erase(ncp->plot.ncp); \
+  const int scale = ncp->plot.bset->width; \
+  int dimy, dimx; \
+  ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
+  const int scaleddim = dimx * scale; \
+  /* each transition is worth this much change in value */ \
+  const size_t states = ncp->plot.bset->height + 1; \
+  /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
+     interval is one row's range (for linear plots), or the base \
+     (base^slots == maxy-miny) of the range (for exponential plots). */ \
   double interval; \
   if(ncp->plot.exponentiali){ \
     if(ncp->maxy > ncp->miny){ \
@@ -113,7 +298,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
   for(int x = finalx ; x >= startx ; --x){ \
     /* a single column might correspond to more than 1 ('scale', up to \
-       MAXWIDTH) slot's worth of samples. prepare the working gval set. */ \
+       MAXWIDTH) slots' worth of samples. prepare the working gval set. */ \
     T gvals[MAXWIDTH]; \
     /* load it retaining the same ordering we have in the actual array */ \
     for(int i = scale - 1 ; i >= 0 ; --i){ \
