@@ -439,7 +439,13 @@ int main(int argc, const char** argv){
     return EXIT_FAILURE;
   }
   const char indent[] = "";
-  struct ncplane* stdn = notcurses_stdplane(nc);
+  int dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);
+  if(dimx < 80){
+    notcurses_stop(nc);
+    fprintf(stderr, "This program requires at least 80 columns.\n");
+    return EXIT_FAILURE;
+  }
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
