@@ -120,10 +120,7 @@ error:
 }
 
 int fbcon_scrub(const struct ncpile* p, sprixel* s){
-  (void)p;
-  (void)s;
-  return 0;
-  //return sixel_scrub(p, s);
+  return sixel_scrub(p, s);
 }
 
 #ifdef __linux__
@@ -172,9 +169,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 1;
 }
 
-int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
-  (void)p;
-  (void)f; // we don't write to the stream
+int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   int wrote = 0;
   for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
@@ -688,11 +683,9 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 0;
 }
 
-int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, fbuf* f, int y, int x){
+int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   (void)ti;
-  (void)p;
   (void)s;
-  (void)f;
   (void)y;
   (void)x;
   return 0;

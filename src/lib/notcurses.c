@@ -1041,7 +1041,7 @@ recursive_lock_init(pthread_mutex_t *lock){
 }
 
 int notcurses_check_pixel_support(const notcurses* nc){
-  if(nc->tcache.pixel_draw){
+  if(nc->tcache.pixel_draw || nc->tcache.pixel_draw_late){
     return 1;
   }
   return 0;
