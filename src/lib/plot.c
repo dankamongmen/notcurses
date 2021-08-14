@@ -165,8 +165,10 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         } \
         /* FIXME take egcidx into account for height */ \
         for(size_t yy = 0 ; yy < states ; ++yy){ \
-          int poff = (prow + yy) * dimx * scale + pcol; \
-          pixels[poff] = htole(0xfffffffflu); /* FIXME use real colors */ \
+          for(int xx = 0 ; xx < scale ; ++xx){ \
+            int poff = (prow + yy) * dimx * scale + pcol + xx; \
+            pixels[poff] = htole(0xfffffffflu); /* FIXME use real colors */ \
+          } \
         } \
       } \
       if(done){ \
