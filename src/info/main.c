@@ -309,7 +309,6 @@ display_logo(struct ncplane* n, const char* path){
   if(ncv == NULL){
     return -1;
   }
-  // FIXME ought be exactly 4:1
   if(ncvisual_resize(ncv, 3 * cpixy, 24 * cpixx)){
     ncvisual_destroy(ncv);
     return -1;
