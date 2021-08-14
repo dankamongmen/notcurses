@@ -126,7 +126,11 @@ emoji_viz(struct ncplane* n){
       }
     }
   }
-  finish_line(n);
+  int x;
+  ncplane_cursor_yx(n, NULL, &x);
+  while(x++ < 80){
+    ncplane_putchar(n, ' ');
+  }
   return 0;
 }
 
@@ -291,10 +295,10 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
-    ncplane_cursor_move_yx(n, y - 16, 0);
-    ncplane_stain(n, y - 2, 79, ul, ur, ll, lr);
+    ncplane_cursor_move_yx(n, y - 15, 0);
+    ncplane_stain(n, y - 1, 79, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-    ncplane_cursor_move_yx(n, y - 13, 54);
+    ncplane_cursor_move_yx(n, y - 12, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
