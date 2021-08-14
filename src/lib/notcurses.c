@@ -282,21 +282,21 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
 #else
   CONSOLE_SCREEN_BUFFER_INFO csbi;
   int columns, rows;
-  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-  if(cols){
-    *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+  if(GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)){
+    if(cols){
+      *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+    if(rows){
+      *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    }
+  }else{
+    if(rows){
+      *rows = tcache->default_rows;
+    }
+    if(cols){
+      *cols = tcache->default_cols;
+    }
   }
-  if(rows){
-    *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-  }
-  /*
-  if(rows){
-    *rows = tcache->default_rows;
-  }
-  if(cols){
-    *cols = tcache->default_cols;
-  }
-  */
 #endif
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
