@@ -135,9 +135,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
        given cell. */ \
     T intervalbase = ncp->miny; \
     bool done = !ncp->plot.bset->fill; \
-    int pcol = 0; /* column of pixels to which we're writing */ \
     for(int y = 0 ; y < dimy ; ++y){ \
-      int prow = y * states; /* row of pixels we start at */ \
       uint64_t channels = 0; \
       calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
                              ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
@@ -163,10 +161,11 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         }else{ \
           egcidx = 0; \
         } \
-        /* FIXME take egcidx into account for height */ \
+        /* FIXME take egcidx into account for height..scale is wide, states is high */ \
+/*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
         for(size_t yy = 0 ; yy < states ; ++yy){ \
           for(int xx = 0 ; xx < scale ; ++xx){ \
-            int poff = (prow + yy) * dimx * scale + pcol + xx; \
+            int poff = x * scale + xx + ((y * states + yy) * dimx * scale); \
             pixels[poff] = htole(0xfffffffflu); /* FIXME use real colors */ \
           } \
         } \
