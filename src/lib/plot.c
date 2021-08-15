@@ -435,8 +435,8 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.rangex = opts->rangex; \
   /* if we're sizing the plot based off the plane dimensions, scale it by the \
      plot geometry's width for all calculations */ \
-  const int scaleddim = dimx * bset->width; \
-  const int scaledprefixlen = PREFIXCOLUMNS * bset->width; \
+  const int scaleddim = dimx * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
+  const int scaledprefixlen = PREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
   if((ncpp->plot.slotcount = ncpp->plot.rangex) == 0){ \
     ncpp->plot.slotcount = scaleddim; \
   } \
