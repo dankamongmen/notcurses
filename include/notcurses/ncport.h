@@ -18,6 +18,13 @@ extern "C" {
 #include <poll.h>
 #include <netinet/in.h>
 #include <termios.h>
+#endif
+
+#if defined(__gnu_hurd__)                         // Hurd
+#define wcwidth(w) 1       // FIXME lol, no
+#define wcswidth(w, s) (s) // FIXME lol, no
+#endif
+
 #if defined(__linux__) || defined(__gnu_hurd__)   // Linux/Hurd
 #include <byteswap.h>
 #define htole(x) (__bswap_32(htonl(x)))
@@ -27,7 +34,6 @@ extern "C" {
 #else                                             // BSD
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
-#endif
 #endif
 
 #ifdef __cplusplus
