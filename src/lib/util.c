@@ -44,7 +44,7 @@ char* notcurses_hostname(void){
   }
 #else // windows
   char lp[MAX_COMPUTERNAME_LENGTH + 1];
-  LPDWORD s = sizeof(lp);
+  DWORD s = sizeof(lp);
   if(GetComputerNameA(lp, &s)){
     return strdup(lp);
   }
