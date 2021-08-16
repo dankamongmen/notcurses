@@ -10,7 +10,7 @@ extern "C" {
 // 32-bit values to little-endian (as used in the nccell gcluster field). This
 // ought be defined so that it's a a no-op on little-endian builds.
 
-#ifndef(__MINGW64__)                              // All but Windows
+#ifndef __MINGW64__                               // All but Windows
 #include <poll.h>
 #include <netinet/in.h>
 #include <termios.h>
