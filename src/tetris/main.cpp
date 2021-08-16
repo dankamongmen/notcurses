@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <clocale>
 #include <unistd.h>
+#include <cinttypes>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
 #include "builddef.h"
