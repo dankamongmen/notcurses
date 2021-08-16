@@ -7,6 +7,9 @@ rearrangements of Notcurses.
     deprecated for ABI3. New code ought not be written using it.
   * Added `ncplane_scrollup()` and `ncplane_scrollup_child()`.
   * Fixed grotesque errors in `ncplane_set_*_palindex()`.
+  * Removed support for the iTerm2 graphics protocol, which is unsuitable for
+    the Notcurses model. macOS users who want graphics are recommended to use
+    Kitty or WezTerm. It will be added back if it gains necessary capabilities.
 
 * 2.3.13 (2021-08-04)
   * Added the portable utility functions `notcurses_accountname()` and
