@@ -353,8 +353,6 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       }
     }else if(ti->pixel_draw_late){
       ncplane_printf(n, "%sframebuffer graphics supported", indent);
-    }else if(ti->pixel_move == NULL){
-      ncplane_printf(n, "%siTerm2 graphics support", indent);
     }else if(ti->sixel_maxy_pristine){
       ncplane_printf(n, "%srgba pixel graphics support", indent);
     }else{

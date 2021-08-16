@@ -67,27 +67,6 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   sprite_init(ti, fd);
 }
 
-// iterm2 has a container-based protocol
-static inline void
-setup_iterm_bitmaps(tinfo* ti, int fd){
-  ti->pixel_init = NULL;
-  ti->pixel_shutdown = NULL;
-  ti->pixel_remove = NULL;
-  // be awarre: absence of pixel_move plus absence of sixel details is used by
-  // notcurses-info to determine iTerm2 support.
-  ti->pixel_move = NULL;
-  ti->color_registers = 0;
-  ti->pixel_scrub = sixel_scrub;
-  ti->pixel_scroll = NULL;
-  ti->pixel_draw = iterm_draw;
-  ti->pixel_draw_late = NULL;
-  ti->pixel_wipe = iterm_wipe;
-  ti->pixel_rebuild = iterm_rebuild;
-  ti->pixel_trans_auxvec = kitty_trans_auxvec;
-  set_pixel_blitter(iterm_blit);
-  sprite_init(ti, fd);
-}
-
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
 // lacked animation, and must thus redraw the complete image every time it
 // changes. requires the older interface.
@@ -578,7 +557,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    setup_iterm_bitmaps(ti, ti->ttyfd);
   }else if(qterm == TERMINAL_APPLE){
     termname = "Terminal.app";
     // no quadrants, no sextants, no rgb, but it does have braille

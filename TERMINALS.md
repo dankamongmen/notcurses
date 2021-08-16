@@ -118,7 +118,7 @@ Color Erase) capability, but Notcurses never relies on `bce` behavior.
 ### WezTerm
 
 WezTerm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
-interesting underline options, and the iTerm2 graphic protocol.
+interesting underline options, and both the Sixel and Kitty graphic protocols.
 
 ### GNU screen
 
