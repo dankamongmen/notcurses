@@ -90,5 +90,5 @@ jobs:
         run: |
           cd rust
           rustc --version
-          cargo build
+          #cargo build
           #cargo t_all
