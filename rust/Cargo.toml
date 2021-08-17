@@ -1,6 +1,6 @@
 [package]
 name = "libnotcurses-sys"
-version = "2.3.13"
+version = "2.3.14"
 authors = [
     "nick black <dankamongmen@gmail.com>",
 		"José Luis Cruz <joseluis@andamira.net>"
