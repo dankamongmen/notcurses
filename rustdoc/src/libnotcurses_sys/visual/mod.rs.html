@@ -1,7 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/visual/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/visual/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -253,7 +252,7 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="comment">// functions already exported by bindgen : 26</span>
 <span class="comment">// -----------------------------------------</span>
 <span class="comment">// (W) wrap: 22</span>
@@ -314,24 +313,24 @@
 <span class="doccomment">/// [`NcVisual.resize_noninterpolative`][NcVisual#method.resize_noninterpolative]</span>
 <span class="doccomment">/// are changing that original frame.</span>
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e</span>;
 
 <span class="doccomment">/// Maintains original size.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e_NCSCALE_NONE</span>;
 
 <span class="doccomment">/// Maintains aspect ratio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e_NCSCALE_SCALE</span>;
 
 <span class="doccomment">/// Throws away aspect ratio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_STRETCH</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_STRETCH</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_STRETCH</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e_NCSCALE_STRETCH</span>;
 
 <span class="doccomment">/// Maintains original size, admitting high-resolution blitters</span>
 <span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE_HIRES</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e_NCSCALE_NONE_HIRES</span>;
 
 <span class="doccomment">/// Maintains aspect ratio, admitting high-resolution blitters</span>
 <span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE_HIRES</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncscale_e_NCSCALE_SCALE_HIRES</span>;
 
 <span class="doccomment">/// A visual bit of multimedia.</span>
 <span class="doccomment">///</span>
@@ -341,7 +340,7 @@
 <span class="doccomment">/// - [.geom][NcVisual#method.geom]</span>
 <span class="doccomment">/// - [.render][NcVisual#method.render]</span>
 <span class="doccomment">/// - [.simple_streamer][NcVisual#method.simple_streamer]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisual</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisual</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncvisual</span>;
 
 <span class="doccomment">/// A type alias of [`NcVisual`] (NcDirect ***F**rame*) intended to be used</span>
 <span class="doccomment">/// with its `ncdirectf_*` methods, in [`NcDirect`][crate::NcDirect] mode.</span>
@@ -358,7 +357,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [0]: NcDirectF#method.ncdirectf_geom</span>
 <span class="doccomment">/// [1]: crate::bindings::ffi::ncvgeom</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVGeom</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvgeom</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVGeom</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncvgeom</span>;
 
 <span class="doccomment">/// Options struct for [`NcVisual`]</span>
 <span class="doccomment">///</span>
@@ -368,7 +367,7 @@
 <span class="doccomment">/// will be interpreted as the parent.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A subregion of the visual can be rendered using `begx`, `begy`, `lenx`, and `leny`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisualOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual_options</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisualOptions</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncvisual_options</span>;
 
 <span class="comment">// NcRgba</span>
 <span class="comment">//</span>
@@ -402,10 +401,10 @@
 <span class="comment">// pub type NcBgra = u32;</span>
 
 <span class="doccomment">/// Treats as transparent the color specified in the `transcolor` field.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_ADDALPHA</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_ADDALPHA</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_ADDALPHA</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_ADDALPHA</span>;
 
 <span class="doccomment">/// Uses [`NCALPHA_BLEND`][crate::NCALPHA_BLEND] with visual.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_BLEND</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_BLEND</span>;
 
 <span class="doccomment">/// allows you to indicate that the n field of ncvisual_options refers not to</span>
 <span class="doccomment">/// the plane onto which you&#39;d like to blit, but the parent of a new plane.</span>
@@ -413,19 +412,19 @@
 <span class="doccomment">/// A plane will be created using the other parameters in the ncvisual_options,</span>
 <span class="doccomment">/// as a child of this parent. This means things like, say, vertically centering</span>
 <span class="doccomment">/// a sprixel relative to the standard plane can be done in one step.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_CHILDPLANE</span>;
 
 <span class="doccomment">/// Fails rather than gracefully degrade. See [NcBlitter].</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NODEGRADE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_NODEGRADE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NODEGRADE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_NODEGRADE</span>;
 
 <span class="doccomment">/// Y is an alignment, not absolute.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_VERALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_VERALIGNED</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_VERALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_VERALIGNED</span>;
 
 <span class="doccomment">/// X is an alignment, not absolute.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_HORALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_HORALIGNED</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_HORALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_HORALIGNED</span>;
 
 <span class="doccomment">/// Uses non-interpolative scaling.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NOINTERPOLATE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_NOINTERPOLATE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NOINTERPOLATE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCVISUAL_OPTION_NOINTERPOLATE</span>;
 
 <span class="doccomment">/// The blitter mode to use for rasterizing an [`NcVisual`].</span>
 <span class="doccomment">///</span>
@@ -453,44 +452,44 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If you don&#39;t want this behaviour you have to use [NCVISUAL_OPTION_NODEGRADE]</span>
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: space, compatible with ASCII</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_1x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_1x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_1x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_1x1</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: halves + 1x1 (space)</span>
 <span class="doccomment">/// ▄▀</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_2x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_2x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_2x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_2x1</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: quadrants + 2x1</span>
 <span class="doccomment">/// ▗▐ ▖▀▟▌▙</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_2x2</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_2x2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_2x2</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_2x2</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: sextants</span>
 <span class="doccomment">/// 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_3x2</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_3x2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_3x2</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_3x2</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: four vertical levels</span>
 <span class="doccomment">/// █▆▄▂</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_4x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_4x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_4x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_4x1</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: eight vertical levels</span>
 <span class="doccomment">/// █▇▆▅▄▃▂▁</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_8x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_8x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_8x1</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_8x1</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode using: 4 rows, 2 cols (braille)</span>
 <span class="doccomment">/// ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_BRAILLE</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_BRAILLE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_BRAILLE</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_BRAILLE</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode where the blitter is automatically chosen</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_DEFAULT</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_DEFAULT</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_DEFAULT</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_DEFAULT</span>;
 
 <span class="doccomment">/// Sixel/Pixel mode</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// NCBLIT_PIXEL</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_PIXEL</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_PIXEL</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_PIXEL</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncblitter_e_NCBLIT_PIXEL</span>;
 
 <span class="doccomment">/// Contains the pixel geometry information as returned by the</span>
 <span class="doccomment">/// NcPlane.[pixelgeom()][crate::NcPlane#method.pixelgeom] method.</span>
@@ -507,4 +506,4 @@
     <span class="kw">pub</span> <span class="ident">max_bitmap_x</span>: <span class="ident">NcDim</span>,
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="libnotcurses_sys" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

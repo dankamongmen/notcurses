@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["libnotcurses_sys"] = [{"text":"impl Read for NcFile","synthetic":false,"types":[]}];
+implementors["libnotcurses_sys"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.54.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for <a class=\"struct\" href=\"libnotcurses_sys/struct.NcFile.html\" title=\"struct libnotcurses_sys::NcFile\">NcFile</a>","synthetic":false,"types":["libnotcurses_sys::file::NcFile"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
