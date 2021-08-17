@@ -82,10 +82,9 @@ jobs:
          sudo python3 setup.py install
          python3 examples/000-print-version.py
 
-         # temporarily disabled while broken
-         #- name: rust wrappers
-         #run: |
-         # cd rust
-         # rustc --version
-         # cargo build
-         # cargo t_all
+      - name: rust wrappers
+        run: |
+         cd rust
+         rustc --version
+         cargo build
+         cargo t_all

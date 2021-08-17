@@ -62,18 +62,17 @@ jobs:
           notcurses-pydemo > /dev/null
           ncdirect-pydemo > /dev/null
 
-          # temporarily disabled while failing
-          #      - name: python wrappers (new)
-          #run: |
-          #cd python
-          #python3 setup.py build
-          #sudo python3 setup.py install
-          #python3 examples/000-print-version.py
+      - name: python wrappers (new)
+        run: |
+          cd python
+          python3 setup.py build
+          sudo python3 setup.py install
+          python3 examples/000-print-version.py
 
-          #- name: rust wrappers
-          #run: |
-          #export PKG_CONFIG_PATH="/usr/local/libdata/pkgconfig"
-          #cd rust
-          #rustc --version
-          #cargo build
-          #cargo t_all
+      - name: rust wrappers
+        run: |
+          export PKG_CONFIG_PATH="/usr/local/libdata/pkgconfig"
+          cd rust
+          rustc --version
+          cargo build
+          cargo t_all
