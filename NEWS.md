@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.14 (not yet released)
+* 2.3.15 (2021-08-17)
   * `ncneofetch` has been changed to use "CLI mode" instead of Direct Mode,
     as a proof of concept. It is very likely that Direct Mode will be
     deprecated for ABI3. New code ought not be written using it.

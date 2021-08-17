@@ -1,6 +1,6 @@
 % notcurses_metric(3)
 % nick black <nickblack@linux.com>
-% v2.3.14
+% v2.3.15
 
 # NAME
 
