@@ -1747,8 +1747,8 @@ typedef struct ncvisual_implementation {
 API extern ncvisual_implementation visual_implementation;
 
 static inline char
-path_seperator(void){
-#if defined _WIN32 || defined __CYGWIN__
+path_separator(void){
+#ifdef __MINGW64__
   return '\\';
 #else
   return '/';
@@ -1764,7 +1764,7 @@ prefix_data(const char* base){
   char* path = (char*)malloc(len); // cast for C++ includers
   if(path){
     memcpy(path, NOTCURSES_SHARE, dlen);
-    path[dlen] = path_seperator();
+    path[dlen] = path_separator();
     strcpy(path + dlen + 1, base);
   }
   return path;

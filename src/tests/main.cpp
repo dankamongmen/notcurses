@@ -26,7 +26,7 @@ template <typename T> using uniqptr = std::unique_ptr<T,free_deleter>;
 
 auto find_data(const char* datum) -> uniqptr<char> {
   std::string s = datadir;
-  s += path_seperator();
+  s += path_separator();
   s += datum;
   uniqptr<char> uptr(strdup(s.c_str()));
   return uptr;
