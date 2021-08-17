@@ -78,6 +78,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [kmscon](https://github.com/dvdhrm/kmscon)        | | ❌    | ❌      |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. No actual `ccc` implementation. Sets `COLORTERM=kmscon`.|
 | [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
+| [mintty](https://github.com/mintty/mintty) | ? | ? | ? | ? | ? |
 | [mlterm](https://github.com/arakiken/mlterm)          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
 | rxvt            | ✅                 |  ?    |?       |                                 | Seems unmaintained; many forks exist. |
