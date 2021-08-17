@@ -24,7 +24,7 @@ steps:
     - cd ../rust
     - rustc --version
     - cargo build
-    - cargo t_all
+      #- cargo t_all
 ---
 kind: pipeline
 type: docker
