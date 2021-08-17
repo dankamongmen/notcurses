@@ -53,6 +53,9 @@ path_separator(void){
 
 // FIXME see above; we ought have std::filesystem
 auto path_join(const std::string& dir, const std::string& p) -> std::string {
+  if(dir.empty()){
+    return p;
+  }
   return dir + path_separator() + p;
 }
 
