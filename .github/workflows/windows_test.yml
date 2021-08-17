@@ -76,15 +76,15 @@ jobs:
           cd build
           make install
 
-      - name: python wrappers
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install pypandoc
-          cd cffi
-          python3 setup.py sdist build
-          python3 setup.py install
-          notcurses-pydemo > /dev/null
-          ncdirect-pydemo > /dev/null
+          #- name: python wrappers
+          #run: |
+          #python3 -m pip install --upgrade pip
+          #pip install pypandoc
+          #cd cffi
+          #python3 setup.py sdist build
+          #python3 setup.py install
+          #notcurses-pydemo > /dev/null
+          #ncdirect-pydemo > /dev/null
 
       - name: rust wrappers
         run: |

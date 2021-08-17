@@ -58,16 +58,16 @@ jobs:
           pip install cffi pypandoc
           cd cffi
           python3 setup.py sdist build
-          sudo python3 setup.py install
-          notcurses-pydemo > /dev/null
-          ncdirect-pydemo > /dev/null
+          #sudo python3 setup.py install
+          #notcurses-pydemo > /dev/null
+          #ncdirect-pydemo > /dev/null
 
       - name: python wrappers (new)
         run: |
           cd python
           python3 setup.py build
-          sudo python3 setup.py install
-          python3 examples/000-print-version.py
+          #sudo python3 setup.py install
+          #python3 examples/000-print-version.py
 
       - name: rust wrappers
         run: |
