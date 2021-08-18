@@ -47,6 +47,9 @@ elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
 
+message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
+message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
+
 string(APPEND CMAKE_C_FLAGS_DEBUG " -Og")
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 if("${USE_COVERAGE}")
@@ -61,6 +64,9 @@ if("${USE_COVERAGE}")
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
 endif()
 
+# under msys2 (and all other operating systems) we want pkgconfig. when
+# building with visual studio, don't require it.
+if(NOT MSVC)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(APPLE)
@@ -73,34 +79,7 @@ set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 else()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
-
-# global compiler flags
-add_compile_definitions(_FORTIFY_SOURCE=2)
-add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
-                    -fexceptions -fstrict-aliasing)
-
-message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
-message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
-
 find_package(PkgConfig REQUIRED)
-# don't use REQUIRED with subsequent find_package() operations; we use
-# feature_summary + set_package_properties to fail in one fell swoop.
-find_package(Threads)
-set_package_properties(Threads PROPERTIES TYPE REQUIRED)
-find_package(ZLIB)
-set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
-# platform-specific logics
-if(WIN32)
-  set(LIBRT_LIBRARIES wsock32 ws2_32)
-elseif(NOT APPLE)
-  find_library(LIBM m REQUIRED)
-  find_library(LIBRT rt REQUIRED)
-endif()
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  include_directories(/usr/local/include)
-  link_directories(/usr/local/lib)
-  set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
-endif()
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
@@ -123,6 +102,31 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND FFMpeg)
 elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
+endif()
+endif()
+
+# global compiler flags
+add_compile_definitions(_FORTIFY_SOURCE=2)
+add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
+                    -fexceptions -fstrict-aliasing)
+
+# don't use REQUIRED with subsequent find_package() operations; we use
+# feature_summary + set_package_properties to fail in one fell swoop.
+find_package(Threads)
+set_package_properties(Threads PROPERTIES TYPE REQUIRED)
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
+# platform-specific logics
+if(WIN32)
+  set(LIBRT_LIBRARIES wsock32 ws2_32)
+elseif(NOT APPLE)
+  find_library(LIBM m REQUIRED)
+  find_library(LIBRT rt REQUIRED)
+endif()
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  include_directories(/usr/local/include)
+  link_directories(/usr/local/lib)
+  set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
 endif()
 
 if(${USE_DOCTEST})
