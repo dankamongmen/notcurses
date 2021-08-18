@@ -193,7 +193,7 @@ glyph forms this cursor, and whether it e.g. blinks.
 
 By default, Notcurses disables this cursor in rendered mode. It can be turned
 back on with **notcurses_enable_cursor**, which has immediate effect (there is
-no need to call **notcurses_render(3)**. If already visible, this function
+no need to call **notcurses_render(3)**). If already visible, this function
 updates the location. Each time the physical screen is updated, Notcurses will
 disable the cursor, write the update, move the cursor back to this location,
 and finally make the cursor visible. **notcurses_cursor_yx** retrieves the
