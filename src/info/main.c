@@ -399,7 +399,6 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7));
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors);
   tinfo_debug_cap(n, "rgb", ti->caps.rgb);
-  tinfo_debug_cap(n, "csr", get_escape(ti, ESCAPE_CSR));
   finish_line(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8);

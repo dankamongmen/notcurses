@@ -748,8 +748,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     { ESCAPE_CUU, "cuu", },
     { ESCAPE_CUF, "cuf", },
     { ESCAPE_CUB, "cub", },
-    { ESCAPE_INITC, "initc", },
-    { ESCAPE_GETM, "getm", },
+    { ESCAPE_U7, "u7", },
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_SMXX, "smxx", },
     { ESCAPE_RMXX, "rmxx", },
@@ -760,10 +759,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     { ESCAPE_IND, "ind", },
     { ESCAPE_INDN, "indn", },
     { ESCAPE_CLEAR, "clear", },
-    { ESCAPE_CSR, "csr", },
     { ESCAPE_OC, "oc", },
     { ESCAPE_RMKX, "rmkx", },
-    { ESCAPE_U7, "u7", },
+    { ESCAPE_INITC, "initc", },
     { ESCAPE_MAX, NULL, },
   };
   for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
