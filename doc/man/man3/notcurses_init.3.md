@@ -21,8 +21,8 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
 typedef enum {
-  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
-  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_SILENT,  // print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // default. print diagnostics before we crash/exit
   NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
   NCLOGLEVEL_ERROR,   // we can't keep doing this, but we can do other things
   NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
