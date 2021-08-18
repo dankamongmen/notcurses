@@ -205,7 +205,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     { .name = "Cuneiform", .start = 0x12000, },
     { .name = "Cuneiform (cont.)", .start = 0x12200, },
     { .name = "Byzantine Musical Symbols, Musical Symbols", .start = 0x1d000, },
-    { .name = "Ancient Greek Musical Notation, Mayan Numerals, Tai Xuan Jing, Counting Rods", .start = 0x1d200, },
+    { .name = "Greek Musical Notation, Mayan Numerals, Tai Xuan Jing, Counting Rods", .start = 0x1d200, },
     { .name = "Mathematical Alphanumeric Symbols", .start = 0x1d400, },
     { .name = "Mathematical Alphanumeric Symbols (cont.)", .start = 0x1d600, },
     { .name = "Sutton SignWriting", .start = 0x1d800, },
