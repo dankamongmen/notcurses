@@ -1586,11 +1586,9 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1){
-    fbuf_free(&f);
+  if(fbuf_finalize(f, nc->ttyfp) < 0){
     return -1;
   }
-  fbuf_free(&f);
   ncchannels_set_bg_rgb(&nc->channels, rgb);
   return 0;
 }
@@ -1611,11 +1609,9 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, nc->ttyfp) != 1){
-    fbuf_free(&f);
+  if(fbuf_finalize(f, nc->ttyfp) < 0){
     return -1;
   }
-  fbuf_free(&f);
   ncchannels_set_fg_rgb(&nc->channels, rgb);
   return 0;
 }
