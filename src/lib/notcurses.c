@@ -2264,11 +2264,9 @@ int notcurses_mouse_disable(notcurses* n){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1 || fflush(n->ttyfp) == EOF){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, n->ttyfp) < 0){
     return -1;
   }
-  fbuf_free(&f);
   return 0;
 }
 
