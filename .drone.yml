@@ -75,19 +75,19 @@ steps:
     - python3 setup.py sdist build
     - cd ../python
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-#---
-#kind: pipeline
-#type: docker
-#name: alpine-edge
-#
-#steps:
-#- name: alpine-edge
-#  image: dankamongmen/edge_builder:2021-08-05
-#  commands:
-#    - export LANG=en_US.UTF-8
-#    - export TERM=vt100
-#    - mkdir build
-#    - cd build
-#    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
-#    - make -j2
-#    - ctest --output-on-failure
+---
+kind: pipeline
+type: docker
+name: alpine-edge
+
+steps:
+- name: alpine-edge
+  image: dankamongmen/edge_builder:2021-08-05
+  commands:
+    - export LANG=en_US.UTF-8
+    - export TERM=vt100
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
+    - make -j2
+    - ctest --output-on-failure
