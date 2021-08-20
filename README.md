@@ -88,6 +88,9 @@ Why use this non-standard library?
   and transparent regions. All APIs natively support 24-bit color, quantized
   down as necessary for the terminal.
 
+* Portable support for bitmapped graphics, whether using Sixel, Kitty, the iTerm2
+  protocol, or even the Linux framebuffer console.
+
 * It's Apache2-licensed in its entirety, as opposed to the
   [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html)
   that is the NCURSES license (the latter is [summarized](https://invisible-island.net/ncurses/ncurses-license.html#issues_freer)
