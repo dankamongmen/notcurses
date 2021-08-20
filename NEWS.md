@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.16 (2021-08-19)
+  * Fix `ncdirect_set_*_rgb()` for the case where an emulator has fewer than
+    8 colors, i.e. vt100. This release exists to make unit tests work again
+    on the Alpine and Fedora buildservers.
+
 * 2.3.15 (2021-08-17)
   * `ncneofetch` has been changed to use "CLI mode" instead of Direct Mode,
     as a proof of concept. It is very likely that Direct Mode will be
