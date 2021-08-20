@@ -91,10 +91,12 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     if(level == KITTY_ANIMATION){
       ti->pixel_wipe = kitty_wipe_animation;
       ti->pixel_rebuild = kitty_rebuild_animation;
+      ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_animated);
     }else{
       ti->pixel_wipe = kitty_wipe_selfref;
       ti->pixel_rebuild = kitty_rebuild_selfref;
+      ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_selfref);
     }
   }
