@@ -413,7 +413,7 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
       rescolor = 0x32CD32;
     }
     ncdirect_set_fg_rgb(nc, rescolor);
-    printf("%2zu", i + 1);
+    printf("%2llu", (unsigned long long)(i + 1)); // windows has %zu problems
     ncdirect_set_fg_rgb8(nc, 178, 102, 255);
     printf("│");
     ncdirect_set_fg_rgb(nc, rescolor);

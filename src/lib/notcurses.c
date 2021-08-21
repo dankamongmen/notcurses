@@ -923,23 +923,18 @@ init_banner(const notcurses* nc, fbuf* f){
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d %luB crend %u colors",
+      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d ",
                   nc->stdplane->leny, nc->tcache.cellpixy,
                   nc->stdplane->lenx, nc->tcache.cellpixx,
                   nc->stdplane->leny * nc->tcache.cellpixy,
-                  nc->stdplane->lenx * nc->tcache.cellpixx,
-                  (unsigned long)sizeof(struct crender),
-                  nc->tcache.caps.colors);
+                  nc->stdplane->lenx * nc->tcache.cellpixx);
     }else{
-      fbuf_printf(f, "%d rows %d cols (%sB) %luB crend %u colors",
+      fbuf_printf(f, "%d rows %d cols (%sB) ",
                   nc->stdplane->leny, nc->stdplane->lenx,
-                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
-                  (unsigned long)sizeof(struct crender),
-                  nc->tcache.caps.colors);
+                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0));
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
-      fbuf_putc(f, '+');
       term_fg_rgb8(&nc->tcache, f, 0xe0, 0x60, 0x60);
       fbuf_putc(f, 'r');
       term_fg_rgb8(&nc->tcache, f, 0x60, 0xe0, 0x60);
@@ -948,8 +943,10 @@ init_banner(const notcurses* nc, fbuf* f){
       fbuf_putc(f, 'b');
       term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
+      fbuf_putc(f, '+');
     }
-    fbuf_printf(f, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
+    fbuf_printf(f, "%u colors\n%s%s (%s)\nterminfo from %s zlib %s\n",
+                nc->tcache.caps.colors,
 #ifdef __clang__
             "", // name is contained in __VERSION__
 #else
@@ -960,7 +957,6 @@ init_banner(const notcurses* nc, fbuf* f){
 #endif
 #endif
             __VERSION__,
-            sizeof(nccell),
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
             "LE",
