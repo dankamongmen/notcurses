@@ -799,7 +799,7 @@ prep_special_keys(ncinputlayer* nc){
       continue;
     }
     if(seq[0] != NCKEY_ESC){
-      loginfo("%s is not an escape sequence (%zub)\n", k->tinfo, strlen(seq));
+      loginfo("%s is not an escape sequence\n", k->tinfo);
       continue;
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
@@ -1680,10 +1680,10 @@ void ncinput_extract_clrs(ncinputlayer* ni){
       if(rlen >= sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at){
         rlen = sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at;
       }
-      logdebug("Reading %zu from %d\n", rlen, ni->infd);
+      logdebug("Reading %llu from %d\n", rlen, ni->infd);
       ssize_t r;
       if((r = read(ni->infd, ni->inputbuf + ni->inputbuf_write_at, rlen)) > 0){
-        logdebug("Read %zu from %d\n", r, ni->infd);
+        logdebug("Read %llu from %d\n", r, ni->infd);
         ni->inputbuf_write_at += r;
         if(ni->inputbuf_write_at == sizeof(ni->inputbuf) / sizeof(*ni->inputbuf)){
           ni->inputbuf_write_at = 0;
