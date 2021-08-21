@@ -126,9 +126,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize Notcurses.
   const char* termtype;
-  // If non-NULL, notcurses_render() will write each rendered frame to this
-  // FILE* in addition to outfp. This is used primarily for debugging.
-  FILE* renderfp;
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
@@ -172,10 +169,10 @@ Setting `loglevel` to a value higher than `NCLOGLEVEL_SILENT` will cause
 diagnostics to be printed to `stderr`: you could ensure `stderr` is redirected
 if you make use of this functionality.
 
-It's probably wise to export `NCOPTION_NO_ALTERNATE_SCREEN` to the user (e.g. via
-command line option or environment variable). Developers and motivated users
-might appreciate the ability to manipulate `loglevel` and `renderfp`. The
-remaining options are typically of use only to application authors.
+It's probably wise to export `NCOPTION_NO_ALTERNATE_SCREEN` to the user (e.g.
+via command line option or environment variable). Motivated users might
+appreciate the ability to manipulate `loglevel`. The remaining options are
+typically of use only to application authors.
 
 The Notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
 Only upon a call to `notcurses_render` will the visible terminal display be

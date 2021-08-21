@@ -132,7 +132,7 @@ usage(const char* exe, int status){
   if(n) ncdirect_set_fg_rgb8(n, 0x80, 0xff, 0x80);
   fprintf(out, "%s ", exe);
   const char* options[] = { "-hVkc", "-m margins", "-p path", "-l loglevel",
-                            "-d mult", "-J jsonfile", "-f renderfile", "demospec",
+                            "-d mult", "-J jsonfile", "demospec",
                             NULL };
   for(const char** op = options ; *op ; ++op){
     usage_option(out, n, *op);
@@ -145,7 +145,6 @@ usage(const char* exe, int status){
     "-k", "keep screen; do not switch to alternate",
     "-d", "delay multiplier (non-negative float)",
     "-J", "emit JSON summary to file",
-    "-f", "render to file (in addition to stdout)",
     "-c", "constant PRNG seed, useful for benchmarking",
     "-m", "margin, or 4 comma-separated margins",
     NULL
@@ -243,7 +242,6 @@ ext_demos(struct notcurses* nc, const char* spec){
 static const char*
 handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
   bool constant_seed = false;
-  char *renderfile = NULL;
   *json_output = NULL;
   int c;
   const struct option longopts[] = {
@@ -252,7 +250,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
     { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, },
   };
   int lidx;
-  while((c = getopt_long(argc, argv, "VhckJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
+  while((c = getopt_long(argc, argv, "VhckJ:l:d:p:m:", longopts, &lidx)) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -297,20 +295,8 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
       case 'k':
         opts->flags |= NCOPTION_NO_ALTERNATE_SCREEN;
         break;
-      case 'f':
-        if(opts->renderfp){
-          fprintf(stderr, "-f may only be supplied once\n");
-          usage(*argv, EXIT_FAILURE);
-        }
-        if((opts->renderfp = fopen(optarg, "wb")) == NULL){
-          usage(*argv, EXIT_FAILURE);
-        }
-        break;
       case 'p':
         datadir = optarg;
-        break;
-      case 'r':
-        renderfile = optarg;
         break;
       case 'd':{
         float f;
@@ -333,13 +319,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
   }
   if(!constant_seed){
     srand(time(NULL)); // a classic blunder lol
-  }
-  if(renderfile){
-    opts->renderfp = fopen(renderfile, "wb");
-    if(opts->renderfp == NULL){
-      fprintf(stderr, "Error opening %s for write\n", renderfile);
-      usage(*argv, EXIT_FAILURE);
-    }
   }
   if(optind < argc - 1){
     fprintf(stderr, "Extra argument: %s\n", argv[optind + 1]);
@@ -587,11 +566,6 @@ int main(int argc, char** argv){
   stop_input();
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
-  }
-  if(nopts.renderfp){
-    if(fclose(nopts.renderfp)){
-      fprintf(stderr, "Warning: error closing renderfile\n");
-    }
   }
   struct ncdirect* ncd = ncdirect_init(NULL, stdout, 0);
   if(!ncd){

@@ -68,7 +68,6 @@ impl NcOptions {
     ) -> Self {
         Self {
             termtype: null(),
-            renderfp: null_mut(),
             loglevel,
             margin_t: margin_t as i32,
             margin_r: margin_r as i32,

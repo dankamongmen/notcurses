@@ -82,7 +82,7 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|O!sO!isO!O!O!O!K", keywords,
                                                   &PyLong_Type, &main_fd_object,
-                                                  &term_type, &PyLong_Type, &render_fd_object, &log_level,
+                                                  &term_type, &PyLong_Type, &log_level,
                                                   &margins_str,
                                                   &PyLong_Type, &margin_top, &PyLong_Type, &margin_right, &PyLong_Type, &margin_bottom, &PyLong_Type, &margin_left,
                                                   &flags));
@@ -90,20 +90,6 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
     notcurses_options options = {0};
 
     options.termtype = term_type;
-
-    if (NULL != render_fd_object)
-    {
-        long render_fd = GNU_PY_LONG_CHECK(render_fd_object);
-
-        FILE *renderfp = fdopen((int)render_fd, "w");
-        if (NULL == renderfp)
-        {
-            PyErr_SetString(PyExc_ValueError, "Failed to open render file descriptor.");
-            return NULL;
-        }
-
-        options.renderfp = renderfp;
-    }
 
     options.loglevel = (ncloglevel_e)log_level;
 
