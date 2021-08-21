@@ -9,7 +9,7 @@ notcurses-demo - Show off some Notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h**|**--help**] [**-p** ***path***] [**-d** ***delaymult***]
- [**-l** ***loglevel***] [**-f** ***renderfile***] [**-J** ***jsonfile***] [**-m** ***margins***]
+ [**-l** ***loglevel***] [**-J** ***jsonfile***] [**-m** ***margins***]
  [**-V**|**--version**] [**-kc**] ***demospec***
 
 # DESCRIPTION

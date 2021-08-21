@@ -34,7 +34,6 @@ typedef enum {
 
 typedef struct notcurses_options {
   const char* termtype;
-  FILE* renderfp;
   ncloglevel_e loglevel;
   int margin_t, margin_r, margin_b, margin_l;
   uint64_t flags; // from NCOPTION_* bits

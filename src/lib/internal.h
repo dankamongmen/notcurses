@@ -365,7 +365,6 @@ typedef struct notcurses {
   ncstats stashed_stats; // retain across a context reset, for closing banner
 
   FILE* ttyfp;    // FILE* for writing rasterized data
-  FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options

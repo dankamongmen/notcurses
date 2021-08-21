@@ -1099,7 +1099,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stats.s);
   reset_stats(&ret->stashed_stats);
   ret->ttyfp = outfp;
-  ret->renderfp = opts->renderfp;
   memset(&ret->rstate, 0, sizeof(ret->rstate));
   memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
   memset(&ret->palette, 0, sizeof(ret->palette));
