@@ -37,7 +37,15 @@ int notcurses_enter_alternate_screen(notcurses* nc){
 }
 
 int notcurses_leave_alternate_screen(notcurses* nc){
-  return leave_alternate_screen(nc->ttyfp, &nc->tcache);
+  if(leave_alternate_screen(nc->ttyfp, &nc->tcache)){
+    return -1;
+  }
+  // move to the end of our output
+  if(nc->rstate.logendy < 0){
+    return 0;
+  }
+  ncplane_cursor_move_yx(notcurses_stdplane(nc), nc->rstate.logendy, nc->rstate.logendx);
+  return 0;
 }
 
 // reset the current colors, styles, and palette. called on startup (to purge
