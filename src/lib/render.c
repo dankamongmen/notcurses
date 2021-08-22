@@ -842,7 +842,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
     }
     if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_UNSEEN){
       int y, x;
-      ncplane_yx(s->n, &y, &x);
+      ncplane_abs_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
         if(p != nc->last_pile){
@@ -986,7 +986,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
         int y, x;
-        ncplane_yx(s->n, &y, &x);
+        ncplane_abs_yx(s->n, &y, &x);
         if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
           return -1;
         }
