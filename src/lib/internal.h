@@ -431,26 +431,6 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
                           int* y, int* x, int* scaley, int* scalex,
                           int* leny, int* lenx, const struct blitset** blitter);
 
-static inline int
-ncfputs(const char* ext, FILE* out){
-  int r;
-#ifdef __USE_GNU
-  r = fputs_unlocked(ext, out);
-#else
-  r = fputs(ext, out);
-#endif
-  return r;
-}
-
-static inline int
-ncfputc(char c, FILE* out){
-#ifdef __USE_GNU
-  return putc_unlocked(c, out);
-#else
-  return putc(c, out);
-#endif
-}
-
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);
 
@@ -1082,38 +1062,6 @@ tty_emit(const char* seq, int fd){
 }
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
-
-// reliably flush a FILE*...except you can't, so far as i can tell. at least
-// on glibc, a single fflush() error latches the FILE* error, but ceases to
-// perform any work (even following a clearerr()), despite returning 0 from
-// that point on. thus, after a fflush() error, even on EAGAIN and friends,
-// you can't use the stream any further. doesn't this make fflush() pretty
-// much useless? it sure would seem to, which is why we use an fbuf for
-// all our important I/O, which we then blit with blocking_write(). if you
-// care about your data, you'll do the same.
-static inline int
-ncflush(FILE* out){
-  if(ferror(out)){
-    logerror("Not attempting a flush following error\n");
-  }
-  if(fflush(out) == EOF){
-    logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
-    return -1;
-  }
-  return 0;
-}
-
-static inline int
-term_emit(const char* seq, FILE* out, bool flush){
-  if(!seq){
-    return -1;
-  }
-  if(ncfputs(seq, out) == EOF){
-    logerror("Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
-    return -1;
-  }
-  return flush ? ncflush(out) : 0;
-}
 
 static inline int
 term_bg_palindex(const notcurses* nc, fbuf* f, unsigned pal){

@@ -372,7 +372,8 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
 }
 
 static int
-summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvideo){
+summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvideo){
+  notcurses_leave_alternate_screen(nc);
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
@@ -564,32 +565,24 @@ int main(int argc, char** argv){
   }while(restart_demos);
   ncmenu_destroy(menu);
   stop_input();
+  if(summary_table(nc, spec, canimage, canvideo)){
+    goto err;
+  }
+  free(results);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
-  struct ncdirect* ncd = ncdirect_init(NULL, stdout, 0);
-  if(!ncd){
+  if(json && summary_json(json, spec, dimy, dimx)){
     return EXIT_FAILURE;
   }
-  if(json && summary_json(json, spec, ncdirect_dim_y(ncd), ncdirect_dim_x(ncd))){
-    return EXIT_FAILURE;
-  }
-  // reinitialize without alternate screen to do some coloring
-  if(summary_table(ncd, spec, canimage, canvideo)){
-    ncdirect_stop(ncd);
-    return EXIT_FAILURE;
-  }
-  free(results);
-  ncdirect_stop(ncd);
   return EXIT_SUCCESS;
 
 err:
   stop_input();
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     fprintf(stderr, "At least a %dx%d terminal is required (current: %dx%d)\n",
-            MIN_SUPPORTED_COLS, MIN_SUPPORTED_ROWS, dimx, dimy);
+            MIN_SUPPORTED_ROWS, MIN_SUPPORTED_COLS, dimy, dimx);
   }
   return EXIT_FAILURE;
 }

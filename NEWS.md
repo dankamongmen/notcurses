@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.17 (not yet released)
+  * Added `notcurses_enter_alternate_screen()` and
+    `notcurses_leave_alternate_screen()`.
+
 * 2.3.16 (2021-08-19)
   * Fix `ncdirect_set_*_rgb()` for the case where an emulator has fewer than
     8 colors, i.e. vt100. This release exists to make unit tests work again
