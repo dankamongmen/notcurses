@@ -137,8 +137,6 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     bool done = !ncp->plot.bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
       uint64_t channels = 0; \
-      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
       ncplane_set_channels(ncp->plot.ncp, channels); \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
@@ -166,7 +164,11 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         for(size_t yy = 0 ; yy < states ; ++yy){ \
           for(int xx = 0 ; xx < scale ; ++xx){ \
             int poff = x * scale + xx + ((y * states + yy) * dimx * scale); \
-            pixels[poff] = htole(0xfffffffflu); /* FIXME use real colors */ \
+            calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                                   ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
+            uint32_t color = ncchannels_fg_rgb(channels); \
+            ncpixel_set_a(&color, 0xff); \
+            pixels[poff] = color; \
           } \
         } \
       } \
