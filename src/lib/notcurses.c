@@ -29,7 +29,11 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 }
 
 int notcurses_enter_alternate_screen(notcurses* nc){
-  return enter_alternate_screen(nc->ttyfp, &nc->tcache, true);
+  if(enter_alternate_screen(nc->ttyfp, &nc->tcache, true)){
+    return -1;
+  }
+  ncplane_set_scrolling(notcurses_stdplane(nc), false);
+  return 0;
 }
 
 int notcurses_leave_alternate_screen(notcurses* nc){
