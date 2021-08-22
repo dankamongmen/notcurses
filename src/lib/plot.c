@@ -621,6 +621,7 @@ create_pixelp(ncplot *p, ncplane* n){
   if(((p->pixelp = ncplane_dup(n, NULL)) == NULL)){
     return -1;
   }
+  ncplane_reparent(p->pixelp, n);
   ncplane_move_below(p->pixelp, n);
   uint64_t basechan = 0;
   ncchannels_set_bg_alpha(&basechan, NCALPHA_TRANSPARENT);
