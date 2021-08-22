@@ -1228,9 +1228,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // the alternate screen; we're not even going to bother clearing the screen.
   if(ret->tcache.ttyfd >= 0){
     if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-      if(enter_alternate_screen(ret->ttyfp, &ret->tcache, false)){
-        free_plane(ret->stdplane);
-        goto err;
+      const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
+      if(smcup){
+        if(enter_alternate_screen(ret->ttyfp, &ret->tcache, false)){
+          free_plane(ret->stdplane);
+          goto err;
+        }
       }
       // perform an explicit clear since the alternate screen was requested
       // (smcup *might* clear, but who knows? and it might not have been
