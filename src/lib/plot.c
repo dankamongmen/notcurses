@@ -8,6 +8,7 @@
 // common elements of type-parameterized plots
 typedef struct ncplot {
   ncplane* ncp;
+  ncplane* pixelp; // only used for NCBLIT_PIXEL
   /* sloutcount-element circular buffer of samples. the newest one (rightmost)
      is at slots[slotstart]; they get older as you go back (and around).
      elements. slotcount is max(columns, rangex), less label room. */
@@ -161,14 +162,17 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         } \
         /* FIXME take egcidx into account for height..scale is wide, states is high */ \
 /*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
-        for(size_t yy = 0 ; yy < states ; ++yy){ \
-          for(int xx = 0 ; xx < scale ; ++xx){ \
-            int poff = x * scale + xx + ((y * states + yy) * dimx * scale); \
-            calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                                   ncp->plot.maxchannels, ncp->plot.maxchannels, y * states + yy, x, dimy * states, dimx); \
-            uint32_t color = ncchannels_fg_rgb(channels); \
-            ncpixel_set_a(&color, 0xff); \
-            pixels[poff] = color; \
+        if(egcidx){ \
+          for(size_t yy = 0 ; yy < states ; ++yy){ \
+            for(int xx = 0 ; xx < scale ; ++xx){ \
+              int poff = x * scale + xx + ((y * states + yy) * dimx * scale); \
+              calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                                    ncp->plot.maxchannels, ncp->plot.maxchannels, \
+                                    y * states + yy, x, dimy * states, dimx); \
+              uint32_t color = ncchannels_fg_rgb(channels); \
+              ncpixel_set_a(&color, 0xff); \
+              pixels[poff] = color; \
+            } \
           } \
         } \
       } \
@@ -195,7 +199,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     return -1; \
   } \
   struct ncvisual_options vopts = { \
-    .n = ncp->plot.ncp, \
+    .n = ncp->plot.pixelp, \
     .blitter = NCBLIT_PIXEL, \
     .flags = NCVISUAL_OPTION_NODEGRADE, \
   }; \
@@ -385,7 +389,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   return 0; \
 } \
 \
-static bool \
+static const struct blitset* \
 create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T miny, const T maxy, \
            const T trueminy, const T truemaxy){ \
   ncplot_options zeroed = {}; \
@@ -398,22 +402,22 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   /* if miny == maxy (enabling domain detection), they both must be equal to 0 */ \
   if(miny == maxy && miny){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   if(opts->rangex < 0){ \
     logerror("Supplied negative independent range %d\n", opts->rangex); \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   if(maxy < miny){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   /* DETECTMAXONLY can't be used without domain detection */ \
   if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){ \
     logerror("Supplied DETECTMAXONLY without domain detection"); \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   const notcurses* notc = ncplane_notcurses(n); \
   ncblitter_e blitfxn = opts ? opts->gridtype : NCBLIT_DEFAULT; \
@@ -424,13 +428,13 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   const struct blitset* bset = lookup_blitset(&notc->tcache, blitfxn, degrade_blitter); \
   if(bset == NULL){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   int sdimy, sdimx; \
   ncplane_dim_yx(n, &sdimy, &sdimx); \
   if(sdimx <= 0){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   int dimx = sdimx; \
   ncpp->plot.title = strdup(opts->title ? opts->title : ""); \
@@ -457,7 +461,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->slots = malloc(slotsize); \
   if(ncpp->slots == NULL){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   memset(ncpp->slots, 0, slotsize); \
   ncpp->plot.ncp = n; \
@@ -477,7 +481,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
   redraw_plot_##T(ncpp); \
-  return true; \
+  return bset; \
 } \
 /* if x is less than the window, return -1, as the sample will be thrown away. \
    if the x is within the current window, find the proper slot and update it. \
@@ -549,6 +553,7 @@ static void
 ncplot_destroy(ncplot* n){
   free(n->title);
   ncplane_destroy(n->ncp);
+  ncplane_destroy(n->pixelp);
 }
 
 /* if we're doing domain detection, update the domain to reflect the value we
@@ -624,9 +629,16 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  if(!create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX)){
+  const struct blitset* bset = create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX);
+  if(bset == NULL){
     free(ret);
     return NULL;
+  }
+  if(bset->geom == NCBLIT_PIXEL){
+    if(((ret->plot.pixelp = ncplane_dup(n, NULL)) == NULL)){
+      ncuplot_destroy(ret);
+      return NULL;
+    }
   }
   return ret;
 }
@@ -666,9 +678,16 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  if(!create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX)){
+  const struct blitset* bset = create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX);
+  if(bset == NULL){
     free(ret);
     return NULL;
+  }
+  if(bset->geom == NCBLIT_PIXEL){
+    if(((ret->plot.pixelp = ncplane_dup(n, NULL)) == NULL)){
+      ncdplot_destroy(ret);
+      return NULL;
+    }
   }
   return ret;
 }
