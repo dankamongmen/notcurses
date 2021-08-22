@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-36e970ed699eac13/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../../../../../../../../storage.js"></script><script src="../../../../../../../../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-7755ada2aa2c951a/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../../../../../../../../storage.js"></script><script src="../../../../../../../../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../../../../../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../../../../../../../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../../../../../../../../../../settings.html" title="settings"><img src="../../../../../../../../../../../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -4460,6 +4460,21 @@
 <span id="4458">4458</span>
 <span id="4459">4459</span>
 <span id="4460">4460</span>
+<span id="4461">4461</span>
+<span id="4462">4462</span>
+<span id="4463">4463</span>
+<span id="4464">4464</span>
+<span id="4465">4465</span>
+<span id="4466">4466</span>
+<span id="4467">4467</span>
+<span id="4468">4468</span>
+<span id="4469">4469</span>
+<span id="4470">4470</span>
+<span id="4471">4471</span>
+<span id="4472">4472</span>
+<span id="4473">4473</span>
+<span id="4474">4474</span>
+<span id="4475">4475</span>
 </pre><pre class="rust">
 <span class="comment">/* automatically generated by rust-bindgen 0.57.0 */</span>
 
@@ -5673,8 +5688,7 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; the environment variable TERM is used. Failure to open the terminal&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; definition will result in failure to initialize notcurses.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="ident">termtype</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty::c_char</span>,
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; If non-NULL, notcurses_render() will write each rendered frame to this&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; FILE* in addition to outfp. This is used primarily for debugging.&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; deprecated, must be NULL, will be removed for ABI3 FIXME&quot;</span>]</span>
     <span class="kw">pub</span> <span class="ident">renderfp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>,
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Progressively higher log levels result in more logging to stderr. By&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; default, nothing is printed to stderr once fullscreen service begins.&quot;</span>]</span>
@@ -5751,6 +5765,18 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Destroy a Notcurses context.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_stop</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Shift to the alternate screen, if available. If already using the alternate&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; screen, this returns 0 immediately. If the alternate screen is not&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; available, this returns -1 immediately. Entering the alternate screen turns&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; off scrolling for the standard plane.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_enter_alternate_screen</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Exit the alternate screen. Immediately returns 0 if not currently using the&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; alternate screen.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_leave_alternate_screen</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Return the topmost plane of the pile containing &#39;n&#39;.&quot;</span>]</span>
@@ -6327,6 +6353,10 @@
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_parent_const</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncplane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ncplane</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Get the head of the list of planes bound to &#39;n&#39;.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_boundlist</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Splice ncplane &#39;n&#39; out of the z-buffer, and reinsert it at the top or bottom.&quot;</span>]</span>

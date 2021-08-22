@@ -304,6 +304,7 @@ the primary column (nccell_wide_right_p(c) will return true).</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_base.html" title="libnotcurses_sys::ffi::ncplane_base fn">ncplane_base</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Extract the ncplane’s base nccell into ‘c’. The reference is invalidated if
 ‘ncp’ is destroyed.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_below.html" title="libnotcurses_sys::ffi::ncplane_below fn">ncplane_below</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Return the plane below this one, or NULL if this is at the bottom.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_boundlist.html" title="libnotcurses_sys::ffi::ncplane_boundlist fn">ncplane_boundlist</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Get the head of the list of planes bound to ‘n’.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_box.html" title="libnotcurses_sys::ffi::ncplane_box fn">ncplane_box</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Draw a box with its upper-left corner at the current cursor position, and its
 lower-right corner at ‘ystop’x’xstop’. The 6 cells provided are used to draw the
 upper-left, ur, ll, and lr corners, then the horizontal and vertical lines.
@@ -808,6 +809,10 @@ planes, from all piles. No line has more than 80 columns’ worth of output.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_debug_caps.html" title="libnotcurses_sys::ffi::notcurses_debug_caps fn">notcurses_debug_caps</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"></td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_detected_terminal.html" title="libnotcurses_sys::ffi::notcurses_detected_terminal fn">notcurses_detected_terminal</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Returns the name (and sometimes version) of the terminal, as Notcurses
 has been best able to determine.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_drop_planes.html" title="libnotcurses_sys::ffi::notcurses_drop_planes fn">notcurses_drop_planes</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Destroy all ncplanes other than the stdplane.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_enter_alternate_screen.html" title="libnotcurses_sys::ffi::notcurses_enter_alternate_screen fn">notcurses_enter_alternate_screen</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Shift to the alternate screen, if available. If already using the alternate
+screen, this returns 0 immediately. If the alternate screen is not
+available, this returns -1 immediately. Entering the alternate screen turns
+off scrolling for the standard plane.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_get.html" title="libnotcurses_sys::ffi::notcurses_get fn">notcurses_get</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Read a UTF-32-encoded Unicode codepoint from input. This might only be part
 of a larger EGC. Provide a NULL ‘ts’ to block at length, and otherwise a
 timespec to bound blocking. Returns a single Unicode code point, or
@@ -825,6 +830,8 @@ failure initializing terminfo.</p>
 descriptor becomes available, you can call notcurses_getc_nblock(),
 and input ought be ready. This file descriptor is <em>not</em> necessarily
 the file descriptor associated with stdin (but it might be!).</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_leave_alternate_screen.html" title="libnotcurses_sys::ffi::notcurses_leave_alternate_screen fn">notcurses_leave_alternate_screen</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Exit the alternate screen. Immediately returns 0 if not currently using the
+alternate screen.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_lex_blitter.html" title="libnotcurses_sys::ffi::notcurses_lex_blitter fn">notcurses_lex_blitter</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Lex a blitter.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.notcurses_lex_margins.html" title="libnotcurses_sys::ffi::notcurses_lex_margins fn">notcurses_lex_margins</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Lex a margin argument according to the standard Notcurses definition. There
 can be either a single number, which will define all margins equally, or
