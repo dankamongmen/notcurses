@@ -46,6 +46,7 @@ typedef struct nc##X##plot { \
 \
 int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
+  ncplane_erase(ncp->plot.ncp); \
   int dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
   const int scaleddim = dimx * scale; \
@@ -89,9 +90,11 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
       } \
       if(y == dimy - 1 && strlen(ncp->plot.title)){ \
-        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s %s", buf, ncp->plot.title); \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s %s", \
+                          PREFIXSTRLEN, PREFIXSTRLEN, buf, ncp->plot.title); \
       }else{ \
-        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf); \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s", \
+                          PREFIXSTRLEN, PREFIXSTRLEN, buf); \
       } \
     } \
   }else if(strlen(ncp->plot.title)){ \
@@ -159,10 +162,9 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         }else{ \
           egcidx = 0; \
         } \
-        /* FIXME take egcidx into account for height..scale is wide, states is high */ \
 /*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
         for(size_t yy = 0 ; yy < egcidx ; ++yy){ \
-          int poff = x * scale + i + ((y * states + yy) * dimx * scale); \
+          int poff = x * scale + i + (((dimy - 1 - y) * states + (states - 1 - yy)) * dimx * scale); \
           calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
                                 ncp->plot.maxchannels, ncp->plot.maxchannels, \
                                 y * states + yy, x, dimy * states, dimx); \
