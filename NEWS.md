@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.17 (not yet released)
+* 2.3.17 (2021-08-22)
   * Added `notcurses_enter_alternate_screen()` and
     `notcurses_leave_alternate_screen()`.
   * Added `ncplane_boundlist()`.
