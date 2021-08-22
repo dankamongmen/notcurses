@@ -138,7 +138,6 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     bool done = !ncp->plot.bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
       uint64_t channels = 0; \
-      ncplane_set_channels(ncp->plot.ncp, channels); \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
         we're going to print *something* */ \
@@ -154,7 +153,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
             egcidx = (gvals[i] - intervalbase) / interval; \
           } \
           if(egcidx >= states){ \
-            egcidx = states - 1; \
+            egcidx = states; \
             done = false; \
           } \
         }else{ \
@@ -162,16 +161,14 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
         } \
         /* FIXME take egcidx into account for height..scale is wide, states is high */ \
 /*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
-        if(egcidx){ \
-          for(size_t yy = 0 ; yy < states ; ++yy){ \
-            int poff = x * scale + i + ((y * states + yy) * dimx * scale); \
-            calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                                  ncp->plot.maxchannels, ncp->plot.maxchannels, \
-                                  y * states + yy, x, dimy * states, dimx); \
-            uint32_t color = ncchannels_fg_rgb(channels); \
-            ncpixel_set_a(&color, 0xff); \
-            pixels[poff] = color; \
-          } \
+        for(size_t yy = 0 ; yy < egcidx ; ++yy){ \
+          int poff = x * scale + i + ((y * states + yy) * dimx * scale); \
+          calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                                ncp->plot.maxchannels, ncp->plot.maxchannels, \
+                                y * states + yy, x, dimy * states, dimx); \
+          uint32_t color = ncchannels_fg_rgb(channels); \
+          ncpixel_set_a(&color, 0xff); \
+          pixels[poff] = color; \
         } \
       } \
       if(done){ \
