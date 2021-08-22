@@ -28,6 +28,14 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
   *tweak = atoi(NOTCURSES_VERSION_TWEAK);
 }
 
+int notcurses_enter_alternate_screen(notcurses* nc){
+  return enter_alternate_screen(nc->ttyfp, &nc->tcache, true);
+}
+
+int notcurses_leave_alternate_screen(notcurses* nc){
+  return leave_alternate_screen(nc->ttyfp, &nc->tcache);
+}
+
 // reset the current colors, styles, and palette. called on startup (to purge
 // any preexisting styling) and shutdown (to not affect further programs).
 int reset_term_attributes(const tinfo* ti, fbuf* f){
@@ -1208,12 +1216,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // the alternate screen; we're not even going to bother clearing the screen.
   if(ret->tcache.ttyfd >= 0){
     if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-      const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
-      if(smcup){
-        if(term_emit(smcup, ret->ttyfp, false)){
-          free_plane(ret->stdplane);
-          goto err;
-        }
+      if(enter_alternate_screen(ret->ttyfp, &ret->tcache, false)){
+        free_plane(ret->stdplane);
+        goto err;
       }
       // perform an explicit clear since the alternate screen was requested
       // (smcup *might* clear, but who knows? and it might not have been

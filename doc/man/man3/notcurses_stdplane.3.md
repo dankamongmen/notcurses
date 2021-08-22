@@ -18,6 +18,10 @@ notcurses_stdplane - acquire the standard ncplane
 
 **static inline const struct ncplane* notcurses_stddim_yx_const(const struct notcurses* ***nc***, int* restrict ***y***, int* restrict ***x***);**
 
+**int notcurses_enter_alternate_screen(struct notcurses* ***nc***);**
+
+**int notcurses_leave_alternate_screen(struct notcurses* ***nc***);**
+
 # DESCRIPTION
 
 **notcurses_stdplane** returns a handle to the standard ncplane for the context
@@ -40,13 +44,29 @@ non-**NULL** parameters among **y** and **x**.
 A resize event does not invalidate these references. They can be used until
 **notcurses_stop(3)** is called on the associated **nc**.
 
+**notcurses_enter_alternate_screen** and **notcurses_leave_alternate_screen**
+only have meaning if the terminal implements the "alternate screen" via the
+**smcup** and **rmcup** **terminfo(5)** capabilities (see the discussion of
+**NCOPTION_NO_ALTERNATE_SCREEN** in **notcurses_init(3)**). If not currently
+using the alternate screen, and assuming it is supported,
+**notcurses_enter_alternate_screen** will switch to the alternate screen. This
+redraws the contents, repositions the cursor, and usually makes scrollback
+unavailable. The standard plane will have scrolling disabled upon a move to
+the alternate plane.
+
 # RETURN VALUES
 
-These functions cannot fail when provided a valid **struct notcurses**. They
+**notcurses_enter_alternate_screen** will return -1 if the alternate screen
+is unavailable. Both it and **notcurses_leave_alternate_screen** will return
+-1 on an I/O failure.
+
+Other functions cannot fail when provided a valid **struct notcurses**. They
 will always return a valid pointer to the standard plane.
 
 # SEE ALSO
 
 **notcurses(3)**,
+**notcurses_init(3)**,
 **notcurses_plane(3)**,
-**notcurses_stop(3)**
+**notcurses_stop(3)**,
+**terminfo(5)**

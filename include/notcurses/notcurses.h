@@ -944,6 +944,18 @@ API ALLOC struct notcurses* notcurses_core_init(const notcurses_options* opts, F
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 
+// Shift to the alternate screen, if available. If already using the alternate
+// screen, this returns 0 immediately. If the alternate screen is not
+// available, this returns -1 immediately. Entering the alternate screen turns
+// off scrolling for the standard plane.
+API int notcurses_enter_alternate_screen(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
+
+// Exit the alternate screen. Immediately returns 0 if not currently using the
+// alternate screen.
+API int notcurses_leave_alternate_screen(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
+
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n);
 

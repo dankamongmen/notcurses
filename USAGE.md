@@ -162,7 +162,21 @@ int notcurses_stop(struct notcurses* nc);
 `notcurses_stop` should be called before exiting your program to restore the
 terminal settings and free resources.
 
-notcurses does not typically generate diagnostics (aside from the intro banner
+An application can freely enter and exit the alternate screen:
+
+```c
+// Shift to the alternate screen, if available. If already using the alternate
+// screen, this returns 0 immediately. If the alternate screen is not
+// available, this returns -1 immediately. Entering the alternate screen turns
+// off scrolling for the standard plane.
+int notcurses_enter_alternate_screen(struct notcurses* nc);
+
+// Exit the alternate screen. Immediately returns 0 if not currently using the
+// alternate screen.
+int notcurses_leave_alternate_screen(struct notcurses* nc);
+```
+
+Notcurses does not typically generate diagnostics (aside from the intro banner
 and outro performance summary). When `stderr` is connected to the same terminal
 to which graphics are being printed, printing to stderr will corrupt the output.
 Setting `loglevel` to a value higher than `NCLOGLEVEL_SILENT` will cause
