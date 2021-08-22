@@ -4,6 +4,8 @@ rearrangements of Notcurses.
 * 2.3.17 (not yet released)
   * Added `notcurses_enter_alternate_screen()` and
     `notcurses_leave_alternate_screen()`.
+  * Added `ncplane_boundlist()`.
+  * Plots now support `NCBLIT_PIXEL`!
 
 * 2.3.16 (2021-08-19)
   * Fix `ncdirect_set_*_rgb()` for the case where an emulator has fewer than

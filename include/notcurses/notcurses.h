@@ -1550,8 +1550,14 @@ API int ncplane_abs_y(const struct ncplane* n) __attribute__ ((pure));
 API int ncplane_abs_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the plane to which the plane 'n' is bound, if any.
-API struct ncplane* ncplane_parent(struct ncplane* n);
-API const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+API struct ncplane* ncplane_parent(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+API const struct ncplane* ncplane_parent_const(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Get the head of the list of planes bound to 'n'.
+API struct ncplane* ncplane_boundlist(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return non-zero iff 'n' is a proper descendent of 'ancestor'.
 static inline int

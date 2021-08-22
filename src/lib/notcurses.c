@@ -2416,6 +2416,10 @@ const ncplane* ncplane_parent_const(const ncplane* n){
   return n->boundto;
 }
 
+ncplane* ncplane_boundlist(ncplane* n){
+  return n->blist;
+}
+
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
   if(n == notcurses_stdplane(ncplane_notcurses(n))){
     return;

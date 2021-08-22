@@ -839,6 +839,9 @@ int ncplane_resize_realign(struct ncplane* n);
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 
+// Get the head of the list of planes bound to 'n'.
+struct ncplane* ncplane_boundlist(struct ncplane* n);
+
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
