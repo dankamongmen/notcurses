@@ -164,15 +164,13 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
 /*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
         if(egcidx){ \
           for(size_t yy = 0 ; yy < states ; ++yy){ \
-            for(int xx = 0 ; xx < scale ; ++xx){ \
-              int poff = x * scale + xx + ((y * states + yy) * dimx * scale); \
-              calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                                    ncp->plot.maxchannels, ncp->plot.maxchannels, \
-                                    y * states + yy, x, dimy * states, dimx); \
-              uint32_t color = ncchannels_fg_rgb(channels); \
-              ncpixel_set_a(&color, 0xff); \
-              pixels[poff] = color; \
-            } \
+            int poff = x * scale + i + ((y * states + yy) * dimx * scale); \
+            calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                                  ncp->plot.maxchannels, ncp->plot.maxchannels, \
+                                  y * states + yy, x, dimy * states, dimx); \
+            uint32_t color = ncchannels_fg_rgb(channels); \
+            ncpixel_set_a(&color, 0xff); \
+            pixels[poff] = color; \
           } \
         } \
       } \
