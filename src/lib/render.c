@@ -1027,7 +1027,7 @@ rasterize_sprixels_post(notcurses* nc, ncpile* p){
 //fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_UNSEEN){
       int offy, offx;
-      ncplane_yx(s->n, &offy, &offx);
+      ncplane_abs_yx(s->n, &offy, &offx);
 //fprintf(stderr, "5 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, nc->margin_t + offy, nc->margin_l + offx, s->n);
       int r = nc->tcache.pixel_draw_late(&nc->tcache, s, nc->margin_t + offy, nc->margin_l + offx);
       if(r < 0){
