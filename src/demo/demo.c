@@ -329,29 +329,33 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
 }
 
 static int
-table_segment_color(struct ncdirect* nc, const char* str, const char* delim, unsigned color){
-  ncdirect_set_fg_rgb(nc, color);
-  fputs(str, stdout);
-  ncdirect_set_fg_rgb8(nc, 178, 102, 255);
-  fputs(delim, stdout);
+table_segment_color(struct ncplane* n, const char* str, const char* delim, unsigned color){
+  ncplane_set_fg_rgb(n, color);
+  if(ncplane_putstr(n, str) < 0){
+    return -1;
+  }
+  ncplane_set_fg_rgb8(n, 178, 102, 255);
+  if(ncplane_putstr(n, delim) < 0){
+    return -1;
+  }
   return 0;
 }
 
 static int
-table_segment(struct ncdirect* nc, const char* str, const char* delim){
-  return table_segment_color(nc, str, delim, 0xffffff);
+table_segment(struct ncplane* n, const char* str, const char* delim){
+  return table_segment_color(n, str, delim, 0xffffff);
 }
 
 static int
-table_printf(struct ncdirect* nc, const char* delim, const char* fmt, ...){
-  ncdirect_set_fg_rgb8(nc, 0xD4, 0xAF, 0x37);
+table_printf(struct ncplane* n, const char* delim, const char* fmt, ...){
+  ncplane_set_fg_rgb8(n, 0xD4, 0xAF, 0x37);
   va_list va;
   va_start(va, fmt);
-  vfprintf(stdout, fmt, va);
+  int r = ncplane_vprintf(n, fmt, va);
   va_end(va);
-  ncdirect_set_fg_rgb8(nc, 178, 102, 255);
-  fputs(delim, stdout);
-  return 0;
+  ncplane_set_fg_rgb8(n, 178, 102, 255);
+  ncplane_putstr(n, delim);
+  return r;
 }
 
 static int
@@ -374,20 +378,22 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
 static int
 summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvideo){
   notcurses_leave_alternate_screen(nc);
+  struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_scrolling(n, true);
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
   uint64_t totalrenderns = 0;
   uint64_t totalwriteoutns = 0;
-  printf("\n");
-  table_segment(nc, "             runtime", "│");
-  table_segment(nc, " frames", "│");
-  table_segment(nc, "output(B)", "│");
-  table_segment(nc, "    FPS", "│");
-  table_segment(nc, "%r", "│");
-  table_segment(nc, "%a", "│");
-  table_segment(nc, "%w", "│");
-  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
+  ncplane_putchar(n, '\n');
+  table_segment(n, "             runtime", "│");
+  table_segment(n, " frames", "│");
+  table_segment(n, "output(B)", "│");
+  table_segment(n, "    FPS", "│");
+  table_segment(n, "%r", "│");
+  table_segment(n, "%a", "│");
+  table_segment(n, "%w", "│");
+  table_segment(n, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char tfpsbuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
@@ -413,14 +419,14 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     }else{
       rescolor = 0x32CD32;
     }
-    ncdirect_set_fg_rgb(nc, rescolor);
-    printf("%2llu", (unsigned long long)(i + 1)); // windows has %zu problems
-    ncdirect_set_fg_rgb8(nc, 178, 102, 255);
-    printf("│");
-    ncdirect_set_fg_rgb(nc, rescolor);
-    printf("%8s", demos[results[i].selector - 'a'].name);
-    ncdirect_set_fg_rgb8(nc, 178, 102, 255);
-    printf("│%*ss│%7ju│%*s│%7.1f│%2jd│%2jd│%2jd│%*s║",
+    ncplane_set_fg_rgb(n, rescolor);
+    ncplane_printf(n, "%2llu", (unsigned long long)(i + 1)); // windows has %zu problems
+    ncplane_set_fg_rgb8(n, 178, 102, 255);
+    ncplane_putwc(n, L'│');
+    ncplane_set_fg_rgb(n, rescolor);
+    ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
+    ncplane_set_fg_rgb8(n, 178, 102, 255);
+    ncplane_printf(n, "│%*ss│%7ju│%*s│%7.1f│%2jd│%2jd│%2jd│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf),
            results[i].timens ?
@@ -432,10 +438,10 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
            (uintmax_t)(results[i].timens ?
             results[i].stats.writeout_ns * 100 / results[i].timens : 0),
            PREFIXFMT(tfpsbuf));
-    ncdirect_set_fg_rgb(nc, rescolor);
-    printf("%s\n", results[i].result < 0 ? "FAILED" :
-            results[i].result > 0 ? "ABORTED" :
-             !results[i].stats.renders ? "SKIPPED"  : "");
+    ncplane_set_fg_rgb(n, rescolor);
+    ncplane_printf(n, "%s\n", results[i].result < 0 ? "FAILED" :
+                   results[i].result > 0 ? "ABORTED" :
+                   !results[i].stats.renders ? "SKIPPED"  : "");
     if(results[i].result < 0){
       failed = true;
     }
@@ -446,27 +452,25 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   }
   qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
-  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
-  printf("            ");
-  table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
-  table_printf(nc, "│", "%7lu", totalframes);
-  table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
+  table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
+  ncplane_putstr(n, "            ");
+  table_printf(n, "│", "%*ss", PREFIXFMT(timebuf));
+  table_printf(n, "│", "%7lu", totalframes);
+  table_printf(n, "│", "%*s", BPREFIXFMT(totalbuf));
   //table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
-  printf("\n");
-  ncdirect_set_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
-  fflush(stdout); // in case we print to stderr below, we want color from above
-  if(failed){
-    fprintf(stderr, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
-  }
-  ncdirect_set_fg_rgb8(nc, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
-  fflush(stdout); // in case we print to stderr below, we want color from above
+  ncplane_putchar(n, '\n');
+  ncplane_set_fg_rgb8(n, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
 #ifdef DFSG_BUILD
-  fprintf(stderr, "\nDFSG version. Some demos are unavailable.\n");
+  ncplane_putstr(n, "\nDFSG version. Some demos are unavailable.\n");
 #endif
   if(!canimage){
-    fprintf(stderr, "\nNo multimedia support. Some demos are unavailable.\n");
+    ncplane_putstr(n, "\nNo multimedia support. Some demos are unavailable.\n");
   }else if(!canvideo){
-    fprintf(stderr, "\nNo video support. Some demos are unavailable.\n");
+    ncplane_putstr(n, "\nNo video support. Some demos are unavailable.\n");
+  }
+  ncplane_set_fg_rgb8(n, 0xff, 0xb0, 0xb0);
+  if(failed){
+    ncplane_printf(n, "\nError running demo.\nIs \"%s\" the correct data path? Supply it with -p.\n", datadir);
   }
   return failed;
 }
@@ -565,9 +569,11 @@ int main(int argc, char** argv){
   }while(restart_demos);
   ncmenu_destroy(menu);
   stop_input();
+  notcurses_render(nc); // rid ourselves of any remaining demo output
   if(summary_table(nc, spec, canimage, canvideo)){
     goto err;
   }
+  notcurses_render(nc); // render our summary table
   free(results);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
