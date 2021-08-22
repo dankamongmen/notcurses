@@ -68,7 +68,6 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
     PyObject *main_fd_object = NULL;
 
     const char *term_type = NULL;
-    PyObject *render_fd_object = NULL;
     int log_level = {0};
     const char *margins_str = NULL;
     PyObject *margin_top = NULL, *margin_right = NULL, *margin_bottom = NULL, *margin_left = NULL;
