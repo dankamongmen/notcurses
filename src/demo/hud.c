@@ -664,7 +664,7 @@ int fpsgraph_init(struct notcurses* nc){
   opts.flags = NCPLOT_OPTION_LABELTICKSD |
                NCPLOT_OPTION_EXPONENTIALD |
                NCPLOT_OPTION_PRINTSAMPLE;
-  opts.gridtype = NCBLIT_PIXEL;
+  opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
   opts.title = "frames per semisecond";
   ncchannels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
