@@ -110,6 +110,7 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (OpenImageIO, testing, C++ bindings): A C++17 compiler
 * (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
 * (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
+* (OPTIONAL) (build+runtime) [libgpm](https://www.nico.schottelius.org/software/gpm/) 1.20+
 * (OPTIONAL) (build+runtime) GNU [Readline](https://www.gnu.org/software/readline/) 8.0+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+

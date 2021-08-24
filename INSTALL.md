@@ -12,7 +12,7 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libgpm-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
@@ -30,7 +30,7 @@ If you want to build the Rust wrappers, you'll also need:
 
 Install build dependencies:
 
-`dnf install cmake doctest-devel zlib-devel ncurses-devel readline-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+`dnf install cmake doctest-devel zlib-devel ncurses-devel gpm-devel readline-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
@@ -109,6 +109,7 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 * `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
+* `USE_GPM`: build GPM console mouse support via libgpm
 * `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
