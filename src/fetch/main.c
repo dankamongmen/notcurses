@@ -284,6 +284,7 @@ typedef enum {
   NCNEO_FREEBSD,
   NCNEO_DRAGONFLY,
   NCNEO_XNU,
+  NCNEO_WINDOWS,
   NCNEO_UNKNOWN,
 } ncneo_kernel_e;
 
@@ -309,8 +310,20 @@ get_kernel(fetched_info* fi){
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
 #else
   (void)fi;
+  return NCNEO_WINDOWS;
 #endif
   return NCNEO_UNKNOWN;
+}
+
+static const distro_info*
+windows_ncneofetch(fetched_info* fi){
+  static const distro_info mswin = {
+    .name = "Windows",
+    .logofile = NULL, // FIXME
+  };
+  fi->neologo = get_neofetch_art("Windows");
+  fi->distro_pretty = NULL;
+  return &mswin;
 }
 
 static const distro_info*
@@ -547,7 +560,7 @@ neologo_present(struct notcurses* nc, const char* nlogo){
     ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
   }
   ncplane_off_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  return 0;
+  return notcurses_render(nc);
 }
 
 static void*
@@ -612,6 +625,9 @@ ncneofetch(struct notcurses* nc){
       break;
     case NCNEO_XNU:
       fi.distro = xnu_ncneofetch(&fi);
+      break;
+    case NCNEO_WINDOWS:
+      fi.distro = windows_ncneofetch(&fi);
       break;
     case NCNEO_UNKNOWN:
       break;
