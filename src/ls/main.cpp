@@ -151,6 +151,12 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
     return -1;
   }
+#else
+  if(stat(path_join(pdir, p).c_str(), &st)){
+    std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
+    return -1;
+  }
+#endif
   if((st.st_mode & S_IFMT) == S_IFDIR){
     return handle_dir(dirfd, pdir, p, &st, ctx, toplevel);
   }else if((st.st_mode & S_IFMT) == S_IFLNK){
@@ -159,9 +165,6 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
     }
   }
   return handle_inode(pdir, p, &st, ctx);
-#else
-  return -1;
-#endif
 }
 
 // return long-term return code
