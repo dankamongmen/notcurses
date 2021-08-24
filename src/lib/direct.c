@@ -829,7 +829,7 @@ ncdirect_stop_minimal(void* vnc){
     if(cnorm && tty_emit(cnorm, nc->tcache.ttyfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, nc->tcache.tpreserved);
     ret |= close(nc->tcache.ttyfd);
   }
   ret |= ncdirect_flush(nc);
@@ -897,7 +897,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->tcache.ttyfd >= 0){
-    (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, &ret->tcache.tpreserved);
+    (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
   }
   drop_signals(ret);
   free(ret);
