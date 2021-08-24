@@ -7,6 +7,8 @@ extern "C" {
 
 // internal header, not installed
 
+#include "version.h"
+#include "builddef.h"
 #include "input.h"
 #include <stdint.h>
 #include <pthread.h>
@@ -185,6 +187,7 @@ typedef struct tinfo {
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   const char* termname;     // terminal name from environment variables/init
   char* termversion;        // terminal version (freeform) from query responses
+  queried_terminals_e qterm;// detected terminal class
 #ifndef __MINGW64__
   struct termios tpreserved;// terminal state upon entry
 #endif

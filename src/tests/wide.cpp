@@ -1,7 +1,6 @@
 #include <array>
 #include <cstdlib>
 #include "main.h"
-#include "internal.h"
 
 const char SNAKE[] = "\xf0\x9f\x90\x8d"; // U+1F40D SNAKE
 const char SCORPION[] = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION

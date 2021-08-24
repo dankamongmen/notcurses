@@ -202,6 +202,7 @@ set_target_properties(notcurses-core-static PROPERTIES
   OUTPUT_NAME notcurses-core
 )
 target_include_directories(notcurses-core
+  BEFORE
   PRIVATE
     include
     src
@@ -211,6 +212,7 @@ target_include_directories(notcurses-core
     "${ZLIB_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
+  BEFORE
   PRIVATE
     include
     src
@@ -225,6 +227,7 @@ target_link_libraries(notcurses-core
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
+    "${gpm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -235,6 +238,7 @@ target_link_libraries(notcurses-core-static
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
+    "${gpm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -272,19 +276,19 @@ set_target_properties(notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
 )
 target_include_directories(notcurses
+  BEFORE
   PRIVATE
     include
     src
-    src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
+  BEFORE
   PRIVATE
     include
     src
-    src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
@@ -410,16 +414,19 @@ set_target_properties(
   OUTPUT_NAME "notcurses++")
 
 set(NCPP_INCLUDE_DIRS
-  include
+    "include"
+    "src"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
   )
 
 target_include_directories(notcurses++
+  BEFORE
   PRIVATE ${NCPP_INCLUDE_DIRS}
   )
 
 target_include_directories(notcurses++-static
+  BEFORE
   PRIVATE ${NCPP_INCLUDE_DIRS}
   )
 
@@ -552,7 +559,6 @@ target_compile_definitions(notcurses-info
 target_include_directories(notcurses-info
   PRIVATE
     src
-    src/lib
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
@@ -661,12 +667,12 @@ if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
+  BEFORE
   PRIVATE
     include
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-    src/lib
     "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-tester

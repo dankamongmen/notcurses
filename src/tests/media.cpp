@@ -1,5 +1,5 @@
 #include "main.h"
-#include "visual-details.h"
+#include "lib/visual-details.h"
 #include <vector>
 #include <cmath>
 

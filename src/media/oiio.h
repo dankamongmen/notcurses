@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "internal.h"
+#include "lib/internal.h"
 
 int oiio_decode(ncvisual* nc);
 struct ncvisual_details* oiio_details_init(void);

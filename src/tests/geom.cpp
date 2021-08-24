@@ -1,5 +1,4 @@
 #include "main.h"
-#include "internal.h"
 
 TEST_CASE("Geometry") {
   auto nc_ = testing_notcurses();

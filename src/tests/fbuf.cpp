@@ -1,5 +1,5 @@
 #include "main.h"
-#include "fbuf.h"
+#include "lib/fbuf.h"
 
 TEST_CASE("Fbuf") {
   auto nc_ = testing_notcurses();

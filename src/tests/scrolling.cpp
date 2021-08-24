@@ -1,7 +1,6 @@
 #include "main.h"
 #include <array>
 #include <cstdlib>
-#include "internal.h"
 
 TEST_CASE("Scrolling") {
   auto nc_ = testing_notcurses();
