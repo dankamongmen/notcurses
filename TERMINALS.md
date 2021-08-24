@@ -205,6 +205,11 @@ Note that Notcurses reprograms the console font table when running in the
 Linux console (unless `NCOPTION_NO_FONT_CHANGES` is used). This adds support
 for half blocks and quadrants.
 
+### Windows Terminal
+
+Ensure UTF-8 is being used for "Administrative language settings"
+(see [README.md](README.md)). Codepage 65001 ought be used.
+
 ### 24-bit RGB
 
 Many terminals support one or another form of non-indexed color encoding (also
