@@ -1596,14 +1596,17 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     logerror("couldn't get input handle\n");
     return -1;
   }
-  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
-                         | ENABLE_VIRTUAL_TERMINAL_INPUT
-                         | ENABLE_PROCESSED_INPUT
-                         | ENABLE_WINDOW_INPUT)){
-    logerror("couldn't set input console mode\n");
-    return -1;
+  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
+  // otherwise, we're something else; go ahead and query.
+  if(SetConsoleMode(in, ENABLE_MOUSE_INPUT
+                        | ENABLE_VIRTUAL_TERMINAL_INPUT
+                        | ENABLE_PROCESSED_INPUT
+                        | ENABLE_WINDOW_INPUT)){
+    loginfo("prepared Windows Terminal\n");
+    return 0;
   }
-#else
+  logerror("couldn't set input console mode\n");
+#endif
   // widnows terminal doesn't seem to reply to any queries =/
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
@@ -1643,7 +1646,6 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       *kittygraphs = true;
     }
   }
-#endif
   return 0;
 }
 
