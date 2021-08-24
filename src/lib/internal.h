@@ -10,6 +10,9 @@ extern "C" {
 #include "compat/compat.h"
 #include "notcurses/notcurses.h"
 
+// KEY_EVENT is defined by both ncurses.h and wincon.h. since we don't use
+// either definition, kill it before inclusion of ncurses.h.
+#undef KEY_EVENT
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <time.h>
@@ -29,10 +32,11 @@ extern "C" {
 #ifndef __MINGW64__
 #include <langinfo.h>
 #endif
-#include "termdesc.h"
-#include "egcpool.h"
-#include "sprite.h"
-#include "fbuf.h"
+#include "lib/termdesc.h"
+#include "lib/egcpool.h"
+#include "lib/sprite.h"
+#include "lib/fbuf.h"
+#include "lib/gpm.h"
 
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
@@ -362,7 +366,6 @@ typedef struct notcurses {
   ncstats stashed_stats; // retain across a context reset, for closing banner
 
   FILE* ttyfp;    // FILE* for writing rasterized data
-  FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
@@ -428,26 +431,6 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
                           const struct ncvisual_options* vopts,
                           int* y, int* x, int* scaley, int* scalex,
                           int* leny, int* lenx, const struct blitset** blitter);
-
-static inline int
-ncfputs(const char* ext, FILE* out){
-  int r;
-#ifdef __USE_GNU
-  r = fputs_unlocked(ext, out);
-#else
-  r = fputs(ext, out);
-#endif
-  return r;
-}
-
-static inline int
-ncfputc(char c, FILE* out){
-#ifdef __USE_GNU
-  return putc_unlocked(c, out);
-#else
-  return putc(c, out);
-#endif
-}
 
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);
@@ -730,9 +713,14 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 static inline int
 sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
             int y, int x){
+  if(!ti->pixel_draw){
+    return 0;
+  }
+  int offy, offx;
+  ncplane_yx(s->n, &offy, &offx);
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
-  return ti->pixel_draw(ti, p, s, f, y, x);
+  return ti->pixel_draw(ti, p, s, f, y + offy, x + offx);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
@@ -749,6 +737,9 @@ sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     bool noscroll = !ti->sixel_maxy_pristine;
     return ti->pixel_move(s, f, noscroll);
   }else{
+    if(!ti->pixel_draw){
+      return 0;
+    }
     return ti->pixel_draw(ti, p, s, f, y, x);
   }
 }
@@ -1073,38 +1064,6 @@ tty_emit(const char* seq, int fd){
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
-// reliably flush a FILE*...except you can't, so far as i can tell. at least
-// on glibc, a single fflush() error latches the FILE* error, but ceases to
-// perform any work (even following a clearerr()), despite returning 0 from
-// that point on. thus, after a fflush() error, even on EAGAIN and friends,
-// you can't use the stream any further. doesn't this make fflush() pretty
-// much useless? it sure would seem to, which is why we use an fbuf for
-// all our important I/O, which we then blit with blocking_write(). if you
-// care about your data, you'll do the same.
-static inline int
-ncflush(FILE* out){
-  if(ferror(out)){
-    logerror("Not attempting a flush following error\n");
-  }
-  if(fflush(out) == EOF){
-    logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
-    return -1;
-  }
-  return 0;
-}
-
-static inline int
-term_emit(const char* seq, FILE* out, bool flush){
-  if(!seq){
-    return -1;
-  }
-  if(ncfputs(seq, out) == EOF){
-    logerror("Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
-    return -1;
-  }
-  return flush ? ncflush(out) : 0;
-}
-
 static inline int
 term_bg_palindex(const notcurses* nc, fbuf* f, unsigned pal){
   const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
@@ -1184,7 +1143,10 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
 #define SET_SGR_MODE_MOUSE    "1006"
 
 static inline int
-mouse_enable(FILE* out){
+mouse_enable(tinfo* ti, FILE* out){
+  if(ti->qterm == TERMINAL_LINUX){
+    return gpm_connect(ti);
+  }
 // Sets the shift-escape option, allowing shift+mouse to override the standard
 // mouse protocol (mainly so copy-and-paste can still be performed).
 #define XTSHIFTESCAPE "\x1b[>1s"
@@ -1195,7 +1157,10 @@ mouse_enable(FILE* out){
 }
 
 static inline int
-mouse_disable(fbuf* f){
+mouse_disable(tinfo* ti, fbuf* f){
+  if(ti->qterm == TERMINAL_LINUX){
+    return gpm_close(ti);
+  }
   return fbuf_emit(f, "\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l");
 }
@@ -1736,8 +1701,8 @@ typedef struct ncvisual_implementation {
 API extern ncvisual_implementation visual_implementation;
 
 static inline char
-path_seperator(void){
-#if defined _WIN32 || defined __CYGWIN__
+path_separator(void){
+#ifdef __MINGW64__
   return '\\';
 #else
   return '/';
@@ -1753,7 +1718,7 @@ prefix_data(const char* base){
   char* path = (char*)malloc(len); // cast for C++ includers
   if(path){
     memcpy(path, NOTCURSES_SHARE, dlen);
-    path[dlen] = path_seperator();
+    path[dlen] = path_separator();
     strcpy(path + dlen + 1, base);
   }
   return path;

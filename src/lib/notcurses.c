@@ -28,6 +28,26 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
   *tweak = atoi(NOTCURSES_VERSION_TWEAK);
 }
 
+int notcurses_enter_alternate_screen(notcurses* nc){
+  if(enter_alternate_screen(nc->ttyfp, &nc->tcache, true)){
+    return -1;
+  }
+  ncplane_set_scrolling(notcurses_stdplane(nc), false);
+  return 0;
+}
+
+int notcurses_leave_alternate_screen(notcurses* nc){
+  if(leave_alternate_screen(nc->ttyfp, &nc->tcache)){
+    return -1;
+  }
+  // move to the end of our output
+  if(nc->rstate.logendy < 0){
+    return 0;
+  }
+  ncplane_cursor_move_yx(notcurses_stdplane(nc), nc->rstate.logendy, nc->rstate.logendx);
+  return 0;
+}
+
 // reset the current colors, styles, and palette. called on startup (to purge
 // any preexisting styling) and shutdown (to not affect further programs).
 int reset_term_attributes(const tinfo* ti, fbuf* f){
@@ -70,7 +90,7 @@ notcurses_stop_minimal(void* vnc){
   if(nc->tcache.pixel_shutdown){
     ret |= nc->tcache.pixel_shutdown(f);
   }
-  ret |= mouse_disable(f);
+  ret |= mouse_disable(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
   if(nc->tcache.ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
@@ -280,12 +300,25 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
     }
   }
 #else
-  if(rows){
-    *rows = tcache->default_rows;
-  }
-  if(cols){
-    *cols = tcache->default_cols;
-  }
+  /*
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  int columns, rows;
+  if(GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)){
+    if(cols){
+      *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+    if(rows){
+      *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    }
+  }else{
+  */
+    if(rows){
+      *rows = tcache->default_rows;
+    }
+    if(cols){
+      *cols = tcache->default_cols;
+    }
+  //}
 #endif
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
@@ -910,23 +943,18 @@ init_banner(const notcurses* nc, fbuf* f){
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d %luB crend %u colors",
+      fbuf_printf(f, "%d rows (%dpx) %d cols (%dpx) %dx%d ",
                   nc->stdplane->leny, nc->tcache.cellpixy,
                   nc->stdplane->lenx, nc->tcache.cellpixx,
                   nc->stdplane->leny * nc->tcache.cellpixy,
-                  nc->stdplane->lenx * nc->tcache.cellpixx,
-                  (unsigned long)sizeof(struct crender),
-                  nc->tcache.caps.colors);
+                  nc->stdplane->lenx * nc->tcache.cellpixx);
     }else{
-      fbuf_printf(f, "%d rows %d cols (%sB) %luB crend %u colors",
+      fbuf_printf(f, "%d rows %d cols (%sB) ",
                   nc->stdplane->leny, nc->stdplane->lenx,
-                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
-                  (unsigned long)sizeof(struct crender),
-                  nc->tcache.caps.colors);
+                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0));
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
-      fbuf_putc(f, '+');
       term_fg_rgb8(&nc->tcache, f, 0xe0, 0x60, 0x60);
       fbuf_putc(f, 'r');
       term_fg_rgb8(&nc->tcache, f, 0x60, 0xe0, 0x60);
@@ -935,8 +963,10 @@ init_banner(const notcurses* nc, fbuf* f){
       fbuf_putc(f, 'b');
       term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
+      fbuf_putc(f, '+');
     }
-    fbuf_printf(f, "\n%s%s, %zuB %s cells\nterminfo from %s zlib %s\n",
+    fbuf_printf(f, "%u colors\n%s%s (%s)\nterminfo from %s zlib %s\n",
+                nc->tcache.caps.colors,
 #ifdef __clang__
             "", // name is contained in __VERSION__
 #else
@@ -947,7 +977,6 @@ init_banner(const notcurses* nc, fbuf* f){
 #endif
 #endif
             __VERSION__,
-            sizeof(nccell),
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
             "LE",
@@ -1030,7 +1059,7 @@ recursive_lock_init(pthread_mutex_t *lock){
 }
 
 int notcurses_check_pixel_support(const notcurses* nc){
-  if(nc->tcache.pixel_draw){
+  if(nc->tcache.pixel_draw || nc->tcache.pixel_draw_late){
     return 1;
   }
   return 0;
@@ -1086,7 +1115,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   reset_stats(&ret->stats.s);
   reset_stats(&ret->stashed_stats);
   ret->ttyfp = outfp;
-  ret->renderfp = opts->renderfp;
   memset(&ret->rstate, 0, sizeof(ret->rstate));
   memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
   memset(&ret->palette, 0, sizeof(ret->palette));
@@ -1202,7 +1230,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
       if(smcup){
-        if(term_emit(smcup, ret->ttyfp, false)){
+        if(enter_alternate_screen(ret->ttyfp, &ret->tcache, false)){
           free_plane(ret->stdplane);
           goto err;
         }
@@ -2234,7 +2262,7 @@ ncplane* ncplane_above(ncplane* n){
 }
 
 int notcurses_mouse_enable(notcurses* n){
-  if(mouse_enable(n->ttyfp)){
+  if(mouse_enable(&n->tcache, n->ttyfp)){
     return -1;
   }
   return 0;
@@ -2247,15 +2275,13 @@ int notcurses_mouse_disable(notcurses* n){
   if(fbuf_init_small(&f)){
     return -1;
   }
-  if(mouse_disable(&f)){
+  if(mouse_disable(&n->tcache, &f)){
     fbuf_free(&f);
     return -1;
   }
-  if(fwrite(f.buf, f.used, 1, n->ttyfp) != 1 || fflush(n->ttyfp) == EOF){
-    fbuf_free(&f);
+  if(fbuf_finalize(&f, n->ttyfp) < 0){
     return -1;
   }
-  fbuf_free(&f);
   return 0;
 }
 
@@ -2391,6 +2417,10 @@ ncplane* ncplane_parent(ncplane* n){
 
 const ncplane* ncplane_parent_const(const ncplane* n){
   return n->boundto;
+}
+
+ncplane* ncplane_boundlist(ncplane* n){
+  return n->blist;
 }
 
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){

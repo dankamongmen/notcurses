@@ -8,6 +8,7 @@
 // common elements of type-parameterized plots
 typedef struct ncplot {
   ncplane* ncp;
+  ncplane* pixelp; // only used for NCBLIT_PIXEL
   /* sloutcount-element circular buffer of samples. the newest one (rightmost)
      is at slots[slotstart]; they get older as you go back (and around).
      elements. slotcount is max(columns, rangex), less label room. */
@@ -43,7 +44,174 @@ typedef struct nc##X##plot { \
   ncplot plot; \
 } nc##X##plot; \
 \
+int redraw_pixelplot_##T(nc##X##plot* ncp){ \
+  const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
+  ncplane_erase(ncp->plot.ncp); \
+  int dimy, dimx; \
+  ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
+  const int scaleddim = dimx * scale; \
+  /* each transition is worth this much change in value */ \
+  const size_t states = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy; \
+  /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
+     interval is one row's range (for linear plots), or the base \
+     (base^slots == maxy-miny) of the range (for exponential plots). */ \
+  double interval; \
+  if(ncp->plot.exponentiali){ \
+    if(ncp->maxy > ncp->miny){ \
+      interval = pow(ncp->maxy - ncp->miny, (double)1 / (dimy * states)); \
+/* fprintf(stderr, "miny: %ju maxy: %ju dimy: %d states: %zu\n", miny, maxy, dimy, states); */ \
+    }else{ \
+      interval = 0; \
+    } \
+  }else{ \
+    interval = ncp->maxy < ncp->miny ? 0 : (ncp->maxy - ncp->miny) / ((double)dimy * states); \
+  } \
+  const int startx = ncp->plot.labelaxisd ? PREFIXCOLUMNS : 0; /* plot cols begin here */ \
+  /* if we want fewer slots than there are available columns, our final column \
+     will be other than the plane's final column. most recent x goes here. */ \
+  const int finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
+                     startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
+  ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
+  if(ncp->plot.labelaxisd){ \
+    /* show the *top* of each interval range */ \
+    for(int y = 0 ; y < dimy ; ++y){ \
+      uint64_t channels = 0; \
+      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, 0, dimy, dimx); \
+      ncplane_set_channels(ncp->plot.ncp, channels); \
+      char buf[PREFIXSTRLEN + 1]; \
+      if(ncp->plot.exponentiali){ \
+        if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
+          ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
+        }else{ \
+          ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0'); \
+        } \
+      }else{ \
+        ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
+      } \
+      if(y == dimy - 1 && strlen(ncp->plot.title)){ \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s %s", \
+                          PREFIXSTRLEN, PREFIXSTRLEN, buf, ncp->plot.title); \
+      }else{ \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s", \
+                          PREFIXSTRLEN, PREFIXSTRLEN, buf); \
+      } \
+    } \
+  }else if(strlen(ncp->plot.title)){ \
+    uint64_t channels = 0; \
+    calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                           ncp->plot.maxchannels, ncp->plot.maxchannels, dimy - 1, 0, dimy, dimx); \
+    ncplane_set_channels(ncp->plot.ncp, channels); \
+    ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
+  } \
+  ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
+  if(finalx < startx){ /* exit on pathologically narrow planes */ \
+    return 0; \
+  } \
+  if(!interval){ \
+    interval = 1; \
+  } \
+  uint32_t* pixels = malloc(dimy * dimx * states * scale * sizeof(*pixels)); \
+  if(pixels == NULL){ \
+    return -1; \
+  } \
+  memset(pixels, 0, dimy * dimx * states * scale * sizeof(*pixels)); \
+  int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
+  for(int x = finalx ; x >= startx ; --x){ \
+    /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
+    T gvals[scale]; \
+    /* load it retaining the same ordering we have in the actual array */ \
+    for(int i = scale - 1 ; i >= 0 ; --i){ \
+      gvals[i] = ncp->slots[idx]; /* clip the value at the limits of the graph */ \
+      if(gvals[i] < ncp->miny){ \
+        gvals[i] = ncp->miny; \
+      } \
+      if(gvals[i] > ncp->maxy){ \
+        gvals[i] = ncp->maxy; \
+      } \
+      /* FIXME if there are an odd number, only go up through the valid ones... */ \
+      if(--idx < 0){ \
+        idx = ncp->plot.slotcount - 1; \
+      } \
+    } \
+    /* starting from the least-significant row, progress in the more significant \
+       direction, prepping pixels, aborting early if we can't draw anything in a \
+       given cell. */ \
+    T intervalbase = ncp->miny; \
+    bool done = !ncp->plot.bset->fill; \
+    for(int y = 0 ; y < dimy ; ++y){ \
+      uint64_t channels = 0; \
+      /* if we've got at least one interval's worth on the number of positions \
+        times the number of intervals per position plus the starting offset, \
+        we're going to print *something* */ \
+      for(int i = 0 ; i < scale ; ++i){ \
+        size_t egcidx; \
+        if(intervalbase < gvals[i]){ \
+          if(ncp->plot.exponentiali){ \
+            /* we want the log-base-interval of gvals[i] */ \
+            double scaled = log(gvals[i] - ncp->miny) / log(interval); \
+            double sival = intervalbase ? log(intervalbase) / log(interval) : 0; \
+            egcidx = scaled - sival; \
+          }else{ \
+            egcidx = (gvals[i] - intervalbase) / interval; \
+          } \
+          if(egcidx >= states){ \
+            egcidx = states; \
+            done = false; \
+          } \
+        }else{ \
+          egcidx = 0; \
+        } \
+/*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
+        for(size_t yy = 0 ; yy < egcidx ; ++yy){ \
+          int poff = x * scale + i + (((dimy - 1 - y) * states + (states - 1 - yy)) * dimx * scale); \
+          calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
+                                ncp->plot.maxchannels, ncp->plot.maxchannels, \
+                                y * states + yy, x, dimy * states, dimx); \
+          uint32_t color = ncchannels_fg_rgb(channels); \
+          ncpixel_set_a(&color, 0xff); \
+          pixels[poff] = color; \
+        } \
+      } \
+      if(done){ \
+        break; \
+      } \
+      if(ncp->plot.exponentiali){ \
+        intervalbase = ncp->miny + pow(interval, (y + 1) * states - 1); \
+      }else{ \
+        intervalbase += (states * interval); \
+      } \
+    } \
+  } \
+  if(ncp->plot.printsample){ \
+    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
+    ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
+    ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+  } \
+  ncplane_home(ncp->plot.ncp); \
+  struct ncvisual* ncv = ncvisual_from_rgba(pixels, dimy * states, dimx * scale * 4, dimx * scale); \
+  free(pixels); \
+  if(ncv == NULL){ \
+    return -1; \
+  } \
+  struct ncvisual_options vopts = { \
+    .n = ncp->plot.pixelp, \
+    .blitter = NCBLIT_PIXEL, \
+    .flags = NCVISUAL_OPTION_NODEGRADE, \
+  }; \
+  if(ncvisual_render(ncplane_notcurses(ncp->plot.ncp), ncv, &vopts) == NULL){ \
+    ncvisual_destroy(ncv); \
+    return -1; \
+  } \
+  ncvisual_destroy(ncv); \
+  return 0; \
+} \
+\
 int redraw_plot_##T(nc##X##plot* ncp){ \
+  if(ncp->plot.bset->geom == NCBLIT_PIXEL){ \
+    return redraw_pixelplot_##T(ncp); \
+  } \
   ncplane_erase(ncp->plot.ncp); \
   const int scale = ncp->plot.bset->width; \
   int dimy, dimx; \
@@ -52,8 +220,8 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   /* each transition is worth this much change in value */ \
   const size_t states = ncp->plot.bset->height + 1; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
-     interval is one row's range (for linear plots), or the base (base^slots== \
-     maxy-miny) of the range (for exponential plots). */ \
+     interval is one row's range (for linear plots), or the base \
+     (base^slots == maxy-miny) of the range (for exponential plots). */ \
   double interval; \
   if(ncp->plot.exponentiali){ \
     if(ncp->maxy > ncp->miny){ \
@@ -111,7 +279,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
   for(int x = finalx ; x >= startx ; --x){ \
     /* a single column might correspond to more than 1 ('scale', up to \
-       MAXWIDTH) slot's worth of samples. prepare the working gval set. */ \
+       MAXWIDTH) slots' worth of samples. prepare the working gval set. */ \
     T gvals[MAXWIDTH]; \
     /* load it retaining the same ordering we have in the actual array */ \
     for(int i = scale - 1 ; i >= 0 ; --i){ \
@@ -140,8 +308,8 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
       ncplane_set_channels(ncp->plot.ncp, channels); \
       size_t egcidx = 0, sumidx = 0; \
       /* if we've got at least one interval's worth on the number of positions \
-         times the number of intervals per position plus the starting offset, \
-         we're going to print *something* */ \
+        times the number of intervals per position plus the starting offset, \
+        we're going to print *something* */ \
       for(int i = 0 ; i < scale ; ++i){ \
         sumidx *= states; \
         if(intervalbase < gvals[i]){ \
@@ -164,10 +332,10 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
 /* printf(stderr, "y: %d i(scale): %d gvals[%d]: %ju egcidx: %zu sumidx: %zu interval: %f intervalbase: %ju\n", y, i, i, gvals[i], egcidx, sumidx, interval, intervalbase); */ \
       } \
       /* if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise \
-         we would have errored out during construction). even then, however, \
-         we need handle ASCII differently, since it can't print full block. \
-         in ASCII mode, sumidx != 0 means swap colors and use space. in all \
-         modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
+        we would have errored out during construction). even then, however, \
+        we need handle ASCII differently, since it can't print full block. \
+        in ASCII mode, sumidx != 0 means swap colors and use space. in all \
+        modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
 /* if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]); */ \
       if(sumidx){ \
         if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
@@ -218,7 +386,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   return 0; \
 } \
 \
-static bool \
+static const struct blitset* \
 create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T miny, const T maxy, \
            const T trueminy, const T truemaxy){ \
   ncplot_options zeroed = {}; \
@@ -231,22 +399,22 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   /* if miny == maxy (enabling domain detection), they both must be equal to 0 */ \
   if(miny == maxy && miny){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   if(opts->rangex < 0){ \
     logerror("Supplied negative independent range %d\n", opts->rangex); \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   if(maxy < miny){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   /* DETECTMAXONLY can't be used without domain detection */ \
   if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){ \
     logerror("Supplied DETECTMAXONLY without domain detection"); \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   const notcurses* notc = ncplane_notcurses(n); \
   ncblitter_e blitfxn = opts ? opts->gridtype : NCBLIT_DEFAULT; \
@@ -257,21 +425,21 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   const struct blitset* bset = lookup_blitset(&notc->tcache, blitfxn, degrade_blitter); \
   if(bset == NULL){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   int sdimy, sdimx; \
   ncplane_dim_yx(n, &sdimy, &sdimx); \
   if(sdimx <= 0){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   int dimx = sdimx; \
   ncpp->plot.title = strdup(opts->title ? opts->title : ""); \
   ncpp->plot.rangex = opts->rangex; \
   /* if we're sizing the plot based off the plane dimensions, scale it by the \
      plot geometry's width for all calculations */ \
-  const int scaleddim = dimx * bset->width; \
-  const int scaledprefixlen = PREFIXCOLUMNS * bset->width; \
+  const int scaleddim = dimx * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
+  const int scaledprefixlen = PREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
   if((ncpp->plot.slotcount = ncpp->plot.rangex) == 0){ \
     ncpp->plot.slotcount = scaleddim; \
   } \
@@ -290,7 +458,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->slots = malloc(slotsize); \
   if(ncpp->slots == NULL){ \
     ncplane_destroy(n); \
-    return false; \
+    return NULL; \
   } \
   memset(ncpp->slots, 0, slotsize); \
   ncpp->plot.ncp = n; \
@@ -310,7 +478,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
   redraw_plot_##T(ncpp); \
-  return true; \
+  return bset; \
 } \
 /* if x is less than the window, return -1, as the sample will be thrown away. \
    if the x is within the current window, find the proper slot and update it. \
@@ -382,6 +550,7 @@ static void
 ncplot_destroy(ncplot* n){
   free(n->title);
   ncplane_destroy(n->ncp);
+  ncplane_destroy(n->pixelp);
 }
 
 /* if we're doing domain detection, update the domain to reflect the value we
@@ -449,6 +618,20 @@ update_sample_double(ncdplot* ncp, int64_t x, double y, bool reset){
   }
 }
 
+static inline int
+create_pixelp(ncplot *p, ncplane* n){
+  if(((p->pixelp = ncplane_dup(n, NULL)) == NULL)){
+    return -1;
+  }
+  ncplane_reparent(p->pixelp, n);
+  ncplane_move_below(p->pixelp, n);
+  uint64_t basechan = 0;
+  ncchannels_set_bg_alpha(&basechan, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&basechan, NCALPHA_TRANSPARENT);
+  ncplane_set_base(n, "", 0, basechan);
+  return 0;
+}
+
 // takes ownership of n on all paths
 ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy){
   ncuplot* ret = malloc(sizeof(*ret));
@@ -457,9 +640,16 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  if(!create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX)){
+  const struct blitset* bset = create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX);
+  if(bset == NULL){
     free(ret);
     return NULL;
+  }
+  if(bset->geom == NCBLIT_PIXEL){
+    if(create_pixelp(&ret->plot, n)){
+      ncuplot_destroy(ret);
+      return NULL;
+    }
   }
   return ret;
 }
@@ -499,9 +689,16 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  if(!create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX)){
+  const struct blitset* bset = create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX);
+  if(bset == NULL){
     free(ret);
     return NULL;
+  }
+  if(bset->geom == NCBLIT_PIXEL){
+    if(create_pixelp(&ret->plot, n)){
+      ncdplot_destroy(ret);
+      return NULL;
+    }
   }
   return ret;
 }

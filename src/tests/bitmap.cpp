@@ -1,5 +1,5 @@
 #include "main.h"
-#include "visual-details.h"
+#include "lib/visual-details.h"
 #include <vector>
 
 TEST_CASE("Bitmaps") {
@@ -16,7 +16,9 @@ TEST_CASE("Bitmaps") {
   SUBCASE("SprixelTermValues") {
     CHECK(0 < nc_->tcache.cellpixy);
     CHECK(0 < nc_->tcache.cellpixx);
-    CHECK(nc_->tcache.pixel_draw);
+    if(!nc_->tcache.pixel_draw_late){
+      CHECK(nc_->tcache.pixel_draw);
+    }
   }
 
   SUBCASE("SprixelMinimize") {
@@ -662,6 +664,56 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
   }
 #endif
+
+  SUBCASE("BitmapMoveOffscreenDown") {
+    // first, assemble a visual equivalent to 2x2 cells
+    auto y = nc_->tcache.cellpixy * 2;
+    auto x = nc_->tcache.cellpixx * 2;
+    std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    for(int i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
+      CHECK(0 == ncplane_move_yx(n, i, 0));
+      CHECK(0 == notcurses_render(nc_));
+    }
+    REQUIRE(nullptr != n);
+  }
+
+  SUBCASE("BitmapMoveOffscreenUp") {
+    // first, assemble a visual equivalent to 2x2 cells
+    auto y = nc_->tcache.cellpixy * 2;
+    auto x = nc_->tcache.cellpixx * 2;
+    std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = ncplane_dim_y(n_) - 3, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    for(int i = ncplane_dim_y(n_) - 3 ; i >= 0 ; --i){
+      CHECK(0 == ncplane_move_yx(n, i, 0));
+      CHECK(0 == notcurses_render(nc_));
+    }
+    REQUIRE(nullptr != n);
+  }
 
   CHECK(!notcurses_stop(nc_));
 }

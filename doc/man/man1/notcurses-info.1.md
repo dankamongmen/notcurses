@@ -1,6 +1,6 @@
 % notcurses-info(1)
 % nick black <nickblack@linux.com>
-% v2.3.13
+% v2.3.17
 
 # NAME
 
@@ -76,11 +76,10 @@ The next five lines describe properties of the terminal environment:
 
 * The fifth line describes the available bitmap graphics. If Sixels are
   available, the maximum number of color registers and maximum Sixel
-  geometry are reported. If the iTerm2 protocol or Linux framebuffer graphics
-  are available, that is reported. If the Kitty graphics protocol is
-  detected, that will be reported with "rgba graphics are available"; if
-  Kitty's animation support is also present, that will be reported with
-  "rgba pixel animation support".
+  geometry are reported. If Linux framebuffer graphics are available, that is
+  reported. If the Kitty graphics protocol is detected, that will be reported
+  with "rgba graphics are available"; if Kitty's animation support is also
+  present, that will be reported with "rgba pixel animation support".
 
 The final eleven lines, only printed when in a UTF8 locale, show various
 Unicode glyphs. The first four lines include the quadrant, sextant, and

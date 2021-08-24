@@ -531,6 +531,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(fbuf_finalize(&f, n->ttyfp)){
       return -1;
     }
+    if(n->tcache.pixel_draw_late){
+      if(n->tcache.pixel_draw_late(&n->tcache, np->sprite, y, xoff) < 0){
+        return -1;
+      }
+    }
     return 0;
   }
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
@@ -1330,7 +1335,7 @@ int ncdirect_flush(const ncdirect* nc){
 }
 
 int ncdirect_check_pixel_support(const ncdirect* n){
-  if(n->tcache.pixel_draw){
+  if(n->tcache.pixel_draw || n->tcache.pixel_draw_late){
     return 1;
   }
   return 0;
@@ -1367,7 +1372,10 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     if(v->sprite){
       thisid = v->sprite->id;
     }
-    ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
+    if(ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0)){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
     if(lastid > -1){
       if(n->tcache.pixel_remove){
         fbuf f = {};

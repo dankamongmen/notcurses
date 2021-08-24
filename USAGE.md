@@ -126,9 +126,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize Notcurses.
   const char* termtype;
-  // If non-NULL, notcurses_render() will write each rendered frame to this
-  // FILE* in addition to outfp. This is used primarily for debugging.
-  FILE* renderfp;
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
@@ -165,17 +162,31 @@ int notcurses_stop(struct notcurses* nc);
 `notcurses_stop` should be called before exiting your program to restore the
 terminal settings and free resources.
 
-notcurses does not typically generate diagnostics (aside from the intro banner
+An application can freely enter and exit the alternate screen:
+
+```c
+// Shift to the alternate screen, if available. If already using the alternate
+// screen, this returns 0 immediately. If the alternate screen is not
+// available, this returns -1 immediately. Entering the alternate screen turns
+// off scrolling for the standard plane.
+int notcurses_enter_alternate_screen(struct notcurses* nc);
+
+// Exit the alternate screen. Immediately returns 0 if not currently using the
+// alternate screen.
+int notcurses_leave_alternate_screen(struct notcurses* nc);
+```
+
+Notcurses does not typically generate diagnostics (aside from the intro banner
 and outro performance summary). When `stderr` is connected to the same terminal
 to which graphics are being printed, printing to stderr will corrupt the output.
 Setting `loglevel` to a value higher than `NCLOGLEVEL_SILENT` will cause
 diagnostics to be printed to `stderr`: you could ensure `stderr` is redirected
 if you make use of this functionality.
 
-It's probably wise to export `NCOPTION_NO_ALTERNATE_SCREEN` to the user (e.g. via
-command line option or environment variable). Developers and motivated users
-might appreciate the ability to manipulate `loglevel` and `renderfp`. The
-remaining options are typically of use only to application authors.
+It's probably wise to export `NCOPTION_NO_ALTERNATE_SCREEN` to the user (e.g.
+via command line option or environment variable). Motivated users might
+appreciate the ability to manipulate `loglevel`. The remaining options are
+typically of use only to application authors.
 
 The Notcurses API draws almost entirely into the virtual buffers of `ncplane`s.
 Only upon a call to `notcurses_render` will the visible terminal display be
@@ -827,6 +838,9 @@ int ncplane_resize_realign(struct ncplane* n);
 // Get the plane to which the plane 'n' is bound, if any.
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+
+// Get the head of the list of planes bound to 'n'.
+struct ncplane* ncplane_boundlist(struct ncplane* n);
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.

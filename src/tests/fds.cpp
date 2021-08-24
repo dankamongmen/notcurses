@@ -4,7 +4,6 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
-#include "internal.h"
 #include <condition_variable>
 
 static pthread_cond_t cond;

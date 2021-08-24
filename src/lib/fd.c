@@ -388,7 +388,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
 #ifdef __linux__
     execvpe(bin, arg, env);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__gnu_hurd__)
     (void)env;
     execvp(bin, arg); // FIXME env?
 #elif defined(__MINGW64__)

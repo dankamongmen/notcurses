@@ -5,7 +5,7 @@
 #include <OpenImageIO/imageio.h>
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
-#include "visual-details.h"
+#include "lib/visual-details.h"
 #include "oiio.h"
 
 typedef struct ncvisual_details {

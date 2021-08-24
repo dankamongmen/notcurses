@@ -898,9 +898,7 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  // If non-NULL, notcurses_render() will write each rendered frame to this
-  // FILE* in addition to outfp. This is used primarily for debugging.
-  FILE* renderfp;
+  FILE* renderfp; // deprecated, must be NULL, will be removed for ABI3 FIXME
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
@@ -945,6 +943,18 @@ API ALLOC struct notcurses* notcurses_core_init(const notcurses_options* opts, F
 
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
+
+// Shift to the alternate screen, if available. If already using the alternate
+// screen, this returns 0 immediately. If the alternate screen is not
+// available, this returns -1 immediately. Entering the alternate screen turns
+// off scrolling for the standard plane.
+API int notcurses_enter_alternate_screen(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
+
+// Exit the alternate screen. Immediately returns 0 if not currently using the
+// alternate screen.
+API int notcurses_leave_alternate_screen(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n);
@@ -1540,8 +1550,14 @@ API int ncplane_abs_y(const struct ncplane* n) __attribute__ ((pure));
 API int ncplane_abs_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the plane to which the plane 'n' is bound, if any.
-API struct ncplane* ncplane_parent(struct ncplane* n);
-API const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+API struct ncplane* ncplane_parent(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+API const struct ncplane* ncplane_parent_const(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Get the head of the list of planes bound to 'n'.
+API struct ncplane* ncplane_boundlist(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return non-zero iff 'n' is a proper descendent of 'ancestor'.
 static inline int

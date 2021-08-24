@@ -582,6 +582,10 @@ int demo_render(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &ts);
   if(plot){
     if(!plot_hidden){
+      struct ncplane* pixelp = ncplane_boundlist(ncuplot_plane(plot));
+      if(pixelp){
+        ncplane_move_top(pixelp);
+      }
       ncplane_move_top(ncuplot_plane(plot));
     }
     uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (NANOSECS_IN_SEC / FPSHZ);

@@ -1,6 +1,6 @@
 % notcurses_init(3)
 % nick black <nickblack@linux.com>
-% v2.3.13
+% v2.3.17
 
 # NAME
 
@@ -21,8 +21,8 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
 typedef enum {
-  NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
-  NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
+  NCLOGLEVEL_SILENT,  // print nothing once fullscreen service begins
+  NCLOGLEVEL_PANIC,   // default. print diagnostics before we crash/exit
   NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
   NCLOGLEVEL_ERROR,   // we can't keep doing this, but we can do other things
   NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
@@ -34,7 +34,6 @@ typedef enum {
 
 typedef struct notcurses_options {
   const char* termtype;
-  FILE* renderfp;
   ncloglevel_e loglevel;
   int margin_t, margin_r, margin_b, margin_l;
   uint64_t flags; // from NCOPTION_* bits
@@ -193,7 +192,7 @@ glyph forms this cursor, and whether it e.g. blinks.
 
 By default, Notcurses disables this cursor in rendered mode. It can be turned
 back on with **notcurses_enable_cursor**, which has immediate effect (there is
-no need to call **notcurses_render(3)**. If already visible, this function
+no need to call **notcurses_render(3)**). If already visible, this function
 updates the location. Each time the physical screen is updated, Notcurses will
 disable the cursor, write the update, move the cursor back to this location,
 and finally make the cursor visible. **notcurses_cursor_yx** retrieves the

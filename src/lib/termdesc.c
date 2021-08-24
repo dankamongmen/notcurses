@@ -53,6 +53,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
     ti->pixel_init = sixel_init;
   }
   ti->pixel_draw = sixel_draw;
+  ti->pixel_draw_late = NULL;
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_wipe = sixel_wipe;
   ti->pixel_remove = NULL;
@@ -66,26 +67,6 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   sprite_init(ti, fd);
 }
 
-// iterm2 has a container-based protocol
-static inline void
-setup_iterm_bitmaps(tinfo* ti, int fd){
-  ti->pixel_init = NULL;
-  ti->pixel_shutdown = NULL;
-  ti->pixel_remove = NULL;
-  // be awarre: absence of pixel_move plus absence of sixel details is used by
-  // notcurses-info to determine iTerm2 support.
-  ti->pixel_move = NULL;
-  ti->color_registers = 0;
-  ti->pixel_scrub = sixel_scrub;
-  ti->pixel_scroll = NULL;
-  ti->pixel_draw = iterm_draw;
-  ti->pixel_wipe = iterm_wipe;
-  ti->pixel_rebuild = iterm_rebuild;
-  ti->pixel_trans_auxvec = kitty_trans_auxvec;
-  set_pixel_blitter(iterm_blit);
-  sprite_init(ti, fd);
-}
-
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
 // lacked animation, and must thus redraw the complete image every time it
 // changes. requires the older interface.
@@ -94,6 +75,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
+  ti->pixel_draw_late = NULL;
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_scroll = NULL;
@@ -109,10 +91,12 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     if(level == KITTY_ANIMATION){
       ti->pixel_wipe = kitty_wipe_animation;
       ti->pixel_rebuild = kitty_rebuild_animation;
+      ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_animated);
     }else{
       ti->pixel_wipe = kitty_wipe_selfref;
       ti->pixel_rebuild = kitty_rebuild_selfref;
+      ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_selfref);
     }
   }
@@ -124,7 +108,8 @@ static inline void
 setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_rebuild = fbcon_rebuild;
   ti->pixel_wipe = fbcon_wipe;
-  ti->pixel_draw = fbcon_draw;
+  ti->pixel_draw = NULL;
+  ti->pixel_draw_late = fbcon_draw;
   ti->pixel_scroll = fbcon_scroll;
   ti->pixel_scrub = fbcon_scrub;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
@@ -574,7 +559,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    setup_iterm_bitmaps(ti, ti->ttyfd);
   }else if(qterm == TERMINAL_APPLE){
     termname = "Terminal.app";
     // no quadrants, no sextants, no rgb, but it does have braille
@@ -680,7 +664,7 @@ macos_early_matches(void){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
-  queried_terminals_e qterm = TERMINAL_UNKNOWN;
+  ti->qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
@@ -688,19 +672,19 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   size_t tableused = 0;
   const char* tname = NULL;
 #ifdef __APPLE__
-  qterm = macos_early_matches();
+  ti->qterm = macos_early_matches();
 #elif defined(__MINGW64__)
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
     return -1;
   }
-  qterm = TERMINAL_MSTERMINAL;
+  ti->qterm = TERMINAL_MSTERMINAL;
   (void)termtype;
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
   if(is_linux_console(ti->ttyfd)){
-    qterm = TERMINAL_LINUX;
+    ti->qterm = TERMINAL_LINUX;
   }
 #endif
 #ifndef __MINGW64__
@@ -716,7 +700,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
-    bool minimal = (qterm != TERMINAL_UNKNOWN);
+    bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(ti->ttyfd, minimal)){
       return -1;
     }
@@ -766,8 +750,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     { ESCAPE_CUU, "cuu", },
     { ESCAPE_CUF, "cuf", },
     { ESCAPE_CUB, "cub", },
-    { ESCAPE_INITC, "initc", },
-    { ESCAPE_GETM, "getm", },
+    { ESCAPE_U7, "u7", },
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_SMXX, "smxx", },
     { ESCAPE_RMXX, "rmxx", },
@@ -778,10 +761,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     { ESCAPE_IND, "ind", },
     { ESCAPE_INDN, "indn", },
     { ESCAPE_CLEAR, "clear", },
-    { ESCAPE_CSR, "csr", },
     { ESCAPE_OC, "oc", },
     { ESCAPE_RMKX, "rmkx", },
-    { ESCAPE_U7, "u7", },
+    { ESCAPE_INITC, "initc", },
     { ESCAPE_MAX, NULL, },
   };
   for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
@@ -858,7 +840,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   *cursor_x = *cursor_y = -1;
   unsigned kittygraphs = 0;
-  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised,
+  if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
                        cursor_y, cursor_x, stats, &kittygraphs)){
     goto err;
   }
@@ -881,13 +863,13 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
   }
   bool invertsixel = false;
-  if(apply_term_heuristics(ti, tname, qterm, &tablelen, &tableused,
+  if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &invertsixel, nonewfonts)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
   build_supported_styles(ti);
-  if(ti->pixel_draw == NULL){
+  if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
     if(kittygraphs){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
     }

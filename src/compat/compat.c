@@ -24,15 +24,19 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
   (void)oldstate;
   return 0;
 }
-#define INFINITE 0xffffffff // FIXME
-pid_t waitpid(pid_t pid, int* state, int options){
-  (void)options; // FIXME honor WNOHANG
+pid_t waitpid(pid_t pid, int* state, int options){ // FIXME
+  (void)options;
+  (void)pid;
+  (void)state;
+  /*
   WaitForSingleObject(pid, INFINITE);
   long unsigned pstate;
   GetExitCodeProcess(pid, &pstate);
   *state = pstate;
   CloseHandle(pid);
   return pid;
+  */
+  return 0;
 }
 #else // not windows
 #include <time.h>

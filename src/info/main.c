@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
-#include "internal.h" // internal headers
+#include "lib/internal.h" // internal headers
 
 static inline wchar_t
 capboolbool(unsigned utf8, bool cap){
@@ -126,7 +126,11 @@ emoji_viz(struct ncplane* n){
       }
     }
   }
-  finish_line(n);
+  int x;
+  ncplane_cursor_yx(n, NULL, &x);
+  while(x++ < 80){
+    ncplane_putchar(n, ' ');
+  }
   return 0;
 }
 
@@ -291,10 +295,10 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
-    ncplane_cursor_move_yx(n, y - 16, 0);
-    ncplane_stain(n, y - 2, 79, ul, ur, ll, lr);
+    ncplane_cursor_move_yx(n, y - 15, 0);
+    ncplane_stain(n, y - 1, 79, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-    ncplane_cursor_move_yx(n, y - 13, 54);
+    ncplane_cursor_move_yx(n, y - 12, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
@@ -309,7 +313,6 @@ display_logo(struct ncplane* n, const char* path){
   if(ncv == NULL){
     return -1;
   }
-  // FIXME ought be exactly 4:1
   if(ncvisual_resize(ncv, 3 * cpixy, 24 * cpixx)){
     ncvisual_destroy(ncv);
     return -1;
@@ -338,7 +341,7 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
                  ti->bg_collides_default & 0xfffffful,
                  (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   finish_line(n);
-  if(!ti->pixel_draw){
+  if(!ti->pixel_draw && !ti->pixel_draw_late){
     ncplane_printf(n, "%sno bitmap graphics detected", indent);
   }else{ // we do have support; draw one
     if(ti->color_registers){
@@ -348,12 +351,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       }else{
         ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
       }
-#ifdef __linux__
-    }else if(ti->linux_fb_fd >= 0){
+    }else if(ti->pixel_draw_late){
       ncplane_printf(n, "%sframebuffer graphics supported", indent);
-#endif
-    }else if(ti->pixel_move == NULL){
-      ncplane_printf(n, "%siTerm2 graphics support", indent);
     }else if(ti->sixel_maxy_pristine){
       ncplane_printf(n, "%srgba pixel graphics support", indent);
     }else{
@@ -400,7 +399,6 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7));
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors);
   tinfo_debug_cap(n, "rgb", ti->caps.rgb);
-  tinfo_debug_cap(n, "csr", get_escape(ti, ESCAPE_CSR));
   finish_line(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8);
@@ -441,7 +439,13 @@ int main(int argc, const char** argv){
     return EXIT_FAILURE;
   }
   const char indent[] = "";
-  struct ncplane* stdn = notcurses_stdplane(nc);
+  int dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);
+  if(dimx < 80){
+    notcurses_stop(nc);
+    fprintf(stderr, "This program requires at least 80 columns.\n");
+    return EXIT_FAILURE;
+  }
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);

@@ -1,5 +1,5 @@
 #include "main.h"
-#include "egcpool.h"
+#include "lib/egcpool.h"
 
 TEST_CASE("Cell") {
   auto nc_ = testing_notcurses();

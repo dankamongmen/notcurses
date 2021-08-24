@@ -1,7 +1,6 @@
 #include "main.h"
 #include <cstdlib>
 #include <iostream>
-#include "internal.h"
 
 auto pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)),
             const struct timespec* ts __attribute__ ((unused)), void* curry) -> int {

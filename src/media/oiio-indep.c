@@ -1,7 +1,7 @@
 #include "builddef.h"
 #ifdef USE_OIIO
-#include "visual-details.h"
-#include "internal.h"
+#include "lib/visual-details.h"
+#include "lib/internal.h"
 #include "oiio.h"
 
 int oiio_blit_dispatch(struct ncplane* nc, const struct blitset* bset,

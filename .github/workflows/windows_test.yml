@@ -35,6 +35,7 @@ jobs:
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
             mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-rust
 
       - uses: actions/checkout@v2
 
@@ -85,10 +86,9 @@ jobs:
           #notcurses-pydemo > /dev/null
           #ncdirect-pydemo > /dev/null
 
-          #- name: rust wrappers
-          #mingw-w64-ucrt-x86_64-rust
-          #run: |
-          #cd rust
-          #rustc --version
+      - name: rust wrappers
+        run: |
+          cd rust
+          rustc --version
           #cargo build
           #cargo t_all

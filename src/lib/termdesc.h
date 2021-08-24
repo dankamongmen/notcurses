@@ -7,6 +7,8 @@ extern "C" {
 
 // internal header, not installed
 
+#include "version.h"
+#include "builddef.h"
 #include "input.h"
 #include <stdint.h>
 #include <pthread.h>
@@ -66,9 +68,7 @@ typedef enum {
   ESCAPE_RC,      // "rc" pop the cursor off the stack
   ESCAPE_CLEAR,   // "clear" clear screen and home cursor
   ESCAPE_INITC,   // "initc" set up palette entry
-  ESCAPE_GETM,    // "getm" get mouse events
   ESCAPE_U7,      // "u7" cursor position report
-  ESCAPE_CSR,     // "csr" change scroll region
   // Application synchronized updates, not present in terminfo
   // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
   ESCAPE_BSUM,     // Begin Synchronized Update Mode
@@ -159,6 +159,7 @@ typedef struct tinfo {
   int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
                     struct sprixel* s, fbuf* f, int y, int x);
+  int (*pixel_draw_late)(const struct tinfo*, struct sprixel* s, int y, int x);
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll);
   int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
@@ -186,6 +187,7 @@ typedef struct tinfo {
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   const char* termname;     // terminal name from environment variables/init
   char* termversion;        // terminal version (freeform) from query responses
+  queried_terminals_e qterm;// detected terminal class
 #ifndef __MINGW64__
   struct termios tpreserved;// terminal state upon entry
 #endif
@@ -206,6 +208,7 @@ typedef struct tinfo {
   bool detected_cursor_inversion; // have we performed inversion testing?
   bool inverted_cursor;      // does the terminal return inverted coordinates?
   bool bce;                  // is the bce property advertised?
+  bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
@@ -273,6 +276,92 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
   memcpy(ti->esctable + *tused, tstr, slen);
   ti->escindices[esc] = *tused + 1; // one-bias
   *tused += slen;
+  return 0;
+}
+
+static inline int
+ncfputs(const char* ext, FILE* out){
+  int r;
+#ifdef __USE_GNU
+  r = fputs_unlocked(ext, out);
+#else
+  r = fputs(ext, out);
+#endif
+  return r;
+}
+
+static inline int
+ncfputc(char c, FILE* out){
+#ifdef __USE_GNU
+  return putc_unlocked(c, out);
+#else
+  return putc(c, out);
+#endif
+}
+
+// reliably flush a FILE*...except you can't, so far as i can tell. at least
+// on glibc, a single fflush() error latches the FILE* error, but ceases to
+// perform any work (even following a clearerr()), despite returning 0 from
+// that point on. thus, after a fflush() error, even on EAGAIN and friends,
+// you can't use the stream any further. doesn't this make fflush() pretty
+// much useless? it sure would seem to, which is why we use an fbuf for
+// all our important I/O, which we then blit with blocking_write(). if you
+// care about your data, you'll do the same.
+static inline int
+ncflush(FILE* out){
+  if(ferror(out)){
+    logerror("Not attempting a flush following error\n");
+  }
+  if(fflush(out) == EOF){
+    logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+static inline int
+term_emit(const char* seq, FILE* out, bool flush){
+  if(!seq){
+    return -1;
+  }
+  if(ncfputs(seq, out) == EOF){
+    logerror("Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
+    return -1;
+  }
+  return flush ? ncflush(out) : 0;
+}
+
+static inline int
+enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
+  if(ti->in_alt_screen){
+    return 0;
+  }
+  const char* smcup = get_escape(ti, ESCAPE_SMCUP);
+  if(smcup == NULL){
+    logerror("alternate screen is unavailable");
+    return -1;
+  }
+  if(term_emit(smcup, fp, flush)){
+    return -1;
+  }
+  ti->in_alt_screen = true;
+  return 0;
+}
+
+static inline int
+leave_alternate_screen(FILE* fp, tinfo* ti){
+  if(!ti->in_alt_screen){
+    return 0;
+  }
+  const char* rmcup = get_escape(ti, ESCAPE_RMCUP);
+  if(rmcup == NULL){
+    logerror("can't leave alternate screen");
+    return -1;
+  }
+  if(term_emit(rmcup, fp, true)){
+    return -1;
+  }
+  ti->in_alt_screen = false;
   return 0;
 }
 

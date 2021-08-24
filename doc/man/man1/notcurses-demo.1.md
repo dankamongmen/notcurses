@@ -1,6 +1,6 @@
 % notcurses-demo(1)
 % nick black <nickblack@linux.com>
-% v2.3.13
+% v2.3.17
 
 # NAME
 
@@ -9,7 +9,7 @@ notcurses-demo - Show off some Notcurses features
 # SYNOPSIS
 
 **notcurses-demo** [**-h**|**--help**] [**-p** ***path***] [**-d** ***delaymult***]
- [**-l** ***loglevel***] [**-f** ***renderfile***] [**-J** ***jsonfile***] [**-m** ***margins***]
+ [**-l** ***loglevel***] [**-J** ***jsonfile***] [**-m** ***margins***]
  [**-V**|**--version**] [**-kc**] ***demospec***
 
 # DESCRIPTION

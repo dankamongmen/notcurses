@@ -5,7 +5,7 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2021-07-02a
+  image: dankamongmen/unstable_builder:2021-08-19a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=xterm
@@ -21,10 +21,10 @@ steps:
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
     - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
-    #- cd ../rust
-    #- rustc --version
-    #- cargo build
-    #- cargo t_all
+    - cd ../rust
+    - rustc --version
+    - cargo build
+      #- cargo t_all
 ---
 kind: pipeline
 type: docker
@@ -56,11 +56,11 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-hirsute
+name: ubuntu-impish
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/hirsute:2021-07-02a
+  image: dankamongmen/impish:2021-08-19a
   commands:
     - export LANG=es_ES.UTF-8
     - export TERM=xterm
@@ -75,19 +75,19 @@ steps:
     - python3 setup.py sdist build
     - cd ../python
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-#---
-#kind: pipeline
-#type: docker
-#name: alpine-edge
-#
-#steps:
-#- name: alpine-edge
-#  image: dankamongmen/edge_builder:2021-08-05
-#  commands:
-#    - export LANG=en_US.UTF-8
-#    - export TERM=vt100
-#    - mkdir build
-#    - cd build
-#    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
-#    - make -j2
-#    - ctest --output-on-failure
+---
+kind: pipeline
+type: docker
+name: alpine-edge
+
+steps:
+- name: alpine-edge
+  image: dankamongmen/edge_builder:2021-08-05
+  commands:
+    - export LANG=en_US.UTF-8
+    - export TERM=vt100
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
+    - make -j2
+    - ctest --output-on-failure

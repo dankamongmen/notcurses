@@ -3,13 +3,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#ifndef __APPLE__
-#define NOEXCEPT noexcept
-#else
-#define NOEXCEPT
-#endif
-#else
-#define NOEXCEPT
 #endif
 
 #include <time.h>
@@ -79,10 +72,10 @@ int clock_nanosleep(clockid_t clockid, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
 
-char* strndup(const char* str, size_t size) NOEXCEPT;
-
 #ifdef __cplusplus
 }
+#else
+char* strndup(const char* str, size_t size);
 #endif
 
 #endif

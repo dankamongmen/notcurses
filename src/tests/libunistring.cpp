@@ -1,5 +1,4 @@
 #include "main.h"
-#include "internal.h"
 
 // some simple tests to ensure the libunistring we've compiled/linked against
 // behaves as expected.

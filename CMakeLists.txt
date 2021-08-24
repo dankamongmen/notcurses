@@ -1,6 +1,6 @@
 # 3.14.0 introduced NAME_WLE
 cmake_minimum_required(VERSION 3.14.0)
-project(notcurses VERSION 2.3.13
+project(notcurses VERSION 2.3.17
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C CXX)
@@ -24,6 +24,7 @@ cmake_dependent_option(
   "${BUILD_TESTING}" OFF
 )
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
+option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
@@ -47,6 +48,9 @@ elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
 
+message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
+message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
+
 string(APPEND CMAKE_C_FLAGS_DEBUG " -Og")
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 if("${USE_COVERAGE}")
@@ -61,6 +65,9 @@ if("${USE_COVERAGE}")
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
 endif()
 
+# under msys2 (and all other operating systems) we want pkgconfig. when
+# building with visual studio, don't require it.
+if(NOT MSVC)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(APPLE)
@@ -73,34 +80,7 @@ set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 else()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
-
-# global compiler flags
-add_compile_definitions(_FORTIFY_SOURCE=2)
-add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
-                    -fexceptions -fstrict-aliasing)
-
-message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
-message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
-
 find_package(PkgConfig REQUIRED)
-# don't use REQUIRED with subsequent find_package() operations; we use
-# feature_summary + set_package_properties to fail in one fell swoop.
-find_package(Threads)
-set_package_properties(Threads PROPERTIES TYPE REQUIRED)
-find_package(ZLIB)
-set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
-# platform-specific logics
-if(WIN32)
-  set(LIBRT_LIBRARIES wsock32 ws2_32)
-elseif(NOT APPLE)
-  find_library(LIBM m REQUIRED)
-  find_library(LIBRT rt REQUIRED)
-endif()
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  include_directories(/usr/local/include)
-  link_directories(/usr/local/lib)
-  set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
-endif()
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
@@ -124,6 +104,31 @@ elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
 endif()
+endif()
+
+# global compiler flags
+add_compile_definitions(_FORTIFY_SOURCE=2)
+add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
+                    -fexceptions -fstrict-aliasing)
+
+# don't use REQUIRED with subsequent find_package() operations; we use
+# feature_summary + set_package_properties to fail in one fell swoop.
+find_package(Threads)
+set_package_properties(Threads PROPERTIES TYPE REQUIRED)
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
+# platform-specific logics
+if(WIN32)
+  set(LIBRT_LIBRARIES wsock32 ws2_32)
+elseif(NOT APPLE)
+  find_library(LIBM m REQUIRED)
+  find_library(LIBRT rt REQUIRED)
+endif()
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  include_directories(/usr/local/include)
+  link_directories(/usr/local/lib)
+  set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
+endif()
 
 if(${USE_DOCTEST})
 find_package(doctest 2.3.5)
@@ -141,6 +146,16 @@ endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
+if(${USE_GPM}) # no pkgconfig from gpm
+unset(HAVE_GPM_H CACHE)
+check_include_file("gpm.h" HAVE_GPM_H)
+if(NOT "${HAVE_GPM_H}")
+  message(FATAL_ERROR "Couldn't find gpm.h from libgpm")
+endif()
+find_library(gpm gpm REQUIRED)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libgpm)
+set_package_properties(libgpm PROPERTIES TYPE REQUIRED)
+endif()
 unset(HAVE_QRCODEGEN_H CACHE)
 if("${USE_QRCODEGEN}")
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
@@ -187,6 +202,7 @@ set_target_properties(notcurses-core-static PROPERTIES
   OUTPUT_NAME notcurses-core
 )
 target_include_directories(notcurses-core
+  BEFORE
   PRIVATE
     include
     src
@@ -196,6 +212,7 @@ target_include_directories(notcurses-core
     "${ZLIB_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
+  BEFORE
   PRIVATE
     include
     src
@@ -210,6 +227,7 @@ target_link_libraries(notcurses-core
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
+    "${gpm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -220,6 +238,7 @@ target_link_libraries(notcurses-core-static
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
+    "${gpm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -257,19 +276,19 @@ set_target_properties(notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
 )
 target_include_directories(notcurses
+  BEFORE
   PRIVATE
     include
     src
-    src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
+  BEFORE
   PRIVATE
     include
     src
-    src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
@@ -395,16 +414,19 @@ set_target_properties(
   OUTPUT_NAME "notcurses++")
 
 set(NCPP_INCLUDE_DIRS
-  include
+    "include"
+    "src"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
   )
 
 target_include_directories(notcurses++
+  BEFORE
   PRIVATE ${NCPP_INCLUDE_DIRS}
   )
 
 target_include_directories(notcurses++-static
+  BEFORE
   PRIVATE ${NCPP_INCLUDE_DIRS}
   )
 
@@ -537,7 +559,6 @@ target_compile_definitions(notcurses-info
 target_include_directories(notcurses-info
   PRIVATE
     src
-    src/lib
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
@@ -646,12 +667,12 @@ if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
+  BEFORE
   PRIVATE
     include
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-    src/lib
     "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-tester

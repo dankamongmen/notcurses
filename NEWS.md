@@ -1,12 +1,26 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.14 (not yet released)
+* 2.3.17 (2021-08-22)
+  * Added `notcurses_enter_alternate_screen()` and
+    `notcurses_leave_alternate_screen()`.
+  * Added `ncplane_boundlist()`.
+  * Plots now support `NCBLIT_PIXEL`!
+
+* 2.3.16 (2021-08-19)
+  * Fix `ncdirect_set_*_rgb()` for the case where an emulator has fewer than
+    8 colors, i.e. vt100. This release exists to make unit tests work again
+    on the Alpine and Fedora buildservers.
+
+* 2.3.15 (2021-08-17)
   * `ncneofetch` has been changed to use "CLI mode" instead of Direct Mode,
     as a proof of concept. It is very likely that Direct Mode will be
     deprecated for ABI3. New code ought not be written using it.
   * Added `ncplane_scrollup()` and `ncplane_scrollup_child()`.
   * Fixed grotesque errors in `ncplane_set_*_palindex()`.
+  * Removed support for the iTerm2 graphics protocol, which is unsuitable for
+    the Notcurses model. macOS users who want graphics are recommended to use
+    Kitty or WezTerm. It will be added back if it gains necessary capabilities.
 
 * 2.3.13 (2021-08-04)
   * Added the portable utility functions `notcurses_accountname()` and

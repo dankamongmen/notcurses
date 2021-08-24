@@ -76,7 +76,7 @@ fbuf_grow(fbuf* f, size_t n){
       return -1;
     }
 #else
-    tmp = realloc(f->buf, f->size);
+    tmp = realloc(f->buf, size);
     if(tmp == NULL){
       return -1;
     }
