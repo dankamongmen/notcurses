@@ -101,7 +101,7 @@ notcurses_stop_minimal(void* vnc){
         ret = -1;
       }
     }
-    ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, nc->tcache.tpreserved);
   }
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
@@ -1263,7 +1263,7 @@ err:
   logpanic("Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
   fbuf_free(&ret->rstate.f);
-  (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, &ret->tcache.tpreserved);
+  (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
   drop_signals(ret);
   del_curterm(cur_term);
   pthread_mutex_destroy(&ret->stats.lock);
