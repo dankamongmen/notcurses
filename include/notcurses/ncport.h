@@ -23,13 +23,15 @@ extern "C" {
 #include <libkern/OSByteOrder.h>
 #define htole(x) (OSSwapInt32(htonl(x)))
 #elif defined(__gnu_hurd__)                       // Hurd
+#include <string.h>
 #include <byteswap.h>
 #define htole(x) (__bswap_32(htonl(x)))
-#define wcwidth(w) 1       // FIXME lol, no
-#define wcswidth(w, s) (s) // FIXME lol, no
+#define wcwidth(w) 1               // FIXME lol, no
+#define wcswidth(w, s) (wcslen(w)) // FIXME lol, no
 #elif defined(__MINGW64__)                        // Windows
-#define wcwidth(w) 1       // FIXME lol, no
-#define wcswidth(w, s) (s) // FIXME lol, no
+#include <string.h>
+#define wcwidth(w) 1               // FIXME lol, no
+#define wcswidth(w, s) (wcslen(w)) // FIXME lol, no
 #define htole(x) (x)       // FIXME are all windows installs LE? ugh
 #else                                             // BSDs
 #include <sys/endian.h>
