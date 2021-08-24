@@ -415,23 +415,19 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 static int
 block_on_input(int fd, const struct timespec* ts){
 #ifdef __MINGW64__
-  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
   HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
   if(in == INVALID_HANDLE_VALUE){
-fprintf(stderr, "NO JOY!!!\n");
     return -1;
   }
-fprintf(stderr, "WATITING!!!\n");
+  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
   DWORD d = WaitForMultipleObjects(1, &in, FALSE, timeoutms);
   if(d == WAIT_TIMEOUT){
     return 0;
   }else if(d == WAIT_FAILED){
-fprintf(stderr, "ERRROR WATITING \n");
     return -1;
   }else if(d - WAIT_OBJECT_0 == 0){
     return 1;
   }
-fprintf(stderr, "GIUMP!!! %d\n", d - WAIT_OBJECT_0);
   return -1;
 #else
   struct pollfd pfd = {
@@ -1633,6 +1629,18 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       tcache->sixel_maxy = 0;
       *kittygraphs = true;
     }
+  }
+#else
+  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
+  if(in == INVALID_HANDLE_VALUE){
+    logerror("couldn't get input handle\n");
+    return -1;
+  }
+  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
+                         | ENABLE_PROCESSED_INPUT
+                         | ENABLE_WINDOW_INPUT)){
+    logerror("couldn't set input console mode\n");
+    return -1;
   }
 #endif
   return 0;
