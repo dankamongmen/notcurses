@@ -338,9 +338,7 @@ int main(void){
   notcurses_options nopts{};
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
-  if(!nc.mouse_enable()){
-    return EXIT_FAILURE;
-  }
+  nc.mouse_enable(); // might fail if no mouse is available
   int ret = input_demo(&nc);
   if(!nc.stop() || ret){
     return EXIT_FAILURE;
