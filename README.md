@@ -263,6 +263,14 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>Notcurses looks like absolute crap in Windows Terminal.</summary>
+  Go to [Language Settings](ms-settings:regionlanguage), click "Administrative
+  language settings", click "Change system locale", and check the "Beta: Use
+  Unicode UTF-8 for worldwide language support" option. Restart the computer.
+  That ought help a little bit. Ensure your code page is 65001 with `chcp 65001`.
+</details>
+
+<details>
   <summary>Why didn't you just render everything to Sixel?</summary>
   That's not a TUI; it's a slow and inflexible GUI. Many terminal emulators
   don't support Sixel. Sixel doesn't work well with mouse selection.
