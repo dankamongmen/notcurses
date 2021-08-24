@@ -436,8 +436,8 @@ block_on_input(int fd, const struct timespec* ts){
   while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
 #else
 #ifdef __MINGW64__
-  // FIXME i doubt this even works
-  while((events = WSAPoll(&pfd, 1, 0)) < 0){
+  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
+  while((events = WSAPoll(&pfd, 1, timeoutms)) < 0){
 #else
   sigset_t smask;
   sigfillset(&smask);
@@ -446,12 +446,11 @@ block_on_input(int fd, const struct timespec* ts){
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
 #endif
 #endif
-    if(events == 0){
-      return 0;
-    }
+#ifndef __MINGW64__ // windows doesn't set errno
     if(errno != EINTR && errno != EAGAIN){
       return -1;
     }
+#endif
     if(resize_seen){
       return 1;
     }
