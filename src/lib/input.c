@@ -1590,7 +1590,20 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->user_wants_data = false;
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
-#ifndef __MINGW64__
+#ifdef __MINGW64__
+  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
+  if(in == INVALID_HANDLE_VALUE){
+    logerror("couldn't get input handle\n");
+    return -1;
+  }
+  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
+                         | ENABLE_VIRTUAL_TERMINAL_INPUT
+                         | ENABLE_PROCESSED_INPUT
+                         | ENABLE_WINDOW_INPUT)){
+    logerror("couldn't set input console mode\n");
+    return -1;
+  }
+#else
   // widnows terminal doesn't seem to reply to any queries =/
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
@@ -1629,18 +1642,6 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       tcache->sixel_maxy = 0;
       *kittygraphs = true;
     }
-  }
-#else
-  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-  if(in == INVALID_HANDLE_VALUE){
-    logerror("couldn't get input handle\n");
-    return -1;
-  }
-  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
-                         | ENABLE_PROCESSED_INPUT
-                         | ENABLE_WINDOW_INPUT)){
-    logerror("couldn't set input console mode\n");
-    return -1;
   }
 #endif
   return 0;
