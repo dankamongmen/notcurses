@@ -1590,60 +1590,45 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->user_wants_data = false;
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
-#ifdef __MINGW64__
-  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-  if(in == INVALID_HANDLE_VALUE){
-    logerror("couldn't get input handle\n");
-    return -1;
-  }
-  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
-  // otherwise, we're something else; go ahead and query.
-  if(SetConsoleMode(in, ENABLE_MOUSE_INPUT
-                        | ENABLE_VIRTUAL_TERMINAL_INPUT
-                        | ENABLE_PROCESSED_INPUT
-                        | ENABLE_WINDOW_INPUT)){
-    loginfo("prepared Windows Terminal\n");
-    return 0;
-  }
-  logerror("couldn't set input console mode\n");
-#endif
-  // windows terminal doesn't seem to reply to any queries =/
-  int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
-  if(isatty(csifd)){
-    query_state inits = {
-      .tcache = tcache,
-      .state = STATE_NULL,
-      .qterm = *detected,
-      .cursor_x = -1,
-      .cursor_y = -1,
-    };
-    if(control_read(csifd, &inits)){
-      input_free_esctrie(&nilayer->inputescapes);
-      free(inits.version);
-      pthread_cond_destroy(&nilayer->creport_cond);
-      pthread_mutex_destroy(&nilayer->lock);
-      return -1;
-    }
-    tcache->bg_collides_default = inits.bg;
-    tcache->termversion = inits.version;
-    *detected = inits.qterm;
-    *appsync = inits.appsync;
-    if(cursor_x){
-      *cursor_x = inits.cursor_x - 1;
-    }
-    if(cursor_y){
-      *cursor_y = inits.cursor_y - 1;
-    }
-    if(inits.pixelwidth && inits.pixelheight){
-      tcache->pixy = inits.pixelheight;
-      tcache->pixx = inits.pixelwidth;
-    }
-    if(inits.kittygraphics){ // kitty trumps sixel
-      loginfo("advertised kitty; disabling sixel\n");
-      tcache->color_registers = 0;
-      tcache->sixel_maxx = 0;
-      tcache->sixel_maxy = 0;
-      *kittygraphs = true;
+  if(*detected != TERMINAL_MSTERMINAL){
+    // windows terminal doesn't seem to reply to any queries =/
+    int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
+    if(isatty(csifd)){
+      query_state inits = {
+        .tcache = tcache,
+        .state = STATE_NULL,
+        .qterm = *detected,
+        .cursor_x = -1,
+        .cursor_y = -1,
+      };
+      if(control_read(csifd, &inits)){
+        input_free_esctrie(&nilayer->inputescapes);
+        free(inits.version);
+        pthread_cond_destroy(&nilayer->creport_cond);
+        pthread_mutex_destroy(&nilayer->lock);
+        return -1;
+      }
+      tcache->bg_collides_default = inits.bg;
+      tcache->termversion = inits.version;
+      *detected = inits.qterm;
+      *appsync = inits.appsync;
+      if(cursor_x){
+        *cursor_x = inits.cursor_x - 1;
+      }
+      if(cursor_y){
+        *cursor_y = inits.cursor_y - 1;
+      }
+      if(inits.pixelwidth && inits.pixelheight){
+        tcache->pixy = inits.pixelheight;
+        tcache->pixx = inits.pixelwidth;
+      }
+      if(inits.kittygraphics){ // kitty trumps sixel
+        loginfo("advertised kitty; disabling sixel\n");
+        tcache->color_registers = 0;
+        tcache->sixel_maxx = 0;
+        tcache->sixel_maxy = 0;
+        *kittygraphs = true;
+      }
     }
   }
   return 0;
