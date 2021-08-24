@@ -95,7 +95,6 @@ int handle_inode(const std::string& dir, const char* p, const struct stat* st, c
 // passing false for toplevel (but preserving |ctx|).
 int handle_dir(int dirfd, const std::string& pdir, const char* p,
                const struct stat* st, const lsContext& ctx, bool toplevel){
-#ifndef __MINGW64__
   if(ctx.directories){
     return handle_inode(pdir, p, st, ctx);
   }
@@ -105,12 +104,18 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
   if((strcmp(p, ".") == 0 || strcmp(p, "..") == 0) && !toplevel){
     return 0;
   }
-  int newdir = openat(dirfd, p, O_DIRECTORY | O_CLOEXEC);
+  int newdir = -1;
+#ifndef __MINGW64__
+  newdir = openat(dirfd, p, O_DIRECTORY | O_CLOEXEC);
   if(newdir < 0){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
     return -1;
   }
   DIR* dir = fdopendir(newdir);
+#else
+  (void)dirfd;
+  DIR* dir = opendir(path_join(pdir, p).c_str());
+#endif
   if(dir == nullptr){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
     close(newdir);
@@ -128,11 +133,10 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
     return -1;
   }
   closedir(dir);
-  close(newdir);
+  if(newdir >= 0){
+    close(newdir);
+  }
   return 0;
-#else
-  return -1;
-#endif
 }
 
 int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
