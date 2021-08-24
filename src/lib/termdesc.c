@@ -164,6 +164,7 @@ void free_terminfo_cache(tinfo* ti){
     munmap(ti->linux_fbuffer, ti->linux_fb_len);
   }
 #endif
+  free(ti->tpreserved);
 }
 
 // compare one terminal version against another. numerics, separated by
@@ -456,7 +457,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
                       unsigned nonewfonts){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
-    termname = "unknown";
+    termname = ti->termname ? ti->termname : "unknown";
   }
   if(qterm == TERMINAL_UNKNOWN){
     match_termname(termname, &qterm);
@@ -686,33 +687,42 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     ti->qterm = TERMINAL_LINUX;
   }
 #endif
+  if(ti->qterm != TERMINAL_MSTERMINAL){
+    if(ti->ttyfd >= 0){
+      if((ti->tpreserved = calloc(1, sizeof(*ti->tpreserved))) == NULL){
+        return -1;
+      }
+      if(tcgetattr(ti->ttyfd, ti->tpreserved)){
+        logpanic("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+	free(ti->tpreserved);
+        return -1;
+      }
+      // enter cbreak mode regardless of user preference until we've performed
+      // terminal interrogation. at that point, we might restore original mode.
+      if(cbreak_mode(ti->ttyfd, ti->tpreserved)){
+	free(ti->tpreserved);
+        return -1;
+      }
+      // if we already know our terminal (e.g. on the linux console), there's no
+      // need to send the identification queries. the controls are sufficient.
+      bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
+      if(send_initial_queries(ti->ttyfd, minimal)){
+	free(ti->tpreserved);
+        return -1;
+      }
+    }
 #ifndef __MINGW64__
-  if(ti->ttyfd >= 0){
-    if(tcgetattr(ti->ttyfd, &ti->tpreserved)){
-      logpanic("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+    // windows doesn't really have a concept of terminfo. you might ssh into other
+    // machines, but they'll use the terminfo installed thereon (putty, etc.).
+    int termerr;
+    if(setupterm(termtype, ti->ttyfd, &termerr)){
+      logpanic("Terminfo error %d for %s (see terminfo(3ncurses))\n", termerr, termtype);
+      free(ti->tpreserved);
       return -1;
     }
-    // enter cbreak mode regardless of user preference until we've performed
-    // terminal interrogation. at that point, we might restore original mode.
-    if(cbreak_mode(ti->ttyfd, &ti->tpreserved)){
-      return -1;
-    }
-    // if we already know our terminal (e.g. on the linux console), there's no
-    // need to send the identification queries. the controls are sufficient.
-    bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(ti->ttyfd, minimal)){
-      return -1;
-    }
-  }
-  // windows doesn't really have a concept of terminfo. you might ssh into other
-  // machines, but they'll use the terminfo installed thereon (putty, etc.).
-  int termerr;
-  if(setupterm(termtype, ti->ttyfd, &termerr)){
-    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
-    return -1;
-  }
-  tname = termname(); // longname() is also available
+    tname = termname(); // longname() is also available
 #endif
+  }
   ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
   ti->caps.utf8 = utf8;
@@ -845,7 +855,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   if(nocbreak){
     if(ti->ttyfd >= 0){
-      if(tcsetattr(ti->ttyfd, TCSANOW, &ti->tpreserved)){
+      if(tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved)){
         ncinputlayer_stop(&ti->input);
         goto err;
       }
@@ -882,6 +892,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   return 0;
 
 err:
+  free(ti->tpreserved);
   free(ti->esctable);
   free(ti->termversion);
   del_curterm(cur_term);

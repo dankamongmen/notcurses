@@ -1,24 +1,11 @@
 #include "termdesc.h"
 #include "internal.h"
 #ifdef __MINGW64__
+#include <winsock2.h>
 #include "windows.h"
 
 // ti has been memset to all zeroes. windows configuration is static.
 int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
-  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-  if(in == INVALID_HANDLE_VALUE){
-    logerror("couldn't get input handle\n");
-    return -1;
-  }
-  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
-  // otherwise, we're something else; go ahead and query.
-  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
-                         | ENABLE_VIRTUAL_TERMINAL_INPUT
-                         | ENABLE_PROCESSED_INPUT
-                         | ENABLE_WINDOW_INPUT)){
-    logerror("couldn't set input console mode\n");
-    return -1;
-  }
   const struct wtermdesc {
     escape_e esc;
     const char* tinfo;
@@ -56,6 +43,20 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   }
   ti->caps.rgb = true;
   ti->caps.colors = 256;
+  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
+  if(in == INVALID_HANDLE_VALUE){
+    logerror("couldn't get input handle\n");
+    return -1;
+  }
+  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
+  // otherwise, we're something else; go ahead and query.
+  if(!SetConsoleMode(in, ENABLE_MOUSE_INPUT
+                         | ENABLE_VIRTUAL_TERMINAL_INPUT
+                         | ENABLE_PROCESSED_INPUT
+                         | ENABLE_WINDOW_INPUT)){
+    logerror("couldn't set input console mode\n");
+    return -1;
+  }
   ti->caps.quadrants = true;
   ti->caps.braille = true;
   ti->termname = "Windows Terminal";

@@ -17,8 +17,8 @@ extern "C" {
 
 #ifdef  __MINGW64__
 #include <Lmcons.h>
-#define tcgetattr(x, y) (-1)
-#define tcsetattr(x, y, z) (-1)
+#define tcgetattr(x, y) (0)
+#define tcsetattr(x, y, z) (0)
 #define ECHO      0
 #define ICANON    0
 #define ICRNL     0
