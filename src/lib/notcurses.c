@@ -935,7 +935,6 @@ init_banner_warnings(const notcurses* nc, fbuf* f){
 static int
 init_banner(const notcurses* nc, fbuf* f){
   if(!nc->suppress_banner){
-    char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
     fbuf_printf(f, "notcurses %s on %s %s\n", notcurses_version(),
                 nc->tcache.termname ? nc->tcache.termname : "?",
@@ -949,9 +948,8 @@ init_banner(const notcurses* nc, fbuf* f){
                   nc->stdplane->leny * nc->tcache.cellpixy,
                   nc->stdplane->lenx * nc->tcache.cellpixx);
     }else{
-      fbuf_printf(f, "%d rows %d cols (%sB) ",
-                  nc->stdplane->leny, nc->stdplane->lenx,
-                  bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0));
+      fbuf_printf(f, "%d rows %d cols ",
+                  nc->stdplane->leny, nc->stdplane->lenx);
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
