@@ -414,19 +414,31 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 // (0 on timeout) or -1 on error/interruption.
 static int
 block_on_input(int fd, const struct timespec* ts){
-#ifndef __MINGW64__
+#ifdef __MINGW64__
+  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
+  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
+  if(in == INVALID_HANDLE_VALUE){
+fprintf(stderr, "NO JOY!!!\n");
+    return -1;
+  }
+fprintf(stderr, "WATITING!!!\n");
+  DWORD d = WaitForMultipleObjects(1, &in, FALSE, timeoutms);
+  if(d == WAIT_TIMEOUT){
+    return 0;
+  }else if(d == WAIT_FAILED){
+fprintf(stderr, "ERRROR WATITING \n");
+    return -1;
+  }else if(d - WAIT_OBJECT_0 == 0){
+    return 1;
+  }
+fprintf(stderr, "GIUMP!!! %d\n", d - WAIT_OBJECT_0);
+  return -1;
+#else
   struct pollfd pfd = {
     .fd = fd,
     .events = POLLIN,
     .revents = 0,
   };
-#else
-  WSAPOLLFD pfd = {
-    .fd = fd,
-    .events = POLLIN,
-    .revents = 0,
-  };
-#endif
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
@@ -434,28 +446,22 @@ block_on_input(int fd, const struct timespec* ts){
 #ifdef __APPLE__
   int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
   while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
-#else
-#ifdef __MINGW64__
-  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
-  while((events = WSAPoll(&pfd, 1, timeoutms)) < 0){
-#else
+#else // linux, BSDs
   sigset_t smask;
   sigfillset(&smask);
   sigdelset(&smask, SIGCONT);
   sigdelset(&smask, SIGWINCH);
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
 #endif
-#endif
-#ifndef __MINGW64__ // windows doesn't set errno
     if(errno != EINTR && errno != EAGAIN){
       return -1;
     }
-#endif
     if(resize_seen){
       return 1;
     }
   }
   return events;
+#endif
 }
 
 static inline size_t
@@ -1588,8 +1594,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->user_wants_data = false;
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
-  // widnows terminal doesn't seem to reply to any queries =/
 #ifndef __MINGW64__
+  // widnows terminal doesn't seem to reply to any queries =/
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
     query_state inits = {
