@@ -90,7 +90,7 @@ notcurses_stop_minimal(void* vnc){
   if(nc->tcache.pixel_shutdown){
     ret |= nc->tcache.pixel_shutdown(f);
   }
-  ret |= mouse_disable(f);
+  ret |= mouse_disable(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
   if(nc->tcache.ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
@@ -2262,7 +2262,7 @@ ncplane* ncplane_above(ncplane* n){
 }
 
 int notcurses_mouse_enable(notcurses* n){
-  if(mouse_enable(n->ttyfp)){
+  if(mouse_enable(&n->tcache, n->ttyfp)){
     return -1;
   }
   return 0;
@@ -2275,7 +2275,7 @@ int notcurses_mouse_disable(notcurses* n){
   if(fbuf_init_small(&f)){
     return -1;
   }
-  if(mouse_disable(&f)){
+  if(mouse_disable(&n->tcache, &f)){
     fbuf_free(&f);
     return -1;
   }

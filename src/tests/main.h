@@ -9,7 +9,7 @@
 #include <notcurses/notcurses.h>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/_exceptions.hh>
-#include "internal.h"
+#include "lib/internal.h"
 
 struct free_deleter{
   template <typename T>

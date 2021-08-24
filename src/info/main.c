@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
-#include "internal.h" // internal headers
+#include "lib/internal.h" // internal headers
 
 static inline wchar_t
 capboolbool(unsigned utf8, bool cap){

@@ -1,5 +1,5 @@
 #include "notcurses/direct.h"
-#include "internal.h"
+#include "lib/internal.h"
 
 extern const ncvisual_implementation local_visual_implementation;
 

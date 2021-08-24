@@ -664,7 +664,7 @@ macos_early_matches(void){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
-  queried_terminals_e qterm = TERMINAL_UNKNOWN;
+  ti->qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
@@ -672,19 +672,19 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   size_t tableused = 0;
   const char* tname = NULL;
 #ifdef __APPLE__
-  qterm = macos_early_matches();
+  ti->qterm = macos_early_matches();
 #elif defined(__MINGW64__)
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
     return -1;
   }
-  qterm = TERMINAL_MSTERMINAL;
+  ti->qterm = TERMINAL_MSTERMINAL;
   (void)termtype;
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
   if(is_linux_console(ti->ttyfd)){
-    qterm = TERMINAL_LINUX;
+    ti->qterm = TERMINAL_LINUX;
   }
 #endif
 #ifndef __MINGW64__
@@ -700,7 +700,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
-    bool minimal = (qterm != TERMINAL_UNKNOWN);
+    bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(ti->ttyfd, minimal)){
       return -1;
     }
@@ -840,7 +840,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   *cursor_x = *cursor_y = -1;
   unsigned kittygraphs = 0;
-  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised,
+  if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
                        cursor_y, cursor_x, stats, &kittygraphs)){
     goto err;
   }
@@ -863,7 +863,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
   }
   bool invertsixel = false;
-  if(apply_term_heuristics(ti, tname, qterm, &tablelen, &tableused,
+  if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &invertsixel, nonewfonts)){
     ncinputlayer_stop(&ti->input);
     goto err;

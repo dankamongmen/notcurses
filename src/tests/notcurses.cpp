@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <iostream>
 #include "main.h"
-#include "internal.h"
 
 TEST_CASE("NotcursesBase") {
   auto nc_ = testing_notcurses();

@@ -32,10 +32,11 @@ extern "C" {
 #ifndef __MINGW64__
 #include <langinfo.h>
 #endif
-#include "termdesc.h"
-#include "egcpool.h"
-#include "sprite.h"
-#include "fbuf.h"
+#include "lib/termdesc.h"
+#include "lib/egcpool.h"
+#include "lib/sprite.h"
+#include "lib/fbuf.h"
+#include "lib/gpm.h"
 
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
@@ -1142,7 +1143,10 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
 #define SET_SGR_MODE_MOUSE    "1006"
 
 static inline int
-mouse_enable(FILE* out){
+mouse_enable(tinfo* ti, FILE* out){
+  if(ti->qterm == TERMINAL_LINUX){
+    return gpm_connect(ti);
+  }
 // Sets the shift-escape option, allowing shift+mouse to override the standard
 // mouse protocol (mainly so copy-and-paste can still be performed).
 #define XTSHIFTESCAPE "\x1b[>1s"
@@ -1153,7 +1157,10 @@ mouse_enable(FILE* out){
 }
 
 static inline int
-mouse_disable(fbuf* f){
+mouse_disable(tinfo* ti, fbuf* f){
+  if(ti->qterm == TERMINAL_LINUX){
+    return gpm_close(ti);
+  }
   return fbuf_emit(f, "\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l");
 }

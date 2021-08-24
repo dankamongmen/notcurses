@@ -11,8 +11,8 @@
 #include <libswscale/version.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
-#include "visual-details.h"
-#include "internal.h"
+#include "lib/visual-details.h"
+#include "lib/internal.h"
 
 struct AVFormatContext;
 struct AVCodecContext;
