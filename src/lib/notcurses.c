@@ -1263,7 +1263,7 @@ err:
   logpanic("Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
   fbuf_free(&ret->rstate.f);
-  tcsetattr(ret->tcache.ttyfd, TCSANOW, &ret->tcache.tpreserved);
+  (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, &ret->tcache.tpreserved);
   drop_signals(ret);
   del_curterm(cur_term);
   pthread_mutex_destroy(&ret->stats.lock);
