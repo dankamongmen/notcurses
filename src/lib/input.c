@@ -1607,7 +1607,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   }
   logerror("couldn't set input console mode\n");
 #endif
-  // widnows terminal doesn't seem to reply to any queries =/
+  // windows terminal doesn't seem to reply to any queries =/
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
     query_state inits = {
