@@ -9,10 +9,11 @@ static Gpm_Connect gpmconn;    // gpm server handle
 int gpm_connect(tinfo* ti){
   (void)ti;
   gpm_zerobased = 1;
+  // get all of _MOVE, _DRAG, _DOWN, and _UP
   gpmconn.eventMask = ~0;
   gpmconn.defaultMask = 0;
   gpmconn.minMod = 0;
-  gpmconn.maxMod = ~0;
+  gpmconn.maxMod = 0; // allow shift+drag to be used for direct copy+paste
   if(Gpm_Open(&gpmconn, 0) == -1){
     logerror("couldn't connect to gpm");
     return -1;
