@@ -84,10 +84,8 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     logerror("couldn't set output console mode\n");
     return -1;
   }
-  ti->caps.quadrants = true;
-  ti->caps.braille = true;
   ti->termname = "Windows Terminal";
-  loginfo("prepared Windows Terminal\n");
+  loginfo("verified Windows Terminal\n");
   return 0;
 }
 #endif

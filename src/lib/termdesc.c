@@ -675,10 +675,12 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 #ifdef __APPLE__
   ti->qterm = macos_early_matches();
 #elif defined(__MINGW64__)
+  if(termtype){
+    logwarn("termtype (%s) ignored on windows\n", termtype);
+  }
   if(prepare_windows_terminal(ti, &tablelen, &tableused) == 0){
     ti->qterm = TERMINAL_MSTERMINAL;
   }
-  (void)termtype;
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
