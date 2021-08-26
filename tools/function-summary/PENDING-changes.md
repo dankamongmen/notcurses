@@ -25,3 +25,17 @@ missing imports & methods:
 - [ ] nccells_heavy_box
 - [ ] nccells_light_box
 
+## from changes-20210731-20210826.txt
+- [ ] notcurses_hostname
+- [ ] notcurses_accountname
+- [ ] notcurses_enter_alternate_screen
+- [ ] notcurses_leave_alternate_screen
+- [ ] notcurses_get
+- [ ] ncdirect_get
+- [ ] ncvisual_subtitle_plane
+- [ ] ncvisual_from_palidx
+- [ ] ncplane_scrollup
+- [ ] ncplane_scrollup_child
+- [ ] ncplane_cursor_move_rel
+- [ ] ncplane_boundlist /// Gets the head of the list of planes bound to 'n'.
+
