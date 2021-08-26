@@ -426,16 +426,16 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
     ncplane_set_fg_rgb8(n, 178, 102, 255);
-    ncplane_printf(n, "│%*ss│%7ju│%*s│%7.1f│%2jd│%2jd│%2jd│%*s║",
+    ncplane_printf(n, "│%*ss│%7ju│%*s│%7.1f│%2" PRId64 "│%2" PRId64 "│%2" PRId64 "│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
-           (uintmax_t)(results[i].timens ?
+           (results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0),
-           (uintmax_t)(results[i].timens ?
+           (results[i].timens ?
             results[i].stats.raster_ns * 100 / results[i].timens : 0),
-           (uintmax_t)(results[i].timens ?
+           (results[i].timens ?
             results[i].stats.writeout_ns * 100 / results[i].timens : 0),
            PREFIXFMT(tfpsbuf));
     ncplane_set_fg_rgb(n, rescolor);
