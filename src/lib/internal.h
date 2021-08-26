@@ -1145,12 +1145,12 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
 static inline int
 mouse_enable(tinfo* ti, FILE* out){
   if(ti->qterm == TERMINAL_LINUX){
-    if(ti->gpmfd >= 0){
-      return 0;
+    if(ti->gpmfd < 0){
+      if((ti->gpmfd = gpm_connect(ti)) < 0){
+        return -1;
+      }
     }
-    if((ti->gpmfd = gpm_connect(ti)) >= 0){
-      return 0;
-    }
+    return 0;
   }
 // Sets the shift-escape option, allowing shift+mouse to override the standard
 // mouse protocol (mainly so copy-and-paste can still be performed).
