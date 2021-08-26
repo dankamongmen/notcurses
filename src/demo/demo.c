@@ -427,8 +427,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
     ncplane_set_fg_rgb8(n, 178, 102, 255);
     ncplane_printf(n, "│%*ss│%7" PRIu64 "│%*s│%7.1f│%2" PRId64 "│%2" PRId64 "│%2" PRId64 "│%*s║",
-           PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
-           BPREFIXFMT(totalbuf),
+           PREFIXFMT(timebuf), results[i].stats.renders, BPREFIXFMT(totalbuf),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
            (results[i].timens ?
