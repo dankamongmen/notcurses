@@ -1,7 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <notcurses/notcurses.h>
-#include "compat/compat.h"
+#include "compat/compat.c"
 
 // drag plane |t| across plane |n| at cell row |y|
 static int
