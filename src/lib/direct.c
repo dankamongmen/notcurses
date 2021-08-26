@@ -195,7 +195,12 @@ cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
   int r;
   char in;
   do{
+#ifndef __MINGW64__
     while((r = read(ttyfd, &in, 1)) == 1){
+#else
+    while((r = getc(stdin)) >= 0){ // FIXME
+      in = r;
+#endif
       bool valid = false;
       switch(state){
         case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
@@ -244,6 +249,7 @@ cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
   if(x){
     *x = column;
   }
+  loginfo("cursor at y=%d x=%d\n", row, column);
   return 0;
 }
 
@@ -315,6 +321,8 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
   // do not use normal ncdirect_cursor_*() commands, because those go to ttyfp
   // instead of tcache.ttyfd. since we always talk directly to the terminal, we need
   // to move the cursor directly via the terminal.
+  // FIXME since we're always moving 1, we could also just use cuu1 etc (which
+  // i believe to be the only form implemented by Windows Terminal?...)
   const char* cuu = get_escape(&n->tcache, ESCAPE_CUU);
   const char* cuf = get_escape(&n->tcache, ESCAPE_CUF);
   const char* cub = get_escape(&n->tcache, ESCAPE_CUB);

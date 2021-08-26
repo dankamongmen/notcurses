@@ -475,7 +475,7 @@ int get_tty_fd(FILE* ttyfp){
       if(isatty(fd)){
         fd = dup(fd);
       }else{
-        loginfo("File descriptor %d was not a TTY\n", fd);
+        loginfo("fd %d not a TTY\n", fd);
         fd = -1;
       }
     }
