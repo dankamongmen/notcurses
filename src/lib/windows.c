@@ -4,6 +4,7 @@
 #ifdef __MINGW64__
 // ti has been memset to all zeroes. windows configuration is static.
 int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // FIXME need to add ccc + initc
   const struct wtermdesc {
     escape_e esc;
     const char* tinfo;
