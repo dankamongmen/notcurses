@@ -39,6 +39,8 @@ extern "C" {
 typedef struct siginfo_t {
   int aieeee;
 } siginfo_t;
+// not declared in MSYS2 header files, but implemented...?
+int faccessat(int dirfd, const char *pathname, int mode, int flags);
 #define sigemptyset(s)
 #define sigset_t int
 #define nl_langinfo(x) "UTF-8"
