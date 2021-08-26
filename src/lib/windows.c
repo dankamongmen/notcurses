@@ -56,11 +56,11 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     logerror("couldn't get output handle\n");
     return -1;
   }
-  if(!SetConsoleOutputCP(65001)){
+  if(!SetConsoleOutputCP(CP_UTF8)){
     logerror("couldn't set output page to utf8\n");
     return -1;
   }
-  if(!SetConsoleCP(65001)){
+  if(!SetConsoleCP(CP_UTF8)){
     logerror("couldn't set input page to utf8\n");
     return -1;
   }
