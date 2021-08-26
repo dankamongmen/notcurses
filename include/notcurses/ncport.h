@@ -11,9 +11,7 @@ extern "C" {
 // ought be defined so that it's a a no-op on little-endian builds.
 
 #ifndef __MINGW64__                               // All but Windows
-#include <poll.h>
 #include <netinet/in.h>
-#include <termios.h>
 #endif
 
 #if defined(__linux__)                            // Linux

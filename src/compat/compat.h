@@ -46,6 +46,8 @@ typedef struct siginfo_t {
 pid_t waitpid(pid_t pid, int* ret, int flags);
 #define WNOHANG 0
 #else
+#include <poll.h>
+#include <termios.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/mman.h>
