@@ -40,7 +40,6 @@ int cbreak_mode(tinfo* ti){
     logerror("Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
     return -1;
   }
-  return 0;
 #else
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
@@ -52,8 +51,8 @@ int cbreak_mode(tinfo* ti){
     logerror("error setting input mode\n");
     return -1;
   }
-  return 0;
 #endif
+  return 0;
 }
 
 // Disable signals originating from the terminal's line discipline, i.e.
@@ -73,10 +72,19 @@ int notcurses_linesigs_disable(notcurses* n){
     logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
-  return 0;
 #else
-  return -1; // FIXME
+  DWORD mode;
+  if(!GetConsoleMode(n->tinfo.inhandle, &mode)){
+    logerror("error acquiring input mode\n");
+    return -1;
+  }
+  mode &= ~ENABLE_PROCESSED_INPUT;
+  if(!SetConsoleMode(n->tinfo.inhandle, mode)){
+    logerror("error setting input mode\n");
+    return -1;
+  }
 #endif
+  return 0;
 }
 
 // Restore signals originating from the terminal's line discipline, i.e.
@@ -96,10 +104,19 @@ int notcurses_linesigs_enable(notcurses* n){
     logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
-  return 0;
 #else
-  return -1; // FIXME
+  DWORD mode;
+  if(!GetConsoleMode(n->tinfo.inhandle, &mode)){
+    logerror("error acquiring input mode\n");
+    return -1;
+  }
+  mode |= ENABLE_PROCESSED_INPUT;
+  if(!SetConsoleMode(n->tinfo.inhandle, mode)){
+    logerror("error setting input mode\n");
+    return -1;
+  }
 #endif
+  return 0;
 }
 
 static inline int
