@@ -405,7 +405,6 @@ detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
 // the terminal, and then reading a response. many things can distupt this
 // non-atomic procedure, leading to unexpected results. a garbage function.
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
-#ifndef __MINGW64__ // FIXME
   struct termios termio, oldtermios;
   // this is only meaningful for real terminals
   if(n->tcache.ttyfd < 0){
@@ -460,9 +459,6 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
             n->tcache.ttyfd, strerror(errno)); // don't return error for this
   }
   return ret;
-#else
-  return -1; // FIXME
-#endif
 }
 
 int ncdirect_cursor_push(ncdirect* n){
