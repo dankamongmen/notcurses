@@ -9,8 +9,8 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     const char* tinfo;
   } wterms[] = {
     { ESCAPE_CUP,   "\x1b[%i%p1%d;%p2%dH", },
-    { ESCAPE_RMKX,  "\x1b[?1l", },
-    { ESCAPE_SMKX,  "\x1b[?1h", },
+    { ESCAPE_RMKX,  "\x1b[?1h", },
+    { ESCAPE_SMKX,  "\x1b[?1l", },
     { ESCAPE_VPA,   "\x1b[%i%p1%dd", },
     { ESCAPE_HPA,   "\x1b[%i%p1%dG", },
     { ESCAPE_SC,    "\x1b[s", },
