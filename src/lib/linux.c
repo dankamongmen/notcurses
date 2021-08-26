@@ -39,8 +39,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
   int cdimy = s->cellpxy;
   // FIXME this will need be a copy of the tinfo's fbuf map
   size_t flen = leny * lenx * 4;
-  s->glyph.buf = malloc(flen);
-  if(s->glyph.buf == NULL){
+  if(fbuf_reserve(&s->glyph, flen)){
     return -1;
   }
   tament* tam = NULL;
@@ -114,7 +113,7 @@ error:
   if(!reuse){
     free(tam);
   }
-  free(s->glyph.buf);
+  fbuf_free(&s->glyph);
   s->glyph.size = 0;
   return -1;
 }

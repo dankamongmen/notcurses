@@ -156,6 +156,14 @@ fbuf_reset(fbuf* f){
 }
 
 static inline int
+fbuf_reserve(fbuf* f, size_t len){
+  if(fbuf_grow(f, len)){
+    return -1;
+  }
+  return 0;
+}
+
+static inline int
 fbuf_putc(fbuf* f, char c){
   if(fbuf_grow(f, 1)){
     return -1;
