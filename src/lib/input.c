@@ -441,16 +441,11 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 // blocks up through ts (infinite with NULL ts), returning number of events
 // (0 on timeout) or -1 on error/interruption.
 static int
-block_on_input(int fd, const struct timespec* ts){
+block_on_input(tinfo* ti, const struct timespec* ts){
 #ifdef __MINGW64__
-  (void)fd;
-  // FIXME pull cached value out of tinfo
-  HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-  if(in == INVALID_HANDLE_VALUE){
-    return -1;
-  }
+  /* FIXME this approach doesn't work in MinTTY =\ */
   int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
-  DWORD d = WaitForMultipleObjects(1, &in, FALSE, timeoutms);
+  DWORD d = WaitForMultipleObjects(1, &ti->inhandle, FALSE, timeoutms);
   if(d == WAIT_TIMEOUT){
     return 0;
   }else if(d == WAIT_FAILED){
@@ -461,7 +456,7 @@ block_on_input(int fd, const struct timespec* ts){
   return -1;
 #else
   struct pollfd pfd = {
-    .fd = fd,
+    .fd = ti->input->infd,
     .events = POLLIN,
     .revents = 0,
   };
@@ -614,14 +609,15 @@ handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 
 // helper so we can do counter increment at a single location
 static inline uint32_t
-ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
+ncinputlayer_prestamp(tinfo* ti, const struct timespec *ts,
                       ncinput* ni, int leftmargin, int topmargin){
 //fprintf(stderr, "PRESTAMP OCCUPADO: %d\n", nc->inputbuf_occupied);
+  ncinputlayer* nc = &ti->input;
   if(nc->inputbuf_occupied){
     return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
   errno = 0;
-  if(block_on_input(nc->infd, ts) > 0){
+  if(block_on_input(ti, ts) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin);
   }
@@ -631,7 +627,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
 
 // infp has already been set non-blocking
 uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
-  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, ni,
+  uint32_t r = ncinputlayer_prestamp(&nc->tcache, ts, ni,
                                      nc->margin_l, nc->margin_t);
   if(r != (uint32_t)-1){
     uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
@@ -650,7 +646,7 @@ uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,
 }
 
 uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* ts, ncinput* ni){
-  uint32_t r = ncinputlayer_prestamp(&n->tcache.input, ts, ni, 0, 0);
+  uint32_t r = ncinputlayer_prestamp(&n->tcache, ts, ni, 0, 0);
   if(r != (uint32_t)-1){
     uint64_t stamp = n->tcache.input.input_events++; // need increment even if !ni
     if(ni){
@@ -1607,6 +1603,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->stats = stats;
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
+  loginfo("input fd: %d\n", nilayer->infd);
   nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
   if(prep_special_keys(nilayer)){
     pthread_mutex_destroy(&nilayer->lock);
@@ -1693,7 +1690,7 @@ scan_for_clrs(ncinputlayer* ni){
 // appropriate. we can be interrupted by a new user context. we enter holding
 // the input lock, and leave holding the input lock, giving it up only while
 // blocking for readable action.
-void ncinput_extract_clrs(ncinputlayer* ni){
+void ncinput_extract_clrs(tinfo* ti, ncinputlayer* ni){
   do{
     if(ni->inputbuf_occupied){
       scan_for_clrs(ni);
@@ -1726,7 +1723,7 @@ void ncinput_extract_clrs(ncinputlayer* ni){
       // specify a NULL timeout, meaning we block as long as we need, until
       // there's input available, or we are interrupted by a signal.
       logdebug("Blocking on input");
-      if(block_on_input(ni->infd, NULL) < 1){
+      if(block_on_input(ti, NULL) < 1){
         pthread_mutex_lock(&ni->lock); // interrupted?
         break;
       }

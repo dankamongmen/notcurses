@@ -57,7 +57,7 @@ int cbreak_mode(struct tinfo* ti);
 // assuming the user context is not active, go through current data looking
 // for a cursor location report. if we find none, block on input, and read if
 // appropriate. we can be interrupted by a new user context.
-void ncinput_extract_clrs(struct ncinputlayer* nilayer);
+void ncinput_extract_clrs(struct tinfo* ti, struct ncinputlayer* nilayer);
 
 #ifdef __cplusplus
 }
