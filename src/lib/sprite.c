@@ -61,6 +61,8 @@ sprixel* sprixel_recycle(ncplane* n){
     sprixel_hide(hides);
     return sprixel_alloc(&nc->tcache, n, dimy, dimx);
   }
+  sixelmap_free(n->sprite->smap);
+  n->sprite->smap = NULL;
   return n->sprite;
 }
 
