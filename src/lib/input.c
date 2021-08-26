@@ -456,7 +456,7 @@ block_on_input(tinfo* ti, const struct timespec* ts){
   return -1;
 #else
   struct pollfd pfd = {
-    .fd = ti->input->infd,
+    .fd = ti->input.infd,
     .events = POLLIN,
     .revents = 0,
   };
@@ -1690,7 +1690,8 @@ scan_for_clrs(ncinputlayer* ni){
 // appropriate. we can be interrupted by a new user context. we enter holding
 // the input lock, and leave holding the input lock, giving it up only while
 // blocking for readable action.
-void ncinput_extract_clrs(tinfo* ti, ncinputlayer* ni){
+void ncinput_extract_clrs(tinfo* ti){
+  ncinputlayer* ni = &ti->input;
   do{
     if(ni->inputbuf_occupied){
       scan_for_clrs(ni);

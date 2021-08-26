@@ -987,7 +987,7 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     }
     // this can block. we must enter holding the input lock, and it will
     // return to us holding the input lock.
-    ncinput_extract_clrs(&ti->input);
+    ncinput_extract_clrs(ti);
     if( (clr = ti->input.creport_queue) ){
       break;
     }
@@ -1004,7 +1004,7 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     *cursor_x = tmp;
   }
   free(clr);
-#endif
+#else
   CONSOLE_SCREEN_BUFFER_INFO conbuf;
   if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
     logerror("couldn't get cursor info\n");
@@ -1013,5 +1013,6 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
   *cursor_y = conbuf.dwCursorPosition.Y;
   *cursor_x = conbuf.dwCursorPosition.X;
   loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
+#endif
   return 0;
 }
