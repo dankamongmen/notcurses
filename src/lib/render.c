@@ -1629,9 +1629,6 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->cursory == y && nc->cursorx == x){
     return 0;
   }
-  if(nc->tcache.ttyfd < 0){
-    return -1;
-  }
   fbuf f = {};
   if(fbuf_init_small(&f)){
     return -1;
@@ -1641,17 +1638,14 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     fbuf_free(&f);
     return -1;
   }
+  if(nc->cursory < 0){ // we weren't visible before, need cnorm
+    const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+    if(!cnorm || fbuf_emit(&f, cnorm)){
+      fbuf_free(&f);
+      return -1;
+    }
+  }
   if(fbuf_finalize(&f, nc->ttyfp)){
-    return -1;
-  }
-  // if we were already positive, we're already visible, no need to write cnorm
-  if(nc->cursory >= 0 && nc->cursorx >= 0){
-    nc->cursory = y;
-    nc->cursorx = x;
-    return 0;
-  }
-  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-  if(!cnorm || tty_emit(cnorm, nc->tcache.ttyfd)){
     return -1;
   }
   nc->cursory = y;
@@ -1664,14 +1658,12 @@ int notcurses_cursor_disable(notcurses* nc){
     logerror("Cursor is not enabled\n");
     return -1;
   }
-  if(nc->tcache.ttyfd >= 0){
-    const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
-    if(cinvis){
-      if(!tty_emit(cinvis, nc->tcache.ttyfd) && !ncflush(nc->ttyfp)){
-        nc->cursory = -1;
-        nc->cursorx = -1;
-        return 0;
-      }
+  const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
+  if(cinvis){
+    if(!tty_emit(cinvis, nc->tcache.ttyfd) && !ncflush(nc->ttyfp)){
+      nc->cursory = -1;
+      nc->cursorx = -1;
+      return 0;
     }
   }
   return -1;
