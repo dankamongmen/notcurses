@@ -489,11 +489,13 @@ scrub_stdplane(struct notcurses* nc){
 }
 
 int main(int argc, char** argv){
+#ifndef __MINGW64__
   sigset_t sigmask;
   // ensure SIGWINCH is delivered only to a thread doing input
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
+#endif
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   notcurses_options nopts = {};
