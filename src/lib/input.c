@@ -20,14 +20,15 @@ void sigwinch_handler(int signo){
   resize_seen = signo;
 }
 
-int cbreak_mode(int ttyfd, const struct termios* tpreserved){
+int cbreak_mode(tinfo* ti){
 #ifndef __MINGW64__
+  int ttyfd = ti->ttyfd;
   if(ttyfd < 0){
     return 0;
   }
   // assume it's not a true terminal (e.g. we might be redirected to a file)
   struct termios modtermios;
-  memcpy(&modtermios, tpreserved, sizeof(modtermios));
+  memcpy(&modtermios, ti->tpreserved, sizeof(modtermios));
   // see termios(3). disabling ECHO and ICANON means input will not be echoed
   // to the screen, input is made available without enter-based buffering, and
   // line editing is disabled. since we have not gone into raw mode, ctrl+c
@@ -41,7 +42,17 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved){
   }
   return 0;
 #else
-  return -1; // FIXME
+  DWORD mode;
+  if(!GetConsoleMode(ti->inhandle, &mode)){
+    logerror("error acquiring input mode\n");
+    return -1;
+  }
+  mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+  if(!SetConsoleMode(ti->inhandle, mode)){
+    logerror("error setting input mode\n");
+    return -1;
+  }
+  return 0;
 #endif
 }
 

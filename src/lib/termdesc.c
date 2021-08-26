@@ -694,20 +694,20 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       }
       if(tcgetattr(ti->ttyfd, ti->tpreserved)){
         logpanic("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
-	free(ti->tpreserved);
+        free(ti->tpreserved);
         return -1;
       }
       // enter cbreak mode regardless of user preference until we've performed
       // terminal interrogation. at that point, we might restore original mode.
-      if(cbreak_mode(ti->ttyfd, ti->tpreserved)){
-	free(ti->tpreserved);
+      if(cbreak_mode(ti)){
+        free(ti->tpreserved);
         return -1;
       }
       // if we already know our terminal (e.g. on the linux console), there's no
       // need to send the identification queries. the controls are sufficient.
       bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
       if(send_initial_queries(ti->ttyfd, minimal)){
-	free(ti->tpreserved);
+        free(ti->tpreserved);
         return -1;
       }
     }
