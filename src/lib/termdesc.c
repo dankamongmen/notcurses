@@ -680,6 +680,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   if(prepare_windows_terminal(ti, &tablelen, &tableused) == 0){
     ti->qterm = TERMINAL_MSTERMINAL;
+    if(cursor_y && cursor_x){
+      locate_cursor(ti, cursor_y, cursor_x);
+    }
   }
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
@@ -916,6 +919,7 @@ char* termdesc_longterm(const tinfo* ti){
   return ret;
 }
 
+#ifndef __MINGW64__
 // when we have input->ttyfd, everything's simple -- we're reading from a
 // different source than the user is, so we can just write the query, and block
 // on the response, easy peasy.
@@ -946,11 +950,13 @@ locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
   loginfo("Located cursor with %d: %d/%d\n", fd, *cursor_y, *cursor_x);
   return 0;
 }
+#endif
 
 // send a u7 request, and wait until we have a cursor report. if input's ttyfd
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
+#ifndef __MINGW64__
   const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7 == NULL){
     logwarn("No support in terminfo\n");
@@ -998,5 +1004,14 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     *cursor_x = tmp;
   }
   free(clr);
+#endif
+  CONSOLE_SCREEN_BUFFER_INFO conbuf;
+  if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
+    logerror("couldn't get cursor info\n");
+    return -1;
+  }
+  *cursor_y = conbuf.dwCursorPosition.Y;
+  *cursor_x = conbuf.dwCursorPosition.X;
+  loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
   return 0;
 }
