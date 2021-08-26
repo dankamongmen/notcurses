@@ -673,10 +673,11 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     cursor_y = &foolcursor_y;
   }
   *cursor_x = *cursor_y = -1;
-  ti->qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+  ti->qterm = TERMINAL_UNKNOWN;
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
+  ti->gpmfd = -1;
   size_t tablelen = 0;
   size_t tableused = 0;
   const char* tname = NULL;
