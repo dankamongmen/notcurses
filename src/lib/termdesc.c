@@ -665,6 +665,14 @@ macos_early_matches(void){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
+  int foolcursor_x, foolcursor_y;
+  if(!cursor_x){
+    cursor_x = &foolcursor_x;
+  }
+  if(!cursor_y){
+    cursor_y = &foolcursor_y;
+  }
+  *cursor_x = *cursor_y = -1;
   ti->qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
   // we don't need a controlling tty for everything we do; allow a failure here
@@ -843,14 +851,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     }
   }
   unsigned appsync_advertised = 0;
-  int foolcursor_x, foolcursor_y;
-  if(!cursor_x){
-    cursor_x = &foolcursor_x;
-  }
-  if(!cursor_y){
-    cursor_y = &foolcursor_y;
-  }
-  *cursor_x = *cursor_y = -1;
   unsigned kittygraphs = 0;
   if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
                        cursor_y, cursor_x, stats, &kittygraphs)){

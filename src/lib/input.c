@@ -1623,8 +1623,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       .tcache = tcache,
       .state = STATE_NULL,
       .qterm = *detected,
-      .cursor_x = -1,
-      .cursor_y = -1,
+      .cursor_x = cursor_x ? *cursor_x + 1 : -1,
+      .cursor_y = cursor_y ? *cursor_y + 1 : -1,
     };
     if(control_read(csifd, &inits)){
       input_free_esctrie(&nilayer->inputescapes);
