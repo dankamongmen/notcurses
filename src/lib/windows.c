@@ -1,9 +1,7 @@
 #include "termdesc.h"
 #include "internal.h"
-#ifdef __MINGW64__
-#include <winsock2.h>
 #include "windows.h"
-
+#ifdef __MINGW64__
 // ti has been memset to all zeroes. windows configuration is static.
 int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   const struct wtermdesc {
@@ -61,16 +59,6 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     logerror("couldn't set input page to utf8\n");
     return -1;
   }
-  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
-  // otherwise, we're something else; go ahead and try.
-  if(!SetConsoleMode(ti->outhandle, ENABLE_PROCESSED_OUTPUT
-                     | ENABLE_WRAP_AT_EOL_OUTPUT
-                     | ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                     | DISABLE_NEWLINE_AUTO_RETURN
-                     | ENABLE_LVB_GRID_WORLDWIDE)){
-    logerror("couldn't set output console mode\n");
-    return -1;
-  }
   DWORD inmode;
   if(!GetConsoleMode(ti->inhandle, &inmode)){
     logerror("couldn't get input console mode\n");
@@ -84,6 +72,16 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
             | ENABLE_WINDOW_INPUT | ENABLE_VIRTUAL_TERMINAL_INPUT;
   if(!SetConsoleMode(ti->inhandle, inmode)){
     logerror("couldn't set input console mode\n");
+    return -1;
+  }
+  // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
+  // otherwise, we're something else; go ahead and try.
+  if(!SetConsoleMode(ti->outhandle, ENABLE_PROCESSED_OUTPUT
+                     | ENABLE_WRAP_AT_EOL_OUTPUT
+                     | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                     | DISABLE_NEWLINE_AUTO_RETURN
+                     | ENABLE_LVB_GRID_WORLDWIDE)){
+    logerror("couldn't set output console mode\n");
     return -1;
   }
   ti->caps.quadrants = true;

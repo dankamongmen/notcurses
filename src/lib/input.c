@@ -74,12 +74,12 @@ int notcurses_linesigs_disable(notcurses* n){
   }
 #else
   DWORD mode;
-  if(!GetConsoleMode(n->tinfo.inhandle, &mode)){
+  if(!GetConsoleMode(n->tcache.inhandle, &mode)){
     logerror("error acquiring input mode\n");
     return -1;
   }
   mode &= ~ENABLE_PROCESSED_INPUT;
-  if(!SetConsoleMode(n->tinfo.inhandle, mode)){
+  if(!SetConsoleMode(n->tcache.inhandle, mode)){
     logerror("error setting input mode\n");
     return -1;
   }
@@ -106,12 +106,12 @@ int notcurses_linesigs_enable(notcurses* n){
   }
 #else
   DWORD mode;
-  if(!GetConsoleMode(n->tinfo.inhandle, &mode)){
+  if(!GetConsoleMode(n->tcache.inhandle, &mode)){
     logerror("error acquiring input mode\n");
     return -1;
   }
   mode |= ENABLE_PROCESSED_INPUT;
-  if(!SetConsoleMode(n->tinfo.inhandle, mode)){
+  if(!SetConsoleMode(n->tcache.inhandle, mode)){
     logerror("error setting input mode\n");
     return -1;
   }
@@ -1618,45 +1618,42 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->user_wants_data = false;
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
-  if(*detected != TERMINAL_MSTERMINAL){
-    // windows terminal doesn't seem to reply to any queries =/
-    int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
-    if(isatty(csifd)){
-      query_state inits = {
-        .tcache = tcache,
-        .state = STATE_NULL,
-        .qterm = *detected,
-        .cursor_x = -1,
-        .cursor_y = -1,
-      };
-      if(control_read(csifd, &inits)){
-        input_free_esctrie(&nilayer->inputescapes);
-        free(inits.version);
-        pthread_cond_destroy(&nilayer->creport_cond);
-        pthread_mutex_destroy(&nilayer->lock);
-        return -1;
-      }
-      tcache->bg_collides_default = inits.bg;
-      tcache->termversion = inits.version;
-      *detected = inits.qterm;
-      *appsync = inits.appsync;
-      if(cursor_x){
-        *cursor_x = inits.cursor_x - 1;
-      }
-      if(cursor_y){
-        *cursor_y = inits.cursor_y - 1;
-      }
-      if(inits.pixelwidth && inits.pixelheight){
-        tcache->pixy = inits.pixelheight;
-        tcache->pixx = inits.pixelwidth;
-      }
-      if(inits.kittygraphics){ // kitty trumps sixel
-        loginfo("advertised kitty; disabling sixel\n");
-        tcache->color_registers = 0;
-        tcache->sixel_maxx = 0;
-        tcache->sixel_maxy = 0;
-        *kittygraphs = true;
-      }
+  int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
+  if(isatty(csifd)){
+    query_state inits = {
+      .tcache = tcache,
+      .state = STATE_NULL,
+      .qterm = *detected,
+      .cursor_x = -1,
+      .cursor_y = -1,
+    };
+    if(control_read(csifd, &inits)){
+      input_free_esctrie(&nilayer->inputescapes);
+      free(inits.version);
+      pthread_cond_destroy(&nilayer->creport_cond);
+      pthread_mutex_destroy(&nilayer->lock);
+      return -1;
+    }
+    tcache->bg_collides_default = inits.bg;
+    tcache->termversion = inits.version;
+    *detected = inits.qterm;
+    *appsync = inits.appsync;
+    if(cursor_x){
+      *cursor_x = inits.cursor_x - 1;
+    }
+    if(cursor_y){
+      *cursor_y = inits.cursor_y - 1;
+    }
+    if(inits.pixelwidth && inits.pixelheight){
+      tcache->pixy = inits.pixelheight;
+      tcache->pixx = inits.pixelwidth;
+    }
+    if(inits.kittygraphics){ // kitty trumps sixel
+      loginfo("advertised kitty; disabling sixel\n");
+      tcache->color_registers = 0;
+      tcache->sixel_maxx = 0;
+      tcache->sixel_maxy = 0;
+      *kittygraphs = true;
     }
   }
   return 0;

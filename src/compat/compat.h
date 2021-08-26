@@ -17,6 +17,7 @@ extern "C" {
 
 #ifdef  __MINGW64__
 #include <Lmcons.h>
+#include <winsock2.h>
 #define tcgetattr(x, y) (0)
 #define tcsetattr(x, y, z) (0)
 #define ECHO      0
