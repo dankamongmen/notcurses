@@ -1,6 +1,3 @@
-#ifdef __MINGW64__
-#include <winsock2.h>
-#endif
 #include "input.h"
 #include "internal.h"
 #include "notcurses/direct.h"
@@ -660,6 +657,54 @@ uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
                        const void* unused, ncinput* ni){
   (void)unused; // FIXME remove for abi3
   return ncdirect_get(nc, ts, ni);
+}
+
+// add the hardcoded windows input sequences to ti->input. should only
+// be called after verifying that this is TERMINAL_MSTERMINAL.
+static int
+prep_windows_special_keys(ncinputlayer* nc){
+  // here, lacking terminfo, we hardcode the sequences. they can be found at
+  // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+  // under the "Input Sequences" heading.
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\e[A", .key = NCKEY_UP, },
+    { .esc = "\e[B", .key = NCKEY_DOWN, },
+    { .esc = "\e[C", .key = NCKEY_RIGHT, },
+    { .esc = "\e[D", .key = NCKEY_LEFT, },
+    { .esc = "\e[1;5A", .key = NCKEY_UP, .ctrl = 1, },
+    { .esc = "\e[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
+    { .esc = "\e[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
+    { .esc = "\e[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
+    { .esc = "\e[H", .key = NCKEY_HOME, },
+    { .esc = "\e[F", .key = NCKEY_END, },
+    { .esc = "\e[2~", .key = NCKEY_INS, },
+    { .esc = "\e[3~", .key = NCKEY_DEL, },
+    { .esc = "\e[5~", .key = NCKEY_PGUP, },
+    { .esc = "\e[6~", .key = NCKEY_PGDOWN, },
+    { .esc = "\eOP", .key = NCKEY_F01, },
+    { .esc = "\eOQ", .key = NCKEY_F02, },
+    { .esc = "\eOR", .key = NCKEY_F03, },
+    { .esc = "\eOS", .key = NCKEY_F04, },
+    { .esc = "\e[15~", .key = NCKEY_F05, },
+    { .esc = "\e[17~", .key = NCKEY_F06, },
+    { .esc = "\e[18~", .key = NCKEY_F07, },
+    { .esc = "\e[19~", .key = NCKEY_F08, },
+    { .esc = "\e[20~", .key = NCKEY_F09, },
+    { .esc = "\e[21~", .key = NCKEY_F10, },
+    { .esc = "\e[23~", .key = NCKEY_F11, },
+    { .esc = "\e[24~", .key = NCKEY_F12, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(ncinputlayer_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
@@ -1605,6 +1650,11 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->infd = fileno(infp);
   loginfo("input fd: %d\n", nilayer->infd);
   nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
+  if(*detected == TERMINAL_MSTERMINAL){
+    if(prep_windows_special_keys(nilayer)){
+      return -1;
+    }
+  }
   if(prep_special_keys(nilayer)){
     pthread_mutex_destroy(&nilayer->lock);
     return -1;
