@@ -38,7 +38,7 @@ extern "C" {
 typedef struct siginfo_t {
   int aieeee;
 } siginfo_t;
-#define sigemptyset(s) 0
+#define sigemptyset(s)
 #define sigset_t int
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
