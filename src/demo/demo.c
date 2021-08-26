@@ -572,9 +572,7 @@ int main(int argc, char** argv){
   ncmenu_destroy(menu);
   stop_input();
   notcurses_render(nc); // rid ourselves of any remaining demo output
-  if(summary_table(nc, spec, canimage, canvideo)){
-    goto err;
-  }
+  int r = summary_table(nc, spec, canimage, canvideo);
   notcurses_render(nc); // render our summary table
   free(results);
   if(notcurses_stop(nc)){
@@ -583,7 +581,7 @@ int main(int argc, char** argv){
   if(json && summary_json(json, spec, dimy, dimx)){
     return EXIT_FAILURE;
   }
-  return EXIT_SUCCESS;
+  return r ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
   stop_input();
