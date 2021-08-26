@@ -443,6 +443,8 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 static int
 block_on_input(int fd, const struct timespec* ts){
 #ifdef __MINGW64__
+  (void)fd;
+  // FIXME pull cached value out of tinfo
   HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
   if(in == INVALID_HANDLE_VALUE){
     return -1;

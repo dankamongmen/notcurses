@@ -28,7 +28,7 @@ defaultout(void){
   for(int i = 0 ; i < 128 ; ++i){
     wchar_t w = i;
     int width = wcwidth(w);
-    printf("0x%02x: %d%c\t", i, width, width < 0 ? '!' : ' ');
+    printf("0x%02x: %d%c\t", w, width, width < 0 ? '!' : ' ');
     if(i % 4 == 3){
       printf("\n");
     }
