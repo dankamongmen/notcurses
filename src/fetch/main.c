@@ -14,7 +14,6 @@
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
 #else
-#include <windows.h>
 #include <sysinfoapi.h>
 #endif
 #include <notcurses/notcurses.h>

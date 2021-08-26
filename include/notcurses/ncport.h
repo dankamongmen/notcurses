@@ -26,13 +26,13 @@ extern "C" {
 #include <string.h>
 #include <byteswap.h>
 #define htole(x) (__bswap_32(htonl(x)))
-#define wcwidth(w) 1               // FIXME lol, no
-#define wcswidth(w, s) (wcslen(w)) // FIXME lol, no
+#define wcwidth(w) 1 // FIXME lol, no
+#define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no
 #elif defined(__MINGW64__)                        // Windows
 #include <string.h>
-#define wcwidth(w) 1               // FIXME lol, no
-#define wcswidth(w, s) (wcslen(w)) // FIXME lol, no
-#define htole(x) (x)       // FIXME are all windows installs LE? ugh
+#define wcwidth(w) 1 // FIXME lol, no
+#define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no
+#define htole(x) (x) // FIXME are all windows installs LE? ugh
 #else                                             // BSDs
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))

@@ -81,8 +81,8 @@ int main(int argc, char **argv){
     fflush(stdout);
     ncdirect_cursor_yx(n, &newy, &newx);
     int realcols = (newx - x) + ncdirect_dim_x(n) * (newy - y);
-    printf("\n iterated wcwidth: %d total bytes: %zu wcswidth: %d true width: %d\n\n",
-           totalcols, totalb, wcswidth(wbuf, used), realcols);
+    printf("\n iterated wcwidth: %d total bytes: %llu wcswidth: %d true width: %d\n\n",
+           totalcols, (unsigned long long)totalb, wcswidth(wbuf, used), realcols);
     ncdirect_cursor_yx(n, &y, &x);
     // throw up a background color for invisible glyphs
     uint64_t chan = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0x80, 0);
