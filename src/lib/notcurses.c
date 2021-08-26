@@ -300,7 +300,7 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
   }
 #else
   CONSOLE_SCREEN_BUFFER_INFO csbi;
-  if(GetConsoleScreenBufferInfo(tcache->inhandle, &csbi)){
+  if(GetConsoleScreenBufferInfo(tcache->outhandle, &csbi)){
     if(cols){
       *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     }
