@@ -496,7 +496,7 @@ if(USE_POC)
 file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f} ${COMPATSRC})
+  add_executable(${fe} ${f})
   target_include_directories(${fe}
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
@@ -511,7 +511,7 @@ endforeach()
 file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
 foreach(f ${POCPPSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f} ${COMPATSRC})
+  add_executable(${fe} ${f})
   target_include_directories(${fe}
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
