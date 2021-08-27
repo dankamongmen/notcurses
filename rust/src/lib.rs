@@ -73,6 +73,7 @@
 //! fn main() {
 //!     let options = ffi::notcurses_options {
 //!         termtype: null(),
+//!         renderfp: null_mut(),
 //!         loglevel: 0,
 //!         margin_t: 0,
 //!         margin_r: 0,
