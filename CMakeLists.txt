@@ -534,6 +534,7 @@ target_compile_definitions(notcurses-demo
     _GNU_SOURCE
 )
 target_include_directories(notcurses-demo
+  BEFORE
   PRIVATE
     include
     src
@@ -557,6 +558,7 @@ target_compile_definitions(notcurses-info
    _GNU_SOURCE _DEFAULT_SOURCE
 )
 target_include_directories(notcurses-info
+  BEFORE
   PRIVATE
     src
     include
@@ -574,6 +576,7 @@ target_link_libraries(notcurses-info
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
+  BEFORE
   PRIVATE
     include
     "${CMAKE_REQUIRED_INCLUDES}"
@@ -589,6 +592,7 @@ target_link_libraries(notcurses-input
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(nctetris ${TETRISSRC})
 target_include_directories(nctetris
+  BEFORE
   PRIVATE
     include
     "${CMAKE_REQUIRED_INCLUDES}"
@@ -604,6 +608,7 @@ target_link_libraries(nctetris
 file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
 add_executable(ncneofetch ${FETCHSRCS})
 target_include_directories(ncneofetch
+  BEFORE
   PRIVATE
     include
     "${CMAKE_REQUIRED_INCLUDES}"
@@ -631,13 +636,14 @@ else()
 file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
 add_executable(ncls ${LSSRC})
 target_include_directories(ncls
+  BEFORE
   PRIVATE
     include
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
-tarGET_Link_libraries(ncls
+target_link_libraries(ncls
   PRIVATE
     notcurses++
 )
@@ -647,6 +653,7 @@ tarGET_Link_libraries(ncls
 file(GLOB PLAYERSRCS CONFIGURE_DEPENDS src/player/*.cpp)
 add_executable(ncplayer ${PLAYERSRCS} ${COMPATSRC})
 target_include_directories(ncplayer
+  BEFORE
   PRIVATE
     include
     src
