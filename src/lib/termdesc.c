@@ -555,6 +555,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
         return -1;
       }
     }
+  }else if(qterm == TERMINAL_MINTTY){
+    termname = "MinTTY";
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
