@@ -137,8 +137,8 @@ typedef struct tinfo {
   unsigned pixx;                   // total pixel geometry, width
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
-  int cellpixy;   // cell pixel height, might be 0
-  int cellpixx;   // cell pixel width, might be 0
+  int cellpixy;                    // cell pixel height, might be 0
+  int cellpixx;                    // cell pixel width, might be 0
 
   unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv
 
@@ -192,15 +192,18 @@ typedef struct tinfo {
   struct termios *tpreserved;// terminal state upon entry
   ncinputlayer input;        // input layer
 
-  int default_rows; // LINES environment var / lines terminfo / 24
-  int default_cols; // COLUMNS environment var / cols terminfo / 80
+  // if we get a reply to our initial \e[18t cell geometry query, it will
+  // replace these values. note that LINES/COLUMNS cannot be used to limit
+  // the output region; use margins for that, if necessary.
+  int default_rows;          // LINES environment var / lines terminfo / 24
+  int default_cols;          // COLUMNS environment var / cols terminfo / 80
 
-  int gpmfd;              // connection to GPM daemon
+  int gpmfd;                 // connection to GPM daemon
 #ifdef __linux__
-  int linux_fb_fd;        // linux framebuffer device fd
-  char* linux_fb_dev;     // device corresponding to linux_fb_dev
-  uint8_t* linux_fbuffer; // mmap()ed framebuffer
-  size_t linux_fb_len;    // size of map
+  int linux_fb_fd;           // linux framebuffer device fd
+  char* linux_fb_dev;        // device corresponding to linux_fb_dev
+  uint8_t* linux_fbuffer;    // mmap()ed framebuffer
+  size_t linux_fb_len;       // size of map
 #elif defined(__MINGW64__)
   HANDLE inhandle;
   HANDLE outhandle;

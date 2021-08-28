@@ -947,13 +947,16 @@ typedef enum {
   STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   STATE_APPSYNC_REPORT, // got DECRPT ?2026
   STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
-  // a cursor location report comes back as CSI row ; col R. a pixel geometry
-  // report comes back as CSI 4 ; height ; width t. so we handle them the same
-  // until we hit either a second semicolon or an 'R'. at the second ';', we
-  // verify that the first variable was '4', and continue to 't'.
+  // cursor location report: CSI row ; col R
+  // text area pixel geometry: CSI 4 ; rows ; cols t
+  // text area cell geometry: CSI 8 ; rows ; cols t
+  // so we handle them the same until we hit either a second semicolon or an
+  // 'R' or 't'. at the second ';', we verify that the first variable was
+  // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
   STATE_CURSOR_OR_PIXELGEOM, // reading row of cursor location to ';'
-  STATE_CURSOR_COL, // reading col of cursor location to 'R' or ';'
-  STATE_PIXELS_WIDTH,  // reading screen width in pixels to ';'
+  STATE_CURSOR_COL,    // reading col of cursor location to 'R', 't', or ';'
+  STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
+  STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
 } initstates_e;
 
 typedef struct query_state {
@@ -971,6 +974,8 @@ typedef struct query_state {
   uint32_t bg;           // queried default background or 0
   int pixelwidth;        // screen width in pixels
   int pixelheight;       // screen height in pixels
+  int dimx;              // screen width in cells
+  int dimy;              // screen height in cells
   int cursor_y, cursor_x;// cursor location
   int cursor_or_pixel;   // holding cell until we determine which state
 
@@ -1281,14 +1286,25 @@ pump_control_read(query_state* inits, unsigned char c){
         inits->cursor_x = inits->numeric;
         inits->cursor_y = inits->cursor_or_pixel;
         inits->state = STATE_NULL;
+      }else if(c == 't'){
+//fprintf(stderr, "CELLS X: %d\n", inits->numeric);
+        // FIXME get these back to the caller
+        inits->dimx = inits->numeric;
+        inits->dimy = inits->cursor_or_pixel;
+        inits->state = STATE_NULL;
       }else if(c == ';'){
-        if(inits->cursor_or_pixel != 4){
+        if(inits->cursor_or_pixel == 4){
+          inits->pixelheight = inits->numeric;
+          inits->state = STATE_PIXELS_WIDTH;
+          inits->numeric = 0;
+        }else if(inits->cursor_or_pixel == 8){
+          inits->dimy = inits->numeric;
+          inits->state = STATE_CELLS_WIDTH;
+          inits->numeric = 0;
+        }else{
           logerror("expected 4 to lead pixel report, got %d\n", inits->cursor_or_pixel);
           return -1;
         }
-        inits->pixelheight = inits->numeric;
-        inits->state = STATE_PIXELS_WIDTH;
-        inits->numeric = 0;
       }else{
         inits->state = STATE_NULL;
       }
@@ -1299,8 +1315,21 @@ pump_control_read(query_state* inits, unsigned char c){
           return -1;
         }
       }else if(c == 't'){
-//fprintf(stderr, "CURSOR X: %d\n", inits->numeric);
         inits->pixelwidth = inits->numeric;
+        loginfo("got pixel geometry: %d/%d\n", inits->pixelheight, inits->pixelwidth);
+        inits->state = STATE_NULL;
+      }else{
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_CELLS_WIDTH:
+      if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == 't'){
+        inits->dimx = inits->numeric;
+        loginfo("got cell geometry: %d/%d\n", inits->dimy, inits->dimx);
         inits->state = STATE_NULL;
       }else{
         inits->state = STATE_NULL;
@@ -1696,6 +1725,10 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     if(inits.pixelwidth && inits.pixelheight){
       tcache->pixy = inits.pixelheight;
       tcache->pixx = inits.pixelwidth;
+    }
+    if(inits.dimy && inits.dimx){
+      tcache->default_rows = inits.dimy;
+      tcache->default_cols = inits.dimx;
     }
     if(inits.kittygraphics){ // kitty trumps sixel
       loginfo("advertised kitty; disabling sixel\n");
