@@ -368,7 +368,9 @@ send_initial_queries(int fd, bool minimal){
   }else{
     queries = DSRCPR IDQUERIES DIRECTIVES;
   }
-  if(blocking_write(fd, queries, strlen(queries))){
+  size_t len = strlen(queries);
+  loginfo("sending %lluB queries\n", (unsigned long long)len);
+  if(blocking_write(fd, queries, len)){
     return -1;
   }
   return 0;
