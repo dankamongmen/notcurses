@@ -931,7 +931,6 @@ char* termdesc_longterm(const tinfo* ti){
   return ret;
 }
 
-#ifndef __MINGW64__
 // when we have input->ttyfd, everything's simple -- we're reading from a
 // different source than the user is, so we can just write the query, and block
 // on the response, easy peasy.
@@ -962,61 +961,62 @@ locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
   loginfo("Located cursor with %d: %d/%d\n", fd, *cursor_y, *cursor_x);
   return 0;
 }
-#endif
 
 // send a u7 request, and wait until we have a cursor report. if input's ttyfd
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
-#ifndef __MINGW64__
-  const char* u7 = get_escape(ti, ESCAPE_U7);
-  if(u7 == NULL){
-    logwarn("No support in terminfo\n");
-    return -1;
-  }
-  if(ti->input.ttyfd >= 0){
-    return locate_cursor_simple(ti->input.ttyfd, u7, cursor_y, cursor_x);
-  }
-  int fd = ti->input.infd;
-  if(fd < 0){
-    logwarn("No valid path for cursor report\n");
-    return -1;
-  }
-  bool emitted_u7 = false; // only want to send one max
-  cursorreport* clr;
-  loginfo("Acquiring input lock\n");
-  pthread_mutex_lock(&ti->input.lock);
-  while((clr = ti->input.creport_queue) == NULL){
-    logdebug("No report yet\n");
-    if(!emitted_u7){
-      logdebug("Emitting u7\n");
-      // FIXME i'd rather not do this while holding the lock =[
-      if(tty_emit(u7, fd)){
-        pthread_mutex_unlock(&ti->input.lock);
-        return -1;
+  if(ti->qterm != TERMINAL_MSTERMINAL){
+    const char* u7 = get_escape(ti, ESCAPE_U7);
+    if(u7 == NULL){
+      logwarn("No support in terminfo\n");
+      return -1;
+    }
+    if(ti->ttyfd >= 0){
+      return locate_cursor_simple(ti->ttyfd, u7, cursor_y, cursor_x);
+    }
+    int fd = ti->input.infd;
+    if(fd < 0){
+      logwarn("No valid path for cursor report\n");
+      return -1;
+    }
+    bool emitted_u7 = false; // only want to send one max
+    cursorreport* clr;
+    loginfo("Acquiring input lock\n");
+    pthread_mutex_lock(&ti->input.lock);
+    while((clr = ti->input.creport_queue) == NULL){
+      logdebug("No report yet\n");
+      if(!emitted_u7){
+        logdebug("Emitting u7\n");
+        // FIXME i'd rather not do this while holding the lock =[
+        if(tty_emit(u7, fd)){
+          pthread_mutex_unlock(&ti->input.lock);
+          return -1;
+        }
+        emitted_u7 = true;
       }
-      emitted_u7 = true;
+      // this can block. we must enter holding the input lock, and it will
+      // return to us holding the input lock.
+      ncinput_extract_clrs(ti);
+      if( (clr = ti->input.creport_queue) ){
+        break;
+      }
+      pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
     }
-    // this can block. we must enter holding the input lock, and it will
-    // return to us holding the input lock.
-    ncinput_extract_clrs(ti);
-    if( (clr = ti->input.creport_queue) ){
-      break;
+    ti->input.creport_queue = clr->next;
+    pthread_mutex_unlock(&ti->input.lock);
+    loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
+    *cursor_y = clr->y;
+    *cursor_x = clr->x;
+    if(ti->inverted_cursor){
+      int tmp = *cursor_y;
+      *cursor_y = *cursor_x;
+      *cursor_x = tmp;
     }
-    pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
+    free(clr);
+    return 0;
   }
-  ti->input.creport_queue = clr->next;
-  pthread_mutex_unlock(&ti->input.lock);
-  loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
-  *cursor_y = clr->y;
-  *cursor_x = clr->x;
-  if(ti->inverted_cursor){
-    int tmp = *cursor_y;
-    *cursor_y = *cursor_x;
-    *cursor_x = tmp;
-  }
-  free(clr);
-#else
+#ifdef __MINGW64__
   CONSOLE_SCREEN_BUFFER_INFO conbuf;
   if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
     logerror("couldn't get cursor info\n");

@@ -38,10 +38,14 @@ int cbreak_mode(tinfo* ti){
     return -1;
   }
 #else
+  // we don't yet have a way to take Cygwin/MSYS2 out of canonical mode. we'll
+  // hit this stanza in MSYS2; allow the GetConsoleMode() to fail for now. this
+  // means we'll need enter pressed after the query response, obviously an
+  // unacceptable state of affairs...FIXME
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
     logerror("error acquiring input mode\n");
-    return -1;
+    return 0; // FIXME is it safe?
   }
   mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
   if(!SetConsoleMode(ti->inhandle, mode)){
@@ -1649,7 +1653,9 @@ control_read(int ttyfd, query_state* qstate){
   }
   errno = 0;
   do{
+    loginfo("reading replies from %d...\n", ttyfd);
     while((s = read(ttyfd, buf, BUFSIZ)) != -1){
+      loginfo("read %lld from %d\n", (long long)s, ttyfd);
       for(ssize_t idx = 0; idx < s ; ++idx){
         int r = pump_control_read(qstate, buf[idx]);
         if(r == 1){ // success!
@@ -1679,7 +1685,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
   loginfo("input fd: %d\n", nilayer->infd);
-  nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
+  nilayer->ttyfd = tty_check(nilayer->infd) ? -1 : get_tty_fd(infp);
   if(*detected == TERMINAL_MSTERMINAL){
     if(prep_windows_special_keys(nilayer)){
       return -1;
@@ -1698,7 +1704,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
-  if(isatty(csifd)){
+  if(tty_check(csifd)){
     query_state inits = {
       .tcache = tcache,
       .state = STATE_NULL,

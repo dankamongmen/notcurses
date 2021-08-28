@@ -1733,6 +1733,18 @@ prefix_data(const char* base){
   return path;
 }
 
+// within unix, we can just use isatty(3). on windows, things work
+// differently. for a true Windows Terminal, we'll have HANDLE pointers
+// rather than file descriptors. in cygwin/msys2, isatty(3) always fails.
+// so for __MINGW64__, always return true. otherwise return isatty(fd).
+static inline int
+tty_check(int fd){
+#ifdef __MINGW64__
+  return fd >= 0 ? 1 : 0;
+#endif
+  return isatty(fd);
+}
+
 #undef ALLOC
 #undef API
 
