@@ -153,7 +153,7 @@ static bool
 dim_rows(const Plane* n){
   int y, x;
   Cell c;
-  for(y = 2 ; y < dimy ; ++y){
+  for(y = 0 ; y < dimy ; ++y){
     for(x = 0 ; x < dimx ; ++x){
       if(n->get_at(y, x, &c) < 0){
         n->release(c);
@@ -206,7 +206,7 @@ int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTHEIGHT = 6;
   auto n = nc->get_stdplane(&dimy, &dimx);
   struct ncplane_options nopts = {
-    .y = dimy - PLOTHEIGHT,
+    .y = dimy - PLOTHEIGHT - 1,
     .x = 0,
     .rows = PLOTHEIGHT,
     .cols = dimx,
@@ -235,7 +235,7 @@ int input_demo(ncpp::NotCurses* nc) {
   n->set_fg_rgb8(0x00, 0x00, 0x00);
   n->set_bg_rgb8(0xbb, 0x64, 0xbb);
   n->styles_on(CellStyle::Underline);
-  if(n->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
+  if(n->putstr(n->get_dim_y() - 1, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
     ncuplot_destroy(plot);
     return -1;
   }
@@ -245,7 +245,7 @@ int input_demo(ncpp::NotCurses* nc) {
     ncuplot_destroy(plot);
     return -1;
   }
-  int y = 2;
+  int y = 0;
   std::deque<wchar_t> cells;
   char32_t r;
   done = false;
@@ -313,8 +313,8 @@ int input_demo(ncpp::NotCurses* nc) {
       throw std::runtime_error("error rendering");
     }
     mtx.unlock();
-    if(++y >= dimy - PLOTHEIGHT){ // leave six lines free on the bottom...
-      y = 2;                      // ...and one free on the top.
+    if(++y >= dimy - PLOTHEIGHT - 1){
+      y = 0;
     }
     while(cells.size() >= dimy - 3u){
       cells.pop_back();
