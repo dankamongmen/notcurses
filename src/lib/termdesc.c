@@ -576,6 +576,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }else{
       termname = "Linux console";
     }
+    // assume no useful unicode drawing unless we're positively sure
+    ti->caps.halfblocks = false;
     reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks, &ti->caps.quadrants);
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
 #else
