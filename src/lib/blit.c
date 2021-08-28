@@ -917,7 +917,8 @@ void set_pixel_blitter(ncblitter blitfxn){
   b->blit = blitfxn;
 }
 
-const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
+const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
+                                     bool may_degrade){
   if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
     return NULL;
   }
@@ -938,6 +939,24 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
       return NULL;
     }
     setid = NCBLIT_3x2;
+  }
+  // without eighths support, NCBLIT_8x1 decays to NCBLIT_4x1
+  if(setid == NCBLIT_8x1){ // plotter only
+    if(tcache->caps.quadrants){
+       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
+      return NULL;
+    }
+    setid = NCBLIT_4x1;
+  }
+  // without quarters support, NCBLIT_4x1 decays to NCBLIT_2x1
+  if(setid == NCBLIT_4x1){ // plotter only
+    if(tcache->caps.quadrants){
+       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
+      return NULL;
+    }
+    setid = NCBLIT_2x1;
   }
   // without sextant support, NCBLIT_3x2 decays to NCBLIT_2x2
   if(setid == NCBLIT_3x2){
