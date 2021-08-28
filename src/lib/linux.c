@@ -417,12 +417,13 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
 static int
 program_block_drawing_chars(int fd, struct console_font_op* cfo,
                             struct unimapdesc* map, unsigned no_font_changes,
-                            bool* quadrants){
+                            bool* halfblocks, bool* quadrants){
   struct shimmer {
     unsigned qbits;
     wchar_t w;
     bool found;
-  } shimmers[] = {
+  } quads[] = {
+    // if we get these first two, we have the halfblocks
     { .qbits = 0xc, .w = L'▀', .found = false, },
     { .qbits = 0x3, .w = L'▄', .found = false, },
     { .qbits = 0xa, .w = L'▌', .found = false, },
@@ -450,10 +451,10 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
   size_t numfound = 0;
   for(unsigned i = 0 ; i < cfo->charcount ; ++i){
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
-      for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
-        if(map->entries[i].unicode == shimmers[s].w){
-          logdebug("Found %lc at fontidx %u\n", shimmers[s].w, i);
-          shimmers[s].found = true;
+      for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
+        if(map->entries[i].unicode == quads[s].w){
+          logdebug("Found %lc at fontidx %u\n", quads[s].w, i);
+          quads[s].found = true;
           ++numfound;
           break;
         }
@@ -468,9 +469,10 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
       }
     }
   }
-  if(numfound == (sizeof(shimmers) + sizeof(eighths)) / sizeof(*shimmers)){
+  if(numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
     logdebug("All %zu desired glyphs were already present\n", numfound);
     *quadrants = true;
+    *halfblocks = true;
     return 0;
   }
   if(no_font_changes){
@@ -479,22 +481,24 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
   }
   int added = 0;
   unsigned candidate = cfo->charcount;
-  for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
-    if(!shimmers[s].found){
+  // FIXME track halfblocks independently; we might get them without getting the rest
+  for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
+    if(!quads[s].found){
       while(--candidate){
         if(map->entries[candidate].unicode < 0x2580 || map->entries[candidate].unicode > 0x259f){
           break;
         }
       }
       if(candidate == 0){
-        logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)shimmers[s].w);
+        logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)quads[s].w);
+        // FIXME maybe don't want to error out here?
         return -1;
       }
-      if(shim_quad_block(cfo, candidate, shimmers[s].qbits)){
-        logwarn("Error replacing glyph for U+%04lx at %u\n", (long)shimmers[s].w, candidate);
+      if(shim_quad_block(cfo, candidate, quads[s].qbits)){
+        logwarn("Error replacing glyph for U+%04lx at %u\n", (long)quads[s].w, candidate);
         return -1;
       }
-      if(add_to_map(map, shimmers[s].w, candidate)){
+      if(add_to_map(map, quads[s].w, candidate)){
         return -1;
       }
       ++added;
@@ -530,7 +534,8 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
-  if(added + numfound == (sizeof(shimmers) + sizeof(eighths)) / sizeof(*shimmers)){
+  if(added + numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
+    *halfblocks = true;
     *quadrants = true;
   }
   loginfo("Successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
@@ -540,7 +545,7 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
 static int
 reprogram_linux_font(int fd, struct console_font_op* cfo,
                      struct unimapdesc* map, unsigned no_font_changes,
-                     bool* quadrants){
+                     bool* halfblocks, bool* quadrants){
   if(ioctl(fd, KDFONTOP, cfo)){
     logwarn("Error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
@@ -563,13 +568,15 @@ reprogram_linux_font(int fd, struct console_font_op* cfo,
       return -1;
     }
   }
-  if(program_block_drawing_chars(fd, cfo, map, no_font_changes, quadrants)){
+  if(program_block_drawing_chars(fd, cfo, map, no_font_changes,
+                                 halfblocks, quadrants)){
     return -1;
   }
   return 0;
 }
 
-int reprogram_console_font(tinfo* ti, unsigned no_font_changes, bool* quadrants){
+int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
+                           bool* halfblocks, bool* quadrants){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
     .charcount = 512,
@@ -591,7 +598,8 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes, bool* quadrants)
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(ti->linux_fb_fd, &cfo, &map, no_font_changes, quadrants);
+  int r = reprogram_linux_font(ti->linux_fb_fd, &cfo, &map, no_font_changes,
+                               halfblocks, quadrants);
   free(cfo.data);
   free(map.entries);
   return r;

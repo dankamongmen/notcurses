@@ -922,46 +922,51 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     return NULL;
   }
   // without braille support, NCBLIT_BRAILLE decays to NCBLIT_3x2
-  if(!tcache->caps.braille && setid == NCBLIT_BRAILLE){
-    if(may_degrade){
-      setid = NCBLIT_3x2;
-    }else{
+  if(setid == NCBLIT_BRAILLE){
+    if(tcache->caps.braille){
+      return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
       return NULL;
     }
+    setid = NCBLIT_3x2;
   }
   // without bitmap support, NCBLIT_PIXEL decays to NCBLIT_3x2
-  if(!tcache->pixel_draw && !tcache->pixel_draw_late && setid == NCBLIT_PIXEL){
-    if(may_degrade){
-      setid = NCBLIT_3x2;
-    }else{
+  if(setid == NCBLIT_PIXEL){
+    if(tcache->pixel_draw || tcache->pixel_draw_late){
+      return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
       return NULL;
     }
+    setid = NCBLIT_3x2;
   }
   // without sextant support, NCBLIT_3x2 decays to NCBLIT_2x2
-  if(!tcache->caps.sextants && setid == NCBLIT_3x2){
-    if(may_degrade){
-      setid = NCBLIT_2x2;
-    }else{
+  if(setid == NCBLIT_3x2){
+    if(tcache->caps.sextants){
+       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
       return NULL;
     }
+    setid = NCBLIT_2x2;
   }
   // without quadrant support, NCBLIT_2x2 decays to NCBLIT_2x1
-  if(!tcache->caps.quadrants && setid == NCBLIT_2x2){
-    if(may_degrade){
-      setid = NCBLIT_2x1;
-    }else{
+  if(setid == NCBLIT_2x2){
+    if(tcache->caps.quadrants){
+       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
       return NULL;
     }
+    setid = NCBLIT_2x1;
   }
-  // the only viable blitters in ASCII are NCBLIT_1x1 and NCBLIT_PIXEL
-  if(!tcache->caps.utf8 && (setid != NCBLIT_1x1 && setid != NCBLIT_PIXEL)){
-    if(may_degrade){
-      setid = NCBLIT_1x1;
-    }else{
+  // without halfblock support, NCBLIT_2x1 decays to NCBLIT_1x1
+  if(setid == NCBLIT_2x1){
+    if(tcache->caps.halfblocks){
+       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
       return NULL;
     }
+    setid = NCBLIT_1x1;
   }
-  assert(setid == notcurses_blitters[setid - 1].geom);
+  assert(NCBLIT_1x1 == setid);
   return &notcurses_blitters[setid - 1];
 }
 

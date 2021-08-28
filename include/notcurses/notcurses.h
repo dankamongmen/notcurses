@@ -1328,6 +1328,7 @@ typedef struct nccapabilities {
   bool rgb;               // 24bit color? COLORTERM/heuristics/terminfo 'rgb'
   bool can_change_colors; // can we change the palette? terminfo 'ccc'
   // these are assigned wholly through TERM- and query-based heuristics
+  bool halfblocks;// we assume halfblocks, but some are known to lack them
   bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)

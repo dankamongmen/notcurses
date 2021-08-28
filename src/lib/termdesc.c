@@ -468,9 +468,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       ti->termversion = NULL;
     }
   }
-  // FIXME clean this shit up; use a table for chrissakes
   // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
+  ti->caps.halfblocks = true; // most everyone has working halfblocks
+  // FIXME clean this shit up; use a table for chrissakes
   if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
     termname = "Kitty";
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
@@ -575,7 +576,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }else{
       termname = "Linux console";
     }
-    reprogram_console_font(ti, nonewfonts, &ti->caps.quadrants);
+    reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks, &ti->caps.quadrants);
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
 #else
 (void)nonewfonts;

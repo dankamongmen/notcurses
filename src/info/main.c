@@ -403,6 +403,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   finish_line(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8);
+  tinfo_debug_cap(n, "half", ti->caps.halfblocks);
   tinfo_debug_cap(n, "quad", ti->caps.quadrants);
   tinfo_debug_cap(n, "sex", ti->caps.sextants);
   tinfo_debug_cap(n, "braille", ti->caps.braille);
