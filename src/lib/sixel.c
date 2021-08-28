@@ -239,6 +239,7 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
     s->wipes_outstanding = true;
   }
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
+  assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
   return 0;
 }
@@ -397,9 +398,15 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
           if(rgba_trans_p(*rgb, bargs->transcolor)){
             if(sy % cdimy == 0 && visx % cdimx == 0){
               tam[txyidx].state = SPRIXCELL_ANNIHILATED_TRANS;
+              free(tam[txyidx].auxvector);
+              tam[txyidx].auxvector = NULL;
             }
           }else{
             tam[txyidx].state = SPRIXCELL_ANNIHILATED;
+            if(sy % cdimy == 0 && visx % cdimx == 0){
+              free(tam[txyidx].auxvector);
+              tam[txyidx].auxvector = NULL;
+            }
           }
         }
         unsigned char comps[RGBSIZE];
