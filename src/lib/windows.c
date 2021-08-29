@@ -34,8 +34,6 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     { ESCAPE_RITM,  "\x1b[23m", },
     { ESCAPE_SMUL,  "\x1b[4m", },
     { ESCAPE_RMUL,  "\x1b[24m", },
-    { ESCAPE_SMULX, "\x1b[4:3m", },
-    { ESCAPE_SMULNOX,"\x1b[4:0m", },
     { ESCAPE_SGR0,  "\x1b[0m", },
     { ESCAPE_MAX, NULL, }
   }, *w; 

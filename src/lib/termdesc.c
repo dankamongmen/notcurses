@@ -557,6 +557,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
   }else if(qterm == TERMINAL_MINTTY){
     termname = "MinTTY";
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
