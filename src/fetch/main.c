@@ -657,10 +657,6 @@ ncneofetch(struct notcurses* nc){
     free_fetched_info(&fi);
     return -1;
   }
-  if(printf("\n") < 0){
-    free_fetched_info(&fi);
-    return -1;
-  }
   free_fetched_info(&fi);
   return 0;
 }
