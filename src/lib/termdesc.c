@@ -560,6 +560,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
+    ti->bce = true;
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
