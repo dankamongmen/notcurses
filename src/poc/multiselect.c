@@ -64,6 +64,7 @@ int main(void){
   }
   notcurses_options opts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .loglevel = NCLOGLEVEL_ERROR,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
