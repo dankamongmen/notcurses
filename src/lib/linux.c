@@ -637,7 +637,7 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(ti->linux_fb_fd, &cfo, &map, no_font_changes,
+  int r = reprogram_linux_font(ti->ttyfd, &cfo, &map, no_font_changes,
                                halfblocks, quadrants);
   free(cfo.data);
   free(map.entries);

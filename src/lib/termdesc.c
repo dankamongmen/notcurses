@@ -582,6 +582,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(uname(&un) == 0){
       ti->termversion = strdup(un.release);
     }
+    ti->caps.halfblocks = false;
+    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+    if(ti->ttyfd >= 0){
+      reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks, &ti->caps.quadrants);
+    }
     if(is_linux_framebuffer(ti)){
       termname = "Linux framebuffer";
       setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
@@ -589,9 +594,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       termname = "Linux console";
     }
     // assume no useful unicode drawing unless we're positively sure
-    ti->caps.halfblocks = false;
-    reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks, &ti->caps.quadrants);
-    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
 #else
 (void)nonewfonts;
 #endif
