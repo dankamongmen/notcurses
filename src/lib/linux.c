@@ -422,10 +422,13 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
     unsigned qbits;
     wchar_t w;
     bool found;
-  } quads[] = {
-    // if we get these first two, we have the halfblocks
+  };
+  struct shimmer half[] = {
     { .qbits = 0xc, .w = L'▀', .found = false, },
     { .qbits = 0x3, .w = L'▄', .found = false, },
+  };
+  struct shimmer quads[] = {
+    // if we get these first two, we have the halfblocks
     { .qbits = 0xa, .w = L'▌', .found = false, },
     { .qbits = 0x5, .w = L'▐', .found = false, },
     { .qbits = 0x8, .w = L'▘', .found = false, },
@@ -449,8 +452,17 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
   };
   // first, take a pass to see which glyphs we already have
   size_t numfound = 0;
+  size_t halvesfound = 0;
   for(unsigned i = 0 ; i < cfo->charcount ; ++i){
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
+      for(size_t s = 0 ; s < sizeof(half) / sizeof(*half) ; ++s){
+        if(map->entries[i].unicode == half[s].w){
+          logdebug("Found %lc at fontidx %u\n", half[s].w, i);
+          half[s].found = true;
+          ++halvesfound;
+          break;
+        }
+      }
       for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
         if(map->entries[i].unicode == quads[s].w){
           logdebug("Found %lc at fontidx %u\n", quads[s].w, i);
@@ -469,19 +481,44 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
       }
     }
   }
-  if(numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
-    logdebug("All %zu desired glyphs were already present\n", numfound);
-    *quadrants = true;
+  if(halvesfound == sizeof(half) / sizeof(*half)){
     *halfblocks = true;
+  }
+  if(numfound + halvesfound == (sizeof(half) + sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
+    logdebug("all %zu desired glyphs were already present\n", numfound);
+    *quadrants = true;
     return 0;
   }
   if(no_font_changes){
-    logdebug("Not reprogramming kernel font, per orders\n");
+    logdebug("not reprogramming kernel font per request\n");
     return 0;
   }
   int added = 0;
+  int halvesadded = 0;
   unsigned candidate = cfo->charcount;
-  // FIXME track halfblocks independently; we might get them without getting the rest
+  // FIXME factor out a function here, crikey
+  for(size_t s = 0 ; s < sizeof(half) / sizeof(*half) ; ++s){
+    if(!half[s].found){
+      while(--candidate){
+        if(map->entries[candidate].unicode < 0x2580 || map->entries[candidate].unicode > 0x259f){
+          break;
+        }
+      }
+      if(candidate == 0){
+        logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)half[s].w);
+        // FIXME maybe don't want to error out here?
+        return -1;
+      }
+      if(shim_quad_block(cfo, candidate, half[s].qbits)){
+        logwarn("Error replacing glyph for U+%04lx at %u\n", (long)half[s].w, candidate);
+        return -1;
+      }
+      if(add_to_map(map, half[s].w, candidate)){
+        return -1;
+      }
+      ++halvesadded;
+    }
+  }
   for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
     if(!quads[s].found){
       while(--candidate){
@@ -534,8 +571,10 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
-  if(added + numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
+  if(halvesadded + halvesfound == sizeof(half) / sizeof(*half)){
     *halfblocks = true;
+  }
+  if(added + numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
     *quadrants = true;
   }
   loginfo("Successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
