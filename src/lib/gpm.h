@@ -23,6 +23,9 @@ int gpm_read(struct tinfo* ti, struct ncinput* ni);
 
 int gpm_close(struct tinfo* ti);
 
+// Returns a library-owned pointer to the libgpm client version.
+const char* gpm_version(void);
+
 #ifdef __cplusplus
 }
 #endif

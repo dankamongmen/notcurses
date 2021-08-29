@@ -959,7 +959,7 @@ init_banner(const notcurses* nc, fbuf* f){
                        14 % nc->tcache.caps.colors : 0x2080e0);
       fbuf_putc(f, '+');
     }
-    fbuf_printf(f, "%u colors\n%s%s (%s)\nterminfo from %s zlib %s\n",
+    fbuf_printf(f, "%u colors\n%s%s (%s)\nterminfo from %s zlib %s GPM %s\n",
                 nc->tcache.caps.colors,
 #ifdef __clang__
             "", // name is contained in __VERSION__
@@ -980,7 +980,7 @@ init_banner(const notcurses* nc, fbuf* f){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            curses_version(), zlibVersion());
+            curses_version(), zlibVersion(), gpm_version());
     ncvisual_printbanner(f);
     init_banner_warnings(nc, f);
     const char* esc;
