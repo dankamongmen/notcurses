@@ -139,6 +139,28 @@ query_rgb(void){
   return rgb;
 }
 
+// we have to keep a copy of the linux framebuffer while we reprogram fonts
+struct framebuffer_copy {
+  void* map;
+  size_t mapsize;
+  int pixely, pixelx;
+};
+
+static int
+copy_and_close_linux_fb(tinfo* ti, struct framebuffer_copy* fbdup){
+  if((fbdup->map = memdup(ti->linux_fbuffer, ti->linux_fb_len)) == NULL){
+    return -1;
+  }
+  munmap(ti->linux_fbuffer, ti->linux_fb_len);
+  fbdup->mapsize = ti->linux_fb_len;
+  ti->linux_fbuffer = NULL;
+  ti->linux_fb_len = 0;
+  close(ti->linux_fb_fd);
+  ti->linux_fb_fd = -1;
+  // FIXME need pixelx/pixely!
+  return 0;
+}
+
 // we couldn't get a terminal from interrogation, so let's see if the TERM
 // matches any of our known terminals. this can only be as accurate as the
 // TERM setting is (and as up-to-date and complete as we are).
