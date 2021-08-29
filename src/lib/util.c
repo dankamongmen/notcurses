@@ -3,6 +3,8 @@
 #include <unistd.h>
 #else
 #include <winsock2.h>
+#define SECURITY_WIN32
+#include <secext.h>
 #endif
 #include "internal.h"
 
@@ -24,7 +26,8 @@ char* notcurses_accountname(void){
   if(un == NULL){
     return NULL;
   }
-  if(GetUserName(un, &unlen)){ // FIXME probably want GetUserNameEx
+  if(!GetUserNameExA(NameSamCompatible, un, &unlen)){
+    logerror("couldn't get user name\n");
     free(un);
     return NULL;
   }
