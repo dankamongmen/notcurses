@@ -12,12 +12,12 @@ gpmwatcher(void* vti){
   (void)ti; // FIXME
   Gpm_Event gev;
   while(true){
-    if(Gpm_GetEvent(&gev)){
+    if(!Gpm_GetEvent(&gev)){
       logerror("error reading from gpm daemon\n");
-      break;
+      continue;
     }
     loginfo("got gpm event\n");
-    // FIXME
+    // FIXME decode event and enqueue to input layer
   }
   return NULL;
 }

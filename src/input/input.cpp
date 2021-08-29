@@ -336,6 +336,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   notcurses_options nopts{};
+  nopts.loglevel = NCLOGLEVEL_ERROR;
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
   nc.mouse_enable(); // might fail if no mouse is available
