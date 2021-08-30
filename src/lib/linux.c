@@ -432,9 +432,6 @@ copy_and_close_linux_fb(tinfo* ti, struct framebuffer_copy* fbdup){
   fbdup->maplen = ti->linux_fb_len;
   ti->linux_fbuffer = NULL;
   ti->linux_fb_len = 0;
-  // FIXME can we get away without the fd close?
-  //close(ti->linux_fb_fd);
-  //ti->linux_fb_fd = -1;
   fbdup->pixely = ti->pixy;
   fbdup->pixelx = ti->pixx;
   return 0;
