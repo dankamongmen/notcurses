@@ -8,7 +8,7 @@ ncneofetch - Generate low-effort posts for r/unixporn
 
 # SYNOPSIS
 
-**ncneofetch**
+**ncneofetch** [**-v**]
 
 # DESCRIPTION
 
@@ -17,6 +17,8 @@ and displays some system information. It is a blatant ripoff of
 **neofetch(1)** using **notcurses(3)**.
 
 # OPTIONS
+
+**-v**: Increase verbosity.
 
 # NOTES
 

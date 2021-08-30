@@ -761,6 +761,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   if(n->tam){
     loginfo("TAM realloc to %d entries\n", newarea);
+    // FIXME first, free any disposed auxiliary vectors!
     tament* tmptam = realloc(n->tam, sizeof(*tmptam) * newarea);
     if(tmptam == NULL){
       free(fb);

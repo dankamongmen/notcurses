@@ -52,14 +52,16 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   }else{
     ti->pixel_init = sixel_init;
   }
+  ti->pixel_scrub = sixel_scrub;
+  ti->pixel_remove = NULL;
   ti->pixel_draw = sixel_draw;
   ti->pixel_draw_late = NULL;
-  ti->pixel_scrub = sixel_scrub;
-  ti->pixel_wipe = sixel_wipe;
-  ti->pixel_remove = NULL;
+  ti->pixel_commit = NULL;
   ti->pixel_move = NULL;
-  ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_scroll = NULL;
+  ti->pixel_wipe = sixel_wipe;
+  ti->pixel_shutdown = sixel_shutdown;
+  ti->pixel_clear_all = NULL;
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
@@ -106,12 +108,17 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
 #ifdef __linux__
 static inline void
 setup_fbcon_bitmaps(tinfo* ti, int fd){
-  ti->pixel_rebuild = fbcon_rebuild;
-  ti->pixel_wipe = fbcon_wipe;
+  ti->pixel_scrub = fbcon_scrub;
+  ti->pixel_remove = NULL;
   ti->pixel_draw = NULL;
   ti->pixel_draw_late = fbcon_draw;
+  ti->pixel_commit = NULL;
+  ti->pixel_move = NULL;
   ti->pixel_scroll = fbcon_scroll;
-  ti->pixel_scrub = fbcon_scrub;
+  ti->pixel_shutdown = NULL;
+  ti->pixel_clear_all = NULL;
+  ti->pixel_rebuild = fbcon_rebuild;
+  ti->pixel_wipe = fbcon_wipe;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(fbcon_blit);
   sprite_init(ti, fd);

@@ -661,13 +661,31 @@ ncneofetch(struct notcurses* nc){
   return 0;
 }
 
-int main(void){
+static void
+usage(const char* arg0, FILE* fp){
+  fprintf(fp, "usage: %s [ -v ]\n", arg0);
+  if(fp == stderr){
+    exit(EXIT_FAILURE);
+  }
+  exit(EXIT_SUCCESS);
+}
+
+int main(int argc, char** argv){
   struct notcurses_options opts = {
     .flags = NCOPTION_SUPPRESS_BANNERS
              | NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_NO_CLEAR_BITMAPS
              | NCOPTION_PRESERVE_CURSOR,
   };
+  if(argc > 2){
+    usage(argv[0], stderr);
+  }else if(argc == 2){
+    if(strcmp(argv[1], "-v") == 0){
+      opts.loglevel = NCLOGLEVEL_VERBOSE;
+    }else{
+      usage(argv[0], stderr);
+    }
+  }
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
