@@ -35,7 +35,6 @@ jobs:
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
             mingw-w64-ucrt-x86_64-toolchain
-            #mingw-w64-ucrt-x86_64-rust
 
       - uses: actions/checkout@v2
 
@@ -92,3 +91,4 @@ jobs:
           #rustc --version
           #cargo build
           #cargo t_all
+          #mingw-w64-ucrt-x86_64-rust
