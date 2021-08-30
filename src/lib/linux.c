@@ -417,8 +417,8 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
 // we have to keep a copy of the linux framebuffer while we reprogram fonts
 struct framebuffer_copy {
   void* map;
-  size_t mapsize;
-  int pixely, pixelx;
+  size_t maplen;
+  unsigned pixely, pixelx;
 };
 
 // build |fbdup| from the framebuffer owned by ti, which will be closed. this
@@ -429,18 +429,20 @@ copy_and_close_linux_fb(tinfo* ti, struct framebuffer_copy* fbdup){
     return -1;
   }
   munmap(ti->linux_fbuffer, ti->linux_fb_len);
-  fbdup->mapsize = ti->linux_fb_len;
+  fbdup->maplen = ti->linux_fb_len;
   ti->linux_fbuffer = NULL;
   ti->linux_fb_len = 0;
-  close(ti->linux_fb_fd);
-  ti->linux_fb_fd = -1;
-  // FIXME need pixelx/pixely!
+  // FIXME can we get away without the fd close?
+  //close(ti->linux_fb_fd);
+  //ti->linux_fb_fd = -1;
+  fbdup->pixely = ti->pixy;
+  fbdup->pixelx = ti->pixx;
   return 0;
 }
 
 static void
 kill_fbcopy(struct framebuffer_copy* fbdup){
-  munmap(fbdup->map, fbdup->mapsize);
+  free(fbdup->map);
 }
 
 static int
@@ -610,8 +612,6 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     kill_fbcopy(&fbdup);
     return -1;
   }
-  // FIXME reopen framebuffer, and blit it
-  kill_fbcopy(&fbdup);
   if(halvesadded + halvesfound == sizeof(half) / sizeof(*half)){
     *halfblocks = true;
   }
@@ -620,6 +620,17 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
   }
   added += halvesadded;
   loginfo("successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
+  unsigned pixely, pixelx;
+  if(get_linux_fb_pixelgeom(ti, &pixely, &pixelx)){
+    kill_fbcopy(&fbdup);
+    return -1;
+  }
+  if(pixely != fbdup.pixely || pixelx != fbdup.pixelx || ti->linux_fb_len != fbdup.maplen){
+    logwarn("framebuffer changed size, not reblitting\n");
+  }else{
+    memcpy(ti->linux_fbuffer, fbdup.map, fbdup.maplen);
+  }
+  kill_fbcopy(&fbdup);
   return 0;
 }
 
@@ -754,7 +765,7 @@ bool is_linux_framebuffer(tinfo* ti){
     ti->linux_fb_fd = -1;
     return false;
   }
-  if(get_linux_fb_pixelgeom(ti, NULL, NULL)){
+  if(get_linux_fb_pixelgeom(ti, &ti->pixy, &ti->pixx)){
     close(fd);
     ti->linux_fb_fd = -1;
     free(ti->linux_fb_dev);
