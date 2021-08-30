@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include <stdbool.h>
 
 struct tinfo;
@@ -17,6 +18,11 @@ bool is_linux_console(int fd);
 // if the halfblocks are available, whether they required a reprogramming or
 // not. *|quadrants| will be true if the quadrants are available, whether that
 // required a reprogramming or not.
+// note that reprogramming the font drops any existing graphics from the
+// framebuffer. if ti has mapped the framebuffer, it will be copied and
+// unmapped before we reprogram. after reprogramming, it is remapped, and
+// the old contents are copied in, then freed. there will be an unavoidable
+// flicker while this happens.
 int reprogram_console_font(struct tinfo* ti, unsigned no_font_changes,
                            bool* halfblocks, bool* quadrants);
 

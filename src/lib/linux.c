@@ -414,8 +414,37 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
   return 0;
 }
 
+// we have to keep a copy of the linux framebuffer while we reprogram fonts
+struct framebuffer_copy {
+  void* map;
+  size_t mapsize;
+  int pixely, pixelx;
+};
+
+// build |fbdup| from the framebuffer owned by ti, which will be closed. this
+// is a necessary step prior to reprogramming the console font.
 static int
-program_block_drawing_chars(int fd, struct console_font_op* cfo,
+copy_and_close_linux_fb(tinfo* ti, struct framebuffer_copy* fbdup){
+  if((fbdup->map = memdup(ti->linux_fbuffer, ti->linux_fb_len)) == NULL){
+    return -1;
+  }
+  munmap(ti->linux_fbuffer, ti->linux_fb_len);
+  fbdup->mapsize = ti->linux_fb_len;
+  ti->linux_fbuffer = NULL;
+  ti->linux_fb_len = 0;
+  close(ti->linux_fb_fd);
+  ti->linux_fb_fd = -1;
+  // FIXME need pixelx/pixely!
+  return 0;
+}
+
+static void
+kill_fbcopy(struct framebuffer_copy* fbdup){
+  munmap(fbdup->map, fbdup->mapsize);
+}
+
+static int
+program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
                             struct unimapdesc* map, unsigned no_font_changes,
                             bool* halfblocks, bool* quadrants){
   struct shimmer {
@@ -562,27 +591,40 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
       ++added;
     }
   }
+  if(halvesadded == 0 && added == 0){
+    loginfo("didn't replace any glyphs, not calling ioctl\n");
+    return 0;
+  }
+  struct framebuffer_copy fbdup;
+  if(copy_and_close_linux_fb(ti, &fbdup)){
+    return -1;
+  }
   cfo->op = KD_FONT_OP_SET;
   if(ioctl(fd, KDFONTOP, cfo)){
     logwarn("Error programming kernel font (%s)\n", strerror(errno));
+    kill_fbcopy(&fbdup);
     return -1;
   }
   if(ioctl(fd, PIO_UNIMAP, map)){
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
+    kill_fbcopy(&fbdup);
     return -1;
   }
+  // FIXME reopen framebuffer, and blit it
+  kill_fbcopy(&fbdup);
   if(halvesadded + halvesfound == sizeof(half) / sizeof(*half)){
     *halfblocks = true;
   }
   if(added + numfound == (sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
     *quadrants = true;
   }
-  loginfo("Successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
+  added += halvesadded;
+  loginfo("successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
   return 0;
 }
 
 static int
-reprogram_linux_font(int fd, struct console_font_op* cfo,
+reprogram_linux_font(tinfo* ti, int fd, struct console_font_op* cfo,
                      struct unimapdesc* map, unsigned no_font_changes,
                      bool* halfblocks, bool* quadrants){
   if(ioctl(fd, KDFONTOP, cfo)){
@@ -601,13 +643,14 @@ reprogram_linux_font(int fd, struct console_font_op* cfo,
   }
   loginfo("Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
-  // do want to ensure they map to something plausible...
+  // do want to ensure they map to something plausible...this doesn't reset
+  // the framebuffer, even if we do some reprogramming.
   if(!no_font_changes){
     if(program_line_drawing_chars(fd, map)){
       return -1;
     }
   }
-  if(program_block_drawing_chars(fd, cfo, map, no_font_changes,
+  if(program_block_drawing_chars(ti, fd, cfo, map, no_font_changes,
                                  halfblocks, quadrants)){
     return -1;
   }
@@ -637,7 +680,7 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(ti->ttyfd, &cfo, &map, no_font_changes,
+  int r = reprogram_linux_font(ti, ti->ttyfd, &cfo, &map, no_font_changes,
                                halfblocks, quadrants);
   free(cfo.data);
   free(map.entries);
