@@ -28,6 +28,7 @@ jobs:
             ncurses \
             pandoc \
             readline
+            #rust
 
       - uses: actions/checkout@v2
 
@@ -71,7 +72,7 @@ jobs:
 
       - name: rust wrappers
         run: |
-          export PKG_CONFIG_PATH="/usr/local/libdata/pkgconfig"
+          export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
           cd rust
           rustc --version
           #cargo build
