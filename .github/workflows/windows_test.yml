@@ -35,7 +35,7 @@ jobs:
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
             mingw-w64-ucrt-x86_64-toolchain
-            mingw-w64-ucrt-x86_64-rust
+            #mingw-w64-ucrt-x86_64-rust
 
       - uses: actions/checkout@v2
 
@@ -89,6 +89,6 @@ jobs:
       - name: rust wrappers
         run: |
           cd rust
-          rustc --version
+          #rustc --version
           #cargo build
           #cargo t_all

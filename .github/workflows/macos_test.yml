@@ -74,6 +74,6 @@ jobs:
         run: |
           export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
           cd rust
-          rustc --version
+          #rustc --version
           #cargo build
           #cargo t_all
