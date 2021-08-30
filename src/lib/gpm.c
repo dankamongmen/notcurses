@@ -16,7 +16,8 @@ gpmwatcher(void* vti){
       logerror("error reading from gpm daemon\n");
       continue;
     }
-    loginfo("got gpm event\n");
+    loginfo("got gpm event y=%hd x=%hd mod=%u butt=%u\n", gev.y, gev.x,
+            (unsigned)gev.modifiers, (unsigned)gev.buttons);
     // FIXME decode event and enqueue to input layer
   }
   return NULL;
