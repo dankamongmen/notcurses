@@ -891,23 +891,21 @@ int sixel_scrub(const ncpile* p, sprixel* s){
     for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
       int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
-      if(r->sprixel){
-        s = r->sprixel;
-      }
       if(!s->n){
         // need this to damage cells underneath a sprixel we're removing
         r->s.damaged = 1;
         continue;
       }
-      if(yy >= s->n->leny || yy - s->n->absy < 0){
+      sprixel* trues = r->sprixel ? r->sprixel : s;
+      if(yy >= trues->n->leny || yy - trues->n->absy < 0){
         r->s.damaged = 1;
         continue;
       }
-      if(xx >= s->n->lenx || xx - s->n->absx < 0){
+      if(xx >= trues->n->lenx || xx - trues->n->absx < 0){
         r->s.damaged = 1;
         continue;
       }
-      sprixcell_e state = sprixel_state(s, yy, xx);
+      sprixcell_e state = sprixel_state(trues, yy, xx);
 //fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->movedfromy - s->n->absy, xx - s->movedfromx - s->n->absx, state, yy, xx);
       if(state == SPRIXCELL_TRANSPARENT || state == SPRIXCELL_MIXED_SIXEL){
         r->s.damaged = 1;
