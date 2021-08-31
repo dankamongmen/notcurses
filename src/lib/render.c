@@ -858,11 +858,6 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
         }
         // otherwise it's a new pile, so we couldn't have been on-screen
       }
-      // FIXME kitty graphics don't need the goto_location before a load, but only
-      // before a presentation; we ought be able to eliminate this
-      if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
-        return -1;
-      }
       int r = sprite_redraw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
