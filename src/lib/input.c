@@ -243,6 +243,21 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   while(nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
     logdebug("candidate: %c (%d)\n", candidate, candidate);
+    if(candidate == 'u'){ // kitty keyboard protocol
+      if(state == PARAM3){
+        logwarn("triparam kitty message?\n");
+        break;
+      }else if(state == PARAM1){
+        param1 = param;
+        param = 1;
+      }
+      ni->id = param1;
+      ni->shift = !!((param - 1) & 0x1);
+      ni->alt = !!((param - 1) & 0x2);
+      ni->ctrl = !!((param - 1) & 0x4);
+      // FIXME decode remaining modifiers through 128
+      return param1;
+    }
     if(state == PARAM1){
       // if !mouse and candidate is '>', set mouse. otherwise it ought be a
       // digit or a semicolon.

@@ -331,12 +331,30 @@ int input_demo(ncpp::NotCurses* nc) {
   return 0;
 }
 
-int main(void){
+static void
+usage(const char* arg0, FILE* fp){
+  fprintf(fp, "usage: %s [ -v ]\n", arg0);
+  if(fp == stderr){
+    exit(EXIT_FAILURE);
+  }
+  exit(EXIT_SUCCESS);
+}
+
+int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
   }
   notcurses_options nopts{};
   nopts.loglevel = NCLOGLEVEL_ERROR;
+  if(argc > 2){
+    usage(argv[0], stderr);
+  }else if(argc == 2){
+    if(strcmp(argv[1], "-v") == 0){
+      nopts.loglevel = NCLOGLEVEL_TRACE;
+    }else{
+      usage(argv[0], stderr);
+    }
+  }
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
   nc.mouse_enable(); // might fail if no mouse is available

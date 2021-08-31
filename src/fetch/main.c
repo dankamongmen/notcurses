@@ -681,7 +681,7 @@ int main(int argc, char** argv){
     usage(argv[0], stderr);
   }else if(argc == 2){
     if(strcmp(argv[1], "-v") == 0){
-      opts.loglevel = NCLOGLEVEL_DEBUG;
+      opts.loglevel = NCLOGLEVEL_TRACE;
     }else{
       usage(argv[0], stderr);
     }

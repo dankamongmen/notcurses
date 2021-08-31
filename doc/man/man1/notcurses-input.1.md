@@ -8,7 +8,7 @@ notcurses-input - Read and display input events
 
 # SYNOPSIS
 
-**notcurses-input**
+**notcurses-input** [**-v**]
 
 # DESCRIPTION
 
@@ -16,6 +16,8 @@ notcurses-input - Read and display input events
 synthesized events and mouse events. To exit, generate EOF (usually Ctrl+'d').
 
 # OPTIONS
+
+**-v**: Increase verbosity.
 
 # NOTES
 

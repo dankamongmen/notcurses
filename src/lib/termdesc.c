@@ -317,10 +317,20 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // which can be identified directly, sans queries.
 #define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
 
+// request kitty keyboard protocol through level 31, and push current.
+// see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
+#define KBDSUPPORT "\x1b[>u\x1b[=1u"
+
+// the kitty keyboard protocol allows unambiguous, complete identification of
+// input events. this queries for the level of support.
+#define KBDQUERY "\x1b[?u"
+
 // these queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
 // identify the terminal to which we are talking.
 #define IDQUERIES KITTYQUERY \
+                  KBDSUPPORT \
+                  KBDQUERY \
                   TRIDEVATTR \
                   XTVERSION \
                   XTGETTCAPTN \
@@ -362,18 +372,31 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    GEOMCELL \
                    PRIDEVATTR
 
+// enter the alternate screen (smcup). we could technically get this from
+// terminfo, but everyone who supports it supports it the same way, and we
+// need to send it before our other directives if we're going to use it.
+#define SMCUP "\x1b[?1049h"
+
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
 // send any identification queries (we've already identified the terminal).
 static int
-send_initial_queries(int fd, bool minimal){
+send_initial_queries(int fd, bool minimal, bool noaltscreen){
   const char *queries;
-  if(minimal){
-    queries = DSRCPR DIRECTIVES;
+  if(noaltscreen){
+    if(minimal){
+      queries = DSRCPR DIRECTIVES;
+    }else{
+      queries = DSRCPR IDQUERIES DIRECTIVES;
+    }
   }else{
-    queries = DSRCPR IDQUERIES DIRECTIVES;
+    if(minimal){
+      queries = SMCUP DSRCPR DIRECTIVES;
+    }else{
+      queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
+    }
   }
   size_t len = strlen(queries);
   loginfo("sending %lluB queries\n", (unsigned long long)len);
@@ -741,6 +764,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       free(ti->tpreserved);
       return -1;
     }
+// FIXME need to enter alternate screen here
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
@@ -847,6 +871,15 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
        init_terminfo_esc(ti, "rmcup", ESCAPE_RMCUP, &tablelen, &tableused)){
       goto err;
     }
+    const char* smcup = get_escape(ti, ESCAPE_SMCUP);
+    if(smcup){
+      ti->in_alt_screen = 1;
+      // if we're not using the standard smcup, our initial hardcoded use of it
+      // presumably had no effect; warn the user.
+      if(strcmp(smcup, SMCUP)){
+        logwarn("warning: non-standard smcup!\n");
+      }
+    }
   }else{
     ti->escindices[ESCAPE_SMCUP] = 0;
     ti->escindices[ESCAPE_RMCUP] = 0;
@@ -919,6 +952,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   return 0;
 
 err:
+  // FIXME need to leave alternate screen if we entered it
   if(ti->tpreserved){
     (void)tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
     free(ti->tpreserved);
@@ -927,6 +961,8 @@ err:
   free(ti->esctable);
   free(ti->termversion);
   del_curterm(cur_term);
+  close(ti->ttyfd);
+  ti->ttyfd = -1;
   return -1;
 }
 
