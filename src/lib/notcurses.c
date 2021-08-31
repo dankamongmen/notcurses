@@ -1258,9 +1258,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
 
 err:
   logpanic("Alas, you will not be going to space today.\n");
-  // FIXME looks like we have some memory leaks on this error path?
   fbuf_free(&ret->rstate.f);
-  (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);
+  if(ret->tcache.tpreserved){
+    (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);
+    free(ret->tcache.tpreserved);
+  }
   drop_signals(ret);
   del_curterm(cur_term);
   pthread_mutex_destroy(&ret->stats.lock);
