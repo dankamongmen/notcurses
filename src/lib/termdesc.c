@@ -746,7 +746,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(ti->ttyfd, minimal)){
       free(ti->tpreserved);
-      return -1;
+      goto err;
     }
   }
 #ifndef __MINGW64__
@@ -756,7 +756,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   if(setupterm(termtype, ti->ttyfd, &termerr)){
     logpanic("Terminfo error %d for %s (see terminfo(3ncurses))\n", termerr, termtype);
     free(ti->tpreserved);
-    return -1;
+    goto err;
   }
   tname = termname(); // longname() is also available
 #endif
@@ -921,6 +921,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   return 0;
 
 err:
+  if(ti->ttyfd >= 0){
+    tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
+  }
   free(ti->tpreserved);
   free(ti->esctable);
   free(ti->termversion);
