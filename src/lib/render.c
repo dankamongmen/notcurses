@@ -815,7 +815,7 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
 // are loaded, but old kitty graphics remain visible, and new/updated kitty
 // graphics are not yet visible, and they have not moved.
 static int64_t
-clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
+clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
@@ -847,6 +847,14 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f){
       if(s->invalidated == SPRIXEL_MOVED){
         if(p != nc->last_pile){
           s->invalidated = SPRIXEL_INVALIDATED;
+        }else{
+          if(s->n->absx == s->movedfromx){
+            if(s->movedfromy - s->n->absy == scrolls){
+              s->invalidated = SPRIXEL_QUIESCENT; // FIXME might need to return to INVALIDATED?
+              loginfo("sprixel was scrolled %d, no redraw\n", scrolls);
+              continue;
+            }
+          }
         }
         // otherwise it's a new pile, so we couldn't have been on-screen
       }
@@ -910,20 +918,21 @@ scroll_lastframe(notcurses* nc, int rows){
 
 // "%d tardies to work off, by far the most in the class!\n", p->scrolls
 static int
-rasterize_scrolls(ncpile* p, fbuf* f){
-  if(p->scrolls == 0){
+rasterize_scrolls(const ncpile* p, fbuf* f){
+  int scrolls = p->scrolls;
+  if(scrolls == 0){
     return 0;
   }
-  logdebug("order-%d scroll\n", p->scrolls);
+  logdebug("order-%d scroll\n", scrolls);
   if(p->nc->rstate.logendy >= 0){
-    p->nc->rstate.logendy -= p->scrolls;
+    p->nc->rstate.logendy -= scrolls;
     if(p->nc->rstate.logendy < 0){
       p->nc->rstate.logendy = 0;
       p->nc->rstate.logendx = 0;
     }
   }
   if(p->nc->tcache.pixel_scroll){
-    p->nc->tcache.pixel_scroll(p, &p->nc->tcache, p->scrolls);
+    p->nc->tcache.pixel_scroll(p, &p->nc->tcache, scrolls);
   }
   if(goto_location(p->nc, f, p->dimy, 0)){
     return -1;
@@ -935,13 +944,13 @@ rasterize_scrolls(ncpile* p, fbuf* f){
       return -1;
     }
   }
-  if(p->scrolls > 1){
+  if(scrolls > 1){
     const char* indn = get_escape(&p->nc->tcache, ESCAPE_INDN);
     if(indn){
-      if(fbuf_emit(f, tiparm(indn, p->scrolls)) < 0){
+      if(fbuf_emit(f, tiparm(indn, scrolls)) < 0){
         return -1;
       }
-      p->scrolls = 0;
+      scrolls = 0;
       return 0;
     }
   }
@@ -949,11 +958,11 @@ rasterize_scrolls(ncpile* p, fbuf* f){
   if(ind == NULL){
     ind = "\v";
   }
-  while(p->scrolls > 0){
+  while(scrolls > 0){
     if(fbuf_emit(f, ind) < 0){
       return -1;
     }
-    --p->scrolls;
+    --scrolls;
   }
   return 0;
 }
@@ -1186,8 +1195,10 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   if(rasterize_scrolls(p, f)){
     return -1;
   }
+  int scrolls = p->scrolls;
+  p->scrolls = 0;
   logdebug("Sprixel phase 1\n");
-  int64_t sprixelbytes = clean_sprixels(nc, p, f);
+  int64_t sprixelbytes = clean_sprixels(nc, p, f, scrolls);
   if(sprixelbytes < 0){
     return -1;
   }
