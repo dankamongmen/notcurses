@@ -92,6 +92,11 @@ notcurses_stop_minimal(void* vnc){
   }
   ret |= mouse_disable(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
+  if(nc->tcache.kittykbd){
+    if(fbuf_emit(f, "\x1b[<u")){
+      ret = -1;
+    }
+  }
   if(nc->tcache.ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){
@@ -101,7 +106,9 @@ notcurses_stop_minimal(void* vnc){
         ret = -1;
       }
     }
-    ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
+    if(nc->tcache.tpreserved){
+      ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
+    }
   }
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
@@ -1168,7 +1175,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats)){
-    goto err;
+    fbuf_free(&ret->rstate.f);
+    pthread_mutex_destroy(&ret->pilelock);
+    pthread_mutex_destroy(&ret->stats.lock);
+    drop_signals(ret);
+    free(ret);
+    return NULL;
   }
   if((opts->flags & NCOPTION_PRESERVE_CURSOR) || !ret->suppress_banner){
     // the u7 led the queries so that we would get a cursor position
@@ -1222,26 +1234,15 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
-  // if not connected to an actual terminal, we're not going to try entering
-  // the alternate screen; we're not even going to bother clearing the screen.
-  if(ret->tcache.ttyfd >= 0){
-    if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-      const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
-      if(smcup){
-        if(enter_alternate_screen(ret->ttyfp, &ret->tcache, false)){
-          free_plane(ret->stdplane);
-          goto err;
-        }
-      }
-      // perform an explicit clear since the alternate screen was requested
-      // (smcup *might* clear, but who knows? and it might not have been
-      // available in any case).
-      if(clear_and_home(ret, &ret->tcache, &ret->rstate.f)){
-        goto err;
-      }
-      // no need to reestablish a preserved cursor -- that only affects the
-      // standard plane, not the physical cursor that was just disrupted.
+  if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+    // perform an explicit clear since the alternate screen was requested
+    // (smcup *might* clear, but who knows? and it might not have been
+    // available in any case).
+    if(clear_and_home(ret, &ret->tcache, &ret->rstate.f)){
+      goto err;
     }
+    // no need to reestablish a preserved cursor -- that only affects the
+    // standard plane, not the physical cursor that was just disrupted.
   }
   // the sprite clear ought take place within the alternate screen, if it's
   // being used.
@@ -1261,6 +1262,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
 
 err:
   logpanic("Alas, you will not be going to space today.\n");
+  notcurses_stop_minimal(ret);
   fbuf_free(&ret->rstate.f);
   if(ret->tcache.ttyfd >= 0 && ret->tcache.tpreserved){
     (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);

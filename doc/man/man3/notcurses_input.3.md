@@ -150,6 +150,9 @@ descriptor returned by **notcurses_inputready_fd** to ensure compatibility with
 future versions of Notcurses (it is possible that future versions will process
 input in their own contexts).
 
+When support is detected, the Kitty keyboard disambiguation protocol will be
+requested. This eliminates most of the **BUGS** mentioned below.
+
 # BUGS
 
 Failed escape sequences are not yet played back in their entirety; only an
@@ -166,6 +169,9 @@ in the future.
 
 Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not, currently
 registers as **NCKEY_ENTER**. This will likely change in the future.
+
+When the Kitty keyboard disambiguation protocol is used, most of these issues
+are resolved.
 
 # SEE ALSO
 
