@@ -444,17 +444,18 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 static int
 block_on_input(tinfo* ti, const struct timespec* ts){
 #ifdef __MINGW64__
-  /* FIXME this approach doesn't work in MinTTY =\ */
-  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
-  DWORD d = WaitForMultipleObjects(1, &ti->inhandle, FALSE, timeoutms);
-  if(d == WAIT_TIMEOUT){
-    return 0;
-  }else if(d == WAIT_FAILED){
+  if(ti->qterm == TERMINAL_MSTERMINAL){
+    int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
+    DWORD d = WaitForMultipleObjects(1, &ti->inhandle, FALSE, timeoutms);
+    if(d == WAIT_TIMEOUT){
+      return 0;
+    }else if(d == WAIT_FAILED){
+      return -1;
+    }else if(d - WAIT_OBJECT_0 == 0){
+      return 1;
+    }
     return -1;
-  }else if(d - WAIT_OBJECT_0 == 0){
-    return 1;
   }
-  return -1;
 #else
   struct pollfd pfd = {
     .fd = ti->input.infd,
