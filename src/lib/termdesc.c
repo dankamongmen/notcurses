@@ -953,29 +953,40 @@ char* termdesc_longterm(const tinfo* ti){
 // on the response, easy peasy.
 // FIXME still, we ought reuse buffer, and pass on any excess reads...
 static int
-locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
+locate_cursor_simple(tinfo* ti, const char* u7, int* cursor_y, int* cursor_x){
+  if(ti->qterm == TERMINAL_MSTERMINAL){
+    return locate_cursor(ti, cursor_y, cursor_x);
+  }
   char* buf = malloc(BUFSIZ);
   if(buf == NULL){
     return -1;
   }
-  if(tty_emit(u7, fd)){
+  loginfo("sending cursor report request\n");
+  if(tty_emit(u7, ti->ttyfd)){
     free(buf);
     return -1;
   }
   ssize_t r;
-  // FIXME rigourize for multiple reads
-  if((r = read(fd, buf, BUFSIZ - 1)) > 0){
-    buf[r] = '\0';
-    if(sscanf(buf, "\e[%d;%dR", cursor_y, cursor_x) != 2){
-      loginfo("Not a cursor location report: %s\n", buf);
-      free(buf);
-      return -1;
+  do{
+    if((r = read(ti->input.infd, buf, BUFSIZ - 1)) > 0){
+      buf[r] = '\0';
+      if(sscanf(buf, "\e[%d;%dR", cursor_y, cursor_x) != 2){
+        loginfo("not a cursor location report: %s\n", buf);
+        free(buf);
+        return -1;
+      }
+      --*cursor_y;
+      --*cursor_x;
+      break;
     }
-    --*cursor_y;
-    --*cursor_x;
+  }while(errno == EAGAIN || errno == EWOULDBLOCK || errno == EBUSY || errno == EINTR);
+  if(r < 0){
+    logerror("error reading cursor location from %d (%s)\n", ti->input.infd, strerror(errno));
+    free(buf);
+    return -1;
   }
   free(buf);
-  loginfo("Located cursor with %d: %d/%d\n", fd, *cursor_y, *cursor_x);
+  loginfo("located cursor with %d: %d/%d\n", ti->ttyfd, *cursor_y, *cursor_x);
   return 0;
 }
 
@@ -983,65 +994,67 @@ locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
-  if(ti->qterm != TERMINAL_MSTERMINAL){
-    const char* u7 = get_escape(ti, ESCAPE_U7);
-    if(u7 == NULL){
-      logwarn("No support in terminfo\n");
-      return -1;
-    }
-    if(ti->ttyfd >= 0){
-      return locate_cursor_simple(ti->ttyfd, u7, cursor_y, cursor_x);
-    }
-    int fd = ti->input.infd;
-    if(fd < 0){
-      logwarn("No valid path for cursor report\n");
-      return -1;
-    }
-    bool emitted_u7 = false; // only want to send one max
-    cursorreport* clr;
-    loginfo("Acquiring input lock\n");
-    pthread_mutex_lock(&ti->input.lock);
-    while((clr = ti->input.creport_queue) == NULL){
-      logdebug("No report yet\n");
-      if(!emitted_u7){
-        logdebug("Emitting u7\n");
-        // FIXME i'd rather not do this while holding the lock =[
-        if(tty_emit(u7, fd)){
-          pthread_mutex_unlock(&ti->input.lock);
-          return -1;
-        }
-        emitted_u7 = true;
-      }
-      // this can block. we must enter holding the input lock, and it will
-      // return to us holding the input lock.
-      ncinput_extract_clrs(ti);
-      if( (clr = ti->input.creport_queue) ){
-        break;
-      }
-      pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
-    }
-    ti->input.creport_queue = clr->next;
-    pthread_mutex_unlock(&ti->input.lock);
-    loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
-    *cursor_y = clr->y;
-    *cursor_x = clr->x;
-    if(ti->inverted_cursor){
-      int tmp = *cursor_y;
-      *cursor_y = *cursor_x;
-      *cursor_x = tmp;
-    }
-    free(clr);
-    return 0;
-  }
 #ifdef __MINGW64__
-  CONSOLE_SCREEN_BUFFER_INFO conbuf;
-  if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
-    logerror("couldn't get cursor info\n");
+  if(ti->qterm == TERMINAL_MSTERMINAL){
+    if(ti->outhandle){
+      CONSOLE_SCREEN_BUFFER_INFO conbuf;
+      if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
+        logerror("couldn't get cursor info\n");
+        return -1;
+      }
+      *cursor_y = conbuf.dwCursorPosition.Y;
+      *cursor_x = conbuf.dwCursorPosition.X;
+      loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
+      return 0;
+    }
+  }
+#endif
+  const char* u7 = get_escape(ti, ESCAPE_U7);
+  if(u7 == NULL){
+    logwarn("No support in terminfo\n");
     return -1;
   }
-  *cursor_y = conbuf.dwCursorPosition.Y;
-  *cursor_x = conbuf.dwCursorPosition.X;
-  loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
-#endif
+  if(ti->ttyfd >= 0){
+    return locate_cursor_simple(ti, u7, cursor_y, cursor_x);
+  }
+  int fd = ti->input.infd;
+  if(fd < 0){
+    logwarn("No valid path for cursor report\n");
+    return -1;
+  }
+  bool emitted_u7 = false; // only want to send one max
+  cursorreport* clr;
+  loginfo("Acquiring input lock\n");
+  pthread_mutex_lock(&ti->input.lock);
+  while((clr = ti->input.creport_queue) == NULL){
+    logdebug("No report yet\n");
+    if(!emitted_u7){
+      logdebug("Emitting u7\n");
+      // FIXME i'd rather not do this while holding the lock =[
+      if(tty_emit(u7, fd)){
+        pthread_mutex_unlock(&ti->input.lock);
+        return -1;
+      }
+      emitted_u7 = true;
+    }
+    // this can block. we must enter holding the input lock, and it will
+    // return to us holding the input lock.
+    ncinput_extract_clrs(ti);
+    if( (clr = ti->input.creport_queue) ){
+      break;
+    }
+    pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
+  }
+  ti->input.creport_queue = clr->next;
+  pthread_mutex_unlock(&ti->input.lock);
+  loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
+  *cursor_y = clr->y;
+  *cursor_x = clr->x;
+  if(ti->inverted_cursor){
+    int tmp = *cursor_y;
+    *cursor_y = *cursor_x;
+    *cursor_x = tmp;
+  }
+  free(clr);
   return 0;
 }
