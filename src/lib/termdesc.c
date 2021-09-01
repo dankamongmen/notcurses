@@ -922,7 +922,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 
 err:
   if(ti->tpreserved){
-    tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
+    (void)tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
   }
   free(ti->tpreserved);
   free(ti->esctable);
