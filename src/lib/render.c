@@ -1164,11 +1164,8 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         }
         rvec[damageidx].s.damaged = 0;
         rvec[damageidx].s.p_beats_sprixel = 0;
-        ++nc->rstate.x;
-        if(srccell->width >= 2){
-          x += srccell->width - 1;
-          nc->rstate.x += srccell->width - 1;
-        }
+        nc->rstate.x += srccell->width;
+        x += srccell->width - 1;
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

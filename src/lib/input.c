@@ -535,6 +535,29 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
   return ret;
 }
 
+int ncinput_shovel(ncinputlayer* ni, const unsigned char* buf, size_t len){
+  int ret = -1;
+  pthread_mutex_lock(&ni->lock);
+  size_t space = input_queue_space(ni);
+  if(len < space){
+    size_t spaceback = sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at;
+    memcpy(ni->inputbuf + ni->inputbuf_write_at, buf, spaceback);
+    len -= spaceback;
+    ni->inputbuf_write_at += spaceback;
+    if(len){
+      memcpy(ni->inputbuf, buf + spaceback, len);
+      ni->inputbuf_write_at = len;
+    }
+    ni->inputbuf_occupied += len + spaceback;
+    ret = 0;
+  }
+  pthread_mutex_unlock(&ni->lock);
+  if(ret < 0){
+    logwarn("dropped %lluB event\n", (long long unsigned)len);
+  }
+  return ret;
+}
+
 // this is the only function which actually reads, and it can be called from
 // either our context (looking for cursor reports) or the user's. all it does
 // is attempt to fill up the input ringbuffer, exiting either when that
@@ -1788,6 +1811,7 @@ scan_for_clrs(ncinputlayer* ni){
 void ncinput_extract_clrs(tinfo* ti){
   ncinputlayer* ni = &ti->input;
   do{
+    // FIXME doesn't this need locking?
     if(ni->inputbuf_occupied){
       scan_for_clrs(ni);
       if(ni->creport_queue){

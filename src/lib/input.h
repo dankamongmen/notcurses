@@ -60,6 +60,8 @@ int cbreak_mode(struct tinfo* ti);
 // appropriate. we can be interrupted by a new user context.
 void ncinput_extract_clrs(struct tinfo* ti);
 
+int ncinput_shovel(struct ncinputlayer* ni, const unsigned char* buf, size_t len);
+
 #ifdef __cplusplus
 }
 #endif
