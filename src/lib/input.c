@@ -1729,13 +1729,17 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     if(cursor_y){
       *cursor_y = inits.cursor_y - 1;
     }
-    if(inits.pixelwidth && inits.pixelheight){
-      tcache->pixy = inits.pixelheight;
-      tcache->pixx = inits.pixelwidth;
-    }
     if(inits.dimy && inits.dimx){
       tcache->default_rows = inits.dimy;
       tcache->default_cols = inits.dimx;
+    }
+    if(inits.pixelwidth && inits.pixelheight){
+      tcache->pixy = inits.pixelheight;
+      tcache->pixx = inits.pixelwidth;
+      if(tcache->default_rows && tcache->default_cols){
+	tcache->cellpixx = tcache->pixx / tcache->default_cols;
+	tcache->cellpixy = tcache->pixy / tcache->default_rows;
+      }
     }
     if(inits.kittygraphics){ // kitty trumps sixel
       loginfo("advertised kitty; disabling sixel\n");
