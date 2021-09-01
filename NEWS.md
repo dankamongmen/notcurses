@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.18 (2021-08-31)
+  * No user-visible changes.
+
 * 2.3.17 (2021-08-22)
   * Added `notcurses_enter_alternate_screen()` and
     `notcurses_leave_alternate_screen()`.
