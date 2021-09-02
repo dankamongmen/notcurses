@@ -525,6 +525,34 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(fbuf_init(&f)){
       return -1;
     }
+    // FIXME figure out how tall it is, and ensure we have sufficient room via scrolling
+    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+      return -1;
+    }
+    if(toty - dimy < y){
+      int scrolls = y;
+      y = toty - dimy;
+      if(y < 0){
+        y = 0;
+      }
+      scrolls -= y;
+      // perform our scrolling outside of the fbuf framework, as we need it
+      // to happen immediately for fbdcon
+      if(ncdirect_cursor_move_yx(n, y, xoff)){
+        return -1;
+      }
+      const char* indn = get_escape(&n->tcache, ESCAPE_IND);
+      if(scrolls > 1 && indn){
+        if(term_emit(tiparm(indn, scrolls), stdout, true) < 0){
+          return -1;
+        }
+      }
+      while(scrolls--){
+        if(ncfputc('\v', stdout) < 0){
+          return -1;
+        }
+      }
+    }
     if(sprite_draw(&n->tcache, NULL, np->sprite, &f, y, xoff) < 0){
       return -1;
     }
