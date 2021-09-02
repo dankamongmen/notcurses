@@ -366,6 +366,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
   if(kpress < 0){
     return -1;
   }
+  unsigned csiidx = 0;
   if(kpress == NCKEY_ESC){
     const esctrie* esc = nc->inputescapes;
     int candidate = 0;
@@ -380,6 +381,9 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
       }
       candidate = pop_input_keypress(nc);
       logdebug("trie candidate: %c %d (%d)\n", candidate, esc->special, candidate);
+      if(csi){
+        nc->csibuf[csiidx++] = candidate;
+      }
       if(esc->trie == NULL){
         esc = NULL;
       }else if(candidate >= 0x80 || candidate < 0){
@@ -396,8 +400,9 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
       return esc->special;
     }
     if(csi){
-      // FIXME might need to unpop more than one
-      unpop_keypress(nc, candidate);
+      while(csiidx){
+        unpop_keypress(nc, nc->csibuf[--csiidx]);
+      }
       return handle_csi(nc, ni, leftmargin, topmargin);
     }
     // interpret it as alt + candidate FIXME broken for first char matching
@@ -962,20 +967,11 @@ typedef enum {
   STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
   STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
   STATE_SDA_DRAIN, // drain secondary DA to 'c'
-  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM
-  STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
-  STATE_DA_1_SEMI, // got '1;'
-  STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
-  STATE_DA_1_SEMI_2, // got '1;2', XTSMGRAPHICS color reg fail or VT100
-  STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
+  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM or kittykbd
   STATE_DA_DRAIN, // drain out the primary DA to an alpha
-  STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
-  STATE_SIXEL_SEMI1,   // got first semicolon in sixel geometry, want Ps
-  STATE_SIXEL_SUCCESS, // got Ps == 0, want second semicolon
-  STATE_SIXEL_WIDTH,   // reading maximum sixel width until ';'
-  STATE_SIXEL_HEIGHT,  // reading maximum sixel height until 'S'
-  STATE_SIXEL_CREGS,   // reading max color registers until 'S'
-  STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
+  STATE_DA_SEMI,    // got first semicolon following numeric
+  STATE_DA_SEMI2,   // got second semicolon following numeric ; numeric
+  STATE_DA_SEMI3,   // got third semicolon following numeric ; numeric ; numeric
   STATE_APPSYNC_REPORT, // got DECRPT ?2026
   STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
   // cursor location report: CSI row ; col R
@@ -1009,6 +1005,8 @@ typedef struct query_state {
   int dimy;              // screen height in cells
   int cursor_y, cursor_x;// cursor location
   int cursor_or_pixel;   // holding cell until we determine which state
+  int three;             // third param (XTSMGRAPHICS)
+  int four;              // fourth param (XTSMGRAPHICS)
 
   bool xtgettcap_good;   // high when we've received DCS 1
   bool appsync;          // application-synchronized updates advertised
@@ -1274,7 +1272,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
       if(c == '?'){
-        inits->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS
+        inits->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS/kittykbd
       }else if(c == '>'){
         // SDA yields up Alacritty's crate version, but it doesn't unambiguously
         // identify Alacritty. If we've got any other version information, skip
@@ -1511,148 +1509,105 @@ pump_control_read(query_state* inits, unsigned char c){
     //     CSI ? 6 2 ; Ps c  ("VT220")
     //     CSI ? 6 3 ; Ps c  ("VT320")
     //     CSI ? 6 4 ; Ps c  ("VT420")
+    // KITTYKBD: CSI ? flags u
     case STATE_DA: // return success on end of DA
 //fprintf(stderr, "DA: %c\n", c);
-      if(c == '1'){
-        inits->state = STATE_DA_1;
-      }else if(c == '2'){
-        if(ruts_numeric(&inits->numeric, c)){ // stash for DECRPT
+      // FIXME several of these numbers could be DECRPM/XTSM/kittykbd. probably
+      // just want to read number, *then* make transition on non-number.
+      if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){ // stash for DECRPM/XTSM/kittykbd
           return -1;
         }
-        inits->state = STATE_SIXEL;
-      }else if(c == '4' || c == '7'){ // VT132, VT131
-        inits->state = STATE_DA_DRAIN;
-      }else if(c == '6'){
-        inits->state = STATE_DA_6;
-      }else if(c >= 0x40 && c <= 0x7E){
-        inits->state = STATE_NULL;
-      }
-      break;
-    case STATE_DA_1:
-//fprintf(stderr, "DA1: %c\n", c);
-      if(c == 'c'){
-        inits->state = STATE_NULL;
-        return 1;
-      }else if(c >= 0x40 && c <= 0x7E){
+      }else if(c == 'u'){ // kitty keyboard
+        inits->tcache->kittykbd = inits->numeric;
+        loginfo("keyboard protocol 0x%x\n", inits->tcache->kittykbd);
         inits->state = STATE_NULL;
       }else if(c == ';'){
-        inits->state = STATE_DA_1_SEMI;
-      } // FIXME error?
-      break;
-    case STATE_DA_1_SEMI:
-//fprintf(stderr, "DA1SEMI: %c\n", c);
-      if(c == '2'){ // VT100 with Advanced Video Option *or* setcregs failure
-        inits->state = STATE_DA_1_SEMI_2;
-      }else if(c == '0'){
-        inits->state = STATE_DA_1_0;
+        inits->cursor_or_pixel = inits->numeric;
+        inits->numeric = 0;
+        inits->state = STATE_DA_SEMI;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
-      } // FIXME error?
+        if(c == 'c'){
+          return 1;
+        }
+      }
       break;
-    case STATE_DA_1_SEMI_2:
-      if(c == 'c'){
+    case STATE_DA_SEMI:
+      if(c == ';'){
+        inits->three = inits->numeric;
+        inits->numeric = 0;
+        inits->state = STATE_DA_SEMI2;
+      }else if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == '$'){
+        if(inits->cursor_or_pixel == 2026){
+          inits->state = STATE_APPSYNC_REPORT;
+          loginfo("terminal reported SUM support\n");
+        }else{
+          inits->state = STATE_APPSYNC_REPORT_DRAIN;
+        }
+      }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
-        return 1;
+        if(c == 'c'){
+          return 1;
+        }
+      }
+      break;
+    case STATE_DA_SEMI2:
+      if(c == ';'){
+        inits->four = inits->numeric;
+        inits->numeric = 0;
+        inits->state = STATE_DA_SEMI3;
+      }else if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
       }else if(c == 'S'){
+        if(inits->cursor_or_pixel == 1){
+          inits->tcache->color_registers = inits->numeric;
+          loginfo("sixel color registers: %d\n", inits->tcache->color_registers);
+          inits->numeric = 0;
+        }
         inits->state = STATE_NULL;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
+        if(c == 'c'){
+          return 1;
+        }
       }
-      break;
-    case STATE_DA_1_0:
-//fprintf(stderr, "DA_!_0: %c\n", c);
-      if(c == 'c'){
-        inits->state = STATE_NULL;
-        return 1;
-      }else if(c >= 0x40 && c <= 0x7E){
-        inits->state = STATE_NULL;
-      }else if(c == ';'){
-        inits->state = STATE_SIXEL_CREGS;
-      } // FIXME error?
-      break;
-    case STATE_SIXEL_CREGS:
-      if(c == 'S'){
-//fprintf(stderr, "CREGS: %d\n", inits->numeric);
-        inits->tcache->color_registers = inits->numeric;
-        inits->state = STATE_NULL;
-      }else if(ruts_numeric(&inits->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_DA_6:
-      if(c == 'c'){
-        inits->state = STATE_NULL;
-        return 1;
-      }else if(c >= 0x40 && c <= 0x7E){
-        inits->state = STATE_NULL;
-      }
-      // FIXME
       break;
     case STATE_DA_DRAIN:
-      if(c == 'c'){
+      if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
-        return 1;
+        if(c == 'c'){
+          return 1;
+        }
+      }
+      break;
+    case STATE_DA_SEMI3:
+      if(c == ';'){
+        inits->numeric = 0;
+        inits->state = STATE_DA_DRAIN;
+      }else if(isdigit(c)){
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == 'S'){
+        inits->tcache->sixel_maxx = inits->four;
+        inits->tcache->sixel_maxy = inits->numeric;
+        loginfo("max sixel geometry: %dx%d\n", inits->tcache->sixel_maxy, inits->tcache->sixel_maxx);
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
-      }
-      break;
-    case STATE_SIXEL:
-      if(c == ';'){
-        if(inits->numeric == 2026){
-          inits->state = STATE_APPSYNC_REPORT;
-        }else{
-          inits->state = STATE_SIXEL_SEMI1;
+        if(c == 'c'){
+          return 1;
         }
-      }else if(ruts_numeric(&inits->numeric, c)){
-        return -1;
-      }else{
-        // FIXME error?
-      }
-      break;
-    case STATE_SIXEL_SEMI1:
-//fprintf(stderr, "SIXLE`l`: %c\n", c);
-      if(c == '0'){
-        inits->state = STATE_SIXEL_SUCCESS;
-      }else if(c == '2'){
-        inits->state = STATE_XTSMGRAPHICS_DRAIN;
-      }else{
-        // FIXME error?
-      }
-      break;
-    case STATE_SIXEL_SUCCESS:
-      if(c == ';'){
-        inits->numeric = 0;
-        inits->state = STATE_SIXEL_WIDTH;
-      }else{
-        // FIXME error?
-      }
-      break;
-    case STATE_SIXEL_WIDTH:
-      if(c == ';'){
-//fprintf(stderr, "HEIGHT: %d\n", inits->numeric);
-        inits->tcache->sixel_maxx = inits->numeric;
-        inits->state = STATE_SIXEL_HEIGHT;
-        inits->numeric = 0;
-      }else if(ruts_numeric(&inits->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_SIXEL_HEIGHT:
-      if(c == 'S'){
-//fprintf(stderr, "HEIGHT: %d\n", inits->numeric);
-        inits->tcache->sixel_maxy_pristine = inits->numeric;
-        inits->state = STATE_NULL;
-      }else if(ruts_numeric(&inits->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_XTSMGRAPHICS_DRAIN:
-      if(c == 'S'){
-        inits->state = STATE_NULL;
       }
       break;
     case STATE_APPSYNC_REPORT:
-      if(c == '2'){
+      if(inits->numeric == '2'){
         inits->appsync = 1;
         inits->state = STATE_APPSYNC_REPORT_DRAIN;
       }

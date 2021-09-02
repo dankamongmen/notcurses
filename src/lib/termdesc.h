@@ -105,6 +105,7 @@ typedef struct ncinputlayer {
   int ttyfd; // file descriptor for connected tty
   int infd;  // file descriptor for processing input, from stdin
   unsigned char inputbuf[BUFSIZ];
+  unsigned char csibuf[BUFSIZ];   // running buffer while parsing CSIs
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
   // can be read to inputbuf_write_at until we fill up. the first datum
@@ -197,6 +198,8 @@ typedef struct tinfo {
   // the output region; use margins for that, if necessary.
   int default_rows;          // LINES environment var / lines terminfo / 24
   int default_cols;          // COLUMNS environment var / cols terminfo / 80
+
+  unsigned kittykbd;         // kitty keyboard support level
 
   int gpmfd;                 // connection to GPM daemon
   pthread_t gpmthread;       // thread handle for GPM watcher
