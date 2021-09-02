@@ -10,7 +10,6 @@
 * [gocui](https://github.com/jroimartin/gocui) (Go)
 * [hscharm](https://hackage.haskell.org/package/hscharm) (Haskell)
 * [ImTui](https://github.com/ggerganov/imtui) (C++)
-* [jexer](https://jexer.sourceforge.io/) (Java)
 * [libtickit](http://www.leonerd.org.uk/code/libtickit/) (C)
 * [NCURSES](https://invisible-island.net/ncurses/) (C)
 * [Newt](https://pagure.io/newt) (C)
