@@ -28,7 +28,7 @@ jobs:
             ncurses \
             pandoc \
             readline
-            #rust
+            rust
 
       - uses: actions/checkout@v2
 
@@ -74,6 +74,6 @@ jobs:
         run: |
           export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
           cd rust
-          #rustc --version
-          #cargo build
-          #cargo t_all
+          rustc --version
+          cargo build
+          cargo t_all
