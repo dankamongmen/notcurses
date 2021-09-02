@@ -8,9 +8,13 @@ static Gpm_Connect gpmconn;    // gpm server handle
 
 static void*
 gpmwatcher(void* vti){
+  static char cmdbuf[20]; // max is '\x1b[<int;int;intM'
+  cmdbuf[0] = '\x1b';
+  cmdbuf[1] = '[';
+  cmdbuf[2] = '<';
   tinfo* ti = vti;
-  (void)ti; // FIXME
   Gpm_Event gev;
+  const int space = sizeof(cmdbuf) - 3;
   while(true){
     if(!Gpm_GetEvent(&gev)){
       logerror("error reading from gpm daemon\n");
@@ -18,7 +22,17 @@ gpmwatcher(void* vti){
     }
     loginfo("got gpm event y=%hd x=%hd mod=%u butt=%u\n", gev.y, gev.x,
             (unsigned)gev.modifiers, (unsigned)gev.buttons);
-    // FIXME decode event and enqueue to input layer
+    if(gev.y < 0 || gev.x < 0){
+      logwarn("negative input %hd %hd", gev.x, gev.y);
+      continue;
+    }
+    ++gev.x;
+    ++gev.y;
+    if(snprintf(cmdbuf + 3, space, "%hd;%hd;%hdM", 0, gev.x, gev.y) >= space){
+      logwarn("input overflowed %hd %hd\n", gev.x, gev.y);
+      continue;
+    }
+    ncinput_shovel(&ti->input, cmdbuf, strlen(cmdbuf));
   }
   return NULL;
 }

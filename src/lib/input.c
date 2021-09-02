@@ -535,12 +535,15 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
   return ret;
 }
 
-int ncinput_shovel(ncinputlayer* ni, const unsigned char* buf, size_t len){
+int ncinput_shovel(ncinputlayer* ni, const char* buf, size_t len){
   int ret = -1;
   pthread_mutex_lock(&ni->lock);
   size_t space = input_queue_space(ni);
   if(len < space){
     size_t spaceback = sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at;
+    if(spaceback > len){
+      spaceback = len;
+    }
     memcpy(ni->inputbuf + ni->inputbuf_write_at, buf, spaceback);
     len -= spaceback;
     ni->inputbuf_write_at += spaceback;

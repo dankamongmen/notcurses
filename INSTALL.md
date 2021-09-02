@@ -65,6 +65,9 @@ using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
 or `none`. Without a multimedia engine, Notcurses will be unable to decode
 images and videos.
 
+To get mouse events in the Linux console, you'll need the GPM daemon running,
+and you'll need run `cmake` with `-DUSE_GPM=on`.
+
 Run unit tests with `make test` following a successful build. If you have unit
 test failures, *please* file a bug including the output of
 
