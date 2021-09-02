@@ -27,7 +27,7 @@ jobs:
             libunistring \
             ncurses \
             pandoc \
-            readline
+            readline \
             rust
 
       - uses: actions/checkout@v2
