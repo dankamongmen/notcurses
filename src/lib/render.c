@@ -249,10 +249,9 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(nccell_wide_right_p(targc)){
         continue;
       }
-      const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
 
       if(nccell_fg_alpha(targc) > NCALPHA_OPAQUE){
-        vis = &p->fb[nfbcellidx(p, y, x)];
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
         if(nccell_fg_default_p(vis)){
           vis = &p->basecell;
         }
@@ -284,7 +283,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // background channel and balpha.
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
       if(nccell_bg_alpha(targc) > NCALPHA_OPAQUE){
-        vis = &p->fb[nfbcellidx(p, y, x)];
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
         // to be on the blitter stacking path, we need
         //  1) crender->s.blittedquads to be non-zero (we're below semigraphics)
         //  2) cell_blittedquadrants(vis) to be non-zero (we're semigraphics)
@@ -327,7 +326,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // still use a character we find here, but its color will come entirely
       // from cells underneath us.
       if(!crender->p){
-        vis = &p->fb[nfbcellidx(p, y, x)];
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
         if(vis->gcluster == 0 && !nccell_double_wide_p(vis)){
           vis = &p->basecell;
         }
@@ -945,7 +944,6 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
       if(fbuf_emit(f, tiparm(indn, scrolls)) < 0){
         return -1;
       }
-      scrolls = 0;
       return 0;
     }
   }
