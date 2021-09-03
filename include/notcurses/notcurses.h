@@ -1088,32 +1088,41 @@ ncinput_nomod_p(const ncinput* ni){
 // Enable the mouse in "button-event tracking" mode with focus detection and
 // UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
 // is returned, and mouse events will be published to notcurses_get().
-API int notcurses_mouse_enable(struct notcurses* n);
+API int notcurses_mouse_enable(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Disable mouse events. Any events in the input queue can still be delivered.
-API int notcurses_mouse_disable(struct notcurses* n);
+API int notcurses_mouse_disable(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
-API int notcurses_linesigs_disable(struct notcurses* n);
+API int notcurses_linesigs_disable(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Restore signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
-API int notcurses_linesigs_enable(struct notcurses* n);
+API int notcurses_linesigs_enable(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted, or if an
 // NCKEY_RESIZE event has been read and you're not yet ready to render. The
 // current screen geometry is returned in 'y' and 'x', if they are not NULL.
-API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
+API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // Extract the Notcurses context to which this plane is attached.
-API struct notcurses* ncplane_notcurses(const struct ncplane* n);
-API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n);
+API struct notcurses* ncplane_notcurses(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
-// Return the dimensions of this ncplane.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Return the dimensions of this ncplane. y or x may be NULL.
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal. The standard plane always exists, and its
