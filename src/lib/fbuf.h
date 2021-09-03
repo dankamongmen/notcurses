@@ -30,14 +30,6 @@ typedef struct fbuf {
 
 // header-only so that we can test it from notcurses-tester
 
-static inline char*
-fbuf_at(fbuf* f, uint64_t at){
-  if(at > f->used){
-    return NULL;
-  }
-  return f->buf + at;
-}
-
 #ifdef MAP_POPULATE
 #ifdef MAP_UNINITIALIZED
 #define MAPFLAGS (MAP_POPULATE | MAP_UNINITIALIZED)
@@ -168,7 +160,7 @@ fbuf_putc(fbuf* f, char c){
   if(fbuf_grow(f, 1)){
     return -1;
   }
-  *fbuf_at(f, f->used++) = c;
+  f->buf[f->used++] = c;
   return 1;
 }
 

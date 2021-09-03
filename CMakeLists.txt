@@ -107,7 +107,7 @@ endif()
 # global compiler flags
 add_compile_definitions(_FORTIFY_SOURCE=2)
 add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wformat-security
-                    -fexceptions -fstrict-aliasing)
+                    -fanalyzer -fexceptions -fstrict-aliasing)
 
 # don't use REQUIRED with subsequent find_package() operations; we use
 # feature_summary + set_package_properties to fail in one fell swoop.
