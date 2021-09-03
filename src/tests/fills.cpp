@@ -504,6 +504,7 @@ TEST_CASE("Fills") {
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
           auto cstr = nccell_strdup(p1, &c1);
+          REQUIRE(nullptr != cstr);
           CHECK(0 == strcmp(cstr, "█"));
           free(cstr);
         }else{
