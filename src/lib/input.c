@@ -712,6 +712,27 @@ uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
   return ncdirect_get(nc, ts, ni);
 }
 
+// https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
+static int
+prep_kitty_special_keys(ncinputlayer* nc){
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\e[P", .key = NCKEY_F01, },
+    { .esc = "\e[Q", .key = NCKEY_F02, },
+    { .esc = "\e[R", .key = NCKEY_F03, },
+    { .esc = "\e[S", .key = NCKEY_F04, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(ncinputlayer_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 // add the hardcoded windows input sequences to ti->input. should only
 // be called after verifying that this is TERMINAL_MSTERMINAL.
 static int
@@ -1673,6 +1694,22 @@ err:
   return -1;
 }
 
+static int
+prep_all_keys(ncinputlayer* ni){
+  if(prep_windows_special_keys(ni)){
+    return -1;
+  }
+  if(prep_kitty_special_keys(ni)){
+    input_free_esctrie(&ni->inputescapes);
+    return -1;
+  }
+  if(prep_special_keys(ni)){
+    input_free_esctrie(&ni->inputescapes);
+    return -1;
+  }
+  return 0;
+}
+
 int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
                       unsigned* appsync, int* cursor_y, int* cursor_x,
                       ncsharedstats* stats, unsigned* kittygraphs){
@@ -1685,12 +1722,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->infd = fileno(infp);
   loginfo("input fd: %d\n", nilayer->infd);
   nilayer->ttyfd = tty_check(nilayer->infd) ? -1 : get_tty_fd(infp);
-  if(prep_windows_special_keys(nilayer)){
-    pthread_mutex_destroy(&nilayer->lock);
-    return -1;
-  }
-  if(prep_special_keys(nilayer)){
-    input_free_esctrie(&nilayer->inputescapes);
+  if(prep_all_keys(nilayer)){
     pthread_mutex_destroy(&nilayer->lock);
     return -1;
   }

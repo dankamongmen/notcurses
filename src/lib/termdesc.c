@@ -768,7 +768,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(ti->ttyfd, minimal)){
+    if(send_initial_queries(ti->ttyfd, minimal, noaltscreen)){
       goto err;
     }
   }
