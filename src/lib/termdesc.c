@@ -745,7 +745,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(ti->ttyfd, minimal)){
-      free(ti->tpreserved);
       goto err;
     }
   }
@@ -755,7 +754,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   int termerr;
   if(setupterm(termtype, ti->ttyfd, &termerr)){
     logpanic("Terminfo error %d for %s (see terminfo(3ncurses))\n", termerr, termtype);
-    free(ti->tpreserved);
     goto err;
   }
   tname = termname(); // longname() is also available
