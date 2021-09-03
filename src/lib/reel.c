@@ -451,38 +451,40 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
       }
     }
   }
-  ncplane_dim_yx(bottom->p, &ylen, &xlen);
-  ncplane_yx(bottom->p, &y, NULL);
-  const int maxy = ncplane_dim_y(r->p) - (1 + !(r->ropts.bordermask & NCBOXMASK_BOTTOM));
-  boty = y + ylen - 1;
-//fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
-  if(maxy < y){
-//fprintf(stderr, "NUKING bottom!\n");
-    ncplane_destroy_family(bottom->p);
-    bottom->p = NULL;
-    bottom->cbp = NULL;
-    bottom = bottom->prev;
-    return trim_reel_overhang(r, top, bottom);
-  }if(maxy < boty){
-    int ynew = ylen - (boty - maxy);
-    if(ynew <= 0){
+  if(bottom->p){
+    ncplane_dim_yx(bottom->p, &ylen, &xlen);
+    ncplane_yx(bottom->p, &y, NULL);
+    const int maxy = ncplane_dim_y(r->p) - (1 + !(r->ropts.bordermask & NCBOXMASK_BOTTOM));
+    boty = y + ylen - 1;
+  //fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
+    if(maxy < y){
+  //fprintf(stderr, "NUKING bottom!\n");
       ncplane_destroy_family(bottom->p);
       bottom->p = NULL;
       bottom->cbp = NULL;
-    }else{
-      if(ncplane_resize(bottom->p, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
-        return -1;
-      }
-//fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
-      if(bottom->cbp){
-        if(ynew == !(r->ropts.tabletmask & NCBOXMASK_BOTTOM)){
-          ncplane_destroy_family(bottom->cbp);
-          bottom->cbp = NULL;
-        }else{
-          ncplane_dim_yx(bottom->cbp, &ylen, &xlen);
-          ynew -= !(r->ropts.tabletmask & NCBOXMASK_BOTTOM);
-          if(ncplane_resize(bottom->cbp, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
-            return -1;
+      bottom = bottom->prev;
+      return trim_reel_overhang(r, top, bottom);
+    }if(maxy < boty){
+      int ynew = ylen - (boty - maxy);
+      if(ynew <= 0){
+        ncplane_destroy_family(bottom->p);
+        bottom->p = NULL;
+        bottom->cbp = NULL;
+      }else{
+        if(ncplane_resize(bottom->p, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
+          return -1;
+        }
+  //fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
+        if(bottom->cbp){
+          if(ynew == !(r->ropts.tabletmask & NCBOXMASK_BOTTOM)){
+            ncplane_destroy_family(bottom->cbp);
+            bottom->cbp = NULL;
+          }else{
+            ncplane_dim_yx(bottom->cbp, &ylen, &xlen);
+            ynew -= !(r->ropts.tabletmask & NCBOXMASK_BOTTOM);
+            if(ncplane_resize(bottom->cbp, 0, 0, ynew, xlen, 0, 0, ynew, xlen)){
+              return -1;
+            }
           }
         }
       }
