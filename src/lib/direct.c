@@ -525,12 +525,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(fbuf_init(&f)){
       return -1;
     }
-    // FIXME figure out how tall it is, and ensure we have sufficient room via scrolling
     if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
     if(toty - dimy < y){
-      int scrolls = y;
+      int scrolls = y - 1;
       y = toty - dimy;
       if(y < 0){
         y = 0;
@@ -567,6 +566,13 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(n->tcache.pixel_draw_late(&n->tcache, np->sprite, y, xoff) < 0){
         return -1;
       }
+    }
+    int targy = y + dimy;
+    if(targy > toty){
+      targy = toty;
+    }
+    if(ncdirect_cursor_move_yx(n, targy, xoff)){
+      return -1;
     }
     return 0;
   }
