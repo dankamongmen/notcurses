@@ -213,7 +213,9 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t specia
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
   if((*cur)->special != NCKEY_INVALID){ // already had one here!
-    logwarn("already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+    if((*cur)->special != special){
+      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+    }
   }else{
     (*cur)->special = special;
     (*cur)->shift = shift;
@@ -1683,12 +1685,12 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->infd = fileno(infp);
   loginfo("input fd: %d\n", nilayer->infd);
   nilayer->ttyfd = tty_check(nilayer->infd) ? -1 : get_tty_fd(infp);
-  if(*detected == TERMINAL_MSTERMINAL){
-    if(prep_windows_special_keys(nilayer)){
-      return -1;
-    }
+  if(prep_windows_special_keys(nilayer)){
+    pthread_mutex_destroy(&nilayer->lock);
+    return -1;
   }
   if(prep_special_keys(nilayer)){
+    input_free_esctrie(&nilayer->inputescapes);
     pthread_mutex_destroy(&nilayer->lock);
     return -1;
   }
