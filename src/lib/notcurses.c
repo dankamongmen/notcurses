@@ -1262,7 +1262,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
 err:
   logpanic("Alas, you will not be going to space today.\n");
   fbuf_free(&ret->rstate.f);
-  if(ret->tcache.tpreserved){
+  if(ret->tcache.ttyfd >= 0 && ret->tcache.tpreserved){
     (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);
     free(ret->tcache.tpreserved);
   }

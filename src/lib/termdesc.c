@@ -921,8 +921,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 err:
   if(ti->tpreserved){
     (void)tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
+    free(ti->tpreserved);
+    ti->tpreserved = NULL;
   }
-  free(ti->tpreserved);
   free(ti->esctable);
   free(ti->termversion);
   del_curterm(cur_term);
