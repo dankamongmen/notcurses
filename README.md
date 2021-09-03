@@ -12,10 +12,7 @@ replacement for NCURSES on existing systems.
 birthed screaming into this world by <a href="https://nick-black.com/dankwiki/index.php/Hack_on">nick black</a> (<a href="mailto:nickblack@linux.com">nickblack@linux.com</a>)
 </p>
 
-* c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
-* rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
-* python wrappers by igo95862 (<igo95862@yandex.ru>)
-* [zig wrappers](https://github.com/dundalek/notcurses-zig-example) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
+c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>) / rust wrappers by José Luis Cruz (<joseluis@andamira.net>) / python wrappers by igo95862 (<igo95862@yandex.ru>) / [zig wrappers](https://github.com/dundalek/notcurses-zig-example) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
