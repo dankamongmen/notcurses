@@ -110,7 +110,10 @@ notcurses_stop_minimal(void* vnc){
   if(cnorm && fbuf_emit(f, cnorm)){
     ret = -1;
   }
-  return blocking_write(fileno(nc->ttyfp), f->buf, f->used);
+  if(blocking_write(fileno(nc->ttyfp), f->buf, f->used)){
+    ret = -1;
+  }
+  return ret;
 }
 
 // make a heap-allocated wchar_t expansion of the multibyte string at s
@@ -948,8 +951,7 @@ init_banner(const notcurses* nc, fbuf* f){
       fbuf_printf(f, "%d rows %d cols ",
                   nc->stdplane->leny, nc->stdplane->lenx);
     }
-    const char* setaf;
-    if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
+    if(nc->tcache.caps.rgb && get_escape(&nc->tcache, ESCAPE_SETAF)){
       term_fg_rgb8(&nc->tcache, f, 0xe0, 0x60, 0x60);
       fbuf_putc(f, 'r');
       term_fg_rgb8(&nc->tcache, f, 0x60, 0xe0, 0x60);
@@ -1099,6 +1101,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }else{
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
             encoding ? encoding : "none found");
+    free(ret);
     return NULL;
   }
   ret->flags = opts->flags;

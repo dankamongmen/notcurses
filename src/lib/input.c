@@ -1754,6 +1754,7 @@ scan_for_clrs(ncinputlayer* ni){
       pop_input_keypress(ni);
       pop_input_keypress(ni);
       ncinput nin;
+      // FIXME need real margins here, no?
       if(handle_csi(ni, &nin, 0, 0) == NCKEY_CURSOR_LOCATION_REPORT){
         enqueue_cursor_report(ni, &nin);
       }
