@@ -183,7 +183,7 @@ static int
 ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t special,
                               unsigned shift, unsigned ctrl, unsigned alt){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    logerror("not an escape: %s (0x%x)\n", esc, special);
+    logerror("not an escape (0x%x)\n", special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -720,10 +720,11 @@ prep_kitty_special_keys(ncinputlayer* nc){
     uint32_t key;
     bool shift, ctrl, alt;
   } keys[] = {
-    { .esc = "\e[P", .key = NCKEY_F01, },
-    { .esc = "\e[Q", .key = NCKEY_F02, },
-    { .esc = "\e[R", .key = NCKEY_F03, },
-    { .esc = "\e[S", .key = NCKEY_F04, },
+    { .esc = "\x1b[P", .key = NCKEY_F01, },
+    { .esc = "\x1b[Q", .key = NCKEY_F02, },
+    { .esc = "\x1b[R", .key = NCKEY_F03, },
+    { .esc = "\x1b[S", .key = NCKEY_F04, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
     if(ncinputlayer_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
@@ -745,32 +746,32 @@ prep_windows_special_keys(ncinputlayer* nc){
     uint32_t key;
     bool shift, ctrl, alt;
   } keys[] = {
-    { .esc = "\e[A", .key = NCKEY_UP, },
-    { .esc = "\e[B", .key = NCKEY_DOWN, },
-    { .esc = "\e[C", .key = NCKEY_RIGHT, },
-    { .esc = "\e[D", .key = NCKEY_LEFT, },
-    { .esc = "\e[1;5A", .key = NCKEY_UP, .ctrl = 1, },
-    { .esc = "\e[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
-    { .esc = "\e[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
-    { .esc = "\e[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
-    { .esc = "\e[H", .key = NCKEY_HOME, },
-    { .esc = "\e[F", .key = NCKEY_END, },
-    { .esc = "\e[2~", .key = NCKEY_INS, },
-    { .esc = "\e[3~", .key = NCKEY_DEL, },
-    { .esc = "\e[5~", .key = NCKEY_PGUP, },
-    { .esc = "\e[6~", .key = NCKEY_PGDOWN, },
-    { .esc = "\eOP", .key = NCKEY_F01, },
-    { .esc = "\eOQ", .key = NCKEY_F02, },
-    { .esc = "\eOR", .key = NCKEY_F03, },
-    { .esc = "\eOS", .key = NCKEY_F04, },
-    { .esc = "\e[15~", .key = NCKEY_F05, },
-    { .esc = "\e[17~", .key = NCKEY_F06, },
-    { .esc = "\e[18~", .key = NCKEY_F07, },
-    { .esc = "\e[19~", .key = NCKEY_F08, },
-    { .esc = "\e[20~", .key = NCKEY_F09, },
-    { .esc = "\e[21~", .key = NCKEY_F10, },
-    { .esc = "\e[23~", .key = NCKEY_F11, },
-    { .esc = "\e[24~", .key = NCKEY_F12, },
+    { .esc = "\x1b[A", .key = NCKEY_UP, },
+    { .esc = "\x1b[B", .key = NCKEY_DOWN, },
+    { .esc = "\x1b[C", .key = NCKEY_RIGHT, },
+    { .esc = "\x1b[D", .key = NCKEY_LEFT, },
+    { .esc = "\x1b[1;5A", .key = NCKEY_UP, .ctrl = 1, },
+    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
+    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
+    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
+    { .esc = "\x1b[H", .key = NCKEY_HOME, },
+    { .esc = "\x1b[F", .key = NCKEY_END, },
+    { .esc = "\x1b[2~", .key = NCKEY_INS, },
+    { .esc = "\x1b[3~", .key = NCKEY_DEL, },
+    { .esc = "\x1b[5~", .key = NCKEY_PGUP, },
+    { .esc = "\x1b[6~", .key = NCKEY_PGDOWN, },
+    { .esc = "\x1bOP", .key = NCKEY_F01, },
+    { .esc = "\x1bOQ", .key = NCKEY_F02, },
+    { .esc = "\x1bOR", .key = NCKEY_F03, },
+    { .esc = "\x1bOS", .key = NCKEY_F04, },
+    { .esc = "\x1b[15~", .key = NCKEY_F05, },
+    { .esc = "\x1b[17~", .key = NCKEY_F06, },
+    { .esc = "\x1b[18~", .key = NCKEY_F07, },
+    { .esc = "\x1b[19~", .key = NCKEY_F08, },
+    { .esc = "\x1b[20~", .key = NCKEY_F09, },
+    { .esc = "\x1b[21~", .key = NCKEY_F10, },
+    { .esc = "\x1b[23~", .key = NCKEY_F11, },
+    { .esc = "\x1b[24~", .key = NCKEY_F12, },
     { .esc = NULL, .key = NCKEY_INVALID, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
@@ -941,17 +942,17 @@ prep_special_keys(ncinputlayer* nc){
   for(k = keys ; k->tinfo ; ++k){
     char* seq = tigetstr(k->tinfo);
     if(seq == NULL || seq == (char*)-1){
-//fprintf(stderr, "no support for terminfo's %s\n", k->tinfo);
+      loginfo("no terminfo declaration for %s\n", k->tinfo);
       continue;
     }
-    if(seq[0] != NCKEY_ESC){
-      loginfo("%s is not an escape sequence\n", k->tinfo);
+    if(seq[0] != NCKEY_ESC || strlen(seq) < 2){ // assume ESC prefix + content
+      logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
       continue;
     }
-    logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
     if(ncinputlayer_add_input_escape(nc, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
+    logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
   if(ncinputlayer_add_input_escape(nc, CSIPREFIX, NCKEY_CSI, 0, 0, 0)){
     return -1;
