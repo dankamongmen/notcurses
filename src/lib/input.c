@@ -553,6 +553,17 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
     }
     if(ret == NCKEY_CURSOR_LOCATION_REPORT){
       enqueue_cursor_report(nc, ni);
+    }else if(ni->ctrl && !ni->shift && !ni->alt){
+      if(ret == 'c'){
+        raise(SIGINT); // FIXME only if linesigs aren't disabled
+        continue;
+      }else if(ret == 'z'){
+        raise(SIGTSTP); // FIXME only if linesigs aren't disabled
+        continue;
+      }else if(ret == '\\'){
+        raise(SIGQUIT); // FIXME only if linesigs aren't disabled
+        continue;
+      }
     }
   }while(ret == NCKEY_CURSOR_LOCATION_REPORT);
   return ret;
@@ -1770,8 +1781,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       tcache->pixy = inits.pixelheight;
       tcache->pixx = inits.pixelwidth;
       if(tcache->default_rows && tcache->default_cols){
-	tcache->cellpixx = tcache->pixx / tcache->default_cols;
-	tcache->cellpixy = tcache->pixy / tcache->default_rows;
+        tcache->cellpixx = tcache->pixx / tcache->default_cols;
+        tcache->cellpixy = tcache->pixy / tcache->default_rows;
       }
     }
     if(inits.kittygraphics){ // kitty trumps sixel
