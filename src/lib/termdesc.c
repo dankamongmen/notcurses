@@ -821,6 +821,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     { ESCAPE_U7, "u7", },
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_SMXX, "smxx", },
+    { ESCAPE_EL, "el", },
     { ESCAPE_RMXX, "rmxx", },
     { ESCAPE_SMUL, "smul", },
     { ESCAPE_RMUL, "rmul", },

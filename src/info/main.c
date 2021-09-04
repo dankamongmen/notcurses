@@ -399,17 +399,18 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_U7));
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors);
   tinfo_debug_cap(n, "rgb", ti->caps.rgb);
-  tinfo_debug_cap(n, "gpm", ti->gpmfd >= 0);
+  tinfo_debug_cap(n, "el", get_escape(ti, ESCAPE_EL));
   finish_line(n);
   ncplane_putstr(n, indent);
   tinfo_debug_cap(n, "utf8", ti->caps.utf8);
-  tinfo_debug_cap(n, "half", ti->caps.halfblocks);
-  tinfo_debug_cap(n, "quad", ti->caps.quadrants);
-  tinfo_debug_cap(n, "sex", ti->caps.sextants);
-  tinfo_debug_cap(n, "braille", ti->caps.braille);
-  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc));
-  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc));
+  tinfo_debug_cap(n, "2x1", ti->caps.halfblocks);
+  tinfo_debug_cap(n, "2x2", ti->caps.quadrants);
+  tinfo_debug_cap(n, "3x2", ti->caps.sextants);
+  tinfo_debug_cap(n, "4x2", ti->caps.braille);
+  tinfo_debug_cap(n, "img", notcurses_canopen_images(nc));
+  tinfo_debug_cap(n, "vid", notcurses_canopen_videos(nc));
   tinfo_debug_cap(n, "indn", get_escape(ti, ESCAPE_INDN));
+  tinfo_debug_cap(n, "gpm", ti->gpmfd >= 0);
   finish_line(n);
 }
 

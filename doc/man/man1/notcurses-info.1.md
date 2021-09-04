@@ -52,6 +52,7 @@ The next five lines describe properties of the terminal environment:
   * op: Colors can be reset via a single escape
   * fgop: Foreground can be reset via a single escape
   * bgop: Background can be reset via a single escape
+  * bce: The back-color-erase property is in play
 
 * The second line is more of the same:
   * bold: Boldface is available
@@ -62,14 +63,18 @@ The next five lines describe properties of the terminal environment:
   * u7: Cursor position reporting
   * ccc: Palette can be reprogrammed
   * rgb: Colors can be specified as RGB wit eight bits/channel
+  * el: Clearing can be performed through the end of the line
 
-* The third line covers UTF8 and decoding capabilities:
+* The third line also covers UTF8 and decoding capabilities:
   * utf8: This is a UTF8 environment
-  * quad: Quadrant characters are available
-  * sex: Sextant characters are available
-  * braille: Braille characters are available
-  * images: Images can be decoded
-  * video: Video can be decoded
+  * 2x1: Upper- and lower-half blocks are available
+  * 2x2: Quadrant blocks are available
+  * 3x2: Sextant blocks are available
+  * 4x2: Braille characters are available
+  * img: Images can be decoded
+  * vid: Video can be decoded
+  * indn: Multiple-line scrolling is available
+  * gpm: Connection is established to the GPM server
 
 * The fourth line indicates the default background color, and whether that
   color is treated as transparent.

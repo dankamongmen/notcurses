@@ -54,6 +54,7 @@ typedef enum {
   ESCAPE_CUD,     // "cud" move n cells down
   ESCAPE_SMKX,    // "smkx" keypad_xmit (keypad transmit mode)
   ESCAPE_RMKX,    // "rmkx" keypad_local
+  ESCAPE_EL,      // "el" clear to end of line, inclusive
   ESCAPE_SMCUP,   // "smcup" enter alternate screen
   ESCAPE_RMCUP,   // "rmcup" leave alternate screen
   ESCAPE_SMXX,    // "smxx" start struckout
