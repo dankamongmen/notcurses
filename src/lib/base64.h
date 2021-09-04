@@ -1,5 +1,5 @@
-#ifndef NOTCURSES_PNG
-#define NOTCURSES_PNG
+#ifndef NOTCURSES_BASE64
+#define NOTCURSES_BASE64
 
 #ifdef __cplusplus
 extern "C" {
