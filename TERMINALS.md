@@ -116,6 +116,9 @@ https://github.com/dankamongmen/notcurses/issues/1117.
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
 Color Erase) capability, but Notcurses never relies on `bce` behavior.
 
+Kitty has introduced an unambiguous [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
+Notcurses supports this protocol when it is detected.
+
 ### WezTerm
 
 WezTerm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some

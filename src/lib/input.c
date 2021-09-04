@@ -478,6 +478,7 @@ block_on_input(tinfo* ti, const struct timespec* ts){
     }
     return -1;
   }
+  return 1; // ? FIXME
 #else
   struct pollfd pfd = {
     .fd = ti->input.infd,
@@ -488,7 +489,7 @@ block_on_input(tinfo* ti, const struct timespec* ts){
   pfd.events |= POLLRDHUP;
 #endif
   int events;
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW64__)
   int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
   while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME smask?
 #else // linux, BSDs
@@ -498,7 +499,7 @@ block_on_input(tinfo* ti, const struct timespec* ts){
   sigdelset(&smask, SIGWINCH);
   while((events = ppoll(&pfd, 1, ts, &smask)) < 0){
 #endif
-    if(errno != EINTR && errno != EAGAIN){
+    if(errno != EINTR && errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
       return -1;
     }
     if(resize_seen){
