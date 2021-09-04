@@ -554,6 +554,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
     if(ret == NCKEY_CURSOR_LOCATION_REPORT){
       enqueue_cursor_report(nc, ni);
     }else if(ni->ctrl && !ni->shift && !ni->alt){
+#ifndef __MINGW64__
       if(ret == 'c'){
         raise(SIGINT); // FIXME only if linesigs aren't disabled
         continue;
@@ -564,6 +565,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
         raise(SIGQUIT); // FIXME only if linesigs aren't disabled
         continue;
       }
+#endif
     }
   }while(ret == NCKEY_CURSOR_LOCATION_REPORT);
   return ret;
