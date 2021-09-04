@@ -85,6 +85,12 @@ Why use this non-standard library?
 * Portable support for bitmapped graphics, whether using Sixel, Kitty, the iTerm2
   protocol, or even the Linux framebuffer console.
 
+* Support for unambiguous [keyboard protocols](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
+
+* "TUI mode" facilitates high-performance, non-scrolling, full-screen
+  applications. "CLI mode" supports scrolling output for shell utilities,
+  but with the full power of Notcurses.
+
 * It's Apache2-licensed in its entirety, as opposed to the
   [drama in several acts](https://invisible-island.net/ncurses/ncurses-license.html)
   that is the NCURSES license (the latter is [summarized](https://invisible-island.net/ncurses/ncurses-license.html#issues_freer)
