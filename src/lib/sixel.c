@@ -241,6 +241,9 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
   assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  int absx, absy;
+  ncplane_abs_yx(s->n, &absy, &absx);
+  sprixel_invalidate(s, absy, absx);
   return 0;
 }
 

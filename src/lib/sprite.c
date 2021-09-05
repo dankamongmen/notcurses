@@ -191,6 +191,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
         return -1;
       }
     }
+    // no need to update to INVALIDATED; no redraw is necessary
     s->n->tam[idx].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }
