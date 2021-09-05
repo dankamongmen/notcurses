@@ -205,11 +205,14 @@ void Ticker(ncpp::NotCurses* nc) {
 int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTHEIGHT = 6;
   auto n = nc->get_stdplane(&dimy, &dimx);
+  // FIXME no ncpp wrapper for Plane::pixelgeom?
+  int celldimx, maxbmapx;
+  ncplane_pixelgeom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
   struct ncplane_options nopts = {
     .y = dimy - PLOTHEIGHT - 1,
     .x = 0,
     .rows = PLOTHEIGHT,
-    .cols = dimx,
+    .cols = maxbmapx / celldimx,
     .userptr = nullptr,
     .name = "plot",
     .resizecb = nullptr, // FIXME
