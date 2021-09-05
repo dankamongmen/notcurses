@@ -1073,7 +1073,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           ++x;
         }
       }else if(phase != 0 || !rvec[damageidx].s.p_beats_sprixel){
-//fprintf(stderr, "phase %u damaged at %d/%d\n", phase, innery, innerx);
+//fprintf(stderr, "phase %u damaged at %d/%d %d\n", phase, innery, innerx, x);
         // in the first text phase, we draw only those glyphs where the glyph
         // was not above a sprixel (and the cell is damaged). in the second
         // phase, we draw everything that remains damaged.
@@ -1163,7 +1163,11 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         rvec[damageidx].s.damaged = 0;
         rvec[damageidx].s.p_beats_sprixel = 0;
         nc->rstate.x += srccell->width;
-        x += srccell->width - 1;
+        if(srccell->width){ // check only necessary when undamaged; be safe
+          x += srccell->width - 1;
+        }else{
+          ++nc->rstate.x;
+        }
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
