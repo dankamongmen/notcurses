@@ -241,6 +241,11 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
   assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  // FIXME this invalidation ought not be necessary, since we're simply
+  // wiping, and thus a glyph is going to be printed over whatever we've
+  // just destroyed. in alacritty, however, this isn't sufficient to knock
+  // out a graphic; we need repaint with the transparency.
+  // see https://github.com/dankamongmen/notcurses/issues/2142
   int absx, absy;
   ncplane_abs_yx(s->n, &absy, &absx);
   sprixel_invalidate(s, absy, absx);
