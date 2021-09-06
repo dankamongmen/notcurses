@@ -31,7 +31,7 @@ jobs:
             git
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-doctest
-            mingw-w64-ucrt-x86_64-ffmpeg
+            mingw-w64-ucrt-x86_64-openimageio
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
             mingw-w64-ucrt-x86_64-toolchain
@@ -56,6 +56,7 @@ jobs:
             -G "MSYS Makefiles" \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_DOCTEST=off \
+            -DUSE_MULTIMEDIA=oiio \
             -DUSE_PANDOC=off \
             -DUSE_READLINE=off \
             -DUSE_QRCODEGEN=on
