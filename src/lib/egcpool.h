@@ -160,9 +160,12 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   do{
     if(egcpool_alloc_justified(pool, len) || searched){
       if(!duplicated){
-        if((duplicated = strndup(egc, ulen)) == NULL){
+        // cast (and avoidance of strndup) to facilitate c++ inclusions
+        if((duplicated = (char *)malloc(ulen + 1)) == NULL){
           return -1;
         }
+        memcpy(duplicated, egc, ulen);
+        duplicated[ulen] = '\0';
       }
       if(egcpool_grow(pool, len) && searched){
         free(duplicated);
