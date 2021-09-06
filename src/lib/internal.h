@@ -634,10 +634,10 @@ ncpile_debug(const ncpile* p, fbuf* f){
   int planeidx = 0;
   while(n){
     fbuf_printf(f, "%04d off y: %3d x: %3d geom y: %3d x: %3d curs y: %3d x: %3d %p %.4s\n",
-               planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x, n, n->name);
+                planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x, n, n->name);
     if(n->boundto || n->bnext || n->bprev || n->blist){
       fbuf_printf(f, " bound %p ← %p → %p binds %p\n",
-                 n->boundto, n->bprev, n->bnext, n->blist);
+                  n->boundto, n->bprev, n->bnext, n->blist);
     }
     if(n->bprev && (*n->bprev != n)){
       fbuf_printf(f, " WARNING: expected *->bprev %p, got %p\n", n, *n->bprev);
@@ -681,8 +681,6 @@ void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel.
 sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
-// takes ownership of s on success.
-int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, fbuf* f);
 // these three all use absolute coordinates
@@ -717,7 +715,7 @@ sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     return 0;
   }
   int offy, offx;
-  ncplane_yx(s->n, &offy, &offx);
+  ncplane_abs_yx(s->n, &offy, &offx);
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
   return ti->pixel_draw(ti, p, s, f, y + offy, x + offx);
@@ -726,9 +724,9 @@ sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
-              int y, int x){
+sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x){
 //sprixel_debug(s, stderr);
+  const tinfo* ti = &nc->tcache;
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
   if(s->invalidated == SPRIXEL_MOVED && ti->pixel_move){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
@@ -740,7 +738,9 @@ sprite_redraw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     if(!ti->pixel_draw){
       return 0;
     }
-    return ti->pixel_draw(ti, p, s, f, y, x);
+    int r = ti->pixel_draw(ti, p, s, f, y, x);
+    nc->rstate.hardcursorpos = true;
+    return r;
   }
 }
 
@@ -1377,8 +1377,8 @@ egc_rtl(const char* egc, int* bytes){
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
 static inline int
 plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
-                 int parse_start, tament* tam){
-  if(sprixel_load(spx, f, leny, lenx, parse_start)){
+                 int parse_start, tament* tam, sprixel_e state){
+  if(sprixel_load(spx, f, leny, lenx, parse_start, state)){
     return -1;
   }
   ncplane* n = spx->n;

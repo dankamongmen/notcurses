@@ -859,7 +859,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
         }
         // otherwise it's a new pile, so we couldn't have been on-screen
       }
-      int r = sprite_redraw(&nc->tcache, p, s, f, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_redraw(nc, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
