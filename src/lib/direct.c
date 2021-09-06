@@ -861,6 +861,7 @@ ncdirect_stop_minimal(void* vnc){
       ret |= nc->tcache.pixel_shutdown(&f);
     }
     ret |= reset_term_attributes(&nc->tcache, &f);
+    ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
