@@ -208,11 +208,17 @@ int input_demo(ncpp::NotCurses* nc) {
   // FIXME no ncpp wrapper for Plane::pixelgeom?
   int celldimx, maxbmapx;
   ncplane_pixelgeom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
+  int cols;
+  if(maxbmapx == 0 || celldimx == 0){
+    cols = dimx;
+  }else{
+    cols = maxbmapx / celldimx;
+  }
   struct ncplane_options nopts = {
     .y = dimy - PLOTHEIGHT - 1,
     .x = 0,
     .rows = PLOTHEIGHT,
-    .cols = maxbmapx / celldimx,
+    .cols = cols,
     .userptr = nullptr,
     .name = "plot",
     .resizecb = nullptr, // FIXME
