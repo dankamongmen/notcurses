@@ -864,6 +864,9 @@ ncdirect_stop_minimal(void* vnc){
     ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
+    if(nc->tcache.kittykbd){
+      ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
+    }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->tcache.ttyfd)){
       ret = -1;
