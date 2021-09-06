@@ -14,10 +14,10 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   ncplane_set_fg_rgb8(ncp, 0xd0, 0xf0, 0xd0);
   for(int x = startx ; x < startx + centercols - 2 ; ++x){
     if(ncplane_putwc_yx(ncp, row1, x, x % 2 != *flipmode % 2 ? L'◪' : L'◩') <= 0){
-      return -1;
+      // don't fail out
     }
     if(ncplane_putwc_yx(ncp, row2, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
-      return -1;
+      // don't fail out
     }
   }
   ++*flipmode;
@@ -211,7 +211,7 @@ int intro(struct notcurses* nc){
   ncplane_off_styles(ncp, NCSTYLE_BOLD);
   const wchar_t nwstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
   if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, nwstr) < 0){
-    return -1;
+    // don't fail out
   }
   const wchar_t* iwstr;
   if(notcurses_cansextant(nc)){
@@ -220,7 +220,7 @@ int intro(struct notcurses* nc){
     iwstr = L"▏█ ▇ ▆ ▅ ▄ ▃ ▂ ▁ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █▕";
   }
   if(ncplane_putwstr_aligned(ncp, rows / 2 + 1, NCALIGN_CENTER, iwstr) < 0){
-    return -1;
+    // don't fail out
   }
   if(rows < 45){
     ncplane_set_fg_rgb8(ncp, 0xc0, 0x80, 0x80);
