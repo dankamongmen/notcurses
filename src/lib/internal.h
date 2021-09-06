@@ -1377,8 +1377,8 @@ egc_rtl(const char* egc, int* bytes){
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
 static inline int
 plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
-                 int parse_start, tament* tam){
-  if(sprixel_load(spx, f, leny, lenx, parse_start)){
+                 int parse_start, tament* tam, sprixel_e state){
+  if(sprixel_load(spx, f, leny, lenx, parse_start, state)){
     return -1;
   }
   ncplane* n = spx->n;

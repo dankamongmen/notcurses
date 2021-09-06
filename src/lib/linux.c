@@ -104,7 +104,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     }
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
-  if(plane_blit_sixel(s, &s->glyph, leny, lenx, 0, tam) < 0){
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, 0, tam, SPRIXEL_INVALIDATED) < 0){
     goto error;
   }
   return 1;

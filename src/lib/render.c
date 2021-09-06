@@ -834,14 +834,15 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
           s->next->prev = s->prev;
         }
         sprixel_free(s);
-      }else{
-        parent = &s->next;
+        // need to avoid the rest of the iteration, as s is dead
+        continue; // don't account as an elision
       }
-      continue; // don't account as an elision
     }
-    if(s->invalidated == SPRIXEL_MOVED
-        || s->invalidated == SPRIXEL_INVALIDATED
-        || s->invalidated == SPRIXEL_UNSEEN){
+    if(s->invalidated == SPRIXEL_INVALIDATED && nc->tcache.pixel_refresh){
+      nc->tcache.pixel_refresh(p, s);
+    }else if(s->invalidated == SPRIXEL_MOVED ||
+             s->invalidated == SPRIXEL_UNSEEN ||
+             s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_abs_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
@@ -857,21 +858,18 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
             }
           }
         }
-        // otherwise it's a new pile, so we couldn't have been on-screen
       }
+      // otherwise it's a new pile, so we couldn't have been on-screen
       int r = sprite_redraw(nc, p, s, f, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
       bytesemitted += r;
-      // FIXME might not need this if it was only an upload
-      nc->rstate.hardcursorpos = true;
-      parent = &s->next;
       ++nc->stats.s.sprixelemissions;
     }else{
       ++nc->stats.s.sprixelelisions;
-      parent = &s->next;
     }
+    parent = &s->next;
 //fprintf(stderr, "SPRIXEL STATE: %d\n", s->invalidated);
   }
   return bytesemitted;

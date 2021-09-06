@@ -192,6 +192,7 @@ void Tick(ncpp::NotCurses* nc, uint64_t sec) {
   if(!nc->render()){
     throw std::runtime_error("error rendering");
   }
+notcurses_debug(*nc, stderr);
 }
 
 void Ticker(ncpp::NotCurses* nc) {

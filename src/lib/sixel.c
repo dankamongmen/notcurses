@@ -360,7 +360,40 @@ update_deets(uint32_t rgb, cdetails* deets){
   ++deets->count;
 }
 
-// no matter the input palette, we can always get a maximum of 64 colors if we
+// goes through the needs_refresh matrix, and damages cells needing refreshing.
+void sixel_refresh(const ncpile* p, sprixel* s){
+  if(s->needs_refresh == NULL){
+    return;
+  }
+  int absy, absx;
+  ncplane_abs_yx(s->n, &absy, &absx);
+  for(int y = 0 ; y < s->dimy ; ++y){
+    const int yy = absy + y;
+    for(int x = 0 ; x < s->dimx ; ++x){
+      int idx = y * s->dimx + x;
+      if(s->needs_refresh[idx]){
+        const int xx = absx + x;
+        int ridx = yy * p->dimx + xx;
+        struct crender *r = &p->crender[ridx];
+        r->s.damaged = 1;
+      }
+    }
+  }
+  free(s->needs_refresh);
+  s->needs_refresh = NULL;
+}
+
+static inline void
+update_rmatrix(unsigned char* rmatrix, int txyidx, int lasttxyidx,
+               const tament* tam){
+  if(rmatrix == NULL){
+    return;
+  }
+  rmatrix[txyidx] = 1;
+  // FIXME finish out logic here
+}
+
+// no mattter the input palette, we can always get a maximum of 64 colors if we
 // mask at 0xc0 on each component (this partitions each component into 4 chunks,
 // and 4 * 4 * 4 -> 64). so this will never overflow our color register table
 // (assumed to have at least 256 registers). at each color, we store a pixel
@@ -377,17 +410,23 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int cdimx = s->cellpxx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
+  int lasttxyidx = -1;
+  unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
+        // we can't just check if lastidx != txyidx; that's true for each row
+        // of the cell. this will only be true once.
+        bool firstpix = (sy % cdimy == 0 && visx % cdimx == 0);
         // we do *not* exempt already-wiped pixels from palette creation. once
         // we're done, we'll call sixel_wipe() on these cells. so they remain
         // one of SPRIXCELL_ANNIHILATED or SPRIXCELL_ANNIHILATED_TRANS.
         if(tam[txyidx].state != SPRIXCELL_ANNIHILATED && tam[txyidx].state != SPRIXCELL_ANNIHILATED_TRANS){
           if(rgba_trans_p(*rgb, bargs->transcolor)){
-            if(sy % cdimy == 0 && visx % cdimx == 0){
+            if(firstpix){
+              update_rmatrix(rmatrix, txyidx, lasttxyidx, tam);
               tam[txyidx].state = SPRIXCELL_TRANSPARENT;
             }else if(tam[txyidx].state == SPRIXCELL_OPAQUE_SIXEL){
               tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
@@ -395,7 +434,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
             stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
             continue;
           }else{
-            if(sy % cdimy == 0 && visx % cdimx == 0){
+            if(firstpix){
+              update_rmatrix(rmatrix, txyidx, lasttxyidx, tam);
               tam[txyidx].state = SPRIXCELL_OPAQUE_SIXEL;
             }else if(tam[txyidx].state == SPRIXCELL_TRANSPARENT){
               tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
@@ -404,19 +444,22 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         }else{
 //fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
           if(rgba_trans_p(*rgb, bargs->transcolor)){
-            if(sy % cdimy == 0 && visx % cdimx == 0){
+            if(firstpix){
+              update_rmatrix(rmatrix, txyidx, lasttxyidx, tam);
               tam[txyidx].state = SPRIXCELL_ANNIHILATED_TRANS;
               free(tam[txyidx].auxvector);
               tam[txyidx].auxvector = NULL;
             }
           }else{
             tam[txyidx].state = SPRIXCELL_ANNIHILATED;
-            if(sy % cdimy == 0 && visx % cdimx == 0){
+            if(firstpix){
+              update_rmatrix(rmatrix, txyidx, lasttxyidx, tam);
               free(tam[txyidx].auxvector);
               tam[txyidx].auxvector = NULL;
             }
           }
         }
+        lasttxyidx = txyidx;
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);
         int c = find_color(stab, comps);
@@ -815,7 +858,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
   }
   scrub_tam_boundaries(tam, outy, lenx, s->cellpxy, s->cellpxx);
   // take ownership of buf on success
-  if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam) < 0){
+  if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
     fbuf_free(&f);
     return -1;
   }
@@ -867,11 +910,21 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
       return -1;
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
+  }else{
+    typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
+    rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
+    if(rmatrix == NULL){
+      sixelmap_free(stable.map);
+      free(stable.deets);
+      return -1;
+    }
+    bargs->u.pixel.spx->needs_refresh = rmatrix;
   }
   if(extract_color_table(data, linesize, cols, leny, lenx, &stable, tam, bargs)){
     if(!reuse){
       free(tam);
     }
+    free(bargs->u.pixel.spx->needs_refresh);
     sixelmap_free(stable.map);
     free(stable.deets);
     return -1;
