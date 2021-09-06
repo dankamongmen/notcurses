@@ -201,6 +201,8 @@ int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x);
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
+int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
+                 int parse_start);
 
 typedef enum {
   // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same

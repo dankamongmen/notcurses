@@ -36,6 +36,20 @@ typedef struct ncplot {
   bool printsample; /* print the most recent sample */
 } ncplot;
 
+static inline int
+create_pixelp(ncplot *p, ncplane* n){
+  if(((p->pixelp = ncplane_dup(n, NULL)) == NULL)){
+    return -1;
+  }
+  ncplane_reparent(p->pixelp, n);
+  ncplane_move_below(p->pixelp, n);
+  uint64_t basechan = 0;
+  ncchannels_set_bg_alpha(&basechan, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&basechan, NCALPHA_TRANSPARENT);
+  ncplane_set_base(n, "", 0, basechan);
+  return 0;
+}
+
 #define MAXWIDTH 2
 #define CREATE(T, X) \
 typedef struct nc##X##plot { \
@@ -477,6 +491,12 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   } \
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
+  if(bset->geom == NCBLIT_PIXEL){ \
+    if(create_pixelp(&ncpp->plot, n)){ \
+      nc##X##plot_destroy(ncpp); \
+      return NULL; \
+    } \
+  } \
   redraw_plot_##T(ncpp); \
   return bset; \
 } \
@@ -618,20 +638,6 @@ update_sample_double(ncdplot* ncp, int64_t x, double y, bool reset){
   }
 }
 
-static inline int
-create_pixelp(ncplot *p, ncplane* n){
-  if(((p->pixelp = ncplane_dup(n, NULL)) == NULL)){
-    return -1;
-  }
-  ncplane_reparent(p->pixelp, n);
-  ncplane_move_below(p->pixelp, n);
-  uint64_t basechan = 0;
-  ncchannels_set_bg_alpha(&basechan, NCALPHA_TRANSPARENT);
-  ncchannels_set_fg_alpha(&basechan, NCALPHA_TRANSPARENT);
-  ncplane_set_base(n, "", 0, basechan);
-  return 0;
-}
-
 // takes ownership of n on all paths
 ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy){
   ncuplot* ret = malloc(sizeof(*ret));
@@ -644,12 +650,6 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
   if(bset == NULL){
     free(ret);
     return NULL;
-  }
-  if(bset->geom == NCBLIT_PIXEL){
-    if(create_pixelp(&ret->plot, n)){
-      ncuplot_destroy(ret);
-      return NULL;
-    }
   }
   return ret;
 }
@@ -693,12 +693,6 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
   if(bset == NULL){
     free(ret);
     return NULL;
-  }
-  if(bset->geom == NCBLIT_PIXEL){
-    if(create_pixelp(&ret->plot, n)){
-      ncdplot_destroy(ret);
-      return NULL;
-    }
   }
   return ret;
 }
