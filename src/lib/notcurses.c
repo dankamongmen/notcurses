@@ -92,24 +92,6 @@ notcurses_stop_minimal(void* vnc){
   }
   ret |= mouse_disable(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
-  if(nc->tcache.kittykbd){
-    if(fbuf_emit(f, "\x1b[<u")){
-      ret = -1;
-    }
-  }
-  if(nc->tcache.ttyfd >= 0){
-    if(nc->tcache.tpreserved){
-      ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
-    }
-    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
-      if(sprite_clear_all(&nc->tcache, f)){
-        ret = -1;
-      }
-      if(fbuf_emit(f, esc)){
-        ret = -1;
-      }
-    }
-  }
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
   }
@@ -119,6 +101,25 @@ notcurses_stop_minimal(void* vnc){
   }
   if(blocking_write(fileno(nc->ttyfp), f->buf, f->used)){
     ret = -1;
+  }
+  fbuf_reset(f);
+  if(nc->tcache.ttyfd >= 0){
+    if(nc->tcache.tpreserved){
+      ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
+    }
+    if(nc->tcache.kittykbd){
+      if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
+        ret = -1;
+      }
+    }
+    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
+      if(sprite_clear_all(&nc->tcache, f)){ // send this to f
+        ret = -1;
+      }
+      if(tty_emit(esc, nc->tcache.ttyfd)){ // but this goes to ttyfd
+        ret = -1;
+      }
+    }
   }
   return ret;
 }
