@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.19 (not yet released)
+* 2.4.0 (2021-09-06)
   * Mouse events in the Linux console are now reported from GPM when built
     with `-DUSE_GPM=on`.
 
