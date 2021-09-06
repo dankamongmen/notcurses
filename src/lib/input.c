@@ -743,6 +743,9 @@ prep_kitty_special_keys(ncinputlayer* nc){
     { .esc = "\x1b[Q", .key = NCKEY_F02, },
     { .esc = "\x1b[R", .key = NCKEY_F03, },
     { .esc = "\x1b[S", .key = NCKEY_F04, },
+    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
+    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
+    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
     { .esc = NULL, .key = NCKEY_INVALID, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
