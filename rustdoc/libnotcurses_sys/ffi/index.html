@@ -332,7 +332,7 @@ move would place the cursor outside the plane.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_destroy.html" title="libnotcurses_sys::ffi::ncplane_destroy fn">ncplane_destroy</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Destroy the specified ncplane. None of its contents will be visible after
 the next call to notcurses_render(). It is an error to attempt to destroy
 the standard plane.</p>
-</td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_dim_yx.html" title="libnotcurses_sys::ffi::ncplane_dim_yx fn">ncplane_dim_yx</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Return the dimensions of this ncplane.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_dim_yx.html" title="libnotcurses_sys::ffi::ncplane_dim_yx fn">ncplane_dim_yx</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Return the dimensions of this ncplane. y or x may be NULL.</p>
 </td></tr><tr class="module-item"><td><a class="fn" href="fn.ncplane_dup.html" title="libnotcurses_sys::ffi::ncplane_dup fn">ncplane_dup</a><a title="unsafe function" href="#"><sup>⚠</sup></a></td><td class="docblock-short"><p>Duplicate an existing ncplane. The new plane will have the same geometry,
 will duplicate all content, and will start with the same rendering state.
 The new plane will be immediately above the old one on the z axis, and will
