@@ -804,7 +804,7 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
 // this first phase of sprixel rasterization is responsible for:
 //  1) invalidating all QUIESCENT sprixels if the pile has changed (because
 //      it would have been destroyed when switching away from our pile).
-//      for the same reason, invalidated all MOVE sprixels in this case.
+//      for the same reason, invalidate all MOVE sprixels in this case.
 //  2) damaging all cells under a HIDE sixel, so text phase 1 consumes it
 //      (not necessary for kitty graphics)
 //  3) damaging uncovered cells under a MOVE (not necessary for kitty)
@@ -822,7 +822,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
     loginfo("Phase 1 sprixel %u state %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_QUIESCENT){
       if(p != nc->last_pile){
-        s->invalidated = SPRIXEL_INVALIDATED;
+        s->invalidated = SPRIXEL_UNSEEN;
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
@@ -839,13 +839,15 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
       }
       continue; // don't account as an elision
     }
-    if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_UNSEEN){
+    if(s->invalidated == SPRIXEL_MOVED
+        || s->invalidated == SPRIXEL_INVALIDATED
+        || s->invalidated == SPRIXEL_UNSEEN){
       int y, x;
       ncplane_abs_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
         if(p != nc->last_pile){
-          s->invalidated = SPRIXEL_INVALIDATED;
+          s->invalidated = SPRIXEL_UNSEEN;
         }else{
           if(s->n->absx == s->movedfromx){
             if(s->movedfromy - s->n->absy == scrolls){
