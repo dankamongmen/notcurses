@@ -383,14 +383,24 @@ void sixel_refresh(const ncpile* p, sprixel* s){
   s->needs_refresh = NULL;
 }
 
+// when we first cross into a new cell, we check its old state, and if it
+// was transparent, set the rmatrix low. otherwise, set it high.
+// FIXME when we check the *last* pixel, if the finished cell is opaque,
+// set rmatrix low. we're not currently being called for that case. it would
+// suffice to know we're on the last row...
 static inline void
 update_rmatrix(unsigned char* rmatrix, int txyidx, int lasttxyidx,
                const tament* tam){
+  (void)lasttxyidx;
   if(rmatrix == NULL){
     return;
   }
-  rmatrix[txyidx] = 1;
-  // FIXME finish out logic here
+  sprixcell_e state = tam[txyidx].state;
+  if(state == SPRIXCELL_TRANSPARENT || state > SPRIXCELL_ANNIHILATED){
+    rmatrix[txyidx] = 0;
+  }else{
+    rmatrix[txyidx] = 1;
+  }
 }
 
 // no mattter the input palette, we can always get a maximum of 64 colors if we
