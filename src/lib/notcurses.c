@@ -98,6 +98,9 @@ notcurses_stop_minimal(void* vnc){
     }
   }
   if(nc->tcache.ttyfd >= 0){
+    if(nc->tcache.tpreserved){
+      ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
+    }
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){
         ret = -1;
@@ -105,9 +108,6 @@ notcurses_stop_minimal(void* vnc){
       if(fbuf_emit(f, esc)){
         ret = -1;
       }
-    }
-    if(nc->tcache.tpreserved){
-      ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
   }
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
