@@ -157,6 +157,10 @@ typedef struct tinfo {
   int (*pixel_wipe)(struct sprixel* s, int y, int x);
   // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
   int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
+  // called in phase 1 when INVALIDATED; this damages cells that have been
+  // redrawn in a sixel (when old was not transparent, and new is not opaque).
+  // it leaves the sprixel in INVALIDATED so that it's drawn in phase 2.
+  void (*pixel_refresh)(const struct ncpile* p, struct sprixel* s);
   int (*pixel_remove)(int id, fbuf* f); // kitty only, issue actual delete command
   int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,

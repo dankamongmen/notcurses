@@ -55,6 +55,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_remove = NULL;
   ti->pixel_draw = sixel_draw;
+  ti->pixel_refresh = sixel_refresh;
   ti->pixel_draw_late = NULL;
   ti->pixel_commit = NULL;
   ti->pixel_move = NULL;
@@ -78,6 +79,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
   ti->pixel_draw_late = NULL;
+  ti->pixel_refresh = NULL;
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_scroll = NULL;
@@ -113,6 +115,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_draw = NULL;
   ti->pixel_draw_late = fbcon_draw;
   ti->pixel_commit = NULL;
+  ti->pixel_refresh = NULL;
   ti->pixel_move = NULL;
   ti->pixel_scroll = fbcon_scroll;
   ti->pixel_shutdown = NULL;

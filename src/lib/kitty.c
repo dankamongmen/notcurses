@@ -1055,7 +1055,7 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
     s->animating = false;
   }
   // take ownership of |buf| and |tam| on success.
-  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, tam) < 0){
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, tam, SPRIXEL_UNSEEN) < 0){
     goto error;
   }
   return 1;

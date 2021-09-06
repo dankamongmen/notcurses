@@ -253,11 +253,16 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
         param1 = param;
         param = 1;
       }
-      ni->id = param1;
       ni->shift = !!((param - 1) & 0x1);
       ni->alt = !!((param - 1) & 0x2);
       ni->ctrl = !!((param - 1) & 0x4);
       // FIXME decode remaining modifiers through 128
+      // standard keyboard protocol reports ctrl+ascii as the capital form,
+      // so (for now) conform with kitty protocol...
+      if(param1 < 128 && islower(param1) && ni->ctrl){
+        param1 = toupper(param1);
+      }
+      ni->id = param1;
       return param1;
     }
     if(state == PARAM1){

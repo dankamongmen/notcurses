@@ -110,11 +110,11 @@ typedef enum {
 // ANNIHILATED cells which are no longer ANNIHILATED), or at blittime for
 // a new RGBA frame.
 typedef enum {
+  SPRIXCELL_TRANSPARENT,       // all pixels are naturally transparent
   SPRIXCELL_OPAQUE_SIXEL,      // no transparent pixels in this cell
   SPRIXCELL_OPAQUE_KITTY,
   SPRIXCELL_MIXED_SIXEL,       // this cell has both opaque and transparent pixels
   SPRIXCELL_MIXED_KITTY,
-  SPRIXCELL_TRANSPARENT,       // all pixels are naturally transparent
   SPRIXCELL_ANNIHILATED,       // this cell has been wiped (all trans)
   SPRIXCELL_ANNIHILATED_TRANS, // this transparent cell is covered
 } sprixcell_e;
@@ -151,6 +151,7 @@ typedef struct sprixel {
   // only used for kitty-based sprixels
   int parse_start;      // where to start parsing for cell wipes
   // only used for sixel-based sprixels
+  unsigned char* needs_refresh; // one per cell, whether new frame needs damage
   struct sixelmap* smap;  // copy of palette indices + transparency bits
   bool wipes_outstanding; // do we need rebuild the sixel next render?
   bool animating;        // do we have an active animation?
@@ -201,8 +202,11 @@ int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x);
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
-int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
-                 int parse_start);
+void sixel_refresh(const struct ncpile* p, sprixel* s);
+
+// takes ownership of s on success.
+int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start,
+                 sprixel_e state);
 
 typedef enum {
   // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same

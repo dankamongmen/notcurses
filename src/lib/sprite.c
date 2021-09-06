@@ -46,6 +46,7 @@ void sprixel_free(sprixel* s){
       s->n->sprite = NULL;
     }
     sixelmap_free(s->smap);
+    free(s->needs_refresh);
     fbuf_free(&s->glyph);
     free(s);
   }
@@ -131,10 +132,12 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
   ret->dimy = dimy;
   ret->dimx = dimx;
   ret->id = ++sprixelid_nonce;
+  ret->needs_refresh = NULL;
   if(ret->id >= 0x1000000){
     ret->id = 1;
     sprixelid_nonce = 1;
   }
+loginfo("SPRIXEL ALLOC %d\n", ret->id);
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
   ret->cellpxy = ti->cellpixy;
   ret->cellpxx = ti->cellpixx;
@@ -156,7 +159,7 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
 // multiple of 6 for sixel). output coverage ought already have been loaded.
 // takes ownership of 's' on success. frees any existing glyph.
 int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
-                 int parse_start){
+                 int parse_start, sprixel_e state){
   assert(spx->n);
   if(spx->cellpxy > 0){ // don't explode on ncdirect case
     if((pixy + spx->cellpxy - 1) / spx->cellpxy != spx->dimy){
@@ -170,7 +173,7 @@ int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
     fbuf_free(&spx->glyph);
     memcpy(&spx->glyph, f, sizeof(*f));
   }
-  spx->invalidated = SPRIXEL_UNSEEN;
+  spx->invalidated = state;
   spx->pixx = pixx;
   spx->pixy = pixy;
   spx->parse_start = parse_start;
