@@ -101,7 +101,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       ns_to_timespec(absnow - nsnow, &interval);
       keyp = nc.get(&interval, &ni);
     }else{
-      keyp = nc.getc(false, &ni);
+      keyp = nc.get(false, &ni);
     }
     if(keyp == (uint32_t)-1){
       break;
