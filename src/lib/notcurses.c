@@ -1270,6 +1270,7 @@ int notcurses_stop(notcurses* nc){
 #endif
     ret |= pthread_mutex_destroy(&nc->stats.lock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
+    fbuf_free(&nc->rstate.f);
     free_terminfo_cache(&nc->tcache);
     free(nc);
   }
