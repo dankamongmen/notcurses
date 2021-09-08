@@ -137,7 +137,6 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
     ret->id = 1;
     sprixelid_nonce = 1;
   }
-loginfo("SPRIXEL ALLOC %d\n", ret->id);
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
   ret->cellpxy = ti->cellpixy;
   ret->cellpxx = ti->cellpixx;
