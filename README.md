@@ -173,10 +173,10 @@ each release. Download it, and install the contents as you deem fit.
 * Notcurses queries the terminal on startup, enabling some advanced features
   based on the determined terminal (and even version). Basic capabilities,
   however, are taken from Terminfo. So if you have, say, Kitty, but
-  `TERM=vt100`, you're going to be able to draw RGBA bitmap graphics, but be
-  able to use the alternate screen (despite the latter being supported by
-  every Kitty version). So `TERM` and an up-to-date Terminfo database remain
-  important.
+  `TERM=vt100`, you're going to be able to draw RGBA bitmap graphics (despite
+  such things being but a dream for a VT100), but *unable* to use the alternate
+  screen (despite it being supported by every Kitty version). So `TERM` and an
+  up-to-date Terminfo database remain important.
 
 * Ensure your `LANG` environment variable is set to a UTF8-encoded locale, and
   that this locale has been generated. This usually means

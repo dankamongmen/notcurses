@@ -1,5 +1,7 @@
 # History
 
+* 2021-09-06: Notcurses [2.4.0 "hearts alive"](https://github.com/dankamongmen/notcurses/releases/tag/v2.4.0).
+  * Writeup on Phoronix. Front page of Hacker News. I guess we've arrived.
 * 2021-08-12: One thousand Github stars! https://www.youtube.com/watch?v=ROlKx7PG6sY
 * 2021-07-29: Notcurses [2.3.12 "drop a gem on 'em"](https://github.com/dankamongmen/notcurses/releases/tag/v2.3.12) is added to [Homebrew](https://github.com/Homebrew/homebrew-core/pull/82112).
 * 2021-07-12: OS X support is added during the 2.3.10 development period, with lots of help from Michael Bradley Jr. (@michaelsbradleyjr).
