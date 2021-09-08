@@ -9,12 +9,13 @@ extern "C" {
 
 #include "version.h"
 #include "builddef.h"
-#include "input.h"
 #include <stdint.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <notcurses/notcurses.h>
+#include "input.h"
 #include "fbuf.h"
+#include "in.h"
 
 struct ncpile;
 struct sprixel;
@@ -197,6 +198,7 @@ typedef struct tinfo {
   // we heap-allocate this one (if we use it), as it's not fully defined on Windows
   struct termios *tpreserved;// terminal state upon entry
   ncinputlayer input;        // input layer
+  struct inputctx* ictx;     // new input layer
 
   // if we get a reply to our initial \e[18t cell geometry query, it will
   // replace these values. note that LINES/COLUMNS cannot be used to limit

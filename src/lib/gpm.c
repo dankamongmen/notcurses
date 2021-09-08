@@ -66,13 +66,8 @@ int gpm_read(tinfo* ti, ncinput* ni){
 }
 
 int gpm_close(tinfo* ti){
-  if(pthread_cancel(ti->gpmthread)){
-    logerror("couldn't cancel gpm thread\n"); // daemon might have died
-  }
   void* thrres;
-  if(pthread_join(ti->gpmthread, &thrres)){
-    logerror("error joining gpm thread\n");
-  }
+  cancel_and_join("gpm", ti->gpmthread, &thrres);
   Gpm_Close();
   memset(&gpmconn, 0, sizeof(gpmconn));
   return 0;

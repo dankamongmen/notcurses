@@ -1745,6 +1745,20 @@ tty_check(int fd){
   return isatty(fd);
 }
 
+// attempt to cancel the specified thread (not an error if we can't; it might
+// have already exited), and then join it (an error here is propagated).
+static inline int
+cancel_and_join(const char* name, pthread_t tid, void** res){
+  if(pthread_cancel(tid)){
+    logerror("couldn't cancel %s thread\n", name); // tid might have died
+  }
+  if(pthread_join(tid, res)){
+    logerror("error joining %s thread\n", name);
+    return -1;
+  }
+  return 0;
+}
+
 #undef ALLOC
 #undef API
 
