@@ -74,6 +74,7 @@ static inline void
 free_inputctx(inputctx* i){
   if(i){
     // we *do not* own any file descriptors or handles; don't close them!
+    // do not kill the thread here, either.
     free(i->inputs);
     free(i->csrs);
     free(i);
@@ -174,6 +175,12 @@ int init_inputlayer(tinfo* ti){
 }
 
 int stop_inputlayer(tinfo* ti){
-  // FIXME get ictx reference from ti, kill thread, free_inputctx()
+  if(ti){
+    if(ti->ictx){
+      // FIXME cancel + join
+      free_inputctx(ti->ictx);
+      ti->ictx = NULL;
+    }
+  }
   return 0;
 }
