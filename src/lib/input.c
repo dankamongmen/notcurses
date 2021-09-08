@@ -551,6 +551,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
     if(nc->inputbuf_occupied == 0){
       return -1;
     }
+    memset(ni, 0, sizeof(*ni));
     int r = pop_input_keypress(nc);
     ret = handle_getc(nc, r, ni, leftmargin, topmargin);
     if(ret != (uint32_t)-1){
