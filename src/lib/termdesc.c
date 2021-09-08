@@ -167,6 +167,7 @@ match_termname(const char* termname, queried_terminals_e* qterm){
 }
 
 void free_terminfo_cache(tinfo* ti){
+  stop_inputlayer(ti);
   ncinputlayer_stop(&ti->input);
   free(ti->termversion);
   free(ti->esctable);
@@ -918,6 +919,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   unsigned appsync_advertised = 0;
   unsigned kittygraphs = 0;
+  if(init_inputlayer(ti)){
+    goto err;
+  }
   if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
                        cursor_y, cursor_x, stats, &kittygraphs)){
     goto err;
@@ -967,6 +971,7 @@ err:
     free(ti->tpreserved);
     ti->tpreserved = NULL;
   }
+  stop_inputlayer(ti);
   free(ti->esctable);
   free(ti->termversion);
   del_curterm(cur_term);
