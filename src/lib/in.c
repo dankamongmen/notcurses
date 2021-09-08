@@ -28,8 +28,10 @@ typedef struct inputctx {
 #endif
   unsigned char ibuf[BUFSIZ]; // we dump raw reads into this ringbuffer, and
                               //  process them all post-read
-  int ibufvalid, ibufwrite;   // our bookkeeping for ibuf;
-                              //  we mustn't read() if ibufvalid == sizeof(ibuf)
+  int ibufvalid;      // we mustn't read() if ibufvalid == sizeof(ibuf)
+  int ibufwrite;      // we write here next
+  int ibufread;       // first valid byte here (if any are valid)
+
   cursorloc* csrs;    // cursor reports are dumped here
   ncinput* inputs;    // processed input is dumped here
   int csize, isize;   // total number of slots in csrs/inputs
@@ -51,11 +53,14 @@ create_inputctx(tinfo* ti){
       i->isize = BUFSIZ;
       if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
         // FIXME set up infd/handle
+        i->termfd = -1;
+        i->stdinfd = -1;
         i->ti = ti;
         i->cvalid = i->ivalid = 0;
         i->cwrite = i->iwrite = 0;
         i->cread = i->iread = 0;
         i->ibufvalid = i->ibufwrite = 0;
+        i->ibufread = 0;
         return i;
       }
       free(i->csrs);
@@ -75,14 +80,81 @@ free_inputctx(inputctx* i){
   }
 }
 
+// how many bytes can a single read fill in the ibuf? this might be fewer than
+// the actual number of free bytes, due to reading on the right or left side.
+static inline size_t
+space_for_read(inputctx* ictx){
+  // if we are valid everywhere, there's no space to read into.
+  if(ictx->ibufvalid == sizeof(ictx->ibuf)){
+    return 0;
+  }
+  // if we are valid nowhere, we can read into the head of the buffer
+  if(ictx->ibufvalid == 0){
+    ictx->ibufread = 0;
+    ictx->ibufwrite = 0;
+    return sizeof(ictx->ibuf);
+  }
+  // otherwise, we can read either from ibufwrite to the end of the buffer,
+  // or from ibufwrite to ibufread.
+  if(ictx->ibufwrite < ictx->ibufread){
+    return ictx->ibufread - ictx->ibufwrite;
+  }
+  return sizeof(ictx->ibuf) - ictx->ibufwrite;
+}
+
+// populate the ibuf with any new data from the specified file descriptor.
+static void
+read_input_nblock(inputctx* ictx, int fd){
+  if(fd >= 0){
+    size_t space = space_for_read(ictx);
+    if(space == 0){
+      return;
+    }
+    ssize_t r = read(fd, ictx->ibuf + ictx->ibufwrite, space);
+    if(r >= 0){
+      ictx->ibufwrite += r;
+      if(ictx->ibufwrite == sizeof(ictx->ibuf)){
+        ictx->ibufwrite = 0;
+      }
+      ictx->ibufvalid += r;
+      space -= r;
+      loginfo("read %lldB from %d (%lluB left)\n", (long long)r, fd, (unsigned long long)space);
+      if(space == 0){
+        return;
+      }
+      // might have been falsely limited by space (only reading on the right).
+      // this will recurse one time at most.
+      if(ictx->ibufwrite == 0){
+        read_input_nblock(ictx, fd);
+      }
+    }
+  }
+}
+
+// walk the matching automaton from wherever we were.
+static void
+process_ibuf(inputctx* ictx){
+  // FIXME
+}
+
+// populate the ibuf with any new data, up through its size, but do not block.
+// don't loop around this call without some kind of readiness notification.
+static void
+read_inputs_nblock(inputctx* ictx){
+  // first we read from the terminal, if that's a distinct source.
+  read_input_nblock(ictx, ictx->termfd);
+  // now read bulk, possibly with term escapes intermingled within (if there
+  // was not a distinct terminal source).
+  read_input_nblock(ictx, ictx->stdinfd);
+}
+
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
   for(;;){
-    if(ictx->ibufvalid == sizeof(ictx->ibuf)){
-      // we can't read any more. need clients to clear their buffers.
-      // sleep on condvar FIXME
-    }
+    read_inputs_nblock(ictx);
+    // process anything we've read
+    process_ibuf(ictx);
   }
   return NULL;
 }
