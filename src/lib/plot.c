@@ -493,7 +493,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.slotx = 0; \
   if(bset->geom == NCBLIT_PIXEL){ \
     if(create_pixelp(&ncpp->plot, n)){ \
-      nc##X##plot_destroy(ncpp); \
+      ncplane_destroy(n); \
       return NULL; \
     } \
   } \
@@ -647,8 +647,8 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
   }
   memset(ret, 0, sizeof(*ret));
   const struct blitset* bset = create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX);
-  if(bset == NULL){
-    free(ret);
+  if(bset == NULL){ // create_uint64_t() destroys n on error
+    ncuplot_destroy(ret);
     return NULL;
   }
   return ret;
@@ -690,8 +690,8 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
   }
   memset(ret, 0, sizeof(*ret));
   const struct blitset* bset = create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX);
-  if(bset == NULL){
-    free(ret);
+  if(bset == NULL){ // create_double() destroys n on error
+    ncdplot_destroy(ret);
     return NULL;
   }
   return ret;
