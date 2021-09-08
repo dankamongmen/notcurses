@@ -189,6 +189,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
 // the sprixelstack orders sprixels of the plane (so we needn't keep them
 // ordered between renders). each time we meet a sprixel, extract it from
 // the pile's sprixel list, and update the sprixelstack.
+__attribute__ ((nonnull (1, 2, 7)))
 static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx, sprixel** sprixelstack){
@@ -516,8 +517,11 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   init_rvec(rvec, totalcells);
-  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
-  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
+  sprixel* s = NULL;
+  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s);
+  assert(NULL == s);
+  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s);
+  assert(NULL == s);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   const struct tinfo* ti = &ncplane_notcurses_const(dst)->tcache;
   postpaint(ti, rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
