@@ -1110,12 +1110,6 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
-  if(lenx == -1){
-    lenx = n->lenx - begx;
-  }
-  if(leny == -1){
-    leny = (n->leny - begy);
-  }
   ncvisual* ncv = ncvisual_from_rgba(rgba, py, px * 4, px);
   free(rgba);
 //fprintf(stderr, "RETURNING %p\n", ncv);
