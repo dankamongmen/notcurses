@@ -169,18 +169,20 @@ int init_inputlayer(tinfo* ti){
     free_inputctx(ictx);
     return -1;
   }
-  // FIXME give ti a reference to ictx
+  ti->ictx = ictx;
   loginfo("spun up input thread\n");
   return 0;
 }
 
 int stop_inputlayer(tinfo* ti){
+  int ret = 0;
   if(ti){
     if(ti->ictx){
-      // FIXME cancel + join
+      loginfo("tearing down input thread\n");
+      ret |= cancel_and_join("input", ti->ictx->tid, NULL);
       free_inputctx(ti->ictx);
       ti->ictx = NULL;
     }
   }
-  return 0;
+  return ret;
 }
