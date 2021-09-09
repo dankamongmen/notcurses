@@ -1154,8 +1154,10 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
 int kitty_move(sprixel* s, fbuf* f, unsigned noscroll){
   int ret = 0;
-  if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
-                 noscroll ? ",C=1" : "") < 0){
+  if(goto_location(ncplane_notcurses(s->n), f, s->n->absy, s->n->absx)){
+    ret = -1;
+  }else if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
+                       noscroll ? ",C=1" : "") < 0){
     ret = -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;

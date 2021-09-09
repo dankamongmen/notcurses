@@ -823,7 +823,8 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
   while( (s = *parent) ){
-    loginfo("Phase 1 sprixel %u state %d\n", s->id, s->invalidated);
+    loginfo("Phase 1 sprixel %u state %d loc %d/%d\n", s->id,
+            s->invalidated, s->n ? s->n->absy : -1, s->n ? s->n->absx : -1);
     if(s->invalidated == SPRIXEL_QUIESCENT){
       if(p != nc->last_pile){
         s->invalidated = SPRIXEL_UNSEEN;
