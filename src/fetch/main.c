@@ -347,7 +347,6 @@ dragonfly_ncneofetch(fetched_info* fi){
   return &fbsd;
 }
 
-#ifdef __APPLE__
 static const distro_info*
 xnu_ncneofetch(fetched_info* fi){
   static distro_info fbsd = {
@@ -355,6 +354,7 @@ xnu_ncneofetch(fetched_info* fi){
     .logofile = "/System/Library/PrivateFrameworks/LoginUIKit.framework/Versions/A/Frameworks/LoginUICore.framework/Versions/A/Resources/apple@2x.png",
   };
   fi->neologo = get_neofetch_art("Darwin");
+  #ifdef __APPLE__
   #define PREFIX "macOS "
   char osver[30] = PREFIX; // shrug
   size_t oldlenp = sizeof(osver) - strlen(PREFIX);
@@ -363,9 +363,11 @@ xnu_ncneofetch(fetched_info* fi){
     fi->distro_pretty = strdup(osver);
   }
   #undef PREFIX
+  #else
+  fi->distro_pretty = strdup("macOS");
+  #endif
   return &fbsd;
 }
-#endif
 
 static int
 drawpalette(struct notcurses* nc){
@@ -631,11 +633,9 @@ ncneofetch(struct notcurses* nc){
     case NCNEO_DRAGONFLY:
       fi.distro = dragonfly_ncneofetch(&fi);
       break;
-#ifdef __APPLE__
     case NCNEO_XNU:
       fi.distro = xnu_ncneofetch(&fi);
       break;
-#endif
     case NCNEO_WINDOWS:
       fi.distro = windows_ncneofetch(&fi);
       break;
