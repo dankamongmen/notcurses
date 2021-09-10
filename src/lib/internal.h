@@ -375,7 +375,6 @@ typedef struct notcurses {
   int loglevel;
   ncpalette palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
-  unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
   uint64_t flags;  // copied from notcurses_options
 } notcurses;
 

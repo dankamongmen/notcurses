@@ -1150,9 +1150,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
     }
   }
-  if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
-    goto err;
-  }
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     // perform an explicit clear since the alternate screen was requested
     // (smcup *might* clear, but who knows? and it might not have been
@@ -1247,7 +1244,6 @@ int notcurses_stop(notcurses* nc){
       goto_location(nc, &nc->rstate.f, targy, 0);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
-    ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
@@ -2682,11 +2678,11 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return n->tcache.input.infd;
+  return inputready_fd(n->tcache.ictx);
 }
 
 int ncdirect_inputready_fd(ncdirect* n){
-  return n->tcache.input.infd;
+  return inputready_fd(n->tcache.ictx);
 }
 
 // FIXME speed this up, PoC

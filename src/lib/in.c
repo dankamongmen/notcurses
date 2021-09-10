@@ -2,6 +2,13 @@
 #include "internal.h"
 #include "in.h"
 
+static sig_atomic_t resize_seen;
+
+// called for SIGWINCH and SIGCONT
+void sigwinch_handler(int signo){
+  resize_seen = signo;
+}
+
 // data collected from responses to our terminal queries.
 typedef struct termqueries {
   int celly, cellx;     // cell geometry on startup
@@ -19,10 +26,10 @@ typedef struct cursorloc {
 
 // local state for the input thread
 typedef struct inputctx {
-  // we do not close any of these file descriptors; we don't own them!
   int termfd;           // terminal fd: -1 with no controlling terminal, or
                         //  if stdin is a terminal, and on Windows Terminal.
-  int stdinfd;          // stdin fd. always 0.
+  int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
+                        //  own this descriptor, and must not close() it.
 #ifdef __MINGW64__
   HANDLE stdinhandle;   // handle to input terminal
 #endif
@@ -45,23 +52,27 @@ typedef struct inputctx {
 } inputctx;
 
 static inline inputctx*
-create_inputctx(tinfo* ti){
+create_inputctx(tinfo* ti, FILE* infp){
   inputctx* i = malloc(sizeof(*i));
   if(i){
     i->csize = 64;
     if( (i->csrs = malloc(sizeof(*i->csrs) * i->csize)) ){
       i->isize = BUFSIZ;
       if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
-        // FIXME set up infd/handle
-        i->termfd = -1;
-        i->stdinfd = -1;
-        i->ti = ti;
-        i->cvalid = i->ivalid = 0;
-        i->cwrite = i->iwrite = 0;
-        i->cread = i->iread = 0;
-        i->ibufvalid = i->ibufwrite = 0;
-        i->ibufread = 0;
-        return i;
+        if((i->stdinfd = fileno(infp)) >= 0){
+          if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+            i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+            i->ti = ti;
+            i->cvalid = i->ivalid = 0;
+            i->cwrite = i->iwrite = 0;
+            i->cread = i->iread = 0;
+            i->ibufvalid = i->ibufwrite = 0;
+            i->ibufread = 0;
+            logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+            return i;
+          }
+        }
+        free(i->inputs);
       }
       free(i->csrs);
     }
@@ -73,7 +84,10 @@ create_inputctx(tinfo* ti){
 static inline void
 free_inputctx(inputctx* i){
   if(i){
-    // we *do not* own any file descriptors or handles; don't close them!
+    // we *do not* own stdinfd; don't close() it! we do own termfd.
+    if(i->termfd >= 0){
+      close(i->termfd);
+    }
     // do not kill the thread here, either.
     free(i->inputs);
     free(i->csrs);
@@ -160,8 +174,8 @@ input_thread(void* vmarshall){
   return NULL;
 }
 
-int init_inputlayer(tinfo* ti){
-  inputctx* ictx = create_inputctx(ti);
+int init_inputlayer(tinfo* ti, FILE* infp){
+  inputctx* ictx = create_inputctx(ti, infp);
   if(ictx == NULL){
     return -1;
   }
@@ -180,9 +194,58 @@ int stop_inputlayer(tinfo* ti){
     if(ti->ictx){
       loginfo("tearing down input thread\n");
       ret |= cancel_and_join("input", ti->ictx->tid, NULL);
+      ret |= set_fd_nonblocking(ti->ictx->stdinfd, ti->stdio_blocking_save, NULL);
       free_inputctx(ti->ictx);
       ti->ictx = NULL;
     }
   }
   return ret;
 }
+
+int inputready_fd(const inputctx* ictx){
+  return ictx->stdinfd;
+}
+
+// infp has already been set non-blocking
+uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
+  /*
+  uint32_t r = ncinputlayer_prestamp(&nc->tcache, ts, ni,
+                                     nc->margin_l, nc->margin_t);
+  if(r != (uint32_t)-1){
+    uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
+    if(ni){
+      ni->seqnum = stamp;
+    }
+    ++nc->stats.s.input_events;
+  }
+  return r;
+  */
+  return -1;
+}
+
+uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,
+                        const void* unused, ncinput* ni){
+  (void)unused; // FIXME remove for abi3
+  return notcurses_get(nc, ts, ni);
+}
+
+uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* ts, ncinput* ni){
+  /*
+  uint32_t r = ncinputlayer_prestamp(&n->tcache, ts, ni, 0, 0);
+  if(r != (uint32_t)-1){
+    uint64_t stamp = n->tcache.input.input_events++; // need increment even if !ni
+    if(ni){
+      ni->seqnum = stamp;
+    }
+  }
+  return r;
+  */
+  return -1;
+}
+
+uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
+                       const void* unused, ncinput* ni){
+  (void)unused; // FIXME remove for abi3
+  return ncdirect_get(nc, ts, ni);
+}
+
