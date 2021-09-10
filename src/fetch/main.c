@@ -6,14 +6,13 @@
 #include <locale.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <sys/param.h>
 #include <sys/types.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <sys/utsname.h>
+#include <sys/sysinfo.h>
 #elif !defined(__MINGW64__)
 #include <sys/sysctl.h>
-#ifndef __APPLE__
-#include <sys/sysinfo.h>
-#endif
 #include <sys/utsname.h>
 #else
 #include <sysinfoapi.h>
@@ -439,7 +438,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   }
   ncplane_set_styles(infop, NCSTYLE_BOLD);
-#if !defined(__MINGW64__) && !defined(__APPLE__)
+#if defined(__linux__)
   struct sysinfo sinfo;
   sysinfo(&sinfo);
   char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
@@ -447,7 +446,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   bprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
-#elif defined(__APPLE__)
+#elif defined(BSD)
   uint64_t ram;
   size_t oldlenp = sizeof(ram);
   if(sysctlbyname("hw.memsize", &ram, &oldlenp, NULL, 0) == 0){
