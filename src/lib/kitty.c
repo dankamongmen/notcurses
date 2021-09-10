@@ -418,7 +418,10 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
   if(init_sprixel_animation(s)){
     return -1;
   }
-  logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  const int tyx = xcell + ycell * s->dimx;
+  int state = s->n->tam[tyx].state;
+  void* auxvec = s->n->tam[tyx].auxvector;
+  logdebug("Wiping sprixel %u at %d/%d auxvec: %p state: %d\n", s->id, ycell, xcell, auxvec, state);
   fbuf* f = &s->glyph;
   if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
                  xcell * s->cellpxx, ycell * s->cellpxy,
@@ -453,6 +456,7 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
     return -1;
   }
   s->invalidated = SPRIXEL_INVALIDATED;
+  memcpy(auxvec, &state, sizeof(state));
   return 1;
 }
 
