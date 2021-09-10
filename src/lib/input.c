@@ -561,10 +561,10 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
       enqueue_cursor_report(nc, ni);
     }else if(ni->ctrl && !ni->shift && !ni->alt){
 #ifndef __MINGW64__
-      if(ret == 'c'){
+      if(ret == 'C'){
         raise(SIGINT); // FIXME only if linesigs aren't disabled
         continue;
-      }else if(ret == 'z'){
+      }else if(ret == 'Z'){
         raise(SIGTSTP); // FIXME only if linesigs aren't disabled
         continue;
       }else if(ret == '\\'){
