@@ -446,8 +446,8 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
 #endif
-  ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s", fi->desktop);
-  ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
+  ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s", fi->desktop ? fi->desktop : "n/a");
+  ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell ? fi->shell : "n/a");
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     nccell c = CELL_CHAR_INITIALIZER('R');
