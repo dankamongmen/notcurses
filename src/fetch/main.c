@@ -8,10 +8,12 @@
 #include <semaphore.h>
 #include <sys/types.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
-#include <sys/sysinfo.h>
 #include <sys/utsname.h>
 #elif !defined(__MINGW64__)
 #include <sys/sysctl.h>
+#ifndef __APPLE__
+#include <sys/sysinfo.h>
+#endif
 #include <sys/utsname.h>
 #else
 #include <sysinfoapi.h>
@@ -437,7 +439,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
     ncplane_printf_aligned(infop, 1, NCALIGN_RIGHT, "%s ", fi->distro_pretty);
   }
   ncplane_set_styles(infop, NCSTYLE_BOLD);
-#ifdef __linux__
+#if !defined(__MINGW64__) && !defined(__APPLE__)
   struct sysinfo sinfo;
   sysinfo(&sinfo);
   char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
@@ -445,6 +447,14 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   bprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
+#elif defined(__APPLE__)
+  uint64_t ram;
+  size_t oldlenp = sizeof(ram);
+  if(sysctlbyname("hw.memsize", &ram, &oldlenp, NULL, 0) == 0){
+    char tram[BPREFIXSTRLEN + 1];
+    bprefix(ram, 1, tram, 1);
+    ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB", tram);
+  }
 #endif
   ncplane_printf_aligned(infop, 3, NCALIGN_LEFT, " DM: %s", fi->desktop ? fi->desktop : "n/a");
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell ? fi->shell : "n/a");
