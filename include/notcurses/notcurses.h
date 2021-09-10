@@ -92,7 +92,15 @@ typedef enum {
 
 // Returns the number of columns occupied by a multibyte (UTF-8) string, or
 // -1 if a non-printable/illegal character is encountered.
+// FIXME becomes a static inline in ABI3.
 API int ncstrwidth(const char* mbs);
+
+// Returns the number of columns occupied by a the valid prefix of a multibyte
+// (UTF-8) string. If an invalid character is encountered, -1 will be returned,
+// and the number of valid bytes and columns will be written into *|validbytes|
+// and *|validwidth| (assuming them non-NULL). If the entire string is valid,
+// *|validbytes| and *|validwidth| reflect the entire string.
+API int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth);
 
 // Returns a heap-allocated copy of the user name under which we are running.
 API ALLOC char* notcurses_accountname(void);

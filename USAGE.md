@@ -1947,12 +1947,11 @@ nccell_cols(const nccell* c){
 }
 
 #define NCSTYLE_MASK      0xffffu
-#define NCSTYLE_ITALIC    0x0020u
-#define NCSTYLE_UNDERLINE 0x0010u
-#define NCSTYLE_UNDERCURL 0x0008u
-#define NCSTYLE_BOLD      0x0004u
-#define NCSTYLE_STRUCK    0x0002u
-#define NCSTYLE_BLINK     0x0001u
+#define NCSTYLE_ITALIC    0x0010u
+#define NCSTYLE_UNDERLINE 0x0008u
+#define NCSTYLE_UNDERCURL 0x0004u
+#define NCSTYLE_BOLD      0x0002u
+#define NCSTYLE_STRUCK    0x0001u
 #define NCSTYLE_NONE      0
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
@@ -2077,6 +2076,21 @@ nccells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
 }
+```
+
+It is sometimes useful to find the number of bytes and columns represented by
+a UTF-8 string. `ncstrwidth_valid()` returns -1 if it encounters an invalid
+character, and the number of columns otherwise. Even if there is an error, if
+`validbytes` and/or `validwidth` are not `NULL`, the number of bytes and
+columns (respectively) consumed before error are returned via these parameters.
+
+```c
+// Returns the number of columns occupied by a the valid prefix of a multibyte
+// (UTF-8) string. If an invalid character is encountered, -1 will be returned,
+// and the number of valid bytes and columns will be written into *|validbytes|
+// and *|validwidth| (assuming them non-NULL). If the entire string is valid,
+// *|validbytes| and *|validwidth| reflect the entire string.
+int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth);
 ```
 
 ### Cell channels API

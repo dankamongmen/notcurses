@@ -114,6 +114,8 @@ typedef struct nccell {
 
 **int ncstrwidth(const char* ***text***)**;
 
+**int ncstrwidth_valid(const char* ***text***, int* ***validbytes***, int* ***validwidth***)**;
+
 # DESCRIPTION
 
 Cells make up the framebuffer associated with each plane, with one cell per
@@ -140,6 +142,11 @@ ought be considered invalidated by changes to the **nccell** or **egcpool**.
 The handle is **not** heap-allocated; do **not** attempt to **free(3)** it.
 A heap-allocated copy can be acquired with **nccell_strdup**.
 
+**ncstrwidth_valid** returns the number of columns occupied by a valid UTF-8
+string, or -1 if an error is encountered. In either case, the number of valid
+bytes and columns, respectively, consumed before error into ***validbytes***
+and ***validwidth*** (assuming them to not be **NULL**).
+
 # RETURN VALUES
 
 **nccell_load** and similar functions return the number of bytes loaded from the
@@ -157,6 +164,7 @@ less than, equal to, or more than ***c2***, respectively.
 
 **nccell_cols** returns the number of columns occupied by ***c***, according
 to **wcwidth(3)***. **ncstrwidth** is an equivalent for strings.
+**ncstrwidth_valid** returns the same value as **ncstrwidth**.
 
 # NOTES
 
@@ -172,4 +180,5 @@ have been renamed to start with **nccell**.
 **notcurses_plane(3)**,
 **notcurses_output(3)**,
 **notcurses_visual(3)**,
-**wcwidth(3)**
+**wcwidth(3)**,
+**utf8(7)**

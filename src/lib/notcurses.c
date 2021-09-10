@@ -3039,17 +3039,29 @@ int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
 }
 
 int ncstrwidth(const char* mbs){
-  int cols = 0;   // number of columns consumed thus far
+  return ncstrwidth_valid(mbs, NULL, NULL);
+}
+
+int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
+  int cols = 0;  // number of columns consumed thus far
+  if(validwidth == NULL){
+    validwidth = &cols;
+  }
+  int bytes = 0; // number of bytes consumed thus far
+  if(validbytes == NULL){
+    validbytes = &bytes;
+  }
   do{
     int thesecols, thesebytes;
-    thesebytes = utf8_egc_len(mbs, &thesecols);
+    thesebytes = utf8_egc_len(egcs, &thesecols);
     if(thesebytes < 0){
       return -1;
     }
-    mbs += thesebytes;
-    cols += thesecols;
-  }while(*mbs);
-  return cols;
+    egcs += thesebytes;
+    *validbytes += thesebytes;
+    *validwidth += thesecols;
+  }while(*egcs);
+  return *validwidth;
 }
 
 void ncplane_pixelgeom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
