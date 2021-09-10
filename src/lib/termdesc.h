@@ -197,8 +197,8 @@ typedef struct tinfo {
   queried_terminals_e qterm; // detected terminal class
   // we heap-allocate this one (if we use it), as it's not fully defined on Windows
   struct termios *tpreserved;// terminal state upon entry
-  ncinputlayer input;        // input layer
   struct inputctx* ictx;     // new input layer
+  unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 
   // if we get a reply to our initial \e[18t cell geometry query, it will
   // replace these values. note that LINES/COLUMNS cannot be used to limit
