@@ -23,11 +23,7 @@ void sprixel_debug(const sprixel* s, FILE* out){
       for(int x = 0 ; x < s->dimx ; ++x){
         if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
           if(s->n->tam[idx].auxvector){
-            fprintf(out, "%03d] ", idx);
-            for(int p = 0 ; p < s->cellpxx * s->cellpxy ; ++p){
-              fprintf(out, "%02x ", s->n->tam[idx].auxvector[p]);
-            }
-            fprintf(out, "\n");
+            fprintf(out, "%03d] %p\n", idx, s->n->tam[idx].auxvector);
           }else{
             fprintf(out, "%03d] missing!\n", idx);
           }
