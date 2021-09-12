@@ -31,6 +31,8 @@ typedef struct ncinput {
 
 **uint32_t notcurses_get(struct notcurses* ***n***, const struct timespec* ***ts***, ncinput* ***ni***);**
 
+**int notcurses_getvec(struct notcurses* ***n***, const struct timespec* ***ts***, ncinput* ***ni***, int vcount);**
+
 **uint32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
 
 **uint32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
@@ -127,6 +129,10 @@ of the error may be determined using **errno(3)**. Unless the error was a
 temporary one (especially e.g. **EINTR**), **notcurses_get** probably cannot
 be usefully called forthwith. On a timeout, 0 is returned. Otherwise, the
 UCS-32 value of a Unicode codepoint, or a synthesized event, is returned.
+
+If an error is encountered before **notcurses_getvec** has read any input,
+it will return -1. If it times out before reading any input, it will return
+0. Otherwise, it returns the number of **ncinput** objects written back.
 
 **notcurses_mouse_enable** returns 0 on success, and non-zero on failure, as
 does **notcurses_mouse_disable**.

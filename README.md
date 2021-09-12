@@ -249,6 +249,25 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>Does it work with hardware terminals?</summary>
+  With the correct `TERM` value, many hardware terminals are supported. The VT100
+  is sadly unsupported due to its extensive need for delays. In general, if the
+  terminfo database entry indicates mandatory delays, Notcurses will not currently
+  support that terminal properly. It's known that Notcurses can drive the VT320
+  and VT340, including Sixel graphics on the latter.
+</details>
+
+<details>
+  <summary>What happens if I try blitting bitmap graphics on a terminal which
+  doesn't support them?</summary>
+  Notcurses will not make use of bitmap protocols unless the terminal positively
+  indicates support for them, even if `NCBLIT_PIXEL` has been requested. Likewise,
+  sextants (`NCBLIT_3x2`) won't be used without Unicode 13 support, etc.
+  `ncvisual_render()` will use the best blitter available, unless
+  `NCVISUAL_OPTION_NODEGRADE` is provided (in which case it will fail).
+</details>
+
+<details>
   <summary>Notcurses looks like absolute crap in <code>screen</code>.</summary>
   <code>screen</code> doesn't support RGB colors (at least as of 4.08.00);
   if you have <code>COLORTERM</code> defined, you'll have a bad time.

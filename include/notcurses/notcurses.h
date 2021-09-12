@@ -900,6 +900,11 @@ typedef enum {
 // anything but the virtual console/terminal in which Notcurses is running.
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
+// Input may be freely dropped. This ought be provided when the program does not
+// intend to handle input. Otherwise, input can accumulate in internal buffers,
+// eventually preventing Notcurses from processing terminal messages.
+#define NCOPTION_DRAIN_INPUT         0x0100ull
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -1065,6 +1070,12 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                            ncinput* ni)
   __attribute__ ((nonnull (1)));
+
+// Acquire up to 'vcount' ncinputs at the vector 'ni'. The number read will be
+// returned, or -1 on error without any reads, 0 on timeout.
+API int notcurses_getvec(struct notcurses* n, const struct timespec* ts,
+                         ncinput* ni, int vcount)
+  __attribute__ ((nonnull (1, 3)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
 // descriptor becomes available, you can call notcurses_getc_nblock(),
@@ -4244,233 +4255,6 @@ palette256_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned*
 
 API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
 
-__attribute__ ((deprecated)) static inline unsigned
-channel_r(uint32_t channel){
-  return ncchannel_r(channel);
-}
-
-// Extract the 8-bit green component from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_g(uint32_t channel){
-  return ncchannel_g(channel);
-}
-
-// Extract the 8-bit blue component from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_b(uint32_t channel){
-  return ncchannel_b(channel);
-}
-
-// Extract the three 8-bit R/G/B components from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
-             unsigned* RESTRICT b){
-  return ncchannel_rgb8(channel, r, g, b);
-}
-
-// Set the three 8-bit components of a 32-bit channel, and mark it as not using
-// the default color. Retain the other bits unchanged.
-__attribute__ ((deprecated)) static inline int
-channel_set_rgb8(uint32_t* channel, int r, int g, int b){
-  return ncchannel_set_rgb8(channel, r, g, b);
-}
-
-// Set the three 8-bit components of a 32-bit channel, and mark it as not using
-// the default color. Retain the other bits unchanged. r, g, and b will be
-// clipped to the range [0..255].
-__attribute__ ((deprecated)) static inline void
-channel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
-  return ncchannel_set_rgb8_clipped(channel, r, g, b);
-}
-
-// Same, but provide an assembled, packed 24 bits of rgb.
-__attribute__ ((deprecated)) static inline int
-channel_set(unsigned* channel, unsigned rgb){
-  return ncchannel_set(channel, rgb);
-}
-
-// Extract the 2-bit alpha component from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_alpha(unsigned channel){
-  return ncchannel_alpha(channel);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channel_palindex(uint32_t channel){
-  return ncchannel_palindex(channel);
-}
-
-// Set the 2-bit alpha component of the 32-bit channel.
-__attribute__ ((deprecated)) static inline int
-channel_set_alpha(unsigned* channel, unsigned alpha){
-  return ncchannel_set_alpha(channel, alpha);
-}
-
-__attribute__ ((deprecated)) static inline int
-channel_set_palindex(uint32_t* channel, int idx){
-  return ncchannel_set_palindex(channel, idx);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channel_default_p(unsigned channel){
-  return ncchannel_default_p(channel);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channel_palindex_p(unsigned channel){
-  return ncchannel_palindex_p(channel);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channel_set_default(unsigned* channel){
-  return ncchannel_set_default(channel);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-channels_bchannel(uint64_t channels){
-  return ncchannels_bchannel(channels);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-channels_fchannel(uint64_t channels){
-  return ncchannels_fchannel(channels);
-}
-
-__attribute__ ((deprecated)) static inline uint64_t
-channels_set_bchannel(uint64_t* channels, uint32_t channel){
-  return ncchannels_set_bchannel(channels, channel);
-}
-
-__attribute__ ((deprecated)) static inline uint64_t
-channels_set_fchannel(uint64_t* channels, uint32_t channel){
-  return ncchannels_set_fchannel(channels, channel);
-}
-
-__attribute__ ((deprecated)) static inline uint64_t
-channels_combine(uint32_t fchan, uint32_t bchan){
-  return ncchannels_combine(fchan, bchan);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_fg_palindex(uint64_t channels){
-  return ncchannels_fg_palindex(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_bg_palindex(uint64_t channels){
-  return ncchannels_bg_palindex(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_fg_rgb(uint64_t channels){
-  return ncchannels_fg_rgb(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_bg_rgb(uint64_t channels){
-  return ncchannels_bg_rgb(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_fg_alpha(uint64_t channels){
-  return ncchannels_fg_alpha(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_bg_alpha(uint64_t channels){
-  return ncchannels_bg_alpha(channels);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return ncchannels_fg_rgb8(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline unsigned
-channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return ncchannels_bg_rgb8(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
-  return ncchannels_set_fg_rgb8(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline void
-channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  ncchannels_set_fg_rgb8_clipped(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-  return ncchannels_set_fg_alpha(channels, alpha);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_fg_palindex(uint64_t* channels, int idx){
-  return ncchannels_set_bg_palindex(channels, idx);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
-  return ncchannels_set_fg_rgb(channels, rgb);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
-  return ncchannels_set_bg_rgb8(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline void
-channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  ncchannels_set_bg_rgb8_clipped(channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
-  return ncchannels_set_bg_alpha(channels, alpha);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_bg_palindex(uint64_t* channels, int idx){
-  return ncchannels_set_bg_palindex(channels, idx);
-}
-
-__attribute__ ((deprecated)) static inline int
-channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
-  return ncchannels_set_bg_rgb(channels, rgb);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channels_fg_default_p(uint64_t channels){
-  return ncchannels_fg_default_p(channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channels_fg_palindex_p(uint64_t channels){
-  return ncchannels_fg_palindex_p(channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channels_bg_default_p(uint64_t channels){
-  return ncchannels_bg_default_p(channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-channels_bg_palindex_p(uint64_t channels){
-  return ncchannels_bg_palindex_p(channels);
-}
-
-__attribute__ ((deprecated)) static inline uint64_t
-channels_set_fg_default(uint64_t* channels){
-  return ncchannels_set_fg_default(channels);
-}
-
-__attribute__ ((deprecated)) static inline uint64_t
-channels_set_bg_default(uint64_t* channels){
-  return ncchannels_set_bg_default(channels);
-}
-
 // Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
 // if 'scale' is less than 1. The original color is retained.
 // Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
@@ -4487,12 +4271,6 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
-
-// Backwards-compatibility wrapper; this will be removed for ABI3.
-// Use notcurses_get() in new code.
-API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            const void* unused, ncinput* ni)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
 
 __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
 

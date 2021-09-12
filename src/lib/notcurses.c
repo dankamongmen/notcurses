@@ -1,4 +1,3 @@
-#include "input.h"
 #include "linux.h"
 #include "version.h"
 #include "egcpool.h"
@@ -107,10 +106,8 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
-    if(nc->tcache.kittykbd){
-      if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
-        ret = -1;
-      }
+    if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
+      ret = -1;
     }
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){ // send this to f
@@ -1001,7 +998,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
   }
-  if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
+  if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
     fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
   }
   notcurses* ret = malloc(sizeof(*ret));

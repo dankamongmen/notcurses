@@ -9,6 +9,7 @@ extern "C" {
 #include "builddef.h"
 #include "compat/compat.h"
 #include "notcurses/notcurses.h"
+#include "notcurses/direct.h"
 
 // KEY_EVENT is defined by both ncurses.h and wincon.h. since we don't use
 // either definition, kill it before inclusion of ncurses.h.

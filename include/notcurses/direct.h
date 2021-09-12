@@ -24,6 +24,11 @@ extern "C" {
 // echo and input's line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
 
+// Input may be freely dropped. This ought be provided when the program does not
+// intend to handle input. Otherwise, input can accumulate in internal buffers,
+// eventually preventing Notcurses from processing terminal messages.
+#define NCDIRECT_OPTION_DRAIN_INPUT         0x0004ull
+
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 // restores the screen, and then calls the old signal handler. Set to inhibit
 // registration of these signal handlers. Chosen to match fullscreen mode.
@@ -488,11 +493,6 @@ ncdirect_canbraille(const struct ncdirect* nc){
 // u7 terminfo capability, and that we are connected to an actual terminal.
 API bool ncdirect_canget_cursor(const struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
-
-// Deprecated, to be removed for ABI3. Use ncdirect_get() in new code.
-API uint32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
-                           const void* unused, ncinput* ni)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
 
 #undef ALLOC
 #undef API

@@ -5,7 +5,6 @@
 #endif
 #include "internal.h"
 #include "windows.h"
-#include "input.h"
 #include "linux.h"
 
 // there does not exist any true standard terminal size. with that said, we
@@ -780,6 +779,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
+  if(init_inputlayer(ti, stdin)){
+    goto err;
+  }
 #ifndef __MINGW64__
   // windows doesn't really have a concept of terminfo. you might ssh into other
   // machines, but they'll use the terminfo installed thereon (putty, etc.).
@@ -916,19 +918,51 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  unsigned appsync_advertised = 0;
-  unsigned kittygraphs = 0;
-  if(init_inputlayer(ti, stdin)){
-    goto err;
+  unsigned kitty_graphics = 0;
+  if(ti->ttyfd >= 0){
+    struct initial_responses* iresp;
+    if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
+      goto err;
+    }
+    if(iresp->appsync_supported){
+      if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
+        free(iresp->version);
+        free(iresp);
+        goto err;
+      }
+    }
+    if(iresp->qterm != TERMINAL_UNKNOWN){
+      ti->qterm = iresp->qterm;
+    }
+    *cursor_y = iresp->cursory;
+    *cursor_x = iresp->cursorx;
+    ti->termversion = iresp->version;
+    if(iresp->dimy && iresp->dimx){
+      // FIXME probably oughtn't be setting the defaults, as this is just some
+      // random transient measurement?
+      ti->default_rows = iresp->dimy;
+      ti->default_cols = iresp->dimx;
+    }
+    if(iresp->pixy && iresp->pixx){
+      ti->pixy = iresp->pixy;
+      ti->pixx = iresp->pixx;
+    }
+    if(ti->default_rows && ti->default_cols){
+      ti->cellpixy = ti->pixy / ti->default_rows;
+      ti->cellpixx = ti->pixx / ti->default_cols;
+    }
+    ti->bg_collides_default = iresp->bg;
+    // kitty trumps sixel, when both are available
+    if((kitty_graphics = iresp->kitty_graphics) == 0){
+      ti->color_registers = iresp->color_registers;
+      ti->sixel_maxy = iresp->sixely;
+      ti->sixel_maxx = iresp->sixelx;
+    }
+    free(iresp);
   }
-  /*
-  if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
-                       cursor_y, cursor_x, stats, &kittygraphs)){
-    goto err;
-  }
-  */
   if(nocbreak){
     if(ti->ttyfd >= 0){
+      // FIXME do this in input later, upon signaling completion?
       if(tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved)){
         goto err;
       }
@@ -939,11 +973,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  if(appsync_advertised){
-    if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-      goto err;
-    }
-  }
   bool invertsixel = false;
   if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &invertsixel, nonewfonts)){
@@ -951,8 +980,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
-    if(kittygraphs){
-      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
+    if(kitty_graphics){
+      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
     }
     // our current sixel quantization algorithm requires at least 64 color
     // registers. we make use of no more than 256. this needs to happen
@@ -1028,18 +1057,13 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
   if(tty_emit(u7, fd)){
     return -1;
   }
-  // FIXME get that report
-  /*
-  loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
-  *cursor_y = clr->y;
-  *cursor_x = clr->x;
+  get_cursor_location(ti->ictx, cursor_y, cursor_x);
+  loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
   if(ti->inverted_cursor){
     int tmp = *cursor_y;
     *cursor_y = *cursor_x;
     *cursor_x = tmp;
   }
-  free(clr);
-  */
   return 0;
 }
 

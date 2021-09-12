@@ -864,9 +864,7 @@ ncdirect_stop_minimal(void* vnc){
     ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
-    if(nc->tcache.kittykbd){
-      ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
-    }
+    ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->tcache.ttyfd)){
       ret = -1;
@@ -883,7 +881,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(outfp == NULL){
     outfp = stdout;
   }
-  if(flags > (NCDIRECT_OPTION_VERY_VERBOSE << 1)){ // allow them through with warning
+  if(flags > (NCDIRECT_OPTION_DRAIN_INPUT << 1)){ // allow them through with warning
     logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   ncdirect* ret = malloc(sizeof(ncdirect));

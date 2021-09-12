@@ -32,7 +32,7 @@ gpmwatcher(void* vti){
       logwarn("input overflowed %hd %hd\n", gev.x, gev.y);
       continue;
     }
-    ncinput_shovel(&ti->input, cmdbuf, strlen(cmdbuf));
+    ncinput_shovel(ti->ictx, cmdbuf, strlen(cmdbuf));
   }
   return NULL;
 }
