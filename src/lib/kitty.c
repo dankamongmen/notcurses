@@ -346,78 +346,11 @@ uint8_t* kitty_trans_auxvec(const tinfo* ti){
   return a;
 }
 
-// we lay a cell-sixed animation block atop the graphic, giving it a
-// cell id with which we can delete it in O(1) for a rebuild. this
-// way, we needn't delete and redraw the entire sprixel.
-int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
-  if(init_sprixel_animation(s)){
-    return -1;
-  }
-  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
-  fbuf* f = &s->glyph;
-  if(fbuf_puts(f, "\x1b_Ga=f,x=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, xcell * s->cellpxx) < 0){
-    return -1;
-  }
-  if(fbuf_puts(f, ",y=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, ycell * s->cellpxy)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",s=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->cellpxx)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",v=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->cellpxy)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",i=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->id)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",X=1,r=1,q=2;") < 0){
-    return -1;
-  }
-  // FIXME ought be smaller around the fringes!
-  int totalp = s->cellpxy * s->cellpxx;
-  // FIXME preserve so long as cellpixel geom stays constant?
-  for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    if(fbuf_putn(f, "AAAAAAAAAAAAAAAA", strlen("AAAAAAAAAAAAAAAA")) < 0){
-      return -1;
-    }
-  }
-  if(totalp % 3 == 1){
-    if(fbuf_putn(f, "AAAAAA==", strlen("AAAAAA==")) < 0){
-      return -1;
-    }
-  }else if(totalp % 3 == 2){
-    if(fbuf_putn(f, "AAAAAAAAAAA=", strlen("AAAAAAAAAAA=")) < 0){
-      return -1;
-    }
-  }
-  // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_putn(f, "\x1b\\", 2) < 0){
-    return -1;
-  }
-  s->invalidated = SPRIXEL_INVALIDATED;
-  return 1;
-}
-
 // just dump the wipe into the fbuf -- don't manipulate any state. used both
 // by the wipe proper, and when blitting a new frame with annihilations.
 static int
 kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
-  if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
+  if(fbuf_printf(f, "\x1b_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
                  xcell * s->cellpxx, ycell * s->cellpxy,
                  s->cellpxx, s->cellpxy, s->id) < 0){
     return -1;
@@ -446,13 +379,28 @@ kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
   #undef DUONULLALPHA
   }
   // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_printf(f, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id) < 0){
+  if(fbuf_printf(f, "\x1b\\\x1b_Ga=a,i=%d,c=2,q=2\x1b\\", s->id) < 0){
     return -1;
   }
   return 0;
 }
 
-// FIXME merge back with kitty_wipe_animation
+// we lay a cell-sixed animation block atop the graphic, giving it a
+// cell id with which we can delete it in O(1) for a rebuild. this
+// way, we needn't delete and redraw the entire sprixel.
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  fbuf* f = &s->glyph;
+  if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
+    return -1;
+  }
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
+
 int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
   if(init_sprixel_animation(s)){
     return -1;
