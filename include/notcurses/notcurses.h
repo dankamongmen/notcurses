@@ -540,7 +540,7 @@ ncchannels_set_bg_default(uint64_t* channels){
 // An nccell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
-// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
+// cell, we can have a theoretically arbitrarily long UTF-8 EGC, a foreground
 // color, a background color, and an attribute set. Valid grapheme cluster
 // contents include:
 //

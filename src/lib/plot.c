@@ -198,10 +198,12 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     } \
   } \
   if(ncp->plot.printsample){ \
-    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
     ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
-    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+    /* FIXME is this correct for double? */ \
+    /* we use idx, and thus get an immediate count, changing as we load it.
+     * if you want a stable summary, print the previous slot */ \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[idx]); \
   } \
   ncplane_home(ncp->plot.ncp); \
   struct ncvisual* ncv = ncvisual_from_rgba(pixels, dimy * states, dimx * scale * 4, dimx * scale); \
@@ -391,10 +393,9 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     } \
   } \
   if(ncp->plot.printsample){ \
-    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
     ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
-    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[idx]); \
   } \
   ncplane_home(ncp->plot.ncp); \
   return 0; \
