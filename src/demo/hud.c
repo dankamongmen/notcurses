@@ -663,6 +663,7 @@ int fpsgraph_init(struct notcurses* nc){
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD |
                NCPLOT_OPTION_EXPONENTIALD |
+               NCPLOT_OPTION_DETECTMAXONLY |
                NCPLOT_OPTION_PRINTSAMPLE;
   opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
