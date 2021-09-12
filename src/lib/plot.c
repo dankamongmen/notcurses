@@ -417,11 +417,12 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     return NULL; \
   } \
   if(opts->rangex < 0){ \
-    logerror("Supplied negative independent range %d\n", opts->rangex); \
+    logerror("error: supplied negative independent range %d\n", opts->rangex); \
     ncplane_destroy(n); \
     return NULL; \
   } \
   if(maxy < miny){ \
+    logerror("error: supplied maxy < miny\n"); \
     ncplane_destroy(n); \
     return NULL; \
   } \
@@ -488,7 +489,9 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.printsample = opts->flags & NCPLOT_OPTION_PRINTSAMPLE; \
   if( (ncpp->plot.detectdomain = (miny == maxy)) ){ \
     ncpp->maxy = trueminy; \
-    ncpp->miny = truemaxy; \
+    if(!ncpp->plot.detectonlymax){ \
+      ncpp->miny = truemaxy; \
+    } \
   } \
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
