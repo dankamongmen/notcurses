@@ -341,23 +341,34 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
                  ti->bg_collides_default & 0xfffffful,
                  (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   finish_line(n);
-  if(!ti->pixel_draw && !ti->pixel_draw_late){
-    ncplane_printf(n, "%sno bitmap graphics detected", indent);
-  }else{ // we do have support; draw one
-    if(ti->color_registers){
+  ncpixelimpl_e blit = notcurses_check_pixel_support(ncplane_notcurses(n));
+  switch(blit){
+    case NCPIXEL_NONE:
+      ncplane_printf(n, "%sno bitmap graphics detected", indent);
+      break;
+    case NCPIXEL_SIXEL:
       if(ti->sixel_maxy){
         ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
                       indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
       }else{
         ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
       }
-    }else if(ti->pixel_draw_late){
+      break;
+    case NCPIXEL_LINUXFB:
       ncplane_printf(n, "%sframebuffer graphics supported", indent);
-    }else if(ti->sixel_maxy_pristine){
+      break;
+    case NCPIXEL_ITERM2:
+      ncplane_printf(n, "%siTerm2 graphics supported", indent);
+      break;
+    case NCPIXEL_KITTY_STATIC:
       ncplane_printf(n, "%srgba pixel graphics support", indent);
-    }else{ // FIXME differentiate between 1st and 2nd gen?
-      ncplane_printf(n, "%srgba pixel animation support", indent);
-    }
+      break;
+    case NCPIXEL_KITTY_ANIMATED:
+      ncplane_printf(n, "%s1st gen rgba pixel animation support", indent);
+      break;
+    case NCPIXEL_KITTY_SELFREF:
+      ncplane_printf(n, "%s2nd gen rgba pixel animation support", indent);
+      break;
   }
   finish_line(n);
 }

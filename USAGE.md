@@ -334,10 +334,10 @@ bool notcurses_cansextants(const struct notcurses* nc);
 // Can we draw Braille? The Linux console cannot.
 bool notcurses_canbraille(const struct notcurses* nc);
 
-// This function must successfully return before NCBLIT_PIXEL is available.
-// Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
-// Must not be called concurrently with either input or rasterization.
-int notcurses_check_pixel_support(struct notcurses* nc);
+// Returns a non-zero constant corresponding to some pixel-blitting
+// mechanism if bitmap support (via any mechanism) has been detected,
+// or else 0 (NCPIXEL_NONE).
+ncpixelimpl_e notcurses_check_pixel_support(struct notcurses* nc);
 ```
 
 ## Direct mode
