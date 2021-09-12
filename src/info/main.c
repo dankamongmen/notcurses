@@ -355,19 +355,11 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       ncplane_printf(n, "%sframebuffer graphics supported", indent);
     }else if(ti->sixel_maxy_pristine){
       ncplane_printf(n, "%srgba pixel graphics support", indent);
-    }else{
+    }else{ // FIXME differentiate between 1st and 2nd gen?
       ncplane_printf(n, "%srgba pixel animation support", indent);
     }
   }
   finish_line(n);
-  /*
-  ncplane_putstr(n, "\U0001F918");
-  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FB");
-  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FC");
-  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FD");
-  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FE");
-  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FF");
-  */
 }
 
 static void

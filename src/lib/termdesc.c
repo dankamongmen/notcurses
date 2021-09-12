@@ -521,9 +521,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    if(compare_versions(ti->termversion, "0.22.1") >= 0){
+    /*if(compare_versions(ti->termversion, "0.22.1") >= 0){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
-    }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
+    }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
     }else{
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ALWAYS_SCROLLS);
