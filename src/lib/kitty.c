@@ -346,81 +346,11 @@ uint8_t* kitty_trans_auxvec(const tinfo* ti){
   return a;
 }
 
-// we lay a cell-sixed animation block atop the graphic, giving it a
-// cell id with which we can delete it in O(1) for a rebuild. this
-// way, we needn't delete and redraw the entire sprixel.
-int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
-  if(init_sprixel_animation(s)){
-    return -1;
-  }
-  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
-  fbuf* f = &s->glyph;
-  if(fbuf_puts(f, "\x1b_Ga=f,x=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, xcell * s->cellpxx) < 0){
-    return -1;
-  }
-  if(fbuf_puts(f, ",y=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, ycell * s->cellpxy)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",s=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->cellpxx)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",v=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->cellpxy)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",i=") < 0){
-    return -1;
-  }
-  if(fbuf_putint(f, s->id)){
-    return -1;
-  }
-  if(fbuf_puts(f, ",X=1,r=1,q=2;") < 0){
-    return -1;
-  }
-  // FIXME ought be smaller around the fringes!
-  int totalp = s->cellpxy * s->cellpxx;
-  // FIXME preserve so long as cellpixel geom stays constant?
-  for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    if(fbuf_putn(f, "AAAAAAAAAAAAAAAA", strlen("AAAAAAAAAAAAAAAA")) < 0){
-      return -1;
-    }
-  }
-  if(totalp % 3 == 1){
-    if(fbuf_putn(f, "AAAAAA==", strlen("AAAAAA==")) < 0){
-      return -1;
-    }
-  }else if(totalp % 3 == 2){
-    if(fbuf_putn(f, "AAAAAAAAAAA=", strlen("AAAAAAAAAAA=")) < 0){
-      return -1;
-    }
-  }
-  // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_putn(f, "\x1b\\", 2) < 0){
-    return -1;
-  }
-  s->invalidated = SPRIXEL_INVALIDATED;
-  return 1;
-}
-
-// FIXME merge back with kitty_wipe_animation
-int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
-  if(init_sprixel_animation(s)){
-    return -1;
-  }
-  logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
-  fbuf* f = &s->glyph;
-  if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
+// just dump the wipe into the fbuf -- don't manipulate any state. used both
+// by the wipe proper, and when blitting a new frame with annihilations.
+static int
+kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
+  if(fbuf_printf(f, "\x1b_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
                  xcell * s->cellpxx, ycell * s->cellpxy,
                  s->cellpxx, s->cellpxy, s->id) < 0){
     return -1;
@@ -449,10 +379,42 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
   #undef DUONULLALPHA
   }
   // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_printf(f, "\e\\\e_Ga=a,i=%d,c=2,q=2;\e\\", s->id) < 0){
+  if(fbuf_printf(f, "\x1b\\\x1b_Ga=a,i=%d,c=2,q=2\x1b\\", s->id) < 0){
+    return -1;
+  }
+  return 0;
+}
+
+// we lay a cell-sixed animation block atop the graphic, giving it a
+// cell id with which we can delete it in O(1) for a rebuild. this
+// way, we needn't delete and redraw the entire sprixel.
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  fbuf* f = &s->glyph;
+  if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
     return -1;
   }
   s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
+
+int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  const int tyx = xcell + ycell * s->dimx;
+  int state = s->n->tam[tyx].state;
+  void* auxvec = s->n->tam[tyx].auxvector;
+  logdebug("Wiping sprixel %u at %d/%d auxvec: %p state: %d\n", s->id, ycell, xcell, auxvec, state);
+  fbuf* f = &s->glyph;
+  if(kitty_blit_wipe_selfref(s, f, ycell, xcell)){
+    return -1;
+  }
+  s->invalidated = SPRIXEL_INVALIDATED;
+  memcpy(auxvec, &state, sizeof(state));
   return 1;
 }
 
@@ -717,6 +679,31 @@ destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
   }
 }
 
+// if we're KITTY_SELFREF, and we're blitting a secondary frame, we need
+// carry through the TAM's annihilation entires...but we also need load the
+// frame *without* annihilations, lest we be unable to build it. we thus go
+// back through the TAM following a selfref blit, and any sprixcells which
+// are annihilated will have their annhilation appended to the main blit.
+// ought only be called for KITTY_SELFREF.
+static int
+finalize_multiframe_selfref(sprixel* s, fbuf* f){
+  int prewiped = 0;
+  for(int y = 0 ; y < s->dimy ; ++y){
+    for(int x = 0 ; x < s->dimx ; ++x){
+      int tyxidx = y * s->dimx + x;
+      int state = s->n->tam[tyxidx].state;
+      if(state >= SPRIXCELL_ANNIHILATED){
+        if(kitty_blit_wipe_selfref(s, f, y, x)){
+          return -1;
+        }
+        ++prewiped;
+      }
+    }
+  }
+  loginfo("transitively wiped %d/%d\n", prewiped, s->dimy * s->dimx);
+  return 0;
+}
+
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
@@ -752,6 +739,9 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   char out[17]; // three pixels base64 to no more than 17 bytes
+  // set high if we are (1) reloading a frame with (2) annihilated cells copied over
+  // from the TAM and (3) we are KITTY_SELFREF. calls finalize_multiframe_selfref().
+  bool selfref_annihilated = false;
   while(chunks--){
     // q=2 has been able to go on chunks other than the last chunk since
     // 2021-03, but there's no harm in this small bit of backwards compat.
@@ -832,16 +822,30 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             // transparent, but we need to update the auxiliary vector.
             const int vyx = (y % cdimy) * cdimx + (x % cdimx);
             tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+            wipe[e] = 1;
+          }else if(level == KITTY_SELFREF){
+            selfref_annihilated = true;
+          }else{
+            wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
             ncpixel_set_a(&source[e], 0); // in case it was transcolor
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
+              if(level == KITTY_SELFREF){
+                *tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
+              }
+            }else if(level == KITTY_SELFREF && tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
+                *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
           }else{
+            if(x % cdimx == 0 && y % cdimy == 0 && level == KITTY_SELFREF){
+              *tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
+            }else if(level == KITTY_SELFREF && *tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
+              *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
+            }
             tam[tyx].state = SPRIXCELL_ANNIHILATED;
           }
-          wipe[e] = 1;
         }else{
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){
@@ -884,6 +888,11 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   if(animated){
     if(finalize_deflator(&zctx, f, leny, lenx)){
       goto err;
+    }
+    if(selfref_annihilated){
+      if(finalize_multiframe_selfref(s, f)){
+        goto err;
+      }
     }
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);

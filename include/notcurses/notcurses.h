@@ -540,7 +540,7 @@ ncchannels_set_bg_default(uint64_t* channels){
 // An nccell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
-// cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
+// cell, we can have a theoretically arbitrarily long UTF-8 EGC, a foreground
 // color, a background color, and an attribute set. Valid grapheme cluster
 // contents include:
 //
@@ -1423,8 +1423,20 @@ API bool notcurses_cansextant(const struct notcurses* nc)
 API bool notcurses_canbraille(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
+// pixel blitting implementations. informative only; don't special-case
+// based off any of this information!
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  NCPIXEL_KITTY_STATIC,    // kitty prior to C=1 and animation
+  NCPIXEL_KITTY_ANIMATED,  // kitty with animation but not selfref
+  NCPIXEL_KITTY_SELFREF,   // kitty with reflexive composition
+} ncpixelimpl_e;
+
 // Can we blit pixel-accurate bitmaps?
-API int notcurses_check_pixel_support(const struct notcurses* nc)
+API ncpixelimpl_e notcurses_check_pixel_support(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // whenever a new field is added here, ensure we add the proper rule to

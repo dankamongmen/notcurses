@@ -36,7 +36,7 @@ notcurses_capabilities - runtime capability detection
 
 **bool notcurses_canbraille(const struct notcurses* ***nc***);**
 
-**int notcurses_check_pixel_support(struct notcurses* ***nc***);**
+**ncpixelimpl_e notcurses_check_pixel_support(struct notcurses* ***nc***);**
 
 # DESCRIPTION
 
@@ -86,16 +86,15 @@ quadrants and halfblocks, respectively. **notcurses_canbraille** returns
 **true** if Unicode Braille is expected to work on the terminal. None of
 these functions return **true** unless UTF-8 encoding is in use.
 
-**notcurses_check_pixel_support** returns 1 if bitmap support (via any
-mechanism) has been detected, and otherwise 0.
+**notcurses_check_pixel_support** returns a non-zero pixel implementation
+if bitmap support (via any mechanism) has been detected, and otherwise 0
+(**NCPIXEL_NONE**).
 
 # NOTES
 
 Some terminals advertise support for TrueColor, but then downsample or
 otherwise degrade the provided RGB. In this case **notcurses_cantruecolor**
 will return **true**, but the full spectrum will not be available.
-
-# RETURN VALUES
 
 # SEE ALSO
 

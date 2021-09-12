@@ -151,7 +151,9 @@ typedef struct tinfo {
   // bg_collides_default is either 0x0000000 or (if in use) 0x1RRGGBB.
   uint32_t bg_collides_default;
 
-  // bitmap support. if we support bitmaps, pixel_draw will be non-NULL
+  // bitmap support. if we support bitmaps, pixel_implementation will be a
+  // value other than NCPIXEL_NONE.
+  ncpixelimpl_e pixel_implementation;
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).

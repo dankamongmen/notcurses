@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.4.1 (not yet released)
+  * `notcurses_check_pixel_support()` still returns 0 if there is no support
+    for bitmap graphics, but now returns an `ncpixelimple_e` to differentiate
+    the pixel backend otherwise. This result is strictly informative.
+
 * 2.4.0 (2021-09-06)
   * Mouse events in the Linux console are now reported from GPM when built
     with `-DUSE_GPM=on`.

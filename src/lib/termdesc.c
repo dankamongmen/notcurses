@@ -67,6 +67,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
   set_pixel_blitter(sixel_blit);
+  ti->pixel_implementation = NCPIXEL_SIXEL;
   sprite_init(ti, fd);
 }
 
@@ -91,17 +92,20 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     ti->pixel_rebuild = kitty_rebuild;
     ti->sixel_maxy_pristine = INT_MAX;
     set_pixel_blitter(kitty_blit);
+    ti->pixel_implementation = NCPIXEL_KITTY_STATIC;
   }else{
     if(level == KITTY_ANIMATION){
       ti->pixel_wipe = kitty_wipe_animation;
       ti->pixel_rebuild = kitty_rebuild_animation;
       ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_animated);
+      ti->pixel_implementation = NCPIXEL_KITTY_ANIMATED;
     }else{
       ti->pixel_wipe = kitty_wipe_selfref;
       ti->pixel_rebuild = kitty_rebuild_selfref;
       ti->sixel_maxy_pristine = 0;
       set_pixel_blitter(kitty_blit_selfref);
+      ti->pixel_implementation = NCPIXEL_KITTY_SELFREF;
     }
   }
   sprite_init(ti, fd);
@@ -124,6 +128,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_wipe = fbcon_wipe;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(fbcon_blit);
+  ti->pixel_implementation = NCPIXEL_LINUXFB;
   sprite_init(ti, fd);
 }
 #endif
@@ -521,9 +526,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    if(compare_versions(ti->termversion, "0.22.1") >= 0){
+    /*if(compare_versions(ti->termversion, "0.22.1") >= 0){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
-    }else if(compare_versions(ti->termversion, "0.20.0") >= 0){
+    }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
     }else{
       setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ALWAYS_SCROLLS);

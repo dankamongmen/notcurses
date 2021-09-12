@@ -198,10 +198,12 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     } \
   } \
   if(ncp->plot.printsample){ \
-    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
     ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
-    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+    /* FIXME is this correct for double? */ \
+    /* we use idx, and thus get an immediate count, changing as we load it.
+     * if you want a stable summary, print the previous slot */ \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[idx]); \
   } \
   ncplane_home(ncp->plot.ncp); \
   struct ncvisual* ncv = ncvisual_from_rgba(pixels, dimy * states, dimx * scale * 4, dimx * scale); \
@@ -391,10 +393,9 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     } \
   } \
   if(ncp->plot.printsample){ \
-    int lastslot = ncp->plot.slotstart ? ncp->plot.slotstart - 1 : ncp->plot.slotcount - 1; \
     ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.maxchannels); \
-    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[lastslot]); \
+    ncplane_printf_aligned(ncp->plot.ncp, 0, NCALIGN_RIGHT, "%" PRIu64, (uint64_t)ncp->slots[idx]); \
   } \
   ncplane_home(ncp->plot.ncp); \
   return 0; \
@@ -416,11 +417,12 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     return NULL; \
   } \
   if(opts->rangex < 0){ \
-    logerror("Supplied negative independent range %d\n", opts->rangex); \
+    logerror("error: supplied negative independent range %d\n", opts->rangex); \
     ncplane_destroy(n); \
     return NULL; \
   } \
   if(maxy < miny){ \
+    logerror("error: supplied maxy < miny\n"); \
     ncplane_destroy(n); \
     return NULL; \
   } \
@@ -487,7 +489,9 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.printsample = opts->flags & NCPLOT_OPTION_PRINTSAMPLE; \
   if( (ncpp->plot.detectdomain = (miny == maxy)) ){ \
     ncpp->maxy = trueminy; \
-    ncpp->miny = truemaxy; \
+    if(!ncpp->plot.detectonlymax){ \
+      ncpp->miny = truemaxy; \
+    } \
   } \
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
