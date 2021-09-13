@@ -571,7 +571,6 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
 
 // create an ncplane of the specified dimensions, but do not yet place it in
 // the z-buffer. clear out all cells. this is for a wholly new context.
-// FIXME set up using resizecb rather than special-purpose from SIGWINCH
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   ncplane_options nopts = {
@@ -580,7 +579,7 @@ create_initial_ncplane(notcurses* nc, int dimy, int dimx){
     .cols = dimx - (nc->margin_l + nc->margin_r),
     .userptr = NULL,
     .name = "std",
-    .resizecb = ncplane_resize_maximize,
+    .resizecb = NULL,
     .flags = 0,
   };
   return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
@@ -2346,9 +2345,6 @@ ncplane* ncplane_boundlist(ncplane* n){
 }
 
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
-  if(n == notcurses_stdplane(ncplane_notcurses(n))){
-    return;
-  }
   n->resizecb = resizecb;
 }
 

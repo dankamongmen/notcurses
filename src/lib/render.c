@@ -56,6 +56,12 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   pile->dimx = *cols;
   int ret = 0;
 //notcurses_debug(n, stderr);
+  // if this pile contains the standard plane, it ought be resized to match
+  // the viewing area before invoking any other resize callbacks.
+  if(ncplane_pile(notcurses_stdplane(n)) == pile){
+    ncplane_resize_maximize(notcurses_stdplane(n));
+  }
+  // now, begin a resize callback cascade on the root planes of the pile.
   for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){
     if(rootn->resizecb){
       ret |= rootn->resizecb(rootn);

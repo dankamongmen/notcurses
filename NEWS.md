@@ -1,7 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.1 (not yet released)
+* 2.4.2 (not yet released)
+  * You can now set a resize callback on the standard plane.
+
+* 2.4.1 (2021-09-12)
   * `notcurses_check_pixel_support()` still returns 0 if there is no support
     for bitmap graphics, but now returns an `ncpixelimple_e` to differentiate
     the pixel backend otherwise. This result is strictly informative.
