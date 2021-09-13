@@ -125,7 +125,7 @@ macro_rules! rsleep {
 #[doc(hidden)]
 macro_rules! cstring {
     ($s:expr) => {
-        std::ffi::CString::new($s).unwrap().as_ptr();
+        std::ffi::CString::new($s).unwrap().as_ptr()
     };
 }
 
@@ -134,7 +134,7 @@ macro_rules! cstring {
 #[doc(hidden)]
 macro_rules! cstring_mut {
     ($s:expr) => {
-        std::ffi::CString::new($s).unwrap().into_raw();
+        std::ffi::CString::new($s).unwrap().into_raw()
     };
 }
 
@@ -184,10 +184,10 @@ macro_rules! error {
         }
     }};
     ($res:expr, $msg:expr) => {
-        error![$res, $msg, ()];
+        error![$res, $msg, ()]
     };
     ($res:expr) => {
-        error![$res, "", ()];
+        error![$res, "", ()]
     };
 }
 
