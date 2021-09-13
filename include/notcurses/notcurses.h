@@ -4499,17 +4499,6 @@ __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
-#define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
-#define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT
-#define CELL_ALPHA_BLEND        NCALPHA_BLEND
-#define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
-#define NCSTYLE_PROTECT  0
-#define NCSTYLE_STANDOUT 0
-#define NCSTYLE_REVERSE  0
-#define NCSTYLE_INVIS    0
-#define NCSTYLE_DIM      0
-#define NCSTYLE_BLINK    0
-
 #undef ALLOC
 #undef API
 
