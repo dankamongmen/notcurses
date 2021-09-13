@@ -6,7 +6,7 @@ use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
     NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale, NcStats,
     NcStyle, NcStyleMethods, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
-    NCRESULT_ERR, NCSTYLE_BLINK, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE, NCSTYLE_STRUCK,
+    NCRESULT_ERR, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE, NCSTYLE_STRUCK,
     NCSTYLE_UNDERCURL, NCSTYLE_UNDERLINE,
 };
 
@@ -448,7 +448,6 @@ impl Nc {
                 "undercurl" => style.add(NCSTYLE_UNDERCURL),
                 "struck" => style.add(NCSTYLE_STRUCK),
                 "bold" => style.add(NCSTYLE_BOLD),
-                "blink" => style.add(NCSTYLE_BLINK),
                 "none" => (),
                 _ => {
                     errstr.push_str(s);
@@ -693,7 +692,6 @@ impl Nc {
                 NCSTYLE_UNDERCURL => "undercurl",
                 NCSTYLE_STRUCK => "struck",
                 NCSTYLE_BOLD => "bold",
-                NCSTYLE_BLINK => "blink",
                 #[allow(unreachable_patterns)] // FIXME
                 NCSTYLE_NONE => "none",
                 _ => "none",

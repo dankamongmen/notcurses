@@ -666,7 +666,6 @@ pub use ffi::{
 // NCSTYLE_UNDERCURL,
 // NCSTYLE_BOLD,
 // NCSTYLE_STRUCK,
-// NCSTYLE_BLINK,
 // NCSTYLE_NONE,
 
 // nctablet --------------------------------------------------------------------

@@ -290,7 +290,6 @@ pub type NcEgcBackstop = u8;
 /// - [`NCSTYLE_UNDERCURL`]
 /// - [`NCSTYLE_STRUCK`]
 /// - [`NCSTYLE_BOLD`]
-/// - [`NCSTYLE_BLINK`]
 /// - [`NCSTYLE_NONE`]
 ///
 /// ## Diagram
@@ -322,9 +321,6 @@ pub const NCSTYLE_STRUCK: u16 = crate::bindings::ffi::NCSTYLE_STRUCK as u16;
 pub const NCSTYLE_BOLD: u16 = crate::bindings::ffi::NCSTYLE_BOLD as u16;
 
 ///
-pub const NCSTYLE_BLINK: u16 = crate::bindings::ffi::NCSTYLE_BLINK as u16;
-
-///
 pub const NCSTYLE_NONE: u16 = crate::bindings::ffi::NCSTYLE_NONE as u16;
 
 /// Enables the [`NcStyle`] methods.
@@ -344,7 +340,6 @@ impl NcStyleMethods for NcStyle {
             NCSTYLE_UNDERCURL,
             NCSTYLE_STRUCK,
             NCSTYLE_BOLD,
-            NCSTYLE_BLINK,
             NCSTYLE_NONE,
         ];
         for s in &styles {
