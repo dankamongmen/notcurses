@@ -900,6 +900,9 @@ typedef enum {
 // anything but the virtual console/terminal in which Notcurses is running.
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
+// "CLI mode" is just NCOPTION_NO_CLEAR_BITMAPS | NCOPTION_NO_ALTERNATE_SCREEN |
+// NCOPTION_PRESERVE_CURSOR, plus enabling scrolling on the standard plane.
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
