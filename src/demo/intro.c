@@ -225,11 +225,11 @@ int intro(struct notcurses* nc){
   if(rows < 45){
     ncplane_set_fg_rgb8(ncp, 0xc0, 0x80, 0x80);
     ncplane_set_bg_rgb8(ncp, 0x20, 0x20, 0x20);
-    ncplane_on_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
+    ncplane_on_styles(ncp, NCSTYLE_BOLD); // FIXME maybe use pulse?
     if(ncplane_putstr_aligned(ncp, 2, NCALIGN_CENTER, "demo runs best with at least 45 lines") < 0){
       return -1;
     }
-    ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
+    ncplane_off_styles(ncp, NCSTYLE_BOLD);
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);

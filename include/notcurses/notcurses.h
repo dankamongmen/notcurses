@@ -3976,23 +3976,6 @@ __attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* t
 
 __attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
 
-// replaced by ncvisual_media_defblitter(). this original version never returns
-// NCBLIT_3x2. deprecated, going away in ABI3.
-__attribute__ ((deprecated)) static inline ncblitter_e
-ncvisual_default_blitter(bool utf8, ncscale_e scale){
-  if(utf8){
-    // NCBLIT_3x2/NCBLIT_2x2 are better image quality, especially for large
-    // images, but not the general default because they doesn't preserve
-    // aspect ratio (as does NCBLIT_2x1). NCSCALE_STRETCH throws away aspect
-    // ratio, and can safely use NCBLIT_3x2/2x2.
-    if(scale == NCSCALE_STRETCH){
-      return NCBLIT_3x2;
-    }
-    return NCBLIT_2x1;
-  }
-  return NCBLIT_1x1;
-}
-
 __attribute__ ((deprecated)) static inline void
 cell_set_styles(nccell* c, unsigned stylebits){
   nccell_set_styles(c, stylebits);
@@ -4227,39 +4210,7 @@ API ALLOC ncpalette* palette256_new(struct notcurses* nc)
 API int palette256_use(struct notcurses* nc, const ncpalette* p)
   __attribute__ ((deprecated));
 
-__attribute__ ((deprecated)) static inline int
-palette256_set_rgb8(ncpalette* p, int idx, int r, int g, int b){
-  return ncpalette_set_rgb8(p, idx, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-palette256_set(ncpalette* p, int idx, unsigned rgb){
-  return ncpalette_set(p, idx, rgb);
-}
-
-__attribute__ ((deprecated)) static inline int
-palette256_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
-  return ncpalette_get_rgb8(p, idx, r, g, b);
-}
-
 API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) static inline unsigned
-channel_r(uint32_t channel){
-  return ncchannel_r(channel);
-}
-
-// Extract the 8-bit green component from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_g(uint32_t channel){
-  return ncchannel_g(channel);
-}
-
-// Extract the 8-bit blue component from a 32-bit channel.
-__attribute__ ((deprecated)) static inline unsigned
-channel_b(uint32_t channel){
-  return ncchannel_b(channel);
-}
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 __attribute__ ((deprecated)) static inline unsigned
