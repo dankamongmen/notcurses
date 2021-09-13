@@ -205,7 +205,7 @@ use crate::{NcChannel, NcPlane};
 /// multicolumn glyph. whether a cell is the left or right side of the glyph
 /// can be determined by checking whether ->gcluster is zero.
 ///
-pub type NcCell = crate::bindings::ffi::cell;
+pub type NcCell = crate::bindings::ffi::nccell;
 
 // RETHINK:
 //
