@@ -950,7 +950,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
   while(chunks--){
     if(totalout == 0){
-      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,%s;",
+      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,r=2,c=1,X=1,%s;",
                      xcell * s->cellpxx, ycell * s->cellpxy, xlen, ylen,
                      s->id, chunks ? "m=1" : "q=2") < 0){
         return -1;
