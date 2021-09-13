@@ -301,17 +301,31 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
+// does this auxvec correspond to a sprixcell which was nulled out during the
+// blitting of the frame (can only happen with a multiframe that's seen some
+// wiping)?
+static inline unsigned
+kitty_anim_auxvec_blitsource_p(const sprixel* s, const uint8_t* auxvec){
+  const size_t offset = s->cellpxy * s->cellpxx * 4;
+  if(auxvec[offset]){
+    return 1;
+  }
+  return 0;
+}
+
 // an animation auxvec requires storing all the pixel data for the cell,
 // instead of just the alpha channel. pass the start of the RGBA to be
 // copied, and the rowstride. dimy and dimx are the source image's total
 // size in pixels. posy and posx are the origin of the cell to be copied,
 // again in pixels. data is the image source. around the edges, we might
-// get truncated regions.
+// get truncated regions. we also need to store a final byte indicating
+// whether the null write originated in blitting or wiping, as that affects
+// our rebuild animation.
 static inline void*
 kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
                   int cellpxy, int cellpxx, const uint32_t* data,
                   int rowstride, uint8_t* existing, uint32_t transcolor){
-  const size_t slen = 4 * cellpxy * cellpxx;
+  const size_t slen = 4 * cellpxy * cellpxx + 1;
   uint32_t* a = existing ? existing : malloc(slen);
   if(a){
     for(int y = posy ; y < posy + cellpxy && y < dimy ; ++y){
@@ -334,6 +348,7 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
       }
     }
   }
+  ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   return a;
 }
 
@@ -397,6 +412,9 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
     return -1;
   }
+  int tamidx = ycell * s->dimx + xcell;
+  uint8_t* auxvec = s->n->tam[tamidx].auxvector;
+  auxvec[s->cellpxx * s->cellpxy * 4] = 0;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -826,6 +844,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
           }else if(level == KITTY_SELFREF){
             selfref_annihilated = true;
           }else{
+            tam[tyx].auxvector[s->cellpxx * s->cellpxy * 4] = 1;
             wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
@@ -950,9 +969,11 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
   while(chunks--){
     if(totalout == 0){
-      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,r=2,c=1,X=1,%s;",
+      const int c = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 2 : 1;
+      const int r = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 1 : 2;
+      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,c=%d,r=%d,%s;",
                      xcell * s->cellpxx, ycell * s->cellpxy, xlen, ylen,
-                     s->id, chunks ? "m=1" : "q=2") < 0){
+                     s->id, c, r, chunks ? "m=1" : "q=2") < 0){
         return -1;
       }
     }else{
