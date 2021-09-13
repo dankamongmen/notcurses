@@ -4,10 +4,10 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
-    NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale, NcStats,
-    NcStyle, NcStyleMethods, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
-    NCRESULT_ERR, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE, NCSTYLE_STRUCK,
-    NCSTYLE_UNDERCURL, NCSTYLE_UNDERLINE,
+    NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPixelImpl, NcPlane, NcResult,
+    NcScale, NcStats, NcStyle, NcStyleMethods, NcTime, NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE,
+    NCSTYLE_STRUCK, NCSTYLE_UNDERCURL, NCSTYLE_UNDERLINE,
 };
 
 /// # `NcOptions` Constructors
@@ -251,22 +251,14 @@ impl Nc {
 
     /// Checks for pixel support.
     ///
-    /// Returns `false` for no support, or `true` if pixel output is supported.
-    ///
-    /// This function must successfully return before
-    /// [NCBLIT_PIXEL][crate::NCBLIT_PIXEL] is available.
-    ///
-    /// Must not be called concurrently with either input or rasterization.
+    /// Returns [`NcPixelImpl`] with a non-zero constant corresponding to some
+    /// pixel-blitting mechanism if bitmap support (via any mechanism) has been
+    /// detected, or else 0 (NCPIXEL_NONE).
     ///
     /// *C style function: [notcurses_check_pixel_support()][crate::notcurses_check-pixel_support].*
     #[allow(clippy::wildcard_in_or_patterns)]
-    pub fn check_pixel_support(&self) -> NcResult<bool> {
-        let res: i32 = unsafe { crate::notcurses_check_pixel_support(self) as i32 };
-        match res {
-            0 => Ok(false),
-            1 => Ok(true),
-            NCRESULT_ERR | _ => Err(NcError::with_msg(res, "Notcuses.check_pixel_support()")),
-        }
+    pub fn check_pixel_support(&self) -> NcPixelImpl {
+        unsafe { crate::notcurses_check_pixel_support(self) }
     }
 
     /// Disables the terminal's cursor, if supported.
@@ -432,7 +424,7 @@ impl Nc {
     /// spaces.
     ///
     /// The supported styles are: `italic`, `underline`, `undercurl`,
-    /// `struck`, `bold`, `blink` and `none`.
+    /// `struck`, `bold`, and `none`.
     ///
     /// If a style is are not recognized returns an error.
     ///

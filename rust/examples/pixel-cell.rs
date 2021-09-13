@@ -14,7 +14,7 @@ use libnotcurses_sys::*;
 fn main() -> NcResult<()> {
     let mut nc = Nc::new()?;
 
-    if !nc.check_pixel_support()? {
+    if nc.check_pixel_support() == NCPIXEL_NONE {
         nc.stop()?;
         return Err(NcError::new_msg("Current terminal doesn't support pixels."));
     }
