@@ -261,7 +261,7 @@ impl Nc {
     /// *C style function: [notcurses_check_pixel_support()][crate::notcurses_check-pixel_support].*
     #[allow(clippy::wildcard_in_or_patterns)]
     pub fn check_pixel_support(&self) -> NcResult<bool> {
-        let res: i32 = unsafe { crate::notcurses_check_pixel_support(self) as i32};
+        let res: i32 = unsafe { crate::notcurses_check_pixel_support(self) as i32 };
         match res {
             0 => Ok(false),
             1 => Ok(true),
