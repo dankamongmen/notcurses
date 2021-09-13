@@ -3,6 +3,7 @@ rearrangements of Notcurses.
 
 * 2.4.2 (not yet released)
   * You can now set a resize callback on the standard plane.
+  * Added `notcurses_getvec()`, providing batched input.
 
 * 2.4.1 (2021-09-12)
   * `notcurses_check_pixel_support()` still returns 0 if there is no support
