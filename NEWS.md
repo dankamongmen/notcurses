@@ -5,6 +5,9 @@ rearrangements of Notcurses.
   * `notcurses_check_pixel_support()` still returns 0 if there is no support
     for bitmap graphics, but now returns an `ncpixelimple_e` to differentiate
     the pixel backend otherwise. This result is strictly informative.
+  * Added `ncstrwidth_valid()`, which is like `ncstrwidth()` except that it
+    returns partial results in the case of an invalid character. `ncstrwidth()`
+    will become a `static line` wrapper of `ncstrwidth_valid()` in ABI3.
 
 * 2.4.0 (2021-09-06)
   * Mouse events in the Linux console are now reported from GPM when built
