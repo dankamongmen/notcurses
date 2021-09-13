@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-6eecb92a31d99b42/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../../../../../../../../storage.js"></script><script src="../../../../../../../../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/dank/src/dankamongmen/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-107c74da9293e2dd/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../../../../../../../../storage.js"></script><script src="../../../../../../../../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../../../../../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../../../../../../../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../../../../../../../../../../settings.html" title="settings"><img src="../../../../../../../../../../../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -4430,6 +4430,36 @@
 <span id="4428">4428</span>
 <span id="4429">4429</span>
 <span id="4430">4430</span>
+<span id="4431">4431</span>
+<span id="4432">4432</span>
+<span id="4433">4433</span>
+<span id="4434">4434</span>
+<span id="4435">4435</span>
+<span id="4436">4436</span>
+<span id="4437">4437</span>
+<span id="4438">4438</span>
+<span id="4439">4439</span>
+<span id="4440">4440</span>
+<span id="4441">4441</span>
+<span id="4442">4442</span>
+<span id="4443">4443</span>
+<span id="4444">4444</span>
+<span id="4445">4445</span>
+<span id="4446">4446</span>
+<span id="4447">4447</span>
+<span id="4448">4448</span>
+<span id="4449">4449</span>
+<span id="4450">4450</span>
+<span id="4451">4451</span>
+<span id="4452">4452</span>
+<span id="4453">4453</span>
+<span id="4454">4454</span>
+<span id="4455">4455</span>
+<span id="4456">4456</span>
+<span id="4457">4457</span>
+<span id="4458">4458</span>
+<span id="4459">4459</span>
+<span id="4460">4460</span>
 </pre><pre class="rust">
 <span class="comment">/* automatically generated by rust-bindgen 0.57.0 */</span>
 
@@ -4505,7 +4535,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXIT_FAILURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXIT_SUCCESS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_STRING_H</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_NSIG</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">33</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_NSIG</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">65</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__sig_atomic_t_defined</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__sigset_t_defined</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">_LIBC_LIMITS_H_</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
@@ -4742,6 +4772,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__time_t</span> <span class="op">=</span> <span class="ident">cty::c_long</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__useconds_t</span> <span class="op">=</span> <span class="ident">cty::c_uint</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__suseconds_t</span> <span class="op">=</span> <span class="ident">cty::c_long</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__suseconds64_t</span> <span class="op">=</span> <span class="ident">cty::c_long</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__daddr_t</span> <span class="op">=</span> <span class="ident">cty::c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__key_t</span> <span class="op">=</span> <span class="ident">cty::c_int</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__clockid_t</span> <span class="op">=</span> <span class="ident">cty::c_int</span>;
@@ -5455,7 +5486,20 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Returns the number of columns occupied by a multibyte (UTF-8) string, or&quot;</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; -1 if a non-printable/illegal character is encountered.&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; FIXME becomes a static inline in ABI3.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncstrwidth</span>(<span class="ident">mbs</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Returns the number of columns occupied by a the valid prefix of a multibyte&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; (UTF-8) string. If an invalid character is encountered, -1 will be returned,&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; and the number of valid bytes and columns will be written into *|validbytes|&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; and *|validwidth| (assuming them non-NULL). If the entire string is valid,&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; *|validbytes| and *|validwidth| reflect the entire string.&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncstrwidth_valid</span>(
+        <span class="ident">egcs</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cty::c_char</span>,
+        <span class="ident">validbytes</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty::c_int</span>,
+        <span class="ident">validwidth</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty::c_int</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Returns a heap-allocated copy of the user name under which we are running.&quot;</span>]</span>
@@ -5481,7 +5525,7 @@
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; An nccell corresponds to a single character cell on some plane, which can be&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; occupied by a single grapheme cluster (some root spacing glyph, along with&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; possible combining characters, which might span multiple columns). At any&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; cell, we can have a theoretically arbitrarily long UTF-8 EGC, a foreground&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; color, a background color, and an attribute set. Valid grapheme cluster&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; contents include:&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>]</span>
@@ -6082,9 +6126,25 @@
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Can we reliably use Unicode Braille?&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_canbraille</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_NONE</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; sixel&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_SIXEL</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; linux framebuffer&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_LINUXFB</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; iTerm2&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_ITERM2</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; kitty prior to C=1 and animation&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_KITTY_STATIC</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; kitty with animation but not selfref&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_KITTY_ANIMATED</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; kitty with reflexive composition&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ncpixelimpl_e_NCPIXEL_KITTY_SELFREF</span>: <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; pixel blitting implementations. informative only; don&#39;t special-case&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; based off any of this information!&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ncpixelimpl_e</span> <span class="op">=</span> <span class="ident">cty::c_uint</span>;
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Can we blit pixel-accurate bitmaps?&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_check_pixel_support</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cty::c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_check_pixel_support</span>(<span class="ident">nc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ncpixelimpl_e</span>;
 }
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; whenever a new field is added here, ensure we add the proper rule to&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; notcurses_stats_reset(), so that values are preserved in the stash stats.&quot;</span>]</span>
