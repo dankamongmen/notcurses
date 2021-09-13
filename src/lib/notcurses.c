@@ -196,7 +196,7 @@ char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      const cell* yx = &n->fb[nfbcellidx(n, y, x)];
+      const nccell* yx = &n->fb[nfbcellidx(n, y, x)];
       // if we're the right side of a wide glyph, we return the main glyph
       if(nccell_wide_right_p(yx)){
         return ncplane_at_yx(n, y, x - 1, stylemask, channels);

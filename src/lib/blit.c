@@ -613,7 +613,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
 }
 
 static const char*
-sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
+sex_trans_check(nccell* c, const uint32_t rgbas[6], unsigned blendcolors,
                 uint32_t transcolor, unsigned nointerpolate){
   // bit is *set* where sextant *is not*
   // 32: bottom right 16: bottom left
