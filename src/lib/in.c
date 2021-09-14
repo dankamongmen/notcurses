@@ -19,6 +19,13 @@
 // latter contains escapes. Unbounded input will hopefully only be present when
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
+// FIXME still need to:
+//  integrate main specials trie with automaton, or match it alongside
+//   the main automaton
+//  read specials from terminfo
+//  wake up input thread when space becomes available
+//  restore stats
+
 static sig_atomic_t resize_seen;
 
 // called for SIGWINCH and SIGCONT
@@ -630,6 +637,11 @@ mouse_click(inputctx* ictx){
 // ictx->numeric and ictx->p2 have the two parameters
 static void
 kitty_kbd(inputctx* ictx){
+  enum { // synthesized events derived from keypresses
+    SYNTH_NOTHING,
+    SYNTH_SIGINT,
+    SYNTH_SIGQUIT,
+  } synth = SYNTH_NOTHING;
   assert(ictx->numeric > 0);
   assert(ictx->p2 > 0);
   pthread_mutex_lock(&ictx->ilock);
@@ -657,8 +669,22 @@ kitty_kbd(inputctx* ictx){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  if(ni->ctrl && !ni->alt && !ni->shift){
+    if(ni->id == 'C'){
+      synth = SYNTH_SIGINT;
+    }else if(ni->id == '\\'){
+      synth = SYNTH_SIGQUIT;
+    }
+  }
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
+#ifndef __MINGW64__
+  if(synth == SYNTH_SIGINT){
+    raise(SIGINT);
+  }else if(synth == SYNTH_SIGQUIT){
+    raise(SIGQUIT);
+  }
+#endif
 }
 
 // FIXME ought implement the full Williams automaton
