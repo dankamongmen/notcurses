@@ -1235,7 +1235,7 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     }
   }
   // FIXME input error stat
-  // FIXME extract modifiers, mice
+  // FIXME extract modifiers
   return 0;
 }
 
@@ -1244,7 +1244,7 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == sizeof(ictx->ivalid)){
+  if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logwarn("blocking on input output queue (%d+%d)\n", ictx->ivalid, buflen);
     return 0;
@@ -1393,6 +1393,8 @@ block_on_input(inputctx* ictx){
 // don't loop around this call without some kind of readiness notification.
 static void
 read_inputs_nblock(inputctx* ictx){
+  // FIXME also need to wake up if our output queues have space that has
+  // opened up for us to write into, lest we deadlock with full buffers...
   block_on_input(ictx);
   // first we read from the terminal, if that's a distinct source.
   read_input_nblock(ictx->termfd, ictx->tbuf, sizeof(ictx->tbuf),
