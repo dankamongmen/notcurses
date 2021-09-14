@@ -89,6 +89,13 @@ typedef enum {
   STATE_MOUSE3,        // got first mouse coordinate
 } initstates_e;
 
+// we assumed escapes can only be composed of 7-bit chars
+typedef struct esctrie {
+  struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
+  uint32_t special;       // composed key terminating here
+  bool shift, ctrl, alt;
+} esctrie;
+
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
@@ -98,6 +105,8 @@ typedef struct inputctx {
 #ifdef __MINGW64__
   HANDLE stdinhandle;   // handle to input terminal for MSFT Terminal
 #endif
+
+  struct esctrie* inputescapes;
 
   // these two are not ringbuffers; we always move any leftover materia to the
   // front of the queue (it ought be a handful of bytes at most).
@@ -134,6 +143,36 @@ typedef struct inputctx {
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
+
+static esctrie*
+create_esctrie_node(int special){
+  esctrie* e = malloc(sizeof(*e));
+  if(e){
+    e->special = special;
+    e->trie = NULL;
+    e->shift = 0;
+    e->ctrl = 0;
+    e->alt = 0;
+  }
+  return e;
+}
+
+static void
+input_free_esctrie(esctrie** eptr){
+  esctrie* e;
+  if( (e = *eptr) ){
+    if(e->trie){
+      int z;
+      for(z = 0 ; z < 0x80 ; ++z){
+        if(e->trie[z]){
+          input_free_esctrie(&e->trie[z]);
+        }
+      }
+      free(e->trie);
+    }
+    free(e);
+  }
+}
 
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp){
@@ -197,6 +236,7 @@ free_inputctx(inputctx* i){
     pthread_cond_destroy(&i->icond);
     pthread_mutex_destroy(&i->clock);
     pthread_cond_destroy(&i->ccond);
+    input_free_esctrie(&i->inputescapes);
     // do not kill the thread here, either.
     if(i->initdata){
       free(i->initdata->version);
@@ -210,6 +250,138 @@ free_inputctx(inputctx* i){
     free(i->csrs);
     free(i);
   }
+}
+
+// multiple input escapes might map to the same input
+static int
+inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
+                          unsigned shift, unsigned ctrl, unsigned alt){
+  if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
+    logerror("not an escape (0x%x)\n", special);
+    return -1;
+  }
+  esctrie** cur = &ictx->inputescapes;
+  do{
+//fprintf(stderr, "ADDING: %s (%zu) for %d\n", esc, strlen(esc), special);
+    ++esc;
+    int validate = *esc;
+    if(validate < 0 || validate >= 0x80){
+      return -1;
+    }
+    if(*cur == NULL){
+      if((*cur = create_esctrie_node(NCKEY_INVALID)) == NULL){
+        return -1;
+      }
+    }
+    if(validate){
+      if((*cur)->trie == NULL){
+        const size_t tsize = sizeof((*cur)->trie) * 0x80;
+        if(((*cur)->trie = malloc(tsize)) == NULL){
+          return -1;
+        }
+        memset((*cur)->trie, 0, tsize);
+      }
+      cur = &(*cur)->trie[validate];
+    }
+  }while(*esc);
+  // it appears that multiple keys can be mapped to the same escape string. as
+  // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
+  if((*cur)->special != NCKEY_INVALID){ // already had one here!
+    if((*cur)->special != special){
+      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+    }
+  }else{
+    (*cur)->special = special;
+    (*cur)->shift = shift;
+    (*cur)->ctrl = ctrl;
+    (*cur)->alt = alt;
+  }
+  return 0;
+}
+
+// https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
+static int
+prep_kitty_special_keys(inputctx* nc){
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\x1b[P", .key = NCKEY_F01, },
+    { .esc = "\x1b[Q", .key = NCKEY_F02, },
+    { .esc = "\x1b[R", .key = NCKEY_F03, },
+    { .esc = "\x1b[S", .key = NCKEY_F04, },
+    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
+    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
+    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
+// add the hardcoded windows input sequences to ti->input. should only
+// be called after verifying that this is TERMINAL_MSTERMINAL.
+static int
+prep_windows_special_keys(inputctx* nc){
+  // here, lacking terminfo, we hardcode the sequences. they can be found at
+  // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+  // under the "Input Sequences" heading.
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\x1b[A", .key = NCKEY_UP, },
+    { .esc = "\x1b[B", .key = NCKEY_DOWN, },
+    { .esc = "\x1b[C", .key = NCKEY_RIGHT, },
+    { .esc = "\x1b[D", .key = NCKEY_LEFT, },
+    { .esc = "\x1b[1;5A", .key = NCKEY_UP, .ctrl = 1, },
+    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
+    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
+    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
+    { .esc = "\x1b[H", .key = NCKEY_HOME, },
+    { .esc = "\x1b[F", .key = NCKEY_END, },
+    { .esc = "\x1b[2~", .key = NCKEY_INS, },
+    { .esc = "\x1b[3~", .key = NCKEY_DEL, },
+    { .esc = "\x1b[5~", .key = NCKEY_PGUP, },
+    { .esc = "\x1b[6~", .key = NCKEY_PGDOWN, },
+    { .esc = "\x1bOP", .key = NCKEY_F01, },
+    { .esc = "\x1bOQ", .key = NCKEY_F02, },
+    { .esc = "\x1bOR", .key = NCKEY_F03, },
+    { .esc = "\x1bOS", .key = NCKEY_F04, },
+    { .esc = "\x1b[15~", .key = NCKEY_F05, },
+    { .esc = "\x1b[17~", .key = NCKEY_F06, },
+    { .esc = "\x1b[18~", .key = NCKEY_F07, },
+    { .esc = "\x1b[19~", .key = NCKEY_F08, },
+    { .esc = "\x1b[20~", .key = NCKEY_F09, },
+    { .esc = "\x1b[21~", .key = NCKEY_F10, },
+    { .esc = "\x1b[23~", .key = NCKEY_F11, },
+    { .esc = "\x1b[24~", .key = NCKEY_F12, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
+static int
+prep_all_keys(inputctx* ictx){
+  if(prep_windows_special_keys(ictx)){
+    return -1;
+  }
+  if(prep_kitty_special_keys(ictx)){
+    input_free_esctrie(&ictx->inputescapes);
+    return -1;
+  }
+  return 0;
 }
 
 // populate |buf| with any new data from the specified file descriptor |fd|.
@@ -1234,6 +1406,7 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
+  prep_all_keys(ictx);
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read
@@ -1290,7 +1463,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni,
   // FIXME adjust mouse coordinates for margins
   return ni->id;
   /*
-  uint32_t r = ncinputlayer_prestamp(&nc->tcache, ts, ni,
+  uint32_t r = inputctx_prestamp(&nc->tcache, ts, ni,
                                      nc->margin_l, nc->margin_t);
   if(r != (uint32_t)-1){
     uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
