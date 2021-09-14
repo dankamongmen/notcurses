@@ -84,6 +84,9 @@ typedef enum {
   STATE_CURSOR_COL,    // reading numeric to 'R', 't', 'u', or ';'
   STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
   STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
+  STATE_MOUSE,         // got '<', looking for mouse coordinates
+  STATE_MOUSE2,        // got mouse click modifiers
+  STATE_MOUSE3,        // got first mouse coordinate
 } initstates_e;
 
 // local state for the input thread. don't put this large struct on the stack.
@@ -418,6 +421,41 @@ set_sda_version(inputctx* ictx){
   return buf;
 }
 
+// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters
+static void
+mouse_click(inputctx* ictx){
+  fprintf(stderr, "MOUSE MOUSE: %d %d %d\n", ictx->p2, ictx->p3, ictx->numeric);
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, ictx->p3, ictx->numeric);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  if(ictx->p2 >= 0 && ictx->p2 < 64){
+    if(ictx->p2 % 4 == 3){
+      ni->id = NCKEY_RELEASE;
+    }else{
+      ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
+    }
+  }else if(ictx->p2 >= 64 && ictx->p2 < 128){
+    ni->id = NCKEY_BUTTON4 + (ictx->p2 % 4);
+  }else if(ictx->p2 >= 128 && ictx->p2 < 192){
+    ni->id = NCKEY_BUTTON8 + (ictx->p2 % 4);
+  }
+  ni->ctrl = ictx->p2 & 0x10;
+  ni->alt = ictx->p2 & 0x08;
+  ni->shift = ictx->p2 & 0x04;
+  ni->x = ictx->p3;
+  ni->y = ictx->numeric;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
 // ictx->numeric and ictx->p2 have the two parameters
 static void
 kitty_kbd(inputctx* ictx){
@@ -546,6 +584,8 @@ pump_control_read(inputctx* ictx, unsigned char c){
             ictx->state = STATE_SDA;
           }
         }
+      }else if(c == '<'){
+        ictx->state = STATE_MOUSE;
       }else if(isdigit(c)){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
@@ -555,6 +595,44 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->state = STATE_CURSOR_COL;
         ictx->numeric = 0;
       }else if(c >= 0x40 && c <= 0x7E){
+        ictx->state = STATE_NULL;
+      }
+      break;
+    case STATE_MOUSE:
+      if(isdigit(c)){
+        if(ruts_numeric(&ictx->numeric, c)){
+          return -1;
+        }
+      }else if(c == ';'){
+        ictx->state = STATE_MOUSE2;
+        ictx->p2 = ictx->numeric;
+        ictx->numeric = 0;
+      }else{
+        ictx->state = STATE_NULL;
+      }
+      break;
+    case STATE_MOUSE2:
+      if(isdigit(c)){
+        if(ruts_numeric(&ictx->numeric, c)){
+          return -1;
+        }
+      }else if(c == ';'){
+        ictx->state = STATE_MOUSE3;
+        ictx->p3 = ictx->numeric;
+        ictx->numeric = 0;
+      }else{
+        ictx->state = STATE_NULL;
+      }
+      break;
+    case STATE_MOUSE3:
+      if(isdigit(c)){
+        if(ruts_numeric(&ictx->numeric, c)){
+          return -1;
+        }
+      }else if(c == 'M'){
+        mouse_click(ictx);
+        ictx->state = STATE_NULL;
+      }else{
         ictx->state = STATE_NULL;
       }
       break;
