@@ -48,6 +48,7 @@ struct nctablet;  // grouped item within an ncreel
 struct ncreel;    // hierarchical block-based data browser
 struct nctab;     // grouped item within an nctabbed
 struct nctabbed;  // widget with one tab visible at a time
+struct ncdirect;  // direct mode context
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground. these need be kept in the same
@@ -4033,6 +4034,10 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
 
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
+                           const void* unused, ncinput* ni)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #undef ALLOC
