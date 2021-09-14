@@ -321,70 +321,72 @@ static int
 stash_string(inputctx* ictx){
   struct initial_responses* inits = ictx->initdata;
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
-  switch(ictx->stringstate){
-    case STATE_XTVERSION1:{
-      static const struct {
-        const char* prefix;
-        char suffix;
-        queried_terminals_e term;
-      } xtvers[] = {
-        { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
-        { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
-        { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
-        { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
-        { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
-        { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
-        { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
-        { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
-        { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
-        { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
-      }, *xtv;
-      for(xtv = xtvers ; xtv->prefix ; ++xtv){
-        if(strncmp(ictx->runstring, xtv->prefix, strlen(xtv->prefix)) == 0){
-          if(extract_xtversion(ictx, strlen(xtv->prefix), xtv->suffix) == 0){
-            inits->qterm = xtv->term;
+  if(inits){
+    switch(ictx->stringstate){
+      case STATE_XTVERSION1:{
+        static const struct {
+          const char* prefix;
+          char suffix;
+          queried_terminals_e term;
+        } xtvers[] = {
+          { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
+          { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
+          { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
+          { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
+          { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+          { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
+          { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
+          { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
+          { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
+          { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
+        }, *xtv;
+        for(xtv = xtvers ; xtv->prefix ; ++xtv){
+          if(strncmp(ictx->runstring, xtv->prefix, strlen(xtv->prefix)) == 0){
+            if(extract_xtversion(ictx, strlen(xtv->prefix), xtv->suffix) == 0){
+              inits->qterm = xtv->term;
+            }
+            break;
           }
+        }
+        if(xtv->prefix == NULL){
+          logwarn("Unrecognizable XTVERSION [%s]\n", ictx->runstring);
+        }
+        break;
+      }case STATE_XTGETTCAP_TERMNAME1:
+        if(strcmp(ictx->runstring, "xterm-kitty") == 0){
+          inits->qterm = TERMINAL_KITTY;
+        }else if(strcmp(ictx->runstring, "mlterm") == 0){
+          // MLterm prior to late 3.9.1 only reports via XTGETTCAP
+          inits->qterm = TERMINAL_MLTERM;
+        }
+        break;
+      case STATE_TDA1:
+        if(strcmp(ictx->runstring, "~VTE") == 0){
+          inits->qterm = TERMINAL_VTE;
+        }else if(strcmp(ictx->runstring, "~~TY") == 0){
+          inits->qterm = TERMINAL_TERMINOLOGY;
+        }else if(strcmp(ictx->runstring, "FOOT") == 0){
+          inits->qterm = TERMINAL_FOOT;
+        }
+        break;
+      case STATE_BG1:{
+        int r, g, b;
+        if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
+          // great! =]
+        }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
+          r /= 256;
+          g /= 256;
+          b /= 256;
+        }else{
           break;
         }
-      }
-      if(xtv->prefix == NULL){
-        logwarn("Unrecognizable XTVERSION [%s]\n", ictx->runstring);
-      }
-      break;
-    }case STATE_XTGETTCAP_TERMNAME1:
-      if(strcmp(ictx->runstring, "xterm-kitty") == 0){
-        inits->qterm = TERMINAL_KITTY;
-      }else if(strcmp(ictx->runstring, "mlterm") == 0){
-        // MLterm prior to late 3.9.1 only reports via XTGETTCAP
-        inits->qterm = TERMINAL_MLTERM;
-      }
-      break;
-    case STATE_TDA1:
-      if(strcmp(ictx->runstring, "~VTE") == 0){
-        inits->qterm = TERMINAL_VTE;
-      }else if(strcmp(ictx->runstring, "~~TY") == 0){
-        inits->qterm = TERMINAL_TERMINOLOGY;
-      }else if(strcmp(ictx->runstring, "FOOT") == 0){
-        inits->qterm = TERMINAL_FOOT;
-      }
-      break;
-    case STATE_BG1:{
-      int r, g, b;
-      if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
-        // great! =]
-      }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
-        r /= 256;
-        g /= 256;
-        b /= 256;
-      }else{
+        inits->bg = (r << 16u) | (g << 8u) | b;
         break;
-      }
-      inits->bg = (r << 16u) | (g << 8u) | b;
-      break;
-    }default:
-// don't generally enable this -- XTerm terminates TDA with ST
-//fprintf(stderr, "invalid string [%s] stashed %d\n", inits->runstring, inits->stringstate);
-      break;
+      }default:
+  // don't generally enable this -- XTerm terminates TDA with ST
+  //fprintf(stderr, "invalid string [%s] stashed %d\n", inits->runstring, inits->stringstate);
+        break;
+    }
   }
   ictx->runstring[0] = '\0';
   ictx->stridx = 0;
@@ -451,7 +453,9 @@ pump_control_read(inputctx* ictx, unsigned char c){
       break;
     case STATE_APC:
       if(c == 'G'){
-        ictx->initdata->kitty_graphics = true;
+        if(ictx->initdata){
+          ictx->initdata->kitty_graphics = true;
+        }
       }
       ictx->state = STATE_APC_DRAIN;
       break;
@@ -503,11 +507,13 @@ pump_control_read(inputctx* ictx, unsigned char c){
         // SDA yields up Alacritty's crate version, but it doesn't unambiguously
         // identify Alacritty. If we've got any other version information, skip
         // directly to STATE_SDA_DRAIN, rather than doing STATE_SDA_VER.
-        if(ictx->initdata->qterm || ictx->initdata->version){
-          loginfo("Identified terminal already; ignoring DA2\n");
-          ictx->state = STATE_SDA_DRAIN;
-        }else{
-          ictx->state = STATE_SDA;
+        if(ictx->initdata){
+          if(ictx->initdata->qterm || ictx->initdata->version){
+            loginfo("Identified terminal already; ignoring DA2\n");
+            ictx->state = STATE_SDA_DRAIN;
+          }else{
+            ictx->state = STATE_SDA;
+          }
         }
       }else if(isdigit(c)){
         ictx->numeric = 0;
@@ -562,16 +568,22 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->state = STATE_NULL;
       }else if(c == 't'){
 //fprintf(stderr, "CELLS X: %d\n", ictx->numeric);
-        ictx->initdata->dimx = ictx->numeric;
-        ictx->initdata->dimy = ictx->p2;
+        if(ictx->initdata){
+          ictx->initdata->dimx = ictx->numeric;
+          ictx->initdata->dimy = ictx->p2;
+        }
         ictx->state = STATE_NULL;
       }else if(c == ';'){
         if(ictx->p2 == 4){
-          ictx->initdata->pixy = ictx->numeric;
-          ictx->state = STATE_PIXELS_WIDTH;
+          if(ictx->initdata){
+            ictx->initdata->pixy = ictx->numeric;
+            ictx->state = STATE_PIXELS_WIDTH;
+          }
           ictx->numeric = 0;
         }else if(ictx->p2 == 8){
-          ictx->initdata->dimy = ictx->numeric;
+          if(ictx->initdata){
+            ictx->initdata->dimy = ictx->numeric;
+          }
           ictx->state = STATE_CELLS_WIDTH;
           ictx->numeric = 0;
         }else{
@@ -588,8 +600,10 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
       }else if(c == 't'){
-        ictx->initdata->pixx = ictx->numeric;
-        loginfo("got pixel geometry: %d/%d\n", ictx->initdata->pixy, ictx->initdata->pixx);
+        if(ictx->initdata){
+          ictx->initdata->pixx = ictx->numeric;
+          loginfo("got pixel geometry: %d/%d\n", ictx->initdata->pixy, ictx->initdata->pixx);
+        }
         ictx->state = STATE_NULL;
       }else{
         ictx->state = STATE_NULL;
@@ -601,8 +615,10 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
       }else if(c == 't'){
-        ictx->initdata->dimx = ictx->numeric;
-        loginfo("got cell geometry: %d/%d\n", ictx->initdata->dimy, ictx->initdata->dimx);
+        if(ictx->initdata){
+          ictx->initdata->dimx = ictx->numeric;
+          loginfo("got cell geometry: %d/%d\n", ictx->initdata->dimy, ictx->initdata->dimx);
+        }
         ictx->state = STATE_NULL;
       }else{
         ictx->state = STATE_NULL;
@@ -722,12 +738,14 @@ pump_control_read(inputctx* ictx, unsigned char c){
     case STATE_SDA_VER:
       if(c == ';'){
         ictx->state = STATE_SDA_DRAIN;
-        loginfo("Got DA2 Pv: %u\n", ictx->numeric);
-        // if a version was set, we couldn't have arrived here. alacritty
-        // writes its crate version here, in an encoded form. nothing else
-        // necessarily does, though, so allow failure. this value will be
-        // interpreted as the version only if TERM indicates alacritty.
-        ictx->initdata->version = set_sda_version(ictx);
+        if(ictx->initdata){
+          loginfo("Got DA2 Pv: %u\n", ictx->numeric);
+          // if a version was set, we couldn't have arrived here. alacritty
+          // writes its crate version here, in an encoded form. nothing else
+          // necessarily does, though, so allow failure. this value will be
+          // interpreted as the version only if TERM indicates alacritty.
+          ictx->initdata->version = set_sda_version(ictx);
+        }
       }else if(ruts_numeric(&ictx->numeric, c)){
         return -1;
       }
@@ -807,8 +825,10 @@ pump_control_read(inputctx* ictx, unsigned char c){
         }
       }else if(c == 'S'){
         if(ictx->p2 == 1){
-          ictx->initdata->color_registers = ictx->numeric;
-          loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
+          if(ictx->initdata){
+            ictx->initdata->color_registers = ictx->numeric;
+            loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
+          }
           ictx->numeric = 0;
         }
         ictx->state = STATE_NULL;
@@ -836,9 +856,11 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
       }else if(c == 'S'){
-        ictx->initdata->sixelx = ictx->p4;
-        ictx->initdata->sixely = ictx->numeric;
-        loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
+        if(ictx->initdata){
+          ictx->initdata->sixelx = ictx->p4;
+          ictx->initdata->sixely = ictx->numeric;
+          loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
+        }
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
         if(c == 'c'){
@@ -848,7 +870,9 @@ pump_control_read(inputctx* ictx, unsigned char c){
       break;
     case STATE_APPSYNC_REPORT:
       if(ictx->numeric == '2'){
-        ictx->initdata->appsync_supported = 1;
+        if(ictx->initdata){
+          ictx->initdata->appsync_supported = 1;
+        }
         ictx->state = STATE_APPSYNC_REPORT_DRAIN;
       }
       break;
@@ -1172,6 +1196,23 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
     ++nc->stats.s.input_events;
   }
   return r;
+}
+
+int notcurses_getvec(notcurses* n, const struct timespec* ts,
+                     ncinput* ni, int vcount){
+  for(int v = 0 ; v < vcount ; ++v){
+    // FIXME need to manage ts; right now, we could delay up to ts * vcount!
+    uint32_t u = notcurses_get(n, ts, &ni[v]);
+    if(u == (uint32_t)-1){
+      if(v == 0){
+        return -1;
+      }
+      return v;
+    }else if(u == 0){
+      return v;
+    }
+  }
+  return vcount;
 }
 
 uint32_t ncdirect_get(ncdirect* n, const struct timespec* ts, ncinput* ni){
