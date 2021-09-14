@@ -79,9 +79,9 @@ typedef enum {
   // text area pixel geometry: CSI 4 ; rows ; cols t
   // text area cell geometry: CSI 8 ; rows ; cols t
   // so we handle them the same until we hit either a second semicolon or an
-  // 'R' or 't'. at the second ';', we verify that the first variable was
+  // 'R', 't', or 'u'. at the second ';', we verify that the first variable was
   // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
-  STATE_CURSOR_COL,    // reading col of cursor location to 'R', 't', or ';'
+  STATE_CURSOR_COL,    // reading numeric to 'R', 't', 'u', or ';'
   STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
   STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
 } initstates_e;
@@ -418,6 +418,38 @@ set_sda_version(inputctx* ictx){
   return buf;
 }
 
+// ictx->numeric and ictx->p2 have the two parameters
+static void
+kitty_kbd(inputctx* ictx){
+  assert(ictx->numeric > 0);
+  assert(ictx->p2 > 0);
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  ni->id = ictx->p2;
+  ni->shift = !!((ictx->numeric - 1) & 0x1);
+  ni->alt = !!((ictx->numeric - 1) & 0x2);
+  ni->ctrl = !!((ictx->numeric - 1) & 0x4);
+  // FIXME decode remaining modifiers through 128
+  // standard keyboard protocol reports ctrl+ascii as the capital form,
+  // so (for now) conform with kitty protocol...
+  if(ni->id < 128 && islower(ni->id) && ni->ctrl){
+    ni->id = toupper(ni->id);
+  }
+  ni->x = 0;
+  ni->y = 0;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
 // FIXME ought implement the full Williams automaton
 // FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
@@ -560,6 +592,10 @@ pump_control_read(inputctx* ictx, unsigned char c){
           ictx->initdata->dimx = ictx->numeric;
           ictx->initdata->dimy = ictx->p2;
         }
+        ictx->state = STATE_NULL;
+      }else if(c == 'u'){
+        // kitty keyboard protocol
+        kitty_kbd(ictx);
         ictx->state = STATE_NULL;
       }else if(c == ';'){
         if(ictx->p2 == 4){
@@ -926,6 +962,10 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
 static int
 process_input(const unsigned char* buf, int buflen, ncinput* ni){
   memset(ni, 0, sizeof(*ni));
+  if(buf[0] == 0x7f){ // ASCII del, treated as backspace
+    ni->id = NCKEY_BACKSPACE;
+    return 1;
+  }
   if(buf[0] < 0x80){ // pure ascii can't show up mid-utf8
     ni->id = buf[0];
     return 1;
