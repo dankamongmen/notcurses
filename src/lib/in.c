@@ -1089,7 +1089,7 @@ block_on_input(inputctx* ictx){
   struct timespec* ts = NULL; // FIXME
 #ifdef __MINGW64__
 	int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
-	DWORD d = WaitForMultipleObjects(1, &ti->inhandle, FALSE, timeoutms);
+	DWORD d = WaitForMultipleObjects(1, &ictx->stdinhandle, FALSE, timeoutms);
 	if(d == WAIT_TIMEOUT){
 		return 0;
 	}else if(d == WAIT_FAILED){
