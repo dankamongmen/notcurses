@@ -81,7 +81,6 @@ typedef enum {
   // so we handle them the same until we hit either a second semicolon or an
   // 'R' or 't'. at the second ';', we verify that the first variable was
   // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
-  STATE_CURSOR_OR_PIXELGEOM, // reading row of cursor location to ';'
   STATE_CURSOR_COL,    // reading col of cursor location to 'R', 't', or ';'
   STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
   STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
@@ -516,17 +515,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
           }
         }
       }else if(isdigit(c)){
-        ictx->numeric = 0;
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-        ictx->state = STATE_CURSOR_OR_PIXELGEOM;
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_CURSOR_OR_PIXELGEOM:
-      if(isdigit(c)){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
         }
@@ -534,7 +522,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->p2 = ictx->numeric;
         ictx->state = STATE_CURSOR_COL;
         ictx->numeric = 0;
-      }else{
+      }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
       }
       break;
@@ -778,7 +766,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
       }else if(c == 'u'){ // kitty keyboard
-        loginfo("keyboard protocol 0x%x\n", ictx->numeric);
+        loginfo("keyboard protocol level 0x%x\n", ictx->numeric);
         ictx->state = STATE_NULL;
       }else if(c == ';'){
         ictx->p2 = ictx->numeric;
