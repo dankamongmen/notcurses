@@ -1290,8 +1290,12 @@ int get_cursor_location(struct inputctx* ictx, int* y, int* x){
     ictx->cread = 0;
   }
   --ictx->cvalid;
-  *y = cloc->y;
-  *x = cloc->x;
+  if(y){
+    *y = cloc->y;
+  }
+  if(x){
+    *x = cloc->x;
+  }
   pthread_mutex_unlock(&ictx->clock);
   return 0;
 }

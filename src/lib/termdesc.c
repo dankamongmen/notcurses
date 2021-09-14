@@ -1059,11 +1059,6 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
   }
   get_cursor_location(ti->ictx, cursor_y, cursor_x);
   loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
-  if(ti->inverted_cursor){
-    int tmp = *cursor_y;
-    *cursor_y = *cursor_x;
-    *cursor_x = tmp;
-  }
   return 0;
 }
 

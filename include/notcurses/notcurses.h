@@ -4036,6 +4036,10 @@ __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
+API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
+                            const void* unused, ncinput* ni)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
 API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
                            const void* unused, ncinput* ni)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));

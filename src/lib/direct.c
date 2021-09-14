@@ -179,77 +179,12 @@ int ncdirect_cursor_disable(ncdirect* nc){
 }
 
 static int
-cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
+cursor_yx_get(struct inputctx* ictx, int ttyfd, const char* u7, int* y, int* x){
   if(tty_emit(u7, ttyfd)){
     return -1;
   }
-  bool done = false;
-  enum { // what we expect now
-    CURSOR_ESC, // 27 (0x1b)
-    CURSOR_LSQUARE,
-    CURSOR_ROW, // delimited by a semicolon
-    CURSOR_COLUMN,
-    CURSOR_R,
-  } state = CURSOR_ESC;
-  int row = 0, column = 0;
-  int r;
-  char in;
-  do{
-#ifndef __MINGW64__
-    while((r = read(ttyfd, &in, 1)) == 1){
-#else
-    while((r = getc(stdin)) >= 0){ // FIXME
-      in = r;
-#endif
-      bool valid = false;
-      switch(state){
-        case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
-        case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
-        case CURSOR_ROW:
-          if(isdigit(in)){
-            row *= 10;
-            row += in - '0';
-            valid = true;
-          }else if(in == ';'){
-            state = CURSOR_COLUMN;
-            valid = true;
-          }
-          break;
-        case CURSOR_COLUMN:
-          if(isdigit(in)){
-            column *= 10;
-            column += in - '0';
-            valid = true;
-          }else if(in == 'R'){
-            state = CURSOR_R;
-            valid = true;
-          }
-          break;
-        case CURSOR_R: default: // logical error, whoops
-          break;
-      }
-      if(!valid){
-        logerror("Unexpected result (%c, %d) from terminal\n", in, in);
-        break;
-      }
-      if(state == CURSOR_R){
-        done = true;
-        break;
-      }
-    }
-    // need to loop 0 to handle slow terminals, see for instance screen =[
-  }while(!done && (r >= 0 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
-  if(!done){
-    logerror("Error reading cursor location\n");
-    return -1;
-  }
-  if(y){
-    *y = row;
-  }
-  if(x){
-    *x = column;
-  }
-  loginfo("cursor at y=%d x=%d\n", row, column);
+  get_cursor_location(ictx, y, x);
+  loginfo("cursor at y=%d x=%d\n", *y, *x);
   return 0;
 }
 
@@ -266,7 +201,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+      if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -276,7 +211,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ttyfd, u7, NULL, &x)){
+      if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -295,6 +230,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1; // we will not be moving the cursor today
 }
 
+/*
 // an algorithm to detect inverted cursor reporting on terminals 2x2 or larger:
 //  * get initial cursor position / push cursor position
 //  * move right using cursor-independent routines
@@ -408,6 +344,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
   // of ttyfd, as needed by cursor interrogation.
   return detect_cursor_inversion(n, u7, toty, totx, y, x);
 }
+*/
 
 // no terminfo capability for this. dangerous--it involves writing controls to
 // the terminal, and then reading a response. many things can distupt this
@@ -444,24 +381,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!x){
     x = &xval;
   }
-  if(!n->tcache.detected_cursor_inversion){
-    ret = detect_cursor_inversion_wrapper(n, u7, y, x);
-  }else{
-    ret = cursor_yx_get(n->tcache.ttyfd, u7, y, x);
-  }
-  if(ret == 0){
-    if(n->tcache.inverted_cursor){
-      int tmp = *y;
-      *y = *x;
-      *x = tmp;
-    }else{
-      // we use 0-based coordinates, but known terminals use 1-based
-      // coordinates. the only known exception is kmscon, which is
-      // incidentally the only one which inverts its response.
-      --*y;
-      --*x;
-    }
-  }
+  ret = cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, y, x);
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             n->tcache.ttyfd, strerror(errno)); // don't return error for this
@@ -510,7 +430,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   if(np->sprite){
     int y;
     const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
-    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+    if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
     if(ncdirect_cursor_move_yx(n, y, xoff)){
@@ -525,7 +445,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(fbuf_init(&f)){
       return -1;
     }
-    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+    if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
     if(toty - dimy < y){

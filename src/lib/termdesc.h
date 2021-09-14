@@ -182,10 +182,6 @@ typedef struct tinfo {
   HANDLE outhandle;
 #endif
 
-  // some terminals (e.g. kmscon) return cursor coordinates inverted from the
-  // typical order. we detect it the first time ncdirect_cursor_yx() is called.
-  bool detected_cursor_inversion; // have we performed inversion testing?
-  bool inverted_cursor;      // does the terminal return inverted coordinates?
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;
