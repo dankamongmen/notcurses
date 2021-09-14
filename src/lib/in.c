@@ -596,7 +596,6 @@ set_sda_version(inputctx* ictx){
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters
 static void
 mouse_click(inputctx* ictx){
-  fprintf(stderr, "MOUSE MOUSE: %d %d %d\n", ictx->p2, ictx->p3, ictx->numeric);
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -640,7 +639,9 @@ kitty_kbd(inputctx* ictx){
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = ictx->p2;
+  if((ni->id = ictx->p2) == 0x7f){
+    ni->id = NCKEY_BACKSPACE;
+  }
   ni->shift = !!((ictx->numeric - 1) & 0x1);
   ni->alt = !!((ictx->numeric - 1) & 0x2);
   ni->ctrl = !!((ictx->numeric - 1) & 0x4);
