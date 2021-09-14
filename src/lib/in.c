@@ -970,7 +970,22 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     ni->id = buf[0];
     return 1;
   }
-  // FIXME extract supraascii UTF8, modifiers, mice
+  int cpointlen = 0;
+  wchar_t w;
+  mbstate_t mbstate;
+  while(++cpointlen <= (int)MB_CUR_MAX && cpointlen < buflen){
+//fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
+    // FIXME how the hell does this work with 16-bit wchar_t?
+    memset(&mbstate, 0, sizeof(mbstate));
+    size_t r;
+    if((r = mbrtowc(&w, (const char*)buf, cpointlen + 1, &mbstate)) != (size_t)-1 &&
+        r != (size_t)-2){
+      ni->id = w;
+      return cpointlen + 1;
+    }
+  }
+  // FIXME input error stat
+  // FIXME extract modifiers, mice
   return 0;
 }
 
