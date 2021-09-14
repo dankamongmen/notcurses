@@ -155,7 +155,7 @@ int fission_demo(struct notcurses* nc){
             ncplane_resize_simple(n, newy, newx);
             continue;
           }
-          cell c = CELL_TRIVIAL_INITIALIZER;
+          nccell c = CELL_TRIVIAL_INITIALIZER;
           uint16_t smask;
           uint64_t channels;
           char* egc = ncplane_at_yx(stdn, usey, usex, &smask, &channels);

@@ -74,7 +74,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
 // lacked animation, and must thus redraw the complete image every time it
 // changes. requires the older interface.
 static inline void
-setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
+setup_kitty_bitmaps(tinfo* ti, int fd, ncpixelimpl_e level){
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
@@ -85,7 +85,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
   ti->pixel_scroll = NULL;
   ti->pixel_shutdown = kitty_shutdown;
   ti->pixel_clear_all = kitty_clear_all;
-  if(level == KITTY_ALWAYS_SCROLLS){
+  if(level == NCPIXEL_KITTY_STATIC){
     ti->pixel_wipe = kitty_wipe;
     ti->pixel_trans_auxvec = kitty_trans_auxvec;
     ti->pixel_rebuild = kitty_rebuild;
@@ -93,7 +93,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, kitty_graphics_e level){
     set_pixel_blitter(kitty_blit);
     ti->pixel_implementation = NCPIXEL_KITTY_STATIC;
   }else{
-    if(level == KITTY_ANIMATION){
+    if(level == NCPIXEL_KITTY_ANIMATED){
       ti->pixel_wipe = kitty_wipe_animation;
       ti->pixel_rebuild = kitty_rebuild_animation;
       ti->sixel_maxy_pristine = 0;
@@ -526,11 +526,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       return -1;
     }
     /*if(compare_versions(ti->termversion, "0.22.1") >= 0){
-      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_SELFREF);
+      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_SELFREF);
     }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
-      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
+      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
     }else{
-      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ALWAYS_SCROLLS);
+      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
     }
     if(add_pushcolors_escapes(ti, tablelen, tableused)){
       return -1;
@@ -981,7 +981,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
     if(kitty_graphics){
-      setup_kitty_bitmaps(ti, ti->ttyfd, KITTY_ANIMATION);
+      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
     }
     // our current sixel quantization algorithm requires at least 64 color
     // registers. we make use of no more than 256. this needs to happen

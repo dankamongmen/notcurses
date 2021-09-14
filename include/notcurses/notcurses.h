@@ -905,6 +905,9 @@ typedef enum {
 // eventually preventing Notcurses from processing terminal messages.
 #define NCOPTION_DRAIN_INPUT         0x0100ull
 
+// "CLI mode" is just NCOPTION_NO_CLEAR_BITMAPS | NCOPTION_NO_ALTERNATE_SCREEN |
+// NCOPTION_PRESERVE_CURSOR, plus enabling scrolling on the standard plane.
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,
@@ -1441,9 +1444,19 @@ typedef enum {
   NCPIXEL_SIXEL,           // sixel
   NCPIXEL_LINUXFB,         // linux framebuffer
   NCPIXEL_ITERM2,          // iTerm2
-  NCPIXEL_KITTY_STATIC,    // kitty prior to C=1 and animation
-  NCPIXEL_KITTY_ANIMATED,  // kitty with animation but not selfref
-  NCPIXEL_KITTY_SELFREF,   // kitty with reflexive composition
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  NCPIXEL_KITTY_STATIC,
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  NCPIXEL_KITTY_ANIMATED,
+  // with 0.22.0, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  NCPIXEL_KITTY_SELFREF,
 } ncpixelimpl_e;
 
 // Can we blit pixel-accurate bitmaps?
@@ -3964,237 +3977,14 @@ API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
 
 // DEPRECATED MATERIAL, GOING AWAY IN ABI3
 
-__attribute__ ((deprecated)) static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  return ncplane_halign(n, align, c);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_init(nccell* c){
-  nccell_init(c);
-}
-
-__attribute__ ((deprecated)) API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
-// nccell_load(), plus blast the styling with 'attr' and 'channels'.
-
-__attribute__ ((deprecated)) static inline int
-cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
-           uint32_t stylemask, uint64_t channels){
-  return nccell_prime(n, c, gcluster, stylemask, channels);
-}
-
 __attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 
 __attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
-
-// replaced by ncvisual_media_defblitter(). this original version never returns
-// NCBLIT_3x2. deprecated, going away in ABI3.
-__attribute__ ((deprecated)) static inline ncblitter_e
-ncvisual_default_blitter(bool utf8, ncscale_e scale){
-  if(utf8){
-    // NCBLIT_3x2/NCBLIT_2x2 are better image quality, especially for large
-    // images, but not the general default because they doesn't preserve
-    // aspect ratio (as does NCBLIT_2x1). NCSCALE_STRETCH throws away aspect
-    // ratio, and can safely use NCBLIT_3x2/2x2.
-    if(scale == NCSCALE_STRETCH){
-      return NCBLIT_3x2;
-    }
-    return NCBLIT_2x1;
-  }
-  return NCBLIT_1x1;
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_styles(nccell* c, unsigned stylebits){
-  nccell_set_styles(c, stylebits);
-}
-
-// Extract the style bits from the nccell.
-__attribute__ ((deprecated)) static inline unsigned
-cell_styles(const nccell* c){
-  return nccell_styles(c);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_on_styles(nccell* c, unsigned stylebits){
-  nccell_on_styles(c, stylebits);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_off_styles(nccell* c, unsigned stylebits){
-  nccell_off_styles(c, stylebits);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_fg_default(nccell* c){
-  nccell_set_fg_default(c);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_bg_default(nccell* c){
-  nccell_set_bg_default(c);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_alpha(nccell* c, int alpha){
-  return nccell_set_fg_alpha(c, alpha);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_alpha(nccell* c, int alpha){
-  return nccell_set_bg_alpha(c, alpha);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_double_wide_p(const nccell* c){
-  return nccell_double_wide_p(c);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_wide_right_p(const nccell* c){
-  return nccell_wide_right_p(c);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_wide_left_p(const nccell* c){
-  return nccell_wide_left_p(c);
-}
-
-__attribute__ ((deprecated)) API const char*
-cell_extended_gcluster(const struct ncplane* n, const nccell* c);
-
-__attribute__ ((deprecated)) ALLOC static inline char*
-cell_strdup(const struct ncplane* n, const nccell* c){
-  return nccell_strdup(n, c);
-}
-
-__attribute__ ((deprecated)) static inline char*
-cell_extract(const struct ncplane* n, const nccell* c,
-             uint16_t* stylemask, uint64_t* channels){
-  return nccell_extract(n, c, stylemask, channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
-        const struct ncplane* n2, const nccell* RESTRICT c2){
-  return nccellcmp(n1, c1, n2, c2);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_load_char(struct ncplane* n, nccell* c, char ch){
-  return nccell_load_char(n, c, ch);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
-  return nccell_load_egc32(n, c, egc);
-}
 
 // This function will be removed in ABI3 in favor of ncplane_create().
 // It persists in ABI2 only for backwards compatibility.
 API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
   __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_rgb(const nccell* cl){
-  return nccell_fg_rgb(cl);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_rgb(const nccell* cl){
-  return nccell_bg_rgb(cl);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_alpha(const nccell* cl){
-  return nccell_fg_alpha(cl);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_alpha(const nccell* cl){
-  return nccell_bg_alpha(cl);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return nccell_fg_rgb8(cl, r, g, b);
-}
-
-// Extract 24 bits of background RGB from 'cl', split into components.
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return nccell_bg_rgb8(cl, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
-  return nccell_set_fg_rgb8(cl, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  nccell_set_fg_rgb8_clipped(cl, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_rgb(nccell* c, uint32_t channel){
-  return nccell_set_fg_rgb(c, channel);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_palindex(nccell* cl, int idx){
-  return nccell_set_fg_palindex(cl, idx);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_palindex(const nccell* cl){
-  return nccell_fg_palindex(cl);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
-  return nccell_set_bg_rgb8(cl, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  nccell_set_bg_rgb8_clipped(cl, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_rgb(nccell* c, uint32_t channel){
-  return nccell_set_bg_rgb(c, channel);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_palindex(nccell* cl, int idx){
-  return nccell_set_bg_palindex(cl, idx);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_palindex(const nccell* cl){
-  return nccell_bg_palindex(cl);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_fg_default_p(const nccell* cl){
-  return nccell_fg_default_p(cl);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_fg_palindex_p(const nccell* cl){
-  return nccell_fg_palindex_p(cl);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_bg_default_p(const nccell* cl){
-  return nccell_bg_default_p(cl);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_bg_palindex_p(const nccell* cl){
-  return nccell_bg_palindex_p(cl);
-}
 
 API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
   __attribute__ ((deprecated));
@@ -4213,21 +4003,6 @@ cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                  nccell* ul, nccell* ur, nccell* ll,
                  nccell* lr, nccell* hl, nccell* vl);
 
-// Deprecated in favor of ncplane_as_rgba. This will be removed in ABI3.
-ALLOC __attribute__ ((deprecated)) __attribute__ ((nonnull (1)))
-static inline uint32_t*
-ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
-             int begy, int begx, int leny, int lenx){
-  return ncplane_as_rgba(n, blit, begy, begx, leny, lenx, NULL, NULL);
-}
-
-__attribute__ ((deprecated)) static inline int
-ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
-              const struct ncvisual_options* vopts,
-              int* y, int* x, int* scaley, int* scalex){
-  return ncvisual_blitter_geom(nc, n, vopts, y, x, scaley, scalex, NULL);
-}
-
 // Deprecated form of nctablet_plane().
 API struct ncplane* nctablet_ncplane(struct nctablet* t)
   __attribute__ ((deprecated));
@@ -4237,21 +4012,6 @@ API ALLOC ncpalette* palette256_new(struct notcurses* nc)
 
 API int palette256_use(struct notcurses* nc, const ncpalette* p)
   __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) static inline int
-palette256_set_rgb8(ncpalette* p, int idx, int r, int g, int b){
-  return ncpalette_set_rgb8(p, idx, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline int
-palette256_set(ncpalette* p, int idx, unsigned rgb){
-  return ncpalette_set(p, idx, rgb);
-}
-
-__attribute__ ((deprecated)) static inline int
-palette256_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
-  return ncpalette_get_rgb8(p, idx, r, g, b);
-}
 
 API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
 
@@ -4267,8 +4027,6 @@ API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buf
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
   __attribute__ ((deprecated));
 
-typedef nccell cell; // FIXME backwards-compat, remove in ABI3
-
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
 
@@ -4276,17 +4034,6 @@ __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const
 
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-#define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
-#define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT
-#define CELL_ALPHA_BLEND        NCALPHA_BLEND
-#define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
-#define NCSTYLE_PROTECT  0
-#define NCSTYLE_STANDOUT 0
-#define NCSTYLE_REVERSE  0
-#define NCSTYLE_INVIS    0
-#define NCSTYLE_DIM      0
-#define NCSTYLE_BLINK    0
 
 #undef ALLOC
 #undef API

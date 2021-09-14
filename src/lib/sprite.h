@@ -208,22 +208,6 @@ void sixel_refresh(const struct ncpile* p, sprixel* s);
 int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start,
                  sprixel_e state);
 
-typedef enum {
-  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
-  // time as animation. prior to this, graphics had to be entirely redrawn
-  // on any change, and it wasn't possible to use the bottom line.
-  KITTY_ALWAYS_SCROLLS,
-  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
-  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
-  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
-  // the auxvec on the fly.
-  KITTY_ANIMATION,
-  // with 0.22.0, we only ever write transparent cells after writing the
-  // original image (which we now deflate, since we needn't unpack it later).
-  // the only data we need keep is the auxvecs.
-  KITTY_SELFREF,
-} kitty_graphics_e;
-
 #ifdef __cplusplus
 }
 #endif

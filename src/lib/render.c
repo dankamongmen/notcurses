@@ -4,6 +4,49 @@
 #include <notcurses/direct.h>
 #include "internal.h"
 
+static nccell*
+restripe_lastframe(notcurses* nc, int rows, int cols){
+  assert(rows);
+  assert(cols);
+  const size_t size = sizeof(*nc->lastframe) * (rows * cols);
+  nccell* tmp = malloc(size);
+  if(tmp == NULL){
+    return NULL;
+  }
+  size_t maxlinecopy = sizeof(nccell) * (nc->lfdimx > cols ? cols : nc->lfdimx);
+  size_t minlineset = sizeof(nccell) * cols - maxlinecopy;
+  unsigned zorch = nc->lfdimx > cols ? nc->lfdimx - cols : 0;
+  for(int y = 0 ; y < rows ; ++y){
+    if(y < nc->lfdimy){
+      if(maxlinecopy){
+        memcpy(&tmp[cols * y], &nc->lastframe[nc->lfdimx * y], maxlinecopy);
+      }
+      if(minlineset){
+        memset(&tmp[cols * y + maxlinecopy / sizeof(nccell)], 0, minlineset);
+      }
+      // excise any egcpool entries from the right of the new plane area
+      if(zorch){
+        for(unsigned x = maxlinecopy ; x < maxlinecopy + zorch ; ++x){
+          pool_release(&nc->pool, &nc->lastframe[fbcellidx(y, nc->lfdimx, x)]);
+        }
+      }
+    }else{
+      memset(&tmp[cols * y], 0, sizeof(nccell) * cols);
+    }
+  }
+  // excise any egcpool entries from below the new plane area
+  for(int y = rows ; y < nc->lfdimy ; ++y){
+    for(int x = 0 ; x < nc->lfdimx ; ++x){
+      pool_release(&nc->pool, &nc->lastframe[fbcellidx(y, nc->lfdimx, x)]);
+    }
+  }
+  free(nc->lastframe);
+  nc->lastframe = tmp;
+  nc->lfdimy = rows;
+  nc->lfdimx = cols;
+  return 0;
+}
+
 // Check whether the terminal geometry has changed, and if so, copy what can
 // be copied from the old lastframe. Assumes that the screen is always anchored
 // at the same origin. Initiates a resize cascade for the pile containing |pp|.
@@ -35,18 +78,9 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
     *cols = 1;
   }
   if(*rows != n->lfdimy || *cols != n->lfdimx){
-    n->lfdimy = *rows;
-    n->lfdimx = *cols;
-    const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
-    nccell* fb = realloc(n->lastframe, size);
-    if(fb == NULL){
+    if(restripe_lastframe(n, *rows, *cols)){
       return -1;
     }
-    n->lastframe = fb;
-    // FIXME more memset()tery than we need, both wasting work and wrecking
-    // damage detection for the upcoming render
-    memset(n->lastframe, 0, size);
-    egcpool_dump(&n->pool);
   }
 //fprintf(stderr, "r: %d or: %d c: %d oc: %d\n", *rows, oldrows, *cols, oldcols);
   if(*rows == oldrows && *cols == oldcols){
@@ -56,6 +90,12 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   pile->dimx = *cols;
   int ret = 0;
 //notcurses_debug(n, stderr);
+  // if this pile contains the standard plane, it ought be resized to match
+  // the viewing area before invoking any other resize callbacks.
+  if(ncplane_pile(notcurses_stdplane(n)) == pile){
+    ncplane_resize_maximize(notcurses_stdplane(n));
+  }
+  // now, begin a resize callback cascade on the root planes of the pile.
   for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){
     if(rootn->resizecb){
       ret |= rootn->resizecb(rootn);

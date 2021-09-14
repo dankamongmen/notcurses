@@ -1,10 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.1 (not yet released)
-  * `notcurses_check_pixel_support()` still returns 0 if there is no support
-    for bitmap graphics, but now returns an `ncpixelimple_e` to differentiate
-    the pixel backend otherwise. This result is strictly informative.
+* 2.4.2 (not yet released)
+  * You can now set a resize callback on the standard plane.
+  * Added `notcurses_getvec()`, providing batched input.
   * Added `NCOPTION_DRAIN_INPUT`. Notcurses now launches a thread to process
     input, so that it can respond to terminal messages with minimal latency.
     Input read from `stdin` intended for the client is buffered until
@@ -13,6 +12,14 @@ rearrangements of Notcurses.
     retrieve terminal messages (if buffers are full, Notcurses cannot
     continue reading). Likewise added `NCDIRECT_OPTION_DRAIN_INPUT`.
   * Removed a bunch of deprecated `static inline` functions from the headers.
+
+* 2.4.1 (2021-09-12)
+  * `notcurses_check_pixel_support()` still returns 0 if there is no support
+    for bitmap graphics, but now returns an `ncpixelimple_e` to differentiate
+    the pixel backend otherwise. This result is strictly informative.
+  * Added `ncstrwidth_valid()`, which is like `ncstrwidth()` except that it
+    returns partial results in the case of an invalid character. `ncstrwidth()`
+    will become a `static line` wrapper of `ncstrwidth_valid()` in ABI3.
 
 * 2.4.0 (2021-09-06)
   * Mouse events in the Linux console are now reported from GPM when built

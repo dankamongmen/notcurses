@@ -196,7 +196,7 @@ pub const NCLOGLEVEL_VERBOSE: NcLogLevel = crate::bindings::ffi::ncloglevel_e_NC
 /// you probably don't want what's happening to happen
 pub const NCLOGLEVEL_WARNING: NcLogLevel = crate::bindings::ffi::ncloglevel_e_NCLOGLEVEL_WARNING;
 
-// NcAlign -- ------------------------------------------------------------------
+// NcAlign ---------------------------------------------------------------------
 
 /// Alignment within a plane or terminal.
 /// Left/right-justified, or centered.

@@ -301,17 +301,31 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
+// does this auxvec correspond to a sprixcell which was nulled out during the
+// blitting of the frame (can only happen with a multiframe that's seen some
+// wiping)?
+static inline unsigned
+kitty_anim_auxvec_blitsource_p(const sprixel* s, const uint8_t* auxvec){
+  const size_t offset = s->cellpxy * s->cellpxx * 4;
+  if(auxvec[offset]){
+    return 1;
+  }
+  return 0;
+}
+
 // an animation auxvec requires storing all the pixel data for the cell,
 // instead of just the alpha channel. pass the start of the RGBA to be
 // copied, and the rowstride. dimy and dimx are the source image's total
 // size in pixels. posy and posx are the origin of the cell to be copied,
 // again in pixels. data is the image source. around the edges, we might
-// get truncated regions.
+// get truncated regions. we also need to store a final byte indicating
+// whether the null write originated in blitting or wiping, as that affects
+// our rebuild animation.
 static inline void*
 kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
                   int cellpxy, int cellpxx, const uint32_t* data,
                   int rowstride, uint8_t* existing, uint32_t transcolor){
-  const size_t slen = 4 * cellpxy * cellpxx;
+  const size_t slen = 4 * cellpxy * cellpxx + 1;
   uint32_t* a = existing ? existing : malloc(slen);
   if(a){
     for(int y = posy ; y < posy + cellpxy && y < dimy ; ++y){
@@ -334,6 +348,7 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
       }
     }
   }
+  ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   return a;
 }
 
@@ -397,6 +412,9 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
     return -1;
   }
+  int tamidx = ycell * s->dimx + xcell;
+  uint8_t* auxvec = s->n->tam[tamidx].auxvector;
+  auxvec[s->cellpxx * s->cellpxy * 4] = 0;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -644,10 +662,10 @@ add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[s
 
 // writes to |*animated| based on normalized |level|
 static int
-prep_deflator(kitty_graphics_e level, z_stream* zctx, int pixy, int pixx,
+prep_deflator(ncpixelimpl_e level, z_stream* zctx, int pixy, int pixx,
               unsigned* animated){
   memset(zctx, 0, sizeof(*zctx));
-  if(level >= KITTY_ANIMATION){
+  if(level >= NCPIXEL_KITTY_ANIMATED){
     int zret;
     // 2 seems to work well for things that are going to compress up
     // meaningfully at all, while not taking too much time.
@@ -679,12 +697,12 @@ destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
   }
 }
 
-// if we're KITTY_SELFREF, and we're blitting a secondary frame, we need
+// if we're NCPIXEL_KITTY_SELFREF, and we're blitting a secondary frame, we need
 // carry through the TAM's annihilation entires...but we also need load the
 // frame *without* annihilations, lest we be unable to build it. we thus go
 // back through the TAM following a selfref blit, and any sprixcells which
 // are annihilated will have their annhilation appended to the main blit.
-// ought only be called for KITTY_SELFREF.
+// ought only be called for NCPIXEL_KITTY_SELFREF.
 static int
 finalize_multiframe_selfref(sprixel* s, fbuf* f){
   int prewiped = 0;
@@ -711,7 +729,7 @@ finalize_multiframe_selfref(sprixel* s, fbuf* f){
 static int
 write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
-                 tament* tam, int* parse_start, kitty_graphics_e level){
+                 tament* tam, int* parse_start, ncpixelimpl_e level){
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     logerror("Stride (%d) badly aligned\n", linesize);
@@ -740,7 +758,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   char out[17]; // three pixels base64 to no more than 17 bytes
   // set high if we are (1) reloading a frame with (2) annihilated cells copied over
-  // from the TAM and (3) we are KITTY_SELFREF. calls finalize_multiframe_selfref().
+  // from the TAM and (3) we are NCPIXEL_KITTY_SELFREF. calls finalize_multiframe_selfref().
   bool selfref_annihilated = false;
   while(chunks--){
     // q=2 has been able to go on chunks other than the last chunk since
@@ -796,7 +814,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
         // data in them. on the first pixel of the cell, ditch the previous
         // auxvec in its entirety, and copy over the entire cell.
         if(x % cdimx == 0 && y % cdimy == 0){
-          if(level == KITTY_ANIMATION){
+          if(level == NCPIXEL_KITTY_ANIMATED){
             uint8_t* tmp;
             tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
                                     data, linesize, tam[tyx].auxvector,
@@ -805,7 +823,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
               goto err;
             }
             tam[tyx].auxvector = tmp;
-          }else if(level == KITTY_SELFREF){
+          }else if(level == NCPIXEL_KITTY_SELFREF){
             if(tam[tyx].auxvector == NULL){
               tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
               if(tam[tyx].auxvector == NULL){
@@ -823,25 +841,26 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             const int vyx = (y % cdimy) * cdimx + (x % cdimx);
             tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
             wipe[e] = 1;
-          }else if(level == KITTY_SELFREF){
+          }else if(level == NCPIXEL_KITTY_SELFREF){
             selfref_annihilated = true;
           }else{
+            tam[tyx].auxvector[s->cellpxx * s->cellpxy * 4] = 1;
             wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
             ncpixel_set_a(&source[e], 0); // in case it was transcolor
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
-              if(level == KITTY_SELFREF){
+              if(level == NCPIXEL_KITTY_SELFREF){
                 *tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
               }
-            }else if(level == KITTY_SELFREF && tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
+            }else if(level == NCPIXEL_KITTY_SELFREF && tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
                 *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
           }else{
-            if(x % cdimx == 0 && y % cdimy == 0 && level == KITTY_SELFREF){
+            if(x % cdimx == 0 && y % cdimy == 0 && level == NCPIXEL_KITTY_SELFREF){
               *tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
-            }else if(level == KITTY_SELFREF && *tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
+            }else if(level == NCPIXEL_KITTY_SELFREF && *tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
               *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
             tam[tyx].state = SPRIXCELL_ANNIHILATED;
@@ -950,9 +969,11 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
   while(chunks--){
     if(totalout == 0){
-      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,%s;",
+      const int c = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 2 : 1;
+      const int r = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 1 : 2;
+      if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,c=%d,r=%d,%s;",
                      xcell * s->cellpxx, ycell * s->cellpxy, xlen, ylen,
-                     s->id, chunks ? "m=1" : "q=2") < 0){
+                     s->id, c, r, chunks ? "m=1" : "q=2") < 0){
         return -1;
       }
     }else{
@@ -1030,7 +1051,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
 static inline int
 kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
-                const blitterargs* bargs, kitty_graphics_e level){
+                const blitterargs* bargs, ncpixelimpl_e level){
 //fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
@@ -1061,7 +1082,7 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
                       bargs, tam, &parse_start, level)){
     goto error;
   }
-  if(level == KITTY_ALWAYS_SCROLLS){
+  if(level == NCPIXEL_KITTY_STATIC){
     s->animating = false;
   }
   // take ownership of |buf| and |tam| on success.
@@ -1081,19 +1102,19 @@ error:
 int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs){
   return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
-                         KITTY_ALWAYS_SCROLLS);
+                         NCPIXEL_KITTY_STATIC);
 }
 
 int kitty_blit_animated(ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const blitterargs* bargs){
   return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
-                         KITTY_ANIMATION);
+                         NCPIXEL_KITTY_ANIMATED);
 }
 
 int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
                        int leny, int lenx, const blitterargs* bargs){
   return kitty_blit_core(n, linesize, data, leny, lenx, bargs,
-                         KITTY_SELFREF);
+                         NCPIXEL_KITTY_SELFREF);
 }
 
 int kitty_remove(int id, fbuf* f){
