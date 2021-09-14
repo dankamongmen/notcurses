@@ -942,7 +942,6 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     ni->id = buf[0];
     return 1;
   }
-  fprintf(stderr, "wanna parse us up an input! %d\n", buflen);
   // FIXME extract supraascii UTF8, modifiers, mice
   return 0;
 }
@@ -951,17 +950,22 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
 // sticks that into the bulk queue.
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
+  pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == sizeof(ictx->ivalid)){
+    pthread_mutex_unlock(&ictx->ilock);
     logwarn("blocking on input output queue (%d+%d)\n", ictx->ivalid, buflen);
     return 0;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
   int r = process_input(buf, buflen, ni);
   if(r > 0){
-    if(++ictx->iwrite == sizeof(ictx->ivalid)){
+    if(++ictx->iwrite == ictx->isize){
       ictx->iwrite = 0;
     }
+    ++ictx->ivalid;
   }
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
   return r;
 }
 
@@ -1160,6 +1164,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni,
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
   }
+  --ictx->ivalid;
   pthread_mutex_unlock(&ictx->ilock);
   // FIXME adjust mouse coordinates for margins
   return ni->id;
@@ -1198,6 +1203,7 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
   return r;
 }
 
+// FIXME better performance if we move this within the locked area
 int notcurses_getvec(notcurses* n, const struct timespec* ts,
                      ncinput* ni, int vcount){
   for(int v = 0 ; v < vcount ; ++v){
