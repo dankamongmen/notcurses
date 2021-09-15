@@ -210,7 +210,8 @@ term_supported_styles(const tinfo* ti){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out,
                          unsigned utf8, unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
-                         struct ncsharedstats* stats);
+                         struct ncsharedstats* stats, int lmargin, int tmargin)
+  __attribute__ ((nonnull (1, 2, 3, 10)));
 
 void free_terminfo_cache(tinfo* ti);
 

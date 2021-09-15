@@ -1089,7 +1089,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache, opts->termtype, ret->ttyfp, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
-                          cursory, cursorx, &ret->stats)){
+                          cursory, cursorx, &ret->stats,
+                          ret->margin_l, ret->margin_t)){
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);

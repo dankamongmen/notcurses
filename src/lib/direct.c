@@ -179,7 +179,11 @@ int ncdirect_cursor_disable(ncdirect* nc){
 }
 
 static int
-cursor_yx_get(struct inputctx* ictx, int ttyfd, const char* u7, int* y, int* x){
+cursor_yx_get(ncdirect* n, int ttyfd, const char* u7, int* y, int* x){
+  struct inputctx* ictx = n->tcache.ictx;
+  if(ncdirect_flush(n)){
+    return -1;
+  }
   if(tty_emit(u7, ttyfd)){
     return -1;
   }
@@ -201,7 +205,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
+      if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -211,7 +215,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, NULL, &x)){
+      if(cursor_yx_get(n, n->tcache.ttyfd, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -381,7 +385,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!x){
     x = &xval;
   }
-  ret = cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, y, x);
+  ret = cursor_yx_get(n, n->tcache.ttyfd, u7, y, x);
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             n->tcache.ttyfd, strerror(errno)); // don't return error for this
@@ -430,7 +434,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   if(np->sprite){
     int y;
     const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
-    if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
+    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
     if(ncdirect_cursor_move_yx(n, y, xoff)){
@@ -442,10 +446,10 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       return -1;
     }
     fbuf f = {};
-    if(fbuf_init(&f)){
+    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
-    if(cursor_yx_get(n->tcache.ictx, n->tcache.ttyfd, u7, &y, NULL)){
+    if(fbuf_init(&f)){
       return -1;
     }
     if(toty - dimy < y){
@@ -458,21 +462,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       // perform our scrolling outside of the fbuf framework, as we need it
       // to happen immediately for fbdcon
       if(ncdirect_cursor_move_yx(n, y, xoff)){
+        fbuf_free(&f);
         return -1;
       }
-      const char* indn = get_escape(&n->tcache, ESCAPE_IND);
-      if(scrolls > 1 && indn){
-        if(term_emit(tiparm(indn, scrolls), stdout, true) < 0){
-          return -1;
-        }
-      }
-      while(scrolls--){
-        if(ncfputc('\v', stdout) < 0){
-          return -1;
-        }
+      if(emit_scrolls(&n->tcache, scrolls, &f) < 0){
+        fbuf_free(&f);
+        return -1;
       }
     }
     if(sprite_draw(&n->tcache, NULL, np->sprite, &f, y, xoff) < 0){
+      fbuf_free(&f);
       return -1;
     }
     if(sprite_commit(&n->tcache, &f, np->sprite, true)){
@@ -790,10 +789,8 @@ ncdirect_stop_minimal(void* vnc){
       ret = -1;
     }
     ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, nc->tcache.tpreserved);
-    ret |= close(nc->tcache.ttyfd);
   }
   ret |= ncdirect_flush(nc);
-  free_terminfo_cache(&nc->tcache);
   return ret;
 }
 
@@ -809,6 +806,10 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     return ret;
   }
   memset(ret, 0, sizeof(*ret));
+  if(pthread_mutex_init(&ret->stats.lock, NULL)){
+    free(ret);
+    return NULL;
+  }
   ret->flags = flags;
   ret->ttyfp = outfp;
   if(!(flags & NCDIRECT_OPTION_INHIBIT_SETLOCALE)){
@@ -821,6 +822,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
+    pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
     return NULL;
   }
@@ -835,9 +837,10 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   int cursor_y = -1;
   int cursor_x = -1;
-  if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8,
-                          1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
-                          TERMINAL_UNKNOWN, &cursor_y, &cursor_x, NULL)){
+  if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8, 1,
+                          flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
+                          TERMINAL_UNKNOWN, &cursor_y, &cursor_x,
+                          &ret->stats, 0, 0)){
     goto err;
   }
   if(cursor_y >= 0){
@@ -845,6 +848,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
     if(ncdirect_cursor_move_yx(ret, cursor_y, cursor_x)){
+      free_terminfo_cache(&ret->tcache);
       goto err;
     }
   }
@@ -860,6 +864,7 @@ err:
     (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
   }
   drop_signals(ret);
+  pthread_mutex_destroy(&ret->stats.lock);
   free(ret);
   return NULL;
 }
@@ -868,6 +873,11 @@ int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
+    free_terminfo_cache(&nc->tcache);
+    if(nc->tcache.ttyfd){
+      ret |= close(nc->tcache.ttyfd);
+    }
+    pthread_mutex_destroy(&nc->stats.lock);
     free(nc);
   }
   return ret;
