@@ -20,11 +20,12 @@
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
 // FIXME still need to:
+//  read specials from terminfo
 //  integrate main specials trie with automaton, or match it alongside
 //   the main automaton
-//  read specials from terminfo
 //  wake up input thread when space becomes available
 //  restore stats
+//  modifiers for non-kitty, non-mouse input
 
 static sig_atomic_t resize_seen;
 
