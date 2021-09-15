@@ -1235,10 +1235,11 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       handoff_initial_responses(ictx);
     }
     logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, buf[used], ictx->triepos->special);
-    if((ictx->triepos = ictx->triepos->trie[buf[used]]) == NULL){
-      ictx->triepos = ictx->inputescapes;
-    }else if(ictx->triepos->special != NCKEY_INVALID){
+    if(ictx->triepos->special != NCKEY_INVALID){
       special_key(ictx);
+      ictx->triepos = ictx->inputescapes;
+    }else if((ictx->triepos = ictx->triepos->trie[buf[used]]) == NULL){
+      ictx->triepos = ictx->inputescapes;
     }
     ++used;
   }
