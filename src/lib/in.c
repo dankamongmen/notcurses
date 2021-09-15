@@ -21,11 +21,12 @@
 
 // FIXME still need to:
 //  read specials from terminfo
-//  integrate main specials trie with automaton, or match it alongside
-//   the main automaton
+//  integrate main specials trie with automaton (maybe)
 //  wake up input thread when space becomes available
 //  restore stats
 //  modifiers for non-kitty, non-mouse input
+//  adjust mouse locations for margins
+//  handle timeouts
 
 static sig_atomic_t resize_seen;
 
@@ -131,6 +132,7 @@ typedef struct inputctx {
   char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
   int stridx;             // length of runstring
   int p2, p3, p4;         // holders for numeric params
+  struct esctrie* triepos;// position in escapes automaton
 
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
@@ -389,6 +391,7 @@ prep_all_keys(inputctx* ictx){
     input_free_esctrie(&ictx->inputescapes);
     return -1;
   }
+  ictx->triepos = ictx->inputescapes;
   return 0;
 }
 
@@ -631,6 +634,26 @@ mouse_click(inputctx* ictx){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
+static void
+special_key(inputctx* ictx){
+  assert(ictx->triepos);
+  assert(NCKEY_INVALID != ictx->triepos->special);
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  ni->id = ictx->triepos->special;
+  ni->alt = ictx->triepos->alt;
+  ni->ctrl = ictx->triepos->ctrl;
+  ni->shift = ictx->triepos->shift;
+  ni->x = ni->y = 0;
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -1210,6 +1233,12 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     int r = pump_control_read(ictx, buf[used]);
     if(r == 1){
       handoff_initial_responses(ictx);
+    }
+    logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, buf[used], ictx->triepos->special);
+    if((ictx->triepos = ictx->triepos->trie[buf[used]]) == NULL){
+      ictx->triepos = ictx->inputescapes;
+    }else if(ictx->triepos->special != NCKEY_INVALID){
+      special_key(ictx);
     }
     ++used;
   }
