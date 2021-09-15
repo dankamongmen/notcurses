@@ -719,7 +719,8 @@ macos_early_matches(void){
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
-                         int* cursor_y, int* cursor_x, ncsharedstats* stats){
+                         int* cursor_y, int* cursor_x, ncsharedstats* stats,
+                         int lmargin, int tmargin){
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
     cursor_x = &foolcursor_x;
@@ -779,7 +780,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  if(init_inputlayer(ti, stdin)){
+  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats)){
     goto err;
   }
 #ifndef __MINGW64__

@@ -216,13 +216,13 @@ int input_demo(ncpp::NotCurses* nc) {
   }
   struct ncplane_options nopts = {
     .y = dimy - PLOTHEIGHT - 1,
-    .x = 0,
+    .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
-    .cols = cols,
+    .cols = cols / 2,
     .userptr = nullptr,
     .name = "plot",
     .resizecb = nullptr, // FIXME
-    .flags = 0,
+    .flags = NCPLANE_OPTION_HORALIGNED,
     .margin_b = 0,
     .margin_r = 0,
   };
@@ -354,6 +354,10 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   notcurses_options nopts{};
+  nopts.margin_t = 2;
+  nopts.margin_l = 2;
+  nopts.margin_r = 2;
+  nopts.margin_b = 2;
   nopts.loglevel = NCLOGLEVEL_ERROR;
   if(argc > 2){
     usage(argv[0], stderr);

@@ -11,9 +11,11 @@ extern "C" {
 
 struct tinfo;
 struct inputctx;
+struct ncsharedstats;
 
-int init_inputlayer(struct tinfo* ti, FILE* infp)
-  __attribute__ ((nonnull (1, 2)));
+int init_inputlayer(struct tinfo* ti, FILE* infp, int lmargin, int tmargin,
+                    struct ncsharedstats* stats)
+  __attribute__ ((nonnull (1, 2, 5)));
 
 int stop_inputlayer(struct tinfo* ti);
 

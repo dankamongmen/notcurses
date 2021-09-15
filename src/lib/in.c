@@ -21,16 +21,14 @@
 
 // FIXME still need to:
 //  read specials from terminfo
-//  integrate main specials trie with automaton (maybe)
+//  integrate main specials trie with automaton, enable input_errors
 //  wake up input thread when space becomes available
-//  restore stats
-//  modifiers for non-kitty, non-mouse input
-//  adjust mouse locations for margins
+//   (needs pipes/eventfds)
 //  handle timeouts
 
 static sig_atomic_t resize_seen;
 
-// called for SIGWINCH and SIGCONT
+// called for SIGWINCH and SIGCONT, and causes block_on_input to return
 void sigwinch_handler(int signo){
   resize_seen = signo;
 }
@@ -105,6 +103,19 @@ typedef struct esctrie {
   bool shift, ctrl, alt;
 } esctrie;
 
+static esctrie*
+create_esctrie_node(int special){
+  esctrie* e = malloc(sizeof(*e));
+  if(e){
+    e->trie = NULL;
+    e->special = special;
+    e->shift = 0;
+    e->ctrl = 0;
+    e->alt = 0;
+  }
+  return e;
+}
+
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
@@ -114,6 +125,9 @@ typedef struct inputctx {
 #ifdef __MINGW64__
   HANDLE stdinhandle;   // handle to input terminal for MSFT Terminal
 #endif
+
+  uint64_t seqnum;      // process-scope sequence number
+  int lmargin, tmargin; // margins in use at left and top
 
   struct esctrie* inputescapes;
 
@@ -150,22 +164,11 @@ typedef struct inputctx {
   tinfo* ti;          // link back to tinfo
   pthread_t tid;      // tid for input thread
 
+  ncsharedstats *stats; // stats shared with notcurses context
+
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
-
-static esctrie*
-create_esctrie_node(int special){
-  esctrie* e = malloc(sizeof(*e));
-  if(e){
-    e->special = special;
-    e->trie = NULL;
-    e->shift = 0;
-    e->ctrl = 0;
-    e->alt = 0;
-  }
-  return e;
-}
 
 static void
 input_free_esctrie(esctrie** eptr){
@@ -185,7 +188,8 @@ input_free_esctrie(esctrie** eptr){
 }
 
 static inline inputctx*
-create_inputctx(tinfo* ti, FILE* infp){
+create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
+                ncsharedstats* stats){
   inputctx* i = malloc(sizeof(*i));
   if(i){
     i->csize = 64;
@@ -199,19 +203,23 @@ create_inputctx(tinfo* ti, FILE* infp){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                      memset(i->initdata, 0, sizeof(*i->initdata));
                       i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                      memset(i->initdata, 0, sizeof(*i->initdata));
+                      i->state = i->stringstate = STATE_NULL;
+                      i->iread = i->iwrite = i->ivalid = 0;
+                      i->cread = i->cwrite = i->cvalid = 0;
+                      i->initdata_complete = NULL;
+                      i->inputescapes = NULL;
+                      i->stats = stats;
                       i->ti = ti;
-                      i->cvalid = i->ivalid = 0;
-                      i->cwrite = i->iwrite = 0;
-                      i->cread = i->iread = 0;
                       i->ibufvalid = 0;
                       i->tbufvalid = 0;
-                      i->state = i->stringstate = STATE_NULL;
                       i->numeric = 0;
                       i->stridx = 0;
-                      i->initdata_complete = NULL;
                       i->runstring[i->stridx] = '\0';
+                      i->lmargin = lmargin;
+                      i->tmargin = tmargin;
+                      i->seqnum = 0;
                       logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                       return i;
                     }
@@ -270,41 +278,45 @@ inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
     logerror("not an escape (0x%x)\n", special);
     return -1;
   }
-  esctrie** cur = &ictx->inputescapes;
-  do{
-//fprintf(stderr, "ADDING: %s (%zu) for %d\n", esc, strlen(esc), special);
-    ++esc;
-    int validate = *esc;
-    if(validate < 0 || validate >= 0x80){
+  if(ictx->inputescapes == NULL){
+    if((ictx->inputescapes = create_esctrie_node(NCKEY_INVALID)) == NULL){
       return -1;
     }
-    if(*cur == NULL){
-      if((*cur = create_esctrie_node(NCKEY_INVALID)) == NULL){
+  }
+  esctrie* cur = ictx->inputescapes;
+  ++esc; // don't encode initial escape as a transition
+  do{
+    int valid = *esc;
+    if(valid <= 0 || valid >= 0x80 || valid == NCKEY_ESC){
+      logerror("invalid character %d in escape\n", valid);
+      return -1;
+    }
+    if(cur->trie == NULL){
+      const size_t tsize = sizeof(cur->trie) * 0x80;
+      if((cur->trie = malloc(tsize)) == NULL){
+        return -1;
+      }
+      memset(cur->trie, 0, tsize);
+    }
+    if(cur->trie[valid] == NULL){
+      if((cur->trie[valid] = create_esctrie_node(NCKEY_INVALID)) == NULL){
         return -1;
       }
     }
-    if(validate){
-      if((*cur)->trie == NULL){
-        const size_t tsize = sizeof((*cur)->trie) * 0x80;
-        if(((*cur)->trie = malloc(tsize)) == NULL){
-          return -1;
-        }
-        memset((*cur)->trie, 0, tsize);
-      }
-      cur = &(*cur)->trie[validate];
-    }
+    cur = cur->trie[valid];
+    ++esc;
   }while(*esc);
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
-  if((*cur)->special != NCKEY_INVALID){ // already had one here!
-    if((*cur)->special != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+  if(cur->special != NCKEY_INVALID){ // already had one here!
+    if(cur->special != special){
+      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->special, special);
     }
   }else{
-    (*cur)->special = special;
-    (*cur)->shift = shift;
-    (*cur)->ctrl = ctrl;
-    (*cur)->alt = alt;
+    cur->special = special;
+    cur->shift = shift;
+    cur->ctrl = ctrl;
+    cur->alt = alt;
   }
   return 0;
 }
@@ -312,6 +324,7 @@ inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
 // https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
 static int
 prep_kitty_special_keys(inputctx* nc){
+  // we do not list here those already handled by prep_windows_special_keys()
   static const struct {
     const char* esc;
     uint32_t key;
@@ -628,12 +641,68 @@ mouse_click(inputctx* ictx){
   ni->ctrl = ictx->p2 & 0x10;
   ni->alt = ictx->p2 & 0x08;
   ni->shift = ictx->p2 & 0x04;
-  ni->x = ictx->p3;
-  ni->y = ictx->numeric;
+  // convert from 1- to 0-indexing and account for margins
+  ni->x = ictx->p3 - 1 - ictx->lmargin;
+  ni->y = ictx->numeric - 1 - ictx->tmargin;
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
+static inline void
+inc_input_events(inputctx* ictx){
+  pthread_mutex_lock(&ictx->stats->lock);
+  ++ictx->stats->s.input_events;
+  pthread_mutex_unlock(&ictx->stats->lock);
+}
+
+// add a decoded, valid Unicode to the bulk output buffer, or drop it if no
+// space is available.
+static void
+add_unicode(inputctx* ictx, uint32_t id){
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08xx\n", id);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  ni->id = id;
+  ni->alt = false;
+  ni->ctrl = false;
+  ni->shift = false;
+  ni->x = ni->y = 0;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  inc_input_events(ictx);
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
+static void
+alt_key(inputctx* ictx, unsigned id){
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  ni->id = id;
+  ni->alt = true;
+  ni->ctrl = false;
+  ni->shift = false;
+  ni->x = ni->y = 0;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  inc_input_events(ictx);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -654,6 +723,10 @@ special_key(inputctx* ictx){
   ni->ctrl = ictx->triepos->ctrl;
   ni->shift = ictx->triepos->shift;
   ni->x = ni->y = 0;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -683,7 +756,7 @@ kitty_kbd(inputctx* ictx){
   ni->ctrl = !!((ictx->numeric - 1) & 0x4);
   // FIXME decode remaining modifiers through 128
   // standard keyboard protocol reports ctrl+ascii as the capital form,
-  // so (for now) conform with kitty protocol...
+  // so (for now) conform when using kitty protocol...
   if(ni->id < 128 && islower(ni->id) && ni->ctrl){
     ni->id = toupper(ni->id);
   }
@@ -767,7 +840,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
       if(c == '1'){
         ictx->state = STATE_BG2;
       }else{
-        // FIXME
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_BG2:
@@ -776,7 +849,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->stridx = 0;
         ictx->runstring[0] = '\0';
       }else{
-        // FIXME
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_BGSEMI: // drain string
@@ -867,8 +940,9 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }else if(c == 'R'){
 //fprintf(stderr, "CURSOR X: %d\n", ictx->numeric);
         if(ictx->initdata){
-          ictx->initdata->cursorx = ictx->numeric - 1;
-          ictx->initdata->cursory = ictx->p2 - 1;
+          // convert from 1- to 0-indexing, and account for margins
+          ictx->initdata->cursorx = ictx->numeric - 1 - ictx->lmargin;
+          ictx->initdata->cursory = ictx->p2 - 1 - ictx->tmargin;
         }else{
           pthread_mutex_lock(&ictx->clock);
           if(ictx->cvalid == ictx->csize){
@@ -974,7 +1048,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->stridx = 0;
         ictx->runstring[0] = '\0';
       }else{
-        // FIXME error?
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_XTVERSION2:
@@ -987,14 +1061,14 @@ pump_control_read(inputctx* ictx, unsigned char c){
       if(c == '+'){
         ictx->state = STATE_XTGETTCAP2;
       }else{
-        // FIXME malformed
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_XTGETTCAP2:
       if(c == 'r'){
         ictx->state = STATE_XTGETTCAP3;
       }else{
-        // FIXME malformed
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_XTGETTCAP3:
@@ -1033,7 +1107,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->stridx = 0;
         ictx->runstring[0] = '\0';
       }else{
-        // FIXME
+        ictx->state = STATE_NULL;
       }
       break;
     case STATE_TDA2:
@@ -1234,12 +1308,29 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     if(r == 1){
       handoff_initial_responses(ictx);
     }
-    logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, buf[used], ictx->triepos->special);
-    if(ictx->triepos->special != NCKEY_INVALID){
-      special_key(ictx);
-      ictx->triepos = ictx->inputescapes;
-    }else if((ictx->triepos = ictx->triepos->trie[buf[used]]) == NULL){
-      ictx->triepos = ictx->inputescapes;
+    // FIXME this drops alt+ characters intermingled with responses
+    if(ictx->initdata == NULL){
+      // an escape always resets the trie, as does a NULL transition
+      unsigned char candidate = buf[used];
+      if(candidate == NCKEY_ESC){
+        ictx->triepos = ictx->inputescapes;
+      }else if(ictx->triepos->trie[candidate] == NULL){
+        if(ictx->state == STATE_ESC){
+          if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
+            alt_key(ictx, candidate);
+          }
+        }
+        ictx->triepos = ictx->inputescapes;
+      }else{
+        ictx->triepos = ictx->triepos->trie[candidate];
+        logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->special);
+        if(ictx->triepos->special != NCKEY_INVALID){ // match! mark and reset
+          special_key(ictx);
+          ictx->triepos = ictx->inputescapes;
+        }else if(ictx->triepos->trie == NULL){
+          ictx->triepos = ictx->inputescapes;
+        }
+      }
     }
     ++used;
   }
@@ -1275,12 +1366,20 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     return 1;
   }
   if(buf[0] < 0x80){ // pure ascii can't show up mid-utf8
-    ni->id = buf[0];
+    if(buf[0] == '\n' || buf[0] == '\r'){
+      ni->id = NCKEY_ENTER;
+    }else if(buf[0] > 0 && buf[0] <= 26 && buf[0] != '\t'){
+      ni->id = buf[0] + 'A' - 1;
+      ni->ctrl = true;
+    }else{
+      ni->id = buf[0];
+    }
     return 1;
   }
   int cpointlen = 0;
   wchar_t w;
   mbstate_t mbstate;
+  // FIXME verify that we have enough length based off first char
   while(++cpointlen <= (int)MB_CUR_MAX && cpointlen < buflen){
 //fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
     // FIXME how the hell does this work with 16-bit wchar_t?
@@ -1293,7 +1392,6 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     }
   }
   // FIXME input error stat
-  // FIXME extract modifiers
   return 0;
 }
 
@@ -1310,6 +1408,7 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   ncinput* ni = ictx->inputs + ictx->iwrite;
   int r = process_input(buf, buflen, ni);
   if(r > 0){
+    inc_input_events(ictx);
     if(++ictx->iwrite == ictx->isize){
       ictx->iwrite = 0;
     }
@@ -1365,6 +1464,10 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
 // walk the matching automaton from wherever we were.
 static void
 process_ibuf(inputctx* ictx){
+  if(resize_seen){
+    add_unicode(ictx, NCKEY_RESIZE);
+    resize_seen = 0;
+  }
   if(ictx->tbufvalid){
     // we could theoretically do this in parallel with process_bulk, but it
     // hardly seems worthwhile without breaking apart the fetches of input.
@@ -1436,10 +1539,12 @@ block_on_input(inputctx* ictx){
   sigdelset(&smask, SIGWINCH);
   while((events = ppoll(pfds, pfdcount, ts, &smask)) < 0){
 #endif
+fprintf(stderr, "GOT EVENTS: %d!\n", events);
     if(errno != EINTR && errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
       return -1;
     }
     if(resize_seen){
+fprintf(stderr, "SAW A RESIZE!\n");
       return 1;
     }
   }
@@ -1475,8 +1580,9 @@ input_thread(void* vmarshall){
   return NULL;
 }
 
-int init_inputlayer(tinfo* ti, FILE* infp){
-  inputctx* ictx = create_inputctx(ti, infp);
+int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
+                    ncsharedstats* stats){
+  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats);
   if(ictx == NULL){
     return -1;
   }
@@ -1508,8 +1614,7 @@ int inputready_fd(const inputctx* ictx){
 }
 
 static inline uint32_t
-internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni,
-             int lmargin, int tmargin){
+internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   pthread_mutex_lock(&ictx->ilock);
   while(!ictx->ivalid){
     pthread_cond_wait(&ictx->icond, &ictx->ilock);
@@ -1519,20 +1624,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni,
     ictx->iread = 0;
   }
   --ictx->ivalid;
+  ni->seqnum = ++ictx->seqnum;
   pthread_mutex_unlock(&ictx->ilock);
-  // FIXME adjust mouse coordinates for margins
   return ni->id;
-  /*
-  uint32_t r = inputctx_prestamp(&nc->tcache, ts, ni,
-                                     nc->margin_l, nc->margin_t);
-  if(r != (uint32_t)-1){
-    uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
-    if(ni){
-      ni->seqnum = stamp;
-    }
-  }
-  return r;
-  */
 }
 
 struct initial_responses* inputlayer_get_responses(inputctx* ictx){
@@ -1549,8 +1643,7 @@ struct initial_responses* inputlayer_get_responses(inputctx* ictx){
 
 // infp has already been set non-blocking
 uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
-  uint32_t r = internal_get(nc->tcache.ictx, ts, ni,
-                            nc->margin_l, nc->margin_t);
+  uint32_t r = internal_get(nc->tcache.ictx, ts, ni);
   if(r != (uint32_t)-1){
     ++nc->stats.s.input_events;
   }
@@ -1576,7 +1669,7 @@ int notcurses_getvec(notcurses* n, const struct timespec* ts,
 }
 
 uint32_t ncdirect_get(ncdirect* n, const struct timespec* ts, ncinput* ni){
-  return internal_get(n->tcache.ictx, ts, ni, 0, 0);
+  return internal_get(n->tcache.ictx, ts, ni);
 }
 
 uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,

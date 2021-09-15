@@ -272,6 +272,15 @@ typedef struct nctabbed {
   nctabbed_options opts; // copied in nctabbed_create()
 } nctabbed;
 
+// various moving parts within a notcurses context (and the user) might need to
+// access the stats object, so throw a lock on it. we don't want the lock in
+// the actual structure since (a) it's usually unnecessary and (b) it breaks
+// memset() and memcpy().
+typedef struct ncsharedstats {
+  pthread_mutex_t lock;
+  ncstats s;
+} ncsharedstats;
+
 typedef struct ncdirect {
   ncpalette palette;         // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
@@ -280,6 +289,7 @@ typedef struct ncdirect {
   uint16_t stylemask;        // current styles
   bool initialized_readline; // have we initialized Readline?
   uint64_t flags;            // copied in ncdirect_init() from param
+  ncsharedstats stats;       // stats! not as broadly used as in notcurses
 } ncdirect;
 
 // Extracellular state for a cell during the render process. There is one
@@ -329,15 +339,6 @@ typedef struct ncpile {
   int scrolls;                // how many real lines need be scrolled at raster
   sprixel* sprixelcache;      // list of sprixels
 } ncpile;
-
-// various moving parts within a notcurses context (and the user) might need to
-// access the stats object, so throw a lock on it. we don't want the lock in
-// the actual structure since (a) it's usually unnecessary and (b) it breaks
-// memset() and memcpy().
-typedef struct ncsharedstats {
-  pthread_mutex_t lock;
-  ncstats s;
-} ncsharedstats;
 
 // the standard pile can be reached through ->stdplane.
 typedef struct notcurses {
@@ -1755,6 +1756,30 @@ cancel_and_join(const char* name, pthread_t tid, void** res){
   if(pthread_join(tid, res)){
     logerror("error joining %s thread\n", name);
     return -1;
+  }
+  return 0;
+}
+
+static inline int
+emit_scrolls(const tinfo* ti, int count, fbuf* f){
+  if(count > 1){
+    const char* indn = get_escape(ti, ESCAPE_INDN);
+    if(indn){
+      if(fbuf_emit(f, tiparm(indn, count)) < 0){
+        return -1;
+      }
+      return 0;
+    }
+  }
+  const char* ind = get_escape(ti, ESCAPE_IND);
+  if(ind == NULL){
+    ind = "\v";
+  }
+  while(count > 0){
+    if(fbuf_emit(f, ind) < 0){
+      return -1;
+    }
+    --count;
   }
   return 0;
 }
