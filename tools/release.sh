@@ -35,8 +35,6 @@ done
 sed -i -e "s/v$OLDVERSION/v$VERSION/g" doc/man/index.html
 sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" cffi/setup.py
 sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" python/setup.py
-sed -i -e "s/^version = \"$OLDVERSION\"$/version = \"$VERSION\"/" rust/Cargo.toml
-sed -i -e "s/atleast_version(\"$OLDVERSION\")/atleast_version(\"$VERSION\")/" rust/build/build.rs
 
 BUILDDIR="build-$VERSION"
 
@@ -80,12 +78,6 @@ cd ../cffi
 python3 setup.py sdist
 python3 setup.py build
 twine upload -s -udankamongmen dist/*
-cd ../rust
-cargo clean
-cargo publish
-
-cd ../tools/
-./rustdoc-update-gh-pages.sh
 
 cd "../$BUILDDIR"
 cat install_manifest.txt | sudo xargs rm
