@@ -21,10 +21,6 @@ steps:
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
     - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
-    - cd ../rust
-    - rustc --version
-    - cargo build
-    - cargo t_all
 ---
 kind: pipeline
 type: docker
@@ -43,10 +39,6 @@ steps:
     - ctest --output-on-failure
     - make install
     - ldconfig
-    - cd ../rust
-    - rustc --version
-    - cargo build
-    - cargo t_all
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - cd ../python

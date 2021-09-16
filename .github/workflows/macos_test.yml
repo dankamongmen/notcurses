@@ -27,8 +27,7 @@ jobs:
             libunistring \
             ncurses \
             pandoc \
-            readline \
-            rust
+            readline
 
       - uses: actions/checkout@v2
 
@@ -69,11 +68,3 @@ jobs:
           python3 setup.py build
           #sudo python3 setup.py install
           #python3 examples/000-print-version.py
-
-      - name: rust wrappers
-        run: |
-          export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
-          cd rust
-          rustc --version
-          cargo build
-          cargo t_all

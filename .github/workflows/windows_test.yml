@@ -85,11 +85,3 @@ jobs:
           #python3 setup.py install
           #notcurses-pydemo > /dev/null
           #ncdirect-pydemo > /dev/null
-
-      - name: rust wrappers
-        run: |
-          cd rust
-          #rustc --version
-          #cargo build
-          #cargo t_all
-          #mingw-w64-ucrt-x86_64-rust
