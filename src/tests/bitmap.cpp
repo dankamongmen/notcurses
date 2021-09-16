@@ -650,9 +650,10 @@ TEST_CASE("Bitmaps") {
     CHECK(newn);
     ncplane_move_bottom(newn);
     CHECK(0 == notcurses_render(nc_));
-    const auto s = newn->sprite;
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
         CHECK(1 == ncplane_putchar_yx(n_, y, x, 'x'));
         // FIXME generates too much output, OOMing ctest
         // CHECK(0 == notcurses_render(nc_));
