@@ -188,93 +188,6 @@ input_free_esctrie(esctrie** eptr){
   }
 }
 
-static inline inputctx*
-create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                ncsharedstats* stats, unsigned drain){
-  inputctx* i = malloc(sizeof(*i));
-  if(i){
-    i->csize = 64;
-    if( (i->csrs = malloc(sizeof(*i->csrs) * i->csize)) ){
-      i->isize = BUFSIZ;
-      if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
-        if(pthread_mutex_init(&i->ilock, NULL) == 0){
-          if(pthread_cond_init(&i->icond, NULL) == 0){
-            if(pthread_mutex_init(&i->clock, NULL) == 0){
-              if(pthread_cond_init(&i->ccond, NULL) == 0){
-                if((i->stdinfd = fileno(infp)) >= 0){
-                  if( (i->initdata = malloc(sizeof(*i->initdata))) ){
-                    if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                      i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                      memset(i->initdata, 0, sizeof(*i->initdata));
-                      i->state = i->stringstate = STATE_NULL;
-                      i->iread = i->iwrite = i->ivalid = 0;
-                      i->cread = i->cwrite = i->cvalid = 0;
-                      i->initdata_complete = NULL;
-                      i->inputescapes = NULL;
-                      i->stats = stats;
-                      i->ti = ti;
-                      i->ibufvalid = 0;
-                      // FIXME need to get this out of the initial termios
-                      // (as stored in tpreserved)
-                      i->linesigs = 1;
-                      i->tbufvalid = 0;
-                      i->numeric = 0;
-                      i->stridx = 0;
-                      i->runstring[i->stridx] = '\0';
-                      i->lmargin = lmargin;
-                      i->tmargin = tmargin;
-                      i->seqnum = 0;
-                      i->drain = drain;
-                      logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                      return i;
-                    }
-                  }
-                  free(i->initdata);
-                }
-                pthread_cond_destroy(&i->ccond);
-              }
-              pthread_mutex_destroy(&i->clock);
-            }
-            pthread_cond_destroy(&i->icond);
-          }
-          pthread_mutex_destroy(&i->ilock);
-        }
-        free(i->inputs);
-      }
-      free(i->csrs);
-    }
-    free(i);
-  }
-  return NULL;
-}
-
-static inline void
-free_inputctx(inputctx* i){
-  if(i){
-    // we *do not* own stdinfd; don't close() it! we do own termfd.
-    if(i->termfd >= 0){
-      close(i->termfd);
-    }
-    pthread_mutex_destroy(&i->ilock);
-    pthread_cond_destroy(&i->icond);
-    pthread_mutex_destroy(&i->clock);
-    pthread_cond_destroy(&i->ccond);
-    input_free_esctrie(&i->inputescapes);
-    // do not kill the thread here, either.
-    if(i->initdata){
-      free(i->initdata->version);
-      free(i->initdata);
-    }
-    if(i->initdata_complete){
-      free(i->initdata_complete->version);
-      free(i->initdata_complete);
-    }
-    free(i->inputs);
-    free(i->csrs);
-    free(i);
-  }
-}
-
 // multiple input escapes might map to the same input
 static int
 inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
@@ -322,80 +235,6 @@ inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
     cur->shift = shift;
     cur->ctrl = ctrl;
     cur->alt = alt;
-  }
-  return 0;
-}
-
-// https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
-static int
-prep_kitty_special_keys(inputctx* nc){
-  // we do not list here those already handled by prep_windows_special_keys()
-  static const struct {
-    const char* esc;
-    uint32_t key;
-    bool shift, ctrl, alt;
-  } keys[] = {
-    { .esc = "\x1b[P", .key = NCKEY_F01, },
-    { .esc = "\x1b[Q", .key = NCKEY_F02, },
-    { .esc = "\x1b[R", .key = NCKEY_F03, },
-    { .esc = "\x1b[S", .key = NCKEY_F04, },
-    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
-    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
-    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
-  }, *k;
-  for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
-      return -1;
-    }
-  }
-  return 0;
-}
-
-// add the hardcoded windows input sequences to ti->input. should only
-// be called after verifying that this is TERMINAL_MSTERMINAL.
-static int
-prep_windows_special_keys(inputctx* nc){
-  // here, lacking terminfo, we hardcode the sequences. they can be found at
-  // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
-  // under the "Input Sequences" heading.
-  static const struct {
-    const char* esc;
-    uint32_t key;
-    bool shift, ctrl, alt;
-  } keys[] = {
-    { .esc = "\x1b[A", .key = NCKEY_UP, },
-    { .esc = "\x1b[B", .key = NCKEY_DOWN, },
-    { .esc = "\x1b[C", .key = NCKEY_RIGHT, },
-    { .esc = "\x1b[D", .key = NCKEY_LEFT, },
-    { .esc = "\x1b[1;5A", .key = NCKEY_UP, .ctrl = 1, },
-    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
-    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
-    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
-    { .esc = "\x1b[H", .key = NCKEY_HOME, },
-    { .esc = "\x1b[F", .key = NCKEY_END, },
-    { .esc = "\x1b[2~", .key = NCKEY_INS, },
-    { .esc = "\x1b[3~", .key = NCKEY_DEL, },
-    { .esc = "\x1b[5~", .key = NCKEY_PGUP, },
-    { .esc = "\x1b[6~", .key = NCKEY_PGDOWN, },
-    { .esc = "\x1bOP", .key = NCKEY_F01, },
-    { .esc = "\x1bOQ", .key = NCKEY_F02, },
-    { .esc = "\x1bOR", .key = NCKEY_F03, },
-    { .esc = "\x1bOS", .key = NCKEY_F04, },
-    { .esc = "\x1b[15~", .key = NCKEY_F05, },
-    { .esc = "\x1b[17~", .key = NCKEY_F06, },
-    { .esc = "\x1b[18~", .key = NCKEY_F07, },
-    { .esc = "\x1b[19~", .key = NCKEY_F08, },
-    { .esc = "\x1b[20~", .key = NCKEY_F09, },
-    { .esc = "\x1b[21~", .key = NCKEY_F10, },
-    { .esc = "\x1b[23~", .key = NCKEY_F11, },
-    { .esc = "\x1b[24~", .key = NCKEY_F12, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
-  }, *k;
-  for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
-      return -1;
-    }
   }
   return 0;
 }
@@ -577,16 +416,176 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
+static inline inputctx*
+create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
+                ncsharedstats* stats, unsigned drain){
+  inputctx* i = malloc(sizeof(*i));
+  if(i){
+    i->csize = 64;
+    if( (i->csrs = malloc(sizeof(*i->csrs) * i->csize)) ){
+      i->isize = BUFSIZ;
+      if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
+        if(pthread_mutex_init(&i->ilock, NULL) == 0){
+          if(pthread_cond_init(&i->icond, NULL) == 0){
+            if(pthread_mutex_init(&i->clock, NULL) == 0){
+              if(pthread_cond_init(&i->ccond, NULL) == 0){
+                if((i->stdinfd = fileno(infp)) >= 0){
+                  if( (i->initdata = malloc(sizeof(*i->initdata))) ){
+                    i->inputescapes = NULL;
+                    if(prep_special_keys(i) == 0){
+                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                        memset(i->initdata, 0, sizeof(*i->initdata));
+                        i->state = i->stringstate = STATE_NULL;
+                        i->iread = i->iwrite = i->ivalid = 0;
+                        i->cread = i->cwrite = i->cvalid = 0;
+                        i->initdata_complete = NULL;
+                        i->stats = stats;
+                        i->ti = ti;
+                        i->ibufvalid = 0;
+                        // FIXME need to get this out of the initial termios
+                        // (as stored in tpreserved)
+                        i->linesigs = 1;
+                        i->tbufvalid = 0;
+                        i->numeric = 0;
+                        i->stridx = 0;
+                        i->runstring[i->stridx] = '\0';
+                        i->lmargin = lmargin;
+                        i->tmargin = tmargin;
+                        i->seqnum = 0;
+                        i->drain = drain;
+                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                        return i;
+                      }
+                    }
+                    input_free_esctrie(&i->inputescapes);
+                  }
+                  free(i->initdata);
+                }
+                pthread_cond_destroy(&i->ccond);
+              }
+              pthread_mutex_destroy(&i->clock);
+            }
+            pthread_cond_destroy(&i->icond);
+          }
+          pthread_mutex_destroy(&i->ilock);
+        }
+        free(i->inputs);
+      }
+      free(i->csrs);
+    }
+    free(i);
+  }
+  return NULL;
+}
+
+static inline void
+free_inputctx(inputctx* i){
+  if(i){
+    // we *do not* own stdinfd; don't close() it! we do own termfd.
+    if(i->termfd >= 0){
+      close(i->termfd);
+    }
+    pthread_mutex_destroy(&i->ilock);
+    pthread_cond_destroy(&i->icond);
+    pthread_mutex_destroy(&i->clock);
+    pthread_cond_destroy(&i->ccond);
+    input_free_esctrie(&i->inputescapes);
+    // do not kill the thread here, either.
+    if(i->initdata){
+      free(i->initdata->version);
+      free(i->initdata);
+    }
+    if(i->initdata_complete){
+      free(i->initdata_complete->version);
+      free(i->initdata_complete);
+    }
+    free(i->inputs);
+    free(i->csrs);
+    free(i);
+  }
+}
+
+// https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
+static int
+prep_kitty_special_keys(inputctx* nc){
+  // we do not list here those already handled by prep_windows_special_keys()
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\x1b[P", .key = NCKEY_F01, },
+    { .esc = "\x1b[Q", .key = NCKEY_F02, },
+    { .esc = "\x1b[R", .key = NCKEY_F03, },
+    { .esc = "\x1b[S", .key = NCKEY_F04, },
+    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
+    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
+    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
+// add the hardcoded windows input sequences to ti->input. should only
+// be called after verifying that this is TERMINAL_MSTERMINAL.
+static int
+prep_windows_special_keys(inputctx* nc){
+  // here, lacking terminfo, we hardcode the sequences. they can be found at
+  // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+  // under the "Input Sequences" heading.
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\x1b[A", .key = NCKEY_UP, },
+    { .esc = "\x1b[B", .key = NCKEY_DOWN, },
+    { .esc = "\x1b[C", .key = NCKEY_RIGHT, },
+    { .esc = "\x1b[D", .key = NCKEY_LEFT, },
+    { .esc = "\x1b[1;5A", .key = NCKEY_UP, .ctrl = 1, },
+    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN, .ctrl = 1, },
+    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT, .ctrl = 1, },
+    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT, .ctrl = 1, },
+    { .esc = "\x1b[H", .key = NCKEY_HOME, },
+    { .esc = "\x1b[F", .key = NCKEY_END, },
+    { .esc = "\x1b[2~", .key = NCKEY_INS, },
+    { .esc = "\x1b[3~", .key = NCKEY_DEL, },
+    { .esc = "\x1b[5~", .key = NCKEY_PGUP, },
+    { .esc = "\x1b[6~", .key = NCKEY_PGDOWN, },
+    { .esc = "\x1bOP", .key = NCKEY_F01, },
+    { .esc = "\x1bOQ", .key = NCKEY_F02, },
+    { .esc = "\x1bOR", .key = NCKEY_F03, },
+    { .esc = "\x1bOS", .key = NCKEY_F04, },
+    { .esc = "\x1b[15~", .key = NCKEY_F05, },
+    { .esc = "\x1b[17~", .key = NCKEY_F06, },
+    { .esc = "\x1b[18~", .key = NCKEY_F07, },
+    { .esc = "\x1b[19~", .key = NCKEY_F08, },
+    { .esc = "\x1b[20~", .key = NCKEY_F09, },
+    { .esc = "\x1b[21~", .key = NCKEY_F10, },
+    { .esc = "\x1b[23~", .key = NCKEY_F11, },
+    { .esc = "\x1b[24~", .key = NCKEY_F12, },
+    { .esc = NULL, .key = NCKEY_INVALID, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 static int
 prep_all_keys(inputctx* ictx){
   if(prep_windows_special_keys(ictx)){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
-    input_free_esctrie(&ictx->inputescapes);
-    return -1;
-  }
-  if(prep_special_keys(ictx)){
     input_free_esctrie(&ictx->inputescapes);
     return -1;
   }
