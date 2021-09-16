@@ -3,7 +3,8 @@
 
 int main(void){
   struct notcurses_options opts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN
+              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(!nc){

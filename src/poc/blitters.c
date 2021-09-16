@@ -14,7 +14,8 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct notcurses_options nopts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){

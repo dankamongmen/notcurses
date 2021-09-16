@@ -169,6 +169,11 @@ The following flags are defined:
     will place the terminal into cbreak mode (i.e. disabling echo and line
     buffering; see **tcgetattr(3)**).
 
+* **NCDIRECT_OPTION_DRAIN_INPUT**: Standard input may be freely discarded. If
+    you do not intend to process input, pass this flag. Otherwise, input can
+    buffer up, eventually preventing Notcurses from processing terminal
+    messages. It will furthermore avoid wasting time processing useless input.
+
 * **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
     for **SIGABRT**, **SIGFPE**, **SIGILL**, **SIGINT**, **SIGQUIT**,
     **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such exceptions.

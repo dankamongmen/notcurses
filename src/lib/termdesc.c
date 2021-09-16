@@ -5,7 +5,6 @@
 #endif
 #include "internal.h"
 #include "windows.h"
-#include "input.h"
 #include "linux.h"
 
 // there does not exist any true standard terminal size. with that said, we
@@ -167,7 +166,7 @@ match_termname(const char* termname, queried_terminals_e* qterm){
 }
 
 void free_terminfo_cache(tinfo* ti){
-  ncinputlayer_stop(&ti->input);
+  stop_inputlayer(ti);
   free(ti->termversion);
   free(ti->esctable);
 #ifdef __linux__
@@ -720,7 +719,8 @@ macos_early_matches(void){
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
-                         int* cursor_y, int* cursor_x, ncsharedstats* stats){
+                         int* cursor_y, int* cursor_x, ncsharedstats* stats,
+                         int lmargin, int tmargin, unsigned draininput){
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
     cursor_x = &foolcursor_x;
@@ -790,6 +790,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   tname = termname(); // longname() is also available
 #endif
+  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput)){
+    goto err;
+  }
   ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
   ti->caps.utf8 = utf8;
@@ -916,16 +919,52 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  unsigned appsync_advertised = 0;
-  unsigned kittygraphs = 0;
-  if(ncinputlayer_init(ti, stdin, &ti->qterm, &appsync_advertised,
-                       cursor_y, cursor_x, stats, &kittygraphs)){
-    goto err;
+  unsigned kitty_graphics = 0;
+  if(ti->ttyfd >= 0){
+    struct initial_responses* iresp;
+    if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
+      goto err;
+    }
+    if(iresp->appsync_supported){
+      if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
+        free(iresp->version);
+        free(iresp);
+        goto err;
+      }
+    }
+    if(iresp->qterm != TERMINAL_UNKNOWN){
+      ti->qterm = iresp->qterm;
+    }
+    *cursor_y = iresp->cursory;
+    *cursor_x = iresp->cursorx;
+    ti->termversion = iresp->version;
+    if(iresp->dimy && iresp->dimx){
+      // FIXME probably oughtn't be setting the defaults, as this is just some
+      // random transient measurement?
+      ti->default_rows = iresp->dimy;
+      ti->default_cols = iresp->dimx;
+    }
+    if(iresp->pixy && iresp->pixx){
+      ti->pixy = iresp->pixy;
+      ti->pixx = iresp->pixx;
+    }
+    if(ti->default_rows && ti->default_cols){
+      ti->cellpixy = ti->pixy / ti->default_rows;
+      ti->cellpixx = ti->pixx / ti->default_cols;
+    }
+    ti->bg_collides_default = iresp->bg;
+    // kitty trumps sixel, when both are available
+    if((kitty_graphics = iresp->kitty_graphics) == 0){
+      ti->color_registers = iresp->color_registers;
+      ti->sixel_maxy = iresp->sixely;
+      ti->sixel_maxx = iresp->sixelx;
+    }
+    free(iresp);
   }
   if(nocbreak){
     if(ti->ttyfd >= 0){
+      // FIXME do this in input later, upon signaling completion?
       if(tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved)){
-        ncinputlayer_stop(&ti->input);
         goto err;
       }
     }
@@ -935,20 +974,14 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  if(appsync_advertised){
-    if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-      goto err;
-    }
-  }
   bool invertsixel = false;
   if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &invertsixel, nonewfonts)){
-    ncinputlayer_stop(&ti->input);
     goto err;
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
-    if(kittygraphs){
+    if(kitty_graphics){
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
     }
     // our current sixel quantization algorithm requires at least 64 color
@@ -967,6 +1000,7 @@ err:
     free(ti->tpreserved);
     ti->tpreserved = NULL;
   }
+  stop_inputlayer(ti);
   free(ti->esctable);
   free(ti->termversion);
   del_curterm(cur_term);
@@ -990,48 +1024,6 @@ char* termdesc_longterm(const tinfo* ti){
     }
   }
   return ret;
-}
-
-// when we have input->ttyfd, everything's simple -- we're reading from a
-// different source than the user is, so we can just write the query, and block
-// on the response, easy peasy.
-// FIXME still, we ought reuse buffer, and pass on any excess reads...
-static int
-locate_cursor_simple(tinfo* ti, const char* u7, int* cursor_y, int* cursor_x){
-  if(ti->qterm == TERMINAL_MSTERMINAL){
-    return locate_cursor(ti, cursor_y, cursor_x);
-  }
-  char* buf = malloc(BUFSIZ);
-  if(buf == NULL){
-    return -1;
-  }
-  loginfo("sending cursor report request\n");
-  if(tty_emit(u7, ti->ttyfd)){
-    free(buf);
-    return -1;
-  }
-  ssize_t r;
-  do{
-    if((r = read(ti->input.infd, buf, BUFSIZ - 1)) > 0){
-      buf[r] = '\0';
-      if(sscanf(buf, "\e[%d;%dR", cursor_y, cursor_x) != 2){
-        loginfo("not a cursor location report: %s\n", buf);
-        free(buf);
-        return -1;
-      }
-      --*cursor_y;
-      --*cursor_x;
-      break;
-    }
-  }while(errno == EAGAIN || errno == EWOULDBLOCK || errno == EBUSY || errno == EINTR);
-  if(r < 0){
-    logerror("error reading cursor location from %d (%s)\n", ti->input.infd, strerror(errno));
-    free(buf);
-    return -1;
-  }
-  free(buf);
-  loginfo("located cursor with %d: %d/%d\n", ti->ttyfd, *cursor_y, *cursor_x);
-  return 0;
 }
 
 // send a u7 request, and wait until we have a cursor report. if input's ttyfd
@@ -1058,47 +1050,54 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     logwarn("No support in terminfo\n");
     return -1;
   }
-  if(ti->ttyfd >= 0){
-    return locate_cursor_simple(ti, u7, cursor_y, cursor_x);
-  }
-  int fd = ti->input.infd;
-  if(fd < 0){
+  if(ti->ttyfd < 0){
     logwarn("No valid path for cursor report\n");
     return -1;
   }
-  bool emitted_u7 = false; // only want to send one max
-  cursorreport* clr;
-  loginfo("Acquiring input lock\n");
-  pthread_mutex_lock(&ti->input.lock);
-  while((clr = ti->input.creport_queue) == NULL){
-    logdebug("No report yet\n");
-    if(!emitted_u7){
-      logdebug("Emitting u7\n");
-      // FIXME i'd rather not do this while holding the lock =[
-      if(tty_emit(u7, fd)){
-        pthread_mutex_unlock(&ti->input.lock);
-        return -1;
-      }
-      emitted_u7 = true;
-    }
-    // this can block. we must enter holding the input lock, and it will
-    // return to us holding the input lock.
-    ncinput_extract_clrs(ti);
-    if( (clr = ti->input.creport_queue) ){
-      break;
-    }
-    pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
+  int fd = ti->ttyfd;
+  if(tty_emit(u7, fd)){
+    return -1;
   }
-  ti->input.creport_queue = clr->next;
-  pthread_mutex_unlock(&ti->input.lock);
-  loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
-  *cursor_y = clr->y;
-  *cursor_x = clr->x;
-  if(ti->inverted_cursor){
-    int tmp = *cursor_y;
-    *cursor_y = *cursor_x;
-    *cursor_x = tmp;
+  get_cursor_location(ti->ictx, cursor_y, cursor_x);
+  loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
+  return 0;
+}
+
+int cbreak_mode(tinfo* ti){
+#ifndef __MINGW64__
+  int ttyfd = ti->ttyfd;
+  if(ttyfd < 0){
+    return 0;
   }
-  free(clr);
+  // assume it's not a true terminal (e.g. we might be redirected to a file)
+  struct termios modtermios;
+  memcpy(&modtermios, ti->tpreserved, sizeof(modtermios));
+  // see termios(3). disabling ECHO and ICANON means input will not be echoed
+  // to the screen, input is made available without enter-based buffering, and
+  // line editing is disabled. since we have not gone into raw mode, ctrl+c
+  // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
+  // instead of 10 (Ctrl+J).
+  modtermios.c_lflag &= (~ECHO & ~ICANON);
+  modtermios.c_iflag &= ~ICRNL;
+  if(tcsetattr(ttyfd, TCSANOW, &modtermios)){
+    logerror("Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
+    return -1;
+  }
+#else
+  // we don't yet have a way to take Cygwin/MSYS2 out of canonical mode. we'll
+  // hit this stanza in MSYS2; allow the GetConsoleMode() to fail for now. this
+  // means we'll need enter pressed after the query response, obviously an
+  // unacceptable state of affairs...FIXME
+  DWORD mode;
+  if(!GetConsoleMode(ti->inhandle, &mode)){
+    logerror("error acquiring input mode\n");
+    return 0; // FIXME is it safe?
+  }
+  mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+  if(!SetConsoleMode(ti->inhandle, mode)){
+    logerror("error setting input mode\n");
+    return -1;
+  }
+#endif
   return 0;
 }

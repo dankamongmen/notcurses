@@ -19,6 +19,7 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
+#define NCOPTION_DRAIN_INPUT         0x0100ull
 
 typedef enum {
   NCLOGLEVEL_SILENT,  // print nothing once fullscreen service begins
@@ -138,6 +139,11 @@ zero. The following flags are defined:
 
 * **NCOPTION_NO_FONT_CHANGES**: Do not touch the font. Notcurses might
     otherwise attempt to extend the font, especially in the Linux console.
+
+* **NCOPTION_DRAIN_INPUT**: Standard input may be freely discarded. If you do not
+    intend to process input, pass this flag. Otherwise, input can buffer up, and
+    eventually prevent Notcurses from processing messages from the terminal. It
+    will furthermore avoid wasting time processing useless input.
 
 ## Fatal signals
 

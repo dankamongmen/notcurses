@@ -4,6 +4,14 @@ rearrangements of Notcurses.
 * 2.4.2 (not yet released)
   * You can now set a resize callback on the standard plane.
   * Added `notcurses_getvec()`, providing batched input.
+  * Added `NCOPTION_DRAIN_INPUT`. Notcurses now launches a thread to process
+    input, so that it can respond to terminal messages with minimal latency.
+    Input read from `stdin` intended for the client is buffered until
+    retrieved. If your client never intends to read this input, provide this
+    flag to eliminate unnecessary processing, and ensure Notcurses can always
+    retrieve terminal messages (if buffers are full, Notcurses cannot
+    continue reading). Likewise added `NCDIRECT_OPTION_DRAIN_INPUT`.
+  * Removed a bunch of deprecated `static inline` functions from the headers.
 
 * 2.4.1 (2021-09-12)
   * `notcurses_check_pixel_support()` still returns 0 if there is no support

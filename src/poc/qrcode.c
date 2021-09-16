@@ -25,7 +25,9 @@ int main(int argc, const char** argv){
     return EXIT_FAILURE;
   }
   struct notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_INHIBIT_SETLOCALE
+             | NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   int dimy, dimx;

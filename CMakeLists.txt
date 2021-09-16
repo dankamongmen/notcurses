@@ -496,6 +496,7 @@ foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
   target_include_directories(${fe}
+    BEFORE
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
   )
@@ -511,6 +512,7 @@ foreach(f ${POCPPSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
   target_include_directories(${fe}
+    BEFORE
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
   )

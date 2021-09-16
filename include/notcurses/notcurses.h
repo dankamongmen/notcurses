@@ -48,6 +48,7 @@ struct nctablet;  // grouped item within an ncreel
 struct ncreel;    // hierarchical block-based data browser
 struct nctab;     // grouped item within an nctabbed
 struct nctabbed;  // widget with one tab visible at a time
+struct ncdirect;  // direct mode context
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground. these need be kept in the same
@@ -900,6 +901,11 @@ typedef enum {
 // anything but the virtual console/terminal in which Notcurses is running.
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 
+// Input may be freely dropped. This ought be provided when the program does not
+// intend to handle input. Otherwise, input can accumulate in internal buffers,
+// eventually preventing Notcurses from processing terminal messages.
+#define NCOPTION_DRAIN_INPUT         0x0100ull
+
 // "CLI mode" is just NCOPTION_NO_CLEAR_BITMAPS | NCOPTION_NO_ALTERNATE_SCREEN |
 // NCOPTION_PRESERVE_CURSOR, plus enabling scrolling on the standard plane.
 
@@ -1064,10 +1070,17 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // timespec to bound blocking. Returns a single Unicode code point, or
 // (uint32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an
 // event is processed, the return value is the 'id' field from that event.
-// 'ni' may be NULL.
+// 'ni' may be NULL. 'ts' is an *absolute* time relative to gettimeofday()
+// (see pthread_cond_timedwait(3)).
 API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                            ncinput* ni)
   __attribute__ ((nonnull (1)));
+
+// Acquire up to 'vcount' ncinputs at the vector 'ni'. The number read will be
+// returned, or -1 on error without any reads, 0 on timeout.
+API int notcurses_getvec(struct notcurses* n, const struct timespec* ts,
+                         ncinput* ni, int vcount)
+  __attribute__ ((nonnull (1, 3)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
 // descriptor becomes available, you can call notcurses_getc_nblock(),
@@ -4019,15 +4032,17 @@ API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
 
-// Backwards-compatibility wrapper; this will be removed for ABI3.
-// Use notcurses_get() in new code.
-API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            const void* unused, ncinput* ni)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (1)));
-
 __attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
 
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
+                            const void* unused, ncinput* ni)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
+                           const void* unused, ncinput* ni)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #undef ALLOC

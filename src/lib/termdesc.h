@@ -9,12 +9,12 @@ extern "C" {
 
 #include "version.h"
 #include "builddef.h"
-#include "input.h"
 #include <stdint.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <notcurses/notcurses.h>
 #include "fbuf.h"
+#include "in.h"
 
 struct ncpile;
 struct sprixel;
@@ -87,43 +87,6 @@ typedef struct cursorreport {
   int x, y;
   struct cursorreport* next;
 } cursorreport;
-
-// we read input from one or two places. if stdin is connected to our
-// controlling tty, we read only from that file descriptor. if it is
-// connected to something else, and we have a controlling tty, we will
-// read data only from stdin and control only from the tty. if we have
-// no connected tty, only data is available.
-typedef struct ncinputlayer {
-  // only allow one reader at a time, whether it's the user trying to do so,
-  // or our desire for a cursor report competing with the user.
-  pthread_mutex_t lock;
-  // must be held to operate on the cursor report queue shared between pure
-  // input and the control layer.
-  pthread_cond_t creport_cond;
-  // ttyfd is only valid if we are connected to a tty, *and* stdin is not
-  // connected to that tty (this usually means stdin was redirected). in that
-  // case, we read control sequences only from ttyfd.
-  int ttyfd; // file descriptor for connected tty
-  int infd;  // file descriptor for processing input, from stdin
-  unsigned char inputbuf[BUFSIZ];
-  unsigned char csibuf[BUFSIZ];   // running buffer while parsing CSIs
-  // we keep a wee ringbuffer of input queued up for delivery. if
-  // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
-  // can be read to inputbuf_write_at until we fill up. the first datum
-  // available for the app is at inputbuf_valid_starts iff inputbuf_occupied is
-  // not 0. the main purpose is working around bad predictions of escapes.
-  unsigned inputbuf_occupied;
-  unsigned inputbuf_valid_starts;
-  unsigned inputbuf_write_at;
-  // number of input events seen. does not belong in ncstats, since it must not
-  // be reset (semantics are relied upon by widgets for mouse click detection).
-  uint64_t input_events;
-  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
-  cursorreport* creport_queue; // queue of cursor reports
-  bool user_wants_data;        // a user context is active
-  bool inner_wants_data;       // if we're blocking on input
-  struct ncsharedstats* stats; // notcurses sharedstats object
-} ncinputlayer;
 
 // terminal interface description. most of these are acquired from terminfo(5)
 // (using a database entry specified by TERM). some are determined via
@@ -198,15 +161,14 @@ typedef struct tinfo {
   queried_terminals_e qterm; // detected terminal class
   // we heap-allocate this one (if we use it), as it's not fully defined on Windows
   struct termios *tpreserved;// terminal state upon entry
-  ncinputlayer input;        // input layer
+  struct inputctx* ictx;     // new input layer
+  unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 
   // if we get a reply to our initial \e[18t cell geometry query, it will
   // replace these values. note that LINES/COLUMNS cannot be used to limit
   // the output region; use margins for that, if necessary.
   int default_rows;          // LINES environment var / lines terminfo / 24
   int default_cols;          // COLUMNS environment var / cols terminfo / 80
-
-  unsigned kittykbd;         // kitty keyboard support level
 
   int gpmfd;                 // connection to GPM daemon
   pthread_t gpmthread;       // thread handle for GPM watcher
@@ -220,10 +182,6 @@ typedef struct tinfo {
   HANDLE outhandle;
 #endif
 
-  // some terminals (e.g. kmscon) return cursor coordinates inverted from the
-  // typical order. we detect it the first time ncdirect_cursor_yx() is called.
-  bool detected_cursor_inversion; // have we performed inversion testing?
-  bool inverted_cursor;      // does the terminal return inverted coordinates?
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;
@@ -252,7 +210,9 @@ term_supported_styles(const tinfo* ti){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out,
                          unsigned utf8, unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
-                         struct ncsharedstats* stats);
+                         struct ncsharedstats* stats, int lmargin, int tmargin,
+                         unsigned draininput)
+  __attribute__ ((nonnull (1, 2, 3, 10)));
 
 void free_terminfo_cache(tinfo* ti);
 
@@ -381,6 +341,8 @@ leave_alternate_screen(FILE* fp, tinfo* ti){
   ti->in_alt_screen = false;
   return 0;
 }
+
+int cbreak_mode(tinfo* ti);
 
 #ifdef __cplusplus
 }

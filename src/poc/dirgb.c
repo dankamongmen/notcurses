@@ -52,7 +52,8 @@ int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
-  struct ncdirect* nc = ncdirect_core_init(NULL, stdout, 0);
+  uint64_t flags = NCDIRECT_OPTION_DRAIN_INPUT;
+  struct ncdirect* nc = ncdirect_core_init(NULL, stdout, flags);
   if(!nc){
     return EXIT_FAILURE;
   }

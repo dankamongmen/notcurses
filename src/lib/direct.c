@@ -179,77 +179,16 @@ int ncdirect_cursor_disable(ncdirect* nc){
 }
 
 static int
-cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
+cursor_yx_get(ncdirect* n, int ttyfd, const char* u7, int* y, int* x){
+  struct inputctx* ictx = n->tcache.ictx;
+  if(ncdirect_flush(n)){
+    return -1;
+  }
   if(tty_emit(u7, ttyfd)){
     return -1;
   }
-  bool done = false;
-  enum { // what we expect now
-    CURSOR_ESC, // 27 (0x1b)
-    CURSOR_LSQUARE,
-    CURSOR_ROW, // delimited by a semicolon
-    CURSOR_COLUMN,
-    CURSOR_R,
-  } state = CURSOR_ESC;
-  int row = 0, column = 0;
-  int r;
-  char in;
-  do{
-#ifndef __MINGW64__
-    while((r = read(ttyfd, &in, 1)) == 1){
-#else
-    while((r = getc(stdin)) >= 0){ // FIXME
-      in = r;
-#endif
-      bool valid = false;
-      switch(state){
-        case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
-        case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
-        case CURSOR_ROW:
-          if(isdigit(in)){
-            row *= 10;
-            row += in - '0';
-            valid = true;
-          }else if(in == ';'){
-            state = CURSOR_COLUMN;
-            valid = true;
-          }
-          break;
-        case CURSOR_COLUMN:
-          if(isdigit(in)){
-            column *= 10;
-            column += in - '0';
-            valid = true;
-          }else if(in == 'R'){
-            state = CURSOR_R;
-            valid = true;
-          }
-          break;
-        case CURSOR_R: default: // logical error, whoops
-          break;
-      }
-      if(!valid){
-        logerror("Unexpected result (%c, %d) from terminal\n", in, in);
-        break;
-      }
-      if(state == CURSOR_R){
-        done = true;
-        break;
-      }
-    }
-    // need to loop 0 to handle slow terminals, see for instance screen =[
-  }while(!done && (r >= 0 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
-  if(!done){
-    logerror("Error reading cursor location\n");
-    return -1;
-  }
-  if(y){
-    *y = row;
-  }
-  if(x){
-    *x = column;
-  }
-  loginfo("cursor at y=%d x=%d\n", row, column);
+  get_cursor_location(ictx, y, x);
+  loginfo("cursor at y=%d x=%d\n", *y, *x);
   return 0;
 }
 
@@ -266,7 +205,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+      if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -276,7 +215,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n->tcache.ttyfd, u7, NULL, &x)){
+      if(cursor_yx_get(n, n->tcache.ttyfd, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -295,6 +234,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   return -1; // we will not be moving the cursor today
 }
 
+/*
 // an algorithm to detect inverted cursor reporting on terminals 2x2 or larger:
 //  * get initial cursor position / push cursor position
 //  * move right using cursor-independent routines
@@ -408,6 +348,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
   // of ttyfd, as needed by cursor interrogation.
   return detect_cursor_inversion(n, u7, toty, totx, y, x);
 }
+*/
 
 // no terminfo capability for this. dangerous--it involves writing controls to
 // the terminal, and then reading a response. many things can distupt this
@@ -444,24 +385,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!x){
     x = &xval;
   }
-  if(!n->tcache.detected_cursor_inversion){
-    ret = detect_cursor_inversion_wrapper(n, u7, y, x);
-  }else{
-    ret = cursor_yx_get(n->tcache.ttyfd, u7, y, x);
-  }
-  if(ret == 0){
-    if(n->tcache.inverted_cursor){
-      int tmp = *y;
-      *y = *x;
-      *x = tmp;
-    }else{
-      // we use 0-based coordinates, but known terminals use 1-based
-      // coordinates. the only known exception is kmscon, which is
-      // incidentally the only one which inverts its response.
-      --*y;
-      --*x;
-    }
-  }
+  ret = cursor_yx_get(n, n->tcache.ttyfd, u7, y, x);
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             n->tcache.ttyfd, strerror(errno)); // don't return error for this
@@ -510,7 +434,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   if(np->sprite){
     int y;
     const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
-    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
     if(ncdirect_cursor_move_yx(n, y, xoff)){
@@ -522,10 +446,10 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       return -1;
     }
     fbuf f = {};
-    if(fbuf_init(&f)){
+    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
       return -1;
     }
-    if(cursor_yx_get(n->tcache.ttyfd, u7, &y, NULL)){
+    if(fbuf_init(&f)){
       return -1;
     }
     if(toty - dimy < y){
@@ -538,21 +462,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       // perform our scrolling outside of the fbuf framework, as we need it
       // to happen immediately for fbdcon
       if(ncdirect_cursor_move_yx(n, y, xoff)){
+        fbuf_free(&f);
         return -1;
       }
-      const char* indn = get_escape(&n->tcache, ESCAPE_IND);
-      if(scrolls > 1 && indn){
-        if(term_emit(tiparm(indn, scrolls), stdout, true) < 0){
-          return -1;
-        }
-      }
-      while(scrolls--){
-        if(ncfputc('\v', stdout) < 0){
-          return -1;
-        }
+      if(emit_scrolls(&n->tcache, scrolls, &f) < 0){
+        fbuf_free(&f);
+        return -1;
       }
     }
     if(sprite_draw(&n->tcache, NULL, np->sprite, &f, y, xoff) < 0){
+      fbuf_free(&f);
       return -1;
     }
     if(sprite_commit(&n->tcache, &f, np->sprite, true)){
@@ -864,18 +783,14 @@ ncdirect_stop_minimal(void* vnc){
     ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
-    if(nc->tcache.kittykbd){
-      ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
-    }
+    ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->tcache.ttyfd)){
       ret = -1;
     }
     ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, nc->tcache.tpreserved);
-    ret |= close(nc->tcache.ttyfd);
   }
   ret |= ncdirect_flush(nc);
-  free_terminfo_cache(&nc->tcache);
   return ret;
 }
 
@@ -883,7 +798,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(outfp == NULL){
     outfp = stdout;
   }
-  if(flags > (NCDIRECT_OPTION_VERY_VERBOSE << 1)){ // allow them through with warning
+  if(flags > (NCDIRECT_OPTION_DRAIN_INPUT << 1)){ // allow them through with warning
     logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   ncdirect* ret = malloc(sizeof(ncdirect));
@@ -891,6 +806,10 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     return ret;
   }
   memset(ret, 0, sizeof(*ret));
+  if(pthread_mutex_init(&ret->stats.lock, NULL)){
+    free(ret);
+    return NULL;
+  }
   ret->flags = flags;
   ret->ttyfp = outfp;
   if(!(flags & NCDIRECT_OPTION_INHIBIT_SETLOCALE)){
@@ -903,6 +822,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
+    pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
     return NULL;
   }
@@ -917,9 +837,10 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   int cursor_y = -1;
   int cursor_x = -1;
-  if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8,
-                          1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
-                          TERMINAL_UNKNOWN, &cursor_y, &cursor_x, NULL)){
+  if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8, 1,
+                          flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
+                          0, &cursor_y, &cursor_x, &ret->stats, 0, 0,
+                          flags & NCDIRECT_OPTION_DRAIN_INPUT)){
     goto err;
   }
   if(cursor_y >= 0){
@@ -927,6 +848,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
     if(ncdirect_cursor_move_yx(ret, cursor_y, cursor_x)){
+      free_terminfo_cache(&ret->tcache);
       goto err;
     }
   }
@@ -942,6 +864,7 @@ err:
     (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
   }
   drop_signals(ret);
+  pthread_mutex_destroy(&ret->stats.lock);
   free(ret);
   return NULL;
 }
@@ -950,6 +873,11 @@ int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
+    free_terminfo_cache(&nc->tcache);
+    if(nc->tcache.ttyfd >= 0){
+      ret |= close(nc->tcache.ttyfd);
+    }
+    pthread_mutex_destroy(&nc->stats.lock);
     free(nc);
   }
   return ret;

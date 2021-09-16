@@ -664,7 +664,9 @@ ncneofetch(struct notcurses* nc){
   fi.hostname = notcurses_hostname();
   fi.username = notcurses_accountname();
   fetch_env_vars(nc, &fi);
-  fetch_x_props(&fi);
+  if(kern != NCNEO_XNU && kern != NCNEO_WINDOWS){
+    fetch_x_props(&fi);
+  }
   if(kern == NCNEO_LINUX){
     fetch_cpu_info(&fi);
   }else{
@@ -695,7 +697,8 @@ int main(int argc, char** argv){
     .flags = NCOPTION_SUPPRESS_BANNERS
              | NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_NO_CLEAR_BITMAPS
-             | NCOPTION_PRESERVE_CURSOR,
+             | NCOPTION_PRESERVE_CURSOR
+             | NCOPTION_DRAIN_INPUT,
   };
   if(argc > 2){
     usage(argv[0], stderr);

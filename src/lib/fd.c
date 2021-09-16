@@ -135,8 +135,7 @@ int ncfdplane_destroy(ncfdplane* n){
       n->destroyed = true; // ncfdplane_destroy_inner() is called on thread exit
     }else{
       void* vret = NULL;
-      pthread_cancel(n->tid);
-      ret |= pthread_join(n->tid, &vret);
+      ret |= cancel_and_join("fdplane", n->tid, &vret);
       ret |= ncfdplane_destroy_inner(n);
     }
   }

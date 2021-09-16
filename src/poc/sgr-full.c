@@ -6,7 +6,8 @@ int main(void){
   struct notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_SUPPRESS_BANNERS
-             | NCOPTION_PRESERVE_CURSOR,
+             | NCOPTION_PRESERVE_CURSOR
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){

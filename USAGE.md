@@ -95,7 +95,7 @@ typedef enum {
 // to do this, pass NCOPTION_NO_CLEAR_BITMAPS. Note that they might still
 // get cleared even if this is set, and they might not get cleared even if
 // this is not set. It's a tough world out there.
-#define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
+#define NCOPTION_NO_CLEAR_BITMAPS    0x0002
 
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_get() queue. Set to inhibit this handler.
@@ -110,7 +110,7 @@ typedef enum {
 // at context creation time. Together with NCOPTION_NO_ALTERNATE_SCREEN and a
 // scrolling standard plane, this facilitates easy scrolling-style programs in
 // rendered mode.
-#define NCOPTION_PRESERVE_CURSOR     0x0010ull
+#define NCOPTION_PRESERVE_CURSOR     0x0010
 
 // Notcurses typically prints version info in notcurses_init() and performance
 // info in notcurses_stop(). This inhibits that output.
@@ -119,6 +119,17 @@ typedef enum {
 // If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 // of the "alternate screen". This flag inhibits use of smcup/rmcup.
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040
+
+// Do not modify the font. Notcurses might attempt to change the font slightly,
+// to support certain glyphs (especially on the Linux console). If this is set,
+// no such modifications will be made. Note that font changes will not affect
+// anything but the virtual console/terminal in which Notcurses is running.
+#define NCOPTION_NO_FONT_CHANGES     0x0080
+
+// Input may be freely dropped. This ought be provided when the program does not
+// intend to handle input. Otherwise, input can accumulate in internal buffers,
+// eventually preventing Notcurses from processing terminal messages.
+#define NCOPTION_DRAIN_INPUT         0x0100
 
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
@@ -378,10 +389,22 @@ struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t fla
 // echo and line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
 
+// Input may be freely dropped. This ought be provided when the program does not
+// intend to handle input. Otherwise, input can accumulate in internal buffers,
+// eventually preventing Notcurses from processing terminal messages.
+#define NCDIRECT_OPTION_DRAIN_INPUT         0x0004ull
+
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 // restores the screen, and then calls the old signal handler. Set to inhibit
 // registration of these signal handlers. Chosen to match fullscreen mode.
 #define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
+
+// Enable logging (to stderr) at the NCLOGLEVEL_WARNING level.
+#define NCDIRECT_OPTION_VERBOSE             0x0010ull
+
+// Enable logging (to stderr) at the NCLOGLEVEL_TRACE level. This will enable
+// all diagnostics, a superset of NCDIRECT_OPTION_VERBOSE (which this implies).
+#define NCDIRECT_OPTION_VERY_VERBOSE        0x0020ull
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);
@@ -671,7 +694,12 @@ typedef struct ncinput {
 // event is processed, the return value is the 'id' field from that event.
 // 'ni' may be NULL.
 uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
-                       ncinput* ni)
+                       ncinput* ni);
+
+// Acquire up to 'vcount' ncinputs at the vector 'ni'. The number read will be
+// returned, or -1 on error without any reads, 0 on timeout.
+int notcurses_getvec(struct notcurses* n, const struct timespec* ts,
+                     ncinput* ni, int vcount);
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.

@@ -7,6 +7,7 @@ int main(void){
   notcurses_options nopts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE
              | NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_DRAIN_INPUT
              | NCOPTION_PRESERVE_CURSOR,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);

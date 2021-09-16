@@ -988,26 +988,7 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
       return -1;
     }
   }
-  if(scrolls > 1){
-    const char* indn = get_escape(&p->nc->tcache, ESCAPE_INDN);
-    if(indn){
-      if(fbuf_emit(f, tiparm(indn, scrolls)) < 0){
-        return -1;
-      }
-      return 0;
-    }
-  }
-  const char* ind = get_escape(&p->nc->tcache, ESCAPE_IND);
-  if(ind == NULL){
-    ind = "\v";
-  }
-  while(scrolls > 0){
-    if(fbuf_emit(f, ind) < 0){
-      return -1;
-    }
-    --scrolls;
-  }
-  return 0;
+  return emit_scrolls(&p->nc->tcache, scrolls, f);
 }
 
 // second sprixel pass in rasterization. by this time, all sixels are handled

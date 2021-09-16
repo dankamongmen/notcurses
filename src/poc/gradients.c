@@ -70,7 +70,8 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .flags = NCOPTION_INHIBIT_SETLOCALE
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(nc == NULL){

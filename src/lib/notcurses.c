@@ -1,4 +1,3 @@
-#include "input.h"
 #include "linux.h"
 #include "version.h"
 #include "egcpool.h"
@@ -107,10 +106,8 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
-    if(nc->tcache.kittykbd){
-      if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
-        ret = -1;
-      }
+    if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
+      ret = -1;
     }
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){ // send this to f
@@ -1000,7 +997,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
     return NULL;
   }
-  if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
+  if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
     fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
   }
   notcurses* ret = malloc(sizeof(*ret));
@@ -1092,7 +1089,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache, opts->termtype, ret->ttyfp, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
-                          cursory, cursorx, &ret->stats)){
+                          cursory, cursorx, &ret->stats,
+                          ret->margin_l, ret->margin_t,
+                          opts->flags & NCOPTION_DRAIN_INPUT)){
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);
@@ -1148,9 +1147,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     if(opts->flags & NCOPTION_PRESERVE_CURSOR){
       ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
     }
-  }
-  if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
-    goto err;
   }
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     // perform an explicit clear since the alternate screen was requested
@@ -1246,7 +1242,6 @@ int notcurses_stop(notcurses* nc){
       goto_location(nc, &nc->rstate.f, targy, 0);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
-    ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
@@ -2678,11 +2673,11 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return n->tcache.input.infd;
+  return inputready_fd(n->tcache.ictx);
 }
 
 int ncdirect_inputready_fd(ncdirect* n){
-  return n->tcache.input.infd;
+  return inputready_fd(n->tcache.ictx);
 }
 
 // FIXME speed this up, PoC
