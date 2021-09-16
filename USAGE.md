@@ -690,9 +690,9 @@ typedef struct ncinput {
 // Read a UTF-32-encoded Unicode codepoint from input. This might only be part
 // of a larger EGC. Provide a NULL 'ts' to block at length, and otherwise a
 // timespec to bound blocking. Returns a single Unicode code point, or
-// (uint32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an
-// event is processed, the return value is the 'id' field from that event.
-// 'ni' may be NULL.
+// (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
+// return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
+// *absolute* time relative to gettimeofday() (see pthread_cond_timedwait(3)).
 uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                        ncinput* ni);
 
