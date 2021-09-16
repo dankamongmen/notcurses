@@ -53,7 +53,6 @@
 //W  ncplane_move_bottom
 //W  ncplane_move_top
 //W  ncplane_move_yx
-// X ncplane_new                       // deprecated
 //W# ncplane_notcurses
 //W# ncplane_notcurses_const
 //W  ncplane_off_styles
@@ -110,9 +109,6 @@
 //   ncplane_set_userptr
 //W  ncplane_stain
 //W  ncplane_styles
-// X ncplane_styles_off                // deprecated
-// X ncplane_styles_on                 // deprecated
-// X ncplane_styles_set                // deprecated
 //W  ncplane_translate
 //W  ncplane_translate_abs
 //   ncplane_userptr

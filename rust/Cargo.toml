@@ -2,8 +2,8 @@
 name = "libnotcurses-sys"
 version = "2.4.1"
 authors = [
-    "nick black <dankamongmen@gmail.com>",
-		"José Luis Cruz <joseluis@andamira.net>"
+	"nick black <dankamongmen@gmail.com>",
+	"José Luis Cruz <joseluis@andamira.net>"
 ]
 license = "MIT OR Apache-2.0"
 edition = "2018"
@@ -29,8 +29,6 @@ libc = { version = "^0.2.80", default-features = false }
 cty = "^0.2.1"
 
 [build-dependencies]
-# https://github.com/rust-lang/rust-bindgen/blob/master/CHANGELOG.md#0551
-# https://pkgs.org/search/?q=bindgen
 bindgen = "^0.57"
 pkg-config = "^0.3.18"
 

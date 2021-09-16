@@ -15,13 +15,10 @@ use crate::NcDim;
 mod keycodes;
 pub use keycodes::*;
 
-/// Reads and decodes input events
+/// Reads and decodes input events.
 ///
-/// Reads from stdin and decodes the input to stdout,
-/// including synthesized events and mouse events.
-///
-///
-/// Notcurses provides input from keyboards and mice.
+/// Reads from stdin and decodes the input to stdout, including synthesized
+/// events and mouse events. Notcurses provides input from keyboards and mice.
 /// Single Unicode codepoints are received from the keyboard, directly encoded
 /// as `u32`.
 ///
