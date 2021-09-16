@@ -21,14 +21,15 @@
 
 // FIXME still need to:
 //  integrate main specials trie with automaton, enable input_errors
-//  wake up input thread when space becomes available
-//   (needs pipes/eventfds)
+//  probably want pipes/eventfds rather than SIGCONT
 
 static sig_atomic_t resize_seen;
 
 // called for SIGWINCH and SIGCONT, and causes block_on_input to return
 void sigwinch_handler(int signo){
-  resize_seen = signo;
+  if(signo == SIGWINCH){
+    resize_seen = signo;
+  }
 }
 
 // data collected from responses to our terminal queries.
@@ -1740,11 +1741,10 @@ block_on_input(inputctx* ictx){
   sigdelset(&smask, SIGWINCH);
   while((events = ppoll(pfds, pfdcount, ts, &smask)) < 0){
 #endif
-    if(errno != EINTR && errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
+    if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
       return -1;
-    }
-    if(resize_seen){
-      return 1;
+    }else if(errno == EINTR){
+      return resize_seen;
     }
   }
   return events;
@@ -1836,9 +1836,15 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
   }
-  --ictx->ivalid;
+  bool sendsignal = false;
+  if(ictx->ivalid-- == ictx->isize){
+    sendsignal = true;
+  }
   ni->seqnum = ++ictx->seqnum;
   pthread_mutex_unlock(&ictx->ilock);
+  if(sendsignal){
+    pthread_kill(ictx->tid, SIGCONT);
+  }
   return ni->id;
 }
 
