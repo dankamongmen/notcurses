@@ -164,6 +164,7 @@ typedef struct inputctx {
   tinfo* ti;          // link back to tinfo
   pthread_t tid;      // tid for input thread
 
+  unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
   struct initial_responses* initdata;
@@ -189,7 +190,7 @@ input_free_esctrie(esctrie** eptr){
 
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                ncsharedstats* stats){
+                ncsharedstats* stats, unsigned drain){
   inputctx* i = malloc(sizeof(*i));
   if(i){
     i->csize = 64;
@@ -220,6 +221,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                       i->lmargin = lmargin;
                       i->tmargin = tmargin;
                       i->seqnum = 0;
+                      i->drain = drain;
                       logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                       return i;
                     }
@@ -663,6 +665,10 @@ inc_input_events(inputctx* ictx){
 // space is available.
 static void
 add_unicode(inputctx* ictx, uint32_t id){
+  inc_input_events(ictx);
+  if(ictx->drain){
+    return;
+  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -679,13 +685,16 @@ add_unicode(inputctx* ictx, uint32_t id){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
-  inc_input_events(ictx);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
 
 static void
 alt_key(inputctx* ictx, unsigned id){
+  inc_input_events(ictx);
+  if(ictx->drain){
+    return;
+  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -702,7 +711,6 @@ alt_key(inputctx* ictx, unsigned id){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
-  inc_input_events(ictx);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -1409,10 +1417,12 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   int r = process_input(buf, buflen, ni);
   if(r > 0){
     inc_input_events(ictx);
-    if(++ictx->iwrite == ictx->isize){
-      ictx->iwrite = 0;
+    if(!ictx->drain){
+      if(++ictx->iwrite == ictx->isize){
+        ictx->iwrite = 0;
+      }
+      ++ictx->ivalid;
     }
-    ++ictx->ivalid;
   }
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
@@ -1581,8 +1591,8 @@ input_thread(void* vmarshall){
 }
 
 int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                    ncsharedstats* stats){
-  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats);
+                    ncsharedstats* stats, unsigned drain){
+  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats, drain);
   if(ictx == NULL){
     return -1;
   }
@@ -1615,6 +1625,10 @@ int inputready_fd(const inputctx* ictx){
 
 static inline uint32_t
 internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
+  if(ictx->drain){
+    logerror("input is being drained\n");
+    return (uint32_t)-1;
+  }
   pthread_mutex_lock(&ictx->ilock);
   while(!ictx->ivalid){
     pthread_cond_wait(&ictx->icond, &ictx->ilock);

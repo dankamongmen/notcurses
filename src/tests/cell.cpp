@@ -42,7 +42,7 @@ TEST_CASE("Cell") {
     CHECK(9 == nccell_load(n_, &c, "นี้"));
     WARN(1 == nccell_cols(&c));
 
-    // type-3 woman playing water polo, 17 bytes (5 characters)
+    // type-3 woman playing water polo, 17 bytes (5 characters, 2 columns)
 #ifdef __linux__
     CHECK(17 == nccell_load(n_, &c, "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
     WARN(2 == nccell_cols(&c));

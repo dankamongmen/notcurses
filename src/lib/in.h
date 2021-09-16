@@ -14,7 +14,7 @@ struct inputctx;
 struct ncsharedstats;
 
 int init_inputlayer(struct tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                    struct ncsharedstats* stats)
+                    struct ncsharedstats* stats, unsigned drain)
   __attribute__ ((nonnull (1, 2, 5)));
 
 int stop_inputlayer(struct tinfo* ti);

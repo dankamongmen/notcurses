@@ -49,6 +49,7 @@ int main(int argc, char** argv){
     .margin_l = 2,
     .margin_b = 2,
     .margin_r = 2,
+    .flags = NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(notcurses_check_pixel_support(nc) <= 0){

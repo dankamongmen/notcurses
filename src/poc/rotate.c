@@ -22,7 +22,9 @@ int main(int argc, char** argv){
   }
   notcurses_options opts = {};
   //opts.loglevel = NCLOGLEVEL_TRACE;
-  opts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
+  opts.flags = NCOPTION_INHIBIT_SETLOCALE
+                | NCOPTION_NO_ALTERNATE_SCREEN
+                | NCOPTION_DRAIN_INPUT;
   struct notcurses* nc;
   if((nc = notcurses_init(&opts, NULL)) == NULL){
     return EXIT_FAILURE;

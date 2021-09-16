@@ -720,7 +720,7 @@ macos_early_matches(void){
 int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats,
-                         int lmargin, int tmargin){
+                         int lmargin, int tmargin, unsigned draininput){
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
     cursor_x = &foolcursor_x;
@@ -780,7 +780,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats)){
+  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput)){
     goto err;
   }
 #ifndef __MINGW64__

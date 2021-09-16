@@ -18,7 +18,8 @@ int main(int argc, char** argv){
              | NCOPTION_NO_CLEAR_BITMAPS
              | NCOPTION_SUPPRESS_BANNERS
              | NCOPTION_NO_FONT_CHANGES
-             | NCOPTION_PRESERVE_CURSOR,
+             | NCOPTION_PRESERVE_CURSOR
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){

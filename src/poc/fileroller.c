@@ -43,8 +43,9 @@ int main(int argc, char** argv){
   }
   setlocale(LC_ALL, "");
   notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE |
-              NCOPTION_SUPPRESS_BANNERS,
+    .flags = NCOPTION_INHIBIT_SETLOCALE
+             | NCOPTION_SUPPRESS_BANNERS
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   struct ncplane* n = notcurses_stdplane(nc);

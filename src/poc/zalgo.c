@@ -3,7 +3,9 @@
 
 int main(void){
   struct notcurses_options nops = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN
+              | NCOPTION_SUPPRESS_BANNERS
+              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&nops, NULL);
   if(nc == NULL){

@@ -839,8 +839,8 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   int cursor_x = -1;
   if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8, 1,
                           flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
-                          TERMINAL_UNKNOWN, &cursor_y, &cursor_x,
-                          &ret->stats, 0, 0)){
+                          0, &cursor_y, &cursor_x, &ret->stats, 0, 0,
+                          flags & NCDIRECT_OPTION_DRAIN_INPUT)){
     goto err;
   }
   if(cursor_y >= 0){
@@ -874,7 +874,7 @@ int ncdirect_stop(ncdirect* nc){
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
     free_terminfo_cache(&nc->tcache);
-    if(nc->tcache.ttyfd){
+    if(nc->tcache.ttyfd >= 0){
       ret |= close(nc->tcache.ttyfd);
     }
     pthread_mutex_destroy(&nc->stats.lock);

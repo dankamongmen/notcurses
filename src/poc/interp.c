@@ -95,6 +95,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
 int main(void){
   struct notcurses_options nopts = {
 //    .loglevel = NCLOGLEVEL_TRACE,
+      .flags = NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){

@@ -29,7 +29,8 @@ int main(void){
   if(rendered_cursor()){
     return EXIT_FAILURE;
   }
-  uint64_t flags = NCDIRECT_OPTION_VERY_VERBOSE;
+  uint64_t flags = NCDIRECT_OPTION_VERY_VERBOSE
+                   | NCDIRECT_OPTION_DRAIN_INPUT;
   struct ncdirect* n = ncdirect_core_init(NULL, stdout, flags);
   if(n == NULL){
     return EXIT_FAILURE;
