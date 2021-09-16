@@ -163,6 +163,7 @@ typedef struct inputctx {
   tinfo* ti;          // link back to tinfo
   pthread_t tid;      // tid for input thread
 
+  unsigned linesigs;  // are line discipline signals active?
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
@@ -213,6 +214,9 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                       i->stats = stats;
                       i->ti = ti;
                       i->ibufvalid = 0;
+                      // FIXME need to get this out of the initial termios
+                      // (as stored in tpreserved)
+                      i->linesigs = 1;
                       i->tbufvalid = 0;
                       i->numeric = 0;
                       i->stridx = 0;
@@ -1900,64 +1904,84 @@ int get_cursor_location(struct inputctx* ictx, int* y, int* x){
 
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
-int notcurses_linesigs_disable(notcurses* n){
+static int
+linesigs_disable(tinfo* ti){
+  if(!ti->ictx->linesigs){
+    logwarn("linedisc signals already disabled\n");
+  }
 #ifndef __MINGW64__
-  if(n->tcache.ttyfd < 0){
+  if(ti->ttyfd < 0){
     return 0;
   }
   struct termios tios;
-  if(tcgetattr(n->tcache.ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", n->tcache.ttyfd, strerror(errno));
+  if(tcgetattr(ti->ttyfd, &tios)){
+    logerror("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag &= ~ISIG;
-  if(tcsetattr(n->tcache.ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
+  if(tcsetattr(ti->ttyfd, TCSANOW, &tios)){
+    logerror("Error disabling signals on %d (%s)\n", ti->ttyfd, strerror(errno));
     return -1;
   }
 #else
   DWORD mode;
-  if(!GetConsoleMode(n->tcache.inhandle, &mode)){
+  if(!GetConsoleMode(ti->inhandle, &mode)){
     logerror("error acquiring input mode\n");
     return -1;
   }
   mode &= ~ENABLE_PROCESSED_INPUT;
-  if(!SetConsoleMode(n->tcache.inhandle, mode)){
+  if(!SetConsoleMode(ti->inhandle, mode)){
     logerror("error setting input mode\n");
     return -1;
   }
 #endif
+  ti->ictx->linesigs = 0;
+  loginfo("disabled line discipline signals\n");
+  return 0;
+}
+
+int notcurses_linesigs_disable(notcurses* nc){
+  return linesigs_disable(&nc->tcache);
+}
+
+static int
+linesigs_enable(tinfo* ti){
+  if(ti->ictx->linesigs){
+    logwarn("linedisc signals already enabled\n");
+  }
+#ifndef __MINGW64__
+  if(ti->ttyfd < 0){
+    return 0;
+  }
+  struct termios tios;
+  if(tcgetattr(ti->ttyfd, &tios)){
+    logerror("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+    return -1;
+  }
+  tios.c_lflag |= ISIG;
+  if(tcsetattr(ti->ttyfd, TCSANOW, &tios)){
+    logerror("Error disabling signals on %d (%s)\n", ti->ttyfd, strerror(errno));
+    return -1;
+  }
+#else
+  DWORD mode;
+  if(!GetConsoleMode(ti->inhandle, &mode)){
+    logerror("error acquiring input mode\n");
+    return -1;
+  }
+  mode |= ENABLE_PROCESSED_INPUT;
+  if(!SetConsoleMode(ti->inhandle, mode)){
+    logerror("error setting input mode\n");
+    return -1;
+  }
+#endif
+  ti->ictx->linesigs = 1;
+  loginfo("enabled line discipline signals\n");
   return 0;
 }
 
 // Restore signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
 int notcurses_linesigs_enable(notcurses* n){
-#ifndef __MINGW64__
-  if(n->tcache.ttyfd < 0){
-    return 0;
-  }
-  struct termios tios;
-  if(tcgetattr(n->tcache.ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", n->tcache.ttyfd, strerror(errno));
-    return -1;
-  }
-  tios.c_lflag |= ~ISIG;
-  if(tcsetattr(n->tcache.ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
-    return -1;
-  }
-#else
-  DWORD mode;
-  if(!GetConsoleMode(n->tcache.inhandle, &mode)){
-    logerror("error acquiring input mode\n");
-    return -1;
-  }
-  mode |= ENABLE_PROCESSED_INPUT;
-  if(!SetConsoleMode(n->tcache.inhandle, mode)){
-    logerror("error setting input mode\n");
-    return -1;
-  }
-#endif
-  return 0;
+  return linesigs_enable(&n->tcache);
 }
