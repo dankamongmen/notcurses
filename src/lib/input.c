@@ -100,7 +100,7 @@ int notcurses_linesigs_enable(notcurses* n){
     logerror("Couldn't preserve terminal state for %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
   }
-  tios.c_lflag |= ~ISIG;
+  tios.c_lflag |= ISIG;
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &tios)){
     logerror("Error disabling signals on %d (%s)\n", n->tcache.ttyfd, strerror(errno));
     return -1;
