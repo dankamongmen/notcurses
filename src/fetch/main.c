@@ -664,7 +664,9 @@ ncneofetch(struct notcurses* nc){
   fi.hostname = notcurses_hostname();
   fi.username = notcurses_accountname();
   fetch_env_vars(nc, &fi);
-  fetch_x_props(&fi);
+  if(kern != NCNEO_XNU && kern != NCNEO_WINDOWS){
+    fetch_x_props(&fi);
+  }
   if(kern == NCNEO_LINUX){
     fetch_cpu_info(&fi);
   }else{
