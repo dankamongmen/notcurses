@@ -780,9 +780,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       goto err;
     }
   }
-  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput)){
-    goto err;
-  }
 #ifndef __MINGW64__
   // windows doesn't really have a concept of terminfo. you might ssh into other
   // machines, but they'll use the terminfo installed thereon (putty, etc.).
@@ -793,6 +790,9 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   tname = termname(); // longname() is also available
 #endif
+  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput)){
+    goto err;
+  }
   ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
   ti->caps.utf8 = utf8;

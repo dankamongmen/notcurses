@@ -20,7 +20,6 @@
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
 // FIXME still need to:
-//  read specials from terminfo
 //  integrate main specials trie with automaton, enable input_errors
 //  wake up input thread when space becomes available
 //   (needs pipes/eventfds)
@@ -397,12 +396,193 @@ prep_windows_special_keys(inputctx* nc){
   return 0;
 }
 
+// load all known special keys from terminfo, and build the input sequence trie
+static int
+prep_special_keys(inputctx* ictx){
+#ifndef __MINGW64__
+  static const struct {
+    const char* tinfo;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .tinfo = "kcbt",  .key = '\t', .shift = true, },
+    { .tinfo = "kcub1", .key = NCKEY_LEFT, },
+    { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
+    { .tinfo = "kcuu1", .key = NCKEY_UP, },
+    { .tinfo = "kcud1", .key = NCKEY_DOWN, },
+    { .tinfo = "kdch1", .key = NCKEY_DEL, },
+    { .tinfo = "kbs",   .key = NCKEY_BACKSPACE, },
+    { .tinfo = "kich1", .key = NCKEY_INS, },
+    { .tinfo = "kend",  .key = NCKEY_END, },
+    { .tinfo = "khome", .key = NCKEY_HOME, },
+    { .tinfo = "knp",   .key = NCKEY_PGDOWN, },
+    { .tinfo = "kpp",   .key = NCKEY_PGUP, },
+    { .tinfo = "kf0",   .key = NCKEY_F01, },
+    { .tinfo = "kf1",   .key = NCKEY_F01, },
+    { .tinfo = "kf2",   .key = NCKEY_F02, },
+    { .tinfo = "kf3",   .key = NCKEY_F03, },
+    { .tinfo = "kf4",   .key = NCKEY_F04, },
+    { .tinfo = "kf5",   .key = NCKEY_F05, },
+    { .tinfo = "kf6",   .key = NCKEY_F06, },
+    { .tinfo = "kf7",   .key = NCKEY_F07, },
+    { .tinfo = "kf8",   .key = NCKEY_F08, },
+    { .tinfo = "kf9",   .key = NCKEY_F09, },
+    { .tinfo = "kf10",  .key = NCKEY_F10, },
+    { .tinfo = "kf11",  .key = NCKEY_F11, },
+    { .tinfo = "kf12",  .key = NCKEY_F12, },
+    { .tinfo = "kf13",  .key = NCKEY_F13, },
+    { .tinfo = "kf14",  .key = NCKEY_F14, },
+    { .tinfo = "kf15",  .key = NCKEY_F15, },
+    { .tinfo = "kf16",  .key = NCKEY_F16, },
+    { .tinfo = "kf17",  .key = NCKEY_F17, },
+    { .tinfo = "kf18",  .key = NCKEY_F18, },
+    { .tinfo = "kf19",  .key = NCKEY_F19, },
+    { .tinfo = "kf20",  .key = NCKEY_F20, },
+    { .tinfo = "kf21",  .key = NCKEY_F21, },
+    { .tinfo = "kf22",  .key = NCKEY_F22, },
+    { .tinfo = "kf23",  .key = NCKEY_F23, },
+    { .tinfo = "kf24",  .key = NCKEY_F24, },
+    { .tinfo = "kf25",  .key = NCKEY_F25, },
+    { .tinfo = "kf26",  .key = NCKEY_F26, },
+    { .tinfo = "kf27",  .key = NCKEY_F27, },
+    { .tinfo = "kf28",  .key = NCKEY_F28, },
+    { .tinfo = "kf29",  .key = NCKEY_F29, },
+    { .tinfo = "kf30",  .key = NCKEY_F30, },
+    { .tinfo = "kf31",  .key = NCKEY_F31, },
+    { .tinfo = "kf32",  .key = NCKEY_F32, },
+    { .tinfo = "kf33",  .key = NCKEY_F33, },
+    { .tinfo = "kf34",  .key = NCKEY_F34, },
+    { .tinfo = "kf35",  .key = NCKEY_F35, },
+    { .tinfo = "kf36",  .key = NCKEY_F36, },
+    { .tinfo = "kf37",  .key = NCKEY_F37, },
+    { .tinfo = "kf38",  .key = NCKEY_F38, },
+    { .tinfo = "kf39",  .key = NCKEY_F39, },
+    { .tinfo = "kf40",  .key = NCKEY_F40, },
+    { .tinfo = "kf41",  .key = NCKEY_F41, },
+    { .tinfo = "kf42",  .key = NCKEY_F42, },
+    { .tinfo = "kf43",  .key = NCKEY_F43, },
+    { .tinfo = "kf44",  .key = NCKEY_F44, },
+    { .tinfo = "kf45",  .key = NCKEY_F45, },
+    { .tinfo = "kf46",  .key = NCKEY_F46, },
+    { .tinfo = "kf47",  .key = NCKEY_F47, },
+    { .tinfo = "kf48",  .key = NCKEY_F48, },
+    { .tinfo = "kf49",  .key = NCKEY_F49, },
+    { .tinfo = "kf50",  .key = NCKEY_F50, },
+    { .tinfo = "kf51",  .key = NCKEY_F51, },
+    { .tinfo = "kf52",  .key = NCKEY_F52, },
+    { .tinfo = "kf53",  .key = NCKEY_F53, },
+    { .tinfo = "kf54",  .key = NCKEY_F54, },
+    { .tinfo = "kf55",  .key = NCKEY_F55, },
+    { .tinfo = "kf56",  .key = NCKEY_F56, },
+    { .tinfo = "kf57",  .key = NCKEY_F57, },
+    { .tinfo = "kf58",  .key = NCKEY_F58, },
+    { .tinfo = "kf59",  .key = NCKEY_F59, },
+    { .tinfo = "kent",  .key = NCKEY_ENTER, },
+    { .tinfo = "kclr",  .key = NCKEY_CLS, },
+    { .tinfo = "kc1",   .key = NCKEY_DLEFT, },
+    { .tinfo = "kc3",   .key = NCKEY_DRIGHT, },
+    { .tinfo = "ka1",   .key = NCKEY_ULEFT, },
+    { .tinfo = "ka3",   .key = NCKEY_URIGHT, },
+    { .tinfo = "kb2",   .key = NCKEY_CENTER, },
+    { .tinfo = "kbeg",  .key = NCKEY_BEGIN, },
+    { .tinfo = "kcan",  .key = NCKEY_CANCEL, },
+    { .tinfo = "kclo",  .key = NCKEY_CLOSE, },
+    { .tinfo = "kcmd",  .key = NCKEY_COMMAND, },
+    { .tinfo = "kcpy",  .key = NCKEY_COPY, },
+    { .tinfo = "kext",  .key = NCKEY_EXIT, },
+    { .tinfo = "kprt",  .key = NCKEY_PRINT, },
+    { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
+    { .tinfo = "kDC",   .key = NCKEY_DEL, .shift = 1, },
+    { .tinfo = "kDC3",  .key = NCKEY_DEL, .alt = 1, },
+    { .tinfo = "kDC4",  .key = NCKEY_DEL, .alt = 1, .shift = 1, },
+    { .tinfo = "kDC5",  .key = NCKEY_DEL, .ctrl = 1, },
+    { .tinfo = "kDC6",  .key = NCKEY_DEL, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kDC7",  .key = NCKEY_DEL, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kDN",   .key = NCKEY_DOWN, .shift = 1, },
+    { .tinfo = "kDN3",  .key = NCKEY_DOWN, .alt = 1, },
+    { .tinfo = "kDN4",  .key = NCKEY_DOWN, .alt = 1, .shift = 1, },
+    { .tinfo = "kDN5",  .key = NCKEY_DOWN, .ctrl = 1, },
+    { .tinfo = "kDN6",  .key = NCKEY_DOWN, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kDN7",  .key = NCKEY_DOWN, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kEND",  .key = NCKEY_END, .shift = 1, },
+    { .tinfo = "kEND3", .key = NCKEY_END, .alt = 1, },
+    { .tinfo = "kEND4", .key = NCKEY_END, .alt = 1, .shift = 1, },
+    { .tinfo = "kEND5", .key = NCKEY_END, .ctrl = 1, },
+    { .tinfo = "kEND6", .key = NCKEY_END, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kEND7", .key = NCKEY_END, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kHOM",  .key = NCKEY_HOME, .shift = 1, },
+    { .tinfo = "kHOM3", .key = NCKEY_HOME, .alt = 1, },
+    { .tinfo = "kHOM4", .key = NCKEY_HOME, .alt = 1, .shift = 1, },
+    { .tinfo = "kHOM5", .key = NCKEY_HOME, .ctrl = 1, },
+    { .tinfo = "kHOM6", .key = NCKEY_HOME, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kHOM7", .key = NCKEY_HOME, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kIC",   .key = NCKEY_INS, .shift = 1, },
+    { .tinfo = "kIC3",  .key = NCKEY_INS, .alt = 1, },
+    { .tinfo = "kIC4",  .key = NCKEY_INS, .alt = 1, .shift = 1, },
+    { .tinfo = "kIC5",  .key = NCKEY_INS, .ctrl = 1, },
+    { .tinfo = "kIC6",  .key = NCKEY_INS, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kIC7",  .key = NCKEY_INS, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kLFT",  .key = NCKEY_LEFT, .shift = 1, },
+    { .tinfo = "kLFT3", .key = NCKEY_LEFT, .alt = 1, },
+    { .tinfo = "kLFT4", .key = NCKEY_LEFT, .alt = 1, .shift = 1, },
+    { .tinfo = "kLFT5", .key = NCKEY_LEFT, .ctrl = 1, },
+    { .tinfo = "kLFT6", .key = NCKEY_LEFT, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kLFT7", .key = NCKEY_LEFT, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kNXT",  .key = NCKEY_PGDOWN, .shift = 1, },
+    { .tinfo = "kNXT3", .key = NCKEY_PGDOWN, .alt = 1, },
+    { .tinfo = "kNXT4", .key = NCKEY_PGDOWN, .alt = 1, .shift = 1, },
+    { .tinfo = "kNXT5", .key = NCKEY_PGDOWN, .ctrl = 1, },
+    { .tinfo = "kNXT6", .key = NCKEY_PGDOWN, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kNXT7", .key = NCKEY_PGDOWN, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kPRV",  .key = NCKEY_PGUP, .shift = 1, },
+    { .tinfo = "kPRV3", .key = NCKEY_PGUP, .alt = 1, },
+    { .tinfo = "kPRV4", .key = NCKEY_PGUP, .alt = 1, .shift = 1, },
+    { .tinfo = "kPRV5", .key = NCKEY_PGUP, .ctrl = 1, },
+    { .tinfo = "kPRV6", .key = NCKEY_PGUP, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kPRV7", .key = NCKEY_PGUP, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kRIT",  .key = NCKEY_RIGHT, .shift = 1, },
+    { .tinfo = "kRIT3", .key = NCKEY_RIGHT, .alt = 1, },
+    { .tinfo = "kRIT4", .key = NCKEY_RIGHT, .alt = 1, .shift = 1, },
+    { .tinfo = "kRIT5", .key = NCKEY_RIGHT, .ctrl = 1, },
+    { .tinfo = "kRIT6", .key = NCKEY_RIGHT, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kRIT7", .key = NCKEY_RIGHT, .alt = 1, .ctrl = 1, },
+    { .tinfo = "kUP",   .key = NCKEY_UP, .shift = 1, },
+    { .tinfo = "kUP3",  .key = NCKEY_UP, .alt = 1, },
+    { .tinfo = "kUP4",  .key = NCKEY_UP, .alt = 1, .shift = 1, },
+    { .tinfo = "kUP5",  .key = NCKEY_UP, .ctrl = 1, },
+    { .tinfo = "kUP6",  .key = NCKEY_UP, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kUP7",  .key = NCKEY_UP, .alt = 1, .ctrl = 1, },
+    { .tinfo = NULL,    .key = NCKEY_INVALID, }
+  }, *k;
+  for(k = keys ; k->tinfo ; ++k){
+    char* seq = tigetstr(k->tinfo);
+    if(seq == NULL || seq == (char*)-1){
+      loginfo("no terminfo declaration for %s\n", k->tinfo);
+      continue;
+    }
+    if(seq[0] != NCKEY_ESC || strlen(seq) < 2){ // assume ESC prefix + content
+      logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
+      continue;
+    }
+    if(inputctx_add_input_escape(ictx, seq, k->key, k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+    logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
+  }
+#endif
+  return 0;
+}
+
 static int
 prep_all_keys(inputctx* ictx){
   if(prep_windows_special_keys(ictx)){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
+    input_free_esctrie(&ictx->inputescapes);
+    return -1;
+  }
+  if(prep_special_keys(ictx)){
     input_free_esctrie(&ictx->inputescapes);
     return -1;
   }
