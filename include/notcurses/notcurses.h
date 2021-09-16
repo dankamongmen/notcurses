@@ -1070,7 +1070,8 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // timespec to bound blocking. Returns a single Unicode code point, or
 // (uint32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an
 // event is processed, the return value is the 'id' field from that event.
-// 'ni' may be NULL.
+// 'ni' may be NULL. 'ts' is an *absolute* time relative to gettimeofday()
+// (see pthread_cond_timedwait(3)).
 API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                            ncinput* ni)
   __attribute__ ((nonnull (1)));

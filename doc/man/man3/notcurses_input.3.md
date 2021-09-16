@@ -67,9 +67,8 @@ to fill whenever it reads.
 **notcurses_get** allows a **struct timespec** to be specified as a timeout.
 If **ts** is **NULL**, **notcurses_get** will block until it reads input, or
 is interrupted by a signal. If its values are zeroes, there will be no blocking.
-Otherwise, **ts** specifies a minimum time to wait for input before giving up.
-On timeout, 0 is returned. Signals in **sigmask** will be masked and blocked in
-the same manner as a call to **ppoll(2)**. **sigmask** may be **NULL**. Event
+Otherwise, **ts** specifies an absolute deadline (using the same source and
+timezone as **gettimeofday(2)**). On timeout, 0 is returned. Event
 details will be reported in **ni**, unless **ni** is NULL.
 
 **notcurses_inputready_fd** provides a file descriptor suitable for use with
@@ -181,6 +180,7 @@ are resolved.
 
 # SEE ALSO
 
+**gettimeofday(2)**,
 **poll(2)**,
 **notcurses(3)**,
 **notcurses_refresh(3)**,

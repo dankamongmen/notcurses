@@ -23,7 +23,6 @@
 //  integrate main specials trie with automaton, enable input_errors
 //  wake up input thread when space becomes available
 //   (needs pipes/eventfds)
-//  handle timeouts
 
 static sig_atomic_t resize_seen;
 
@@ -844,6 +843,13 @@ inc_input_events(inputctx* ictx){
   pthread_mutex_unlock(&ictx->stats->lock);
 }
 
+static inline void
+inc_input_errors(inputctx* ictx){
+  pthread_mutex_lock(&ictx->stats->lock);
+  ++ictx->stats->s.input_errors;
+  pthread_mutex_unlock(&ictx->stats->lock);
+}
+
 // add a decoded, valid Unicode to the bulk output buffer, or drop it if no
 // space is available.
 static void
@@ -1472,7 +1478,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }
       break;
     default:
-      fprintf(stderr, "Reached invalid init state %d\n", ictx->state);
+      logerror("Reached invalid init state %d\n", ictx->state);
       return -1;
   }
   return 0;
@@ -1732,12 +1738,10 @@ block_on_input(inputctx* ictx){
   sigdelset(&smask, SIGWINCH);
   while((events = ppoll(pfds, pfdcount, ts, &smask)) < 0){
 #endif
-fprintf(stderr, "GOT EVENTS: %d!\n", events);
     if(errno != EINTR && errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
       return -1;
     }
     if(resize_seen){
-fprintf(stderr, "SAW A RESIZE!\n");
       return 1;
     }
   }
@@ -1814,7 +1818,13 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   }
   pthread_mutex_lock(&ictx->ilock);
   while(!ictx->ivalid){
-    pthread_cond_wait(&ictx->icond, &ictx->ilock);
+    if(pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts)){
+      if(errno == ETIMEDOUT){
+        return 0;
+      }
+      inc_input_errors(ictx);
+      return (uint32_t)-1;
+    }
   }
   memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
   if(++ictx->iread == ictx->isize){
@@ -1824,18 +1834,6 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   ni->seqnum = ++ictx->seqnum;
   pthread_mutex_unlock(&ictx->ilock);
   return ni->id;
-}
-
-struct initial_responses* inputlayer_get_responses(inputctx* ictx){
-  struct initial_responses* iresp;
-  pthread_mutex_lock(&ictx->ilock);
-  while(!ictx->initdata_complete){
-    pthread_cond_wait(&ictx->icond, &ictx->ilock);
-  }
-  iresp = ictx->initdata_complete;
-  ictx->initdata_complete = NULL;
-  pthread_mutex_unlock(&ictx->ilock);
-  return iresp;
 }
 
 // infp has already been set non-blocking
@@ -1983,4 +1981,16 @@ linesigs_enable(tinfo* ti){
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
 int notcurses_linesigs_enable(notcurses* n){
   return linesigs_enable(&n->tcache);
+}
+
+struct initial_responses* inputlayer_get_responses(inputctx* ictx){
+  struct initial_responses* iresp;
+  pthread_mutex_lock(&ictx->ilock);
+  while(!ictx->initdata_complete){
+    pthread_cond_wait(&ictx->icond, &ictx->ilock);
+  }
+  iresp = ictx->initdata_complete;
+  ictx->initdata_complete = NULL;
+  pthread_mutex_unlock(&ictx->ilock);
+  return iresp;
 }
