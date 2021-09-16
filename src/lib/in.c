@@ -1629,6 +1629,8 @@ process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
     if(consumed <= 0){
       break;
     }
+    *bufused -= consumed;
+    offset += consumed;
   }
   // move any leftovers to the front
   if(*bufused){
