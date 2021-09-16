@@ -1818,12 +1818,16 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   }
   pthread_mutex_lock(&ictx->ilock);
   while(!ictx->ivalid){
-    if(pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts)){
-      if(errno == ETIMEDOUT){
-        return 0;
+    if(ts == NULL){
+      pthread_cond_wait(&ictx->icond, &ictx->ilock);
+    }else{
+      if(pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts)){
+        if(errno == ETIMEDOUT){
+          return 0;
+        }
+        inc_input_errors(ictx);
+        return (uint32_t)-1;
       }
-      inc_input_errors(ictx);
-      return (uint32_t)-1;
     }
   }
   memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
@@ -1849,7 +1853,6 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
 int notcurses_getvec(notcurses* n, const struct timespec* ts,
                      ncinput* ni, int vcount){
   for(int v = 0 ; v < vcount ; ++v){
-    // FIXME need to manage ts; right now, we could delay up to ts * vcount!
     uint32_t u = notcurses_get(n, ts, &ni[v]);
     if(u == (uint32_t)-1){
       if(v == 0){
