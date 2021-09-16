@@ -695,7 +695,8 @@ int main(int argc, char** argv){
     .flags = NCOPTION_SUPPRESS_BANNERS
              | NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_NO_CLEAR_BITMAPS
-             | NCOPTION_PRESERVE_CURSOR,
+             | NCOPTION_PRESERVE_CURSOR
+             | NCOPTION_DRAIN_INPUT,
   };
   if(argc > 2){
     usage(argv[0], stderr);

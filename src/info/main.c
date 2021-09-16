@@ -429,7 +429,8 @@ int main(int argc, const char** argv){
   notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_PRESERVE_CURSOR
-             | NCOPTION_NO_CLEAR_BITMAPS,
+             | NCOPTION_NO_CLEAR_BITMAPS
+             | NCOPTION_DRAIN_INPUT,
   };
   if(argc > 2){
     usage(*argv, stderr, EXIT_FAILURE);
