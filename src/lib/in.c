@@ -1826,10 +1826,10 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(ts == NULL){
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
     }else{
-      if(pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts)){
-        if(errno == ETIMEDOUT){
-          return 0;
-        }
+      int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
+      if(r == ETIMEDOUT){
+        return 0;
+      }else if(r < 0){
         inc_input_errors(ictx);
         return (uint32_t)-1;
       }
