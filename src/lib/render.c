@@ -4,6 +4,10 @@
 #include <notcurses/direct.h>
 #include "internal.h"
 
+// update for a new visual area of |rows|x|cols|, neither of which may be zero.
+// copies that area of the lastframe (damage map) which is shared between the
+// two. new areas are initialized to empty, just like a new plane. lost areas
+// have their egcpool entries purged.
 static nccell*
 restripe_lastframe(notcurses* nc, int rows, int cols){
   assert(rows);
@@ -13,7 +17,8 @@ restripe_lastframe(notcurses* nc, int rows, int cols){
   if(tmp == NULL){
     return NULL;
   }
-  size_t maxlinecopy = sizeof(nccell) * (nc->lfdimx > cols ? cols : nc->lfdimx);
+  size_t copycols = nc->lfdimx > cols ? cols : nc->lfdimx;
+  size_t maxlinecopy = sizeof(nccell) * copycols;
   size_t minlineset = sizeof(nccell) * cols - maxlinecopy;
   unsigned zorch = nc->lfdimx > cols ? nc->lfdimx - cols : 0;
   for(int y = 0 ; y < rows ; ++y){
@@ -22,11 +27,11 @@ restripe_lastframe(notcurses* nc, int rows, int cols){
         memcpy(&tmp[cols * y], &nc->lastframe[nc->lfdimx * y], maxlinecopy);
       }
       if(minlineset){
-        memset(&tmp[cols * y + maxlinecopy / sizeof(nccell)], 0, minlineset);
+        memset(&tmp[cols * y + copycols], 0, minlineset);
       }
       // excise any egcpool entries from the right of the new plane area
       if(zorch){
-        for(unsigned x = maxlinecopy ; x < maxlinecopy + zorch ; ++x){
+        for(unsigned x = copycols ; x < copycols + zorch ; ++x){
           pool_release(&nc->pool, &nc->lastframe[fbcellidx(y, nc->lfdimx, x)]);
         }
       }
