@@ -331,9 +331,8 @@ impl Nc {
         } else {
             ninput = null_mut();
         }
-        let c = unsafe {
-            core::char::from_u32_unchecked(crate::notcurses_getc(self, ntime, null_mut(), ninput))
-        };
+        let c =
+            unsafe { core::char::from_u32_unchecked(crate::notcurses_get(self, ntime, ninput)) };
         if c as u32 as i32 == NCRESULT_ERR {
             return Err(NcError::new());
         }
