@@ -44,7 +44,7 @@ pub fn notcurses_getc_nblock(nc: &mut Nc, input: &mut NcInput) -> char {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, null_mut(), input))
+        core::char::from_u32_unchecked(crate::notcurses_get(nc, &ts, input))
     }
 }
 
@@ -63,9 +63,7 @@ pub fn notcurses_getc_blocking(nc: &mut Nc, input: Option<&mut NcInput>) -> char
     } else {
         input_ptr = null_mut();
     }
-    unsafe {
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), null_mut(), input_ptr))
-    }
+    unsafe { core::char::from_u32_unchecked(crate::notcurses_get(nc, null(), input_ptr)) }
 }
 
 /// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus

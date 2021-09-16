@@ -1,6 +1,6 @@
 //! `ncdirect_*` reimplemented functions.
 
-use core::ptr::{null, null_mut};
+use core::ptr::null;
 
 use crate::{
     cstring, NcCapabilities, NcChannels, NcComponent, NcDim, NcDirect, NcInput, NcIntResult, NcRgb,
@@ -68,7 +68,7 @@ pub fn ncdirect_capabilities(ncd: &NcDirect) -> NcCapabilities {
 // TODO: use from_u32 & return Option.
 #[inline]
 pub fn ncdirect_getc_blocking(ncd: &mut NcDirect, input: &mut NcInput) -> char {
-    unsafe { core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, null(), null_mut(), input)) }
+    unsafe { core::char::from_u32_unchecked(crate::ncdirect_get(ncd, null(), input)) }
 }
 
 ///
@@ -81,7 +81,7 @@ pub fn ncdirect_getc_blocking(ncd: &mut NcDirect, input: &mut NcInput) -> char {
 pub fn ncdirect_getc_nblock(ncd: &mut NcDirect, input: &mut NcInput) -> char {
     unsafe {
         let ts = NcTime::new();
-        core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, &ts, null_mut(), input))
+        core::char::from_u32_unchecked(crate::ncdirect_get(ncd, &ts, input))
     }
 }
 

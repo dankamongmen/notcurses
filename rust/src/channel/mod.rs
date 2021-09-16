@@ -281,7 +281,7 @@ pub const NCALPHA_FG_RGB_MASK: u64 = crate::bindings::ffi::NC_FG_RGB_MASK;
 ///
 pub type NcChannels = u64;
 
-#[deprecated]
+#[deprecated = "use NcChannels instead"]
 #[doc(hidden)]
 pub type NcChannelPair = NcChannels;
 

@@ -235,29 +235,6 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_D
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;
 
-/// Pixel blitting implementations. (Informative only).
-///
-/// Returned by [`check_pixel_support`][Notcurses#method.check_pixel_support].
-pub type NcPixelImpl = crate::bindings::ffi::ncpixelimpl_e;
-
-/// No pixel support.
-pub const NCPIXEL_NONE: NcPixelImpl = crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_NONE;
-/// Sixel
-pub const NCPIXEL_SIXEL: NcPixelImpl = crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_SIXEL;
-/// Linux framebuffer.
-pub const NCPIXEL_LINUXFB: NcPixelImpl = crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_LINUXFB;
-/// iTerm2
-pub const NCPIXEL_ITERM2: NcPixelImpl = crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_ITERM2;
-/// Kitty prior to C=1 and animation.
-pub const NCPIXEL_KITTY_STATIC: NcPixelImpl =
-    crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_KITTY_STATIC;
-/// Kitty with animation but not reflexive composition.
-pub const NCPIXEL_KITTY_ANIMATED: NcPixelImpl =
-    crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_KITTY_ANIMATED;
-/// Kitty with reflexive composition.
-pub const NCPIXEL_KITTY_SELFREF: NcPixelImpl =
-    crate::bindings::ffi::ncpixelimpl_e_NCPIXEL_KITTY_SELFREF;
-
 /// Contains the pixel geometry information as returned by the
 /// NcPlane.[pixelgeom()][crate::NcPlane#method.pixelgeom] method.
 ///

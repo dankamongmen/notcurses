@@ -571,9 +571,7 @@ impl NcDirect {
         } else {
             ninput = null_mut();
         }
-        let c = unsafe {
-            core::char::from_u32_unchecked(crate::ncdirect_getc(self, ntime, null_mut(), ninput))
-        };
+        let c = unsafe { core::char::from_u32_unchecked(crate::ncdirect_get(self, ntime, ninput)) };
         if c as u32 as i32 == NCRESULT_ERR {
             return Err(NcError::new());
         }
