@@ -413,6 +413,7 @@ prep_special_keys(inputctx* ictx){
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
 #endif
+  (void)ictx;
   return 0;
 }
 
@@ -979,6 +980,8 @@ kitty_kbd(inputctx* ictx){
   }else if(synth == SYNTH_SIGQUIT){
     raise(SIGQUIT);
   }
+#else
+  (void)synth; // FIXME
 #endif
 }
 
