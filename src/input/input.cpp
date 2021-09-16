@@ -34,7 +34,9 @@ static struct ncuplot* plot;
 const char* nckeystr(char32_t spkey){
   switch(spkey){ // FIXME
     case NCKEY_RESIZE:
+      mtx.lock();
       NotCurses::get_instance().refresh(&dimy, &dimx);
+      mtx.unlock();
       return "resize event";
     case NCKEY_INVALID: return "invalid";
     case NCKEY_LEFT:    return "left";
