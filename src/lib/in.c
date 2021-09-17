@@ -1817,6 +1817,7 @@ int inputready_fd(const inputctx* ictx){
 
 static inline uint32_t
 internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
+  uint32_t id;
   if(ictx->drain){
     logerror("input is being drained\n");
     return (uint32_t)-1;
@@ -1836,7 +1837,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       }
     }
   }
-  memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
+  id = ictx->inputs[ictx->iread].id;
+  if(ni){
+    memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
+    ni->seqnum = ++ictx->seqnum;
+  }
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
   }
@@ -1844,12 +1849,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
   }
-  ni->seqnum = ++ictx->seqnum;
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
     pthread_kill(ictx->tid, SIGCONT);
   }
-  return ni->id;
+  return id;
 }
 
 static void
