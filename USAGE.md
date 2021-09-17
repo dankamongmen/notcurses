@@ -692,7 +692,7 @@ typedef struct ncinput {
 // timespec to bound blocking. Returns a single Unicode code point, or
 // (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
 // return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
-// *absolute* time relative to gettimeofday() (see pthread_cond_timedwait(3)).
+// a delay bound against gettimeofday() (see pthread_cond_timedwait(3)).
 uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                        ncinput* ni);
 
