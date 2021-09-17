@@ -426,87 +426,56 @@ ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
   return INT_MAX;
 }
 
+// y is an out-only param, indicating the location where drawing started
 static int
-ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
-  const int toty = ncdirect_dim_y(n);
+ncdirect_dump_sprixel(ncdirect* n, const ncplane* np, int xoff, int* y, fbuf* f){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
-  if(np->sprite){
-    int y;
-    const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
-    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
-      return -1;
-    }
-    if(ncdirect_cursor_move_yx(n, y, xoff)){
-      return -1;
-    }
-    // flush our FILE*, as we're about to use UNIX I/O (since we can't rely on
-    // stdio to transfer large amounts at once).
-    if(ncdirect_flush(n)){
-      return -1;
-    }
-    fbuf f = {};
-    if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
-      return -1;
-    }
-    if(fbuf_init(&f)){
-      return -1;
-    }
-    if(toty - dimy < y){
-      int scrolls = y - 1;
-      y = toty - dimy;
-      if(y < 0){
-        y = 0;
-      }
-      scrolls -= y;
-      // perform our scrolling outside of the fbuf framework, as we need it
-      // to happen immediately for fbdcon
-      if(ncdirect_cursor_move_yx(n, y, xoff)){
-        fbuf_free(&f);
-        return -1;
-      }
-      if(emit_scrolls(&n->tcache, scrolls, &f) < 0){
-        fbuf_free(&f);
-        return -1;
-      }
-    }
-    if(sprite_draw(&n->tcache, NULL, np->sprite, &f, y, xoff) < 0){
-      fbuf_free(&f);
-      return -1;
-    }
-    if(sprite_commit(&n->tcache, &f, np->sprite, true)){
-      fbuf_free(&f);
-      return -1;
-    }
-    if(fbuf_finalize(&f, n->ttyfp)){
-      return -1;
-    }
-    if(n->tcache.pixel_draw_late){
-      if(n->tcache.pixel_draw_late(&n->tcache, np->sprite, y, xoff) < 0){
-        return -1;
-      }
-    }
-    int targy = y + dimy;
-    if(targy > toty){
-      targy = toty;
-    }
-    if(ncdirect_cursor_move_yx(n, targy, xoff)){
-      return -1;
-    }
-    return 0;
+  const int toty = ncdirect_dim_y(n);
+  // flush our FILE*, as we're about to use UNIX I/O (since we can't rely on
+  // stdio to transfer large amounts at once).
+  if(ncdirect_flush(n)){
+    return -1;
   }
-//fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+  if(ncdirect_cursor_yx(n, y, NULL)){
+    return -1;
+  }
+  if(toty - dimy < *y){
+    int scrolls = *y - 1;
+    *y = toty - dimy;
+    if(*y < 0){
+      *y = 0;
+    }
+    scrolls -= *y;
+    // perform our scrolling outside of the fbuf framework, as we need it
+    // to happen immediately for fbcon
+    if(ncdirect_cursor_move_yx(n, *y, xoff)){
+      return -1;
+    }
+    if(emit_scrolls(&n->tcache, scrolls, f) < 0){
+      return -1;
+    }
+  }
+  if(sprite_draw(&n->tcache, NULL, np->sprite, f, *y, xoff) < 0){
+    return -1;
+  }
+  if(sprite_commit(&n->tcache, f, np->sprite, true)){
+    return -1;
+  }
+  return 0;
+}
+
+static int
+ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
+  int dimy, dimx;
+  ncplane_dim_yx(np, &dimy, &dimx);
+  const int toty = ncdirect_dim_y(n);
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);
   const bool bgdefault = ncdirect_bg_default_p(n);
   const uint32_t fgrgb = ncchannels_fg_rgb(n->channels);
   const uint32_t bgrgb = ncchannels_bg_rgb(n->channels);
   for(int y = 0 ; y < dimy ; ++y){
-    if(xoff){
-      if(ncdirect_cursor_move_yx(n, -1, xoff)){
-        return -1;
-      }
-    }
     for(int x = 0 ; x < dimx ; ++x){
       uint16_t stylemask;
       uint64_t channels;
@@ -556,6 +525,52 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     ncdirect_set_bg_default(n);
   }else{
     ncdirect_set_bg_rgb(n, bgrgb);
+  }
+  return 0;
+}
+
+static int
+ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
+//fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+  if(xoff){
+    if(ncdirect_cursor_move_yx(n, -1, xoff)){
+      return -1;
+    }
+  }
+  fbuf f;
+  if(fbuf_init(&f)){
+    return -1;
+  }
+  if(np->sprite){
+    int y;
+    if(ncdirect_dump_sprixel(n, np, xoff, &y, &f)){
+      fbuf_free(&f);
+      return -1;
+    }
+    if(fbuf_finalize(&f, n->ttyfp)){
+      return -1;
+    }
+    if(n->tcache.pixel_draw_late){
+      if(n->tcache.pixel_draw_late(&n->tcache, np->sprite, y, xoff) < 0){
+        return -1;
+      }
+    }
+    int targy = y + ncplane_dim_y(np);
+    const int toty = ncdirect_dim_y(n);
+    if(targy > toty){
+      targy = toty;
+    }
+    if(ncdirect_cursor_move_yx(n, targy, xoff)){
+      return -1;
+    }
+  }else{
+    if(ncdirect_dump_cellplane(n, np, &f)){
+      fbuf_free(&f);
+      return -1;
+    }
+    if(fbuf_finalize(&f, n->ttyfp)){
+      return -1;
+    }
   }
   return 0;
 }
