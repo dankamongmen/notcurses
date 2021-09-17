@@ -1828,6 +1828,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     }else{
       int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
       if(r == ETIMEDOUT){
+        pthread_mutex_unlock(&ictx->ilock);
         return 0;
       }else if(r < 0){
         inc_input_errors(ictx);
@@ -1851,9 +1852,23 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   return ni->id;
 }
 
+static void
+delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
+  if(ts){
+    // incoming ts is a delay bound, but we want an absolute deadline for
+    // pthread_cond_timedwait(). convert it.
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    absdl->tv_sec = ts->tv_sec + tv.tv_sec;
+    absdl->tv_nsec = ts->tv_nsec + tv.tv_usec * 1000;
+  }
+}
+
 // infp has already been set non-blocking
 uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
-  uint32_t r = internal_get(nc->tcache.ictx, ts, ni);
+  struct timespec absdl;
+  delaybound_to_deadline(ts, &absdl);
+  uint32_t r = internal_get(nc->tcache.ictx, ts ? &absdl : NULL, ni);
   if(r != (uint32_t)-1){
     ++nc->stats.s.input_events;
   }
@@ -1863,8 +1878,10 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
 // FIXME better performance if we move this within the locked area
 int notcurses_getvec(notcurses* n, const struct timespec* ts,
                      ncinput* ni, int vcount){
+  struct timespec absdl;
+  delaybound_to_deadline(ts, &absdl);
   for(int v = 0 ; v < vcount ; ++v){
-    uint32_t u = notcurses_get(n, ts, &ni[v]);
+    uint32_t u = notcurses_get(n, ts ? &absdl : NULL, &ni[v]);
     if(u == (uint32_t)-1){
       if(v == 0){
         return -1;
