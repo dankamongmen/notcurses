@@ -171,6 +171,9 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
       fprintf(stderr, "Error installing term signal handler (%s)\n", strerror(errno));
       return -1;
     }
+    // we're not going to be restoring the old mask at exit, as who knows,
+    // they might have masked more things afterwards.
+    pthread_sigmask(SIG_BLOCK, &sa.sa_mask, NULL);
     handling_winch = true;
   }
   if(!no_quit_sigs){
