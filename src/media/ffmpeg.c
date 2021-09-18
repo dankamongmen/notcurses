@@ -395,7 +395,12 @@ ncvisual* ffmpeg_from_file(const char* filename){
     goto err;
   }
 //av_dump_format(ncv->details->fmtctx, 0, filename, false);
-  if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->details->subtcodec, 0)) >= 0){
+  if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1,
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+                                  (const AVCodec**)&ncv->details->subtcodec, 0)) >= 0){
+#else
+                                  &ncv->details->subtcodec, 0)) >= 0){
+#endif
     ncv->details->sub_stream_index = averr;
     if((ncv->details->subtcodecctx = avcodec_alloc_context3(ncv->details->subtcodec)) == NULL){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
@@ -414,7 +419,12 @@ ncvisual* ffmpeg_from_file(const char* filename){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     goto err;
   }
-  if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1, &ncv->details->codec, 0)) < 0){
+  if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_VIDEO, -1, -1,
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+                                  (const AVCodec**)&ncv->details->codec, 0)) < 0){
+#else
+                                  &ncv->details->codec, 0)) < 0){
+#endif
     // fprintf(stderr, "Couldn't find visuals in %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }
