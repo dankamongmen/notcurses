@@ -1709,7 +1709,6 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
 // sticks that into the bulk queue.
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
-fprintf(stderr, "PROCESSING UP TO %d BUF!\n", buflen);
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
