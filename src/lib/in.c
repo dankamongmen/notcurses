@@ -1564,16 +1564,23 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   }
 }
 
-// precondition: buflen >= 1.
+// precondition: buflen >= 1. attempts to consume UTF8 input from buf. the
+// expected length of a UTF8 character can be determined from its first byte.
+// if we don't have that much data, return 0 and read more. if we determine
+// an error, return -1 to consume 1 byte, restarting the UTF8 lex on the next
+// byte. on a valid UTF8 character, set up the ncinput and return its length.
 static int
 process_input(const unsigned char* buf, int buflen, ncinput* ni){
+  assert(1 <= buflen);
   memset(ni, 0, sizeof(*ni));
-  if(buf[0] == 0x7f){ // ASCII del, treated as backspace
-    ni->id = NCKEY_BACKSPACE;
-    return 1;
-  }
-  if(buf[0] < 0x80){ // pure ascii can't show up mid-utf8
-    if(buf[0] == '\n' || buf[0] == '\r'){
+  const int cpointlen = utf8_codepoint_length(*buf);
+  if(cpointlen <= 0){
+    logwarn("invalid UTF8 initiator on input (0x%02x)\n", *buf);
+    return -1;
+  }else if(cpointlen == 1){ // pure ascii can't show up mid-utf8-character
+    if(buf[0] == 0x7f){ // ASCII del, treated as backspace
+      ni->id = NCKEY_BACKSPACE;
+    }else if(buf[0] == '\n' || buf[0] == '\r'){
       ni->id = NCKEY_ENTER;
     }else if(buf[0] > 0 && buf[0] <= 26 && buf[0] != '\t'){
       ni->id = buf[0] + 'A' - 1;
@@ -1583,23 +1590,21 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     }
     return 1;
   }
-  int cpointlen = 0;
-  wchar_t w;
-  mbstate_t mbstate;
-  // FIXME verify that we have enough length based off first char
-  while(++cpointlen <= (int)MB_CUR_MAX && cpointlen < buflen){
-//fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
-    // FIXME how the hell does this work with 16-bit wchar_t?
-    memset(&mbstate, 0, sizeof(mbstate));
-    size_t r;
-    if((r = mbrtowc(&w, (const char*)buf, cpointlen + 1, &mbstate)) != (size_t)-1 &&
-        r != (size_t)-2){
-      ni->id = w;
-      return cpointlen + 1;
-    }
+  if(cpointlen > buflen){
+    logwarn("utf8 character (%dB) broken across read\n", cpointlen);
+    return 0; // need read more data; we don't have the complete character
   }
-  // FIXME input error stat
-  return 0;
+  wchar_t w;
+  mbstate_t mbstate = {};
+//fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
+  // FIXME how the hell does this work with 16-bit wchar_t?
+  size_t r = mbrtowc(&w, (const char*)buf, cpointlen, &mbstate);
+  if(r == (size_t)-1 || r == (size_t)-2){
+    logerror("invalid utf8 prefix (%dB) on input\n", cpointlen);
+    return -1;
+  }
+  ni->id = w;
+  return cpointlen;
 }
 
 // precondition: buflen >= 1. gets an ncinput prepared by process_input, and
@@ -1622,6 +1627,9 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
       }
       ++ictx->ivalid;
     }
+  }else if(r < 0){
+    inc_input_errors(ictx);
+    r = 1; // we want to consume a single byte, upstairs
   }
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
