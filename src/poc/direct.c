@@ -23,7 +23,6 @@ int main(void){
       printf("X");
     }
   }
-  fflush(stdout);
   int ret = 0;
   ret |= ncdirect_set_fg_rgb(n, 0xff8080);
   ret |= ncdirect_on_styles(n, NCSTYLE_BOLD);
@@ -58,7 +57,6 @@ int main(void){
       if(ncdirect_cursor_up(n, up)){
         break;
       }
-      fflush(stdout);
       y -= up;
       ret = 0;
     }
