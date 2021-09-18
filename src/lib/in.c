@@ -955,7 +955,7 @@ send_synth_signal(int sig){
     raise(sig);
   }
 #else
-  (void)synth; // FIXME
+  (void)sig; // FIXME
 #endif
 }
 
