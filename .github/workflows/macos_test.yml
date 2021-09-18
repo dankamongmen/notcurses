@@ -26,7 +26,6 @@ jobs:
             ffmpeg \
             libunistring \
             ncurses \
-            pandoc \
             readline
 
       - uses: actions/checkout@v2
@@ -35,7 +34,8 @@ jobs:
         run: |
           mkdir build && cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_PANDOC=off
 
       - name: make
         run: |
@@ -45,7 +45,8 @@ jobs:
       - name: ctest
         run: |
           cd build
-          ctest --output-on-failure
+          make test
+          #ctest --output-on-failure
 
       - name: make install
         run: |
