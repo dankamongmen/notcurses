@@ -175,6 +175,20 @@ typedef struct inputctx {
   struct initial_responses* initdata_complete;
 } inputctx;
 
+static inline void
+inc_input_events(inputctx* ictx){
+  pthread_mutex_lock(&ictx->stats->lock);
+  ++ictx->stats->s.input_events;
+  pthread_mutex_unlock(&ictx->stats->lock);
+}
+
+static inline void
+inc_input_errors(inputctx* ictx){
+  pthread_mutex_lock(&ictx->stats->lock);
+  ++ictx->stats->s.input_errors;
+  pthread_mutex_unlock(&ictx->stats->lock);
+}
+
 static void
 input_free_esctrie(esctrie** eptr){
   esctrie* e;
@@ -831,6 +845,7 @@ mouse_click(inputctx* ictx, unsigned release){
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, y, x);
+    inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -856,20 +871,6 @@ mouse_click(inputctx* ictx, unsigned release){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-static inline void
-inc_input_events(inputctx* ictx){
-  pthread_mutex_lock(&ictx->stats->lock);
-  ++ictx->stats->s.input_events;
-  pthread_mutex_unlock(&ictx->stats->lock);
-}
-
-static inline void
-inc_input_errors(inputctx* ictx){
-  pthread_mutex_lock(&ictx->stats->lock);
-  ++ictx->stats->s.input_errors;
-  pthread_mutex_unlock(&ictx->stats->lock);
-}
-
 // add a decoded, valid Unicode to the bulk output buffer, or drop it if no
 // space is available.
 static void
@@ -882,6 +883,7 @@ add_unicode(inputctx* ictx, uint32_t id){
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logerror("dropping input 0x%08xx\n", id);
+    inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -908,6 +910,7 @@ alt_key(inputctx* ictx, unsigned id){
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -932,6 +935,7 @@ special_key(inputctx* ictx){
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -993,6 +997,7 @@ kitty_kbd(inputctx* ictx){
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
     logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
+    inc_input_errors(ictx);
     send_synth_signal(synth);
     return;
   }
@@ -1185,6 +1190,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           if(ictx->cvalid == ictx->csize){
             pthread_mutex_unlock(&ictx->clock);
             logwarn("dropping cursor location report\n");
+            inc_input_errors(ictx);
           }else{
             cursorloc* cloc = &ictx->csrs[ictx->cwrite];
             cloc->x = ictx->numeric - 1;
@@ -1821,6 +1827,7 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
   process_melange(ictx, buf, &len);
   if(len){
     logwarn("dropping %d byte%s\n", len, len == 1 ? "" : "s");
+    inc_input_errors(ictx);
   }
   return 0;
 }
@@ -2035,7 +2042,7 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
   delaybound_to_deadline(ts, &absdl);
   uint32_t r = internal_get(nc->tcache.ictx, ts ? &absdl : NULL, ni);
   if(r != (uint32_t)-1){
-    ++nc->stats.s.input_events;
+    inc_input_events(nc->tcache.ictx);
   }
   return r;
 }

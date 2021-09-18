@@ -22,3 +22,5 @@ rm -f "$OUT"
 ./statepixel "$DATA"/worldmap.jpg 2>>"$OUT"
 
 ./ncneofetch -v 2>>"$OUT"
+
+./resize

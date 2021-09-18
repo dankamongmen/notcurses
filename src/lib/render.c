@@ -893,8 +893,6 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
     }else if(s->invalidated == SPRIXEL_MOVED ||
              s->invalidated == SPRIXEL_UNSEEN ||
              s->invalidated == SPRIXEL_INVALIDATED){
-      int y, x;
-      ncplane_abs_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
         if(p != nc->last_pile){
@@ -910,7 +908,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
         }
       }
       // otherwise it's a new pile, so we couldn't have been on-screen
-      int r = sprite_redraw(nc, p, s, f, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_redraw(nc, p, s, f, nc->margin_t, nc->margin_l);
       if(r < 0){
         return -1;
       }
