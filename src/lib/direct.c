@@ -632,11 +632,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
 int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
   int lenx = ncplane_dim_x(ncdv);
   int xoff = ncdirect_align(n, align, lenx);
-  if(ncdirect_dump_plane(n, ncdv, xoff)){
-    free_plane(ncdv);
-    return -1;
-  }
-  int r = ncdirect_flush(n);
+  int r = ncdirect_dump_plane(n, ncdv, xoff);
   free_plane(ncdv);
   return r;
 }
@@ -1419,12 +1415,15 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
       if(n->tcache.pixel_remove){
         fbuf f = {};
         fbuf_init_small(&f);
-        if(n->tcache.pixel_remove(lastid, &f) || fwrite(f.buf, f.used, 1, n->ttyfp) != 1){
+        if(n->tcache.pixel_remove(lastid, &f)){
           fbuf_free(&f);
           ncvisual_destroy(ncv);
           return -1;
         }
-        fbuf_free(&f);
+        if(fbuf_finalize(&f, n->ttyfp) < 0){
+          ncvisual_destroy(ncv);
+          return -1;
+        }
       }
     }
     streamer(ncv, vopts, NULL, curry);
