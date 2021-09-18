@@ -1157,18 +1157,16 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 
 // returns the number of bytes written
 int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
-               int y, int x){
+               int yoff, int xoff){
   (void)ti;
   (void)p;
-  (void)y;
-  (void)x;
   bool animated = false;
   if(s->animating){ // active animation
     s->animating = false;
     animated = true;
   }
   int ret = s->glyph.used;
-  logdebug("Writing out %zub for %u\n", s->glyph.used, s->id);
+  logdebug("dumping %zub for %u at %d %d\n", s->glyph.used, s->id, yoff, xoff);
   if(ret){
     if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
       ret = -1;
@@ -1182,9 +1180,12 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 }
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
-int kitty_move(sprixel* s, fbuf* f, unsigned noscroll){
+int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
+  const int targy = s->n->absy;
+  const int targx = s->n->absx;
+  logdebug("moving %u to %d %d\n", s->id, targy, targx);
   int ret = 0;
-  if(goto_location(ncplane_notcurses(s->n), f, s->n->absy, s->n->absx)){
+  if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff)){
     ret = -1;
   }else if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
                        noscroll ? ",C=1" : "") < 0){

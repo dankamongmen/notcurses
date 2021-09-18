@@ -174,10 +174,10 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int sixel_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               fbuf* f, int y, int x);
+               fbuf* f, int yoff, int xoff);
 int kitty_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
-               fbuf* f, int y, int x);
-int kitty_move(sprixel* s, fbuf* f, unsigned noscroll);
+               fbuf* f, int yoff, int xoff);
+int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
 int fbcon_scrub(const struct ncpile* p, sprixel* s);
@@ -200,7 +200,7 @@ int kitty_blit_selfref(struct ncplane* nc, int linesize, const void* data,
                        int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
-int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x);
+int fbcon_draw(const tinfo* ti, sprixel* s, int yoff, int xoff);
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
 void sixel_refresh(const struct ncpile* p, sprixel* s);
 

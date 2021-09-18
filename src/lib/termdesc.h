@@ -130,9 +130,9 @@ typedef struct tinfo {
   int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
                     struct sprixel* s, fbuf* f, int y, int x);
-  int (*pixel_draw_late)(const struct tinfo*, struct sprixel* s, int y, int x);
+  int (*pixel_draw_late)(const struct tinfo*, struct sprixel* s, int yoff, int xoff);
   // execute move (erase old graphic, place at new location) if non-NULL
-  int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll);
+  int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
   int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
   int (*pixel_shutdown)(fbuf* f);   // called during context shutdown
   int (*pixel_clear_all)(fbuf* f);  // called during context startup

@@ -734,7 +734,7 @@ sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x)
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information.
     bool noscroll = !ti->sixel_maxy_pristine;
-    return ti->pixel_move(s, f, noscroll);
+    return ti->pixel_move(s, f, noscroll, y, x);
   }else{
     if(!ti->pixel_draw){
       return 0;
