@@ -1000,6 +1000,7 @@ kitty_kbd(inputctx* ictx){
 // FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
+// returns 2 on a valid accept state that is not the final state.
 static int
 pump_control_read(inputctx* ictx, unsigned char c){
   logdebug("state: %2d char: %1c %3d %02x\n", ictx->state, isprint(c) ? c : ' ', c, c);
@@ -1044,6 +1045,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
     case STATE_APC_ST:
       if(c == '\\'){
         ictx->state = STATE_NULL;
+        return 2;
       }else{
         ictx->state = STATE_APC_DRAIN;
       }
@@ -1070,7 +1072,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
         ictx->state = STATE_NULL;
-        break;
+        return 2;
       }
       ictx->numeric = c;
       if(ruts_string(ictx, STATE_BG1)){
@@ -1181,6 +1183,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           }
         }
         ictx->state = STATE_NULL;
+        return 2;
       }else if(c == 't'){
 //fprintf(stderr, "CELLS X: %d\n", ictx->numeric);
         if(ictx->initdata){
@@ -1188,6 +1191,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           ictx->initdata->dimy = ictx->p2;
         }
         ictx->state = STATE_NULL;
+        return 2;
       }else if(c == 'u'){
         // kitty keyboard protocol
         kitty_kbd(ictx);
@@ -1225,6 +1229,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           loginfo("got pixel geometry: %d/%d\n", ictx->initdata->pixy, ictx->initdata->pixx);
         }
         ictx->state = STATE_NULL;
+        return 2;
       }else{
         ictx->state = STATE_NULL;
       }
@@ -1240,6 +1245,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           loginfo("got cell geometry: %d/%d\n", ictx->initdata->dimy, ictx->initdata->dimx);
         }
         ictx->state = STATE_NULL;
+        return 2;
       }else{
         ictx->state = STATE_NULL;
       }
@@ -1373,6 +1379,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
     case STATE_SDA_DRAIN:
       if(c == 'c'){
         ictx->state = STATE_NULL;
+        return 2;
       }
       break;
     // primary device attributes and XTSMGRAPHICS replies are generally
@@ -1480,6 +1487,8 @@ pump_control_read(inputctx* ictx, unsigned char c){
           ictx->initdata->sixelx = ictx->p4;
           ictx->initdata->sixely = ictx->numeric;
           loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
+          ictx->state = STATE_NULL;
+          return 2;
         }
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
@@ -1499,6 +1508,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
     case STATE_APPSYNC_REPORT_DRAIN:
       if(c == 'y'){
         ictx->state = STATE_NULL;
+        return 2;
       }
       break;
     default:
@@ -1526,7 +1536,6 @@ handoff_initial_responses(inputctx* ictx){
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   assert(1 <= buflen);
-  ictx->midescape = 0;
   // FIXME given that we keep our state across invocations, we want buf offset
   //  by the amount we handled the last iteration, if any was left over...
   //  until then, we reset the state on entry. remove that once we preserve!
@@ -1610,7 +1619,8 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
     // the end of the tbuf, in which case we really do try reading more. if
     // this was not a sequence, we'll catch it on the next read.
     if(consumed < 0){
-      if(!ictx->midescape){
+      int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
+      if(!ictx->midescape || tavailable){
         consumed = -consumed;
         int available = sizeof(ictx->ibuf) - ictx->ibufvalid;
         if(available){
@@ -1622,6 +1632,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
         }
         *bufused -= consumed;
         offset += consumed;
+        ictx->midescape = 0;
       }
       break;
     }
@@ -1741,9 +1752,10 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
       consumed = process_escape(ictx, buf + offset, *bufused);
       if(consumed < 0){
         if(ictx->midescape){
-          if(-consumed != *bufused){ // not at the end; treat it as input
-            // no need to move between buffers; simply ensure we process it as
-            // input, and don't mark anything as consumed.
+          if(offset + *bufused - consumed != sizeof(ictx->ibuf)){
+            // not at the end; treat it as input. no need to move between
+            // buffers; simply ensure we process it as input, and don't mark
+            // anything as consumed.
             ictx->midescape = 0;
           }
         }
@@ -1796,14 +1808,22 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
   return 0;
 }
 
-// FIXME if ictx->midescape is set, need a nonblocking read!
+// here, we always block for an arbitrarily long time, or not at all,
+// doing the latter only when ictx->midescape is set. |rtfd| and/or |rifd|
+// are set high iff they are ready for reading, and otherwise cleared.
 static int
-block_on_input(inputctx* ictx){
-  struct timespec* ts = NULL; // FIXME
+block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
+  *rtfd = *rifd = 0;
+  unsigned nonblock = ictx->midescape;
+  if(nonblock){
+    loginfo("nonblocking read to check for completion\n");
+    ictx->midescape = 0;
+  }
 #ifdef __MINGW64__
-	int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
+	int timeoutms = nonblock ? 0 : -1;
 	DWORD d = WaitForMultipleObjects(1, &ictx->stdinhandle, FALSE, timeoutms);
 	if(d == WAIT_TIMEOUT){
+    *rifd = 1;
 		return 0;
 	}else if(d == WAIT_FAILED){
 		return -1;
@@ -1832,20 +1852,31 @@ block_on_input(inputctx* ictx){
   }
   int events;
 #if defined(__APPLE__) || defined(__MINGW64__)
-  int timeoutms = ts ? ts->tv_sec * 1000 + ts->tv_nsec / 1000000 : -1;
+	int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
 #else
   sigset_t smask;
   sigfillset(&smask);
   sigdelset(&smask, SIGCONT);
   sigdelset(&smask, SIGWINCH);
-  while((events = ppoll(pfds, pfdcount, ts, &smask)) < 0){
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0, };
+  struct timespec* pts = nonblock ? &ts : NULL;
+  while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
 #endif
     if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
       return -1;
     }else if(errno == EINTR){
       return resize_seen;
     }
+  }
+loginfo("got events: %d\n", events);
+  if(pfds[0].revents){
+    *rifd = 1;
+    if(events == 2){
+      *rtfd = 1;
+    }
+  }else{
+    *rtfd = 1;
   }
   return events;
 #endif
@@ -1855,16 +1886,21 @@ block_on_input(inputctx* ictx){
 // don't loop around this call without some kind of readiness notification.
 static void
 read_inputs_nblock(inputctx* ictx){
+  unsigned rtfd, rifd;
   // FIXME also need to wake up if our output queues have space that has
   // opened up for us to write into, lest we deadlock with full buffers...
-  block_on_input(ictx);
+  block_on_input(ictx, &rtfd, &rifd);
   // first we read from the terminal, if that's a distinct source.
-  read_input_nblock(ictx->termfd, ictx->tbuf, sizeof(ictx->tbuf),
-                    &ictx->tbufvalid);
+  if(rtfd){
+    read_input_nblock(ictx->termfd, ictx->tbuf, sizeof(ictx->tbuf),
+                      &ictx->tbufvalid);
+  }
   // now read bulk, possibly with term escapes intermingled within (if there
   // was not a distinct terminal source).
-  read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
-                    &ictx->ibufvalid);
+  if(rifd){
+    read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
+                      &ictx->ibufvalid);
+  }
 }
 
 static void*
