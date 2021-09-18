@@ -806,10 +806,17 @@ set_sda_version(inputctx* ictx){
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters
 static void
 mouse_click(inputctx* ictx){
+  // convert from 1- to 0-indexing, and account for margins
+  const int x = ictx->p3 - 1 - ictx->lmargin;
+  const int y = ictx->numeric - 1 - ictx->tmargin;
+  if(x < 0 || y < 0){ // click was in margins, drop it
+    logwarn("dropping click in margins\n");
+    return;
+  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, ictx->p3, ictx->numeric);
+    logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, y, x);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -827,9 +834,8 @@ mouse_click(inputctx* ictx){
   ni->ctrl = ictx->p2 & 0x10;
   ni->alt = ictx->p2 & 0x08;
   ni->shift = ictx->p2 & 0x04;
-  // convert from 1- to 0-indexing and account for margins
-  ni->x = ictx->p3 - 1 - ictx->lmargin;
-  ni->y = ictx->numeric - 1 - ictx->tmargin;
+  ni->x = x;
+  ni->y = y;
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
