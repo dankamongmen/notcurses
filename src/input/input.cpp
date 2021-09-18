@@ -198,7 +198,7 @@ void Tick(ncpp::NotCurses* nc, uint64_t sec) {
 
 void Ticker(ncpp::NotCurses* nc) {
   do{
-    std::this_thread::sleep_for(std::chrono::milliseconds{100});
+    std::this_thread::sleep_for(std::chrono::milliseconds{1000});
     const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
     Tick(nc, sec);
   }while(!done);
@@ -308,6 +308,11 @@ int input_demo(ncpp::NotCurses* nc) {
         n->set_fg_rgb8(64, 128, 250);
         n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
       }
+    }
+    int x;
+    n->get_cursor_yx(nullptr, &x);
+    for(int i = x ; i < n->get_dim_x() ; ++i){
+      n->putc(' ');
     }
     if(!dim_rows(n)){
       break;

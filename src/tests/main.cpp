@@ -86,6 +86,7 @@ reset_terminal(){
       tios.c_lflag |= ISIG | ICANON | ECHO;
       tcsetattr(fd, TCSADRAIN, &tios);
     }
+    printf("\x1b[<u"); // pop any kitty keyboard state we set
     char* str = tigetstr("sgr0");
     if(str != (char*)-1){
       printf("%s", str);
