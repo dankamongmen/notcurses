@@ -163,6 +163,9 @@ typedef struct inputctx {
   tinfo* ti;          // link back to tinfo
   pthread_t tid;      // tid for input thread
 
+  unsigned midescape; // we're in the middle of a potential escape. we need
+                      //  to do a nonblocking read and try to complete it.
+
   unsigned linesigs;  // are line discipline signals active?
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
@@ -448,6 +451,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         // (as stored in tpreserved)
                         i->linesigs = 1;
                         i->tbufvalid = 0;
+                        i->midescape = 0;
                         i->numeric = 0;
                         i->stridx = 0;
                         i->runstring[i->stridx] = '\0';
@@ -936,7 +940,8 @@ special_key(inputctx* ictx){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-// ictx->numeric and ictx->p2 have the two parameters
+// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
+// optional and indicates a special key with no modifiers.
 static void
 kitty_kbd(inputctx* ictx){
   enum { // synthesized events derived from keypresses
@@ -944,7 +949,7 @@ kitty_kbd(inputctx* ictx){
     SYNTH_SIGINT,
     SYNTH_SIGQUIT,
   } synth = SYNTH_NOTHING;
-  assert(ictx->numeric > 0);
+  assert(ictx->numeric >= 0);
   assert(ictx->p2 > 0);
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
@@ -1097,6 +1102,13 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->p2 = ictx->numeric;
         ictx->state = STATE_CURSOR_COL;
         ictx->numeric = 0;
+      }else if(c == 'u'){
+        // kitty keyboard protocol
+        ictx->p2 = ictx->numeric;
+        ictx->numeric = 0;
+        kitty_kbd(ictx);
+        ictx->state = STATE_NULL;
+        return 2;
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
       }
@@ -1135,6 +1147,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }else if(c == 'M'){
         mouse_click(ictx);
         ictx->state = STATE_NULL;
+        return 2;
       }else{
         ictx->state = STATE_NULL;
       }
@@ -1179,6 +1192,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         // kitty keyboard protocol
         kitty_kbd(ictx);
         ictx->state = STATE_NULL;
+        return 2;
       }else if(c == ';'){
         if(ictx->p2 == 4){
           if(ictx->initdata){
@@ -1503,56 +1517,112 @@ handoff_initial_responses(inputctx* ictx){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-// try to lex a control sequence off of buf. return the number of bytes
+// try to lex a single control sequence off of buf. return the number of bytes
 // consumed if we do so, and -1 otherwise. buf is *not* necessarily
-// NUL-terminated. precondition: buflen >= 1.
-// FIXME we ought play complete failures into the general input buffer?
+// NUL-terminated. if we are definitely *not* an escape, or we're unsure when
+// we run out of input, return the negated relevant number of bytes, setting
+// ictx->midescape if we're uncertain.
+//  precondition: buflen >= 1. precondition: buf[0] == 0x1b.
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
+  assert(1 <= buflen);
+  ictx->midescape = 0;
+  // FIXME given that we keep our state across invocations, we want buf offset
+  //  by the amount we handled the last iteration, if any was left over...
+  //  until then, we reset the state on entry. remove that once we preserve!
+  if(buf[0] != '\x1b'){
+    return -1;
+  }
+  ictx->triepos = ictx->inputescapes;
+  ictx->state = STATE_NULL;
+  // FIXME end material eliminated by maintaining state + offset
   int used = 0;
+  // FIXME we really want to unite these two automata, ugh
   while(used < buflen){
-    int r = pump_control_read(ictx, buf[used]);
-    if(r == 1){
-      handoff_initial_responses(ictx);
+    unsigned char candidate = buf[used++];
+    int r = pump_control_read(ictx, candidate);
+    if(r == 2){
+      return used;
     }
-    // FIXME this drops alt+ characters intermingled with responses
-    if(ictx->initdata == NULL){
-      // an escape always resets the trie, as does a NULL transition
-      unsigned char candidate = buf[used];
-      if(candidate == NCKEY_ESC){
-        ictx->triepos = ictx->inputescapes;
-      }else if(ictx->triepos->trie[candidate] == NULL){
-        if(ictx->state == STATE_ESC){
-          if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
-            alt_key(ictx, candidate);
-          }
+    if(r == 1){ // received DA1, ending initial responses
+      // safe to call even if initdata == NULL
+      handoff_initial_responses(ictx);
+      return used;
+    }
+    if(ictx->initdata){
+      continue; // FIXME drops any Alt+chars entwined within initial responses
+    }
+    // an escape always resets the trie, as does a NULL transition
+    if(candidate == NCKEY_ESC){
+      ictx->triepos = ictx->inputescapes;
+      if(used > 1){ // we got reset; replay as input
+        return -(used - 1);
+      }
+      // validated first byte as escape! keep going. otherwise, check trie.
+      // we can safely check trie[candidate] above because we are either coming
+      // off the initial node, which definitely has a valid ->trie, or we're
+      // coming from a transition, where ictx->triepos->trie is checked below.
+    }else if(ictx->triepos->trie[candidate] == NULL){
+      ictx->triepos = ictx->inputescapes;
+      if(ictx->state == STATE_ESC){
+        if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
+          alt_key(ictx, candidate);
+          return used;
         }
+      }
+      if(ictx->state == STATE_NULL){
+        // we were an invalid sequence; replay as input. we know used > 1. the
+        // current character is not yet excluded, so return negative "used - 1".
+        return -(used - 1);
+      }
+    }else{
+      ictx->triepos = ictx->triepos->trie[candidate];
+      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->special);
+      if(ictx->triepos->special != NCKEY_INVALID){ // match! mark and reset
+        special_key(ictx);
         ictx->triepos = ictx->inputescapes;
-      }else{
-        ictx->triepos = ictx->triepos->trie[candidate];
-        logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->special);
-        if(ictx->triepos->special != NCKEY_INVALID){ // match! mark and reset
-          special_key(ictx);
+        return used;
+      }else if(ictx->triepos->trie == NULL){
+        if(ictx->state == STATE_NULL){
           ictx->triepos = ictx->inputescapes;
-        }else if(ictx->triepos->trie == NULL){
-          ictx->triepos = ictx->inputescapes;
+          // all inspected characters are invalid; return full negative "used"
+          return -used;
         }
       }
     }
-    ++used;
   }
-  return used;
+  // we exhausted input without knowing whether or not this is a valid control
+  // sequence; we're still on-trie, and need more (immediate) input.
+  ictx->midescape = 1;
+  return -used;
 }
 
 // process as many control sequences from |buf|, having |bufused| bytes,
 // as we can. anything not a valid control sequence is dropped. this text
-// needn't be valid UTF-8.
+// needn't be valid UTF-8. this is always called on tbuf; if we find bulk data
+// here, we need replay it into ibuf (assuming that there's room).
 static void
 process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
     int consumed = process_escape(ictx, buf + offset, *bufused);
+    // if we aren't certain, that's not a control sequence unless we're at
+    // the end of the tbuf, in which case we really do try reading more. if
+    // this was not a sequence, we'll catch it on the next read.
     if(consumed < 0){
+      if(!ictx->midescape){
+        consumed = -consumed;
+        int available = sizeof(ictx->ibuf) - ictx->ibufvalid;
+        if(available){
+          if(available > consumed){
+            available = consumed;
+          }
+          logwarn("replaying %dB of %dB to ibuf\n", available, consumed);
+          memcpy(ictx->ibuf + ictx->ibufvalid, buf + offset, available);
+        }
+        *bufused -= consumed;
+        offset += consumed;
+      }
       break;
     }
     *bufused -= consumed;
@@ -1669,7 +1739,19 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
     int consumed = 0;
     if(buf[offset] == '\x1b'){
       consumed = process_escape(ictx, buf + offset, *bufused);
-    }else{
+      if(consumed < 0){
+        if(ictx->midescape){
+          if(-consumed != *bufused){ // not at the end; treat it as input
+            // no need to move between buffers; simply ensure we process it as
+            // input, and don't mark anything as consumed.
+            ictx->midescape = 0;
+          }
+        }
+      }
+    }
+    // don't process as input only if we just read a valid control character,
+    // or if we need to read more to determine what it is.
+    if(consumed <= 0 && !ictx->midescape){
       consumed = process_ncinput(ictx, buf + offset, *bufused);
     }
     if(consumed < 0){
@@ -1714,6 +1796,7 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
   return 0;
 }
 
+// FIXME if ictx->midescape is set, need a nonblocking read!
 static int
 block_on_input(inputctx* ictx){
   struct timespec* ts = NULL; // FIXME
