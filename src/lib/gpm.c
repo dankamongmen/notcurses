@@ -26,8 +26,8 @@ gpmwatcher(void* vti){
       logwarn("negative input %hd %hd", gev.x, gev.y);
       continue;
     }
-    ++gev.x;
-    ++gev.y;
+    gev.x += 1 + ti->margin_l;
+    gev.y += 1 + ti->margin_t;
     if(snprintf(cmdbuf + 3, space, "%hd;%hd;%hdM", 0, gev.x, gev.y) >= space){
       logwarn("input overflowed %hd %hd\n", gev.x, gev.y);
       continue;
@@ -38,7 +38,6 @@ gpmwatcher(void* vti){
 }
 
 int gpm_connect(tinfo* ti){
-  (void)ti;
   gpm_zerobased = 1;
   // get all of _MOVE, _DRAG, _DOWN, and _UP
   gpmconn.eventMask = GPM_DRAG | GPM_DOWN | GPM_UP;

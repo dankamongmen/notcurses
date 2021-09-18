@@ -731,6 +731,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   *cursor_x = *cursor_y = -1;
   memset(ti, 0, sizeof(*ti));
   ti->qterm = TERMINAL_UNKNOWN;
+  ti->margin_t = tmargin;
+  ti->margin_l = lmargin;
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
   ti->gpmfd = -1;
