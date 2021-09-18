@@ -165,6 +165,7 @@ typedef struct inputctx {
 
   unsigned midescape; // we're in the middle of a potential escape. we need
                       //  to do a nonblocking read and try to complete it.
+  unsigned stdineof;  // have we seen an EOF on stdin?
 
   unsigned linesigs;  // are line discipline signals active?
   unsigned drain;     // drain away bulk input?
@@ -446,6 +447,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->initdata_complete = NULL;
                         i->stats = stats;
                         i->ti = ti;
+                        i->stdineof = 0;
                         i->ibufvalid = 0;
                         // FIXME need to get this out of the initial termios
                         // (as stored in tpreserved)
@@ -600,7 +602,8 @@ prep_all_keys(inputctx* ictx){
 
 // populate |buf| with any new data from the specified file descriptor |fd|.
 static void
-read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused){
+read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
+                  unsigned* goteof){
   if(fd < 0){
     return;
   }
@@ -612,6 +615,11 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused){
   if(r <= 0){
     if(r < 0){
       logwarn("couldn't read from %d (%s)\n", fd, strerror(errno));
+    }else{
+      logwarn("got EOF on %d\n", fd);
+      if(goteof){
+        *goteof = 1;
+      }
     }
     return;
   }
@@ -807,9 +815,11 @@ set_sda_version(inputctx* ictx){
   return buf;
 }
 
-// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters
+// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
+// SGR (1006) mouse encoding, so use the final character to determine release
+// ('M' for click, 'm' for release).
 static void
-mouse_click(inputctx* ictx){
+mouse_click(inputctx* ictx, unsigned release){
   // convert from 1- to 0-indexing, and account for margins
   const int x = ictx->p3 - 1 - ictx->lmargin;
   const int y = ictx->numeric - 1 - ictx->tmargin;
@@ -824,12 +834,10 @@ mouse_click(inputctx* ictx){
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  if(ictx->p2 >= 0 && ictx->p2 < 64){
-    if(ictx->p2 % 4 == 3){
-      ni->id = NCKEY_RELEASE;
-    }else{
-      ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
-    }
+  if(release){
+    ni->id = NCKEY_RELEASE;
+  }else if(ictx->p2 >= 0 && ictx->p2 < 64){
+    ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
   }else if(ictx->p2 >= 64 && ictx->p2 < 128){
     ni->id = NCKEY_BUTTON4 + (ictx->p2 % 4);
   }else if(ictx->p2 >= 128 && ictx->p2 < 192){
@@ -940,60 +948,63 @@ special_key(inputctx* ictx){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
-// optional and indicates a special key with no modifiers.
 static void
-kitty_kbd(inputctx* ictx){
-  enum { // synthesized events derived from keypresses
-    SYNTH_NOTHING,
-    SYNTH_SIGINT,
-    SYNTH_SIGQUIT,
-  } synth = SYNTH_NOTHING;
-  assert(ictx->numeric >= 0);
-  assert(ictx->p2 > 0);
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  if((ni->id = ictx->p2) == 0x7f){
-    ni->id = NCKEY_BACKSPACE;
-  }
-  ni->shift = !!((ictx->numeric - 1) & 0x1);
-  ni->alt = !!((ictx->numeric - 1) & 0x2);
-  ni->ctrl = !!((ictx->numeric - 1) & 0x4);
-  // FIXME decode remaining modifiers through 128
-  // standard keyboard protocol reports ctrl+ascii as the capital form,
-  // so (for now) conform when using kitty protocol...
-  if(ni->id < 128 && islower(ni->id) && ni->ctrl){
-    ni->id = toupper(ni->id);
-  }
-  ni->x = 0;
-  ni->y = 0;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  if(ni->ctrl && !ni->alt && !ni->shift){
-    if(ni->id == 'C'){
-      synth = SYNTH_SIGINT;
-    }else if(ni->id == '\\'){
-      synth = SYNTH_SIGQUIT;
-    }
-  }
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
+send_synth_signal(int sig){
 #ifndef __MINGW64__
-  if(synth == SYNTH_SIGINT){
-    raise(SIGINT);
-  }else if(synth == SYNTH_SIGQUIT){
-    raise(SIGQUIT);
+  if(sig){
+    raise(sig);
   }
 #else
   (void)synth; // FIXME
 #endif
+}
+
+// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
+// optional and indicates a special key with no modifiers.
+static void
+kitty_kbd(inputctx* ictx){
+  int synth = 0;
+  assert(ictx->numeric >= 0);
+  assert(ictx->p2 > 0);
+  ncinput tni = {
+    .id = ictx->p2 == 0x7f ? NCKEY_BACKSPACE : ictx->p2,
+    .shift = !!((ictx->numeric - 1) & 0x1),
+    .alt = !!((ictx->numeric - 1) & 0x2),
+    .ctrl = !!((ictx->numeric - 1) & 0x4),
+  };
+  // FIXME decode remaining modifiers through 128
+  // standard keyboard protocol reports ctrl+ascii as the capital form,
+  // so (for now) conform when using kitty protocol...
+  if(tni.ctrl){
+    if(tni.id < 128 && islower(tni.id)){
+      tni.id = toupper(tni.id);
+    }
+    if(!tni.alt && !tni.shift){
+      if(tni.id == 'C'){
+        synth = SIGINT;
+      }else if(tni.id == '\\'){
+        synth = SIGQUIT;
+      }
+    }
+  }
+  tni.x = 0;
+  tni.y = 0;
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
+    send_synth_signal(synth);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  memcpy(ni, &tni, sizeof(tni));
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  send_synth_signal(synth);
 }
 
 // FIXME ought implement the full Williams automaton
@@ -1147,7 +1158,11 @@ pump_control_read(inputctx* ictx, unsigned char c){
           return -1;
         }
       }else if(c == 'M'){
-        mouse_click(ictx);
+        mouse_click(ictx, 0);
+        ictx->state = STATE_NULL;
+        return 2;
+      }else if(c == 'm'){
+        mouse_click(ictx, 1);
         ictx->state = STATE_NULL;
         return 2;
       }else{
@@ -1630,6 +1645,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
           }
           logwarn("replaying %dB of %dB to ibuf\n", available, consumed);
           memcpy(ictx->ibuf + ictx->ibufvalid, buf + offset, available);
+          ictx->ibufvalid += available;
         }
         *bufused -= consumed;
         offset += consumed;
@@ -1693,6 +1709,7 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
 // sticks that into the bulk queue.
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
+fprintf(stderr, "PROCESSING UP TO %d BUF!\n", buflen);
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -1837,29 +1854,37 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
 #ifdef POLLRDHUP
   inevents |= POLLRDHUP;
 #endif
-  struct pollfd pfds[2] = {
-    {
-			.fd = ictx->stdinfd,
-			.events = inevents,
-			.revents = 0,
+  struct pollfd pfds[2];
+  int pfdcount = 0;
+  if(!ictx->stdineof){
+    if(ictx->ibufvalid != sizeof(ictx->ibuf)){
+      pfds[pfdcount].fd = ictx->stdinfd;
+      pfds[pfdcount].events = inevents;
+      pfds[pfdcount].revents = 0;
+      ++pfdcount;
     }
-  };
-  int pfdcount = 1;
+  }
   if(ictx->termfd >= 0){
     pfds[pfdcount].fd = ictx->termfd;
     pfds[pfdcount].events = inevents;
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
+  sigset_t smask;
+  sigfillset(&smask);
+  sigdelset(&smask, SIGCONT);
+  sigdelset(&smask, SIGWINCH);
+  if(pfdcount == 0){
+    loginfo("output queues full; blocking on signals\n");
+    int signum;
+    sigwait(&smask, &signum);
+    return 0;
+  }
   int events;
 #if defined(__APPLE__) || defined(__MINGW64__)
 	int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
 #else
-  sigset_t smask;
-  sigfillset(&smask);
-  sigdelset(&smask, SIGCONT);
-  sigdelset(&smask, SIGWINCH);
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0, };
   struct timespec* pts = nonblock ? &ts : NULL;
   while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
@@ -1870,15 +1895,18 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       return resize_seen;
     }
   }
-loginfo("got events: %d\n", events);
-  if(pfds[0].revents){
-    *rifd = 1;
-    if(events == 2){
-      *rtfd = 1;
+  pfdcount = 0;
+  while(events){
+    if(pfds[pfdcount].revents){
+      if(pfds[pfdcount].fd == ictx->stdinfd){
+        *rifd = 1;
+      }else if(pfds[pfdcount].fd == ictx->termfd){
+        *rtfd = 1;
+      }
+      --events;
     }
-  }else{
-    *rtfd = 1;
   }
+loginfo("got events: %c%c %d\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', pfds[0].revents);
   return events;
 #endif
 }
@@ -1894,13 +1922,13 @@ read_inputs_nblock(inputctx* ictx){
   // first we read from the terminal, if that's a distinct source.
   if(rtfd){
     read_input_nblock(ictx->termfd, ictx->tbuf, sizeof(ictx->tbuf),
-                      &ictx->tbufvalid);
+                      &ictx->tbufvalid, NULL);
   }
   // now read bulk, possibly with term escapes intermingled within (if there
   // was not a distinct terminal source).
   if(rifd){
     read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
-                      &ictx->ibufvalid);
+                      &ictx->ibufvalid, &ictx->stdineof);
   }
 }
 
