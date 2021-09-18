@@ -1459,6 +1459,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
           ictx->numeric = 0;
         }
         ictx->state = STATE_NULL;
+        return 2;
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
         if(c == 'c'){
