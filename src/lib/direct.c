@@ -130,6 +130,11 @@ int ncdirect_cursor_down(ncdirect* nc, int num){
   return ret;
 }
 
+static inline int
+ncdirect_cursor_down_f(ncdirect* nc, int num, fbuf* f){
+  return emit_scrolls(&nc->tcache, num, f);
+}
+
 int ncdirect_clear(ncdirect* nc){
   const char* clearscr = get_escape(&nc->tcache, ESCAPE_CLEAR);
   if(clearscr){
@@ -466,6 +471,54 @@ ncdirect_dump_sprixel(ncdirect* n, const ncplane* np, int xoff, int* y, fbuf* f)
 }
 
 static int
+ncdirect_set_bg_default_f(ncdirect* nc, fbuf* f){
+  if(ncdirect_bg_default_p(nc)){
+    return 0;
+  }
+  const char* esc;
+  if((esc = get_escape(&nc->tcache, ESCAPE_BGOP)) != NULL){
+    if(fbuf_emit(f, esc) < 0){
+      return -1;
+    }
+  }else if((esc = get_escape(&nc->tcache, ESCAPE_OP)) != NULL){
+    if(fbuf_emit(f, esc) < 0){
+      return -1;
+    }
+    if(!ncdirect_fg_default_p(nc)){
+      if(ncdirect_set_fg_rgb_f(nc, ncchannels_fg_rgb(nc->channels), f)){
+        return -1;
+      }
+    }
+  }
+  ncchannels_set_bg_default(&nc->channels);
+  return 0;
+}
+
+static int
+ncdirect_set_fg_default_f(ncdirect* nc, fbuf* f){
+  if(ncdirect_fg_default_p(nc)){
+    return 0;
+  }
+  const char* esc;
+  if((esc = get_escape(&nc->tcache, ESCAPE_FGOP)) != NULL){
+    if(fbuf_emit(f, esc) < 0){
+      return -1;
+    }
+  }else if((esc = get_escape(&nc->tcache, ESCAPE_OP)) != NULL){
+    if(fbuf_emit(f, esc) < 0){
+      return -1;
+    }
+    if(!ncdirect_bg_default_p(nc)){
+      if(ncdirect_set_bg_rgb_f(nc, ncchannels_bg_rgb(nc->channels), f)){
+        return -1;
+      }
+    }
+  }
+  ncchannels_set_fg_default(&nc->channels);
+  return 0;
+}
+
+static int
 ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
@@ -484,17 +537,18 @@ ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
         return -1;
       }
       if(ncchannels_fg_alpha(channels) == NCALPHA_TRANSPARENT){
-        ncdirect_set_fg_default(n);
+        ncdirect_set_fg_default_f(n, f);
       }else{
-        ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(channels));
+        ncdirect_set_fg_rgb_f(n, ncchannels_fg_rgb(channels), f);
       }
       if(ncchannels_bg_alpha(channels) == NCALPHA_TRANSPARENT){
-        ncdirect_set_bg_default(n);
+        ncdirect_set_bg_default_f(n, f);
       }else{
-        ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(channels));
+        ncdirect_set_bg_rgb_f(n, ncchannels_bg_rgb(channels), f);
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
-      if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
+      size_t egclen = strlen(egc);
+      if(fbuf_putn(f, egclen == 0 ? " " : egc, egclen == 0 ? 1 : egclen) < 0){
         free(egc);
         return -1;
       }
@@ -504,27 +558,27 @@ ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
     // each line of output; this is necessary if our output is lifted out and
     // used in something e.g. paste(1).
     // FIXME replace with a SGR clear
-    ncdirect_set_fg_default(n);
-    ncdirect_set_bg_default(n);
-    if(ncfputc('\n', n->ttyfp) == EOF){
+    ncdirect_set_fg_default_f(n, f);
+    ncdirect_set_bg_default_f(n, f);
+    if(fbuf_putc(f, '\n') < 0){
       return -1;
     }
     if(y == toty){
-      if(ncdirect_cursor_down(n, 1)){
+      if(ncdirect_cursor_down_f(n, 1, f)){
         return -1;
       }
     }
   }
   // restore the previous colors
   if(fgdefault){
-    ncdirect_set_fg_default(n);
+    ncdirect_set_fg_default_f(n, f);
   }else{
-    ncdirect_set_fg_rgb(n, fgrgb);
+    ncdirect_set_fg_rgb_f(n, fgrgb, f);
   }
   if(bgdefault){
-    ncdirect_set_bg_default(n);
+    ncdirect_set_bg_default_f(n, f);
   }else{
-    ncdirect_set_bg_rgb(n, bgrgb);
+    ncdirect_set_bg_rgb_f(n, bgrgb, f);
   }
   return 0;
 }
