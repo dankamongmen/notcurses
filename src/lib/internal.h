@@ -1607,6 +1607,8 @@ ncdirect_bg_palindex_p(const ncdirect* nc){
   return ncchannels_bg_palindex_p(ncdirect_channels(nc));
 }
 
+int ncdirect_set_fg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f);
+int ncdirect_set_bg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f);
 int term_fg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b);
 
 const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);

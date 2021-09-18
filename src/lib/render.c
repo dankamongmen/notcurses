@@ -1603,7 +1603,7 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, ui
   return egc;
 }
 
-int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
+int ncdirect_set_bg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -1611,22 +1611,29 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
      && ncchannels_bg_rgb(nc->channels) == rgb){
     return 0;
   }
-  fbuf f = {};
-  if(fbuf_init_small(&f)){
-    return -1;
-  }
-  if(term_bg_rgb8(&nc->tcache, &f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
-    fbuf_free(&f);
-    return -1;
-  }
-  if(fbuf_finalize(&f, nc->ttyfp) < 0){
+  if(term_bg_rgb8(&nc->tcache, f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
   ncchannels_set_bg_rgb(&nc->channels, rgb);
   return 0;
 }
 
-int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
+int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
+  fbuf f = {};
+  if(fbuf_init_small(&f)){
+    return -1;
+  }
+  if(ncdirect_set_bg_rgb_f(nc, rgb, &f)){
+    fbuf_free(&f);
+    return -1;
+  }
+  if(fbuf_finalize(&f, nc->ttyfp) < 0){
+    return -1;
+  }
+  return 0;
+}
+
+int ncdirect_set_fg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -1634,18 +1641,25 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
      && ncchannels_fg_rgb(nc->channels) == rgb){
     return 0;
   }
+  if(term_fg_rgb8(&nc->tcache, f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+    return -1;
+  }
+  ncchannels_set_fg_rgb(&nc->channels, rgb);
+  return 0;
+}
+
+int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   fbuf f = {};
   if(fbuf_init_small(&f)){
     return -1;
   }
-  if(term_fg_rgb8(&nc->tcache, &f, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+  if(ncdirect_set_fg_rgb_f(nc, rgb, &f)){
     fbuf_free(&f);
     return -1;
   }
   if(fbuf_finalize(&f, nc->ttyfp) < 0){
     return -1;
   }
-  ncchannels_set_fg_rgb(&nc->channels, rgb);
   return 0;
 }
 
