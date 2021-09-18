@@ -785,7 +785,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   // machines, but they'll use the terminfo installed thereon (putty, etc.).
   int termerr;
   if(setupterm(termtype, ti->ttyfd, &termerr)){
-    logpanic("Terminfo error %d for %s (see terminfo(3ncurses))\n", termerr, termtype);
+    logpanic("Terminfo error %d for [%s] (see terminfo(3ncurses))\n",
+             termerr, termtype ? termtype : "");
     goto err;
   }
   tname = termname(); // longname() is also available
