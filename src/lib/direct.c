@@ -519,7 +519,7 @@ ncdirect_set_fg_default_f(ncdirect* nc, fbuf* f){
 }
 
 static int
-ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
+ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   const int toty = ncdirect_dim_y(n);
@@ -560,7 +560,7 @@ ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f){
     // FIXME replace with a SGR clear
     ncdirect_set_fg_default_f(n, f);
     ncdirect_set_bg_default_f(n, f);
-    if(fbuf_putc(f, '\n') < 0){
+    if(fbuf_printf(f, "\n%*.*s", xoff, xoff, "") < 0){
       return -1;
     }
     if(y == toty){
@@ -618,7 +618,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       return -1;
     }
   }else{
-    if(ncdirect_dump_cellplane(n, np, &f)){
+    if(ncdirect_dump_cellplane(n, np, &f, xoff)){
       fbuf_free(&f);
       return -1;
     }
