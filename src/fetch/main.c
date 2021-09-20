@@ -602,10 +602,14 @@ display_thread(void* vmarshal){
     if(ncv){
       int y;
       ncplane_cursor_yx(notcurses_stdplane_const(m->nc), &y, NULL);
+      bool pixeling = false;
+      if(notcurses_check_pixel_support(m->nc) >= 1){
+        pixeling = true;
+      }
       struct ncvisual_options vopts = {
         .x = NCALIGN_CENTER,
-        .blitter = NCBLIT_PIXEL,
-        .scaling = NCSCALE_SCALE_HIRES,
+        .blitter = pixeling ? NCBLIT_PIXEL : NCBLIT_3x2,
+        .scaling = pixeling ? NCSCALE_NONE : NCSCALE_SCALE_HIRES,
         .flags = NCVISUAL_OPTION_HORALIGNED,
       };
       struct ncplane* iplane = ncvisual_render(m->nc, ncv, &vopts);
