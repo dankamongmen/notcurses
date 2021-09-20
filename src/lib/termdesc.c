@@ -324,7 +324,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // which can be identified directly, sans queries.
 #define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
 
-// request kitty keyboard protocol through level 31, and push current.
+// request kitty keyboard protocol through level 1, and push current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
 #define KBDSUPPORT "\x1b[>u\x1b[=1u"
 
