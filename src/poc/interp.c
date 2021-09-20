@@ -107,7 +107,7 @@ int main(void){
     goto err;
   }
   ncinput ni;
-  uint32_t id = notcurses_getc_blocking(nc, &ni);
+  notcurses_getc_blocking(nc, &ni);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 
