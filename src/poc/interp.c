@@ -95,7 +95,6 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
 int main(void){
   struct notcurses_options nopts = {
 //    .loglevel = NCLOGLEVEL_TRACE,
-      .flags = NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
@@ -108,7 +107,7 @@ int main(void){
     goto err;
   }
   ncinput ni;
-  notcurses_getc_blocking(nc, &ni);
+  uint32_t id = notcurses_getc_blocking(nc, &ni);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 
