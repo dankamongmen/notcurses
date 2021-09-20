@@ -611,7 +611,8 @@ display_thread(void* vmarshal){
       struct ncplane* iplane = ncvisual_render(m->nc, ncv, &vopts);
       ncvisual_destroy(ncv);
       if(iplane){
-        ncplane_move_yx(iplane, y, 0);
+        int x = ncplane_x(iplane);
+        ncplane_move_yx(iplane, y, x);
         ncplane_scrollup_child(notcurses_stdplane(m->nc), iplane);
         notcurses_render(m->nc);
         ncplane_cursor_move_yx(notcurses_stdplane(m->nc),
