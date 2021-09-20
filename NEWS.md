@@ -12,6 +12,13 @@ rearrangements of Notcurses.
     retrieve terminal messages (if buffers are full, Notcurses cannot
     continue reading). Likewise added `NCDIRECT_OPTION_DRAIN_INPUT`.
   * Removed a bunch of deprecated `static inline` functions from the headers.
+  * A new field, `evtype`, has been added to `ncinput`. It takes a value
+    from among `EVTYPE_{UNKNOWN, PRESS, REPEAT, RELEASE}.`. Where possible,
+    Notcurses will distinguish between a press, repeat, and release. This
+    cannot be done in all environments, nor with all inputs. The
+    `NCKEY_RELEASE` definition is no longer returned; instead, the
+    appropriate `NCKEY_BUTTONx` synthesized key is returned, with
+    `EVTYPE_RELEASE` set.
 
 * 2.4.1 (2021-09-12)
   * `notcurses_check_pixel_support()` still returns 0 if there is no support

@@ -125,7 +125,6 @@ typedef struct inputctx {
   HANDLE stdinhandle;   // handle to input terminal for MSFT Terminal
 #endif
 
-  uint64_t seqnum;      // process-scope sequence number
   int lmargin, tmargin; // margins in use at left and top
 
   struct esctrie* inputescapes;
@@ -473,7 +472,6 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->runstring[i->stridx] = '\0';
                         i->lmargin = lmargin;
                         i->tmargin = tmargin;
-                        i->seqnum = 0;
                         i->drain = drain;
                         logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                         return i;
@@ -2013,7 +2011,6 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   id = ictx->inputs[ictx->iread].id;
   if(ni){
     memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
-    ni->seqnum = ++ictx->seqnum;
   }
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;

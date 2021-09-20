@@ -21,7 +21,12 @@ typedef struct ncinput {
   bool alt;        // Was Alt held during the event?
   bool shift;      // Was Shift held during the event?
   bool ctrl;       // Was Ctrl held during the event?
-  uint64_t seqnum; // Monotonically increasing input event counter
+  enum {
+    EVTYPE_UNKNOWN,
+    EVTYPE_PRESS,
+    EVTYPE_REPEAT,
+    EVTYPE_RELEASE,
+  } evtype;
 } ncinput;
 ```
 
@@ -77,8 +82,8 @@ be the actual input file descriptor. If it readable, **notcurses_get** can
 be called without the possibility of blocking.
 
 **ncinput_equal_p** compares two **ncinput** structs for data equality (i.e.
-not considering padding or the **seqnum** field), returning **true** if they
-represent the same input (though not necessarily the same input event).
+not considering padding), returning **true** if they represent the same
+input (though not necessarily the same input event).
 
 **notcurses_linesigs_disable** disables conversion of inputs **INTR**, **QUIT**,
 **SUSP**, and **DSUSP** into **SIGINT**, **SIGQUIT**, and **SIGTSTP**. These

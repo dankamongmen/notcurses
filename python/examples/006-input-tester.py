@@ -35,7 +35,6 @@ while True:
     std_plane.putstr(f"Is alt: {p.is_alt}", y_pos=3, x_pos=0)
     std_plane.putstr(f"Is shift: {p.is_shift}", y_pos=4, x_pos=0)
     std_plane.putstr(f"Is ctrl: {p.is_ctrl}", y_pos=5, x_pos=0)
-    std_plane.putstr(f"Seqnum: {p.seqnum}", y_pos=6, x_pos=0)
     std_plane.putstr("Press CTRL+C to exit.", y_pos=7, x_pos=0)
 
     std_plane.context.render()

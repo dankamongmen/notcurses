@@ -684,7 +684,12 @@ typedef struct ncinput {
   bool alt;        // was alt held?
   bool shift;      // was shift held?
   bool ctrl;       // was ctrl held?
-  uint64_t seqnum; // input event number
+  enum {
+    EVTYPE_UNKNOWN,
+    EVTYPE_PRESS,
+    EVTYPE_REPEAT,
+    EVTYPE_RELEASE,
+  } evtype;
 } ncinput;
 
 // Read a UTF-32-encoded Unicode codepoint from input. This might only be part

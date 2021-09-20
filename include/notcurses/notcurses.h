@@ -1037,19 +1037,25 @@ nckey_mouse_p(uint32_t r){
   return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
 }
 
-// An input event. Cell coordinates are currently defined only for mouse events.
+// An input event. Cell coordinates are currently defined only for mouse
+// events. It is not guaranteed that we can set the modifiers for a given
+// ncinput. We encompass single Unicode codepoints, not complete EGCs.
 typedef struct ncinput {
-  uint32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
-  int y;           // y cell coordinate of event, -1 for undefined
-  int x;           // x cell coordinate of event, -1 for undefined
-  bool alt;        // was alt held?
-  bool shift;      // was shift held?
-  bool ctrl;       // was ctrl held?
-  uint64_t seqnum; // input event number
+  uint32_t id;       // Unicode codepoint or synthesized NCKEY event
+  int y;             // y cell coordinate of event, -1 for undefined
+  int x;             // x cell coordinate of event, -1 for undefined
+  bool alt;          // was alt held?
+  bool shift;        // was shift held?
+  bool ctrl;         // was ctrl held?
+  enum {
+    EVTYPE_UNKNOWN,
+    EVTYPE_PRESS,
+    EVTYPE_REPEAT,
+    EVTYPE_RELEASE,
+  } evtype;
 } ncinput;
 
-// compare two ncinput structs for data equality. we can't just use memcmp()
-// due to potential padding in the struct (especially wrt bools) and seqnum.
+// compare two ncinput structs for data equality.
 static inline bool
 ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   if(n1->id != n2->id){
@@ -1061,7 +1067,9 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   if(n1->alt != n2->alt || n1->shift != n2->shift || n1->ctrl != n2->ctrl){
     return false;
   }
-  // do not check seqnum!
+  if(n1->keytype != n2->keytype){
+    return false;
+  }
   return true;
 }
 
