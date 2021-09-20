@@ -1830,20 +1830,25 @@ ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
 // of the plane will not be changed.
 API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbytes);
 
-// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes...but we aren't
-// yet actively guarding against higher values getting into wcstombs FIXME
-#define WCHAR_MAX_UTF8BYTES 6
+// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
+#define WCHAR_MAX_UTF8BYTES 4
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
 ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
-  // maximum of six UTF8-encoded bytes per wchar_t
-  const size_t mbytes = (wcslen(gclust) * WCHAR_MAX_UTF8BYTES) + 1;
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  const wchar_t** wset = &gclust;
+  size_t mbytes = wcsrtombs(NULL, wset, 0, &ps);
+  if(mbytes == (size_t)-1){
+    return -1;
+  }
+  ++mbytes;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
   if(mbstr == NULL){
     return -1;
   }
-  size_t s = wcstombs(mbstr, gclust, mbytes);
+  size_t s = wcsrtombs(mbstr, wset, mbytes, &ps);
   if(s == (size_t)-1){
     free(mbstr);
     return -1;
@@ -2802,8 +2807,8 @@ API int ncvisual_decode(struct ncvisual* nc)
 API int ncvisual_decode_loop(struct ncvisual* nc)
   __attribute__ ((nonnull (1)));
 
-// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
-// supported at the moment, but this will change FIXME.
+// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are supported at
+// the moment, but this might change in the future.
 API int ncvisual_rotate(struct ncvisual* n, double rads)
   __attribute__ ((nonnull (1)));
 

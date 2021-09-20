@@ -2972,13 +2972,19 @@ int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
 }
 
 int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
-  // maximum of six UTF8-encoded bytes per wchar_t
-  const size_t mbytes = (wcslen(gclustarr) * WCHAR_MAX_UTF8BYTES) + 1;
-  char* mbstr = malloc(mbytes); // need cast for c++ callers
+  mbstate_t ps = {};
+  const wchar_t** wset = &gclustarr;
+  size_t mbytes = wcsrtombs(NULL, wset, 0, &ps);
+  if(mbytes == (size_t)-1){
+    logerror("error converting wide string\n");
+    return -1;
+  }
+  ++mbytes;
+  char* mbstr = malloc(mbytes);
   if(mbstr == NULL){
     return -1;
   }
-  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  size_t s = wcsrtombs(mbstr, wset, mbytes, &ps);
   if(s == (size_t)-1){
     free(mbstr);
     return -1;
