@@ -1882,6 +1882,11 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   sigfillset(&smask);
   sigdelset(&smask, SIGCONT);
   sigdelset(&smask, SIGWINCH);
+#ifdef SIGTHR
+  // freebsd uses SIGTHR for thread cancellation; need this to ensure wakeup
+  // on exit (in cancel_and_join()).
+  sigdelset(&smask, SIGTHR);
+#endif
   if(pfdcount == 0){
     loginfo("output queues full; blocking on signals\n");
     int signum;
