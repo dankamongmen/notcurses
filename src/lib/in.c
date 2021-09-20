@@ -1850,9 +1850,8 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   }
 #ifdef __MINGW64__
   int timeoutms = nonblock ? 0 : -1;
-  DWORD d = WaitForMultipleObjects(1, &ictx->stdinhandle, FALSE, timeoutms);
+  DWORD d = WaitForSingleObject(ictx->stdinhandle, timeoutms);
   if(d == WAIT_TIMEOUT){
-    *rifd = 1;
     return 0;
   }else if(d == WAIT_FAILED){
     return -1;
