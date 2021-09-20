@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.2 (not yet released)
+* 2.4.2 (2021-09-19)
   * The Rust wrappers have been moved to
      [dankamongmen/libnotcurses-sys](https://github.com/dankamongmen/libnotcurses-sys),
      under the continued stewardship of @joseluis.
