@@ -1976,6 +1976,8 @@ int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
 int stop_inputlayer(tinfo* ti){
   int ret = 0;
   if(ti){
+    // FIXME cancellation on shutdown does not yet work on windows #2192
+#ifndef __MINGW64__
     if(ti->ictx){
       loginfo("tearing down input thread\n");
       ret |= cancel_and_join("input", ti->ictx->tid, NULL);
@@ -1983,6 +1985,7 @@ int stop_inputlayer(tinfo* ti){
       free_inputctx(ti->ictx);
       ti->ictx = NULL;
     }
+#endif
   }
   return ret;
 }
