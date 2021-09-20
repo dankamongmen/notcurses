@@ -2050,11 +2050,7 @@ delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
 uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
   struct timespec absdl;
   delaybound_to_deadline(ts, &absdl);
-  uint32_t r = internal_get(nc->tcache.ictx, ts ? &absdl : NULL, ni);
-  if(r != (uint32_t)-1){
-    inc_input_events(nc->tcache.ictx);
-  }
-  return r;
+  return internal_get(nc->tcache.ictx, ts ? &absdl : NULL, ni);
 }
 
 // FIXME better performance if we move this within the locked area
