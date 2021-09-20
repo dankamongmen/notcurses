@@ -123,6 +123,21 @@ may well be possible to use still older versions. Let me know of any successes!
 
 [Here's more information](INSTALL.md) on building and installation.
 
+### Wrappers
+
+If you wish to use a language other than C to work with Notcurses, numerous
+wrappers are available. Several are included in this repository, while
+others are external.
+
+| Language | Lead(s)                       | Repository |
+| -------- | ----------------------------- | ---------- |
+| Ada      | Jeremy Grosser                | [JeremyGrosser/notcursesada](https://github.com/JeremyGrosser/notcursesada) |
+| C++      | Marek Habersack, nick black   | internal   |
+| Python   | nick black                    | internal   |
+| Python   | igo95862                      | internal   |
+| Rust     | José Luis Cruz                | [dankamongmen/libnotcurses-sys](https://github.com/dankamongmen/libnotcurses-sys) |
+| Zig      | Jakub Dundalek                | [dundalek/notcurses-zig-example](https://github.com/dundalek/notcurses-zig-example) |
+
 ## Included tools
 
 Eight binaries are installed as part of Notcurses:

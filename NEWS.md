@@ -2,6 +2,9 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.4.2 (not yet released)
+  * The Rust wrappers have been moved to
+     [dankamongmen/libnotcurses-sys](https://github.com/dankamongmen/libnotcurses-sys),
+     under the continued stewardship of @joseluis.
   * You can now set a resize callback on the standard plane.
   * Added `notcurses_getvec()`, providing batched input.
   * Added `NCOPTION_DRAIN_INPUT`. Notcurses now launches a thread to process
