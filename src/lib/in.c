@@ -461,6 +461,9 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->stats = stats;
                         i->ti = ti;
                         i->stdineof = 0;
+#ifdef __MINGW64__
+                        i->stdinhandle = ti->inhandle;
+#endif
                         i->ibufvalid = 0;
                         // FIXME need to get this out of the initial termios
                         // (as stored in tpreserved)
