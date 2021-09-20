@@ -1002,7 +1002,7 @@ int sixel_scrub(const ncpile* p, sprixel* s){
 
 // returns the number of bytes written
 int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
-               int y, int x){
+               int yoff, int xoff){
   (void)ti;
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
@@ -1013,7 +1013,9 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     s->wipes_outstanding = false;
   }
   if(p){
-    if(goto_location(p->nc, f, y, x)){
+    const int targy = s->n->absy + yoff;
+    const int targx = s->n->absx + xoff;
+    if(goto_location(p->nc, f, targy, targx)){
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){

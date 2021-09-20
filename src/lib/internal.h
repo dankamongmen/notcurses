@@ -711,15 +711,13 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
-            int y, int x){
+            int yoff, int xoff){
   if(!ti->pixel_draw){
     return 0;
   }
-  int offy, offx;
-  ncplane_abs_yx(s->n, &offy, &offx);
 //sprixel_debug(s, stderr);
   logdebug("sprixel %u state %d\n", s->id, s->invalidated);
-  return ti->pixel_draw(ti, p, s, f, y + offy, x + offx);
+  return ti->pixel_draw(ti, p, s, f, yoff, xoff);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
