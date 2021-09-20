@@ -103,7 +103,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else{
       keyp = nc.get(false, &ni);
     }
-    if(keyp == (uint32_t)-1){
+    if(keyp == 0){
       break;
     }
     if(keyp == ' '){

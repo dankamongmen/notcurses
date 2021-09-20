@@ -2043,6 +2043,10 @@ delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
     gettimeofday(&tv, NULL);
     absdl->tv_sec = ts->tv_sec + tv.tv_sec;
     absdl->tv_nsec = ts->tv_nsec + tv.tv_usec * 1000;
+    if(absdl->tv_nsec > 1000000000){
+      ++absdl->tv_sec;
+      absdl->tv_nsec -= 1000000000;
+    }
   }
 }
 
