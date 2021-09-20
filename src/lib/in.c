@@ -1849,17 +1849,18 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     ictx->midescape = 0;
   }
 #ifdef __MINGW64__
-	int timeoutms = nonblock ? 0 : -1;
-	DWORD d = WaitForMultipleObjects(1, &ictx->stdinhandle, FALSE, timeoutms);
-	if(d == WAIT_TIMEOUT){
+  int timeoutms = nonblock ? 0 : -1;
+  DWORD d = WaitForMultipleObjects(1, &ictx->stdinhandle, FALSE, timeoutms);
+  if(d == WAIT_TIMEOUT){
     *rifd = 1;
-		return 0;
-	}else if(d == WAIT_FAILED){
-		return -1;
-	}else if(d - WAIT_OBJECT_0 == 0){
-		return 1;
-	}
-	return -1;
+    return 0;
+  }else if(d == WAIT_FAILED){
+    return -1;
+  }else if(d - WAIT_OBJECT_0 == 0){
+    *rifd = 1;
+    return 1;
+  }
+  return -1;
 #else
   int inevents = POLLIN;
 #ifdef POLLRDHUP
@@ -1898,7 +1899,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   }
   int events;
 #if defined(__APPLE__) || defined(__MINGW64__)
-	int timeoutms = nonblock ? 0 : -1;
+  int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
 #else
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0, };
