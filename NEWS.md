@@ -13,7 +13,7 @@ rearrangements of Notcurses.
     continue reading). Likewise added `NCDIRECT_OPTION_DRAIN_INPUT`.
   * Removed a bunch of deprecated `static inline` functions from the headers.
   * A new field, `evtype`, has been added to `ncinput`. It takes a value
-    from among `EVTYPE_{UNKNOWN, PRESS, REPEAT, RELEASE}.`. Where possible,
+    from among `NCTYPE_{UNKNOWN, PRESS, REPEAT, RELEASE}.`. Where possible,
     Notcurses will distinguish between a press, repeat, and release. This
     cannot be done in all environments, nor with all inputs. The
     `NCKEY_RELEASE` definition is no longer returned; instead, the

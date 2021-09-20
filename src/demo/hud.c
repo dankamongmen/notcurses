@@ -244,7 +244,7 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     if(sel == NULL){
       return false;
     }
-  }else if(menu && ni->id == NCKEY_RELEASE){
+  }else if(menu && ni->id == NCKEY_BUTTON1 && ni->evtype == NCTYPE_RELEASE){
     const char* sel = ncmenu_mouse_selected(menu, ni, &tmpni);
     if(sel == NULL){
       memcpy(&tmpni, ni, sizeof(tmpni));

@@ -92,13 +92,13 @@ action, but signals in the interim are permanently lost.
 
 ## Mice
 
-For mouse events, the additional fields **y** and **x** are set. These fields
-are not meaningful for keypress events. Mouse events can be distinguished using
-the **nckey_mouse_p** predicate. Once enabled, mouse button presses are
-detected, as are mouse motions made while a button is held down. If no button
-is depressed, mouse movement _does not result in events_. This is known as
-"button-event tracking" mode in the nomenclature of [Xterm Control
-Sequences](https://www.xfree86.org/current/ctlseqs.html).
+For mouse events, the additional fields **y** and **x** are set. These
+fields are not meaningful for keypress events. Mouse events can be
+distinguished using the **nckey_mouse_p** predicate. Once enabled, mouse
+button presses and releases are detected, as are mouse motions made while a
+button is held down. If no button is depressed, mouse movement _does not
+result in events_. This is known as "button-event tracking" mode in the
+nomenclature of [Xterm Control Sequences](https://www.xfree86.org/current/ctlseqs.html).
 
 ## Synthesized keypresses
 
@@ -169,19 +169,20 @@ Failed escape sequences are not yet played back in their entirety; only an
 ESC (ASCII 0x1b) will be seen by the application.
 
 The Shift key is only indicated in conjunction with mouse button presses. If
-e.g. Shift is used to generate a capital letter 'A', **id** will equal 'A', and
-**shift** will be **false**. This should be fixed in the future.
+e.g. Shift is used to generate a capital letter 'A', **id** will equal 'A',
+and **shift** will be **false**. This should be fixed in the future.
 
 When Ctrl is pressed along with a letter, the letter will currently always be
 reported in its uppercase form. E.g., if Shift, Ctrl, and 'a' are all pressed,
 this is indistinguishable from Ctrl and 'a' without Shift. This should be fixed
 in the future.
 
-Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not, currently
-registers as **NCKEY_ENTER**. This will likely change in the future.
+Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not,
+currently registers as **NCKEY_ENTER**. This will likely change in the
+future.
 
-When the Kitty keyboard disambiguation protocol is used, most of these issues
-are resolved.
+When the Kitty keyboard disambiguation protocol is used, most of these
+issues are resolved.
 
 # SEE ALSO
 

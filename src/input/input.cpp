@@ -125,18 +125,17 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
-    case NCKEY_BUTTON1: return "mouse (button 1 pressed)";
-    case NCKEY_BUTTON2: return "mouse (button 2 pressed)";
-    case NCKEY_BUTTON3: return "mouse (button 3 pressed)";
-    case NCKEY_BUTTON4: return "mouse (button 4 pressed)";
-    case NCKEY_BUTTON5: return "mouse (button 5 pressed)";
-    case NCKEY_BUTTON6: return "mouse (button 6 pressed)";
-    case NCKEY_BUTTON7: return "mouse (button 7 pressed)";
-    case NCKEY_BUTTON8: return "mouse (button 8 pressed)";
-    case NCKEY_BUTTON9: return "mouse (button 9 pressed)";
-    case NCKEY_BUTTON10: return "mouse (button 10 pressed)";
-    case NCKEY_BUTTON11: return "mouse (button 11 pressed)";
-    case NCKEY_RELEASE: return "mouse (button released)";
+    case NCKEY_BUTTON1: return "mouse (button 1)";
+    case NCKEY_BUTTON2: return "mouse (button 2)";
+    case NCKEY_BUTTON3: return "mouse (button 3)";
+    case NCKEY_BUTTON4: return "mouse (button 4)";
+    case NCKEY_BUTTON5: return "mouse (button 5)";
+    case NCKEY_BUTTON6: return "mouse (button 6)";
+    case NCKEY_BUTTON7: return "mouse (button 7)";
+    case NCKEY_BUTTON8: return "mouse (button 8)";
+    case NCKEY_BUTTON9: return "mouse (button 9)";
+    case NCKEY_BUTTON10: return "mouse (button 10)";
+    case NCKEY_BUTTON11: return "mouse (button 11)";
     default:            return "unknown";
   }
 }
@@ -202,6 +201,20 @@ void Ticker(ncpp::NotCurses* nc) {
     const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
     Tick(nc, sec);
   }while(!done);
+}
+
+char evtype_to_char(ncinput* ni){
+  switch(ni->evtype){
+    case NCKey::TypeUnknown:
+      return 'u';
+    case NCKey::TypePress:
+      return 'P';
+    case NCKey::TypeRepeat:
+      return 'R';
+    case NCKey::TypeRelease:
+      return 'L';
+  }
+  return 'X';
 }
 
 int input_demo(ncpp::NotCurses* nc) {
@@ -285,8 +298,8 @@ int input_demo(ncpp::NotCurses* nc) {
       break;
     }
     n->set_fg_rgb8(0xd0, 0xd0, 0xd0);
-    n->printf("%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
-              ni.shift ? 'S' : 's');
+    n->printf("%c%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
+              ni.shift ? 'S' : 's', evtype_to_char(&ni));
     if(r < 0x80){
       n->set_fg_rgb8(128, 250, 64);
       if(n->printf("ASCII: [0x%02x (%03d)] '%lc'", r, r,

@@ -22,11 +22,11 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static int
 handle_mouse(const ncinput* ni){
-  if(ni->id != NCKEY_BUTTON1 && ni->id != NCKEY_RELEASE){
+  if(ni->id != NCKEY_BUTTON1){
     return 0;
   }
   int ret;
-  if(ni->id == NCKEY_RELEASE){
+  if(ni->evtype == NCTYPE_RELEASE){
     ret = hud_release();
     if(ret < 0){
       ret = fpsplot_release();

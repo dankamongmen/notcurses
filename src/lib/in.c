@@ -847,9 +847,7 @@ mouse_click(inputctx* ictx, unsigned release){
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  if(release){
-    ni->id = NCKEY_RELEASE;
-  }else if(ictx->p2 >= 0 && ictx->p2 < 64){
+  if(ictx->p2 >= 0 && ictx->p2 < 64){
     ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
   }else if(ictx->p2 >= 64 && ictx->p2 < 128){
     ni->id = NCKEY_BUTTON4 + (ictx->p2 % 4);
@@ -859,6 +857,12 @@ mouse_click(inputctx* ictx, unsigned release){
   ni->ctrl = ictx->p2 & 0x10;
   ni->alt = ictx->p2 & 0x08;
   ni->shift = ictx->p2 & 0x04;
+  // mice don't send repeat events, so we know it's either release or press
+  if(release){
+    ni->evtype = NCTYPE_RELEASE;
+  }else{
+    ni->evtype = NCTYPE_PRESS;
+  }
   ni->x = x;
   ni->y = y;
   if(++ictx->iwrite == ictx->isize){

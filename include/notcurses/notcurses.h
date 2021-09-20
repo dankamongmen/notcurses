@@ -1034,7 +1034,7 @@ nckey_supppuab_p(uint32_t w){
 // Is the event a synthesized mouse event?
 static inline bool
 nckey_mouse_p(uint32_t r){
-  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_BUTTON11;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse
@@ -1048,10 +1048,10 @@ typedef struct ncinput {
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
   enum {
-    EVTYPE_UNKNOWN,
-    EVTYPE_PRESS,
-    EVTYPE_REPEAT,
-    EVTYPE_RELEASE,
+    NCTYPE_UNKNOWN,
+    NCTYPE_PRESS,
+    NCTYPE_REPEAT,
+    NCTYPE_RELEASE,
   } evtype;
 } ncinput;
 
@@ -1067,7 +1067,7 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   if(n1->alt != n2->alt || n1->shift != n2->shift || n1->ctrl != n2->ctrl){
     return false;
   }
-  if(n1->keytype != n2->keytype){
+  if(n1->evtype != n2->evtype){
     return false;
   }
   return true;

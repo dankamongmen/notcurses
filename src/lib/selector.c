@@ -483,7 +483,7 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
       }
     }
     return true;
-  }else if(nc->id == NCKEY_RELEASE){
+  }else if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
     int y = nc->y, x = nc->x;
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;
@@ -762,7 +762,7 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
   }else if(nc->id == NCKEY_SCROLL_DOWN){
     ncmultiselector_nextitem(n);
     return true;
-  }else if(nc->id == NCKEY_RELEASE){
+  }else if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
     int y = nc->y, x = nc->x;
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;

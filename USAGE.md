@@ -685,10 +685,10 @@ typedef struct ncinput {
   bool shift;      // was shift held?
   bool ctrl;       // was ctrl held?
   enum {
-    EVTYPE_UNKNOWN,
-    EVTYPE_PRESS,
-    EVTYPE_REPEAT,
-    EVTYPE_RELEASE,
+    NCTYPE_UNKNOWN,
+    NCTYPE_PRESS,
+    NCTYPE_REPEAT,
+    NCTYPE_RELEASE,
   } evtype;
 } ncinput;
 

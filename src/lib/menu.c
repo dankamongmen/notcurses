@@ -587,7 +587,10 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
 
 const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
                                   ncinput* ni){
-  if(click->id != NCKEY_RELEASE){
+  if(click->id != NCKEY_BUTTON1){
+    return NULL;
+  }
+  if(click->evtype != NCTYPE_RELEASE){
     return NULL;
   }
   int y, x, dimy, dimx;
@@ -620,7 +623,7 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
 bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
   // we can't actually select menu items in this function, since we need to
   // invoke an arbitrary function as a result.
-  if(nc->id == NCKEY_RELEASE){
+  if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
     int y, x, dimy, dimx;
     y = nc->y;
     x = nc->x;
