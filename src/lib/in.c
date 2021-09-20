@@ -1929,8 +1929,6 @@ loginfo("got events: %c%c %d\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', pfds[0].r
 static void
 read_inputs_nblock(inputctx* ictx){
   unsigned rtfd, rifd;
-  // FIXME also need to wake up if our output queues have space that has
-  // opened up for us to write into, lest we deadlock with full buffers...
   block_on_input(ictx, &rtfd, &rifd);
   // first we read from the terminal, if that's a distinct source.
   if(rtfd){
