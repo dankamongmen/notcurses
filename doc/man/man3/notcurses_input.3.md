@@ -126,6 +126,12 @@ next call to **notcurses_render**, when notcurses will pick up the resize
 itself. If the **SIGWINCH** handler is inhibited, **NCKEY_RESIZE** is never
 generated.
 
+## **NCKEY_EOF**
+
+Upon reaching the end of input, **NCKEY_EOF** will be returned. At this point,
+any further calls will immediately return **NCKEY_EOF**. Note that this does
+not necessarily result from pressing e.g. Ctrl+D.
+
 # RETURN VALUES
 
 On error, the **get** family of functions return **(uint32_t)-1**. The cause

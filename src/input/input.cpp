@@ -280,7 +280,7 @@ int input_demo(ncpp::NotCurses* nc) {
     if(r == 0){ // interrupted by signal
       continue;
     }
-    if((r == 'D' || r == 'd') && ni.ctrl){
+    if(((r == 'D' || r == 'd') && ni.ctrl) || r == NCKEY_EOF){
       done = true;
       tid.join();
       ncuplot_destroy(plot);

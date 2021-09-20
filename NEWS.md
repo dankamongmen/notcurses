@@ -19,6 +19,7 @@ rearrangements of Notcurses.
     `NCKEY_RELEASE` definition is no longer returned; instead, the
     appropriate `NCKEY_BUTTONx` synthesized key is returned, with
     `EVTYPE_RELEASE` set.
+  * `NCKEY_EOF` now indicates the end of input.
 
 * 2.4.1 (2021-09-12)
   * `notcurses_check_pixel_support()` still returns 0 if there is no support

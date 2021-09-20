@@ -1997,7 +1997,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(ictx->stdineof){
       pthread_mutex_unlock(&ictx->ilock);
       logwarn("read eof on stdin\n");
-      return -1;
+      if(ni){
+        memset(ni, 0, sizeof(*ni));
+        ni->id = NCKEY_EOF;
+      }
+      return NCKEY_EOF;
     }
     if(ts == NULL){
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
