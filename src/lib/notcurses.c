@@ -2138,6 +2138,9 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     return -1;
   }
   if(xlen < 0){
+    if(xlen + 1 < -xstart){
+      xlen = -xstart - 1;
+    }
     xstart = xstart + xlen + 1;
     xlen = -xlen;
   }else if(xlen == 0){
@@ -2148,6 +2151,9 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     xlen = ncplane_dim_x(n) - xstart;
   }
   if(ylen < 0){
+    if(ylen + 1 < -ystart){
+      ylen = -ystart - 1;
+    }
     ystart = ystart + ylen + 1;
     ylen = -ylen;
   }else if(ylen == 0){
