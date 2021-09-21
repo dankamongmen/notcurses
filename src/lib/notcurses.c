@@ -2103,6 +2103,7 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 }
 
 void ncplane_erase(ncplane* n){
+  loginfo("erasing plane\n");
   if(n->sprite){
     sprixel_hide(n->sprite);
   }
@@ -2156,13 +2157,17 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
   if(ystart + ylen > ncplane_dim_y(n)){
     ylen = ncplane_dim_y(n) - ystart;
   }
-  loginfo("erasing %d/%d - %d/%d\n", ystart, xstart, ystart + ylen, xstart + xlen);
   // special-case the full plane erasure, as it's powerfully optimized (O(1))
   if(ystart == 0 && xstart == 0 &&
       ylen == ncplane_dim_y(n) && xlen == ncplane_dim_x(n)){
+    int tmpy = n->y; // preserve cursor location
+    int tmpx = n->x;
     ncplane_erase(n);
+    n->y = tmpy;
+    n->x = tmpx;
     return 0;
   }
+  loginfo("erasing %d/%d - %d/%d\n", ystart, xstart, ystart + ylen, xstart + xlen);
   for(int y = ystart ; y < ystart + ylen ; ++y){
     for(int x = xstart ; x < xstart + xlen ; ++x){
       nccell_release(n, &n->fb[nfbcellidx(n, y, x)]);
