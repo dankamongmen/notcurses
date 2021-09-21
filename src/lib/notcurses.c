@@ -2142,7 +2142,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     return -1;
   }
   if(xlen == 0){
-    xlen = ncplane_dim_x(n) - ystart;
+    xlen = ncplane_dim_x(n) - xstart;
   }
   for(int y = ystart ; y < ystart + ylen ; ++y){
     for(int x = xstart ; x < xstart + xlen ; ++x){
