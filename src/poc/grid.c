@@ -50,7 +50,9 @@ int main(void){
   struct notcurses_options opts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN |
              NCOPTION_DRAIN_INPUT |
-             NCOPTION_NO_CLEAR_BITMAPS,
+             NCOPTION_NO_CLEAR_BITMAPS |
+             NCOPTION_SUPPRESS_BANNERS |
+             NCOPTION_PRESERVE_CURSOR,
   //  .loglevel = NCLOGLEVEL_TRACE,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
