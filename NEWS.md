@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.4.3 (not yet released)
+  * `ncplane_erase_region()` has been made much more general, and can now
+    operate relative to the current cursor.
 
 * 2.4.2 (2021-09-19)
   * The Rust wrappers have been moved to
