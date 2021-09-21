@@ -49,7 +49,8 @@ draw_grid(struct ncplane* stdn){
 int main(void){
   struct notcurses_options opts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN |
-             NCOPTION_DRAIN_INPUT,
+             NCOPTION_DRAIN_INPUT |
+             NCOPTION_NO_CLEAR_BITMAPS,
   //  .loglevel = NCLOGLEVEL_TRACE,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
