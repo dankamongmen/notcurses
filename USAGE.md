@@ -900,10 +900,26 @@ int ncplane_mergedown_simple(struct ncplane* restrict src,
 void ncplane_erase(struct ncplane* n);
 
 // Erase every cell in the region starting at {ystart, xstart} and having size
-// {ylen, xlen}. It is an error if any of ystart, xstart, ylen, or xlen is
-// negative. A value of 0 may be provided for ylen and/or xlen, meaning to
-// erase everything along that dimension. It is an error if ystart + ylen
-// or xstart + xlen is not in the plane.
+// {|ylen|x|xlen|} for non-zero lengths. If ystart and/or xstart are -1, the current
+// cursor position along that axis is used; other negative values are an error. A
+// negative ylen means to move up from the origin, and a negative xlen means to move
+// left from the origin. A positive ylen moves down, and a positive xlen moves right.
+// A value of 0 for the length erases everything along that dimension. It is an error
+// if the starting coordinate is not in the plane, but the ending coordinate may be
+// outside the plane.
+//
+// For example, on a plane of 20 rows and 10 columns, with the cursor at row 10 and
+// column 5, the following would hold:
+//
+//  (-1, -1, 0, 1): clears the column to the right of the cursor (column 6)
+//  (-1, -1, 0, -1): clears the column to the left of the cursor (column 4)
+//  (-1, -1, INT_MAX, 0): clears all rows with or below the cursor (rows 10--19)
+//  (-1, -1, -INT_MAX, 0): clears all rows with or above the cursor (rows 0--10)
+//  (-1, 4, 3, 3): clears from row 10, column 4 through row 12, column 6
+//  (-1, 4, 3, 3): clears from row 10, column 4 through row 8, column 2
+//  (4, -1, 0, 3): clears columns 5, 6, and 7
+//  (-1, -1, 0, 0): clears the plane *if the cursor is in a legal position*
+//  (0, 0, 0, 0): clears the plane in all cases
 int ncplane_erase_region(struct ncplane* n, int ystart, int xstart,
                          int ylen, int xlen);
 ```

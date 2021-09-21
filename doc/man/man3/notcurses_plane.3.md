@@ -320,7 +320,11 @@ might see changes. It is an error to merge a plane onto itself.
 homes the cursor. The base cell is preserved, as are the active attributes.
 **ncplane_erase_region** does the same for a subregion of the plane. For the
 latter, supply 0 for ***ylen*** and/or ***xlen*** to erase through that
-dimension, starting at the specified point. See [BUGS][] below.
+dimension, starting at the specified point. Supply -1 for ***ystart*** and/or
+***xstart*** to use the cursor's current position along that axis for a starting
+point. Negative ***ylen*** and ***xlen*** move up and to the left from the starting
+coordinate; positive ***ylen*** and ***xlen*** move down and to the right from same.
+See [BUGS][] below.
 
 When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
 other mechanism), a depth-first recursion is performed on its children.
@@ -444,8 +448,8 @@ plane is destroyed. The caller should release this **nccell** with
 **ncplane_as_rgba** returns a heap-allocated array of **uint32_t** values,
 each representing a single RGBA pixel, or **NULL** on failure.
 
-**ncplane_erase_region** returns -1 if any of its parameters are negative, or
-if they specify any area beyond the plane.
+**ncplane_erase_region** returns -1 if **ystart** or **xstart** are less than -1,
+or outside the plane.
 
 **ncplane_cursor_move_yx** returns -1 if the coordinates are beyond the
 dimensions of the specified plane (except for the special value -1).
@@ -478,6 +482,12 @@ like:
 ```c
 ncplane_set_base(notcurses_stdplane(nc), " ", 0, 0);
 notcurses_render(nc);
+```
+
+or simply:
+
+```c
+notcurses_refresh(nc);
 ```
 
 # SEE ALSO
