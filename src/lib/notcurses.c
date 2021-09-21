@@ -2144,7 +2144,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     xstart = 0;
     xlen = ncplane_dim_x(n);
   }
-  if(xstart + xlen > ncplane_dim_x(n)){
+  if(xlen > ncplane_dim_x(n) || xstart + xlen > ncplane_dim_x(n)){
     xlen = ncplane_dim_x(n) - xstart;
   }
   if(ylen < 0){
@@ -2154,7 +2154,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     ystart = 0;
     ylen = ncplane_dim_y(n);
   }
-  if(ystart + ylen > ncplane_dim_y(n)){
+  if(ylen > ncplane_dim_y(n) || ystart + ylen > ncplane_dim_y(n)){
     ylen = ncplane_dim_y(n) - ystart;
   }
   // special-case the full plane erasure, as it's powerfully optimized (O(1))
