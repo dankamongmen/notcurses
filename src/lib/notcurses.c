@@ -2122,27 +2122,44 @@ void ncplane_erase(ncplane* n){
 }
 
 int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen){
-  if(ylen < 0 || xlen < 0){
-    logerror("Won't erase section of negative length (%d, %d)\n", ylen, xlen);
-    return -1;
+  if(ystart == -1){
+    ystart = n->y;
+  }
+  if(xstart == -1){
+    xstart = n->x;
   }
   if(ystart < 0 || xstart < 0){
     logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
     return -1;
   }
-  if(ystart >= ncplane_dim_y(n) || ystart + ylen > ncplane_dim_y(n)){
-    logerror("Illegal y spec for erase (%d, %d)\n", ystart, ylen);
+  if(ystart >= ncplane_dim_y(n) || xstart >= ncplane_dim_x(n)){
+    logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
     return -1;
   }
   if(ylen == 0){
-    ylen = ncplane_dim_y(n) - ystart;
+    ystart = 0;
+    ylen = ncplane_dim_y(n);
   }
-  if(xstart >= ncplane_dim_x(n) || xstart + xlen > ncplane_dim_x(n)){
-    logerror("Illegal x spec for erase (%d, %d)\n", xstart, xlen);
+  if(ystart + ylen > ncplane_dim_y(n) || ystart + ylen < -1){
+    logerror("Illegal y spec for erase (%d, %d)\n", ystart, ylen);
     return -1;
   }
   if(xlen == 0){
-    xlen = ncplane_dim_x(n) - xstart;
+    xstart = 0;
+    xlen = ncplane_dim_x(n);
+  }
+  if(xstart + xlen > ncplane_dim_x(n) || xstart + xlen < -1){
+    logerror("Illegal x spec for erase (%d, %d)\n", xstart, xlen);
+    return -1;
+  }
+  if(xlen < 0){
+    xstart = xstart + xlen;
+    xlen = -xlen;
+  }
+  if(ylen < 0){
+    ystart = ystart + ylen;
+    ylen = -ylen;
+>>>>>>> 4e10ad795 ([ncplane_erase_region] generalize #2181)
   }
   for(int y = ystart ; y < ystart + ylen ; ++y){
     for(int x = xstart ; x < xstart + xlen ; ++x){
