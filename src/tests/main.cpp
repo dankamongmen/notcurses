@@ -164,7 +164,9 @@ auto main(int argc, const char **argv) -> int {
   handle_opts(argv);
   int res = context.run(); // run
   reset_terminal();
-  check_data_dir();
+  if(res){
+    check_data_dir();
+  }
   if(context.shouldExit()){ // important - query flags (and --exit) rely on the user doing this
     return res;             // propagate the result of the tests
   }
