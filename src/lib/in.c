@@ -98,19 +98,15 @@ typedef enum {
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
-  uint32_t special;       // composed key terminating here
-  bool shift, ctrl, alt;
+  ncinput ni;             // composed key terminating here
 } esctrie;
 
 static esctrie*
 create_esctrie_node(int special){
   esctrie* e = malloc(sizeof(*e));
   if(e){
-    e->trie = NULL;
-    e->special = special;
-    e->shift = 0;
-    e->ctrl = 0;
-    e->alt = 0;
+    memset(e, 0, sizeof(*e));
+    e->ni.id = special;
   }
   return e;
 }
@@ -243,15 +239,15 @@ inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
   }while(*esc);
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
-  if(cur->special != NCKEY_INVALID){ // already had one here!
-    if(cur->special != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->special, special);
+  if(cur->ni.id != NCKEY_INVALID){ // already had one here!
+    if(cur->ni.id != special){
+      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->ni.id, special);
     }
   }else{
-    cur->special = special;
-    cur->shift = shift;
-    cur->ctrl = ctrl;
-    cur->alt = alt;
+    cur->ni.id = special;
+    cur->ni.shift = shift;
+    cur->ni.ctrl = ctrl;
+    cur->ni.alt = alt;
   }
   return 0;
 }
@@ -913,7 +909,7 @@ alt_key(inputctx* ictx, unsigned id){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    logerror("dropping input 0x%08xx\n", ictx->triepos->ni.id);
     inc_input_errors(ictx);
     return;
   }
@@ -938,16 +934,12 @@ special_key(inputctx* ictx){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    logerror("dropping input 0x%08xx\n", ictx->triepos->ni.id);
     inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = ictx->triepos->special;
-  ni->alt = ictx->triepos->alt;
-  ni->ctrl = ictx->triepos->ctrl;
-  ni->shift = ictx->triepos->shift;
-  ni->x = ni->y = 0;
+  memcpy(ni, &ictx->triepos->ni, sizeof(*ni));
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
@@ -1615,8 +1607,8 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       }
     }else{
       ictx->triepos = ictx->triepos->trie[candidate];
-      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->special);
-      if(ictx->triepos->special != NCKEY_INVALID){ // match! mark and reset
+      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->ni.id);
+      if(ictx->triepos->ni.id != NCKEY_INVALID){ // match! mark and reset
         special_key(ictx);
         ictx->triepos = ictx->inputescapes;
         return used;
