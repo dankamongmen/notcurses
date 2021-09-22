@@ -11,12 +11,12 @@ static int
 add_wchar(wchar_t** wbuf, size_t* bufsize, size_t* used, wchar_t wc){
   if(*used == *bufsize){
     const size_t GROW = 128;
-    wchar_t* tmp = realloc(*wbuf, *bufsize + GROW * sizeof(**wbuf));
+    wchar_t* tmp = realloc(*wbuf, (*bufsize + GROW) * sizeof(**wbuf));
     if(tmp == NULL){
       return -1;
     }
     *wbuf = tmp;
-    *bufsize += GROW * sizeof(**wbuf);
+    *bufsize += GROW;
   }
   (*wbuf)[*used] = wc;
   ++*used;
