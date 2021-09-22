@@ -325,7 +325,7 @@ prep_special_keys(inputctx* ictx){
     { .tinfo = "kUP5",  .key = NCKEY_UP, .ctrl = 1, },
     { .tinfo = "kUP6",  .key = NCKEY_UP, .ctrl = 1, .shift = 1, },
     { .tinfo = "kUP7",  .key = NCKEY_UP, .alt = 1, .ctrl = 1, },
-    { .tinfo = NULL,    .key = NCKEY_INVALID, }
+    { .tinfo = NULL,    .key = 0, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){
     char* seq = tigetstr(k->tinfo);
@@ -456,7 +456,7 @@ prep_kitty_special_keys(inputctx* ictx){
     { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
     { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
     { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
+    { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
     if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
@@ -505,7 +505,7 @@ prep_windows_special_keys(inputctx* ictx){
     { .esc = "\x1b[21~", .key = NCKEY_F10, },
     { .esc = "\x1b[23~", .key = NCKEY_F11, },
     { .esc = "\x1b[24~", .key = NCKEY_F12, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
+    { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
     if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
@@ -849,7 +849,7 @@ alt_key(inputctx* ictx, unsigned id){
 static void
 special_key(inputctx* ictx){
   assert(ictx->triepos);
-  assert(NCKEY_INVALID != ictx->triepos->special);
+  assert(0 != ictx->triepos->special);
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -1452,6 +1452,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
       logerror("Reached invalid init state %d\n", ictx->state);
       return -1;
   }
+  logdebug("leaving with state %d\n", ictx->state);
   return 0;
 }
 
@@ -1528,7 +1529,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       ictx->triepos = esctrie_trie(ictx->triepos)[candidate];
       logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos,
                candidate, esctrie_id(ictx->triepos));
-      if(esctrie_id(ictx->triepos) != NCKEY_INVALID){ // match! mark and reset
+      if(esctrie_id(ictx->triepos)){ // match! mark and reset
         special_key(ictx);
         ictx->triepos = ictx->inputescapes;
         return used;

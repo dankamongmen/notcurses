@@ -10,8 +10,6 @@ extern "C" {
 struct ncinput;
 struct esctrie;
 
-struct esctrie* create_esctrie_node(int special);
-
 void input_free_esctrie(struct esctrie** eptr);
 
 int inputctx_add_input_escape(struct esctrie** eptr, const char* esc,
