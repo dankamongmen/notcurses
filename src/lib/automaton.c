@@ -1,4 +1,7 @@
+#include "automaton.h"
 #include "internal.h"
+
+typedef void(*functional)(struct inputctx*);
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
@@ -10,8 +13,12 @@ typedef struct esctrie {
     NODE_SPECIAL,  // an accepting node, or pure transit (if ni.id == 0)
     NODE_NUMERIC,  // accumulates a number
     NODE_STRING,   // accumulates a string
+    NODE_FUNCTION, // invokes a function
   } ntype;
   ncinput ni;      // composed key terminating here
+  uint32_t number; // accumulated number; reset to 0 on entry
+  char* str;       // accumulated string; reset to NULL on entry
+  functional fxn;  // function to call on match
 } esctrie;
 
 uint32_t esctrie_id(const esctrie* e){
@@ -54,10 +61,70 @@ void input_free_esctrie(esctrie** eptr){
           input_free_esctrie(&e->trie[z]);
         }
       }
+      free(e->str);
       free(e->trie);
     }
     free(e);
   }
+}
+
+static int
+esctrie_make_numeric(esctrie* e){
+  if(e->ntype != NODE_SPECIAL){
+    logerror("can't make node type %d numeric\n", e->ntype);
+    return -1;
+  }
+  for(int i = '0' ; i < '9' ; ++i){
+    if(e->trie[i]){
+      logerror("can't make %c-followed numeric\n", i);
+      return -1;
+    }
+  }
+  e->ntype = NODE_NUMERIC;
+  for(int i = '0' ; i < '9' ; ++i){
+    e->trie[i] = e;
+  }
+  return 0;
+}
+
+static int
+esctrie_make_string(esctrie* e){
+  if(e->ntype != NODE_SPECIAL){
+    logerror("can't make node type %d string\n", e->ntype);
+    return -1;
+  }
+  for(int i = 0 ; i < 0x80 ; ++i){
+    if(!isprint(i)){
+      continue;
+    }
+    if(e->trie[i]){
+      logerror("can't make %c-followed string\n", i);
+      return -1;
+    }
+  }
+  e->ntype = NODE_STRING;
+  for(int i = 0 ; i < 0x80 ; ++i){
+    if(!isprint(i)){
+      continue;
+    }
+    e->trie[i] = e;
+  }
+  return 0;
+}
+
+static int
+esctrie_make_function(esctrie* e, functional fxn){
+  if(e->ntype != NODE_SPECIAL){
+    logerror("can't make node type %d function\n", e->ntype);
+    return -1;
+  }
+  if(e->trie){
+    logerror("can't make followed function\n");
+    return -1;
+  }
+  e->ntype = NODE_FUNCTION;
+  e->fxn = fxn;
+  return 0;
 }
 
 // multiple input escapes might map to the same input
