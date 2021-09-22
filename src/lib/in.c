@@ -1576,6 +1576,9 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   // FIXME we really want to unite these two automata, ugh
   while(used < buflen){
     unsigned char candidate = buf[used++];
+    if(candidate >= 0x80){
+      return -(used - 1);
+    }
     int r = pump_control_read(ictx, candidate);
     if(r == 2){
       return used;
