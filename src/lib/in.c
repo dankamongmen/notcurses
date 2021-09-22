@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "automaton.h"
 #include "internal.h"
 #include "in.h"
 
@@ -95,22 +96,6 @@ typedef enum {
   STATE_MOUSE3,        // got first mouse coordinate
 } initstates_e;
 
-// we assumed escapes can only be composed of 7-bit chars
-typedef struct esctrie {
-  struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
-  ncinput ni;             // composed key terminating here
-} esctrie;
-
-static esctrie*
-create_esctrie_node(int special){
-  esctrie* e = malloc(sizeof(*e));
-  if(e){
-    memset(e, 0, sizeof(*e));
-    e->ni.id = special;
-  }
-  return e;
-}
-
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
@@ -182,74 +167,6 @@ inc_input_errors(inputctx* ictx){
   pthread_mutex_lock(&ictx->stats->lock);
   ++ictx->stats->s.input_errors;
   pthread_mutex_unlock(&ictx->stats->lock);
-}
-
-static void
-input_free_esctrie(esctrie** eptr){
-  esctrie* e;
-  if( (e = *eptr) ){
-    if(e->trie){
-      int z;
-      for(z = 0 ; z < 0x80 ; ++z){
-        if(e->trie[z]){
-          input_free_esctrie(&e->trie[z]);
-        }
-      }
-      free(e->trie);
-    }
-    free(e);
-  }
-}
-
-// multiple input escapes might map to the same input
-static int
-inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
-                          unsigned shift, unsigned ctrl, unsigned alt){
-  if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    logerror("not an escape (0x%x)\n", special);
-    return -1;
-  }
-  if(ictx->inputescapes == NULL){
-    if((ictx->inputescapes = create_esctrie_node(NCKEY_INVALID)) == NULL){
-      return -1;
-    }
-  }
-  esctrie* cur = ictx->inputescapes;
-  ++esc; // don't encode initial escape as a transition
-  do{
-    int valid = *esc;
-    if(valid <= 0 || valid >= 0x80 || valid == NCKEY_ESC){
-      logerror("invalid character %d in escape\n", valid);
-      return -1;
-    }
-    if(cur->trie == NULL){
-      const size_t tsize = sizeof(cur->trie) * 0x80;
-      if((cur->trie = malloc(tsize)) == NULL){
-        return -1;
-      }
-      memset(cur->trie, 0, tsize);
-    }
-    if(cur->trie[valid] == NULL){
-      if((cur->trie[valid] = create_esctrie_node(NCKEY_INVALID)) == NULL){
-        return -1;
-      }
-    }
-    cur = cur->trie[valid];
-    ++esc;
-  }while(*esc);
-  // it appears that multiple keys can be mapped to the same escape string. as
-  // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
-  if(cur->ni.id != NCKEY_INVALID){ // already had one here!
-    if(cur->ni.id != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->ni.id, special);
-    }
-  }else{
-    cur->ni.id = special;
-    cur->ni.shift = shift;
-    cur->ni.ctrl = ctrl;
-    cur->ni.alt = alt;
-  }
-  return 0;
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
@@ -420,7 +337,7 @@ prep_special_keys(inputctx* ictx){
       logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
       continue;
     }
-    if(inputctx_add_input_escape(ictx, seq, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->inputescapes, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
@@ -525,7 +442,7 @@ free_inputctx(inputctx* i){
 
 // https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
 static int
-prep_kitty_special_keys(inputctx* nc){
+prep_kitty_special_keys(inputctx* ictx){
   // we do not list here those already handled by prep_windows_special_keys()
   static const struct {
     const char* esc;
@@ -542,7 +459,8 @@ prep_kitty_special_keys(inputctx* nc){
     { .esc = NULL, .key = NCKEY_INVALID, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
+                                 k->shift, k->ctrl, k->alt)){
       return -1;
     }
   }
@@ -552,7 +470,7 @@ prep_kitty_special_keys(inputctx* nc){
 // add the hardcoded windows input sequences to ti->input. should only
 // be called after verifying that this is TERMINAL_MSTERMINAL.
 static int
-prep_windows_special_keys(inputctx* nc){
+prep_windows_special_keys(inputctx* ictx){
   // here, lacking terminfo, we hardcode the sequences. they can be found at
   // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
   // under the "Input Sequences" heading.
@@ -590,7 +508,8 @@ prep_windows_special_keys(inputctx* nc){
     { .esc = NULL, .key = NCKEY_INVALID, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
+                                 k->shift, k->ctrl, k->alt)){
       return -1;
     }
   }
@@ -909,7 +828,7 @@ alt_key(inputctx* ictx, unsigned id){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->ni.id);
+    logerror("dropping input 0x%08xx\n", esctrie_id(ictx->triepos));
     inc_input_errors(ictx);
     return;
   }
@@ -934,12 +853,12 @@ special_key(inputctx* ictx){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->ni.id);
+    logerror("dropping input 0x%08xx\n", esctrie_id(ictx->triepos));
     inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  memcpy(ni, &ictx->triepos->ni, sizeof(*ni));
+  esctrie_ni(ictx->triepos, ni);
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
@@ -1592,7 +1511,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // we can safely check trie[candidate] above because we are either coming
       // off the initial node, which definitely has a valid ->trie, or we're
       // coming from a transition, where ictx->triepos->trie is checked below.
-    }else if(ictx->triepos->trie[candidate] == NULL){
+    }else if(esctrie_trie(ictx->triepos)[candidate] == NULL){
       ictx->triepos = ictx->inputescapes;
       if(ictx->state == STATE_ESC){
         if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
@@ -1606,13 +1525,14 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
         return -(used - 1);
       }
     }else{
-      ictx->triepos = ictx->triepos->trie[candidate];
-      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->ni.id);
-      if(ictx->triepos->ni.id != NCKEY_INVALID){ // match! mark and reset
+      ictx->triepos = esctrie_trie(ictx->triepos)[candidate];
+      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos,
+               candidate, esctrie_id(ictx->triepos));
+      if(esctrie_id(ictx->triepos) != NCKEY_INVALID){ // match! mark and reset
         special_key(ictx);
         ictx->triepos = ictx->inputescapes;
         return used;
-      }else if(ictx->triepos->trie == NULL){
+      }else if(esctrie_trie(ictx->triepos) == NULL){
         if(ictx->state == STATE_NULL){
           ictx->triepos = ictx->inputescapes;
           // all inspected characters are invalid; return full negative "used"
