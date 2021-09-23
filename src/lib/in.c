@@ -89,11 +89,6 @@ typedef enum {
   // 'R', 't', or 'u'. at the second ';', we verify that the first variable was
   // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
   STATE_CURSOR_COL,    // reading numeric to 'R', 't', 'u', or ';'
-  STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
-  STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
-  STATE_MOUSE,         // got '<', looking for mouse coordinates
-  STATE_MOUSE2,        // got mouse click modifiers
-  STATE_MOUSE3,        // got first mouse coordinate
 } initstates_e;
 
 // local state for the input thread. don't put this large struct on the stack.
@@ -349,13 +344,71 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
+// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
+// SGR (1006) mouse encoding, so use the final character to determine release
+// ('M' for click, 'm' for release).
+static void
+mouse_click(inputctx* ictx, unsigned release){
+  // FIXME figure out a better way than this
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['<'];
+  e = esctrie_trie(e)['0'];
+  const int mods = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  const int y = esctrie_numeric(e) - 1;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  const int x = esctrie_numeric(e) - 1;
+  // convert from 1- to 0-indexing, and account for margins
+  if(x < 0 || y < 0){ // click was in margins, drop it
+    logwarn("dropping click in margins %d/%d\n", y, x);
+    return;
+  }
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping mouse click 0x%02x %d %d\n", mods, y, x);
+    inc_input_errors(ictx);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  if(mods >= 0 && mods < 64){
+    ni->id = NCKEY_BUTTON1 + (mods % 4);
+  }else if(mods >= 64 && mods < 128){
+    ni->id = NCKEY_BUTTON4 + (mods % 4);
+  }else if(mods >= 128 && mods < 192){
+    ni->id = NCKEY_BUTTON8 + (mods % 4);
+  }
+  ni->ctrl = mods & 0x10;
+  ni->alt = mods & 0x08;
+  ni->shift = mods & 0x04;
+  // mice don't send repeat events, so we know it's either release or press
+  if(release){
+    ni->evtype = NCTYPE_RELEASE;
+  }else{
+    ni->evtype = NCTYPE_PRESS;
+  }
+  ni->x = x;
+  ni->y = y;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
 static int
 mouse_press_cb(inputctx* ictx){
+  mouse_click(ictx, 0);
   return 0;
 }
 
 static int
 mouse_release_cb(inputctx* ictx){
+  mouse_click(ictx, 1);
   return 0;
 }
 
@@ -391,23 +444,28 @@ cursor_location_cb(inputctx* ictx){
 
 static int
 geom_cb(inputctx* ictx){
-  // FIXME verify first numeric is "4" for pixel, "8" for cell
   // FIXME figure out a better way than this
   struct esctrie* e = ictx->amata.escapes;
   e = esctrie_trie(e)['['];
   e = esctrie_trie(e)['0'];
-  int kind = esctrie_numeric(e) - 1;
+  int kind = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  int y = esctrie_numeric(e) - 1;
+  int y = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  int x = esctrie_numeric(e) - 1;
+  int x = esctrie_numeric(e);
   loginfo("geom report type %d %d/%d\n", kind, y, x);
   if(kind == 4){
-    // FIXME pixel
+    if(ictx->initdata){
+      ictx->initdata->pixy = y;
+      ictx->initdata->pixx = x;
+    }
   }else if(kind == 8){
-    // FIXME cell
+    if(ictx->initdata){
+      ictx->initdata->dimy = y;
+      ictx->initdata->dimx = x;
+    }
   }else{
     logerror("invalid geometry type: %d\n", kind);
     return -1;
@@ -834,52 +892,6 @@ set_sda_version(inputctx* ictx){
   return buf;
 }
 
-// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
-// SGR (1006) mouse encoding, so use the final character to determine release
-// ('M' for click, 'm' for release).
-static void
-mouse_click(inputctx* ictx, unsigned release){
-  // convert from 1- to 0-indexing, and account for margins
-  const int x = ictx->p3 - 1 - ictx->lmargin;
-  const int y = ictx->numeric - 1 - ictx->tmargin;
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins\n");
-    return;
-  }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, y, x);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  if(ictx->p2 >= 0 && ictx->p2 < 64){
-    ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
-  }else if(ictx->p2 >= 64 && ictx->p2 < 128){
-    ni->id = NCKEY_BUTTON4 + (ictx->p2 % 4);
-  }else if(ictx->p2 >= 128 && ictx->p2 < 192){
-    ni->id = NCKEY_BUTTON8 + (ictx->p2 % 4);
-  }
-  ni->ctrl = ictx->p2 & 0x10;
-  ni->alt = ictx->p2 & 0x08;
-  ni->shift = ictx->p2 & 0x04;
-  // mice don't send repeat events, so we know it's either release or press
-  if(release){
-    ni->evtype = NCTYPE_RELEASE;
-  }else{
-    ni->evtype = NCTYPE_PRESS;
-  }
-  ni->x = x;
-  ni->y = y;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
 // add a decoded, valid Unicode to the bulk output buffer, or drop it if no
 // space is available.
 static void
@@ -1087,8 +1099,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
             ictx->state = STATE_SDA;
           }
         }
-      }else if(c == '<'){
-        ictx->state = STATE_MOUSE;
       }else if(isdigit(c)){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
@@ -1105,49 +1115,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->state = STATE_NULL;
         return 2;
       }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->state = STATE_MOUSE2;
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE2:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->state = STATE_MOUSE3;
-        ictx->p3 = ictx->numeric;
-        ictx->numeric = 0;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE3:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'M'){
-        mouse_click(ictx, 0);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 'm'){
-        mouse_click(ictx, 1);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
         ictx->state = STATE_NULL;
       }
       break;
@@ -1193,55 +1160,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }else if(c == 'u'){
         // kitty keyboard protocol
         kitty_kbd(ictx);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == ';'){
-        if(ictx->p2 == 4){
-          if(ictx->initdata){
-            ictx->initdata->pixy = ictx->numeric;
-            ictx->state = STATE_PIXELS_WIDTH;
-          }
-          ictx->numeric = 0;
-        }else if(ictx->p2 == 8){
-          if(ictx->initdata){
-            ictx->initdata->dimy = ictx->numeric;
-          }
-          ictx->state = STATE_CELLS_WIDTH;
-          ictx->numeric = 0;
-        }else{
-          logerror("expected 4 to lead pixel report, got %d\n", ictx->p2);
-          return -1;
-        }
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_PIXELS_WIDTH:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 't'){
-        if(ictx->initdata){
-          ictx->initdata->pixx = ictx->numeric;
-          loginfo("got pixel geometry: %d/%d\n", ictx->initdata->pixy, ictx->initdata->pixx);
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_CELLS_WIDTH:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 't'){
-        if(ictx->initdata){
-          ictx->initdata->dimx = ictx->numeric;
-          loginfo("got cell geometry: %d/%d\n", ictx->initdata->dimy, ictx->initdata->dimx);
-        }
         ictx->state = STATE_NULL;
         return 2;
       }else{
