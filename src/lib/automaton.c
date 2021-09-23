@@ -25,10 +25,6 @@ uint32_t esctrie_id(const esctrie* e){
   return e->ni.id;
 }
 
-void esctrie_ni(const esctrie* e, ncinput* ni){
-  memcpy(ni, &e->ni, sizeof(*ni));
-}
-
 esctrie** esctrie_trie(esctrie* e){
   return e->trie;
 }
@@ -221,11 +217,19 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }
     return 0;
   }
-  a->state = e->trie[candidate];
-  if((e = a->state) == NULL){
+  if((a->state = e->trie[candidate]) == NULL){
+    if(isprint(candidate)){
+      if(e == a->escapes){
+        memset(ni, 0, sizeof(*ni));
+        ni->id = candidate;
+        ni->alt = true;
+        return 1;
+      }
+    }
     loginfo("unexpected transition %u\n", candidate);
     return -1;
   }
+  e = a->state;
   switch(e->ntype){
     case NODE_NUMERIC:
       e->number = candidate - '0';
@@ -239,11 +243,13 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }case NODE_SPECIAL:
       if(e->ni.id){
         memcpy(ni, &e->ni, sizeof(*ni));
+        a->state = NULL;
         return 1;
       }
       break;
     case NODE_FUNCTION:
       e->fxn(ictx);
+      a->state = NULL;
       return 1;
   }
   return 0;

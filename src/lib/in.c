@@ -120,12 +120,12 @@ typedef struct inputctx {
   // transient state for processing control sequences
   // stringstate is the state at which this string was initialized, and can be
   // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
+  // FIXME these all go away once automata are united
   initstates_e state, stringstate;
   int numeric;            // currently-lexed numeric
   char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
   int stridx;             // length of runstring
   int p2, p3, p4;         // holders for numeric params
-  struct esctrie* triepos;// position in escapes automaton
 
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
@@ -525,7 +525,6 @@ prep_all_keys(inputctx* ictx){
     input_free_esctrie(&ictx->amata);
     return -1;
   }
-  ictx->triepos = ictx->amata.escapes;
   return 0;
 }
 
@@ -820,45 +819,17 @@ add_unicode(inputctx* ictx, uint32_t id){
 }
 
 static void
-alt_key(inputctx* ictx, unsigned id){
+special_key(inputctx* ictx, const ncinput* inni){
   inc_input_events(ictx);
-  if(ictx->drain){
-    return;
-  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", esctrie_id(ictx->triepos));
+    logerror("dropping input 0x%08xx\n", inni->id);
     inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = id;
-  ni->alt = true;
-  ni->ctrl = false;
-  ni->shift = false;
-  ni->x = ni->y = 0;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
-static void
-special_key(inputctx* ictx){
-  assert(ictx->triepos);
-  assert(0 != ictx->triepos->special);
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", esctrie_id(ictx->triepos));
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  esctrie_ni(ictx->triepos, ni);
+  memcpy(ni, inni, sizeof(*ni));
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
@@ -1463,13 +1434,22 @@ handoff_initial_responses(inputctx* ictx){
   ictx->initdata = NULL;
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
+  loginfo("handing off initial responses\n");
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
-// consumed if we do so, and -1 otherwise. buf is *not* necessarily
+// consumed if we do so, and -1 otherwise. buf is almost certainly *not*
 // NUL-terminated. if we are definitely *not* an escape, or we're unsure when
 // we run out of input, return the negated relevant number of bytes, setting
-// ictx->midescape if we're uncertain.
+// ictx->midescape if we're uncertain. we preserve a->used, a->state, etc.
+// across runs to avoid reprocessing.
+//
+// our rule is: an escape must arrive as a single unit to be interpreted as
+// an escape. this is most relevant for Alt+keypress (Esc followed by the
+// character), which is ambiguous with regards to pressing 'Escape' followed
+// by some other character. if they arrive together, we consider it to be
+// the escape. we might need to allow more than one process_escape call,
+// however, in case the escape ended the previous read buffer.
 //  precondition: buflen >= 1. precondition: buf[0] == 0x1b.
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
@@ -1480,23 +1460,24 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   if(buf[0] != '\x1b'){
     return -1;
   }
-  ictx->triepos = ictx->amata.escapes;
   ictx->state = STATE_NULL;
-  // FIXME end material eliminated by maintaining state + offset
-  int used = 0;
-  // FIXME we really want to unite these two automata, ugh
-  while(used < buflen){
-    unsigned char candidate = buf[used++];
+  while(ictx->amata.used < buflen){
+    unsigned char candidate = buf[ictx->amata.used++];
+    unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
+      ictx->amata.used = 0;
       return -(used - 1);
     }
     int r = pump_control_read(ictx, candidate);
+    loginfo("pump_control_read: %d used: %d\n", r, ictx->amata.used);
     if(r == 2){
+      ictx->amata.used = 0;
       return used;
     }
     if(r == 1){ // received DA1, ending initial responses
       // safe to call even if initdata == NULL
       handoff_initial_responses(ictx);
+      ictx->amata.used = 0;
       return used;
     }
     if(ictx->initdata){
@@ -1504,7 +1485,8 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     }
     // an escape always resets the trie, as does a NULL transition
     if(candidate == NCKEY_ESC){
-      ictx->triepos = ictx->amata.escapes;
+      ictx->amata.state = ictx->amata.escapes;
+      ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
       }
@@ -1512,40 +1494,28 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // we can safely check trie[candidate] above because we are either coming
       // off the initial node, which definitely has a valid ->trie, or we're
       // coming from a transition, where ictx->triepos->trie is checked below.
-    }else if(esctrie_trie(ictx->triepos)[candidate] == NULL){
-      ictx->triepos = ictx->amata.escapes;
-      if(ictx->state == STATE_ESC){
-        if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
-          alt_key(ictx, candidate);
-          return used;
-        }
-      }
-      if(ictx->state == STATE_NULL){
-        // we were an invalid sequence; replay as input. we know used > 1. the
-        // current character is not yet excluded, so return negative "used - 1".
-        return -(used - 1);
-      }
     }else{
-      ictx->triepos = esctrie_trie(ictx->triepos)[candidate];
-      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos,
-               candidate, esctrie_id(ictx->triepos));
-      if(esctrie_id(ictx->triepos)){ // match! mark and reset
-        special_key(ictx);
-        ictx->triepos = ictx->amata.escapes;
-        return used;
-      }else if(esctrie_trie(ictx->triepos) == NULL){
-        if(ictx->state == STATE_NULL){
-          ictx->triepos = ictx->amata.escapes;
-          // all inspected characters are invalid; return full negative "used"
-          return -used;
+      ncinput ni = {};
+      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->amata.state,
+               candidate, esctrie_id(ictx->amata.state));
+      int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
+      if(w > 0){
+        if(ni.id){
+          special_key(ictx, &ni);
         }
+        ictx->amata.used = 0;
+        return used;
+      }else if(w < 0){
+        // all inspected characters are invalid; return full negative "used"
+        ictx->amata.used = 0;
+        return -used;
       }
     }
   }
   // we exhausted input without knowing whether or not this is a valid control
   // sequence; we're still on-trie, and need more (immediate) input.
   ictx->midescape = 1;
-  return -used;
+  return -ictx->amata.used;
 }
 
 // process as many control sequences from |buf|, having |bufused| bytes,
