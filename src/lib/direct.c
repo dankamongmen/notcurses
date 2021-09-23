@@ -1027,7 +1027,7 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   return ncdirect_off_styles(n, stylebits);
 }
 
-unsigned ncdirect_styles(ncdirect* n){
+unsigned ncdirect_styles(const ncdirect* n){
   return n->stylemask;
 }
 
