@@ -1,8 +1,6 @@
 #include "automaton.h"
 #include "internal.h"
 
-typedef void(*functional)(struct inputctx*);
-
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
   // if non-NULL, this is the next level of radix-128 trie. it is NULL on
@@ -18,7 +16,7 @@ typedef struct esctrie {
   ncinput ni;      // composed key terminating here
   uint32_t number; // accumulated number; reset to 0 on entry
   char* str;       // accumulated string; reset to NULL on entry
-  functional fxn;  // function to call on match
+  triefunc fxn;    // function to call on match
 } esctrie;
 
 uint32_t esctrie_id(const esctrie* e){
@@ -114,7 +112,7 @@ esctrie_make_string(esctrie* e){
 }
 
 static int
-esctrie_make_function(esctrie* e, functional fxn){
+esctrie_make_function(esctrie* e, triefunc fxn){
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d function\n", e->ntype);
     return -1;
@@ -126,6 +124,90 @@ esctrie_make_function(esctrie* e, functional fxn){
   e->ntype = NODE_FUNCTION;
   e->fxn = fxn;
   return 0;
+}
+
+// accept any digit and transition to a numeric node.
+static esctrie*
+link_numeric(esctrie* e){
+  // if we already have any digit links, we must have all 10, and they all must
+  // be pointing to the same place. if so, use that linked node.
+  esctrie* targ = e->trie['0'];
+  for(int i = '1' ; i <= '9' ; ++i){
+    if(e->trie[i] != targ){
+      logerror("can't transition to a non-numeric %p != %p\n", e->trie[i], targ);
+      return NULL;
+    }
+  }
+  if(targ){
+    if(targ->ntype != NODE_NUMERIC){
+      logerror("not linked to a numeric (%d)\n", targ->ntype);
+      return NULL;
+    }
+    return targ;
+  }
+  if( (targ = create_esctrie_node(0)) ){
+    if(esctrie_make_numeric(targ)){
+      free_trienode(&targ);
+      return NULL;
+    }
+    for(int i = '0' ; i <= '9' ; ++i){
+      e->trie[i] = targ;
+    }
+  }
+  return targ;
+}
+
+// add a cflow path to the automaton
+int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
+  if(a->escapes == NULL){
+    if((a->escapes = create_esctrie_node(0)) == NULL){
+      return -1;
+    }
+  }
+  esctrie* eptr = a->escapes;
+  if(eptr->trie[']'] == NULL){
+    if((eptr->trie[']'] = create_esctrie_node(0)) == NULL){
+      return -1;
+    }
+  }
+  eptr = eptr->trie[']'];
+  bool inescape = false;
+  unsigned char c;
+  while( (c = *csi++) ){
+    logdebug("making cflow: %u (%c) %p\n", c, c, eptr);
+    if(c == '\\'){
+      if(inescape){
+        logerror("illegal escape: \\\n");
+        return -1;
+      }
+      inescape = true;
+    }else if(inescape){
+      if(c == 'N'){
+        eptr = link_numeric(eptr);
+        if(eptr == NULL){
+          return -1;
+        }
+      }else if(c == 'S'){
+        if(esctrie_make_string(eptr)){
+          return -1;
+        }
+      }else{
+        logerror("illegal escape: %u\n", c);
+        return -1;
+      }
+      inescape = false;
+    }else{
+      if(eptr->trie[c] == NULL){
+        if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
+          return -1;
+        }
+      }
+      eptr = eptr->trie[c];
+    }
+  }
+  free(eptr->trie);
+  eptr->trie = NULL;
+  return esctrie_make_function(eptr, fxn);
 }
 
 // multiple input escapes might map to the same input
@@ -243,13 +325,13 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }case NODE_SPECIAL:
       if(e->ni.id){
         memcpy(ni, &e->ni, sizeof(*ni));
-        a->state = NULL;
+        a->state = NULL; // FIXME?
         return 1;
       }
       break;
     case NODE_FUNCTION:
       e->fxn(ictx);
-      a->state = NULL;
+      a->state = NULL; // FIXME?
       return 1;
   }
   return 0;
