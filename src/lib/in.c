@@ -361,10 +361,10 @@ mouse_click(inputctx* ictx, unsigned release){
   const int mods = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  const int y = esctrie_numeric(e) - 1;
+  const int x = esctrie_numeric(e) - 1 - ictx->lmargin;
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  const int x = esctrie_numeric(e) - 1;
+  const int y = esctrie_numeric(e) - 1 - ictx->tmargin;
   // convert from 1- to 0-indexing, and account for margins
   if(x < 0 || y < 0){ // click was in margins, drop it
     logwarn("dropping click in margins %d/%d\n", y, x);
