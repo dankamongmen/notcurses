@@ -108,7 +108,7 @@ typedef struct inputctx {
 
   int lmargin, tmargin; // margins in use at left and top
 
-  struct esctrie* inputescapes;
+  automaton amata;
 
   // these two are not ringbuffers; we always move any leftover materia to the
   // front of the queue (it ought be a handful of bytes at most).
@@ -337,7 +337,7 @@ prep_special_keys(inputctx* ictx){
       logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
       continue;
     }
-    if(inputctx_add_input_escape(&ictx->inputescapes, seq, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->amata, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
@@ -363,7 +363,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
               if(pthread_cond_init(&i->ccond, NULL) == 0){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
-                    i->inputescapes = NULL;
+                    memset(&i->amata, 0, sizeof(i->amata));
                     if(prep_special_keys(i) == 0){
                       if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                         i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
@@ -392,7 +392,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         return i;
                       }
                     }
-                    input_free_esctrie(&i->inputescapes);
+                    input_free_esctrie(&i->amata);
                   }
                   free(i->initdata);
                 }
@@ -424,7 +424,7 @@ free_inputctx(inputctx* i){
     pthread_cond_destroy(&i->icond);
     pthread_mutex_destroy(&i->clock);
     pthread_cond_destroy(&i->ccond);
-    input_free_esctrie(&i->inputescapes);
+    input_free_esctrie(&i->amata);
     // do not kill the thread here, either.
     if(i->initdata){
       free(i->initdata->version);
@@ -459,7 +459,7 @@ prep_kitty_special_keys(inputctx* ictx){
     { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
                                  k->shift, k->ctrl, k->alt)){
       return -1;
     }
@@ -508,7 +508,7 @@ prep_windows_special_keys(inputctx* ictx){
     { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(&ictx->inputescapes, k->esc, k->key,
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
                                  k->shift, k->ctrl, k->alt)){
       return -1;
     }
@@ -522,10 +522,10 @@ prep_all_keys(inputctx* ictx){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
-    input_free_esctrie(&ictx->inputescapes);
+    input_free_esctrie(&ictx->amata);
     return -1;
   }
-  ictx->triepos = ictx->inputescapes;
+  ictx->triepos = ictx->amata.escapes;
   return 0;
 }
 
@@ -1480,7 +1480,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   if(buf[0] != '\x1b'){
     return -1;
   }
-  ictx->triepos = ictx->inputescapes;
+  ictx->triepos = ictx->amata.escapes;
   ictx->state = STATE_NULL;
   // FIXME end material eliminated by maintaining state + offset
   int used = 0;
@@ -1504,7 +1504,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     }
     // an escape always resets the trie, as does a NULL transition
     if(candidate == NCKEY_ESC){
-      ictx->triepos = ictx->inputescapes;
+      ictx->triepos = ictx->amata.escapes;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
       }
@@ -1513,7 +1513,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // off the initial node, which definitely has a valid ->trie, or we're
       // coming from a transition, where ictx->triepos->trie is checked below.
     }else if(esctrie_trie(ictx->triepos)[candidate] == NULL){
-      ictx->triepos = ictx->inputescapes;
+      ictx->triepos = ictx->amata.escapes;
       if(ictx->state == STATE_ESC){
         if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
           alt_key(ictx, candidate);
@@ -1531,11 +1531,11 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
                candidate, esctrie_id(ictx->triepos));
       if(esctrie_id(ictx->triepos)){ // match! mark and reset
         special_key(ictx);
-        ictx->triepos = ictx->inputescapes;
+        ictx->triepos = ictx->amata.escapes;
         return used;
       }else if(esctrie_trie(ictx->triepos) == NULL){
         if(ictx->state == STATE_NULL){
-          ictx->triepos = ictx->inputescapes;
+          ictx->triepos = ictx->amata.escapes;
           // all inspected characters are invalid; return full negative "used"
           return -used;
         }

@@ -10,9 +10,20 @@ extern "C" {
 struct ncinput;
 struct esctrie;
 
-void input_free_esctrie(struct esctrie** eptr);
+// the state necessary for matching input against our automaton of control
+// sequences. we *do not* match the bulk UTF-8 input. we match online (i.e.
+// we can be passed a byte at a time).
+typedef struct automaton {
+  struct esctrie* escapes;  // head Esc node of trie
+  unsigned used;            // bytes consumed thus far
+  // FIXME need an array to track the path
+  struct esctrie* state;
+  unsigned stridx;          // bytes of accumulating string (includes NUL)
+} automaton;
 
-int inputctx_add_input_escape(struct esctrie** eptr, const char* esc,
+void input_free_esctrie(automaton *a);
+
+int inputctx_add_input_escape(automaton* a, const char* esc,
                               uint32_t special, unsigned shift,
                               unsigned ctrl, unsigned alt);
 

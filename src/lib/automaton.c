@@ -51,14 +51,15 @@ create_esctrie_node(int special){
   return e;
 }
 
-void input_free_esctrie(esctrie** eptr){
+static void
+free_trienode(esctrie** eptr){
   esctrie* e;
   if( (e = *eptr) ){
     if(e->trie){
       int z;
       for(z = 0 ; z < 0x80 ; ++z){
         if(e->trie[z]){
-          input_free_esctrie(&e->trie[z]);
+          free_trienode(&e->trie[z]);
         }
       }
       free(e->str);
@@ -66,6 +67,10 @@ void input_free_esctrie(esctrie** eptr){
     }
     free(e);
   }
+}
+
+void input_free_esctrie(automaton* a){
+  free_trienode(&a->escapes);
 }
 
 static int
@@ -128,12 +133,13 @@ esctrie_make_function(esctrie* e, functional fxn){
 }
 
 // multiple input escapes might map to the same input
-int inputctx_add_input_escape(esctrie** eptr, const char* esc, uint32_t special,
+int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
                               unsigned shift, unsigned ctrl, unsigned alt){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
     logerror("not an escape (0x%x)\n", special);
     return -1;
   }
+  esctrie** eptr = &a->escapes;
   if(*eptr == NULL){
     if((*eptr = create_esctrie_node(0)) == NULL){
       return -1;
@@ -166,6 +172,79 @@ int inputctx_add_input_escape(esctrie** eptr, const char* esc, uint32_t special,
     cur->ni.shift = shift;
     cur->ni.ctrl = ctrl;
     cur->ni.alt = alt;
+  }
+  return 0;
+}
+
+static int
+growstring(automaton* a, esctrie* e, unsigned candidate){
+  if(!isprint(candidate)){
+    logerror("unexpected char %u in string\n", candidate);
+    return -1;
+  }
+  char* tmp = realloc(e->str, a->stridx + 1);
+  if(tmp == NULL){
+    return -1;
+  }
+  e->str = tmp;
+  e->str[a->stridx - 1] = candidate;
+  e->str[a->stridx] = '\0';
+  ++a->stridx;
+  return 0;
+}
+
+// returns -1 for non-match, 0 for match, 1 for acceptance. if we are in the
+// middle of a sequence, and receive an escape, *do not call this*, but
+// instead call reset_automaton() after replaying the used characters to the
+// bulk input buffer, and *then* call this with the escape.
+int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
+                   ncinput* ni){
+  if(candidate >= 0x80){
+    logerror("eight-bit char %u in control sequence\n", candidate);
+    return -1;
+  }
+  esctrie* e = a->state;
+  // we ought not have been called for an escape with any state!
+  if(candidate == 0x1b){
+    assert(NULL == e);
+    a->state = a->escapes;
+    return 0;
+  }
+  if(e->ntype == NODE_NUMERIC){
+    if(isdigit(candidate)){
+      e->number = e->number * 10 + (candidate - '0');
+      return 0;
+    }
+  }else if(e->ntype == NODE_STRING){
+    if(growstring(a, e, candidate)){
+      return -1;
+    }
+    return 0;
+  }
+  a->state = e->trie[candidate];
+  if((e = a->state) == NULL){
+    loginfo("unexpected transition %u\n", candidate);
+    return -1;
+  }
+  switch(e->ntype){
+    case NODE_NUMERIC:
+      e->number = candidate - '0';
+      break;
+    case NODE_STRING:{
+      a->stridx = 1;
+      if(growstring(a, e, candidate)){
+        return -1;
+      }
+      break;
+    }case NODE_SPECIAL:
+      if(e->ni.id){
+        memcpy(ni, &e->ni, sizeof(*ni));
+        return 1;
+      }
+      break;
+    case NODE_FUNCTION:
+      e->fxn(ictx);
+      return 1;
   }
   return 0;
 }
