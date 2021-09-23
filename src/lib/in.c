@@ -82,13 +82,6 @@ typedef enum {
   STATE_DA_SEMI3,   // got third semicolon following numeric ; numeric ; numeric
   STATE_APPSYNC_REPORT, // got DECRPT ?2026
   STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
-  // cursor location report: CSI row ; col R
-  // text area pixel geometry: CSI 4 ; rows ; cols t
-  // text area cell geometry: CSI 8 ; rows ; cols t
-  // so we handle them the same until we hit either a second semicolon or an
-  // 'R', 't', or 'u'. at the second ';', we verify that the first variable was
-  // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
-  STATE_CURSOR_COL,    // reading numeric to 'R', 't', 'u', or ';'
 } initstates_e;
 
 // local state for the input thread. don't put this large struct on the stack.
@@ -162,6 +155,17 @@ inc_input_errors(inputctx* ictx){
   pthread_mutex_lock(&ictx->stats->lock);
   ++ictx->stats->s.input_errors;
   pthread_mutex_unlock(&ictx->stats->lock);
+}
+
+static void
+send_synth_signal(int sig){
+#ifndef __MINGW64__
+  if(sig){
+    raise(sig);
+  }
+#else
+  (void)sig; // FIXME
+#endif
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
@@ -473,6 +477,80 @@ geom_cb(inputctx* ictx){
   return 0;
 }
 
+// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
+// optional and indicates a special key with no modifiers.
+static void
+kitty_kbd(inputctx* ictx, int val, int mods){
+  int synth = 0;
+  assert(mods >= 0);
+  assert(val > 0);
+  ncinput tni = {
+    .id = val == 0x7f ? NCKEY_BACKSPACE : val,
+    .shift = !!((mods - 1) & 0x1),
+    .alt = !!((mods - 1) & 0x2),
+    .ctrl = !!((mods - 1) & 0x4),
+  };
+  // FIXME decode remaining modifiers through 128
+  // standard keyboard protocol reports ctrl+ascii as the capital form,
+  // so (for now) conform when using kitty protocol...
+  if(tni.ctrl){
+    if(tni.id < 128 && islower(tni.id)){
+      tni.id = toupper(tni.id);
+    }
+    if(!tni.alt && !tni.shift){
+      if(tni.id == 'C'){
+        synth = SIGINT;
+      }else if(tni.id == '\\'){
+        synth = SIGQUIT;
+      }
+    }
+  }
+  tni.x = 0;
+  tni.y = 0;
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08x 0x%02x\n", val, mods);
+    inc_input_errors(ictx);
+    send_synth_signal(synth);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  memcpy(ni, &tni, sizeof(tni));
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  send_synth_signal(synth);
+}
+
+static int
+kitty_cb_simple(inputctx* ictx){
+  // FIXME figure out a better way than this
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['0'];
+  int val = esctrie_numeric(e);
+  kitty_kbd(ictx, val, 0);
+  return 0;
+}
+
+static int
+kitty_cb(inputctx* ictx){
+  // FIXME figure out a better way than this
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['0'];
+  int val = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int mods = esctrie_numeric(e);
+  kitty_kbd(ictx, val, mods);
+  return 0;
+}
+
 static int
 build_cflow_automaton(inputctx* ictx){
   const struct {
@@ -484,6 +562,8 @@ build_cflow_automaton(inputctx* ictx){
     { "\\N;\\NR", cursor_location_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "\\N;\\N;\\Nt", geom_cb, },
+    { "\\Nu", kitty_cb_simple, },
+    { "\\N;\\Nu", kitty_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
@@ -941,66 +1021,6 @@ special_key(inputctx* ictx, const ncinput* inni){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-static void
-send_synth_signal(int sig){
-#ifndef __MINGW64__
-  if(sig){
-    raise(sig);
-  }
-#else
-  (void)sig; // FIXME
-#endif
-}
-
-// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
-// optional and indicates a special key with no modifiers.
-static void
-kitty_kbd(inputctx* ictx){
-  int synth = 0;
-  assert(ictx->numeric >= 0);
-  assert(ictx->p2 > 0);
-  ncinput tni = {
-    .id = ictx->p2 == 0x7f ? NCKEY_BACKSPACE : ictx->p2,
-    .shift = !!((ictx->numeric - 1) & 0x1),
-    .alt = !!((ictx->numeric - 1) & 0x2),
-    .ctrl = !!((ictx->numeric - 1) & 0x4),
-  };
-  // FIXME decode remaining modifiers through 128
-  // standard keyboard protocol reports ctrl+ascii as the capital form,
-  // so (for now) conform when using kitty protocol...
-  if(tni.ctrl){
-    if(tni.id < 128 && islower(tni.id)){
-      tni.id = toupper(tni.id);
-    }
-    if(!tni.alt && !tni.shift){
-      if(tni.id == 'C'){
-        synth = SIGINT;
-      }else if(tni.id == '\\'){
-        synth = SIGQUIT;
-      }
-    }
-  }
-  tni.x = 0;
-  tni.y = 0;
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
-    inc_input_errors(ictx);
-    send_synth_signal(synth);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  memcpy(ni, &tni, sizeof(tni));
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-  send_synth_signal(synth);
-}
-
 // FIXME ought implement the full Williams automaton
 // FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
@@ -1103,66 +1123,7 @@ pump_control_read(inputctx* ictx, unsigned char c){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
         }
-      }else if(c == ';'){
-        ictx->p2 = ictx->numeric;
-        ictx->state = STATE_CURSOR_COL;
-        ictx->numeric = 0;
-      }else if(c == 'u'){
-        // kitty keyboard protocol
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-        kitty_kbd(ictx);
-        ictx->state = STATE_NULL;
-        return 2;
       }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_CURSOR_COL:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'R'){
-//fprintf(stderr, "CURSOR X: %d\n", ictx->numeric);
-        if(ictx->initdata){
-          // convert from 1- to 0-indexing, and account for margins
-          ictx->initdata->cursorx = ictx->numeric - 1 - ictx->lmargin;
-          ictx->initdata->cursory = ictx->p2 - 1 - ictx->tmargin;
-        }else{
-          pthread_mutex_lock(&ictx->clock);
-          if(ictx->cvalid == ictx->csize){
-            pthread_mutex_unlock(&ictx->clock);
-            logwarn("dropping cursor location report\n");
-            inc_input_errors(ictx);
-          }else{
-            cursorloc* cloc = &ictx->csrs[ictx->cwrite];
-            cloc->x = ictx->numeric - 1;
-            cloc->y = ictx->p2 - 1;
-            if(++ictx->cwrite == ictx->csize){
-              ictx->cwrite = 0;
-            }
-            ++ictx->cvalid;
-            pthread_mutex_unlock(&ictx->clock);
-            pthread_cond_broadcast(&ictx->ccond);
-          }
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 't'){
-//fprintf(stderr, "CELLS X: %d\n", ictx->numeric);
-        if(ictx->initdata){
-          ictx->initdata->dimx = ictx->numeric;
-          ictx->initdata->dimy = ictx->p2;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 'u'){
-        // kitty keyboard protocol
-        kitty_kbd(ictx);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
         ictx->state = STATE_NULL;
       }
       break;
