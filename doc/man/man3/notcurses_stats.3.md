@@ -42,7 +42,7 @@ typedef struct ncstats {
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t appsync_updates;  // application-synchronized updates
-  uint64_t input_events;     // EGC inputs received or synthesized
+  uint64_t input_events;     // inputs received or synthesized
   uint64_t input_errors;     // errors processing input
 
   // current state -- these can decrease
