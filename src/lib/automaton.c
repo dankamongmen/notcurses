@@ -14,7 +14,7 @@ typedef struct esctrie {
     NODE_FUNCTION, // invokes a function
   } ntype;
   ncinput ni;      // composed key terminating here
-  uint32_t number; // accumulated number; reset to 0 on entry
+  int number;      // accumulated number; reset to 0 on entry
   char* str;       // accumulated string; reset to NULL on entry
   triefunc fxn;    // function to call on match
 } esctrie;
@@ -25,6 +25,13 @@ uint32_t esctrie_id(const esctrie* e){
 
 esctrie** esctrie_trie(esctrie* e){
   return e->trie;
+}
+
+int esctrie_numeric(const esctrie* e){
+  if(e->ntype != NODE_NUMERIC){
+    return -1;
+  }
+  return e->number;
 }
 
 static inline esctrie*
@@ -52,8 +59,15 @@ free_trienode(esctrie** eptr){
     if(e->trie){
       int z;
       for(z = 0 ; z < 0x80 ; ++z){
-        if(e->trie[z]){
+        // don't recurse down a link to ourselves
+        if(e->trie[z] && e->trie[z] != e){
           free_trienode(&e->trie[z]);
+        }
+        // if it's a numeric path, only recurse once
+        if(z == '0'){
+          if(e->trie['1'] == e->trie[z]){
+            z = '9';
+          }
         }
       }
       free(e->str);
@@ -83,6 +97,7 @@ esctrie_make_numeric(esctrie* e){
   for(int i = '0' ; i < '9' ; ++i){
     e->trie[i] = e;
   }
+  logdebug("made numeric: %p\n", e);
   return 0;
 }
 
@@ -108,6 +123,7 @@ esctrie_make_string(esctrie* e){
     }
     e->trie[i] = e;
   }
+  logdebug("made string: %p\n", e);
   return 0;
 }
 
@@ -123,6 +139,7 @@ esctrie_make_function(esctrie* e, triefunc fxn){
   }
   e->ntype = NODE_FUNCTION;
   e->fxn = fxn;
+  logdebug("made function %p: %p\n", fxn, e);
   return 0;
 }
 
@@ -134,7 +151,7 @@ link_numeric(esctrie* e){
   esctrie* targ = e->trie['0'];
   for(int i = '1' ; i <= '9' ; ++i){
     if(e->trie[i] != targ){
-      logerror("can't transition to a non-numeric %p != %p\n", e->trie[i], targ);
+      logerror("can't transition %p to a non-numeric %p != %p\n", e, e->trie[i], targ);
       return NULL;
     }
   }
@@ -165,12 +182,14 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
     }
   }
   esctrie* eptr = a->escapes;
-  if(eptr->trie[']'] == NULL){
-    if((eptr->trie[']'] = create_esctrie_node(0)) == NULL){
+  logdebug("ESCAPE START: %p\n", eptr);
+  if(eptr->trie['['] == NULL){
+    if((eptr->trie['['] = create_esctrie_node(0)) == NULL){
       return -1;
     }
   }
-  eptr = eptr->trie[']'];
+  eptr = eptr->trie['['];
+  logdebug("CSI START: %p\n", eptr);
   bool inescape = false;
   unsigned char c;
   while( (c = *csi++) ){
@@ -282,6 +301,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     return -1;
   }
   esctrie* e = a->state;
+  logdebug("state: %p candidate: %c %u type: %d\n", e, candidate, candidate, e->ntype);
   // we ought not have been called for an escape with any state!
   if(candidate == 0x1b){
     assert(NULL == e);
@@ -290,6 +310,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   }
   if(e->ntype == NODE_NUMERIC){
     if(isdigit(candidate)){
+      // FIXME check for overflow
       e->number = e->number * 10 + (candidate - '0');
       return 0;
     }
@@ -330,8 +351,10 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
       }
       break;
     case NODE_FUNCTION:
-      e->fxn(ictx);
       a->state = NULL; // FIXME?
+      if(e->fxn(ictx)){
+        return -1;
+      }
       return 1;
   }
   return 0;

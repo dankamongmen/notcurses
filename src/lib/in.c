@@ -172,6 +172,7 @@ inc_input_errors(inputctx* ictx){
 // load all known special keys from terminfo, and build the input sequence trie
 static int
 prep_special_keys(inputctx* ictx){
+  /*
 #ifndef __MINGW64__
   static const struct {
     const char* tinfo;
@@ -344,24 +345,74 @@ prep_special_keys(inputctx* ictx){
   }
 #endif
   (void)ictx;
+  */
   return 0;
 }
 
-static void
+static int
 mouse_press_cb(inputctx* ictx){
+  return 0;
 }
 
-static void
+static int
 mouse_release_cb(inputctx* ictx){
+  return 0;
 }
 
-static void
+static int
 cursor_location_cb(inputctx* ictx){
+  // FIXME figure out a better way than this
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['0'];
+  int y = esctrie_numeric(e) - 1;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int x = esctrie_numeric(e) - 1;
+  pthread_mutex_lock(&ictx->clock);
+  if(ictx->cvalid == ictx->csize){
+    pthread_mutex_unlock(&ictx->clock);
+    logwarn("dropping cursor location report %d/%d\n", y, x);
+    inc_input_errors(ictx);
+  }else{
+    cursorloc* cloc = &ictx->csrs[ictx->cwrite];
+    if(++ictx->cwrite == ictx->csize){
+      ictx->cwrite = 0;
+    }
+    cloc->y = y;
+    cloc->x = x;
+    ++ictx->cvalid;
+    pthread_mutex_unlock(&ictx->clock);
+    pthread_cond_broadcast(&ictx->ccond);
+    loginfo("cursor location: %d/%d\n", y, x);
+  }
+  return 0;
 }
 
-static void
+static int
 geom_cb(inputctx* ictx){
   // FIXME verify first numeric is "4" for pixel, "8" for cell
+  // FIXME figure out a better way than this
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['0'];
+  int kind = esctrie_numeric(e) - 1;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int y = esctrie_numeric(e) - 1;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int x = esctrie_numeric(e) - 1;
+  loginfo("geom report type %d %d/%d\n", kind, y, x);
+  if(kind == 4){
+    // FIXME pixel
+  }else if(kind == 8){
+    // FIXME cell
+  }else{
+    logerror("invalid geometry type: %d\n", kind);
+    return -1;
+  }
+  return 0;
 }
 
 static int
@@ -1502,24 +1553,29 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   }
   ictx->state = STATE_NULL;
   while(ictx->amata.used < buflen){
+logdebug("state now: %p\n", ictx->amata.state);
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
       ictx->amata.used = 0;
       return -(used - 1);
     }
-    int r = pump_control_read(ictx, candidate);
-    loginfo("pump_control_read: %d used: %d\n", r, ictx->amata.used);
-    if(r == 2){
-      ictx->amata.used = 0;
-      return used;
+    // FIXME this goes away
+    if(ictx->initdata){
+      int r = pump_control_read(ictx, candidate);
+      loginfo("pump_control_read: %d used: %d\n", r, ictx->amata.used);
+      if(r == 2){
+        ictx->amata.used = 0;
+        return used;
+      }
+      if(r == 1){ // received DA1, ending initial responses
+        // safe to call even if initdata == NULL
+        handoff_initial_responses(ictx);
+        ictx->amata.used = 0;
+        return used;
+      }
     }
-    if(r == 1){ // received DA1, ending initial responses
-      // safe to call even if initdata == NULL
-      handoff_initial_responses(ictx);
-      ictx->amata.used = 0;
-      return used;
-    }
+    // FIXME this goes away
     if(ictx->initdata){
       continue; // FIXME drops any Alt+chars entwined within initial responses
     }
@@ -1539,6 +1595,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->amata.state,
                candidate, esctrie_id(ictx->amata.state));
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
+      logdebug("walk result on %u (%c): %d %p\n", candidate, candidate, w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
           special_key(ictx, &ni);

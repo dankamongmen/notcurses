@@ -11,7 +11,7 @@ struct ncinput;
 struct esctrie;
 struct inputctx;
 
-typedef void(*triefunc)(struct inputctx*);
+typedef int (*triefunc)(struct inputctx*);
 
 // the state necessary for matching input against our automaton of control
 // sequences. we *do not* match the bulk UTF-8 input. we match online (i.e.
@@ -40,6 +40,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
 uint32_t esctrie_id(const struct esctrie* e);
 // returns 128-way array of esctrie pointers
 struct esctrie** esctrie_trie(struct esctrie* e);
+int esctrie_numeric(const struct esctrie* e);
 
 #ifdef __cplusplus
 }
