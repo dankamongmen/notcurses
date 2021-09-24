@@ -1717,6 +1717,10 @@ API char* ncplane_contents(struct ncplane* n, int begy, int begx,
 API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 API void* ncplane_userptr(struct ncplane* n);
 
+// Find the center coordinate of a plane, preferring the top/left in the
+// case of an even number of rows/columns (in such a case, there will be one
+// more cell to the bottom/right of the center than the top/left). The
+// center is then modified relative to the plane's origin.
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
 
