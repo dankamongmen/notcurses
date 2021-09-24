@@ -1012,6 +1012,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
 err:
   // FIXME need to leave alternate screen if we entered it
   if(ti->tpreserved){
+    tty_emit("\x1b[<u", ti->ttyfd);
     (void)tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
     free(ti->tpreserved);
     ti->tpreserved = NULL;
