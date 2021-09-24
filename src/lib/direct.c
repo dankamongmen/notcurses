@@ -254,7 +254,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 //    determine whether we're inverted.
 //  * if both dimensions changed, determine whether we're inverted by checking
 //    the change. the row ought have decreased; the column ought have increased.
-//  * move back to intiial position / pop cursor position
+//  * move back to initial position / pop cursor position
 static int
 detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y, int* x){
   if(rows <= 1 || cols <= 1){ // FIXME can this be made to work in 1 dimension?

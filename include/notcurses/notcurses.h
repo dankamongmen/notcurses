@@ -2250,8 +2250,8 @@ API void ncplane_erase(struct ncplane* n);
 //  (-1, -1, 0, -1): clears the column to the left of the cursor (column 4)
 //  (-1, -1, INT_MAX, 0): clears all rows with or below the cursor (rows 10--19)
 //  (-1, -1, -INT_MAX, 0): clears all rows with or above the cursor (rows 0--10)
-//  (-1, 4, 3, 3): clears from row 10, column 4 through row 12, column 6
-//  (-1, 4, 3, 3): clears from row 10, column 4 through row 8, column 2
+//  (-1, 4, 3, 3): clears from row 5, column 4 through row 7, column 6
+//  (-1, 4, -3, -3): clears from row 5, column 4 through row 3, column 2
 //  (4, -1, 0, 3): clears columns 5, 6, and 7
 //  (-1, -1, 0, 0): clears the plane *if the cursor is in a legal position*
 //  (0, 0, 0, 0): clears the plane in all cases
