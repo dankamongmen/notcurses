@@ -63,9 +63,6 @@ typedef enum {
   STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
   STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
   STATE_DCS_DRAIN,  // throw away input until we hit escape
-  STATE_APC,        // application programming command, starts with \x1b_
-  STATE_APC_DRAIN,  // looking for \x1b
-  STATE_APC_ST,     // looking for ST
   STATE_BG1,        // got '1'
   STATE_BG2,        // got second '1'
   STATE_BGSEMI,     // got '11;', draining string to ESC ST
@@ -80,8 +77,6 @@ typedef enum {
   STATE_DA_SEMI,    // got first semicolon following numeric
   STATE_DA_SEMI2,   // got second semicolon following numeric ; numeric
   STATE_DA_SEMI3,   // got third semicolon following numeric ; numeric ; numeric
-  STATE_APPSYNC_REPORT, // got DECRPT ?2026
-  STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
 } initstates_e;
 
 // local state for the input thread. don't put this large struct on the stack.
@@ -629,6 +624,34 @@ da1_cb(inputctx* ictx){
 }
 
 static int
+kittygraph_cb(inputctx* ictx){
+  loginfo("kitty graphics message\n");
+  if(ictx->initdata){
+    ictx->initdata->kitty_graphics = 1;
+  }
+  return 2;
+}
+
+static int
+decrpm_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['?'];
+  e = esctrie_trie(e)['0'];
+  int pd = esctrie_numeric(e); // expect 2 for color registers
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int ps = esctrie_numeric(e);
+  loginfo("received decrpm %d %d\n", pd, ps);
+  if(pd == 2026 && ps == 2){
+    if(ictx->initdata){
+      ictx->initdata->appsync_supported = 1;
+    }
+  }
+  return 2;
+}
+
+static int
 build_cflow_automaton(inputctx* ictx){
   // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
   // closure). \S is a ST-terminated string. \H is a hex-encoded string.
@@ -636,16 +659,18 @@ build_cflow_automaton(inputctx* ictx){
     const char* cflow;
     triefunc fxn;
   } csis[] = {
-    { "<\\N;\\N;\\NM", mouse_press_cb, },
-    { "<\\N;\\N;\\Nm", mouse_release_cb, },
-    { "\\N;\\NR", cursor_location_cb, },
+    { "[<\\N;\\N;\\NM", mouse_press_cb, },
+    { "[<\\N;\\N;\\Nm", mouse_release_cb, },
+    { "[\\N;\\NR", cursor_location_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
-    { "\\N;\\N;\\Nt", geom_cb, },
-    { "\\Nu", kitty_cb_simple, },
-    { "\\N;\\Nu", kitty_cb, },
-    { "?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
-    { "?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
-    { "?\\N;\\Dc", da1_cb, },
+    { "[\\N;\\N;\\Nt", geom_cb, },
+    { "[\\Nu", kitty_cb_simple, },
+    { "[\\N;\\Nu", kitty_cb, },
+    { "[?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
+    { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[?\\N;\\N$y", decrpm_cb, },
+    { "[?\\N;\\Dc", da1_cb, },
+    //{ "_G\\S\e\\", kittygraph_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
@@ -1132,29 +1157,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->state = STATE_NULL;
       }else if(c == '1'){
         ictx->state = STATE_BG1;
-      }else if(c == '_'){
-        ictx->state = STATE_APC;
-      }
-      break;
-    case STATE_APC:
-      if(c == 'G'){
-        if(ictx->initdata){
-          ictx->initdata->kitty_graphics = true;
-        }
-      }
-      ictx->state = STATE_APC_DRAIN;
-      break;
-    case STATE_APC_DRAIN:
-      if(c == '\x1b'){
-        ictx->state = STATE_APC_ST;
-      }
-      break;
-    case STATE_APC_ST:
-      if(c == '\\'){
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_APC_DRAIN;
       }
       break;
     case STATE_BG1:
@@ -1383,13 +1385,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
         }
-      }else if(c == '$'){
-        if(ictx->p2 == 2026){
-          ictx->state = STATE_APPSYNC_REPORT;
-          loginfo("terminal reported SUM support\n");
-        }else{
-          ictx->state = STATE_APPSYNC_REPORT_DRAIN;
-        }
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
         if(c == 'c'){
@@ -1434,20 +1429,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         if(c == 'c'){
           return 1;
         }
-      }
-      break;
-    case STATE_APPSYNC_REPORT:
-      if(ictx->numeric == '2'){
-        if(ictx->initdata){
-          ictx->initdata->appsync_supported = 1;
-        }
-        ictx->state = STATE_APPSYNC_REPORT_DRAIN;
-      }
-      break;
-    case STATE_APPSYNC_REPORT_DRAIN:
-      if(c == 'y'){
-        ictx->state = STATE_NULL;
-        return 2;
       }
       break;
     default:

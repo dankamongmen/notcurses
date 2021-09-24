@@ -83,6 +83,9 @@ void input_free_esctrie(automaton* a){
 
 static int
 esctrie_make_numeric(esctrie* e){
+  if(e->ntype == NODE_NUMERIC){
+    return 0;
+  }
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d numeric\n", e->ntype);
     return -1;
@@ -118,6 +121,9 @@ esctrie_make_kleene(esctrie* e){
 
 static int
 esctrie_make_string(esctrie* e){
+  if(e->ntype == NODE_STRING){
+    return 0;
+  }
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
     return -1;
@@ -198,13 +204,6 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
   }
   esctrie* eptr = a->escapes;
   logdebug("ESCAPE START: %p\n", eptr);
-  if(eptr->trie['['] == NULL){
-    if((eptr->trie['['] = create_esctrie_node(0)) == NULL){
-      return -1;
-    }
-  }
-  eptr = eptr->trie['['];
-  logdebug("CSI START: %p\n", eptr);
   bool inescape = false;
   unsigned char c;
   while( (c = *csi++) ){
