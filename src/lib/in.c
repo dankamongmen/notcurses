@@ -551,8 +551,87 @@ kitty_cb(inputctx* ictx){
   return 0;
 }
 
+// the only xtsmgraphics reply with a single Pv arg is color registers
+static int
+xtsmgraphics_cregs_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['?'];
+  e = esctrie_trie(e)['0'];
+  int xtype = esctrie_numeric(e); // expect 1 for color registers
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int ps = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int pv = esctrie_numeric(e);
+  if(xtype != 1){
+    logerror("expected type 1 color registers got %d\n", xtype);
+    return -1;
+  }
+  if(ps != 0){
+    logerror("expected status 0 got %d\n", ps);
+  }else if(ictx->initdata){
+    ictx->initdata->color_registers = pv;
+    loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
+  }
+  return 0;
+}
+
+// the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
+static int
+xtsmgraphics_sixel_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['['];
+  e = esctrie_trie(e)['?'];
+  e = esctrie_trie(e)['0'];
+  int xtype = esctrie_numeric(e); // expect 2 for color registers
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int ps = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int width = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int height = esctrie_numeric(e);
+  if(xtype != 2){
+    logerror("expected type 2 sixel geom got %d\n", xtype);
+    return -1;
+  }
+  if(ps != 0){
+    logerror("expected status 0 got %d\n", ps);
+  }else if(ictx->initdata){
+    ictx->initdata->sixelx = width;
+    ictx->initdata->sixely = height;
+    loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
+  }
+  return 0;
+}
+
+static void
+handoff_initial_responses(inputctx* ictx){
+  pthread_mutex_lock(&ictx->ilock);
+  ictx->initdata_complete = ictx->initdata;
+  ictx->initdata = NULL;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  loginfo("handing off initial responses\n");
+}
+
+static int
+da1_cb(inputctx* ictx){
+  loginfo("read device attributes\n");
+  if(ictx->initdata){
+    handoff_initial_responses(ictx);
+  }
+  return 2;
+}
+
 static int
 build_cflow_automaton(inputctx* ictx){
+  // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
+  // closure). \S is a ST-terminated string. \H is a hex-encoded string.
   const struct {
     const char* cflow;
     triefunc fxn;
@@ -564,6 +643,9 @@ build_cflow_automaton(inputctx* ictx){
     { "\\N;\\N;\\Nt", geom_cb, },
     { "\\Nu", kitty_cb_simple, },
     { "\\N;\\Nu", kitty_cb, },
+    { "?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
+    { "?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "?\\N;\\Dc", da1_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
@@ -1281,9 +1363,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         if(ruts_numeric(&ictx->numeric, c)){ // stash for DECRPM/XTSM/kittykbd
           return -1;
         }
-      }else if(c == 'u'){ // kitty keyboard
-        loginfo("keyboard protocol level 0x%x\n", ictx->numeric);
-        ictx->state = STATE_NULL;
       }else if(c == ';'){
         ictx->p2 = ictx->numeric;
         ictx->numeric = 0;
@@ -1327,16 +1406,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
         }
-      }else if(c == 'S'){
-        if(ictx->p2 == 1){
-          if(ictx->initdata){
-            ictx->initdata->color_registers = ictx->numeric;
-            loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
-          }
-          ictx->numeric = 0;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
         if(c == 'c'){
@@ -1359,14 +1428,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }else if(isdigit(c)){
         if(ruts_numeric(&ictx->numeric, c)){
           return -1;
-        }
-      }else if(c == 'S'){
-        if(ictx->initdata){
-          ictx->initdata->sixelx = ictx->p4;
-          ictx->initdata->sixely = ictx->numeric;
-          loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
-          ictx->state = STATE_NULL;
-          return 2;
         }
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
@@ -1395,16 +1456,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
   }
   logdebug("leaving with state %d\n", ictx->state);
   return 0;
-}
-
-static void
-handoff_initial_responses(inputctx* ictx){
-  pthread_mutex_lock(&ictx->ilock);
-  ictx->initdata_complete = ictx->initdata;
-  ictx->initdata = NULL;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-  loginfo("handing off initial responses\n");
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
@@ -1438,25 +1489,6 @@ logdebug("state now: %p\n", ictx->amata.state);
     if(candidate >= 0x80){
       ictx->amata.used = 0;
       return -(used - 1);
-    }
-    // FIXME this goes away
-    if(ictx->initdata){
-      int r = pump_control_read(ictx, candidate);
-      loginfo("pump_control_read: %d used: %d\n", r, ictx->amata.used);
-      if(r == 2){
-        ictx->amata.used = 0;
-        return used;
-      }
-      if(r == 1){ // received DA1, ending initial responses
-        // safe to call even if initdata == NULL
-        handoff_initial_responses(ictx);
-        ictx->amata.used = 0;
-        return used;
-      }
-    }
-    // FIXME this goes away
-    if(ictx->initdata){
-      continue; // FIXME drops any Alt+chars entwined within initial responses
     }
     // an escape always resets the trie, as does a NULL transition
     if(candidate == NCKEY_ESC){

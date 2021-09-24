@@ -102,6 +102,21 @@ esctrie_make_numeric(esctrie* e){
 }
 
 static int
+esctrie_make_kleene(esctrie* e){
+  if(e->ntype != NODE_SPECIAL){
+    logerror("can't make node type %d string\n", e->ntype);
+    return -1;
+  }
+  for(int i = 0 ; i < 0x80 ; ++i){
+    if(e->trie[i] == NULL){
+      e->trie[i] = e;
+    }
+  }
+  logdebug("made kleene: %p\n", e);
+  return 0;
+}
+
+static int
 esctrie_make_string(esctrie* e){
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
@@ -208,6 +223,12 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         }
       }else if(c == 'S'){
         if(esctrie_make_string(eptr)){
+          return -1;
+        }
+      }else if(c == 'H'){
+        // FIXME
+      }else if(c == 'D'){ // drain (kleene closure)
+        if(esctrie_make_kleene(eptr)){
           return -1;
         }
       }else{
