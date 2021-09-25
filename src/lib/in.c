@@ -333,6 +333,13 @@ csi_node(automaton *amata){
   return esctrie_trie(e)['['];
 }
 
+// get the DCS node from the trie
+static inline struct esctrie*
+dcs_node(automaton *amata){
+  struct esctrie* e = amata->escapes;
+  return esctrie_trie(e)['P'];
+}
+
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
 // SGR (1006) mouse encoding, so use the final character to determine release
 // ('M' for click, 'm' for release).
@@ -675,8 +682,7 @@ bgdef_cb(inputctx* ictx){
 
 static int
 xtversion_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['P'];
+  struct esctrie* e = dcs_node(&ictx->amata);
   e = esctrie_trie(e)['>'];
   e = esctrie_trie(e)['|'];
   e = esctrie_trie(e)['a'];
@@ -723,8 +729,7 @@ xtversion_cb(inputctx* ictx){
 
 static int
 tcap_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['P'];
+  struct esctrie* e = dcs_node(&ictx->amata);
   e = esctrie_trie(e)['1'];
   e = esctrie_trie(e)['+'];
   e = esctrie_trie(e)['r'];
@@ -749,8 +754,7 @@ tcap_cb(inputctx* ictx){
 
 static int
 tda_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['P'];
+  struct esctrie* e = dcs_node(&ictx->amata);
   e = esctrie_trie(e)['!'];
   e = esctrie_trie(e)['|'];
   const char* str = esctrie_string(e);
