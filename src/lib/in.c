@@ -326,14 +326,19 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
+// get the CSI node from the trie
+static inline struct esctrie*
+csi_node(automaton *amata){
+  struct esctrie* e = amata->escapes;
+  return esctrie_trie(e)['['];
+}
+
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
 // SGR (1006) mouse encoding, so use the final character to determine release
 // ('M' for click, 'm' for release).
 static void
 mouse_click(inputctx* ictx, unsigned release){
-  // FIXME figure out a better way than this
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['<'];
   e = esctrie_trie(e)['0'];
   const int mods = esctrie_numeric(e);
@@ -396,9 +401,7 @@ mouse_release_cb(inputctx* ictx){
 
 static int
 cursor_location_cb(inputctx* ictx){
-  // FIXME figure out a better way than this
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['0'];
   int y = esctrie_numeric(e) - 1;
   e = esctrie_trie(e)[';'];
@@ -426,9 +429,7 @@ cursor_location_cb(inputctx* ictx){
 
 static int
 geom_cb(inputctx* ictx){
-  // FIXME figure out a better way than this
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['0'];
   int kind = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
@@ -437,19 +438,20 @@ geom_cb(inputctx* ictx){
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int x = esctrie_numeric(e);
-  loginfo("geom report type %d %d/%d\n", kind, y, x);
-  if(kind == 4){
+  if(kind == 4){ // pixel geometry
     if(ictx->initdata){
       ictx->initdata->pixy = y;
       ictx->initdata->pixx = x;
     }
-  }else if(kind == 8){
+    loginfo("pixel geom report %d/%d\n", y, x);
+  }else if(kind == 8){ // cell geometry
     if(ictx->initdata){
       ictx->initdata->dimy = y;
       ictx->initdata->dimx = x;
     }
+    loginfo("cell geom report %d/%d\n", y, x);
   }else{
-    logerror("invalid geometry type: %d\n", kind);
+    logerror("invalid geom report type: %d\n", kind);
     return -1;
   }
   return 0;
@@ -506,9 +508,7 @@ kitty_kbd(inputctx* ictx, int val, int mods){
 
 static int
 kitty_cb_simple(inputctx* ictx){
-  // FIXME figure out a better way than this
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['0'];
   int val = esctrie_numeric(e);
   kitty_kbd(ictx, val, 0);
@@ -517,9 +517,7 @@ kitty_cb_simple(inputctx* ictx){
 
 static int
 kitty_cb(inputctx* ictx){
-  // FIXME figure out a better way than this
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['0'];
   int val = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
@@ -532,8 +530,7 @@ kitty_cb(inputctx* ictx){
 // the only xtsmgraphics reply with a single Pv arg is color registers
 static int
 xtsmgraphics_cregs_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
   e = esctrie_trie(e)['0'];
   int xtype = esctrie_numeric(e); // expect 1 for color registers
@@ -559,8 +556,7 @@ xtsmgraphics_cregs_cb(inputctx* ictx){
 // the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
 static int
 xtsmgraphics_sixel_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
   e = esctrie_trie(e)['0'];
   int xtype = esctrie_numeric(e); // expect 2 for color registers
@@ -617,8 +613,7 @@ kittygraph_cb(inputctx* ictx){
 
 static int
 decrpm_cb(inputctx* ictx){
-  struct esctrie* e = ictx->amata.escapes;
-  e = esctrie_trie(e)['['];
+  struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
   e = esctrie_trie(e)['0'];
   int pd = esctrie_numeric(e); // expect 2 for color registers
@@ -711,8 +706,8 @@ xtversion_cb(inputctx* ictx){
   }, *xtv;
   for(xtv = xtvers ; xtv->prefix ; ++xtv){
     if(strncmp(xtversion, xtv->prefix, strlen(xtv->prefix)) == 0){
-      logdebug("looks like %s\n", xtv->prefix);
       if(extract_xtversion(ictx, xtversion + strlen(xtv->prefix), xtv->suffix) == 0){
+        loginfo("found terminal type %d version %s\n", xtv->term, ictx->initdata->version);
         ictx->initdata->qterm = xtv->term;
       }else{
         return -1;
@@ -1356,7 +1351,6 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   }
   ictx->state = STATE_NULL;
   while(ictx->amata.used < buflen){
-logdebug("state now: %p\n", ictx->amata.state);
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
