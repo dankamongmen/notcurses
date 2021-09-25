@@ -50,8 +50,10 @@ create_esctrie_node(int special){
         memset(e->trie, 0, tsize);
         return e;
       }
+      free(e);
+      return NULL;
     }
-    free(e);
+    return e;
   }
   return e;
 }
@@ -164,11 +166,19 @@ esctrie_make_string(esctrie* e, triefunc fxn){
     }
     e->trie[i] = e;
   }
-  e->trie[0x1b] = create_esctrie_node(0);
+  if((e->trie[0x1b] = create_esctrie_node(0)) == NULL){
+    return -1;
+  }
   e = e->trie[0x1b];
-  e->trie['\\'] = create_esctrie_node(0);
+  if((e->trie['\\'] = create_esctrie_node(NCKEY_INVALID)) == NULL){
+    return -1;
+  }
   e = e->trie['\\'];
-  esctrie_make_function(e, fxn);
+  e->ni.id = 0;
+  e->ntype = NODE_SPECIAL;
+  if(esctrie_make_function(e, fxn)){
+    return -1;
+  }
   logdebug("made string: %p\n", e);
   return 0;
 }

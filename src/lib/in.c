@@ -1535,7 +1535,8 @@ static void
 process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
-    logdebug("input %d/%d [0x%02x]\n", offset, *bufused, buf[offset]);
+    logdebug("input %d/%d [0x%02x] (%c)\n", offset, *bufused, buf[offset],
+             isprint(*bufused) ? *bufused : ' ');
     int consumed = 0;
     if(buf[offset] == '\x1b'){
       consumed = process_escape(ictx, buf + offset, *bufused);
