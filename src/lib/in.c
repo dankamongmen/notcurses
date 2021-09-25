@@ -53,22 +53,7 @@ typedef enum {
   STATE_ESC,  // escape; aborts any active sequence
   STATE_CSI,  // control sequence introducer
   STATE_DCS,  // device control string
-  // XTVERSION replies with DCS > | ... ST
-  STATE_XTVERSION1,
-  STATE_XTVERSION2,
-  // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
-  STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
-  STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
   STATE_DCS_DRAIN,  // throw away input until we hit escape
-  STATE_BG1,        // got '1'
-  STATE_BG2,        // got second '1'
-  STATE_BGSEMI,     // got '11;', draining string to ESC ST
-  STATE_TDA1, // tertiary DA, got '!'
-  STATE_TDA2, // tertiary DA, got '|', first hex nibble
-  STATE_TDA3, // tertiary DA, second hex nibble
   STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
   STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
   STATE_SDA_DRAIN, // drain secondary DA to 'c'
@@ -101,10 +86,8 @@ typedef struct inputctx {
   int tbufvalid;      // only used if we have distinct terminal connection
 
   // transient state for processing control sequences
-  // stringstate is the state at which this string was initialized, and can be
-  // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
   // FIXME these all go away once automata are united
-  initstates_e state, stringstate;
+  initstates_e state;
   int numeric;            // currently-lexed numeric
   char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
   int stridx;             // length of runstring
@@ -652,6 +635,147 @@ decrpm_cb(inputctx* ictx){
 }
 
 static int
+extract_xtversion(inputctx* ictx, const char* str, char suffix){
+  size_t slen = strlen(str);
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  if(suffix){
+    if(str[slen - 1] != suffix){
+      return -1;
+    }
+    --slen;
+  }
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  ictx->initdata->version = strndup(str, slen);
+  return 0;
+}
+
+static int
+bgdef_cb(inputctx* ictx){
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  /*
+      case STATE_BG1:{
+        int r, g, b;
+        if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
+          // great! =]
+        }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
+          r /= 256;
+          g /= 256;
+          b /= 256;
+        }else{
+          break;
+        }
+        inits->bg = (r << 16u) | (g << 8u) | b;
+        break;
+        */
+  return 2;
+}
+
+static int
+xtversion_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['P'];
+  e = esctrie_trie(e)['>'];
+  e = esctrie_trie(e)['|'];
+  const char* xtversion = esctrie_string(e);
+  if(xtversion == NULL){
+    logwarn("empty xtversion\n");
+    return 2; // don't replay as input
+  }
+  if(ictx->initdata == NULL){
+    return 1;
+  }
+  static const struct {
+    const char* prefix;
+    char suffix;
+    queried_terminals_e term;
+  } xtvers[] = {
+    { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
+    { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
+    { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
+    { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
+    { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+    { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
+    { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
+    { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
+    { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
+    { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
+  }, *xtv;
+  for(xtv = xtvers ; xtv->prefix ; ++xtv){
+    if(strncmp(xtversion, xtv->prefix, strlen(xtv->prefix)) == 0){
+      if(extract_xtversion(ictx, xtversion + strlen(xtv->prefix), xtv->suffix) == 0){
+        ictx->initdata->qterm = xtv->term;
+      }else{
+        return -1;
+      }
+      break;
+    }
+  }
+  if(xtv->prefix == NULL){
+    logwarn("unknown xtversion [%s]\n", xtversion);
+  }
+  return 2;
+}
+
+static int
+tcap_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['P'];
+  e = esctrie_trie(e)['1'];
+  e = esctrie_trie(e)['+'];
+  e = esctrie_trie(e)['r'];
+  e = esctrie_trie(e)['0'];
+  int cap = esctrie_numeric(e);
+  e = esctrie_trie(e)['='];
+  int val = esctrie_numeric(e);
+  if(cap == 0x544e){ // 'TN' terminal name
+    loginfo("got TN capability %d\n", val);
+    /* FIXME
+        if(strcmp(ictx->runstring, "xterm-kitty") == 0){
+          inits->qterm = TERMINAL_KITTY;
+        }else if(strcmp(ictx->runstring, "mlterm") == 0){
+          // MLterm prior to late 3.9.1 only reports via XTGETTCAP
+          inits->qterm = TERMINAL_MLTERM;
+        }
+        break;
+        */
+  }
+  return 2;
+}
+
+static int
+tda_cb(inputctx* ictx){
+  struct esctrie* e = ictx->amata.escapes;
+  e = esctrie_trie(e)['P'];
+  e = esctrie_trie(e)['!'];
+  e = esctrie_trie(e)['|'];
+  const char* str = esctrie_string(e);
+  if(str == NULL){
+    logwarn("empty ternary device attribute\n");
+    return 2; // don't replay
+  }
+  // FIXME hex encoded
+  loginfo("got TDA: %s\n", str);
+  /*
+        if(strcmp(ictx->runstring, "~VTE") == 0){
+          inits->qterm = TERMINAL_VTE;
+        }else if(strcmp(ictx->runstring, "~~TY") == 0){
+          inits->qterm = TERMINAL_TERMINOLOGY;
+        }else if(strcmp(ictx->runstring, "FOOT") == 0){
+          inits->qterm = TERMINAL_FOOT;
+        }
+        */
+  return 2;
+}
+
+static int
 build_cflow_automaton(inputctx* ictx){
   // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
   // closure). \S is a ST-terminated string. \H is a hex-encoded string.
@@ -659,6 +783,7 @@ build_cflow_automaton(inputctx* ictx){
     const char* cflow;
     triefunc fxn;
   } csis[] = {
+    // CSI (\e[)
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
     { "[\\N;\\NR", cursor_location_cb, },
@@ -670,7 +795,15 @@ build_cflow_automaton(inputctx* ictx){
     { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[?\\N;\\N$y", decrpm_cb, },
     { "[?\\N;\\Dc", da1_cb, },
-    //{ "_G\\S\e\\", kittygraph_cb, },
+    // DCS (\eP...ST)
+    { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
+    { "P0+r\\H", NULL, },        // negative XTGETTCAP
+    { "P!|\\S", tda_cb, },
+    { "P>|\\S", xtversion_cb, },
+    // OSC (\e_...ST)
+    { "_G\\S", kittygraph_cb, },
+    // a mystery to everyone!
+    { "11;\\S", bgdef_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
@@ -703,7 +836,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
-                          i->state = i->stringstate = STATE_NULL;
+                          i->state = STATE_NULL;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
@@ -935,124 +1068,6 @@ ruts_hex(int* numeric, unsigned char c){
   return 0;
 }
 
-// add a decoded hex byte to the string
-static int
-ruts_string(inputctx* ictx, initstates_e state){
-  if(ictx->stridx == sizeof(ictx->runstring)){
-    return -1; // overflow, too long
-  }
-  if(ictx->numeric > 255){
-    return -1;
-  }
-  unsigned char c = ictx->numeric;
-  if(!isprint(c)){
-    return -1;
-  }
-  ictx->stringstate = state;
-  ictx->runstring[ictx->stridx] = c;
-  ictx->runstring[++ictx->stridx] = '\0';
-  return 0;
-}
-
-// extract the terminal version from the running string, following 'prefix'
-static int
-extract_version(inputctx* ictx, size_t slen){
-  size_t bytes = strlen(ictx->runstring + slen) + 1;
-  ictx->initdata->version = malloc(bytes);
-  if(ictx->initdata->version == NULL){
-    return -1;
-  }
-  memcpy(ictx->initdata->version, ictx->runstring + slen, bytes);
-  return 0;
-}
-
-static int
-extract_xtversion(inputctx* ictx, size_t slen, char suffix){
-  if(suffix){
-    if(ictx->runstring[ictx->stridx - 1] != suffix){
-      return -1;
-    }
-    ictx->runstring[ictx->stridx - 1] = '\0';
-  }
-  return extract_version(ictx, slen);
-}
-
-static int
-stash_string(inputctx* ictx){
-  struct initial_responses* inits = ictx->initdata;
-//fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
-  if(inits){
-    switch(ictx->stringstate){
-      case STATE_XTVERSION1:{
-        static const struct {
-          const char* prefix;
-          char suffix;
-          queried_terminals_e term;
-        } xtvers[] = {
-          { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
-          { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
-          { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
-          { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
-          { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
-          { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
-          { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
-          { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
-          { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
-          { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
-        }, *xtv;
-        for(xtv = xtvers ; xtv->prefix ; ++xtv){
-          if(strncmp(ictx->runstring, xtv->prefix, strlen(xtv->prefix)) == 0){
-            if(extract_xtversion(ictx, strlen(xtv->prefix), xtv->suffix) == 0){
-              inits->qterm = xtv->term;
-            }
-            break;
-          }
-        }
-        if(xtv->prefix == NULL){
-          logwarn("Unrecognizable XTVERSION [%s]\n", ictx->runstring);
-        }
-        break;
-      }case STATE_XTGETTCAP_TERMNAME1:
-        if(strcmp(ictx->runstring, "xterm-kitty") == 0){
-          inits->qterm = TERMINAL_KITTY;
-        }else if(strcmp(ictx->runstring, "mlterm") == 0){
-          // MLterm prior to late 3.9.1 only reports via XTGETTCAP
-          inits->qterm = TERMINAL_MLTERM;
-        }
-        break;
-      case STATE_TDA1:
-        if(strcmp(ictx->runstring, "~VTE") == 0){
-          inits->qterm = TERMINAL_VTE;
-        }else if(strcmp(ictx->runstring, "~~TY") == 0){
-          inits->qterm = TERMINAL_TERMINOLOGY;
-        }else if(strcmp(ictx->runstring, "FOOT") == 0){
-          inits->qterm = TERMINAL_FOOT;
-        }
-        break;
-      case STATE_BG1:{
-        int r, g, b;
-        if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
-          // great! =]
-        }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
-          r /= 256;
-          g /= 256;
-          b /= 256;
-        }else{
-          break;
-        }
-        inits->bg = (r << 16u) | (g << 8u) | b;
-        break;
-      }default:
-  // don't generally enable this -- XTerm terminates TDA with ST
-  //fprintf(stderr, "invalid string [%s] stashed %d\n", inits->runstring, inits->stringstate);
-        break;
-    }
-  }
-  ictx->runstring[0] = '\0';
-  ictx->stridx = 0;
-  return 0;
-}
-
 // use the version extracted from Secondary Device Attributes, assuming that
 // it is Alacritty (we ought check the specified terminfo database entry).
 // Alacritty writes its crate version with each more significant portion
@@ -1150,42 +1165,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
         ictx->state = STATE_CSI;
       }else if(c == 'P'){
         ictx->state = STATE_DCS;
-      }else if(c == '\\'){
-        if(stash_string(ictx)){
-          return -1;
-        }
-        ictx->state = STATE_NULL;
-      }else if(c == '1'){
-        ictx->state = STATE_BG1;
-      }
-      break;
-    case STATE_BG1:
-      if(c == '1'){
-        ictx->state = STATE_BG2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_BG2:
-      if(c == ';'){
-        ictx->state = STATE_BGSEMI;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_BGSEMI: // drain string
-      if(c == '\x07'){ // contour sends this at the end for some unknown reason
-        if(stash_string(ictx)){
-          return -1;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }
-      ictx->numeric = c;
-      if(ruts_string(ictx, STATE_BG1)){
-        return -1;
       }
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
@@ -1215,104 +1194,12 @@ pump_control_read(inputctx* ictx, unsigned char c){
       if(c == '\\'){
 //fprintf(stderr, "terminated DCS\n");
         ictx->state = STATE_NULL;
-      }else if(c == '1'){
-        ictx->state = STATE_XTGETTCAP1; // we have tcap
-      }else if(c == '0'){
-        ictx->state = STATE_XTGETTCAP1; // no tcap for us
-      }else if(c == '>'){
-        ictx->state = STATE_XTVERSION1;
-      }else if(c == '!'){
-        ictx->state = STATE_TDA1;
       }else{
         ictx->state = STATE_DCS_DRAIN;
       }
       break;
     case STATE_DCS_DRAIN:
       // we drain to ST, which is an escape, and thus already handled, so...
-      break;
-    case STATE_XTVERSION1:
-      if(c == '|'){
-        ictx->state = STATE_XTVERSION2;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTVERSION2:
-      ictx->numeric = c;
-      if(ruts_string(ictx, STATE_XTVERSION1)){
-        return -1;
-      }
-      break;
-    case STATE_XTGETTCAP1:
-      if(c == '+'){
-        ictx->state = STATE_XTGETTCAP2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTGETTCAP2:
-      if(c == 'r'){
-        ictx->state = STATE_XTGETTCAP3;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTGETTCAP3:
-      if(c == '='){
-        if(ictx->numeric == 0x544e){
-          ictx->state = STATE_XTGETTCAP_TERMNAME1;
-          ictx->stridx = 0;
-          ictx->numeric = 0;
-          ictx->runstring[0] = '\0';
-        }else{
-          ictx->state = STATE_DCS_DRAIN;
-        }
-      }else if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_XTGETTCAP_TERMNAME1:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_XTGETTCAP_TERMNAME2;
-      break;
-    case STATE_XTGETTCAP_TERMNAME2:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_XTGETTCAP_TERMNAME1;
-      if(ruts_string(ictx, STATE_XTGETTCAP_TERMNAME1)){
-        return -1;
-      }
-      ictx->numeric = 0;
-      break;
-    case STATE_TDA1:
-      if(c == '|'){
-        ictx->state = STATE_TDA2;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_TDA2:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_TDA3;
-      break;
-    case STATE_TDA3:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_TDA2;
-      if(ruts_string(ictx, STATE_TDA1)){
-        ictx->state = STATE_DCS_DRAIN; // FIXME return -1?
-      }
-      ictx->numeric = 0;
       break;
     case STATE_SDA:
       if(c == ';'){

@@ -23,6 +23,10 @@ uint32_t esctrie_id(const esctrie* e){
   return e->ni.id;
 }
 
+const char* esctrie_string(const esctrie* e){
+  return e->str;
+}
+
 esctrie** esctrie_trie(esctrie* e){
   return e->trie;
 }
@@ -357,13 +361,13 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     case NODE_NUMERIC:
       e->number = candidate - '0';
       break;
-    case NODE_STRING:{
+    case NODE_STRING:
       a->stridx = 1;
       if(growstring(a, e, candidate)){
         return -1;
       }
       break;
-    }case NODE_SPECIAL:
+    case NODE_SPECIAL:
       if(e->ni.id){
         memcpy(ni, &e->ni, sizeof(*ni));
         a->state = NULL; // FIXME?
@@ -372,10 +376,11 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
       break;
     case NODE_FUNCTION:
       a->state = NULL; // FIXME?
-      if(e->fxn(ictx)){
-        return -1;
+      if(e->fxn == NULL){
+        return 2;
       }
-      return 1;
+      return e->fxn(ictx);
+      break;
   }
   return 0;
 }
