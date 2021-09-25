@@ -190,35 +190,40 @@ compare_versions(const char* restrict v1, const char* restrict v2){
   if(v1 == NULL){
     return -1;
   }
+  char* v1e;
+  char* v2e;
   while(*v1 && *v2){
-    if(isdigit(*v1) && isdigit(*v2)){
-      if(*v1 > *v2){
-        return 1;
-      }
-      if(*v2 > *v1){
-        return -1;
-      }
-    }else if(isdigit(*v1)){
-      return 1;
-    }else if(isdigit(*v2)){
+    long v1v = strtol(v1, &v1e, 10);
+    long v2v = strtol(v2, &v2e, 10);
+    if(v1e == v1 && v2e == v2){ // both are done
+      return 0;
+    }else if(v1e == v1){ // first is done
       return -1;
-    }else if(*v1 != '.' && *v2 != '.'){
+    }else if(v2e == v2){ // second is done
+      return 1;
+    }
+    if(v1v > v2v){
+      return 1;
+    }else if(v2v > v1v){
+      return -1;
+    }
+    if(*v1e != '.' && *v2e != '.'){
       break;
-    }else if(*v1 != '.' || *v2 != '.'){
-      if(*v1 == '.'){
+    }else if(*v1e != '.' || *v2e != '.'){
+      if(*v1e == '.'){
         return 1;
       }else{
         return -1;
       }
     }
-    ++v1;
-    ++v2;
+    v1 = v1e + 1;
+    v2 = v2e + 1;
   }
   // can only get out here if at least one was not a period
-  if(*v1 == '.'){
+  if(*v1e == '.'){
     return 1;
   }
-  if(*v2 == '.'){
+  if(*v2e == '.'){
     return -1;
   }
   return 0;
