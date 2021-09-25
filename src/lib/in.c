@@ -1359,7 +1359,7 @@ logdebug("state now: %p\n", ictx->amata.state);
       return -(used - 1);
     }
     // an escape always resets the trie, as does a NULL transition
-    if(candidate == NCKEY_ESC){
+    if(candidate == NCKEY_ESC && !ictx->amata.instring){
       ictx->amata.state = ictx->amata.escapes;
       ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input

@@ -124,7 +124,23 @@ esctrie_make_kleene(esctrie* e){
 }
 
 static int
-esctrie_make_string(esctrie* e){
+esctrie_make_function(esctrie* e, triefunc fxn){
+  if(e->ntype != NODE_SPECIAL){
+    logerror("can't make node type %d function\n", e->ntype);
+    return -1;
+  }
+  if(e->trie){
+    logerror("can't make followed function\n");
+    return -1;
+  }
+  e->ntype = NODE_FUNCTION;
+  e->fxn = fxn;
+  logdebug("made function %p: %p\n", fxn, e);
+  return 0;
+}
+
+static int
+esctrie_make_string(esctrie* e, triefunc fxn){
   if(e->ntype == NODE_STRING){
     return 0;
   }
@@ -148,23 +164,12 @@ esctrie_make_string(esctrie* e){
     }
     e->trie[i] = e;
   }
+  e->trie[0x1b] = create_esctrie_node(0);
+  e = e->trie[0x1b];
+  e->trie['\\'] = create_esctrie_node(0);
+  e = e->trie['\\'];
+  esctrie_make_function(e, fxn);
   logdebug("made string: %p\n", e);
-  return 0;
-}
-
-static int
-esctrie_make_function(esctrie* e, triefunc fxn){
-  if(e->ntype != NODE_SPECIAL){
-    logerror("can't make node type %d function\n", e->ntype);
-    return -1;
-  }
-  if(e->trie){
-    logerror("can't make followed function\n");
-    return -1;
-  }
-  e->ntype = NODE_FUNCTION;
-  e->fxn = fxn;
-  logdebug("made function %p: %p\n", fxn, e);
   return 0;
 }
 
@@ -225,9 +230,10 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           return -1;
         }
       }else if(c == 'S'){
-        if(esctrie_make_string(eptr)){
+        if(esctrie_make_string(eptr, fxn)){
           return -1;
         }
+        return 0;
       }else if(c == 'H'){
         // FIXME
       }else if(c == 'D'){ // drain (kleene closure)
@@ -327,7 +333,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   esctrie* e = a->state;
   logdebug("state: %p candidate: %c %u type: %d\n", e, candidate, candidate, e->ntype);
   // we ought not have been called for an escape with any state!
-  if(candidate == 0x1b){
+  if(candidate == 0x1b && !a->instring){
     assert(NULL == e);
     a->state = a->escapes;
     return 0;
@@ -339,7 +345,10 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
       return 0;
     }
   }else if(e->ntype == NODE_STRING){
-    if(growstring(a, e, candidate)){
+    if(candidate == 0x1b){
+      a->state = e->trie[candidate];
+      a->instring = 0;
+    }else if(growstring(a, e, candidate)){
       return -1;
     }
     return 0;
@@ -363,6 +372,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
       break;
     case NODE_STRING:
       a->stridx = 1;
+      a->instring = 1;
       if(growstring(a, e, candidate)){
         return -1;
       }

@@ -19,7 +19,7 @@ typedef int (*triefunc)(struct inputctx*);
 typedef struct automaton {
   struct esctrie* escapes;  // head Esc node of trie
   int used;                 // bytes consumed thus far
-  // FIXME need an array to track the path
+  int instring;             // are we in an ST-terminated string?
   struct esctrie* state;
   unsigned stridx;          // bytes of accumulating string (includes NUL)
 } automaton;
