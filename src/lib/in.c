@@ -684,6 +684,7 @@ xtversion_cb(inputctx* ictx){
   e = esctrie_trie(e)['P'];
   e = esctrie_trie(e)['>'];
   e = esctrie_trie(e)['|'];
+  e = esctrie_trie(e)['a'];
   const char* xtversion = esctrie_string(e);
   if(xtversion == NULL){
     logwarn("empty xtversion\n");
@@ -710,6 +711,7 @@ xtversion_cb(inputctx* ictx){
   }, *xtv;
   for(xtv = xtvers ; xtv->prefix ; ++xtv){
     if(strncmp(xtversion, xtv->prefix, strlen(xtv->prefix)) == 0){
+      logdebug("looks like %s\n", xtv->prefix);
       if(extract_xtversion(ictx, xtversion + strlen(xtv->prefix), xtv->suffix) == 0){
         ictx->initdata->qterm = xtv->term;
       }else{
@@ -933,6 +935,7 @@ prep_kitty_special_keys(inputctx* ictx){
       return -1;
     }
   }
+  loginfo("added all kitty special keys\n");
   return 0;
 }
 
@@ -981,7 +984,9 @@ prep_windows_special_keys(inputctx* ictx){
                                  k->shift, k->ctrl, k->alt)){
       return -1;
     }
+    logdebug("added %s %u\n", k->esc, k->key);
   }
+  loginfo("added all windows special keys\n");
   return 0;
 }
 
@@ -1372,9 +1377,11 @@ logdebug("state now: %p\n", ictx->amata.state);
     }else{
       ncinput ni = {};
       logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->amata.state,
-               candidate, esctrie_id(ictx->amata.state));
+               isprint(candidate) ? candidate : ' ',
+               esctrie_id(ictx->amata.state));
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
-      logdebug("walk result on %u (%c): %d %p\n", candidate, candidate, w, ictx->amata.state);
+      logdebug("walk result on %u (%c): %d %p\n", candidate,
+               isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
           special_key(ictx, &ni);
@@ -1536,7 +1543,7 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
     logdebug("input %d/%d [0x%02x] (%c)\n", offset, *bufused, buf[offset],
-             isprint(*bufused) ? *bufused : ' ');
+             isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
     if(buf[offset] == '\x1b'){
       consumed = process_escape(ictx, buf + offset, *bufused);

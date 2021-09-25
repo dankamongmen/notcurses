@@ -75,6 +75,12 @@ free_trienode(esctrie** eptr){
             z = '9';
           }
         }
+        // if it's an all-strings path, only recurse once
+        if(z == ' '){
+          if(e->trie['!'] == e->trie[z]){
+            z = 0x80;
+          }
+        }
       }
       free(e->str);
       free(e->trie);
@@ -159,12 +165,23 @@ esctrie_make_string(esctrie* e, triefunc fxn){
       return -1;
     }
   }
+  esctrie* newe = create_esctrie_node(0);
+  if(newe == NULL){
+    return -1;
+  }
+  for(int i = 0 ; i < 0x80 ; ++i){
+    if(!isprint(i)){
+      continue;
+    }
+    e->trie[i] = newe;
+  }
+  e = newe;
   e->ntype = NODE_STRING;
   for(int i = 0 ; i < 0x80 ; ++i){
     if(!isprint(i)){
       continue;
     }
-    e->trie[i] = e;
+    e->trie[i] = newe;
   }
   if((e->trie[0x1b] = create_esctrie_node(0)) == NULL){
     return -1;
@@ -222,11 +239,9 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
     }
   }
   esctrie* eptr = a->escapes;
-  logdebug("ESCAPE START: %p\n", eptr);
   bool inescape = false;
   unsigned char c;
   while( (c = *csi++) ){
-    logdebug("making cflow: %u (%c) %p\n", c, c, eptr);
     if(c == '\\'){
       if(inescape){
         logerror("illegal escape: \\\n");
