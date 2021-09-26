@@ -48,7 +48,6 @@ get_default_geometry(tinfo* ti){
 // the meaning (*disabling* it with \e[80l)j
 static inline void
 setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
-fprintf(stderr, "INVERT80: %u\n", invert80);
   if(invert80){
     ti->pixel_init = sixel_init_inverted;
   }else{
@@ -577,11 +576,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
-    // MLterm 3.9.1 brings it into line with other terminals, and we
-    // stop inverting the meaning / applying the cursor hack for 3.9.1+.
-    if(compare_versions(ti->termversion, "3.9.1") < 0){
-      *invertsixel = true;
-    }
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
     ti->caps.rgb = true;
