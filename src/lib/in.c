@@ -436,7 +436,8 @@ prep_special_keys(inputctx* ictx){
 
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                ncsharedstats* stats, unsigned drain){
+                ncsharedstats* stats, unsigned drain,
+                int linesigs_enabled){
   inputctx* i = malloc(sizeof(*i));
   if(i){
     i->csize = 64;
@@ -465,9 +466,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->stdinhandle = ti->inhandle;
 #endif
                         i->ibufvalid = 0;
-                        // FIXME need to get this out of the initial termios
-                        // (as stored in tpreserved)
-                        i->linesigs = 1;
+                        i->linesigs = linesigs_enabled;
                         i->tbufvalid = 0;
                         i->midescape = 0;
                         i->numeric = 0;
@@ -1962,8 +1961,10 @@ input_thread(void* vmarshall){
 }
 
 int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                    ncsharedstats* stats, unsigned drain){
-  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats, drain);
+                    ncsharedstats* stats, unsigned drain,
+                    int linesigs_enabled){
+  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats, drain,
+                                   linesigs_enabled);
   if(ictx == NULL){
     return -1;
   }

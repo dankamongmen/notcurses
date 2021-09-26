@@ -780,7 +780,6 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       free(ti->tpreserved);
       return -1;
     }
-// FIXME need to enter alternate screen here
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
@@ -799,7 +798,14 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   tname = termname(); // longname() is also available
 #endif
-  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput)){
+  int linesigs_enabled = 1;
+  if(ti->tpreserved){
+    if(!(ti->tpreserved->c_lflag & ISIG)){
+      linesigs_enabled = 0;
+    }
+  }
+  if(init_inputlayer(ti, stdin, lmargin, tmargin, stats, draininput,
+                     linesigs_enabled)){
     goto err;
   }
   ti->sprixel_scale_height = 1;
