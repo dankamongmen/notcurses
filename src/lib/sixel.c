@@ -1054,9 +1054,10 @@ int sixel_init(int fd){
 }
 
 int sixel_init_inverted(int fd){
-  // except MLterm (and a few others, possibly including the physical VT340),
-  // which inverts the usual sense of DECSDM. at least Contour rejects the
-  // short form of [?80;8452h, so use the expanded form.
+  // some terminals, at some versions, invert the sense of DECSDM. for those,
+  // we must use 80h rather than the correct 80l. this grows out of a
+  // misunderstanding in XTerm through patchlevel 368, which was widely
+  // copied into other terminals.
   return tty_emit("\e[?80h\e[?8452h", fd);
 }
 
