@@ -328,8 +328,6 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           return -1;
         }
         return 0;
-      }else if(c == 'H'){
-        // FIXME
       }else if(c == 'D'){ // drain (kleene closure)
         // a kleene must be followed by some terminator
         if(!*csi){
@@ -424,29 +422,6 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     cur->ni.ctrl = ctrl;
     cur->ni.alt = alt;
   }
-  return 0;
-}
-
-static int
-ruts_hex(int* numeric, unsigned char c){
-  if(!isxdigit(c)){
-    return -1;
-  }
-  int digit;
-  if(isdigit(c)){
-    digit = c - '0';
-  }else if(islower(c)){
-    digit = c - 'a' + 10;
-  }else if(isupper(c)){
-    digit = c - 'A' + 10;
-  }else{
-    return -1; // should be impossible to reach
-  }
-  if(INT_MAX / 10 - digit < *numeric){ // would overflow
-    return -1;
-  }
-  *numeric *= 16;
-  *numeric += digit;
   return 0;
 }
 

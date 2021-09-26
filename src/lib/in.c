@@ -761,13 +761,12 @@ tcap_cb(inputctx* ictx){
   e = esctrie_trie(e)['1'];
   e = esctrie_trie(e)['+'];
   e = esctrie_trie(e)['r'];
-  e = esctrie_trie(e)['0'];
-  int cap = esctrie_numeric(e);
-  e = esctrie_trie(e)['='];
-  int val = esctrie_numeric(e);
+  e = esctrie_trie(e)['a'];
+  const char* str = esctrie_string(e);
+  loginfo("TCAP: %s\n", str);
+    /* FIXME
   if(cap == 0x544e){ // 'TN' terminal name
     loginfo("got TN capability %d\n", val);
-    /* FIXME
         if(strcmp(ictx->runstring, "xterm-kitty") == 0){
           inits->qterm = TERMINAL_KITTY;
         }else if(strcmp(ictx->runstring, "mlterm") == 0){
@@ -776,7 +775,6 @@ tcap_cb(inputctx* ictx){
         }
         break;
         */
-  }
   return 2;
 }
 
@@ -808,8 +806,8 @@ tda_cb(inputctx* ictx){
 static int
 build_cflow_automaton(inputctx* ictx){
   // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
-  // closure). \S is a ST-terminated string. \H is a hex-encoded string.
-  // this working is very dependent on order, and very delicate! hands off!
+  // closure). \S is a ST-terminated string. this working is very dependent on
+  // order, and very delicate! hands off!
   const struct {
     const char* cflow;
     triefunc fxn;
@@ -847,8 +845,8 @@ build_cflow_automaton(inputctx* ictx){
     { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
     { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
     // DCS (\eP...ST)
-    { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
-    { "P0+r\\H", NULL, },        // negative XTGETTCAP
+    { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
+    { "P0+r\\S", NULL, },    // negative XTGETTCAP
     { "P!|\\S", tda_cb, },
     { "P>|\\S", xtversion_cb, },
     // OSC (\e_...ST)
