@@ -37,6 +37,8 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
                    struct ncinput* ni)
   __attribute__ ((nonnull (1, 2, 4)));
 
+int dump_automaton(const automaton* a) __attribute__ ((nonnull (1)));
+
 uint32_t esctrie_id(const struct esctrie* e);
 const char* esctrie_string(const struct esctrie* e);
 // returns 128-way array of esctrie pointers

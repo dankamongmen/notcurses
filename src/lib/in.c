@@ -48,20 +48,6 @@ typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
 
-typedef enum {
-  STATE_NULL,
-  STATE_ESC,  // escape; aborts any active sequence
-  STATE_CSI,  // control sequence introducer
-  STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
-  STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
-  STATE_SDA_DRAIN, // drain secondary DA to 'c'
-  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM or kittykbd
-  STATE_DA_DRAIN, // drain out the primary DA to an alpha
-  STATE_DA_SEMI,    // got first semicolon following numeric
-  STATE_DA_SEMI2,   // got second semicolon following numeric ; numeric
-  STATE_DA_SEMI3,   // got third semicolon following numeric ; numeric ; numeric
-} initstates_e;
-
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
@@ -82,13 +68,6 @@ typedef struct inputctx {
   unsigned char tbuf[BUFSIZ]; // only used if we have distinct terminal fd
   int ibufvalid;      // we mustn't read() if ibufvalid == sizeof(ibuf)
   int tbufvalid;      // only used if we have distinct terminal connection
-
-  // transient state for processing control sequences
-  // FIXME these all go away once automata are united
-  initstates_e state;
-  char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
-  int stridx;             // length of runstring
-  int p2, p3, p4;         // holders for numeric params
 
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
@@ -817,9 +796,6 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\Nu", kitty_cb, },
-    { "[?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
-    { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
-    { "[?\\N;\\N$y", decrpm_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c  ("VT101 with No Options")
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
@@ -829,6 +805,9 @@ build_cflow_automaton(inputctx* ictx){
     { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c  ("VT220")
     { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c  ("VT320")
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
+    { "[?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
+    { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[?\\N;\\N$y", decrpm_cb, },
     // DCS (\eP...ST)
     { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
     { "P0+r\\H", NULL, },        // negative XTGETTCAP
@@ -845,6 +824,7 @@ build_cflow_automaton(inputctx* ictx){
       logerror("failed adding %p via %s\n", csi->fxn, csi->cflow);
       return -1;
     }
+    loginfo("added %p via %s\n", csi->fxn, csi->cflow);
   }
   return 0;
 }
@@ -870,7 +850,6 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                       if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                         i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                         memset(i->initdata, 0, sizeof(*i->initdata));
-                        i->state = STATE_NULL;
                         i->iread = i->iwrite = i->ivalid = 0;
                         i->cread = i->cwrite = i->cvalid = 0;
                         i->initdata_complete = NULL;
@@ -884,8 +863,6 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->linesigs = linesigs_enabled;
                         i->tbufvalid = 0;
                         i->midescape = 0;
-                        i->stridx = 0;
-                        i->runstring[i->stridx] = '\0';
                         i->lmargin = lmargin;
                         i->tmargin = tmargin;
                         i->drain = drain;
@@ -1138,7 +1115,6 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   if(buf[0] != '\x1b'){
     return -1;
   }
-  ictx->state = STATE_NULL;
   while(ictx->amata.used < buflen){
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
@@ -1198,6 +1174,10 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
     // this was not a sequence, we'll catch it on the next read.
     if(consumed < 0){
       int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
+      // if midescape is not set, the negative return menas invalid escape. if
+      // there was space available, we needn't worry about this escape having
+      // been broken across distinct reads. in either case, replay it to the
+      // bulk input buffer; our automaton will have been reset.
       if(!ictx->midescape || tavailable){
         consumed = -consumed;
         int available = sizeof(ictx->ibuf) - ictx->ibufvalid;
@@ -1212,13 +1192,15 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
         *bufused -= consumed;
         offset += consumed;
         ictx->midescape = 0;
+      }else{
+        break;
       }
-      break;
     }
     *bufused -= consumed;
     offset += consumed;
   }
-  // move any leftovers to the front; only happens if we fill output queue
+  // move any leftovers to the front; only happens if we fill output queue,
+  // or ran out of input data mid-escape
   if(*bufused){
     memmove(buf, buf + offset, *bufused);
   }
@@ -1501,9 +1483,14 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
+  if(build_cflow_automaton(ictx)){
     raise(SIGSEGV); // ? FIXME
   }
+  dump_automaton(&ictx->amata);
+  if(prep_all_keys(ictx)){
+    raise(SIGSEGV); // ? FIXME
+  }
+  dump_automaton(&ictx->amata);
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read

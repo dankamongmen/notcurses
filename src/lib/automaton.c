@@ -217,29 +217,29 @@ esctrie_make_string(esctrie* e, triefunc fxn){
 // accept any digit and transition to a numeric node.
 static esctrie*
 link_numeric(esctrie* e){
-  // if we already have any digit links, we must have all 10, and they all must
-  // be pointing to the same place. if so, use that linked node.
-  esctrie* targ = e->trie['0'];
-  for(int i = '1' ; i <= '9' ; ++i){
-    if(e->trie[i] != targ){
-      logerror("can't transition %p to a non-numeric %p != %p\n", e, e->trie[i], targ);
-      return NULL;
+  esctrie* targ = NULL;
+  // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
+  for(int i = '0' ; i <= '9' ; ++i){
+    targ = e->trie[i];
+    if(targ && targ->ntype == NODE_NUMERIC){
+      break;
     }
   }
-  if(targ){
-    if(targ->ntype != NODE_NUMERIC){
-      logerror("not linked to a numeric (%d)\n", targ->ntype);
-      return NULL;
+  // we either have a numeric target, or will make one now
+  if(targ == NULL){
+    if( (targ = create_esctrie_node(0)) ){
+      if(esctrie_make_numeric(targ)){
+        free_trienode(&targ);
+        return NULL;
+      }
     }
-    return targ;
   }
-  if( (targ = create_esctrie_node(0)) ){
-    if(esctrie_make_numeric(targ)){
-      free_trienode(&targ);
-      return NULL;
-    }
-    for(int i = '0' ; i <= '9' ; ++i){
+  // fill in all NULL numeric links with the new target
+  for(int i = '0' ; i <= '9' ; ++i){
+    if(e->trie[i] == NULL){
       e->trie[i] = targ;
+    }else{
+      // FIXME travel to the ends and link targ there
     }
   }
   return targ;
@@ -292,6 +292,7 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }
       eptr = eptr->trie[c];
     }
+    logdebug("added %c, now at %p (%d)\n", c, eptr, eptr->ntype);
   }
   free(eptr->trie);
   eptr->trie = NULL;
@@ -380,6 +381,23 @@ growstring(automaton* a, esctrie* e, unsigned candidate){
   e->str[a->stridx] = '\0';
   ++a->stridx;
   return 0;
+}
+
+static int
+dump_escnode(const esctrie* eptr, int indent, int trans){
+  fprintf(stderr, "%*.*s%d -> state: %d\n", indent, indent, "", trans, eptr->ntype);
+  if(eptr->trie){
+    for(int i = 0 ; i < 0x80 ; ++i){
+      if(eptr->trie[i] && eptr->trie[i] != eptr){
+        dump_escnode(eptr->trie[i], indent + 1, i);
+      }
+    }
+  }
+  return 0;
+}
+
+int dump_automaton(const automaton* a){
+  return dump_escnode(a->escapes, 0, 0);
 }
 
 // returns -1 for non-match, 0 for match, 1 for acceptance. if we are in the
