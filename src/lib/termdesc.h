@@ -343,6 +343,9 @@ leave_alternate_screen(FILE* fp, tinfo* ti){
 
 int cbreak_mode(tinfo* ti);
 
+// execute termios's TIOCGWINSZ ioctl(). returns -1 on failure.
+int tiocgwinsz(int fd, struct winsize* ws);
+
 #ifdef __cplusplus
 }
 #endif

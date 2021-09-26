@@ -48,6 +48,12 @@ int faccessat(int dirfd, const char *pathname, int mode, int flags);
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 pid_t waitpid(pid_t pid, int* ret, int flags);
+struct winsize {
+ unsigned short ws_row;
+ unsigned short ws_col;
+ unsigned short ws_xpixel;
+ unsigned short ws_ypixel;
+};
 #define WNOHANG 0
 #else
 #include <poll.h>
