@@ -86,7 +86,6 @@ typedef struct inputctx {
   // transient state for processing control sequences
   // FIXME these all go away once automata are united
   initstates_e state;
-  int numeric;            // currently-lexed numeric
   char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
   int stridx;             // length of runstring
   int p2, p3, p4;         // holders for numeric params
@@ -319,8 +318,8 @@ prep_special_keys(inputctx* ictx){
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
 #endif
-  (void)ictx;
   */
+  (void)ictx;
   return 0;
 }
 
@@ -635,27 +634,6 @@ decrpm_cb(inputctx* ictx){
 }
 
 static int
-extract_xtversion(inputctx* ictx, const char* str, char suffix){
-  size_t slen = strlen(str);
-  if(slen == 0){
-    logwarn("empty version in xtversion\n");
-    return -1;
-  }
-  if(suffix){
-    if(str[slen - 1] != suffix){
-      return -1;
-    }
-    --slen;
-  }
-  if(slen == 0){
-    logwarn("empty version in xtversion\n");
-    return -1;
-  }
-  ictx->initdata->version = strndup(str, slen);
-  return 0;
-}
-
-static int
 bgdef_cb(inputctx* ictx){
   if(ictx->initdata == NULL){
     return 2;
@@ -676,6 +654,55 @@ bgdef_cb(inputctx* ictx){
         break;
         */
   return 2;
+}
+
+// use the version extracted from Secondary Device Attributes, assuming that
+// it is Alacritty (we ought check the specified terminfo database entry).
+// Alacritty writes its crate version with each more significant portion
+// multiplied by 100^{portion ID}, where major, minor, patch are 2, 1, 0.
+// what happens when a component exceeds 99? who cares. support XTVERSION.
+/*
+static char*
+set_sda_version(inputctx* ictx){
+  int maj, min, patch;
+  if(ictx->numeric <= 0){
+    return NULL;
+  }
+  maj = ictx->numeric / 10000;
+  min = (ictx->numeric % 10000) / 100;
+  patch = ictx->numeric % 100;
+  if(maj >= 100 || min >= 100 || patch >= 100){
+    return NULL;
+  }
+  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
+  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
+  char* buf = malloc(13);
+  if(buf){
+    sprintf(buf, "%d.%d.%d", maj, min, patch);
+  }
+  return buf;
+}
+*/
+
+static int
+extract_xtversion(inputctx* ictx, const char* str, char suffix){
+  size_t slen = strlen(str);
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  if(suffix){
+    if(str[slen - 1] != suffix){
+      return -1;
+    }
+    --slen;
+  }
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  ictx->initdata->version = strndup(str, slen);
+  return 0;
 }
 
 static int
@@ -857,7 +884,6 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                         i->linesigs = linesigs_enabled;
                         i->tbufvalid = 0;
                         i->midescape = 0;
-                        i->numeric = 0;
                         i->stridx = 0;
                         i->runstring[i->stridx] = '\0';
                         i->lmargin = lmargin;
@@ -1040,69 +1066,6 @@ ictx_independent_p(const inputctx* ictx){
   return ictx->termfd >= 0; // FIXME does this hold on MSFT Terminal?
 }
 
-static int
-ruts_numeric(int* numeric, unsigned char c){
-  if(!isdigit(c)){
-    return -1;
-  }
-  int digit = c - '0';
-  if(INT_MAX / 10 - digit < *numeric){ // would overflow
-    return -1;
-  }
-  *numeric *= 10;
-  *numeric += digit;
-  return 0;
-}
-
-static int
-ruts_hex(int* numeric, unsigned char c){
-  if(!isxdigit(c)){
-    return -1;
-  }
-  int digit;
-  if(isdigit(c)){
-    digit = c - '0';
-  }else if(islower(c)){
-    digit = c - 'a' + 10;
-  }else if(isupper(c)){
-    digit = c - 'A' + 10;
-  }else{
-    return -1; // should be impossible to reach
-  }
-  if(INT_MAX / 10 - digit < *numeric){ // would overflow
-    return -1;
-  }
-  *numeric *= 16;
-  *numeric += digit;
-  return 0;
-}
-
-// use the version extracted from Secondary Device Attributes, assuming that
-// it is Alacritty (we ought check the specified terminfo database entry).
-// Alacritty writes its crate version with each more significant portion
-// multiplied by 100^{portion ID}, where major, minor, patch are 2, 1, 0.
-// what happens when a component exceeds 99? who cares. support XTVERSION.
-static char*
-set_sda_version(inputctx* ictx){
-  int maj, min, patch;
-  if(ictx->numeric <= 0){
-    return NULL;
-  }
-  maj = ictx->numeric / 10000;
-  min = (ictx->numeric % 10000) / 100;
-  patch = ictx->numeric % 100;
-  if(maj >= 100 || min >= 100 || patch >= 100){
-    return NULL;
-  }
-  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
-  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
-  char* buf = malloc(13);
-  if(buf){
-    sprintf(buf, "%d.%d.%d", maj, min, patch);
-  }
-  return buf;
-}
-
 // add a decoded, valid Unicode to the bulk output buffer, or drop it if no
 // space is available.
 static void
@@ -1150,165 +1113,6 @@ special_key(inputctx* ictx, const ncinput* inni){
   ++ictx->ivalid;
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
-}
-
-// returns 1 after handling the Device Attributes response, 0 if more input
-// ought be fed to the machine, and -1 on an invalid state transition.
-// returns 2 on a valid accept state that is not the final state.
-static int
-pump_control_read(inputctx* ictx, unsigned char c){
-  logdebug("state: %2d char: %1c %3d %02x\n", ictx->state, isprint(c) ? c : ' ', c, c);
-  if(c == NCKEY_ESC){
-    ictx->state = STATE_ESC;
-    return 0;
-  }
-  switch(ictx->state){
-    case STATE_NULL:
-      // not an escape -- throw into user queue
-      break;
-    case STATE_ESC:
-      ictx->numeric = 0;
-      if(c == '['){
-        ictx->state = STATE_CSI;
-      }
-      break;
-    case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
-      if(c == '?'){
-        ictx->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS/kittykbd
-      }else if(c == '>'){
-        // SDA yields up Alacritty's crate version, but it doesn't unambiguously
-        // identify Alacritty. If we've got any other version information, skip
-        // directly to STATE_SDA_DRAIN, rather than doing STATE_SDA_VER.
-        if(ictx->initdata){
-          if(ictx->initdata->qterm || ictx->initdata->version){
-            loginfo("Identified terminal already; ignoring DA2\n");
-            ictx->state = STATE_SDA_DRAIN;
-          }else{
-            ictx->state = STATE_SDA;
-          }
-        }
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_SDA:
-      if(c == ';'){
-        ictx->state = STATE_SDA_VER;
-        ictx->numeric = 0;
-      }else if(c == 'c'){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_SDA_VER:
-      if(c == ';'){
-        ictx->state = STATE_SDA_DRAIN;
-        if(ictx->initdata){
-          loginfo("Got DA2 Pv: %u\n", ictx->numeric);
-          // if a version was set, we couldn't have arrived here. alacritty
-          // writes its crate version here, in an encoded form. nothing else
-          // necessarily does, though, so allow failure. this value will be
-          // interpreted as the version only if TERM indicates alacritty.
-          ictx->initdata->version = set_sda_version(ictx);
-        }
-      }else if(ruts_numeric(&ictx->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_SDA_DRAIN:
-      if(c == 'c'){
-        ictx->state = STATE_NULL;
-        return 2;
-      }
-      break;
-    // primary device attributes and XTSMGRAPHICS replies are generally
-    // indistinguishable until well into the escape. one can get:
-    // XTSMGRAPHICS: CSI ? Pi ; Ps ; Pv S {Pi: 123} {Ps: 0123}
-    // DECRPM: CSI ? Pd ; Ps $ y {Pd: many} {Ps: 01234}
-    // KITTYKBD: CSI ? flags u
-    case STATE_DA: // return success on end of DA
-//fprintf(stderr, "DA: %c\n", c);
-      // FIXME several of these numbers could be DECRPM/XTSM/kittykbd. probably
-      // just want to read number, *then* make transition on non-number.
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){ // stash for DECRPM/XTSM/kittykbd
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI;
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI:
-      if(c == ';'){
-        ictx->p3 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI2;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI2:
-      if(c == ';'){
-        ictx->p4 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI3;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_DRAIN:
-      if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI3:
-      if(c == ';'){
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_DRAIN;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    default:
-      logerror("Reached invalid init state %d\n", ictx->state);
-      return -1;
-  }
-  logdebug("leaving with state %d\n", ictx->state);
-  return 0;
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
