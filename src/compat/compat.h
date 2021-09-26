@@ -59,6 +59,7 @@ pid_t waitpid(pid_t pid, int* ret, int flags);
 #endif
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
+int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate);
 
 static inline uint64_t
 timespec_to_ns(const struct timespec* ts){

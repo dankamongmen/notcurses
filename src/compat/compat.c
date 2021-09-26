@@ -24,6 +24,12 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
   (void)oldstate;
   return 0;
 }
+int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate){ // FIXME
+  (void)fd;
+  (void)state;
+  (void)oldstate;
+  return 0;
+}
 pid_t waitpid(pid_t pid, int* state, int options){ // FIXME
   (void)options;
   (void)pid;
@@ -44,7 +50,7 @@ pid_t waitpid(pid_t pid, int* state, int options){ // FIXME
 #include <unistd.h>
 #include <fcntl.h>
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
-  int flags = fcntl(fd, F_GETFL, 0);
+  int flags = fcntl(fd, F_GETFL);
   if(flags < 0){
     return -1;
   }
@@ -63,6 +69,31 @@ int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
     flags &= ~O_NONBLOCK;
   }
   if(fcntl(fd, F_SETFL, flags)){
+    return -1;
+  }
+  return 0;
+}
+
+int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate){
+  int flags = fcntl(fd, F_GETFD);
+  if(flags < 0){
+    return -1;
+  }
+  if(oldstate){
+    *oldstate = flags & O_CLOEXEC;
+  }
+  if(state){
+    if(flags & O_CLOEXEC){
+      return 0;
+    }
+    flags |= O_CLOEXEC;
+  }else{
+    if(!(flags & O_CLOEXEC)){
+      return 0;
+    }
+    flags &= ~O_CLOEXEC;
+  }
+  if(fcntl(fd, F_SETFD, flags)){
     return -1;
   }
   return 0;
