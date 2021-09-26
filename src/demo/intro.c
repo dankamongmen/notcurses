@@ -76,21 +76,36 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
   }
   struct ncvisual_options vopts = {
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
+    .scaling = NCSCALE_STRETCH,
   };
+  int cellpxy, cellpxx;
+  ncplane_pixelgeom(notcurses_stdplane_const(nc), NULL, NULL,
+                    &cellpxy, &cellpxx, NULL, NULL);
   int odimy, odimx, scaley, scalex;
   ncvisual_blitter_geom(nc, ncv, &vopts, &odimy, &odimx, &scaley, &scalex, NULL);
-  vopts.leny = (odimy / scaley) + !!(odimy % scaley);
-  vopts.lenx = (odimx / scalex) + !!(odimx % scalex);
-  if(vopts.lenx > dimx - 1){
-    vopts.lenx = dimx - 1;
+  struct ncplane_options nopts = {
+    .rows = (odimy / cellpxy) + !!(odimy % cellpxy),
+    .cols = (odimx / cellpxx) + !!(odimx % cellpxx),
+    .name = "orca",
+  };
+  if(nopts.cols > dimx - 1){
+    nopts.cols = dimx - 1;
   }
-  if(vopts.leny > dimy - 1){
-    vopts.leny = dimy - 1;
+  if(nopts.rows > dimy - 1){
+    nopts.rows = dimy - 1;
   }
-  vopts.y = dimy - vopts.leny - 1;
-  vopts.x = dimx - vopts.lenx - 1;
-  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  nopts.y = dimy - nopts.rows - 1;
+  nopts.x = dimx - nopts.cols - 1;
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
+  if(n == NULL){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
+  vopts.n = n;
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(n);
+    ncvisual_destroy(ncv);
+  }
   ncvisual_destroy(ncv);
   return n;
 }
@@ -245,9 +260,8 @@ int intro(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC, &now);
     int err;
     if(!on){
-      if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-        on = orcashow(nc, rows, cols);
-        if(on == NULL){
+      if(notcurses_canopen_images(nc)){
+        if((on = orcashow(nc, rows, cols)) == NULL){
           return -1;
         }
       }
