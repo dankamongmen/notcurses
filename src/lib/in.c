@@ -562,9 +562,23 @@ handoff_initial_responses(inputctx* ictx){
 
 static int
 da1_cb(inputctx* ictx){
-  loginfo("read device attributes\n");
+  loginfo("read primary device attributes\n");
   if(ictx->initdata){
     handoff_initial_responses(ictx);
+  }
+  return 2;
+}
+
+static int
+da2_cb(inputctx* ictx){
+  loginfo("read secondary device attributes\n");
+  if(ictx->initdata){
+    // SDA yields up Alacritty's crate version, but it doesn't unambiguously
+    // identify Alacritty. If we've got any other version information, don't
+    // use this. use the second parameter (Pv).
+    if(ictx->initdata->qterm == 0 && ictx->initdata->version == NULL){
+      // FIXME alacritty handle
+    }
   }
   return 2;
 }
@@ -791,6 +805,17 @@ build_cflow_automaton(inputctx* ictx){
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[>0;\\N;\\Nc", da2_cb, }, // "VT100"
+    { "[>1;\\N;\\Nc", da2_cb, }, // "VT220"
+    { "[>2;\\N;\\Nc", da2_cb, }, // "VT240" or "VT241"
+    { "[>18;\\N;\\Nc", da2_cb, }, // "VT330"
+    { "[>19;\\N;\\Nc", da2_cb, }, // "VT340"
+    { "[>24;\\N;\\Nc", da2_cb, }, // "VT320"
+    { "[>32;\\N;\\Nc", da2_cb, }, // "VT382"
+    { "[>41;\\N;\\Nc", da2_cb, }, // "VT420"
+    { "[>61;\\N;\\Nc", da2_cb, }, // "VT510"
+    { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
+    { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
     { "[?\\N;\\N$y", decrpm_cb, },
     // DCS (\eP...ST)
     { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
