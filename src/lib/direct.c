@@ -841,9 +841,6 @@ ncdirect_stop_minimal(void* vnc){
   }
   fbuf f = {};
   if(fbuf_init_small(&f) == 0){
-    if(nc->tcache.pixel_shutdown){
-      ret |= nc->tcache.pixel_shutdown(&f);
-    }
     ret |= reset_term_attributes(&nc->tcache, &f);
     ret |= fbuf_finalize(&f, stdout);
   }

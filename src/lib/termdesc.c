@@ -43,9 +43,12 @@ get_default_geometry(tinfo* ti){
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
 }
 
-// we found Sixel support -- set up the API
+// we found Sixel support -- set up the API. invert80 refers to whether the
+// terminal implements DECSDM correctly (enabling it with \e[80l), or inverts
+// the meaning (*disabling* it with \e[80l)j
 static inline void
 setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
+fprintf(stderr, "INVERT80: %u\n", invert80);
   if(invert80){
     ti->pixel_init = sixel_init_inverted;
   }else{
@@ -60,7 +63,6 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_move = NULL;
   ti->pixel_scroll = NULL;
   ti->pixel_wipe = sixel_wipe;
-  ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_clear_all = NULL;
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
@@ -83,7 +85,6 @@ setup_kitty_bitmaps(tinfo* ti, int fd, ncpixelimpl_e level){
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_scroll = NULL;
-  ti->pixel_shutdown = kitty_shutdown;
   ti->pixel_clear_all = kitty_clear_all;
   if(level == NCPIXEL_KITTY_STATIC){
     ti->pixel_wipe = kitty_wipe;
@@ -121,7 +122,6 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_refresh = NULL;
   ti->pixel_move = NULL;
   ti->pixel_scroll = fbcon_scroll;
-  ti->pixel_shutdown = NULL;
   ti->pixel_clear_all = NULL;
   ti->pixel_rebuild = fbcon_rebuild;
   ti->pixel_wipe = fbcon_wipe;
@@ -552,6 +552,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
+    if(compare_versions(ti->termversion, "0.15.1") < 0){
+      *invertsixel = true;
+    }
   }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
     ti->caps.quadrants = true;
@@ -565,7 +568,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     ti->caps.sextants = true;
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    if(compare_versions(ti->termversion, "1.8.2") >= 0){
+    if(compare_versions(ti->termversion, "1.8.2") < 0){
       *invertsixel = true;
     }
   }else if(qterm == TERMINAL_TMUX){
@@ -596,7 +599,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       if(add_pushcolors_escapes(ti, tablelen, tableused)){
         return -1;
       }
-      if(compare_versions(ti->termversion, "359") >= 0){
+      if(compare_versions(ti->termversion, "359") < 0){
         *invertsixel = true;
       }
     }
@@ -605,7 +608,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    if(compare_versions(ti->termversion, "3.5.2") >= 0){
+    if(compare_versions(ti->termversion, "3.5.2") < 0){
       *invertsixel = true;
     }
     ti->bce = true;

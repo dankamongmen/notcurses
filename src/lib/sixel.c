@@ -1042,17 +1042,21 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   return s->glyph.used;
 }
 
+// private mode 80 (DECSDM) manages "sixel scrolling". when enabled, this
+//  results in any necessary scrolling to display a sixel, and (more
+//  importantly) emits them at the cursor location, rather than the upper
+//  left corner of the terminal. we always want that.
+// private mode 8452 places the cursor at the end of a sixel when it's
+//  emitted. we don't need this for rendered mode, but we do want it for
+//  direct mode. it causes us no problems, so always set it.
 int sixel_init(int fd){
-  // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
-  // scrolling, but puts it at the current cursor location (as opposed to
-  // the upper left corner of the screen).
-  return tty_emit("\e[?80;8452h", fd);
+  return tty_emit("\e[?80l\e[?8452h", fd);
 }
 
 int sixel_init_inverted(int fd){
   // except MLterm (and a few others, possibly including the physical VT340),
   // which inverts the usual sense of DECSDM.
-  return tty_emit("\e[?80l\e[?8452h", fd);
+  return tty_emit("\e[?80;8452h", fd);
 }
 
 // only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to
@@ -1104,10 +1108,10 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 1;
 }
 
-// 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE
-// would be better, where they're supported.
 int sixel_shutdown(fbuf* f){
-  return fbuf_emit(f, "\e[?8452l");
+  (void)f;
+  // no way to know what the state was before; we ought use XTSAVE/XTRESTORE
+  return 0;
 }
 
 uint8_t* sixel_trans_auxvec(const tinfo* ti){

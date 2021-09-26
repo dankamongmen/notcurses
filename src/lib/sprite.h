@@ -185,8 +185,6 @@ int kitty_remove(int id, fbuf* f);
 int kitty_clear_all(fbuf* f);
 int sixel_init(int fd);
 int sixel_init_inverted(int fd);
-int kitty_shutdown(fbuf* f);
-int sixel_shutdown(fbuf* f);
 uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
 uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
