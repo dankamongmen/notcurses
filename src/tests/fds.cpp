@@ -158,7 +158,6 @@ TEST_CASE("FdsAndSubprocs"
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    // FIXME ought be CHECK, breaking in drone
     WARN(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
