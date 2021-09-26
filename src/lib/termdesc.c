@@ -610,6 +610,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     termname = "Contour";
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
+    *invertsixel = true;
   }else if(qterm == TERMINAL_ITERM){
     termname = "iTerm2";
     // iTerm implements DCS ASU, but has no detection for it
