@@ -1,9 +1,14 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.3 (not yet released)
+* 2.4.3 (2021-09-26)
   * `ncplane_erase_region()` has been made much more general, and can now
     operate relative to the current cursor.
+  * Several terminal emulators have recently changed their semantics regarding
+    DECSDM. These changes correctly match the real VT340 behavior.
+    Unfortunately, this means we always draw Sixels in the upper left corner of
+    the screen. Code has been added to deal with XTerm 369, the ayosec/graphics
+    branch of Alacritty 15.1, foot 1.8.2, and MinTTY 3.5.2.
 
 * 2.4.2 (2021-09-19)
   * The Rust wrappers have been moved to
