@@ -771,6 +771,7 @@ tda_cb(inputctx* ictx){
   struct esctrie* e = dcs_node(&ictx->amata);
   e = esctrie_trie(e)['!'];
   e = esctrie_trie(e)['|'];
+  e = esctrie_trie(e)['a'];
   const char* str = esctrie_string(e);
   if(str == NULL){
     logwarn("empty ternary device attribute\n");
