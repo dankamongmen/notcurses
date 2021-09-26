@@ -373,13 +373,13 @@ mouse_click(inputctx* ictx, unsigned release){
 static int
 mouse_press_cb(inputctx* ictx){
   mouse_click(ictx, 0);
-  return 0;
+  return 2;
 }
 
 static int
 mouse_release_cb(inputctx* ictx){
   mouse_click(ictx, 1);
-  return 0;
+  return 2;
 }
 
 static int
@@ -407,7 +407,7 @@ cursor_location_cb(inputctx* ictx){
     pthread_cond_broadcast(&ictx->ccond);
     loginfo("cursor location: %d/%d\n", y, x);
   }
-  return 0;
+  return 2;
 }
 
 static int
@@ -437,7 +437,7 @@ geom_cb(inputctx* ictx){
     logerror("invalid geom report type: %d\n", kind);
     return -1;
   }
-  return 0;
+  return 2;
 }
 
 // ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
@@ -1109,12 +1109,6 @@ special_key(inputctx* ictx, const ncinput* inni){
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   assert(1 <= buflen);
-  // FIXME given that we keep our state across invocations, we want buf offset
-  //  by the amount we handled the last iteration, if any was left over...
-  //  until then, we reset the state on entry. remove that once we preserve!
-  if(buf[0] != '\x1b'){
-    return -1;
-  }
   while(ictx->amata.used < buflen){
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
@@ -1122,9 +1116,11 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       ictx->amata.used = 0;
       return -(used - 1);
     }
-    // an escape always resets the trie, as does a NULL transition
+    // an escape always resets the trie (unless we're in the middle of an
+    // ST-terminated string), as does a NULL transition.
     if(candidate == NCKEY_ESC && !ictx->amata.instring){
       ictx->amata.state = ictx->amata.escapes;
+      logtrace("initialized automaton to %p\n", ictx->amata.state);
       ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
@@ -1135,9 +1131,9 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // coming from a transition, where ictx->triepos->trie is checked below.
     }else{
       ncinput ni = {};
-      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->amata.state,
-               isprint(candidate) ? candidate : ' ',
-               esctrie_id(ictx->amata.state));
+      logtrace("triepos: %p in: %c instring%c special: 0x%08x\n", ictx->amata.state,
+               isprint(candidate) ? candidate : ' ', ictx->amata.instring ? '+' : '-',
+               ictx->amata.state ? esctrie_id(ictx->amata.state) : 0);
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
       logdebug("walk result on %u (%c): %d %p\n", candidate,
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
