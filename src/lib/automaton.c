@@ -1,6 +1,20 @@
 #include "automaton.h"
 #include "internal.h"
 
+// the input automaton, walked for all escape sequences. an escape sequence is
+// everything from an escape through recognized termination of that escape, or
+// abort of the sequence via another escape, save the case of DCS sequences
+// (those beginning with Escape-P), which are terminated by the ST sequence
+// Escape-\. in the case of an aborted sequence, the sequence in its entirety
+// is replayed as regular input. regular input is not driven through this
+// automaton.
+//
+// one complication is that the user can just press escape themselves, followed
+// by arbitrary other keypresses. when input is redirected from some source
+// other than the connected terminal, this is no problem: we know control
+// sequences to be coming in from the connected terminal, and everything else
+// is bulk input.
+
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
   // if non-NULL, this is the next level of radix-128 trie. it is NULL on
@@ -365,8 +379,11 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   }
   if(e->ntype == NODE_NUMERIC){
     if(isdigit(candidate)){
-      // FIXME check for overflow
-      e->number = e->number * 10 + (candidate - '0');
+      int digit = candidate - '0';
+      if((INT_MAX - digit) / 10 < e->number){
+        logwarn("digit %c will overflow %d\n", candidate, e->number);
+      }
+      e->number = e->number * 10 + digit;
       return 0;
     }
   }else if(e->ntype == NODE_STRING){
