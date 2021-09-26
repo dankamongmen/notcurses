@@ -1079,6 +1079,25 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
   return 0;
 }
 
+int tiocgwinsz(int fd, struct winsize* ws){
+#ifndef __MINGW64__
+  int i = ioctl(fd, TIOCGWINSZ, ws);
+  if(i < 0){
+    logerror("TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
+    return -1;
+  }
+  if(ws->ws_row <= 0 || ws->ws_col <= 0){
+    logerror("Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
+             fd, ws->ws_row, ws->ws_col);
+    return -1;
+  }
+#else
+  (void)fd;
+  (void)ws;
+#endif
+  return 0;
+}
+
 int cbreak_mode(tinfo* ti){
 #ifndef __MINGW64__
   int ttyfd = ti->ttyfd;

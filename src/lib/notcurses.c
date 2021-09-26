@@ -259,14 +259,7 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
   }
 #ifndef __MINGW64__
   struct winsize ws;
-  int i = ioctl(tcache->ttyfd, TIOCGWINSZ, &ws);
-  if(i < 0){
-    logerror("TIOCGWINSZ failed on %d (%s)\n", tcache->ttyfd, strerror(errno));
-    return -1;
-  }
-  if(ws.ws_row <= 0 || ws.ws_col <= 0){
-    logerror("Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
-             tcache->ttyfd, ws.ws_row, ws.ws_col);
+  if(tiocgwinsz(tcache->ttyfd, &ws)){
     return -1;
   }
   int rowsafe;
@@ -283,14 +276,12 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
       get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
     }else
 #endif
-    {
-      // we might have the pixel geometry from CSI14t, so don't override a
-      // valid earlier response with 0s from the ioctl. we do want to fire
-      // off a fresh CSI14t in this case, though FIXME.
-      if(ws.ws_ypixel){
-        tcache->pixy = ws.ws_ypixel;
-        tcache->pixx = ws.ws_xpixel;
-      }
+    // we might have the pixel geometry from CSI14t, so don't override a valid
+    // earlier response with 0s from the ioctl. we do want to fire off a fresh
+    // CSI14t in this case, though FIXME.
+    if(ws.ws_ypixel){
+      tcache->pixy = ws.ws_ypixel;
+      tcache->pixx = ws.ws_xpixel;
     }
     // update even if we didn't get values just now, because we need set
     // cellpix{y,x} up from an initial CSI14n, which set only pix{y,x}.

@@ -25,15 +25,15 @@ draw_grid(struct ncplane* stdn){
         for(int x = 0 ; x < maxbx ; ++x){
           uint32_t* px = row + x;
           ncpixel_set_a(px, 255);
-          ncpixel_set_r(px, 255);
-          ncpixel_set_g(px, 255);
-          ncpixel_set_b(px, 255);
+          ncpixel_set_r(px, 0x39);
+          ncpixel_set_g(px, 0xff);
+          ncpixel_set_b(px, 0xa0);
           if((x += cellpxx - 1) < maxbx){
             px = row + x;
             ncpixel_set_a(px, 255);
-            ncpixel_set_r(px, 255);
-            ncpixel_set_g(px, 255);
-            ncpixel_set_b(px, 255);
+            ncpixel_set_r(px, 0x39);
+            ncpixel_set_g(px, 0xff);
+            ncpixel_set_b(px, 0xa0);
           }
         }
       }
