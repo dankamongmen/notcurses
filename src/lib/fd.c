@@ -311,9 +311,10 @@ ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int 
   return ret->nfp;
 }
 
-ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
-                             const char* bin,  char* const arg[],
-                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+static ncsubproc*
+ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
+          const char* bin,  char* const arg[],
+          ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
   ncsubproc_options zeroed = {};
   if(!opts){
     opts = &zeroed;
@@ -332,7 +333,11 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
-    execv(bin, arg);
+    if(usepath){
+      execvp(bin, arg);
+    }else{
+      execv(bin, arg);
+    }
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
     free(ret);
@@ -346,39 +351,16 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
   return ret;
 }
 
+ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
+                             const char* bin,  char* const arg[],
+                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
+  return ncexecvpe(n, opts, 0, bin, arg, cbfxn, donecbfxn);
+}
+
 ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
                               const char* bin,  char* const arg[],
                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  ncsubproc_options zeroed = {};
-  if(!opts){
-    opts = &zeroed;
-  }
-  if(!cbfxn || !donecbfxn){
-    return NULL;
-  }
-  if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
-  }
-  int fd = -1;
-  ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return NULL;
-  }
-  memset(ret, 0, sizeof(*ret));
-  ret->pid = launch_pipe_process(&fd, &ret->pidfd);
-  if(ret->pid == 0){
-    execvp(bin, arg);
-    exit(EXIT_FAILURE);
-  }else if(ret->pid < 0){
-    free(ret);
-    return NULL;
-  }
-  if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
-    kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
-    free(ret);
-    return NULL;
-  }
-  return ret;
+  return ncexecvpe(n, opts, 1, bin, arg, cbfxn, donecbfxn);
 }
 
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
