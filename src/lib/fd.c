@@ -311,9 +311,10 @@ ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int 
   return ret->nfp;
 }
 
+// use of env implies usepath
 static ncsubproc*
 ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
-          const char* bin,  char* const arg[],
+          const char* bin,  char* const arg[], char* const env[],
           ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
   ncsubproc_options zeroed = {};
   if(!opts){
@@ -333,7 +334,19 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
   memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
-    if(usepath){
+    if(env){
+#ifdef __linux__
+      execvpe(bin, arg, env);
+#elif defined(__APPLE__) || defined(__gnu_hurd__)
+      (void)env;
+      execvp(bin, arg); // FIXME env? use posix_spawn()!
+#elif defined(__MINGW64__) // use CreateProcess()!
+      (void)arg;
+      (void)env;
+#else
+      exect(bin, arg, env);
+#endif
+    }else if(usepath){
       execvp(bin, arg);
     }else{
       execv(bin, arg);
@@ -354,61 +367,19 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
                              const char* bin,  char* const arg[],
                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  return ncexecvpe(n, opts, 0, bin, arg, cbfxn, donecbfxn);
+  return ncexecvpe(n, opts, 0, bin, arg, NULL, cbfxn, donecbfxn);
 }
 
 ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
                               const char* bin,  char* const arg[],
                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  return ncexecvpe(n, opts, 1, bin, arg, cbfxn, donecbfxn);
+  return ncexecvpe(n, opts, 1, bin, arg, NULL, cbfxn, donecbfxn);
 }
 
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
                        const char* bin,  char* const arg[], char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  ncsubproc_options zeroed = {};
-  if(!opts){
-    opts = &zeroed;
-  }
-  if(!cbfxn || !donecbfxn){
-    return NULL;
-  }
-  if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
-  }
-  int fd = -1;
-  ncsubproc* ret = malloc(sizeof(*ret));
-  if(ret == NULL){
-    return NULL;
-  }
-  memset(ret, 0, sizeof(*ret));
-  ret->pid = launch_pipe_process(&fd, &ret->pidfd);
-  if(ret->pid == 0){
-#ifdef __linux__
-    execvpe(bin, arg, env);
-#elif defined(__APPLE__) || defined(__gnu_hurd__)
-    (void)env;
-    execvp(bin, arg); // FIXME env?
-#elif defined(__MINGW64__)
-    (void)arg;
-    (void)env;
-#else
-    exect(bin, arg, env);
-#endif
-    logerror("Error execing %s (%s?)\n", bin, strerror(errno));
-    exit(EXIT_FAILURE);
-  }else if(ret->pid < 0){
-    logerror("Error launching process (%s?)\n", strerror(errno));
-    free(ret);
-    return NULL;
-  }
-  pthread_mutex_init(&ret->lock, NULL);
-  if((ret->nfp = ncsubproc_launch(n, ret, opts, fd, cbfxn, donecbfxn)) == NULL){
-    kill_and_wait_subproc(ret->pid, ret->pidfd, NULL);
-    free(ret);
-    return NULL;
-  }
-  return ret;
+  return ncexecvpe(n, opts, 1, bin, arg, env, cbfxn, donecbfxn);
 }
 
 int ncsubproc_destroy(ncsubproc* n){
