@@ -495,7 +495,7 @@ kitty_cb_simple(inputctx* ictx){
   e = esctrie_trie(e)['0'];
   int val = esctrie_numeric(e);
   kitty_kbd(ictx, val, 0);
-  return 0;
+  return 2;
 }
 
 static int
@@ -507,7 +507,7 @@ kitty_cb(inputctx* ictx){
   e = esctrie_trie(e)['0'];
   int mods = esctrie_numeric(e);
   kitty_kbd(ictx, val, mods);
-  return 0;
+  return 2;
 }
 
 // the only xtsmgraphics reply with a single Pv arg is color registers
@@ -515,25 +515,17 @@ static int
 xtsmgraphics_cregs_cb(inputctx* ictx){
   struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['0'];
-  int xtype = esctrie_numeric(e); // expect 1 for color registers
+  e = esctrie_trie(e)['1'];
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  int ps = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int pv = esctrie_numeric(e);
-  if(xtype != 1){
-    logerror("expected type 1 color registers got %d\n", xtype);
-    return -1;
-  }
-  if(ps != 0){
-    logerror("expected status 0 got %d\n", ps);
-  }else if(ictx->initdata){
+  if(ictx->initdata){
     ictx->initdata->color_registers = pv;
     loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
   }
-  return 0;
+  return 2;
 }
 
 // the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
@@ -541,29 +533,21 @@ static int
 xtsmgraphics_sixel_cb(inputctx* ictx){
   struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['0'];
-  int xtype = esctrie_numeric(e); // expect 2 for color registers
+  e = esctrie_trie(e)['2'];
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
-  int ps = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int width = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int height = esctrie_numeric(e);
-  if(xtype != 2){
-    logerror("expected type 2 sixel geom got %d\n", xtype);
-    return -1;
-  }
-  if(ps != 0){
-    logerror("expected status 0 got %d\n", ps);
-  }else if(ictx->initdata){
+  if(ictx->initdata){
     ictx->initdata->sixelx = width;
     ictx->initdata->sixely = height;
     loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
   }
-  return 0;
+  return 2;
 }
 
 static void
@@ -805,8 +789,8 @@ build_cflow_automaton(inputctx* ictx){
     { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c  ("VT220")
     { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c  ("VT320")
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
-    { "[?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
-    { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
+    { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[?\\N;\\N$y", decrpm_cb, },
     // DCS (\eP...ST)
     { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
@@ -1482,11 +1466,9 @@ input_thread(void* vmarshall){
   if(build_cflow_automaton(ictx)){
     raise(SIGSEGV); // ? FIXME
   }
-  dump_automaton(&ictx->amata);
   if(prep_all_keys(ictx)){
     raise(SIGSEGV); // ? FIXME
   }
-  dump_automaton(&ictx->amata);
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read

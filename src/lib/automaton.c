@@ -214,6 +214,28 @@ esctrie_make_string(esctrie* e, triefunc fxn){
   return 0;
 }
 
+static esctrie*
+link_kleene(esctrie* e){
+  esctrie* targ = NULL;
+  if(targ == NULL){
+    if( (targ = create_esctrie_node(0)) ){
+      if(esctrie_make_kleene(targ)){
+        free_trienode(&targ);
+        return NULL;
+      }
+    }
+  }
+  // fill in all NULL numeric links with the new target
+  for(int i = 0 ; i < 0x80 ; ++i){
+    if(e->trie[i] == NULL){
+      e->trie[i] = targ;
+    }else{
+      // FIXME travel to the ends and link targ there
+    }
+  }
+  return targ;
+}
+
 // accept any digit and transition to a numeric node.
 static esctrie*
 link_numeric(esctrie* e){
@@ -276,7 +298,8 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }else if(c == 'H'){
         // FIXME
       }else if(c == 'D'){ // drain (kleene closure)
-        if(esctrie_make_kleene(eptr)){
+        eptr = link_kleene(eptr);
+        if(eptr == NULL){
           return -1;
         }
       }else{
