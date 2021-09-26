@@ -510,6 +510,18 @@ kitty_cb(inputctx* ictx){
   return 2;
 }
 
+// FIXME broken: we don't always come through the 0; usually in fact we get
+// 1, which is masked by [?1;2c, added earlier
+static int
+kitty_keyboard_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata);
+  e = esctrie_trie(e)['?'];
+  e = esctrie_trie(e)['0'];
+  int val = esctrie_numeric(e);
+  loginfo("kitty keyboard protocol level %u\n", val);
+  return 2;
+}
+
 // the only xtsmgraphics reply with a single Pv arg is color registers
 static int
 xtsmgraphics_cregs_cb(inputctx* ictx){
@@ -818,6 +830,8 @@ build_cflow_automaton(inputctx* ictx){
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[?\\Nu", kitty_keyboard_cb, },
+    { "[?\\N;\\N$y", decrpm_cb, },
     { "[>0;\\N;\\Nc", da2_cb, }, // "VT100"
     { "[>1;\\N;\\Nc", da2_cb, }, // "VT220"
     { "[>2;\\N;\\Nc", da2_cb, }, // "VT240" or "VT241"
@@ -829,7 +843,6 @@ build_cflow_automaton(inputctx* ictx){
     { "[>61;\\N;\\Nc", da2_cb, }, // "VT510"
     { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
     { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
-    { "[?\\N;\\N$y", decrpm_cb, },
     // DCS (\eP...ST)
     { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
     { "P0+r\\H", NULL, },        // negative XTGETTCAP

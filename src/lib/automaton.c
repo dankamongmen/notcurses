@@ -246,27 +246,31 @@ link_kleene(esctrie* e, unsigned follow){
 }
 
 static void
-fill_in_numerics(esctrie* e, esctrie* targ){
+fill_in_numerics(esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
   // fill in all NULL numeric links with the new target
   for(int i = '0' ; i <= '9' ; ++i){
+logwarn("LINK2(%p): %d -> %p %d\n", e, i - '0', e->trie[i], e->trie[i] ? e->trie[i]->number : -1);
     if(e->trie[i] == NULL){
       e->trie[i] = targ;
     }else if(e->trie[i] != e){
-      fill_in_numerics(e->trie[i], targ);
+      fill_in_numerics(e->trie[i], targ, follow, efollow);
     }
   }
+  e->trie[follow] = efollow;
 }
 
 // accept any digit and transition to a numeric node.
 static esctrie*
-link_numeric(esctrie* e){
+link_numeric(esctrie* e, unsigned follow){
   esctrie* targ = NULL;
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
   for(int i = '0' ; i <= '9' ; ++i){
     targ = e->trie[i];
+logwarn("LINK %d: %p %d\n", i - '0', targ, targ ? targ->number : -1);
     if(targ && targ->ntype == NODE_NUMERIC){
       break;
     }
+    targ = NULL;
   }
   // we either have a numeric target, or will make one now
   if(targ == NULL){
@@ -277,8 +281,20 @@ link_numeric(esctrie* e){
       }
     }
   }
-  fill_in_numerics(e, targ);
-  return targ;
+  // targ is the numeric node we're either creating or coopting
+  esctrie* efollow = targ->trie[follow];
+  if(efollow == NULL){
+    if((efollow = create_esctrie_node(0)) == NULL){
+      return NULL;
+    }
+  }
+  for(int i = '0' ; i <= '9' ; ++i){
+    if(e->trie[i] == NULL){
+      e->trie[i] = targ;
+    }
+    fill_in_numerics(e->trie[i], targ, follow, efollow);
+  }
+  return efollow;
 }
 
 // add a cflow path to the automaton
@@ -300,7 +316,12 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       inescape = true;
     }else if(inescape){
       if(c == 'N'){
-        eptr = link_numeric(eptr);
+        // a numeric must be followed by some terminator
+        if(!*csi){
+          logerror("illegal numeric terminator\n");
+          return -1;
+        }
+        eptr = link_numeric(eptr, *csi++);
         if(eptr == NULL){
           return -1;
         }
@@ -313,6 +334,10 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         // FIXME
       }else if(c == 'D'){ // drain (kleene closure)
         // a kleene must be followed by some terminator
+        if(!*csi){
+          logerror("illegal kleene terminator\n");
+          return -1;
+        }
         eptr = link_kleene(eptr, *csi++);
         if(eptr == NULL){
           return -1;
@@ -327,6 +352,9 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
         }
+        if(isdigit(c)){
+          eptr->trie[c]->number = c - '0';
+        }
       }else if(eptr->trie[c] == eptr->kleene){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
@@ -334,7 +362,11 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }
       eptr = eptr->trie[c];
     }
-    logdebug("added %c, now at %p (%d)\n", c, eptr, eptr->ntype);
+    logdebug("added %c, now at %p (%d) %d\n", c, eptr, eptr->ntype, eptr->number);
+  }
+  if(inescape){
+    logerror("illegal escape at end of line\n");
+    return -1;
   }
   free(eptr->trie);
   eptr->trie = NULL;
