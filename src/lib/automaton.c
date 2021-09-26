@@ -31,6 +31,7 @@ typedef struct esctrie {
   int number;      // accumulated number; reset to 0 on entry
   char* str;       // accumulated string; reset to NULL on entry
   triefunc fxn;    // function to call on match
+  struct esctrie* kleene; // kleene match
 } esctrie;
 
 uint32_t esctrie_id(const esctrie* e){
@@ -216,6 +217,9 @@ esctrie_make_string(esctrie* e, triefunc fxn){
 
 static esctrie*
 link_kleene(esctrie* e){
+  if(e->kleene){
+    return e->kleene;
+  }
   esctrie* targ = NULL;
   if(targ == NULL){
     if( (targ = create_esctrie_node(0)) ){
@@ -233,6 +237,7 @@ link_kleene(esctrie* e){
       // FIXME travel to the ends and link targ there
     }
   }
+  targ->kleene = targ;
   return targ;
 }
 
@@ -314,6 +319,10 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       inescape = false;
     }else{
       if(eptr->trie[c] == NULL){
+        if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
+          return -1;
+        }
+      }else if(eptr->trie[c] == eptr->kleene){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
         }
@@ -477,6 +486,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     return -1;
   }
   e = a->state;
+  // initialize any node we've just stepped into
   switch(e->ntype){
     case NODE_NUMERIC:
       e->number = candidate - '0';
