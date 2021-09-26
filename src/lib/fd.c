@@ -8,6 +8,8 @@
 #endif
 #ifdef __MINGW64__
 #include <winsock2.h>
+#else
+#include <spawn.h>
 #endif
 #if (defined(__linux__))
 #include <linux/wait.h>
@@ -142,6 +144,7 @@ int ncfdplane_destroy(ncfdplane* n){
   return ret;
 }
 
+#ifndef __MINGW64__
 // get 2 pipes, and ensure they're both set to close-on-exec
 static int
 lay_pipes(int pipes[static 2]){
@@ -168,45 +171,67 @@ lay_pipes(int pipes[static 2]){
 // ncfdplane around the read end, involving creation of a new thread. the
 // parent then returns.
 static pid_t
-launch_pipe_process(int* pipefd, int* pidfd){
-#ifndef __MINGW64__
+launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
+                    const char* bin,  char* const arg[], char* const env[]){
   *pidfd = -1;
   int pipes[2];
   if(lay_pipes(pipes)){
     return -1;
   }
   pid_t p = -1;
-  // on linux, we try to use the brand-new pidfd capability via clone3(). if
-  // that fails, fall through to fork(), which is all we try to use on freebsd.
-  // FIXME clone3 is not yet supported on debian sparc64/alpha as of 2020-07
 #ifdef USING_PIDFD
+  // on linux, we try to use the brand-new pidfd capability via clone3(). if
+  // that fails, fall through to posix_spawn(), our only option on freebsd.
+  // FIXME clone3 is not yet supported on debian sparc64/alpha as of 2020-07
   struct clone_args clargs;
   memset(&clargs, 0, sizeof(clargs));
   clargs.pidfd = (uintptr_t)pidfd;
   clargs.flags = CLONE_CLEAR_SIGHAND | CLONE_FS | CLONE_PIDFD;
   clargs.exit_signal = SIGCHLD;
   p = syscall(__NR_clone3, &clargs, sizeof(clargs));
-#endif
-  if(p < 0){
-    p = fork();
-  }
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
       logerror("Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
       exit(EXIT_FAILURE);
     }
-  }else if(p > 0){ // parent
+    if(env){
+      execvpe(bin, arg, env);
+    }else if(usepath){
+      execvp(bin, arg);
+    }else{
+      execv(bin, arg);
+    }
+    exit(EXIT_FAILURE);
+  }else if(p < 0){
+    logwarn("clone3() failed (%s), using posix_spawn()\n", strerror(errno));
+  }
+#endif
+  if(p < 0){
+    posix_spawn_file_actions_t factions;
+    if(posix_spawn_file_actions_init(&factions)){
+      logerror("couldn't initialize spawn file actions\n");
+      return -1;
+    }
+    posix_spawn_file_actions_adddup2(&factions, pipes[1], STDOUT_FILENO);
+    posix_spawn_file_actions_adddup2(&factions, pipes[1], STDERR_FILENO);
+    int r;
+    if(usepath){
+      r = posix_spawnp(&p, bin, &factions, NULL, arg, env);
+    }else{
+      r = posix_spawn(&p, bin, &factions, NULL, arg, env);
+    }
+    if(r){
+      logerror("posix_spawn %s failed (%s)\n", bin, strerror(errno));
+    }
+    posix_spawn_file_actions_destroy(&factions);
+  }
+  if(p > 0){ // parent
     *pipefd = pipes[0];
     set_fd_nonblocking(*pipefd, 1, NULL);
   }
   return p;
-#else
-  // FIXME use CreateProcess()
-  (void)pipefd;
-  (void)pidfd;
-  return -1;
-#endif
 }
+#endif
 
 // nuke the just-spawned process, and reap it. called before the subprocess
 // reader thread is launched (which otherwise reaps the subprocess).
@@ -326,33 +351,15 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
   if(opts->flags > 0){
     logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
+#ifndef __MINGW64__
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  ret->pid = launch_pipe_process(&fd, &ret->pidfd);
-  if(ret->pid == 0){
-    if(env){
-#ifdef __linux__
-      execvpe(bin, arg, env);
-#elif defined(__APPLE__) || defined(__gnu_hurd__)
-      (void)env;
-      execvp(bin, arg); // FIXME env? use posix_spawn()!
-#elif defined(__MINGW64__) // use CreateProcess()!
-      (void)arg;
-      (void)env;
-#else
-      exect(bin, arg, env);
-#endif
-    }else if(usepath){
-      execvp(bin, arg);
-    }else{
-      execv(bin, arg);
-    }
-    exit(EXIT_FAILURE);
-  }else if(ret->pid < 0){
+  ret->pid = launch_pipe_process(&fd, &ret->pidfd, usepath, bin, arg, env);
+  if(ret->pid < 0){
     free(ret);
     return NULL;
   }
@@ -362,6 +369,17 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
     return NULL;
   }
   return ret;
+#else
+  // FIXME use CreateProcess()
+  (void)n;
+  (void)usepath;
+  (void)bin;
+  (void)arg;
+  (void)env;
+  (void)cbfxn;
+  (void)donecbfxn;
+  return NULL;
+#endif
 }
 
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
