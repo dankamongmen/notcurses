@@ -1228,11 +1228,11 @@ int notcurses_stop(notcurses* nc){
     // PRESERVE_CURSOR was used, which is a bit more complex.
     if((nc->flags & NCOPTION_PRESERVE_CURSOR) || !get_escape(&nc->tcache, ESCAPE_SMCUP)){
       int targy = nc->rstate.logendy;
+      fbuf_reset(&nc->rstate.f);
       if(++targy >= nc->lfdimy){
-        printf("\n");
+        fbuf_putc(&nc->rstate.f, '\n');
         --targy;
       }
-      fbuf_reset(&nc->rstate.f);
       goto_location(nc, &nc->rstate.f, targy, 0);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
