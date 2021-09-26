@@ -236,6 +236,18 @@ link_kleene(esctrie* e){
   return targ;
 }
 
+static void
+fill_in_numerics(esctrie* e, esctrie* targ){
+  // fill in all NULL numeric links with the new target
+  for(int i = '0' ; i <= '9' ; ++i){
+    if(e->trie[i] == NULL){
+      e->trie[i] = targ;
+    }else if(e->trie[i] != e){
+      fill_in_numerics(e->trie[i], targ);
+    }
+  }
+}
+
 // accept any digit and transition to a numeric node.
 static esctrie*
 link_numeric(esctrie* e){
@@ -256,14 +268,7 @@ link_numeric(esctrie* e){
       }
     }
   }
-  // fill in all NULL numeric links with the new target
-  for(int i = '0' ; i <= '9' ; ++i){
-    if(e->trie[i] == NULL){
-      e->trie[i] = targ;
-    }else{
-      // FIXME travel to the ends and link targ there
-    }
-  }
+  fill_in_numerics(e, targ);
   return targ;
 }
 
