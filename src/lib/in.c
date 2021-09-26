@@ -825,7 +825,7 @@ build_cflow_automaton(inputctx* ictx){
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
     // a mystery to everyone!
-    { "11;\\S", bgdef_cb, },
+    { "]11;\\S", bgdef_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
