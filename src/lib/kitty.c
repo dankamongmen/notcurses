@@ -1203,10 +1203,3 @@ int kitty_clear_all(fbuf* f){
   }
   return 0;
 }
-
-int kitty_shutdown(fbuf* f){
-  // FIXME need to close off any open kitty bitmap emission, or we will
-  // lock up the terminal
-  (void)f;
-  return 0;
-}

@@ -134,7 +134,6 @@ typedef struct tinfo {
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
   int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
-  int (*pixel_shutdown)(fbuf* f);   // called during context shutdown
   int (*pixel_clear_all)(fbuf* f);  // called during context startup
   // make a loaded graphic visible. only used with kitty.
   int (*pixel_commit)(fbuf* f, struct sprixel* s, unsigned noscroll);

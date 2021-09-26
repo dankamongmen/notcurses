@@ -83,12 +83,6 @@ notcurses_stop_minimal(void* vnc){
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
-  // ECMA-48 suggests that we can interrupt an escape code with a NUL
-  // byte. if we leave an active escape open, it can lock up the terminal.
-  // we only want to do it when in the middle of a rasterization, though. FIXME
-  if(nc->tcache.pixel_shutdown){
-    ret |= nc->tcache.pixel_shutdown(f);
-  }
   ret |= mouse_disable(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
