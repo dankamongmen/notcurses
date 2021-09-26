@@ -1042,10 +1042,10 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   return s->glyph.used;
 }
 
-// private mode 80 (DECSDM) manages "sixel scrolling". when enabled, this
-//  results in any necessary scrolling to display a sixel, and (more
-//  importantly) emits them at the cursor location, rather than the upper
-//  left corner of the terminal. we always want that.
+// private mode 80 (DECSDM) manages "Sixel Scrolling Mode" vs "Sixel Display
+// Mode". when 80 is enabled (i.e. DECSDM mode), images are displayed at the
+// upper left, and clipped to the window. we don't want either of those things
+// to happen, so we explicitly disable DECSDM.
 // private mode 8452 places the cursor at the end of a sixel when it's
 //  emitted. we don't need this for rendered mode, but we do want it for
 //  direct mode. it causes us no problems, so always set it.
