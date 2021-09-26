@@ -52,8 +52,6 @@ typedef enum {
   STATE_NULL,
   STATE_ESC,  // escape; aborts any active sequence
   STATE_CSI,  // control sequence introducer
-  STATE_DCS,  // device control string
-  STATE_DCS_DRAIN,  // throw away input until we hit escape
   STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
   STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
   STATE_SDA_DRAIN, // drain secondary DA to 'c'
@@ -795,7 +793,15 @@ build_cflow_automaton(inputctx* ictx){
     { "[?\\N;\\N;\\NS", xtsmgraphics_cregs_cb, },
     { "[?\\N;\\N;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[?\\N;\\N$y", decrpm_cb, },
-    { "[?\\N;\\Dc", da1_cb, },
+    { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
+    { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c  ("VT101 with No Options")
+    { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
+    { "[?6c", da1_cb, },   // CSI ? 6 c  ("VT102")
+    { "[?7c", da1_cb, },   // CSI ? 7 c  ("VT131")
+    { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c  ("VT125")
+    { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c  ("VT220")
+    { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c  ("VT320")
+    { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
     // DCS (\eP...ST)
     { "P1+r\\H=\\H", tcap_cb, }, // positive XTGETTCAP
     { "P0+r\\H", NULL, },        // negative XTGETTCAP
@@ -809,6 +815,7 @@ build_cflow_automaton(inputctx* ictx){
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
     if(inputctx_add_cflow(&ictx->amata, csi->cflow, csi->fxn)){
+      logerror("failed adding %p via %s\n", csi->fxn, csi->cflow);
       return -1;
     }
   }
@@ -833,33 +840,31 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     memset(&i->amata, 0, sizeof(i->amata));
                     if(prep_special_keys(i) == 0){
-                      if(build_cflow_automaton(i) == 0){
-                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                          memset(i->initdata, 0, sizeof(*i->initdata));
-                          i->state = STATE_NULL;
-                          i->iread = i->iwrite = i->ivalid = 0;
-                          i->cread = i->cwrite = i->cvalid = 0;
-                          i->initdata_complete = NULL;
-                          i->stats = stats;
-                          i->ti = ti;
-                          i->stdineof = 0;
+                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                        memset(i->initdata, 0, sizeof(*i->initdata));
+                        i->state = STATE_NULL;
+                        i->iread = i->iwrite = i->ivalid = 0;
+                        i->cread = i->cwrite = i->cvalid = 0;
+                        i->initdata_complete = NULL;
+                        i->stats = stats;
+                        i->ti = ti;
+                        i->stdineof = 0;
 #ifdef __MINGW64__
-                          i->stdinhandle = ti->inhandle;
+                        i->stdinhandle = ti->inhandle;
 #endif
-                          i->ibufvalid = 0;
-                          i->linesigs = linesigs_enabled;
-                          i->tbufvalid = 0;
-                          i->midescape = 0;
-                          i->numeric = 0;
-                          i->stridx = 0;
-                          i->runstring[i->stridx] = '\0';
-                          i->lmargin = lmargin;
-                          i->tmargin = tmargin;
-                          i->drain = drain;
-                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                          return i;
-                        }
+                        i->ibufvalid = 0;
+                        i->linesigs = linesigs_enabled;
+                        i->tbufvalid = 0;
+                        i->midescape = 0;
+                        i->numeric = 0;
+                        i->stridx = 0;
+                        i->runstring[i->stridx] = '\0';
+                        i->lmargin = lmargin;
+                        i->tmargin = tmargin;
+                        i->drain = drain;
+                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                        return i;
                       }
                     }
                     input_free_esctrie(&i->amata);
@@ -1147,8 +1152,6 @@ special_key(inputctx* ictx, const ncinput* inni){
   pthread_cond_broadcast(&ictx->icond);
 }
 
-// FIXME ought implement the full Williams automaton
-// FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
 // returns 2 on a valid accept state that is not the final state.
@@ -1167,8 +1170,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
       ictx->numeric = 0;
       if(c == '['){
         ictx->state = STATE_CSI;
-      }else if(c == 'P'){
-        ictx->state = STATE_DCS;
       }
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
@@ -1193,17 +1194,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
       }else if(c >= 0x40 && c <= 0x7E){
         ictx->state = STATE_NULL;
       }
-      break;
-    case STATE_DCS: // terminated by ST
-      if(c == '\\'){
-//fprintf(stderr, "terminated DCS\n");
-        ictx->state = STATE_NULL;
-      }else{
-        ictx->state = STATE_DCS_DRAIN;
-      }
-      break;
-    case STATE_DCS_DRAIN:
-      // we drain to ST, which is an escape, and thus already handled, so...
       break;
     case STATE_SDA:
       if(c == ';'){
@@ -1238,15 +1228,6 @@ pump_control_read(inputctx* ictx, unsigned char c){
     // indistinguishable until well into the escape. one can get:
     // XTSMGRAPHICS: CSI ? Pi ; Ps ; Pv S {Pi: 123} {Ps: 0123}
     // DECRPM: CSI ? Pd ; Ps $ y {Pd: many} {Ps: 01234}
-    // DA: CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
-    //     CSI ? 1 ; 0 c  ("VT101 with No Options")
-    //     CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
-    //     CSI ? 6 c  ("VT102")
-    //     CSI ? 7 c  ("VT131")
-    //     CSI ? 1 2 ; Ps c  ("VT125")
-    //     CSI ? 6 2 ; Ps c  ("VT220")
-    //     CSI ? 6 3 ; Ps c  ("VT320")
-    //     CSI ? 6 4 ; Ps c  ("VT420")
     // KITTYKBD: CSI ? flags u
     case STATE_DA: // return success on end of DA
 //fprintf(stderr, "DA: %c\n", c);
@@ -1716,7 +1697,9 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  prep_all_keys(ictx);
+  if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
+    raise(SIGSEGV); // ? FIXME
+  }
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read

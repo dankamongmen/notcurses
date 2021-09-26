@@ -59,7 +59,7 @@ git pull
 TARBALL=v$VERSION.tar.gz
 wget https://github.com/dankamongmen/notcurses/archive/$TARBALL
 gpg --sign --armor --detach-sign $TARBALL
-rm v$VERSION.tar.gz
+rm $TARBALL
 
 echo "Cut $VERSION, signed to $TARBALL.asc"
 echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releases"
