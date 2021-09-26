@@ -142,6 +142,26 @@ int ncfdplane_destroy(ncfdplane* n){
   return ret;
 }
 
+// get 2 pipes, and ensure they're both set to close-on-exec
+static int
+lay_pipes(int pipes[static 2]){
+#ifdef __linux__
+  if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
+#else
+  if(pipe(pipes)){
+#endif
+    return -1;
+  }
+#ifndef __linux__
+  if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_cloexec(pipes[1], 1, NULL)){
+    close(pipes[0]);
+    close(pipes[1]);
+    return -1;
+  }
+#endif
+  return 0;
+}
+
 // ncsubproc creates a pipe, retaining the read end. it clone()s a subprocess,
 // getting a pidfd. the subprocess dup2()s the write end of the pipe onto file
 // descriptors 1 and 2, exec()s, and begins running. the parent creates an
@@ -152,11 +172,7 @@ launch_pipe_process(int* pipefd, int* pidfd){
 #ifndef __MINGW64__
   *pidfd = -1;
   int pipes[2];
-#if (defined(__linux__))
-  if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
-#else
-  if(pipe(pipes)){ // FIXME manually set O_CLOEXEC
-#endif
+  if(lay_pipes(pipes)){
     return -1;
   }
   pid_t p = -1;
@@ -185,6 +201,7 @@ launch_pipe_process(int* pipefd, int* pidfd){
   }
   return p;
 #else
+  // FIXME use CreateProcess()
   (void)pipefd;
   (void)pidfd;
   return -1;
