@@ -1055,8 +1055,9 @@ int sixel_init(int fd){
 
 int sixel_init_inverted(int fd){
   // except MLterm (and a few others, possibly including the physical VT340),
-  // which inverts the usual sense of DECSDM.
-  return tty_emit("\e[?80;8452h", fd);
+  // which inverts the usual sense of DECSDM. at least Contour rejects the
+  // short form of [?80;8452h, so use the expanded form.
+  return tty_emit("\e[?80h\e[?8452h", fd);
 }
 
 // only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to
