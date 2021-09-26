@@ -605,16 +605,18 @@ kittygraph_cb(inputctx* ictx){
 }
 
 static int
-decrpm_cb(inputctx* ictx){
+decrpm_asu_cb(inputctx* ictx){
   struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
+  e = esctrie_trie(e)['2'];
   e = esctrie_trie(e)['0'];
-  int pd = esctrie_numeric(e); // expect 2 for color registers
+  e = esctrie_trie(e)['2'];
+  e = esctrie_trie(e)['6'];
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int ps = esctrie_numeric(e);
-  loginfo("received decrpm %d %d\n", pd, ps);
-  if(pd == 2026 && ps == 2){
+  loginfo("received decrpm 2026 %d\n", ps);
+  if(ps == 2){
     if(ictx->initdata){
       ictx->initdata->appsync_supported = 1;
     }
@@ -807,6 +809,7 @@ static int
 build_cflow_automaton(inputctx* ictx){
   // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
   // closure). \S is a ST-terminated string. \H is a hex-encoded string.
+  // this working is very dependent on order, and very delicate! hands off!
   const struct {
     const char* cflow;
     triefunc fxn;
@@ -819,6 +822,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\Nu", kitty_cb, },
+    { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c  ("VT101 with No Options")
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
@@ -830,8 +834,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
-    { "[?\\Nu", kitty_keyboard_cb, },
-    { "[?\\N;\\N$y", decrpm_cb, },
+    { "[?2026;\\N$y", decrpm_asu_cb, },
     { "[>0;\\N;\\Nc", da2_cb, }, // "VT100"
     { "[>1;\\N;\\Nc", da2_cb, }, // "VT220"
     { "[>2;\\N;\\Nc", da2_cb, }, // "VT240" or "VT241"

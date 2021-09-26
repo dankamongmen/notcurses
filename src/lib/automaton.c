@@ -249,7 +249,6 @@ static void
 fill_in_numerics(esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
   // fill in all NULL numeric links with the new target
   for(int i = '0' ; i <= '9' ; ++i){
-logwarn("LINK2(%p): %d -> %p %d\n", e, i - '0', e->trie[i], e->trie[i] ? e->trie[i]->number : -1);
     if(e->trie[i] == NULL){
       e->trie[i] = targ;
     }else if(e->trie[i] != e){
@@ -266,7 +265,6 @@ link_numeric(esctrie* e, unsigned follow){
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
   for(int i = '0' ; i <= '9' ; ++i){
     targ = e->trie[i];
-logwarn("LINK %d: %p %d\n", i - '0', targ, targ ? targ->number : -1);
     if(targ && targ->ntype == NODE_NUMERIC){
       break;
     }
@@ -359,10 +357,22 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
         }
+      }else if(eptr->trie[c]->ntype == NODE_NUMERIC){
+        // punch a hole through the numeric loop. create a new one, and fill
+        // it in with the existing target.
+        struct esctrie* newe;
+        if((newe = create_esctrie_node(0)) == NULL){
+          return -1;
+        }
+        for(int i = 0 ; i < 0x80 ; ++i){
+          newe->trie[i] = eptr->trie[c]->trie[i];
+        }
+        logwarn("REPLACING NUMERIC FOR %c\n", c);
+        eptr->trie[c] = newe;
       }
       eptr = eptr->trie[c];
     }
-    logdebug("added %c, now at %p (%d) %d\n", c, eptr, eptr->ntype, eptr->number);
+    logdebug("added %c, now at %p (%d) %d (%u)\n", c, eptr, eptr->ntype, eptr->number, *csi);
   }
   if(inescape){
     logerror("illegal escape at end of line\n");
