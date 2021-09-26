@@ -216,7 +216,7 @@ esctrie_make_string(esctrie* e, triefunc fxn){
 }
 
 static esctrie*
-link_kleene(esctrie* e){
+link_kleene(esctrie* e, unsigned follow){
   if(e->kleene){
     return e->kleene;
   }
@@ -230,15 +230,19 @@ link_kleene(esctrie* e){
     }
   }
   // fill in all NULL numeric links with the new target
-  for(int i = 0 ; i < 0x80 ; ++i){
+  for(unsigned int i = 0 ; i < 0x80 ; ++i){
     if(e->trie[i] == NULL){
       e->trie[i] = targ;
+    }else if(i == follow){
+      if((e->trie[follow] = create_esctrie_node(0)) == NULL){
+        return NULL;
+      }
     }else{
       // FIXME travel to the ends and link targ there
     }
   }
   targ->kleene = targ;
-  return targ;
+  return e->trie[follow];
 }
 
 static void
@@ -308,7 +312,8 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }else if(c == 'H'){
         // FIXME
       }else if(c == 'D'){ // drain (kleene closure)
-        eptr = link_kleene(eptr);
+        // a kleene must be followed by some terminator
+        eptr = link_kleene(eptr, *csi++);
         if(eptr == NULL){
           return -1;
         }
