@@ -43,9 +43,9 @@ get_default_geometry(tinfo* ti){
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
 }
 
-// we found Sixel support -- set up the API. invert80 refers to whether the
-// terminal implements DECSDM correctly (enabling it with \e[80l), or inverts
-// the meaning (*disabling* it with \e[80l)j
+// we found Sixel support -- set up its API. invert80 refers to whether the
+// terminal implements DECSDM correctly (enabling it with \e[?80h), or inverts
+// the meaning (*disabling* it with \e[?80h) (we always want it disabled).
 static inline void
 setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   if(invert80){
