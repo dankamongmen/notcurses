@@ -612,24 +612,36 @@ decrpm_cb(inputctx* ictx){
 
 static int
 bgdef_cb(inputctx* ictx){
-  if(ictx->initdata == NULL){
-    return 2;
-  }
-  /*
-      case STATE_BG1:{
+  if(ictx->initdata){
+      struct esctrie* e = ictx->amata.escapes;
+      e = esctrie_trie(e)[']'];
+      e = esctrie_trie(e)['1'];
+      e = esctrie_trie(e)['1'];
+      e = esctrie_trie(e)[';'];
+      e = esctrie_trie(e)['r'];
+      e = esctrie_trie(e)['g'];
+      e = esctrie_trie(e)['b'];
+      e = esctrie_trie(e)[':'];
+      e = esctrie_trie(e)['a'];
+      const char* str = esctrie_string(e);
+      if(str == NULL){
+        logerror("empty bg string\n");
+      }else{
         int r, g, b;
-        if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
+        if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
           // great! =]
-        }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
+        }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
           r /= 256;
           g /= 256;
           b /= 256;
         }else{
-          break;
+          logerror("couldn't extract rgb from %s\n", str);
+          r = g = b = 0;
         }
-        inits->bg = (r << 16u) | (g << 8u) | b;
-        break;
-        */
+        ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
+        loginfo("default background 0x%02x%02x%02x\n", r, g, b);
+      }
+  }
   return 2;
 }
 
@@ -825,7 +837,7 @@ build_cflow_automaton(inputctx* ictx){
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
     // a mystery to everyone!
-    { "]11;\\S", bgdef_cb, },
+    { "]11;rgb:\\S", bgdef_cb, },
     { NULL, NULL, },
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
