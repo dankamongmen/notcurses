@@ -13,7 +13,7 @@ notcurses* Root::get_notcurses () const
 		ret = NotCurses::get_instance ();
 
 	if (ret == nullptr)
-		throw new invalid_state_error (ncpp_invalid_state_message);
+		throw invalid_state_error (ncpp_invalid_state_message);
 	return ret;
 }
 

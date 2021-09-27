@@ -89,7 +89,7 @@ namespace ncpp
 			}
 
 			if (subproc == nullptr)
-				throw new init_error ("Notcurses failed to create ncsubproc instance");
+				throw init_error ("Notcurses failed to create ncsubproc instance");
 		}
 
 	private:
