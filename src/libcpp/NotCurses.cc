@@ -36,7 +36,7 @@ NotCurses::NotCurses (const notcurses_options &nc_opts, FILE *fp)
 
 	nc = notcurses_init (&nc_opts, fp);
 	if (nc == nullptr)
-		throw new init_error ("notcurses failed to initialize");
+		throw init_error ("notcurses failed to initialize");
 	if (_instance == nullptr)
 		_instance = this;
 }
