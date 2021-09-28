@@ -209,11 +209,11 @@ output stream, taking effect immediately.
 Attempting to e.g. move up while on the top row will return 0, but have no
 effect.
 
-**ncdirect_readline** uses the Readline library to read a (heap-allocated)
-line of arbitrary length, supporting line-editing controls. For more
-information, consult **readline(3)**. If you want input echoed to the
-terminal while using **ncdirect_readline**, **NCDIRECT_OPTION_INHIBIT_CBREAK**
-must be supplied to **ncdirect_init**.
+**ncdirect_readline** reads a (heap-allocated) line of arbitrary length,
+supporting some libreadline-style line-editing controls.
+**NCDIRECT_OPTION_INHIBIT_CBREAK** should not be used if you intend to
+use **ncdirect_readline**; if used, line-editing keybindings cannot be
+implemented. Input will be echoed whether this option is used or not.
 
 **ncdirect_check_pixel_support** must be called (and successfully return)
 before **NCBLIT_PIXEL** can be used to render images; see
@@ -253,7 +253,6 @@ mapping them to **NCDIRECT_OPTION_VERBOSE** and
 # SEE ALSO
 
 **getenv(3)**,
-**readline(3)**
 **notcurses(3)**,
 **notcurses_plane(3)**,
 **notcurses_visual(3)**,

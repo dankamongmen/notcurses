@@ -414,10 +414,9 @@ This context must be destroyed using `ncdirect_stop()`. The following functions
 are available for direct mode:
 
 ```c
-// Read a (heap-allocated) line of text using the Readline library Initializes
-// Readline the first time it's called. For input to be echoed to the terminal,
-// it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
-// ncdirect_init(). Returns NULL on error.
+// Read a (heap-allocated) newline-delimited chunk of text. Returns NULL on
+// failure. The NCDIRECT_OPTION_INHIBIT_CBREAK flag ought not be used together
+// with this function, or the line-editing keybindings cannot be honored.
 API char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 
 int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
@@ -2660,7 +2659,7 @@ xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxx
 ### Readers
 
 ncreaders provide freeform input in a (possibly multiline) region, supporting
-optional readline keybindings.
+optional libreadline-style keybindings.
 
 ```c
 typedef struct ncreader_options {

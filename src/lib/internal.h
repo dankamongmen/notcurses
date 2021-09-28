@@ -287,7 +287,6 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
-  bool initialized_readline; // have we initialized Readline?
   uint64_t flags;            // copied in ncdirect_init() from param
   ncsharedstats stats;       // stats! not as broadly used as in notcurses
 } ncdirect;

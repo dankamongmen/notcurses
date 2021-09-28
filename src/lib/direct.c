@@ -9,9 +9,6 @@
 #include "visual-details.h"
 #include "notcurses/direct.h"
 #include "internal.h"
-#ifdef USE_READLINE
-#include <readline/readline.h>
-#endif
 
 // conform to the foreground and background channels of 'channels'
 static int
@@ -834,11 +831,6 @@ static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = vnc;
   int ret = drop_signals(nc);
-  if(nc->initialized_readline){
-#ifdef USE_READLINE
-    rl_deprep_terminal();
-#endif
-  }
   fbuf f = {};
   if(fbuf_init_small(&f) == 0){
     ret |= reset_term_attributes(&nc->tcache, &f);
@@ -946,19 +938,10 @@ int ncdirect_stop(ncdirect* nc){
 }
 
 char* ncdirect_readline(ncdirect* n, const char* prompt){
-#ifdef USE_READLINE
-  if(!n->initialized_readline){
-    rl_outstream = n->ttyfp;
-    rl_instream = stdin;
-    rl_prep_terminal(1); // 1 == read 8-bit input
-    n->initialized_readline = true;
-  }
-  return readline(prompt);
-#else
+  // FIXME read that line! print that prompt!
   (void)n;
   (void)prompt;
   return NULL;
-#endif
 }
 
 static inline int
