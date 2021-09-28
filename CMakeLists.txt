@@ -3,13 +3,7 @@ cmake_minimum_required(VERSION 3.14.0)
 project(notcurses VERSION 2.4.3
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
-  LANGUAGES C CXX)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-
+  LANGUAGES C)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakeDependentOption)
@@ -19,9 +13,10 @@ include(FeatureSummary)
 # BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
+option(USE_CPP "Build C++ code" ON)
 cmake_dependent_option(
   USE_DOCTEST "Build notcurses-tester with doctest" ON
-  "${BUILD_TESTING}" OFF
+  "BUILD_TESTING;USE_CPP" OFF
 )
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
@@ -42,26 +37,44 @@ set(USE_OIIO OFF)
 if(${USE_MULTIMEDIA} STREQUAL "ffmpeg")
   set(USE_FFMPEG ON)
 elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
+  if(NOT ${USE_CPP})
+    message(FATAL_ERROR "USE_CPP must be on to use OpenImageIO.")
+  endif()
   set(USE_OIIO ON)
 elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
-  message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
+  message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}').")
 endif()
+
+# 3.14.0 introduced NAME_WLE
+cmake_minimum_required(VERSION 3.14.0)
+if(${USE_CPP})
+  enable_language(CXX)
+endif()
+if(${USE_CPP})
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
+endif()
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
 string(APPEND CMAKE_C_FLAGS_DEBUG " -Og")
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
-if("${USE_COVERAGE}")
+if(${USE_COVERAGE})
   if(NOT "${CMAKE_C_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
     message(FATAL_ERROR "USE_COVERAGE was on but CC isn't clang")
   endif()
-  if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
-    message(FATAL_ERROR "USE_COVERAGE was on but CXX isn't clang++")
-  endif()
   # FIXME requires clang11+
   string(APPEND CMAKE_C_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
-  string(APPEND CMAKE_CXX_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
+  if(${USE_CPP})
+    if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
+      message(FATAL_ERROR "USE_COVERAGE was on but CXX isn't clang++")
+    endif()
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
+  endif()
 endif()
 
 # under msys2 (and all other operating systems) we want pkgconfig. when
@@ -354,6 +367,7 @@ target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
 ############################################################################
+if(${USE_CPP})
 # libnotcurses++ (C++ wrappers)
 set(NCPP_SOURCES
   src/libcpp/FDPlane.cc
@@ -458,6 +472,7 @@ file(GLOB NCPP_INTERNAL_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
+endif()
 
 export(PACKAGE notcurses)
 
@@ -483,22 +498,24 @@ foreach(f ${POCSRCS})
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
   )
 endforeach()
-file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
-foreach(f ${POCPPSRCS})
-  get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f})
-  target_include_directories(${fe}
-    BEFORE
-    PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
-    "${PROJECT_BINARY_DIR}/include"
-  )
-  target_link_libraries(${fe}
-    PRIVATE notcurses++ "${TERMINFO_LIBRARIES}" "${LIBM}"
-  )
-  target_link_directories(${fe}
-    PRIVATE "${TERMINFO_LIBRARY_DIRS}"
-  )
-endforeach()
+if(${USE_CPP})
+  file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
+  foreach(f ${POCPPSRCS})
+    get_filename_component(fe "${f}" NAME_WE)
+    add_executable(${fe} ${f})
+    target_include_directories(${fe}
+      BEFORE
+      PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
+      "${PROJECT_BINARY_DIR}/include"
+    )
+    target_link_libraries(${fe}
+      PRIVATE notcurses++ "${TERMINFO_LIBRARIES}" "${LIBM}"
+    )
+    target_link_directories(${fe}
+      PRIVATE "${TERMINFO_LIBRARY_DIRS}"
+    )
+  endforeach()
+endif()
 endif()
 
 ############################################################################
@@ -549,6 +566,7 @@ target_link_libraries(notcurses-info
 
 ############################################################################
 # notcurses-input
+if(${USE_CPP})
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
@@ -578,6 +596,7 @@ target_link_libraries(nctetris
   PRIVATE
     notcurses++
 )
+endif()
 
 ############################################################################
 # ncneofetch
@@ -602,7 +621,8 @@ target_link_libraries(ncneofetch
 file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
 file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 
-# all further binaries require multimedia support
+# all further binaries require multimedia and C++ support
+if(${USE_CPP})
 if(${USE_MULTIMEDIA} STREQUAL "none")
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncls.1.md")
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
@@ -641,10 +661,12 @@ target_link_libraries(ncplayer
     notcurses++
 )
 endif()
+endif()
 
 ############################################################################
 # testing
 if(${BUILD_TESTING})
+if(${USE_CPP})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
@@ -677,6 +699,7 @@ install(TARGETS notcurses-tester DESTINATION bin)
 else()
   list(FILTER MANSOURCE1 EXCLUDE REGEX "notcurses-tester.1.md")
 endif()
+endif()
 enable_testing()
 # the accursed Ubuntu buildd sets "TERM=unknown" for unfathomable reasons
 if(DEFINED ENV{TERM} AND NOT $ENV{TERM} STREQUAL "unknown" AND USE_POC)
@@ -684,6 +707,7 @@ add_test(
   NAME notcurses-info
   COMMAND notcurses-info
 )
+if(${USE_CPP})
 add_test(
   NAME ncpp_build
   COMMAND ncpp_build
@@ -692,6 +716,8 @@ add_test(
   NAME ncpp_build_exceptions
   COMMAND ncpp_build_exceptions
 )
+LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions)
+endif()
 add_test(
   NAME sgr-direct
   COMMAND sgr-direct
@@ -708,9 +734,9 @@ add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
+LIST(APPEND TESTBINS notcurses-info sgr-direct sgr-full rgb rgbbg)
 set_tests_properties(
-  notcurses-info ncpp_build ncpp_build_exceptions sgr-direct sgr-full rgb rgbbg
-  PROPERTIES RUN_SERIAL TRUE
+  ${TESTBINS} PROPERTIES RUN_SERIAL TRUE
 )
 endif()
 else()
@@ -895,29 +921,33 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
-install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
+if(${USE_CPP})
+install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncplayer DESTINATION bin)
 endif()
-
-install(TARGETS notcurses-core notcurses notcurses++
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT Libraries
-    NAMELINK_COMPONENT Development
-)
-if(${USE_STATIC})
-install(
-  TARGETS notcurses-core-static notcurses-static notcurses++-static
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT Libraries
-    NAMELINK_COMPONENT Development
-)
 endif()
+
+LIST(APPEND INSTLIBS notcurses-core notcurses)
+if(${USE_STATIC})
+LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
+endif()
+if(${USE_CPP})
+LIST(APPEND INSTLIBS notcurses++)
+if(${USE_STATIC})
+LIST(APPEND INSTLIBS notcurses++-static)
+endif()
+endif()
+
+install(TARGETS ${INSTLIBS}
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+)
 
 option(DUMMY_PYTHON "Build dummy python module used for compile check and Clangd" OFF)
 if(${DUMMY_PYTHON})

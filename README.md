@@ -270,6 +270,15 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>We're paying by the electron, and have no C++ compiler. Can we still
+  enjoy Notcurses goodness?</summary>
+  Some of it! You won't be able to build several binaries, nor the NCPP C++
+  wrappers, nor can you build with the OpenImageIO multimedia backend (OIIO
+  ships C++ headers). You'll be able to build the main library, though, as
+  well as `notcurses-demo` (and maybe a few other binaries).
+</details>
+
+<details>
   <summary>Does it work with hardware terminals?</summary>
   With the correct `TERM` value, many hardware terminals are supported. The VT100
   is sadly unsupported due to its extensive need for delays. In general, if the
