@@ -16,6 +16,8 @@ extern "C" {
 #include "fbuf.h"
 #include "in.h"
 
+#define KKEYBOARD_POP "\x1b[<u"
+
 struct ncpile;
 struct sprixel;
 struct notcurses;

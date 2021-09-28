@@ -387,6 +387,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
 #define SMCUP "\x1b[?1049h"
+#define RMCUP "\x1b[?1049l"
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
@@ -1010,9 +1011,11 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   return 0;
 
 err:
-  // FIXME need to leave alternate screen if we entered it
+  if(ti->ttyfd >= 0){
+    tty_emit(KKEYBOARD_POP, ti->ttyfd);
+    tty_emit(RMCUP, ti->ttyfd);
+  }
   if(ti->tpreserved){
-    tty_emit("\x1b[<u", ti->ttyfd);
     (void)tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved);
     free(ti->tpreserved);
     ti->tpreserved = NULL;
