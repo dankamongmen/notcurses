@@ -1040,19 +1040,6 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
     }
   }
   free(str);
-=======
-#ifdef USE_READLINE
-  if(!n->initialized_readline){
-    rl_outstream = n->ttyfp;
-    rl_instream = stdin;
-    rl_prep_terminal(1); // 1 == read 8-bit input
-    n->initialized_readline = true;
-  }
-  return readline(prompt);
-#else
-  logerror("notcurses was built without readline support\n");
-  (void)n;
-  (void)prompt;
   return NULL;
 }
 
