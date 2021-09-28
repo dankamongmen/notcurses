@@ -111,7 +111,6 @@ may well be possible to use still older versions. Let me know of any successes!
 * (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
 * (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
 * (OPTIONAL) (build+runtime) [libgpm](https://www.nico.schottelius.org/software/gpm/) 1.20+
-* (OPTIONAL) (build+runtime) GNU [Readline](https://www.gnu.org/software/readline/) 8.0+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+, requires C++
@@ -249,14 +248,21 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
+   with Notcurses?</summary>
+   Yes! Use the flags <code>NCOPTION_NO_ALTERNATE_SCREEN</code>,
+   <code>NCOPTION_NO_CLEAR_BITMAPS</code>, and <code>NCOPTION_PRESERVE_CURSOR</code>,
+   and call `ncplane_set_scrolling()` on the standard plane. You still must
+   explicitly render.
+<details>
   <summary>Can I have Notcurses without this huge multimedia stack?</summary>
-  Yes! Build with <code>-DUSE_MULTIMEDIA=none</code>.
+  Again yes! Build with <code>-DUSE_MULTIMEDIA=none</code>.
 </details>
 
 <details>
   <summary>Can I build this individual Notcurses program without aforementioned
   multimedia stack?</summary>
-  Again yes! Use <code>notcurses_core_init()</code> or
+  Almost unbelievably, yes! Use <code>notcurses_core_init()</code> or
   <code>ncdirect_core_init()</code> in place of <code>notcurses_init()</code>/
   <code>ncdirect_init()</code>, and link with <code>-lnotcurses-core</code>.
   Your application will likely start a few milliseconds faster;
@@ -302,6 +308,7 @@ If things break or seem otherwise lackluster, **please** consult the
   language settings", click "Change system locale", and check the "Beta: Use
   Unicode UTF-8 for worldwide language support" option. Restart the computer.
   That ought help a little bit. Ensure your code page is 65001 with `chcp 65001`.
+  Try playing with fonts.
 </details>
 
 <details>
@@ -403,12 +410,30 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>How can I use Direct Mode in conjunction with libreadline?</summary>
-  Pass <code>NCDIRECT_OPTION_CBREAK</code> to <code>ncdirect_init()</code>, and
-  ensure you do not pass <code>NCDIRECT_OPTION_NO_READLINE</code>. If you'd like,
-  set <code>rl_readline_name</code> and <code>rl_attempted_completion_function</code>
-  prior to calling <code>ncdirect_init()</code>. With that said, consider using
-  a Notcurses <code>ncreader</code>.
+  You can't anymore (you could up until 2.4.1, but the new input system is
+  fundamentally incompatible with it). `ncdirect_readline()` still exists,
+  though, and now actually works even without libreadline, though it is of
+  course not exactly libreadline. In any case, you'd probably be better off
+  using CLI mode with a <code>ncreader</code>.
 </details>
+
+<details>
+  <summary>So is Direct Mode deprecated or what?</summary>
+  It is not currently deprecated, and definitely receives bugfixes. You are
+  probably better served using CLI mode (see above), which came about
+  somewhat late in Notcurses development (the 2.3.x series), but is superior
+  to Direct Mode in pretty much every way. The only reason to use Direct
+  Mode is if you're going to have other programs junking up your display.
+</details>
+
+<details>
+  <summary>Direct Mode sounds fast! Since it's, like, direct.</summary>
+  Direct mode is <i>substantially slower</i> than rendered mode. Rendered
+  mode assumes it knows what's on the screen, and uses this information to
+  generate optimized sequences of escapes and glyphs. Direct mode writes
+  everything it's told to write. It is furthermore far less capable—all
+  widgets etc. are available only to rendered mode, and will definitely
+  not be extended to Direct Mode.
 
 <details>
   <summary>Will there ever be Java wrappers?</summary>
