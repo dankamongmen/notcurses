@@ -31,7 +31,6 @@ jobs:
             libavutil-dev \
             libncurses-dev \
             libqrcodegen-dev \
-            libreadline-dev \
             libswscale-dev \
             libunistring-dev \
             pandoc \
