@@ -983,12 +983,18 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   uint32_t id;
   int oldx = xstart;
   while((id = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
-    if(id == NCKEY_ENTER){
-      if(fputc('\n', n->ttyfp) < 0){
+    if(id == NCKEY_EOF || id == NCKEY_ENTER){
+      if(id == NCKEY_ENTER){
+        if(fputc('\n', n->ttyfp) < 0){
+          free(str);
+          return NULL;
+        }
+      }else if(wused == 1){ // NCKEY_EOF without input returns NULL
         free(str);
         return NULL;
       }
       char* ustr = ncwcsrtombs(str);
+      free(str);
       return ustr;
     }else if(id == NCKEY_BACKSPACE){
       if(wused > 1){
