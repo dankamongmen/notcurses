@@ -955,6 +955,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   }
   return readline(prompt);
 #else
+  logerror("notcurses was built without readline support\n");
   (void)n;
   (void)prompt;
   return NULL;
