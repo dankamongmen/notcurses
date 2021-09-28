@@ -390,6 +390,10 @@ cursor_location_cb(inputctx* ictx){
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
   int x = esctrie_numeric(e) - 1;
+  if(ictx->initdata){
+    ictx->initdata->cursory = y;
+    ictx->initdata->cursorx = x;
+  }
   pthread_mutex_lock(&ictx->clock);
   if(ictx->cvalid == ictx->csize){
     pthread_mutex_unlock(&ictx->clock);
