@@ -8,6 +8,8 @@ rearrangements of Notcurses.
     was an optional dependency). `NCDIRECT_OPTION_INHIBIT_CBREAK` should *not*
     be used with `ncdirect_readline()`, or else it can't implement line-editing
     keybindings.
+  * Helper function `ncwcsrtombs()` is now available for converting a
+    `wchar_t *` to a heap-allocated UTF-8 `char *`.
 
 * 2.4.3 (2021-09-26)
   * `ncplane_erase_region()` has been made much more general, and can now

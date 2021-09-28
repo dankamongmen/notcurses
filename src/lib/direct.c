@@ -189,6 +189,13 @@ cursor_yx_get(ncdirect* n, int ttyfd, const char* u7, int* y, int* x){
   if(tty_emit(u7, ttyfd)){
     return -1;
   }
+  int fakey, fakex;
+  if(y == NULL){
+    y = &fakey;
+  }
+  if(x == NULL){
+    x = &fakex;
+  }
   get_cursor_location(ictx, y, x);
   loginfo("cursor at y=%d x=%d\n", *y, *x);
   return 0;
@@ -937,10 +944,102 @@ int ncdirect_stop(ncdirect* nc){
   return ret;
 }
 
+// our new input system is fundamentally incompatible with libreadline, so we
+// have to fake it ourselves. at least it saves us the dependency.
+//
+// if NCDIRECT_OPTION_INHIBIT_CBREAK is in play, we're not going to get the
+// text until cooked mode has had its way with it, and we are essentially
+// unable to do anything clever. text will be echoed, and there will be no
+// line-editing keybindings, save any implemented in the line discipline.
+//
+// otherwise, we control echo. whenever we emit output, get our position. if
+// we've changed line, assume the prompt has scrolled up, and account for
+// that. we return to the prompt, clear any affected lines, and reprint what
+// we have.
 char* ncdirect_readline(ncdirect* n, const char* prompt){
-  // FIXME read that line! print that prompt!
-  (void)n;
-  (void)prompt;
+  const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
+  if(!u7){ // we probably *can*, but it would be a pita; screw it
+    logerror("can't readline without u7\n");
+    return NULL;
+  }
+  if(fprintf(n->ttyfp, "%s", prompt) < 0){
+    return NULL;
+  }
+  // FIXME what if we're reading from redirected input, not a terminal?
+  int y, xstart;
+  if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, &xstart)){
+    return NULL;
+  }
+  int tline = y;
+  int bline = y;
+  wchar_t* str;
+  int wspace = BUFSIZ / sizeof(*str);
+  if((str = malloc(wspace * sizeof(*str))) == NULL){
+    return NULL;
+  }
+  int wused = 0; // number used
+  str[wused++] = L'\0';
+  ncinput ni;
+  uint32_t id;
+  int oldx = xstart;
+  while((id = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
+    if(id == NCKEY_ENTER){
+      if(fputc('\n', n->ttyfp) < 0){
+        free(str);
+        return NULL;
+      }
+      char* ustr = ncwcsrtombs(str);
+      return ustr;
+    }else if(id == NCKEY_BACKSPACE){
+      if(wused > 1){
+        str[wused - 2] = L'\0';
+        --wused;
+      }
+    }else{
+      if(wspace - 1 < wused){
+        wspace += BUFSIZ;
+        wchar_t* tmp = realloc(str, wspace * sizeof(*str));
+        if(tmp == NULL){
+          free(str);
+          return NULL;
+        }
+        str = tmp;
+      }
+      str[wused - 1] = id;
+      ++wused;
+      str[wused - 1] = L'\0';
+      // FIXME check modifiers
+      int x;
+      if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, &x)){
+        break;
+      }
+      if(x < oldx){
+        oldx = x;
+        if(--tline < 0){
+          tline = 0;
+        }
+      }
+      if(y > bline){
+        bline = y;
+      }
+    }
+    const char* el = get_escape(&n->tcache, ESCAPE_EL);
+    for(int i = bline ; i >= tline ; --i){
+      if(ncdirect_cursor_move_yx(n, i, i > tline ? 0 : xstart)){
+        break;
+      }
+      if(term_emit(el, n->ttyfp, false)){
+        break;
+      }
+    }
+    if(fprintf(n->ttyfp, "%ls", str) < 0){
+      break;
+    }
+    if(fflush(n->ttyfp)){
+      break;
+    }
+  }
+  free(str);
   return NULL;
 }
 
