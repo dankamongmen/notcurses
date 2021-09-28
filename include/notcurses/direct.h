@@ -54,10 +54,8 @@ API ALLOC struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_
 // allowing for a svelter binary. Link with notcurses-core if this is used.
 API ALLOC struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
 
-// Read a (heap-allocated) line of text using the Readline library Initializes
-// Readline the first time it's called. For input to be echoed to the terminal,
-// it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
-// ncdirect_init(). Returns NULL on error.
+// Read a (heap-allocated) newline-delimited chunk of text, after printing the
+// prompt. The newline itself, if present, is included. Returns NULL on error.
 __attribute__ ((nonnull (1)))
 API ALLOC char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 

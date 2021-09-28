@@ -1837,24 +1837,33 @@ API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbyte
 // 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
 #define WCHAR_MAX_UTF8BYTES 4
 
-// ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
-static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
+// generate a heap-allocated UTF-8 encoding of the wide string 'src'.
+ALLOC static inline char*
+ncwcsrtombs(const wchar_t* src){
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
-  const wchar_t** wset = &gclust;
-  size_t mbytes = wcsrtombs(NULL, wset, 0, &ps);
+  size_t mbytes = wcsrtombs(NULL, &src, 0, &ps);
   if(mbytes == (size_t)-1){
-    return -1;
+    return NULL;
   }
   ++mbytes;
   char* mbstr = (char*)malloc(mbytes); // need cast for c++ callers
   if(mbstr == NULL){
-    return -1;
+    return NULL;
   }
-  size_t s = wcsrtombs(mbstr, wset, mbytes, &ps);
+  size_t s = wcsrtombs(mbstr, &src, mbytes, &ps);
   if(s == (size_t)-1){
     free(mbstr);
+    return NULL;
+  }
+  return mbstr;
+}
+
+// ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
+static inline int
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
+  char* mbstr = ncwcsrtombs(gclust);
+  if(mbstr == NULL){
     return -1;
   }
   int ret = ncplane_putegc(n, mbstr, sbytes);

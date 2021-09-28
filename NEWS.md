@@ -1,6 +1,16 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.4.4 (not yet released)
+  * Notcurses no longer uses libreadline, as it was realized to be incompatible
+    with the new input system. `ncdirect_readline()` has been rewritten to
+    work without libreadline, which means it's now always available (readline
+    was an optional dependency). `NCDIRECT_OPTION_INHIBIT_CBREAK` should *not*
+    be used with `ncdirect_readline()`, or else it can't implement line-editing
+    keybindings.
+  * Helper function `ncwcsrtombs()` is now available for converting a
+    `wchar_t *` to a heap-allocated UTF-8 `char *`.
+
 * 2.4.3 (2021-09-26)
   * `ncplane_erase_region()` has been made much more general, and can now
     operate relative to the current cursor.

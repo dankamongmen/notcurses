@@ -28,7 +28,6 @@ option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
-option(USE_READLINE "Enable libreadline line-editing support" ON)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
@@ -74,7 +73,7 @@ elseif(APPLE)
 # surely there's a better way to do this? alas, seems necessary to pull the
 # pkg-config files out of Homebrew.
 if(NOT DEFINED ENV{PKG_CONFIG_PATH})
-set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/ncurses/lib/pkgconfig:/usr/local/opt/readline/lib/pkgconfig")
+set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/ncurses/lib/pkgconfig")
 endif()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 else()
@@ -87,11 +86,6 @@ pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
-if(${USE_READLINE})
-pkg_search_module(READLINE REQUIRED readline>=8.0)
-set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND readline)
-set_package_properties(readline PROPERTIES TYPE REQUIRED)
-endif()
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
@@ -307,24 +301,6 @@ target_link_libraries(notcurses-static
   PUBLIC
     notcurses-core-static
 )
-if(${USE_READLINE})
-target_link_libraries(notcurses-core
-  PUBLIC
-    "${READLINE_LIBRARIES}"
-)
-target_link_directories(notcurses-core
-  PUBLIC
-    "${READLINE_LIBRARY_DIRS}"
-)
-target_link_libraries(notcurses-core-static
-  PUBLIC
-    "${READLINE_LIBRARIES}"
-)
-target_link_directories(notcurses-core-static
-  PUBLIC
-    "${READLINE_LIBRARY_DIRS}"
-)
-endif()
 if(${USE_FFMPEG})
 target_include_directories(notcurses
   PRIVATE

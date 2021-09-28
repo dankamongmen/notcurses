@@ -12,7 +12,7 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libgpm-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
@@ -22,15 +22,11 @@ If you want to build the Python wrappers, you'll also need:
 
 `apt-get install python3-cffi python3-dev python3-pypandoc python3-setuptools`
 
-If you want to build the Rust wrappers, you'll also need:
-
-`apt-get install cargo bindgen`
-
 ### RPM
 
 Install build dependencies:
 
-`dnf install cmake doctest-devel zlib-devel ncurses-devel gpm-devel readline-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+`dnf install cmake doctest-devel zlib-devel ncurses-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
@@ -42,11 +38,10 @@ Currently, building on Windows requires [MSYS2](https://www.msys2.org/) in its
 64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
 and EXEs, though it does not use Visual Studio. Install build dependencies:
 
-`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-rust mingw-w64-ucrt-x86_64-toolchain`
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain`
 
 If you only intend to build core Notcurses (without multimedia support), you
-can omit `mingw-w64-ucrt-x86_64-ffmpeg`. The Windows build never uses GNU
-Readline, so don't worry about that.
+can omit `mingw-w64-ucrt-x86_64-ffmpeg`.
 
 ## Building
 
@@ -80,8 +75,8 @@ be found on the `notcurses-demo(1)` man page.
 
 Install with `make install` following a successful build. This installs the C
 core library, the C headers, the C++ library, and the C++ headers (note that
-the C headers are C++-safe). It does not install the Python or Rust wrappers.
-To install the Python wrappers (after installing the core library), run:
+the C headers are C++-safe). It does not install the Python wrappers. To
+install the Python wrappers (after installing the core library), run:
 
 ```
 cd cffi
@@ -89,16 +84,7 @@ python setup.py build
 python setup.py install
 ```
 
-The Python wrappers are also available from [PyPi](https://pypi.org/project/notcurses/). To install the low-level Rust
-wrappers (`libnotcurses-sys`), run:
-
-```
-cd rust
-cargo build
-cargo install
-```
-
-The Rust wrappers are also available from [crates.io](https://crates.io/crates/libnotcurses-sys/).
+The Python wrappers are also available from [PyPi](https://pypi.org/project/notcurses/).
 
 ### Build options
 
@@ -117,5 +103,4 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
-* `USE_READLINE`: build readline support for Direct Mode
 * `USE_STATIC`: build static libraries (in addition to shared ones)
