@@ -10,6 +10,8 @@ rearrangements of Notcurses.
     keybindings.
   * Helper function `ncwcsrtombs()` is now available for converting a
     `wchar_t *` to a heap-allocated UTF-8 `char *`.
+  * Building without a C++ compiler is now supported using `-DUSE_CPP=off`. See
+    the FAQs for restrictions.
 
 * 2.4.3 (2021-09-26)
   * `ncplane_erase_region()` has been made much more general, and can now
