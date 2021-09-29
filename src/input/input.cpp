@@ -219,21 +219,16 @@ char evtype_to_char(ncinput* ni){
 
 int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTHEIGHT = 6;
+  constexpr auto PLOTWIDTH = 56;
   auto n = nc->get_stdplane(&dimy, &dimx);
   // FIXME no ncpp wrapper for Plane::pixelgeom?
   int celldimx, maxbmapx;
   ncplane_pixelgeom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
-  int cols;
-  if(maxbmapx == 0 || celldimx == 0){
-    cols = dimx;
-  }else{
-    cols = maxbmapx / celldimx;
-  }
   struct ncplane_options nopts = {
     .y = dimy - PLOTHEIGHT - 1,
     .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
-    .cols = cols / 2,
+    .cols = PLOTWIDTH,
     .userptr = nullptr,
     .name = "plot",
     .resizecb = nullptr, // FIXME

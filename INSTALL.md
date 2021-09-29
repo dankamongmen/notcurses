@@ -95,11 +95,14 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
                 Software Guidelines
 * `BUILD_TESTING`: build test targets
+* `USE_CPP`: build C++ code (requires a C++ compiler)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 * `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
+  * `USE_DOCTEST=on` requires `USE_CPP=off`
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
 * `USE_GPM`: build GPM console mouse support via libgpm
 * `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
+  * `oiio` cannot be used with `USE_CPP=off`
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen

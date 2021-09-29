@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "automaton.h"
 #include "internal.h"
 #include "in.h"
@@ -93,6 +95,7 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
+  int readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
@@ -109,17 +112,6 @@ inc_input_errors(inputctx* ictx){
   pthread_mutex_lock(&ictx->stats->lock);
   ++ictx->stats->s.input_errors;
   pthread_mutex_unlock(&ictx->stats->lock);
-}
-
-static void
-send_synth_signal(int sig){
-#ifndef __MINGW64__
-  if(sig){
-    raise(sig);
-  }
-#else
-  (void)sig; // FIXME
-#endif
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
@@ -444,8 +436,17 @@ geom_cb(inputctx* ictx){
   return 2;
 }
 
-// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
-// optional and indicates a special key with no modifiers.
+static void
+send_synth_signal(int sig){
+#ifndef __MINGW64__
+  if(sig){
+    raise(sig);
+  }
+#else
+  (void)sig; // FIXME
+#endif
+}
+
 static void
 kitty_kbd(inputctx* ictx, int val, int mods){
   int synth = 0;
@@ -869,6 +870,56 @@ build_cflow_automaton(inputctx* ictx){
   return 0;
 }
 
+static void
+endpipes(int pipes[static 2]){
+  if(pipes[0] >= 0){
+    close(pipes[0]);
+  }
+  if(pipes[1] >= 0){
+    close(pipes[1]);
+  }
+}
+
+static void
+mark_pipe_ready(int pipes[static 2]){
+  char sig = 1;
+  if(write(pipes[1], &sig, sizeof(sig)) != 1){
+    logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+  }
+}
+
+// only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
+static int
+getpipes(int pipes[static 2]){
+#ifndef __MINGW64__
+#ifndef __APPLE__
+  if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
+    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    return -1;
+  }
+#else
+  if(pipe(pipes)){
+    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    return -1;
+  }
+  if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_nonblocking(pipes[0], 1, NULL)){
+    logerror("couldn't prep pipe[0] (%d) (%s)\n", pipes[0], strerror(errno));
+    endpipes(pipes);
+    return -1;
+  }
+  if(set_fd_cloexec(pipes[1], 1, NULL) || set_fd_nonblocking(pipes[1], 1, NULL)){
+    logerror("couldn't prep pipe[1] (%d) (%s)\n", pipes[1], strerror(errno));
+    endpipes(pipes);
+    return -1;
+  }
+  // FIXME what to do on windows?
+#endif
+#else // windows
+  pipes[0] = pipes[1] = -1;
+#endif
+  return 0;
+}
+
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                 ncsharedstats* stats, unsigned drain,
@@ -885,30 +936,33 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
               if(pthread_cond_init(&i->ccond, NULL) == 0){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
-                    memset(&i->amata, 0, sizeof(i->amata));
-                    if(prep_special_keys(i) == 0){
-                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                        memset(i->initdata, 0, sizeof(*i->initdata));
-                        i->iread = i->iwrite = i->ivalid = 0;
-                        i->cread = i->cwrite = i->cvalid = 0;
-                        i->initdata_complete = NULL;
-                        i->stats = stats;
-                        i->ti = ti;
-                        i->stdineof = 0;
+                    if(getpipes(i->readypipes) == 0){
+                      memset(&i->amata, 0, sizeof(i->amata));
+                      if(prep_special_keys(i) == 0){
+                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                          memset(i->initdata, 0, sizeof(*i->initdata));
+                          i->iread = i->iwrite = i->ivalid = 0;
+                          i->cread = i->cwrite = i->cvalid = 0;
+                          i->initdata_complete = NULL;
+                          i->stats = stats;
+                          i->ti = ti;
+                          i->stdineof = 0;
 #ifdef __MINGW64__
-                        i->stdinhandle = ti->inhandle;
+                          i->stdinhandle = ti->inhandle;
 #endif
-                        i->ibufvalid = 0;
-                        i->linesigs = linesigs_enabled;
-                        i->tbufvalid = 0;
-                        i->midescape = 0;
-                        i->lmargin = lmargin;
-                        i->tmargin = tmargin;
-                        i->drain = drain;
-                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                        return i;
+                          i->ibufvalid = 0;
+                          i->linesigs = linesigs_enabled;
+                          i->tbufvalid = 0;
+                          i->midescape = 0;
+                          i->lmargin = lmargin;
+                          i->tmargin = tmargin;
+                          i->drain = drain;
+                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                          return i;
+                        }
                       }
+                      endpipes(i->readypipes);
                     }
                     input_free_esctrie(&i->amata);
                   }
@@ -952,6 +1006,7 @@ free_inputctx(inputctx* i){
       free(i->initdata_complete->version);
       free(i->initdata_complete);
     }
+    endpipes(i->readypipes);
     free(i->inputs);
     free(i->csrs);
     free(i);
@@ -1108,6 +1163,7 @@ add_unicode(inputctx* ictx, uint32_t id){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -1115,6 +1171,9 @@ add_unicode(inputctx* ictx, uint32_t id){
 static void
 special_key(inputctx* ictx, const ncinput* inni){
   inc_input_events(ictx);
+  if(ictx->drain){
+    return;
+  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -1128,6 +1187,7 @@ special_key(inputctx* ictx, const ncinput* inni){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -1568,7 +1628,7 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
-  return ictx->stdinfd;
+  return ictx->readypipes[0];
 }
 
 static inline uint32_t
@@ -1612,6 +1672,12 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   bool sendsignal = false;
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
+  }else if(ictx->ivalid){
+    logtrace("draining event readiness pipe\n");
+    char c;
+    while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
+      // FIXME accelerate;
+    }
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
