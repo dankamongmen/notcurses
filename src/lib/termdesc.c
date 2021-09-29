@@ -1075,10 +1075,7 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     return -1;
   }
   int fd = ti->ttyfd;
-  if(tty_emit(u7, fd)){
-    return -1;
-  }
-  get_cursor_location(ti->ictx, cursor_y, cursor_x);
+  get_cursor_location(ti->ictx, u7, cursor_y, cursor_x);
   loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
   return 0;
 }
