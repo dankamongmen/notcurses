@@ -14,6 +14,7 @@
 * [NCURSES](https://invisible-island.net/ncurses/) (C)
 * [Newt](https://pagure.io/newt) (C)
 * [pancurses](https://github.com/ihalila/pancurses) (Rust)
+* [rich](https://github.com/willmcgugan/rich) (Python)
 * [S-Lang](http://www.jedsoft.org/slang/) (S-Lang)
 * [tcell](https://github.com/gdamore/tcell) (Go)
 * [termbox](https://github.com/nsf/termbox) (C+Python)
@@ -32,6 +33,7 @@
 ## Declarative
 
 * [brick](https://github.com/jtdaugherty/brick) (Haskell, atop vty)
+* [textual](https://github.com/willmcgugan/textual) (Python)
 * [zui](https://github.com/zdharma/zui) (Zsh, atop zdharma)
 
 ## Graphics
