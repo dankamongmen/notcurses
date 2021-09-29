@@ -439,8 +439,12 @@ prep_special_keys(inputctx* ictx){
 
 static void
 endpipes(int pipes[static 2]){
-  close(pipes[0]);
-  close(pipes[1]);
+  if(pipes[0] >= 0){
+    close(pipes[0]);
+  }
+  if(pipes[1] >= 0){
+    close(pipes[1]);
+  }
 }
 
 static void
@@ -454,6 +458,7 @@ mark_pipe_ready(int pipes[static 2]){
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
 static int
 getpipes(int pipes[static 2]){
+#ifndef __MINGW64__
 #ifndef __APPLE__
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
     logerror("couldn't get pipes (%s)\n", strerror(errno));
@@ -475,6 +480,9 @@ getpipes(int pipes[static 2]){
     return -1;
   }
   // FIXME what to do on windows?
+#endif
+#else // windows
+  pipes[0] = pipes[1] = -1;
 #endif
   return 0;
 }
