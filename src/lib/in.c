@@ -2093,6 +2093,12 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   bool sendsignal = false;
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
+  }else if(ictx->ivalid){
+    logtrace("draining event readiness pipe\n");
+    char c;
+    while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
+      // FIXME accelerate;
+    }
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
