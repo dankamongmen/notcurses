@@ -172,7 +172,7 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
-  int readypipes[2];  // pipes[1]: poll()able fd indicating the presence of user input
+  int readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
@@ -441,6 +441,14 @@ static void
 endpipes(int pipes[static 2]){
   close(pipes[0]);
   close(pipes[1]);
+}
+
+static void
+mark_pipe_ready(int pipes[static 2]){
+  char sig = 1;
+  if(write(pipes[1], &sig, sizeof(sig)) != 1){
+    logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+  }
 }
 
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
@@ -912,6 +920,7 @@ mouse_click(inputctx* ictx, unsigned release){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -941,6 +950,7 @@ add_unicode(inputctx* ictx, uint32_t id){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -968,6 +978,7 @@ alt_key(inputctx* ictx, unsigned id){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -993,6 +1004,7 @@ special_key(inputctx* ictx){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
@@ -1052,6 +1064,7 @@ kitty_kbd(inputctx* ictx){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
   send_synth_signal(synth);
@@ -2036,7 +2049,7 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
-  return ictx->readypipes[1];
+  return ictx->readypipes[0];
 }
 
 static inline uint32_t
