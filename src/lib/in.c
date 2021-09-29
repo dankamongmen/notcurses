@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "internal.h"
 #include "in.h"
 
@@ -170,6 +172,7 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
+  int readypipes[2];  // pipes[1]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
@@ -434,6 +437,40 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
+static void
+endpipes(int pipes[static 2]){
+  close(pipes[0]);
+  close(pipes[1]);
+}
+
+// only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
+static int
+getpipes(int pipes[static 2]){
+#ifndef __APPLE__
+  if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
+    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    return -1;
+  }
+#else
+  if(pipe(pipes)){
+    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    return -1;
+  }
+  if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_nonblocking(pipes[0], 1, NULL)){
+    logerror("couldn't prep pipe[0] (%d) (%s)\n", pipes[0], strerror(errno));
+    endpipes(pipes);
+    return -1;
+  }
+  if(set_fd_cloexec(pipes[1], 1, NULL) || set_fd_nonblocking(pipes[1], 1, NULL)){
+    logerror("couldn't prep pipe[1] (%d) (%s)\n", pipes[1], strerror(errno));
+    endpipes(pipes);
+    return -1;
+  }
+  // FIXME what to do on windows?
+#endif
+  return 0;
+}
+
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                 ncsharedstats* stats, unsigned drain,
@@ -450,34 +487,37 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
               if(pthread_cond_init(&i->ccond, NULL) == 0){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
-                    i->inputescapes = NULL;
-                    if(prep_special_keys(i) == 0){
-                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                        memset(i->initdata, 0, sizeof(*i->initdata));
-                        i->state = i->stringstate = STATE_NULL;
-                        i->iread = i->iwrite = i->ivalid = 0;
-                        i->cread = i->cwrite = i->cvalid = 0;
-                        i->initdata_complete = NULL;
-                        i->stats = stats;
-                        i->ti = ti;
-                        i->stdineof = 0;
+                    if(getpipes(i->readypipes) == 0){
+                      i->inputescapes = NULL;
+                      if(prep_special_keys(i) == 0){
+                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                          memset(i->initdata, 0, sizeof(*i->initdata));
+                          i->state = i->stringstate = STATE_NULL;
+                          i->iread = i->iwrite = i->ivalid = 0;
+                          i->cread = i->cwrite = i->cvalid = 0;
+                          i->initdata_complete = NULL;
+                          i->stats = stats;
+                          i->ti = ti;
+                          i->stdineof = 0;
 #ifdef __MINGW64__
-                        i->stdinhandle = ti->inhandle;
+                          i->stdinhandle = ti->inhandle;
 #endif
-                        i->ibufvalid = 0;
-                        i->linesigs = linesigs_enabled;
-                        i->tbufvalid = 0;
-                        i->midescape = 0;
-                        i->numeric = 0;
-                        i->stridx = 0;
-                        i->runstring[i->stridx] = '\0';
-                        i->lmargin = lmargin;
-                        i->tmargin = tmargin;
-                        i->drain = drain;
-                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                        return i;
+                          i->ibufvalid = 0;
+                          i->linesigs = linesigs_enabled;
+                          i->tbufvalid = 0;
+                          i->midescape = 0;
+                          i->numeric = 0;
+                          i->stridx = 0;
+                          i->runstring[i->stridx] = '\0';
+                          i->lmargin = lmargin;
+                          i->tmargin = tmargin;
+                          i->drain = drain;
+                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                          return i;
+                        }
                       }
+                      endpipes(i->readypipes);
                     }
                     input_free_esctrie(&i->inputescapes);
                   }
@@ -521,6 +561,7 @@ free_inputctx(inputctx* i){
       free(i->initdata_complete->version);
       free(i->initdata_complete);
     }
+    endpipes(i->readypipes);
     free(i->inputs);
     free(i->csrs);
     free(i);
@@ -1995,7 +2036,7 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
-  return ictx->stdinfd;
+  return ictx->readypipes[1];
 }
 
 static inline uint32_t

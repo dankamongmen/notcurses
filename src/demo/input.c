@@ -10,8 +10,8 @@ typedef struct nciqueue {
 } nciqueue;
 
 // a pipe on which we write upon receipt of input, so that demos
-// can reliably multiplex against other fds. freebsd doesn't have
-// eventfd, alas.
+// can reliably multiplex against other fds. osx doesn't have
+// eventfd, alas (freebsd added it in 13.0).
 static int input_pipefds[2] = {-1, -1};
 
 static pthread_t tid;
