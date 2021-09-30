@@ -1121,12 +1121,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   init_banner(ret, &ret->rstate.f);
-  fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
-  fbuf_reset(&ret->rstate.f);
-  if(ncflush(ret->ttyfp)){
+  if(blocking_write(fileno(ret->ttyfp), ret->rstate.f.buf, ret->rstate.f.used)){
     free_plane(ret->stdplane);
     goto err;
   }
+  fbuf_reset(&ret->rstate.f);
   if(ret->rstate.logendy >= 0){ // if either is set, both are
     if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
       if(locate_cursor(&ret->tcache, &ret->rstate.logendy, &ret->rstate.logendx)){
