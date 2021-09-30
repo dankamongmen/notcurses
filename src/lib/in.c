@@ -294,11 +294,20 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
-// get the CSI node from the trie
+// get a fixed CSI-anchored node from the trie
 static inline struct esctrie*
-csi_node(automaton *amata){
+csi_node(automaton *amata, const char* prefix){
   struct esctrie* e = amata->escapes;
-  return esctrie_trie(e)['['];
+  e = esctrie_trie(e)['['];
+  unsigned p;
+  while(e && (p = *prefix)){
+    e = esctrie_trie(e)[p];
+    ++prefix;
+  }
+  if(*prefix){
+    logerror("error following path: %s\n", prefix);
+  }
+  return e;
 }
 
 // get the DCS node from the trie
@@ -313,9 +322,7 @@ dcs_node(automaton *amata){
 // ('M' for click, 'm' for release).
 static void
 mouse_click(inputctx* ictx, unsigned release){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['<'];
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "<0");
   const int mods = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
@@ -376,8 +383,7 @@ mouse_release_cb(inputctx* ictx){
 
 static int
 cursor_location_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "0");
   int y = esctrie_numeric(e) - 1;
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['9'];
@@ -410,8 +416,7 @@ cursor_location_cb(inputctx* ictx){
 
 static int
 geom_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "0");
   int kind = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
@@ -498,8 +503,7 @@ kitty_kbd(inputctx* ictx, int val, int mods){
 
 static int
 kitty_cb_simple(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "0");
   int val = esctrie_numeric(e);
   kitty_kbd(ictx, val, 0);
   return 2;
@@ -507,8 +511,7 @@ kitty_cb_simple(inputctx* ictx){
 
 static int
 kitty_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "0");
   int val = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
@@ -519,9 +522,7 @@ kitty_cb(inputctx* ictx){
 
 static int
 kitty_keyboard_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['1'];
+  struct esctrie* e = csi_node(&ictx->amata, "?1");
   int val = esctrie_numeric(e);
   if(ictx->initdata){
     ictx->initdata->kbdlevel = val;
@@ -533,13 +534,7 @@ kitty_keyboard_cb(inputctx* ictx){
 // the only xtsmgraphics reply with a single Pv arg is color registers
 static int
 xtsmgraphics_cregs_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['1'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "?1;0;0");
   int pv = esctrie_numeric(e);
   if(ictx->initdata){
     ictx->initdata->color_registers = pv;
@@ -551,13 +546,7 @@ xtsmgraphics_cregs_cb(inputctx* ictx){
 // the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
 static int
 xtsmgraphics_sixel_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['2'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "?2;0;0");
   int width = esctrie_numeric(e);
   e = esctrie_trie(e)[';'];
   e = esctrie_trie(e)['0'];
@@ -610,11 +599,7 @@ da2_cb(inputctx* ictx){
             termname ? termname : "unset");
     return 2;
   }
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['>'];
-  e = esctrie_trie(e)['0'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, ">0;0");
   int pv = esctrie_numeric(e);
   int maj, min, patch;
   if(pv <= 0){
@@ -658,14 +643,7 @@ kittygraph_cb(inputctx* ictx){
 
 static int
 decrpm_asu_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata);
-  e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['2'];
-  e = esctrie_trie(e)['0'];
-  e = esctrie_trie(e)['2'];
-  e = esctrie_trie(e)['6'];
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
+  struct esctrie* e = csi_node(&ictx->amata, "?2026;0");
   int ps = esctrie_numeric(e);
   loginfo("received decrpm 2026 %d\n", ps);
   if(ps == 2){
