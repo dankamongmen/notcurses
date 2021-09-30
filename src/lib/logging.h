@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void nclog(const char* fmt, ...);
+void nclog(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
 
 // logging
 extern int loglevel;

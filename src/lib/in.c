@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "automaton.h"
 #include "internal.h"
 #include "in.h"
 
@@ -49,74 +50,6 @@ typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
 
-typedef enum {
-  STATE_NULL,
-  STATE_ESC,  // escape; aborts any active sequence
-  STATE_CSI,  // control sequence introducer
-  STATE_DCS,  // device control string
-  // XTVERSION replies with DCS > | ... ST
-  STATE_XTVERSION1,
-  STATE_XTVERSION2,
-  // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
-  STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
-  STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
-  STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
-  STATE_DCS_DRAIN,  // throw away input until we hit escape
-  STATE_APC,        // application programming command, starts with \x1b_
-  STATE_APC_DRAIN,  // looking for \x1b
-  STATE_APC_ST,     // looking for ST
-  STATE_BG1,        // got '1'
-  STATE_BG2,        // got second '1'
-  STATE_BGSEMI,     // got '11;', draining string to ESC ST
-  STATE_TDA1, // tertiary DA, got '!'
-  STATE_TDA2, // tertiary DA, got '|', first hex nibble
-  STATE_TDA3, // tertiary DA, second hex nibble
-  STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
-  STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
-  STATE_SDA_DRAIN, // drain secondary DA to 'c'
-  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM or kittykbd
-  STATE_DA_DRAIN, // drain out the primary DA to an alpha
-  STATE_DA_SEMI,    // got first semicolon following numeric
-  STATE_DA_SEMI2,   // got second semicolon following numeric ; numeric
-  STATE_DA_SEMI3,   // got third semicolon following numeric ; numeric ; numeric
-  STATE_APPSYNC_REPORT, // got DECRPT ?2026
-  STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
-  // cursor location report: CSI row ; col R
-  // text area pixel geometry: CSI 4 ; rows ; cols t
-  // text area cell geometry: CSI 8 ; rows ; cols t
-  // so we handle them the same until we hit either a second semicolon or an
-  // 'R', 't', or 'u'. at the second ';', we verify that the first variable was
-  // '4' or '8', and continue to 't' via STATE_{PIXELS,CELLS}_WIDTH.
-  STATE_CURSOR_COL,    // reading numeric to 'R', 't', 'u', or ';'
-  STATE_PIXELS_WIDTH,  // reading text area width in pixels to ';'
-  STATE_CELLS_WIDTH,   // reading text area width in cells to ';'
-  STATE_MOUSE,         // got '<', looking for mouse coordinates
-  STATE_MOUSE2,        // got mouse click modifiers
-  STATE_MOUSE3,        // got first mouse coordinate
-} initstates_e;
-
-// we assumed escapes can only be composed of 7-bit chars
-typedef struct esctrie {
-  struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
-  uint32_t special;       // composed key terminating here
-  bool shift, ctrl, alt;
-} esctrie;
-
-static esctrie*
-create_esctrie_node(int special){
-  esctrie* e = malloc(sizeof(*e));
-  if(e){
-    e->trie = NULL;
-    e->special = special;
-    e->shift = 0;
-    e->ctrl = 0;
-    e->alt = 0;
-  }
-  return e;
-}
-
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
@@ -129,7 +62,7 @@ typedef struct inputctx {
 
   int lmargin, tmargin; // margins in use at left and top
 
-  struct esctrie* inputescapes;
+  automaton amata;
 
   // these two are not ringbuffers; we always move any leftover materia to the
   // front of the queue (it ought be a handful of bytes at most).
@@ -137,16 +70,6 @@ typedef struct inputctx {
   unsigned char tbuf[BUFSIZ]; // only used if we have distinct terminal fd
   int ibufvalid;      // we mustn't read() if ibufvalid == sizeof(ibuf)
   int tbufvalid;      // only used if we have distinct terminal connection
-
-  // transient state for processing control sequences
-  // stringstate is the state at which this string was initialized, and can be
-  // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
-  initstates_e state, stringstate;
-  int numeric;            // currently-lexed numeric
-  char runstring[BUFSIZ]; // running string (when stringstate != STATE_NULL)
-  int stridx;             // length of runstring
-  int p2, p3, p4;         // holders for numeric params
-  struct esctrie* triepos;// position in escapes automaton
 
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
@@ -191,77 +114,10 @@ inc_input_errors(inputctx* ictx){
   pthread_mutex_unlock(&ictx->stats->lock);
 }
 
-static void
-input_free_esctrie(esctrie** eptr){
-  esctrie* e;
-  if( (e = *eptr) ){
-    if(e->trie){
-      int z;
-      for(z = 0 ; z < 0x80 ; ++z){
-        if(e->trie[z]){
-          input_free_esctrie(&e->trie[z]);
-        }
-      }
-      free(e->trie);
-    }
-    free(e);
-  }
-}
-
-// multiple input escapes might map to the same input
-static int
-inputctx_add_input_escape(inputctx* ictx, const char* esc, uint32_t special,
-                          unsigned shift, unsigned ctrl, unsigned alt){
-  if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    logerror("not an escape (0x%x)\n", special);
-    return -1;
-  }
-  if(ictx->inputescapes == NULL){
-    if((ictx->inputescapes = create_esctrie_node(NCKEY_INVALID)) == NULL){
-      return -1;
-    }
-  }
-  esctrie* cur = ictx->inputescapes;
-  ++esc; // don't encode initial escape as a transition
-  do{
-    int valid = *esc;
-    if(valid <= 0 || valid >= 0x80 || valid == NCKEY_ESC){
-      logerror("invalid character %d in escape\n", valid);
-      return -1;
-    }
-    if(cur->trie == NULL){
-      const size_t tsize = sizeof(cur->trie) * 0x80;
-      if((cur->trie = malloc(tsize)) == NULL){
-        return -1;
-      }
-      memset(cur->trie, 0, tsize);
-    }
-    if(cur->trie[valid] == NULL){
-      if((cur->trie[valid] = create_esctrie_node(NCKEY_INVALID)) == NULL){
-        return -1;
-      }
-    }
-    cur = cur->trie[valid];
-    ++esc;
-  }while(*esc);
-  // it appears that multiple keys can be mapped to the same escape string. as
-  // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
-  if(cur->special != NCKEY_INVALID){ // already had one here!
-    if(cur->special != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->special, special);
-    }
-  }else{
-    cur->special = special;
-    cur->shift = shift;
-    cur->ctrl = ctrl;
-    cur->alt = alt;
-  }
-  return 0;
-}
-
 // load all known special keys from terminfo, and build the input sequence trie
 static int
 prep_special_keys(inputctx* ictx){
+  /*
 #ifndef __MINGW64__
   static const struct {
     const char* tinfo;
@@ -415,7 +271,7 @@ prep_special_keys(inputctx* ictx){
     { .tinfo = "kUP5",  .key = NCKEY_UP, .ctrl = 1, },
     { .tinfo = "kUP6",  .key = NCKEY_UP, .ctrl = 1, .shift = 1, },
     { .tinfo = "kUP7",  .key = NCKEY_UP, .alt = 1, .ctrl = 1, },
-    { .tinfo = NULL,    .key = NCKEY_INVALID, }
+    { .tinfo = NULL,    .key = 0, }
   }, *k;
   for(k = keys ; k->tinfo ; ++k){
     char* seq = tigetstr(k->tinfo);
@@ -427,13 +283,594 @@ prep_special_keys(inputctx* ictx){
       logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
       continue;
     }
-    if(inputctx_add_input_escape(ictx, seq, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->amata, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
 #endif
+  */
   (void)ictx;
+  return 0;
+}
+
+// get a fixed CSI-anchored node from the trie
+static inline struct esctrie*
+csi_node(automaton *amata, const char* prefix){
+  struct esctrie* e = amata->escapes;
+  e = esctrie_trie(e)['['];
+  unsigned p;
+  while(e && (p = *prefix)){
+    e = esctrie_trie(e)[p];
+    ++prefix;
+  }
+  if(*prefix){
+    logerror("error following path: %s\n", prefix);
+  }
+  return e;
+}
+
+// get the DCS node from the trie
+static inline struct esctrie*
+dcs_node(automaton *amata){
+  struct esctrie* e = amata->escapes;
+  return esctrie_trie(e)['P'];
+}
+
+// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
+// SGR (1006) mouse encoding, so use the final character to determine release
+// ('M' for click, 'm' for release).
+static void
+mouse_click(inputctx* ictx, unsigned release){
+  struct esctrie* e = csi_node(&ictx->amata, "<0");
+  const int mods = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  const int x = esctrie_numeric(e) - 1 - ictx->lmargin;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  const int y = esctrie_numeric(e) - 1 - ictx->tmargin;
+  // convert from 1- to 0-indexing, and account for margins
+  if(x < 0 || y < 0){ // click was in margins, drop it
+    logwarn("dropping click in margins %d/%d\n", y, x);
+    return;
+  }
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping mouse click 0x%02x %d %d\n", mods, y, x);
+    inc_input_errors(ictx);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  if(mods >= 0 && mods < 64){
+    ni->id = NCKEY_BUTTON1 + (mods % 4);
+  }else if(mods >= 64 && mods < 128){
+    ni->id = NCKEY_BUTTON4 + (mods % 4);
+  }else if(mods >= 128 && mods < 192){
+    ni->id = NCKEY_BUTTON8 + (mods % 4);
+  }
+  ni->ctrl = mods & 0x10;
+  ni->alt = mods & 0x08;
+  ni->shift = mods & 0x04;
+  // mice don't send repeat events, so we know it's either release or press
+  if(release){
+    ni->evtype = NCTYPE_RELEASE;
+  }else{
+    ni->evtype = NCTYPE_PRESS;
+  }
+  ni->x = x;
+  ni->y = y;
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+}
+
+static int
+mouse_press_cb(inputctx* ictx){
+  mouse_click(ictx, 0);
+  return 2;
+}
+
+static int
+mouse_release_cb(inputctx* ictx){
+  mouse_click(ictx, 1);
+  return 2;
+}
+
+static int
+cursor_location_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "0");
+  int y = esctrie_numeric(e) - 1;
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['9'];
+  int x = esctrie_numeric(e) - 1;
+  // the first one doesn't go onto the queue; consume it here
+  if(ictx->initdata){
+    ictx->initdata->cursory = y;
+    ictx->initdata->cursorx = x;
+    return 2;
+  }
+  pthread_mutex_lock(&ictx->clock);
+  if(ictx->cvalid == ictx->csize){
+    pthread_mutex_unlock(&ictx->clock);
+    logwarn("dropping cursor location report %d/%d\n", y, x);
+    inc_input_errors(ictx);
+  }else{
+    cursorloc* cloc = &ictx->csrs[ictx->cwrite];
+    if(++ictx->cwrite == ictx->csize){
+      ictx->cwrite = 0;
+    }
+    cloc->y = y;
+    cloc->x = x;
+    ++ictx->cvalid;
+    pthread_mutex_unlock(&ictx->clock);
+    pthread_cond_broadcast(&ictx->ccond);
+    loginfo("cursor location: %d/%d\n", y, x);
+  }
+  return 2;
+}
+
+static int
+geom_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "0");
+  int kind = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int y = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int x = esctrie_numeric(e);
+  if(kind == 4){ // pixel geometry
+    if(ictx->initdata){
+      ictx->initdata->pixy = y;
+      ictx->initdata->pixx = x;
+    }
+    loginfo("pixel geom report %d/%d\n", y, x);
+  }else if(kind == 8){ // cell geometry
+    if(ictx->initdata){
+      ictx->initdata->dimy = y;
+      ictx->initdata->dimx = x;
+    }
+    loginfo("cell geom report %d/%d\n", y, x);
+  }else{
+    logerror("invalid geom report type: %d\n", kind);
+    return -1;
+  }
+  return 2;
+}
+
+static void
+send_synth_signal(int sig){
+#ifndef __MINGW64__
+  if(sig){
+    raise(sig);
+  }
+#else
+  (void)sig; // FIXME
+#endif
+}
+
+static void
+kitty_kbd(inputctx* ictx, int val, int mods){
+  int synth = 0;
+  assert(mods >= 0);
+  assert(val > 0);
+  ncinput tni = {
+    .id = val == 0x7f ? NCKEY_BACKSPACE : val,
+    .shift = !!((mods - 1) & 0x1),
+    .alt = !!((mods - 1) & 0x2),
+    .ctrl = !!((mods - 1) & 0x4),
+  };
+  // FIXME decode remaining modifiers through 128
+  // standard keyboard protocol reports ctrl+ascii as the capital form,
+  // so (for now) conform when using kitty protocol...
+  if(tni.ctrl){
+    if(tni.id < 128 && islower(tni.id)){
+      tni.id = toupper(tni.id);
+    }
+    if(!tni.alt && !tni.shift){
+      if(tni.id == 'C'){
+        synth = SIGINT;
+      }else if(tni.id == '\\'){
+        synth = SIGQUIT;
+      }
+    }
+  }
+  tni.x = 0;
+  tni.y = 0;
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08x 0x%02x\n", val, mods);
+    inc_input_errors(ictx);
+    send_synth_signal(synth);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  memcpy(ni, &tni, sizeof(tni));
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  send_synth_signal(synth);
+}
+
+static int
+kitty_cb_simple(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "0");
+  int val = esctrie_numeric(e);
+  kitty_kbd(ictx, val, 0);
+  return 2;
+}
+
+static int
+kitty_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "0");
+  int val = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int mods = esctrie_numeric(e);
+  kitty_kbd(ictx, val, mods);
+  return 2;
+}
+
+static int
+kitty_keyboard_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "?1");
+  int val = esctrie_numeric(e);
+  if(ictx->initdata){
+    ictx->initdata->kbdlevel = val;
+    loginfo("kitty keyboard protocol level %u\n", ictx->initdata->kbdlevel);
+  }
+  return 2;
+}
+
+// the only xtsmgraphics reply with a single Pv arg is color registers
+static int
+xtsmgraphics_cregs_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "?1;0;0");
+  int pv = esctrie_numeric(e);
+  if(ictx->initdata){
+    ictx->initdata->color_registers = pv;
+    loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
+  }
+  return 2;
+}
+
+// the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
+static int
+xtsmgraphics_sixel_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "?2;0;0");
+  int width = esctrie_numeric(e);
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int height = esctrie_numeric(e);
+  if(ictx->initdata){
+    ictx->initdata->sixelx = width;
+    ictx->initdata->sixely = height;
+    loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
+  }
+  return 2;
+}
+
+static void
+handoff_initial_responses(inputctx* ictx){
+  pthread_mutex_lock(&ictx->ilock);
+  ictx->initdata_complete = ictx->initdata;
+  ictx->initdata = NULL;
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  loginfo("handing off initial responses\n");
+}
+
+static int
+da1_cb(inputctx* ictx){
+  loginfo("read primary device attributes\n");
+  if(ictx->initdata){
+    handoff_initial_responses(ictx);
+  }
+  return 1;
+}
+
+static int
+da2_cb(inputctx* ictx){
+  loginfo("read secondary device attributes\n");
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  // SDA yields up Alacritty's crate version, but it doesn't unambiguously
+  // identify Alacritty. If we've got any other version information, don't
+  // use this. use the second parameter (Pv).
+  if(ictx->initdata->qterm != TERMINAL_UNKNOWN || ictx->initdata->version){
+    loginfo("termtype was %d %s, not alacritty\n", ictx->initdata->qterm,
+            ictx->initdata->version);
+    return 2;
+  }
+  // if a termname was manually supplied in setup, it was written to the env
+  const char* termname = getenv("TERM");
+  if(termname == NULL || strstr(termname, "alacritty") == NULL){
+    loginfo("termname was [%s], probably not alacritty\n",
+            termname ? termname : "unset");
+    return 2;
+  }
+  struct esctrie* e = csi_node(&ictx->amata, ">0;0");
+  int pv = esctrie_numeric(e);
+  int maj, min, patch;
+  if(pv <= 0){
+    return 2;
+  }
+  maj = pv / 10000;
+  min = (pv % 10000) / 100;
+  patch = pv % 100;
+  if(maj >= 100 || min >= 100 || patch >= 100){
+    return 2;
+  }
+  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
+  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
+  char* buf = malloc(13);
+  if(buf){
+    sprintf(buf, "%d.%d.%d", maj, min, patch);
+    loginfo("might be alacritty %s\n", buf);
+    ictx->initdata->version = buf;
+    ictx->initdata->qterm = TERMINAL_ALACRITTY;
+  }
+  return 2;
+}
+
+// weird form of Ternary Device Attributes used only by WezTerm
+static int
+da3_cb(inputctx* ictx){
+  if(ictx->initdata){
+    loginfo("read ternary device attributes\n");
+  }
+  return 2;
+}
+
+static int
+kittygraph_cb(inputctx* ictx){
+  loginfo("kitty graphics message\n");
+  if(ictx->initdata){
+    ictx->initdata->kitty_graphics = 1;
+  }
+  return 2;
+}
+
+static int
+decrpm_asu_cb(inputctx* ictx){
+  struct esctrie* e = csi_node(&ictx->amata, "?2026;0");
+  int ps = esctrie_numeric(e);
+  loginfo("received decrpm 2026 %d\n", ps);
+  if(ps == 2){
+    if(ictx->initdata){
+      ictx->initdata->appsync_supported = 1;
+    }
+  }
+  return 2;
+}
+
+static int
+bgdef_cb(inputctx* ictx){
+  if(ictx->initdata){
+      struct esctrie* e = ictx->amata.escapes;
+      e = esctrie_trie(e)[']'];
+      e = esctrie_trie(e)['1'];
+      e = esctrie_trie(e)['1'];
+      e = esctrie_trie(e)[';'];
+      e = esctrie_trie(e)['r'];
+      e = esctrie_trie(e)['g'];
+      e = esctrie_trie(e)['b'];
+      e = esctrie_trie(e)[':'];
+      e = esctrie_trie(e)['a'];
+      const char* str = esctrie_string(e);
+      if(str == NULL){
+        logerror("empty bg string\n");
+      }else{
+        int r, g, b;
+        if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
+          // great! =]
+        }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
+          r /= 256;
+          g /= 256;
+          b /= 256;
+        }else{
+          logerror("couldn't extract rgb from %s\n", str);
+          r = g = b = 0;
+        }
+        ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
+        loginfo("default background 0x%02x%02x%02x\n", r, g, b);
+      }
+  }
+  return 2;
+}
+
+static int
+extract_xtversion(inputctx* ictx, const char* str, char suffix){
+  size_t slen = strlen(str);
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  if(suffix){
+    if(str[slen - 1] != suffix){
+      return -1;
+    }
+    --slen;
+  }
+  if(slen == 0){
+    logwarn("empty version in xtversion\n");
+    return -1;
+  }
+  ictx->initdata->version = strndup(str, slen);
+  return 0;
+}
+
+static int
+xtversion_cb(inputctx* ictx){
+  struct esctrie* e = dcs_node(&ictx->amata);
+  e = esctrie_trie(e)['>'];
+  e = esctrie_trie(e)['|'];
+  e = esctrie_trie(e)['a'];
+  const char* xtversion = esctrie_string(e);
+  if(xtversion == NULL){
+    logwarn("empty xtversion\n");
+    return 2; // don't replay as input
+  }
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  static const struct {
+    const char* prefix;
+    char suffix;
+    queried_terminals_e term;
+  } xtvers[] = {
+    { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
+    { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
+    { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
+    { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
+    { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+    { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
+    { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
+    { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
+    { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
+    { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
+  }, *xtv;
+  for(xtv = xtvers ; xtv->prefix ; ++xtv){
+    if(strncmp(xtversion, xtv->prefix, strlen(xtv->prefix)) == 0){
+      if(extract_xtversion(ictx, xtversion + strlen(xtv->prefix), xtv->suffix) == 0){
+        loginfo("found terminal type %d version %s\n", xtv->term, ictx->initdata->version);
+        ictx->initdata->qterm = xtv->term;
+      }else{
+        return -1;
+      }
+      break;
+    }
+  }
+  if(xtv->prefix == NULL){
+    logwarn("unknown xtversion [%s]\n", xtversion);
+  }
+  return 2;
+}
+
+static int
+tcap_cb(inputctx* ictx){
+  struct esctrie* e = dcs_node(&ictx->amata);
+  e = esctrie_trie(e)['1'];
+  e = esctrie_trie(e)['+'];
+  e = esctrie_trie(e)['r'];
+  e = esctrie_trie(e)['a'];
+  const char* str = esctrie_string(e);
+  loginfo("TCAP: %s\n", str);
+    /* FIXME
+  if(cap == 0x544e){ // 'TN' terminal name
+    loginfo("got TN capability %d\n", val);
+        if(strcmp(ictx->runstring, "xterm-kitty") == 0){
+          inits->qterm = TERMINAL_KITTY;
+        }else if(strcmp(ictx->runstring, "mlterm") == 0){
+          // MLterm prior to late 3.9.1 only reports via XTGETTCAP
+          inits->qterm = TERMINAL_MLTERM;
+        }
+        break;
+        */
+  return 2;
+}
+
+static int
+tda_cb(inputctx* ictx){
+  struct esctrie* e = dcs_node(&ictx->amata);
+  e = esctrie_trie(e)['!'];
+  e = esctrie_trie(e)['|'];
+  e = esctrie_trie(e)['a'];
+  const char* str = esctrie_string(e);
+  if(str == NULL){
+    logwarn("empty ternary device attribute\n");
+    return 2; // don't replay
+  }
+  if(ictx->initdata && ictx->initdata->qterm == TERMINAL_UNKNOWN){
+    if(strcmp(str, "7E565445") == 0){ // "~VTE"
+      ictx->initdata->qterm = TERMINAL_VTE;
+    }else if(strcmp(str, "7E7E5459") == 0){ // "~~TY"
+      ictx->initdata->qterm = TERMINAL_TERMINOLOGY;
+    }else if(strcmp(str, "464F4F54") == 0){ // "FOOT"
+      ictx->initdata->qterm = TERMINAL_FOOT;
+    }
+    loginfo("got TDA: %s, terminal type %d\n", str, ictx->initdata->qterm);
+  }
+  return 2;
+}
+
+static int
+build_cflow_automaton(inputctx* ictx){
+  // syntax: literals are matched. \N is a numeric. \D is a drain (Kleene
+  // closure). \S is a ST-terminated string. this working is very dependent on
+  // order, and very delicate! hands off!
+  const struct {
+    const char* cflow;
+    triefunc fxn;
+  } csis[] = {
+    // CSI (\e[)
+    { "[<\\N;\\N;\\NM", mouse_press_cb, },
+    { "[<\\N;\\N;\\Nm", mouse_release_cb, },
+    { "[\\N;\\NR", cursor_location_cb, },
+    // technically these must begin with "4" or "8"; enforce in callbacks
+    { "[\\N;\\N;\\Nt", geom_cb, },
+    { "[\\Nu", kitty_cb_simple, },
+    { "[\\N;\\Nu", kitty_cb, },
+    { "[?\\Nu", kitty_keyboard_cb, },
+    { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
+    { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
+    { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
+    { "[?6c", da1_cb, },   // CSI ? 6 c ("VT102")
+    { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
+    { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c ("VT125")
+    { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c ("VT220")
+    { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c ("VT320")
+    { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
+    { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm)
+    { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
+    { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[?2026;\\N$y", decrpm_asu_cb, },
+    { "[>0;\\N;\\Nc", da2_cb, }, // "VT100"
+    { "[>1;\\N;\\Nc", da2_cb, }, // "VT220"
+    { "[>2;\\N;\\Nc", da2_cb, }, // "VT240" or "VT241"
+    { "[>18;\\N;\\Nc", da2_cb, }, // "VT330"
+    { "[>19;\\N;\\Nc", da2_cb, }, // "VT340"
+    { "[>24;\\N;\\Nc", da2_cb, }, // "VT320"
+    { "[>32;\\N;\\Nc", da2_cb, }, // "VT382"
+    { "[>41;\\N;\\Nc", da2_cb, }, // "VT420"
+    { "[>61;\\N;\\Nc", da2_cb, }, // "VT510"
+    { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
+    { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
+    { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
+    // DCS (\eP...ST)
+    { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
+    { "P0+r\\S", NULL, },    // negative XTGETTCAP
+    { "P!|\\S", tda_cb, }, // DCS da3 form used by XTerm
+    { "P>|\\S", xtversion_cb, },
+    // OSC (\e_...ST)
+    { "_G\\S", kittygraph_cb, },
+    // a mystery to everyone!
+    { "]11;rgb:\\S", bgdef_cb, },
+    { NULL, NULL, },
+  }, *csi;
+  for(csi = csis ; csi->cflow ; ++csi){
+    if(inputctx_add_cflow(&ictx->amata, csi->cflow, csi->fxn)){
+      logerror("failed adding %p via %s\n", csi->fxn, csi->cflow);
+      return -1;
+    }
+    loginfo("added %p via %s\n", csi->fxn, csi->cflow);
+  }
   return 0;
 }
 
@@ -504,12 +941,11 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
-                      i->inputescapes = NULL;
+                      memset(&i->amata, 0, sizeof(i->amata));
                       if(prep_special_keys(i) == 0){
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
-                          i->state = i->stringstate = STATE_NULL;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
@@ -523,9 +959,6 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                           i->linesigs = linesigs_enabled;
                           i->tbufvalid = 0;
                           i->midescape = 0;
-                          i->numeric = 0;
-                          i->stridx = 0;
-                          i->runstring[i->stridx] = '\0';
                           i->lmargin = lmargin;
                           i->tmargin = tmargin;
                           i->drain = drain;
@@ -535,7 +968,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                       }
                       endpipes(i->readypipes);
                     }
-                    input_free_esctrie(&i->inputescapes);
+                    input_free_esctrie(&i->amata);
                   }
                   free(i->initdata);
                 }
@@ -567,7 +1000,7 @@ free_inputctx(inputctx* i){
     pthread_cond_destroy(&i->icond);
     pthread_mutex_destroy(&i->clock);
     pthread_cond_destroy(&i->ccond);
-    input_free_esctrie(&i->inputescapes);
+    input_free_esctrie(&i->amata);
     // do not kill the thread here, either.
     if(i->initdata){
       free(i->initdata->version);
@@ -586,7 +1019,7 @@ free_inputctx(inputctx* i){
 
 // https://sw.kovidgoyal.net/kitty/keyboard-protocol/#functional-key-definitions
 static int
-prep_kitty_special_keys(inputctx* nc){
+prep_kitty_special_keys(inputctx* ictx){
   // we do not list here those already handled by prep_windows_special_keys()
   static const struct {
     const char* esc;
@@ -600,20 +1033,22 @@ prep_kitty_special_keys(inputctx* nc){
     { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1, },
     { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1, },
     { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
+    { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
+                                 k->shift, k->ctrl, k->alt)){
       return -1;
     }
   }
+  loginfo("added all kitty special keys\n");
   return 0;
 }
 
 // add the hardcoded windows input sequences to ti->input. should only
 // be called after verifying that this is TERMINAL_MSTERMINAL.
 static int
-prep_windows_special_keys(inputctx* nc){
+prep_windows_special_keys(inputctx* ictx){
   // here, lacking terminfo, we hardcode the sequences. they can be found at
   // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
   // under the "Input Sequences" heading.
@@ -648,13 +1083,16 @@ prep_windows_special_keys(inputctx* nc){
     { .esc = "\x1b[21~", .key = NCKEY_F10, },
     { .esc = "\x1b[23~", .key = NCKEY_F11, },
     { .esc = "\x1b[24~", .key = NCKEY_F12, },
-    { .esc = NULL, .key = NCKEY_INVALID, },
+    { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(nc, k->esc, k->key, k->shift, k->ctrl, k->alt)){
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
+                                 k->shift, k->ctrl, k->alt)){
       return -1;
     }
+    logdebug("added %s %u\n", k->esc, k->key);
   }
+  loginfo("added all windows special keys\n");
   return 0;
 }
 
@@ -664,10 +1102,9 @@ prep_all_keys(inputctx* ictx){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
-    input_free_esctrie(&ictx->inputescapes);
+    input_free_esctrie(&ictx->amata);
     return -1;
   }
-  ictx->triepos = ictx->inputescapes;
   return 0;
 }
 
@@ -705,234 +1142,6 @@ ictx_independent_p(const inputctx* ictx){
   return ictx->termfd >= 0; // FIXME does this hold on MSFT Terminal?
 }
 
-static int
-ruts_numeric(int* numeric, unsigned char c){
-  if(!isdigit(c)){
-    return -1;
-  }
-  int digit = c - '0';
-  if(INT_MAX / 10 - digit < *numeric){ // would overflow
-    return -1;
-  }
-  *numeric *= 10;
-  *numeric += digit;
-  return 0;
-}
-
-static int
-ruts_hex(int* numeric, unsigned char c){
-  if(!isxdigit(c)){
-    return -1;
-  }
-  int digit;
-  if(isdigit(c)){
-    digit = c - '0';
-  }else if(islower(c)){
-    digit = c - 'a' + 10;
-  }else if(isupper(c)){
-    digit = c - 'A' + 10;
-  }else{
-    return -1; // should be impossible to reach
-  }
-  if(INT_MAX / 10 - digit < *numeric){ // would overflow
-    return -1;
-  }
-  *numeric *= 16;
-  *numeric += digit;
-  return 0;
-}
-
-// add a decoded hex byte to the string
-static int
-ruts_string(inputctx* ictx, initstates_e state){
-  if(ictx->stridx == sizeof(ictx->runstring)){
-    return -1; // overflow, too long
-  }
-  if(ictx->numeric > 255){
-    return -1;
-  }
-  unsigned char c = ictx->numeric;
-  if(!isprint(c)){
-    return -1;
-  }
-  ictx->stringstate = state;
-  ictx->runstring[ictx->stridx] = c;
-  ictx->runstring[++ictx->stridx] = '\0';
-  return 0;
-}
-
-// extract the terminal version from the running string, following 'prefix'
-static int
-extract_version(inputctx* ictx, size_t slen){
-  size_t bytes = strlen(ictx->runstring + slen) + 1;
-  ictx->initdata->version = malloc(bytes);
-  if(ictx->initdata->version == NULL){
-    return -1;
-  }
-  memcpy(ictx->initdata->version, ictx->runstring + slen, bytes);
-  return 0;
-}
-
-static int
-extract_xtversion(inputctx* ictx, size_t slen, char suffix){
-  if(suffix){
-    if(ictx->runstring[ictx->stridx - 1] != suffix){
-      return -1;
-    }
-    ictx->runstring[ictx->stridx - 1] = '\0';
-  }
-  return extract_version(ictx, slen);
-}
-
-static int
-stash_string(inputctx* ictx){
-  struct initial_responses* inits = ictx->initdata;
-//fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
-  if(inits){
-    switch(ictx->stringstate){
-      case STATE_XTVERSION1:{
-        static const struct {
-          const char* prefix;
-          char suffix;
-          queried_terminals_e term;
-        } xtvers[] = {
-          { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
-          { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
-          { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
-          { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
-          { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
-          { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
-          { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
-          { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
-          { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
-          { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
-        }, *xtv;
-        for(xtv = xtvers ; xtv->prefix ; ++xtv){
-          if(strncmp(ictx->runstring, xtv->prefix, strlen(xtv->prefix)) == 0){
-            if(extract_xtversion(ictx, strlen(xtv->prefix), xtv->suffix) == 0){
-              inits->qterm = xtv->term;
-            }
-            break;
-          }
-        }
-        if(xtv->prefix == NULL){
-          logwarn("Unrecognizable XTVERSION [%s]\n", ictx->runstring);
-        }
-        break;
-      }case STATE_XTGETTCAP_TERMNAME1:
-        if(strcmp(ictx->runstring, "xterm-kitty") == 0){
-          inits->qterm = TERMINAL_KITTY;
-        }else if(strcmp(ictx->runstring, "mlterm") == 0){
-          // MLterm prior to late 3.9.1 only reports via XTGETTCAP
-          inits->qterm = TERMINAL_MLTERM;
-        }
-        break;
-      case STATE_TDA1:
-        if(strcmp(ictx->runstring, "~VTE") == 0){
-          inits->qterm = TERMINAL_VTE;
-        }else if(strcmp(ictx->runstring, "~~TY") == 0){
-          inits->qterm = TERMINAL_TERMINOLOGY;
-        }else if(strcmp(ictx->runstring, "FOOT") == 0){
-          inits->qterm = TERMINAL_FOOT;
-        }
-        break;
-      case STATE_BG1:{
-        int r, g, b;
-        if(sscanf(ictx->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
-          // great! =]
-        }else if(sscanf(ictx->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
-          r /= 256;
-          g /= 256;
-          b /= 256;
-        }else{
-          break;
-        }
-        inits->bg = (r << 16u) | (g << 8u) | b;
-        break;
-      }default:
-  // don't generally enable this -- XTerm terminates TDA with ST
-  //fprintf(stderr, "invalid string [%s] stashed %d\n", inits->runstring, inits->stringstate);
-        break;
-    }
-  }
-  ictx->runstring[0] = '\0';
-  ictx->stridx = 0;
-  return 0;
-}
-
-// use the version extracted from Secondary Device Attributes, assuming that
-// it is Alacritty (we ought check the specified terminfo database entry).
-// Alacritty writes its crate version with each more significant portion
-// multiplied by 100^{portion ID}, where major, minor, patch are 2, 1, 0.
-// what happens when a component exceeds 99? who cares. support XTVERSION.
-static char*
-set_sda_version(inputctx* ictx){
-  int maj, min, patch;
-  if(ictx->numeric <= 0){
-    return NULL;
-  }
-  maj = ictx->numeric / 10000;
-  min = (ictx->numeric % 10000) / 100;
-  patch = ictx->numeric % 100;
-  if(maj >= 100 || min >= 100 || patch >= 100){
-    return NULL;
-  }
-  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
-  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
-  char* buf = malloc(13);
-  if(buf){
-    sprintf(buf, "%d.%d.%d", maj, min, patch);
-  }
-  return buf;
-}
-
-// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
-// SGR (1006) mouse encoding, so use the final character to determine release
-// ('M' for click, 'm' for release).
-static void
-mouse_click(inputctx* ictx, unsigned release){
-  // convert from 1- to 0-indexing, and account for margins
-  const int x = ictx->p3 - 1 - ictx->lmargin;
-  const int y = ictx->numeric - 1 - ictx->tmargin;
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins\n");
-    return;
-  }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping mouse click 0x%02x %d %d\n", ictx->p2, y, x);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  if(ictx->p2 >= 0 && ictx->p2 < 64){
-    ni->id = NCKEY_BUTTON1 + (ictx->p2 % 4);
-  }else if(ictx->p2 >= 64 && ictx->p2 < 128){
-    ni->id = NCKEY_BUTTON4 + (ictx->p2 % 4);
-  }else if(ictx->p2 >= 128 && ictx->p2 < 192){
-    ni->id = NCKEY_BUTTON8 + (ictx->p2 % 4);
-  }
-  ni->ctrl = ictx->p2 & 0x10;
-  ni->alt = ictx->p2 & 0x08;
-  ni->shift = ictx->p2 & 0x04;
-  // mice don't send repeat events, so we know it's either release or press
-  if(release){
-    ni->evtype = NCTYPE_RELEASE;
-  }else{
-    ni->evtype = NCTYPE_PRESS;
-  }
-  ni->x = x;
-  ni->y = y;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
 // add a decoded, valid Unicode to the bulk output buffer, or drop it if no
 // space is available.
 static void
@@ -964,7 +1173,7 @@ add_unicode(inputctx* ictx, uint32_t id){
 }
 
 static void
-alt_key(inputctx* ictx, unsigned id){
+special_key(inputctx* ictx, const ncinput* inni){
   inc_input_events(ictx);
   if(ictx->drain){
     return;
@@ -972,689 +1181,51 @@ alt_key(inputctx* ictx, unsigned id){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
+    logerror("dropping input 0x%08xx\n", inni->id);
     inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = id;
-  ni->alt = true;
-  ni->ctrl = false;
-  ni->shift = false;
-  ni->x = ni->y = 0;
+  memcpy(ni, inni, sizeof(*ni));
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
   mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
-static void
-special_key(inputctx* ictx){
-  assert(ictx->triepos);
-  assert(NCKEY_INVALID != ictx->triepos->special);
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", ictx->triepos->special);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = ictx->triepos->special;
-  ni->alt = ictx->triepos->alt;
-  ni->ctrl = ictx->triepos->ctrl;
-  ni->shift = ictx->triepos->shift;
-  ni->x = ni->y = 0;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
-static void
-send_synth_signal(int sig){
-#ifndef __MINGW64__
-  if(sig){
-    raise(sig);
-  }
-#else
-  (void)sig; // FIXME
-#endif
-}
-
-// ictx->numeric and ictx->p2 have the two parameters, where ictx->numeric was
-// optional and indicates a special key with no modifiers.
-static void
-kitty_kbd(inputctx* ictx){
-  int synth = 0;
-  assert(ictx->numeric >= 0);
-  assert(ictx->p2 > 0);
-  ncinput tni = {
-    .id = ictx->p2 == 0x7f ? NCKEY_BACKSPACE : ictx->p2,
-    .shift = !!((ictx->numeric - 1) & 0x1),
-    .alt = !!((ictx->numeric - 1) & 0x2),
-    .ctrl = !!((ictx->numeric - 1) & 0x4),
-  };
-  // FIXME decode remaining modifiers through 128
-  // standard keyboard protocol reports ctrl+ascii as the capital form,
-  // so (for now) conform when using kitty protocol...
-  if(tni.ctrl){
-    if(tni.id < 128 && islower(tni.id)){
-      tni.id = toupper(tni.id);
-    }
-    if(!tni.alt && !tni.shift){
-      if(tni.id == 'C'){
-        synth = SIGINT;
-      }else if(tni.id == '\\'){
-        synth = SIGQUIT;
-      }
-    }
-  }
-  tni.x = 0;
-  tni.y = 0;
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08x 0x%02x\n", ictx->p2, ictx->numeric);
-    inc_input_errors(ictx);
-    send_synth_signal(synth);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  memcpy(ni, &tni, sizeof(tni));
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-  send_synth_signal(synth);
-}
-
-// FIXME ought implement the full Williams automaton
-// FIXME sloppy af in general
-// returns 1 after handling the Device Attributes response, 0 if more input
-// ought be fed to the machine, and -1 on an invalid state transition.
-// returns 2 on a valid accept state that is not the final state.
-static int
-pump_control_read(inputctx* ictx, unsigned char c){
-  logdebug("state: %2d char: %1c %3d %02x\n", ictx->state, isprint(c) ? c : ' ', c, c);
-  if(c == NCKEY_ESC){
-    ictx->state = STATE_ESC;
-    return 0;
-  }
-  switch(ictx->state){
-    case STATE_NULL:
-      // not an escape -- throw into user queue
-      break;
-    case STATE_ESC:
-      ictx->numeric = 0;
-      if(c == '['){
-        ictx->state = STATE_CSI;
-      }else if(c == 'P'){
-        ictx->state = STATE_DCS;
-      }else if(c == '\\'){
-        if(stash_string(ictx)){
-          return -1;
-        }
-        ictx->state = STATE_NULL;
-      }else if(c == '1'){
-        ictx->state = STATE_BG1;
-      }else if(c == '_'){
-        ictx->state = STATE_APC;
-      }
-      break;
-    case STATE_APC:
-      if(c == 'G'){
-        if(ictx->initdata){
-          ictx->initdata->kitty_graphics = true;
-        }
-      }
-      ictx->state = STATE_APC_DRAIN;
-      break;
-    case STATE_APC_DRAIN:
-      if(c == '\x1b'){
-        ictx->state = STATE_APC_ST;
-      }
-      break;
-    case STATE_APC_ST:
-      if(c == '\\'){
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_APC_DRAIN;
-      }
-      break;
-    case STATE_BG1:
-      if(c == '1'){
-        ictx->state = STATE_BG2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_BG2:
-      if(c == ';'){
-        ictx->state = STATE_BGSEMI;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_BGSEMI: // drain string
-      if(c == '\x07'){ // contour sends this at the end for some unknown reason
-        if(stash_string(ictx)){
-          return -1;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }
-      ictx->numeric = c;
-      if(ruts_string(ictx, STATE_BG1)){
-        return -1;
-      }
-      break;
-    case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
-      if(c == '?'){
-        ictx->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS/kittykbd
-      }else if(c == '>'){
-        // SDA yields up Alacritty's crate version, but it doesn't unambiguously
-        // identify Alacritty. If we've got any other version information, skip
-        // directly to STATE_SDA_DRAIN, rather than doing STATE_SDA_VER.
-        if(ictx->initdata){
-          if(ictx->initdata->qterm || ictx->initdata->version){
-            loginfo("Identified terminal already; ignoring DA2\n");
-            ictx->state = STATE_SDA_DRAIN;
-          }else{
-            ictx->state = STATE_SDA;
-          }
-        }
-      }else if(c == '<'){
-        ictx->state = STATE_MOUSE;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->p2 = ictx->numeric;
-        ictx->state = STATE_CURSOR_COL;
-        ictx->numeric = 0;
-      }else if(c == 'u'){
-        // kitty keyboard protocol
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-        kitty_kbd(ictx);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->state = STATE_MOUSE2;
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE2:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == ';'){
-        ictx->state = STATE_MOUSE3;
-        ictx->p3 = ictx->numeric;
-        ictx->numeric = 0;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_MOUSE3:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'M'){
-        mouse_click(ictx, 0);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 'm'){
-        mouse_click(ictx, 1);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_CURSOR_COL:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'R'){
-//fprintf(stderr, "CURSOR X: %d\n", ictx->numeric);
-        if(ictx->initdata){
-          // convert from 1- to 0-indexing, and account for margins
-          ictx->initdata->cursorx = ictx->numeric - 1 - ictx->lmargin;
-          ictx->initdata->cursory = ictx->p2 - 1 - ictx->tmargin;
-        }else{
-          pthread_mutex_lock(&ictx->clock);
-          if(ictx->cvalid == ictx->csize){
-            pthread_mutex_unlock(&ictx->clock);
-            logwarn("dropping cursor location report\n");
-            inc_input_errors(ictx);
-          }else{
-            cursorloc* cloc = &ictx->csrs[ictx->cwrite];
-            cloc->x = ictx->numeric - 1;
-            cloc->y = ictx->p2 - 1;
-            if(++ictx->cwrite == ictx->csize){
-              ictx->cwrite = 0;
-            }
-            ++ictx->cvalid;
-            pthread_mutex_unlock(&ictx->clock);
-            pthread_cond_broadcast(&ictx->ccond);
-          }
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 't'){
-//fprintf(stderr, "CELLS X: %d\n", ictx->numeric);
-        if(ictx->initdata){
-          ictx->initdata->dimx = ictx->numeric;
-          ictx->initdata->dimy = ictx->p2;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == 'u'){
-        // kitty keyboard protocol
-        kitty_kbd(ictx);
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c == ';'){
-        if(ictx->p2 == 4){
-          if(ictx->initdata){
-            ictx->initdata->pixy = ictx->numeric;
-            ictx->state = STATE_PIXELS_WIDTH;
-          }
-          ictx->numeric = 0;
-        }else if(ictx->p2 == 8){
-          if(ictx->initdata){
-            ictx->initdata->dimy = ictx->numeric;
-          }
-          ictx->state = STATE_CELLS_WIDTH;
-          ictx->numeric = 0;
-        }else{
-          logerror("expected 4 to lead pixel report, got %d\n", ictx->p2);
-          return -1;
-        }
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_PIXELS_WIDTH:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 't'){
-        if(ictx->initdata){
-          ictx->initdata->pixx = ictx->numeric;
-          loginfo("got pixel geometry: %d/%d\n", ictx->initdata->pixy, ictx->initdata->pixx);
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_CELLS_WIDTH:
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 't'){
-        if(ictx->initdata){
-          ictx->initdata->dimx = ictx->numeric;
-          loginfo("got cell geometry: %d/%d\n", ictx->initdata->dimy, ictx->initdata->dimx);
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_DCS: // terminated by ST
-      if(c == '\\'){
-//fprintf(stderr, "terminated DCS\n");
-        ictx->state = STATE_NULL;
-      }else if(c == '1'){
-        ictx->state = STATE_XTGETTCAP1; // we have tcap
-      }else if(c == '0'){
-        ictx->state = STATE_XTGETTCAP1; // no tcap for us
-      }else if(c == '>'){
-        ictx->state = STATE_XTVERSION1;
-      }else if(c == '!'){
-        ictx->state = STATE_TDA1;
-      }else{
-        ictx->state = STATE_DCS_DRAIN;
-      }
-      break;
-    case STATE_DCS_DRAIN:
-      // we drain to ST, which is an escape, and thus already handled, so...
-      break;
-    case STATE_XTVERSION1:
-      if(c == '|'){
-        ictx->state = STATE_XTVERSION2;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTVERSION2:
-      ictx->numeric = c;
-      if(ruts_string(ictx, STATE_XTVERSION1)){
-        return -1;
-      }
-      break;
-    case STATE_XTGETTCAP1:
-      if(c == '+'){
-        ictx->state = STATE_XTGETTCAP2;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTGETTCAP2:
-      if(c == 'r'){
-        ictx->state = STATE_XTGETTCAP3;
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_XTGETTCAP3:
-      if(c == '='){
-        if(ictx->numeric == 0x544e){
-          ictx->state = STATE_XTGETTCAP_TERMNAME1;
-          ictx->stridx = 0;
-          ictx->numeric = 0;
-          ictx->runstring[0] = '\0';
-        }else{
-          ictx->state = STATE_DCS_DRAIN;
-        }
-      }else if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_XTGETTCAP_TERMNAME1:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_XTGETTCAP_TERMNAME2;
-      break;
-    case STATE_XTGETTCAP_TERMNAME2:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_XTGETTCAP_TERMNAME1;
-      if(ruts_string(ictx, STATE_XTGETTCAP_TERMNAME1)){
-        return -1;
-      }
-      ictx->numeric = 0;
-      break;
-    case STATE_TDA1:
-      if(c == '|'){
-        ictx->state = STATE_TDA2;
-        ictx->stridx = 0;
-        ictx->runstring[0] = '\0';
-      }else{
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_TDA2:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_TDA3;
-      break;
-    case STATE_TDA3:
-      if(ruts_hex(&ictx->numeric, c)){
-        return -1;
-      }
-      ictx->state = STATE_TDA2;
-      if(ruts_string(ictx, STATE_TDA1)){
-        ictx->state = STATE_DCS_DRAIN; // FIXME return -1?
-      }
-      ictx->numeric = 0;
-      break;
-    case STATE_SDA:
-      if(c == ';'){
-        ictx->state = STATE_SDA_VER;
-        ictx->numeric = 0;
-      }else if(c == 'c'){
-        ictx->state = STATE_NULL;
-      }
-      break;
-    case STATE_SDA_VER:
-      if(c == ';'){
-        ictx->state = STATE_SDA_DRAIN;
-        if(ictx->initdata){
-          loginfo("Got DA2 Pv: %u\n", ictx->numeric);
-          // if a version was set, we couldn't have arrived here. alacritty
-          // writes its crate version here, in an encoded form. nothing else
-          // necessarily does, though, so allow failure. this value will be
-          // interpreted as the version only if TERM indicates alacritty.
-          ictx->initdata->version = set_sda_version(ictx);
-        }
-      }else if(ruts_numeric(&ictx->numeric, c)){
-        return -1;
-      }
-      break;
-    case STATE_SDA_DRAIN:
-      if(c == 'c'){
-        ictx->state = STATE_NULL;
-        return 2;
-      }
-      break;
-    // primary device attributes and XTSMGRAPHICS replies are generally
-    // indistinguishable until well into the escape. one can get:
-    // XTSMGRAPHICS: CSI ? Pi ; Ps ; Pv S {Pi: 123} {Ps: 0123}
-    // DECRPM: CSI ? Pd ; Ps $ y {Pd: many} {Ps: 01234}
-    // DA: CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
-    //     CSI ? 1 ; 0 c  ("VT101 with No Options")
-    //     CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
-    //     CSI ? 6 c  ("VT102")
-    //     CSI ? 7 c  ("VT131")
-    //     CSI ? 1 2 ; Ps c  ("VT125")
-    //     CSI ? 6 2 ; Ps c  ("VT220")
-    //     CSI ? 6 3 ; Ps c  ("VT320")
-    //     CSI ? 6 4 ; Ps c  ("VT420")
-    // KITTYKBD: CSI ? flags u
-    case STATE_DA: // return success on end of DA
-//fprintf(stderr, "DA: %c\n", c);
-      // FIXME several of these numbers could be DECRPM/XTSM/kittykbd. probably
-      // just want to read number, *then* make transition on non-number.
-      if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){ // stash for DECRPM/XTSM/kittykbd
-          return -1;
-        }
-      }else if(c == 'u'){ // kitty keyboard
-        loginfo("keyboard protocol level 0x%x\n", ictx->numeric);
-        ictx->state = STATE_NULL;
-      }else if(c == ';'){
-        ictx->p2 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI;
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI:
-      if(c == ';'){
-        ictx->p3 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI2;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == '$'){
-        if(ictx->p2 == 2026){
-          ictx->state = STATE_APPSYNC_REPORT;
-          loginfo("terminal reported SUM support\n");
-        }else{
-          ictx->state = STATE_APPSYNC_REPORT_DRAIN;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI2:
-      if(c == ';'){
-        ictx->p4 = ictx->numeric;
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_SEMI3;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'S'){
-        if(ictx->p2 == 1){
-          if(ictx->initdata){
-            ictx->initdata->color_registers = ictx->numeric;
-            loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
-          }
-          ictx->numeric = 0;
-        }
-        ictx->state = STATE_NULL;
-        return 2;
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_DRAIN:
-      if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_DA_SEMI3:
-      if(c == ';'){
-        ictx->numeric = 0;
-        ictx->state = STATE_DA_DRAIN;
-      }else if(isdigit(c)){
-        if(ruts_numeric(&ictx->numeric, c)){
-          return -1;
-        }
-      }else if(c == 'S'){
-        if(ictx->initdata){
-          ictx->initdata->sixelx = ictx->p4;
-          ictx->initdata->sixely = ictx->numeric;
-          loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
-          ictx->state = STATE_NULL;
-          return 2;
-        }
-      }else if(c >= 0x40 && c <= 0x7E){
-        ictx->state = STATE_NULL;
-        if(c == 'c'){
-          return 1;
-        }
-      }
-      break;
-    case STATE_APPSYNC_REPORT:
-      if(ictx->numeric == '2'){
-        if(ictx->initdata){
-          ictx->initdata->appsync_supported = 1;
-        }
-        ictx->state = STATE_APPSYNC_REPORT_DRAIN;
-      }
-      break;
-    case STATE_APPSYNC_REPORT_DRAIN:
-      if(c == 'y'){
-        ictx->state = STATE_NULL;
-        return 2;
-      }
-      break;
-    default:
-      logerror("Reached invalid init state %d\n", ictx->state);
-      return -1;
-  }
-  return 0;
-}
-
-static void
-handoff_initial_responses(inputctx* ictx){
-  pthread_mutex_lock(&ictx->ilock);
-  ictx->initdata_complete = ictx->initdata;
-  ictx->initdata = NULL;
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
-// consumed if we do so, and -1 otherwise. buf is *not* necessarily
+// consumed if we do so, and -1 otherwise. buf is almost certainly *not*
 // NUL-terminated. if we are definitely *not* an escape, or we're unsure when
 // we run out of input, return the negated relevant number of bytes, setting
-// ictx->midescape if we're uncertain.
+// ictx->midescape if we're uncertain. we preserve a->used, a->state, etc.
+// across runs to avoid reprocessing.
+//
+// our rule is: an escape must arrive as a single unit to be interpreted as
+// an escape. this is most relevant for Alt+keypress (Esc followed by the
+// character), which is ambiguous with regards to pressing 'Escape' followed
+// by some other character. if they arrive together, we consider it to be
+// the escape. we might need to allow more than one process_escape call,
+// however, in case the escape ended the previous read buffer.
 //  precondition: buflen >= 1. precondition: buf[0] == 0x1b.
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   assert(1 <= buflen);
-  // FIXME given that we keep our state across invocations, we want buf offset
-  //  by the amount we handled the last iteration, if any was left over...
-  //  until then, we reset the state on entry. remove that once we preserve!
-  if(buf[0] != '\x1b'){
-    return -1;
-  }
-  ictx->triepos = ictx->inputescapes;
-  ictx->state = STATE_NULL;
-  // FIXME end material eliminated by maintaining state + offset
-  int used = 0;
-  // FIXME we really want to unite these two automata, ugh
-  while(used < buflen){
-    unsigned char candidate = buf[used++];
+  while(ictx->amata.used < buflen){
+    unsigned char candidate = buf[ictx->amata.used++];
+    unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
+      ictx->amata.used = 0;
       return -(used - 1);
     }
-    int r = pump_control_read(ictx, candidate);
-    if(r == 2){
-      return used;
-    }
-    if(r == 1){ // received DA1, ending initial responses
-      // safe to call even if initdata == NULL
-      handoff_initial_responses(ictx);
-      return used;
-    }
-    if(ictx->initdata){
-      continue; // FIXME drops any Alt+chars entwined within initial responses
-    }
-    // an escape always resets the trie, as does a NULL transition
-    if(candidate == NCKEY_ESC){
-      ictx->triepos = ictx->inputescapes;
+    // an escape always resets the trie (unless we're in the middle of an
+    // ST-terminated string), as does a NULL transition.
+    if(candidate == NCKEY_ESC && !ictx->amata.instring){
+      ictx->amata.state = ictx->amata.escapes;
+      logtrace("initialized automaton to %p\n", ictx->amata.state);
+      ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
       }
@@ -1662,39 +1233,31 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // we can safely check trie[candidate] above because we are either coming
       // off the initial node, which definitely has a valid ->trie, or we're
       // coming from a transition, where ictx->triepos->trie is checked below.
-    }else if(ictx->triepos->trie[candidate] == NULL){
-      ictx->triepos = ictx->inputescapes;
-      if(ictx->state == STATE_ESC){
-        if(candidate && candidate <= 0x80){ // FIXME what about supraASCII utf8?
-          alt_key(ictx, candidate);
-          return used;
-        }
-      }
-      if(ictx->state == STATE_NULL){
-        // we were an invalid sequence; replay as input. we know used > 1. the
-        // current character is not yet excluded, so return negative "used - 1".
-        return -(used - 1);
-      }
     }else{
-      ictx->triepos = ictx->triepos->trie[candidate];
-      logtrace("triepos: %p in: %u special: 0x%08x\n", ictx->triepos, candidate, ictx->triepos->special);
-      if(ictx->triepos->special != NCKEY_INVALID){ // match! mark and reset
-        special_key(ictx);
-        ictx->triepos = ictx->inputescapes;
-        return used;
-      }else if(ictx->triepos->trie == NULL){
-        if(ictx->state == STATE_NULL){
-          ictx->triepos = ictx->inputescapes;
-          // all inspected characters are invalid; return full negative "used"
-          return -used;
+      ncinput ni = {};
+      logtrace("triepos: %p in: %c instring%c special: 0x%08x\n", ictx->amata.state,
+               isprint(candidate) ? candidate : ' ', ictx->amata.instring ? '+' : '-',
+               ictx->amata.state ? esctrie_id(ictx->amata.state) : 0);
+      int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
+      logdebug("walk result on %u (%c): %d %p\n", candidate,
+               isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
+      if(w > 0){
+        if(ni.id){
+          special_key(ictx, &ni);
         }
+        ictx->amata.used = 0;
+        return used;
+      }else if(w < 0){
+        // all inspected characters are invalid; return full negative "used"
+        ictx->amata.used = 0;
+        return -used;
       }
     }
   }
   // we exhausted input without knowing whether or not this is a valid control
   // sequence; we're still on-trie, and need more (immediate) input.
   ictx->midescape = 1;
-  return -used;
+  return -ictx->amata.used;
 }
 
 // process as many control sequences from |buf|, having |bufused| bytes,
@@ -1711,6 +1274,10 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
     // this was not a sequence, we'll catch it on the next read.
     if(consumed < 0){
       int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
+      // if midescape is not set, the negative return menas invalid escape. if
+      // there was space available, we needn't worry about this escape having
+      // been broken across distinct reads. in either case, replay it to the
+      // bulk input buffer; our automaton will have been reset.
       if(!ictx->midescape || tavailable){
         consumed = -consumed;
         int available = sizeof(ictx->ibuf) - ictx->ibufvalid;
@@ -1725,13 +1292,15 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
         *bufused -= consumed;
         offset += consumed;
         ictx->midescape = 0;
+      }else{
+        break;
       }
-      break;
     }
     *bufused -= consumed;
     offset += consumed;
   }
-  // move any leftovers to the front; only happens if we fill output queue
+  // move any leftovers to the front; only happens if we fill output queue,
+  // or ran out of input data mid-escape
   if(*bufused){
     memmove(buf, buf + offset, *bufused);
   }
@@ -1838,7 +1407,8 @@ static void
 process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
-    logdebug("input %d/%d [0x%02x]\n", offset, *bufused, buf[offset]);
+    logdebug("input %d/%d [0x%02x] (%c)\n", offset, *bufused, buf[offset],
+             isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
     if(buf[offset] == '\x1b'){
       consumed = process_escape(ictx, buf + offset, *bufused);
@@ -2013,7 +1583,12 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  prep_all_keys(ictx);
+  if(build_cflow_automaton(ictx)){
+    raise(SIGSEGV); // ? FIXME
+  }
+  if(prep_all_keys(ictx)){
+    raise(SIGSEGV); // ? FIXME
+  }
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read
@@ -2173,9 +1748,12 @@ uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
   return ncdirect_get(nc, ts, ni);
 }
 
-int get_cursor_location(struct inputctx* ictx, int* y, int* x){
+int get_cursor_location(inputctx* ictx, const char* u7, int* y, int* x){
   pthread_mutex_lock(&ictx->clock);
   while(ictx->cvalid == 0){
+    if(tty_emit(u7, ictx->ti->ttyfd)){
+      return -1;
+    }
     pthread_cond_wait(&ictx->ccond, &ictx->clock);
   }
   const cursorloc* cloc = &ictx->csrs[ictx->cread];

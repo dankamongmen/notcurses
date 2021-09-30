@@ -68,6 +68,7 @@ struct initial_responses {
   int sixely;                  // maximum sixel height
   int sixelx;                  // maximum sixel width
   char* version;               // version string, heap-allocated
+  unsigned kbdlevel;           // kitty keyboard protocol level
 };
 
 // Blocking call. Waits until the input thread has processed all responses to
@@ -75,8 +76,8 @@ struct initial_responses {
 struct initial_responses* inputlayer_get_responses(struct inputctx* ictx)
   __attribute__ ((nonnull (1)));
 
-int get_cursor_location(struct inputctx* ictx, int* y, int* x)
-  __attribute__ ((nonnull (1)));
+int get_cursor_location(struct inputctx* ictx, const char* u7, int* y, int* x)
+  __attribute__ ((nonnull (1, 2)));
 
 #ifdef __cplusplus
 }

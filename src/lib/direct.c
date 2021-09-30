@@ -181,12 +181,9 @@ int ncdirect_cursor_disable(ncdirect* nc){
 }
 
 static int
-cursor_yx_get(ncdirect* n, int ttyfd, const char* u7, int* y, int* x){
+cursor_yx_get(ncdirect* n, const char* u7, int* y, int* x){
   struct inputctx* ictx = n->tcache.ictx;
   if(ncdirect_flush(n)){
-    return -1;
-  }
-  if(tty_emit(u7, ttyfd)){
     return -1;
   }
   int fakey, fakex;
@@ -196,7 +193,7 @@ cursor_yx_get(ncdirect* n, int ttyfd, const char* u7, int* y, int* x){
   if(x == NULL){
     x = &fakex;
   }
-  get_cursor_location(ictx, y, x);
+  get_cursor_location(ictx, u7, y, x);
   loginfo("cursor at y=%d x=%d\n", *y, *x);
   return 0;
 }
@@ -214,7 +211,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, NULL)){
+      if(cursor_yx_get(n, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -224,7 +221,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n, n->tcache.ttyfd, u7, NULL, &x)){
+      if(cursor_yx_get(n, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -394,7 +391,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!x){
     x = &xval;
   }
-  ret = cursor_yx_get(n, n->tcache.ttyfd, u7, y, x);
+  ret = cursor_yx_get(n, u7, y, x);
   if(tcsetattr(n->tcache.ttyfd, TCSANOW, &oldtermios)){
     fprintf(stderr, "Couldn't restore terminal mode on %d (%s)\n",
             n->tcache.ttyfd, strerror(errno)); // don't return error for this
@@ -844,7 +841,11 @@ ncdirect_stop_minimal(void* vnc){
     ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
-    ret |= tty_emit("\x1b[<u", nc->tcache.ttyfd);
+    if(nc->tcache.kbdlevel){
+      if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+        ret = -1;
+      }
+    }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->tcache.ttyfd)){
       ret = -1;
@@ -861,6 +862,11 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   if(flags > (NCDIRECT_OPTION_DRAIN_INPUT << 1)){ // allow them through with warning
     logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
+  }
+  if(termtype){
+    if(putenv_term(termtype)){
+      return NULL;
+    }
   }
   ncdirect* ret = malloc(sizeof(ncdirect));
   if(ret == NULL){
@@ -967,7 +973,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   }
   // FIXME what if we're reading from redirected input, not a terminal?
   int y, xstart;
-  if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, &xstart)){
+  if(cursor_yx_get(n, u7, &y, &xstart)){
     return NULL;
   }
   int tline = y;
@@ -1016,7 +1022,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       str[wused - 1] = L'\0';
       // FIXME check modifiers
       int x;
-      if(cursor_yx_get(n, n->tcache.ttyfd, u7, &y, &x)){
+      if(cursor_yx_get(n, u7, &y, &x)){
         break;
       }
       if(x < oldx){

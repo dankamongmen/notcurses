@@ -100,8 +100,10 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
-    if(tty_emit("\x1b[<u", nc->tcache.ttyfd)){
-      ret = -1;
+    if(nc->tcache.kbdlevel){
+      if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+        ret = -1;
+      }
     }
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){ // send this to f
@@ -731,7 +733,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     logerror("Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
-  loginfo("%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo("%dx%d @ %d/%d → %d/%d @ %d/%d (want %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
       rows == ylen && cols == xlen){
     return 0;
@@ -985,6 +987,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
     fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
   }
+  if(opts->termtype){
+    if(putenv_term(opts->termtype)){
+      return NULL;
+    }
+  }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
@@ -1116,12 +1123,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   init_banner(ret, &ret->rstate.f);
-  fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
-  fbuf_reset(&ret->rstate.f);
-  if(ncflush(ret->ttyfp)){
+  if(blocking_write(fileno(ret->ttyfp), ret->rstate.f.buf, ret->rstate.f.used)){
     free_plane(ret->stdplane);
     goto err;
   }
+  fbuf_reset(&ret->rstate.f);
   if(ret->rstate.logendy >= 0){ // if either is set, both are
     if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
       if(locate_cursor(&ret->tcache, &ret->rstate.logendy, &ret->rstate.logendx)){

@@ -1783,6 +1783,9 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
   return 0;
 }
 
+// replace or populate the TERM environment variable with 'termname'
+int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
+
 #undef ALLOC
 #undef API
 
