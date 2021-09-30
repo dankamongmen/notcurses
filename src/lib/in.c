@@ -517,13 +517,11 @@ kitty_cb(inputctx* ictx){
   return 2;
 }
 
-// FIXME broken: we don't always come through the 0; usually in fact we get
-// 1, which is masked by [?1;2c, added earlier
 static int
 kitty_keyboard_cb(inputctx* ictx){
   struct esctrie* e = csi_node(&ictx->amata);
   e = esctrie_trie(e)['?'];
-  e = esctrie_trie(e)['0'];
+  e = esctrie_trie(e)['1'];
   int val = esctrie_numeric(e);
   if(ictx->initdata){
     ictx->initdata->kbdlevel = val;

@@ -414,6 +414,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "vid", notcurses_canopen_videos(nc));
   tinfo_debug_cap(n, "indn", get_escape(ti, ESCAPE_INDN));
   tinfo_debug_cap(n, "gpm", ti->gpmfd >= 0);
+  tinfo_debug_cap(n, "kbd", ti->kbdlevel > 0);
   finish_line(n);
 }
 
