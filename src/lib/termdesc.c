@@ -978,7 +978,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
     if(kitty_graphics){
-      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
+      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
     }
     // our current sixel quantization algorithm requires at least 64 color
     // registers. we make use of no more than 256. this needs to happen
@@ -1054,7 +1054,9 @@ int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
     return -1;
   }
   int fd = ti->ttyfd;
-  get_cursor_location(ti->ictx, u7, cursor_y, cursor_x);
+  if(get_cursor_location(ti->ictx, u7, cursor_y, cursor_x)){
+    return -1;
+  }
   loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
   return 0;
 }
