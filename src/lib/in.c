@@ -861,15 +861,16 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\Nu", kitty_cb, },
     { "[?\\Nu", kitty_keyboard_cb, },
-    { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
-    { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c  ("VT101 with No Options")
-    { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
-    { "[?6c", da1_cb, },   // CSI ? 6 c  ("VT102")
-    { "[?7c", da1_cb, },   // CSI ? 7 c  ("VT131")
-    { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c  ("VT125")
-    { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c  ("VT220")
-    { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c  ("VT320")
-    { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c  ("VT420")
+    { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
+    { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
+    { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
+    { "[?6c", da1_cb, },   // CSI ? 6 c ("VT102")
+    { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
+    { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c ("VT125")
+    { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c ("VT220")
+    { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c ("VT320")
+    { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
+    { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm)
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
