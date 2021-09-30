@@ -859,6 +859,11 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(flags > (NCDIRECT_OPTION_DRAIN_INPUT << 1)){ // allow them through with warning
     logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
+  if(termtype){
+    if(putenv_term(termtype)){
+      return NULL;
+    }
+  }
   ncdirect* ret = malloc(sizeof(ncdirect));
   if(ret == NULL){
     return ret;

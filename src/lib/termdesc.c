@@ -152,18 +152,6 @@ query_rgb(void){
   return rgb;
 }
 
-// we couldn't get a terminal from interrogation, so let's see if the TERM
-// matches any of our known terminals. this can only be as accurate as the
-// TERM setting is (and as up-to-date and complete as we are).
-static int
-match_termname(const char* termname, queried_terminals_e* qterm){
-  // https://github.com/alacritty/alacritty/pull/5274 le sigh
-  if(strstr(termname, "alacritty")){
-    *qterm = TERMINAL_ALACRITTY;
-  }
-  return 0;
-}
-
 void free_terminfo_cache(tinfo* ti){
   stop_inputlayer(ti);
   free(ti->termversion);
@@ -328,7 +316,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // which can be identified directly, sans queries.
 #define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
 
-// request kitty keyboard protocol through level 1, and push current.
+// request kitty keyboard protocol through level 1, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
 #define KBDSUPPORT "\x1b[>u\x1b[=1u"
 
@@ -506,15 +494,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = ti->termname ? ti->termname : "unknown";
-  }
-  if(qterm == TERMINAL_UNKNOWN){
-    match_termname(termname, &qterm);
-    // we pick up alacritty's version via a weird hack involving Secondary
-    // Device Attributes. if we're not alacritty, don't trust that version.
-    if(qterm != TERMINAL_ALACRITTY){
-      free(ti->termversion);
-      ti->termversion = NULL;
-    }
   }
   // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
@@ -1136,4 +1115,28 @@ int cbreak_mode(tinfo* ti){
   }
 #endif
   return 0;
+}
+
+// replace or populate the TERM environment variable with 'termname'
+int putenv_term(const char* termname){
+  #define ENVVAR "TERM"
+  const char* oldterm = getenv(ENVVAR);
+  if(oldterm){
+    logdebug("replacing %s value %s with %s\n", ENVVAR, oldterm, termname);
+  }else{
+    loginfo("provided %s value %s\n", ENVVAR, termname);
+  }
+  if(strcmp(oldterm, termname) == 0){
+    return 0;
+  }
+  char* buf = malloc(strlen(termname) + strlen(ENVVAR) + 1);
+  if(buf == NULL){
+    return -1;
+  }
+  int c = putenv(buf);
+  if(c){
+    logerror("couldn't export %s\n", buf);
+  }
+  free(buf);
+  return c;
 }

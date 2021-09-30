@@ -985,6 +985,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
     fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
   }
+  if(opts->termtype){
+    if(putenv_term(opts->termtype)){
+      return NULL;
+    }
+  }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;

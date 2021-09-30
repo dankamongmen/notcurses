@@ -589,13 +589,48 @@ da1_cb(inputctx* ictx){
 static int
 da2_cb(inputctx* ictx){
   loginfo("read secondary device attributes\n");
-  if(ictx->initdata){
-    // SDA yields up Alacritty's crate version, but it doesn't unambiguously
-    // identify Alacritty. If we've got any other version information, don't
-    // use this. use the second parameter (Pv).
-    if(ictx->initdata->qterm == 0 && ictx->initdata->version == NULL){
-      // FIXME alacritty handle
-    }
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  // SDA yields up Alacritty's crate version, but it doesn't unambiguously
+  // identify Alacritty. If we've got any other version information, don't
+  // use this. use the second parameter (Pv).
+  if(ictx->initdata->qterm != TERMINAL_UNKNOWN || ictx->initdata->version){
+    loginfo("termtype was %d %s, not alacritty\n", ictx->initdata->qterm,
+            ictx->initdata->version);
+    return 2;
+  }
+  // if a termname was manually supplied in setup, it was written to the env
+  const char* termname = getenv("TERM");
+  if(termname == NULL || strstr(termname, "alacritty") == NULL){
+    loginfo("termname was [%s], probably not alacritty\n",
+            termname ? termname : "unset");
+    return 2;
+  }
+  struct esctrie* e = csi_node(&ictx->amata);
+  e = esctrie_trie(e)['>'];
+  e = esctrie_trie(e)['0'];
+  e = esctrie_trie(e)[';'];
+  e = esctrie_trie(e)['0'];
+  int pv = esctrie_numeric(e);
+  int maj, min, patch;
+  if(pv <= 0){
+    return 2;
+  }
+  maj = pv / 10000;
+  min = (pv % 10000) / 100;
+  patch = pv % 100;
+  if(maj >= 100 || min >= 100 || patch >= 100){
+    return 2;
+  }
+  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
+  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
+  char* buf = malloc(13);
+  if(buf){
+    sprintf(buf, "%d.%d.%d", maj, min, patch);
+    loginfo("might be alacritty %s\n", buf);
+    ictx->initdata->version = buf;
+    ictx->initdata->qterm = TERMINAL_ALACRITTY;
   }
   return 2;
 }
