@@ -635,6 +635,15 @@ da2_cb(inputctx* ictx){
   return 2;
 }
 
+// weird form of Ternary Device Attributes used only by WezTerm
+static int
+da3_cb(inputctx* ictx){
+  if(ictx->initdata){
+    loginfo("read ternary device attributes\n");
+  }
+  return 2;
+}
+
 static int
 kittygraph_cb(inputctx* ictx){
   loginfo("kitty graphics message\n");
@@ -887,10 +896,11 @@ build_cflow_automaton(inputctx* ictx){
     { "[>61;\\N;\\Nc", da2_cb, }, // "VT510"
     { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
     { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
+    { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
     { "P0+r\\S", NULL, },    // negative XTGETTCAP
-    { "P!|\\S", tda_cb, },
+    { "P!|\\S", tda_cb, }, // DCS da3 form used by XTerm
     { "P>|\\S", xtversion_cb, },
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
