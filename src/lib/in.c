@@ -525,7 +525,10 @@ kitty_keyboard_cb(inputctx* ictx){
   e = esctrie_trie(e)['?'];
   e = esctrie_trie(e)['0'];
   int val = esctrie_numeric(e);
-  loginfo("kitty keyboard protocol level %u\n", val);
+  if(ictx->initdata){
+    ictx->initdata->kbdlevel = val;
+    loginfo("kitty keyboard protocol level %u\n", ictx->initdata->kbdlevel);
+  }
   return 2;
 }
 

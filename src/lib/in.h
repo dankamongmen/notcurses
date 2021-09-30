@@ -68,6 +68,7 @@ struct initial_responses {
   int sixely;                  // maximum sixel height
   int sixelx;                  // maximum sixel width
   char* version;               // version string, heap-allocated
+  unsigned kbdlevel;           // kitty keyboard protocol level
 };
 
 // Blocking call. Waits until the input thread has processed all responses to

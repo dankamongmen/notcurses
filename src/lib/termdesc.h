@@ -183,6 +183,7 @@ typedef struct tinfo {
   HANDLE outhandle;
 #endif
 
+  unsigned kbdlevel;         // kitty keyboard support level
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;

@@ -321,7 +321,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define KBDSUPPORT "\x1b[>u\x1b[=1u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
-// input events. this queries for the level of support.
+// input events. this queries for the level of support. we want to do this
+// because the "keyboard pop" control code is mishandled by kitty < 0.20.0.
 #define KBDQUERY "\x1b[?u"
 
 // these queries (terminated with a Primary Device Attributes, to which
@@ -928,6 +929,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
         goto err;
       }
     }
+    ti->kbdlevel = iresp->kbdlevel;
     if(iresp->qterm != TERMINAL_UNKNOWN){
       ti->qterm = iresp->qterm;
     }

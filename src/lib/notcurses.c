@@ -100,8 +100,10 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
-    if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
-      ret = -1;
+    if(nc->tcache.kbdlevel){
+      if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+        ret = -1;
+      }
     }
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
       if(sprite_clear_all(&nc->tcache, f)){ // send this to f
