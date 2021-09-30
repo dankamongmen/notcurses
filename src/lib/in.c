@@ -708,34 +708,6 @@ bgdef_cb(inputctx* ictx){
   return 2;
 }
 
-// use the version extracted from Secondary Device Attributes, assuming that
-// it is Alacritty (we ought check the specified terminfo database entry).
-// Alacritty writes its crate version with each more significant portion
-// multiplied by 100^{portion ID}, where major, minor, patch are 2, 1, 0.
-// what happens when a component exceeds 99? who cares. support XTVERSION.
-/*
-static char*
-set_sda_version(inputctx* ictx){
-  int maj, min, patch;
-  if(ictx->numeric <= 0){
-    return NULL;
-  }
-  maj = ictx->numeric / 10000;
-  min = (ictx->numeric % 10000) / 100;
-  patch = ictx->numeric % 100;
-  if(maj >= 100 || min >= 100 || patch >= 100){
-    return NULL;
-  }
-  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
-  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
-  char* buf = malloc(13);
-  if(buf){
-    sprintf(buf, "%d.%d.%d", maj, min, patch);
-  }
-  return buf;
-}
-*/
-
 static int
 extract_xtversion(inputctx* ictx, const char* str, char suffix){
   size_t slen = strlen(str);
@@ -838,17 +810,16 @@ tda_cb(inputctx* ictx){
     logwarn("empty ternary device attribute\n");
     return 2; // don't replay
   }
-  // FIXME hex encoded
-  loginfo("got TDA: %s\n", str);
-  /*
-        if(strcmp(ictx->runstring, "~VTE") == 0){
-          inits->qterm = TERMINAL_VTE;
-        }else if(strcmp(ictx->runstring, "~~TY") == 0){
-          inits->qterm = TERMINAL_TERMINOLOGY;
-        }else if(strcmp(ictx->runstring, "FOOT") == 0){
-          inits->qterm = TERMINAL_FOOT;
-        }
-        */
+  if(ictx->initdata && ictx->initdata->qterm == TERMINAL_UNKNOWN){
+    if(strcmp(str, "7E565445") == 0){ // "~VTE"
+      ictx->initdata->qterm = TERMINAL_VTE;
+    }else if(strcmp(str, "7E7E5459") == 0){ // "~~TY"
+      ictx->initdata->qterm = TERMINAL_TERMINOLOGY;
+    }else if(strcmp(str, "464F4F54") == 0){ // "FOOT"
+      ictx->initdata->qterm = TERMINAL_FOOT;
+    }
+    loginfo("got TDA: %s, terminal type %d\n", str, ictx->initdata->qterm);
+  }
   return 2;
 }
 
@@ -880,8 +851,10 @@ build_cflow_automaton(inputctx* ictx){
     { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c ("VT320")
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
     { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm)
+    { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
