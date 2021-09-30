@@ -132,13 +132,15 @@ esctrie_make_numeric(esctrie* e){
 }
 
 static int
-esctrie_make_kleene(esctrie* e){
+esctrie_make_kleene(esctrie* e, unsigned follow, esctrie* term){
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
     return -1;
   }
-  for(int i = 0 ; i < 0x80 ; ++i){
-    if(e->trie[i] == NULL){
+  for(unsigned i = 0 ; i < 0x80 ; ++i){
+    if(i == follow){
+      e->trie[i] = term;
+    }else if(e->trie[i] == NULL){
       e->trie[i] = e;
     }
   }
@@ -220,24 +222,29 @@ link_kleene(esctrie* e, unsigned follow){
   if(e->kleene){
     return e->kleene;
   }
+  esctrie* term = create_esctrie_node(0);
+  if(term == NULL){
+    return NULL;
+  }
   esctrie* targ = NULL;
-  if(targ == NULL){
-    if( (targ = create_esctrie_node(0)) ){
-      if(esctrie_make_kleene(targ)){
-        free_trienode(&targ);
-        return NULL;
-      }
+  if( (targ = create_esctrie_node(0)) ){
+    if(esctrie_make_kleene(targ, follow, term)){
+      free_trienode(&targ);
+      free_trienode(&term);
+      return NULL;
     }
   }
   // fill in all NULL numeric links with the new target
   for(unsigned int i = 0 ; i < 0x80 ; ++i){
-    if(e->trie[i] == NULL){
-      e->trie[i] = targ;
-    }else if(i == follow){
-      if((e->trie[follow] = create_esctrie_node(0)) == NULL){
-        return NULL;
+    if(i == follow){
+      if(e->trie[i]){
+        logerror("drain terminator already registered\n");
+        free_trienode(&targ);
+        free_trienode(&term);
       }
-    }else{
+      e->trie[follow] = term;
+    }else if(e->trie[i] == NULL){
+      e->trie[i] = targ;
       // FIXME travel to the ends and link targ there
     }
   }
@@ -319,7 +326,8 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           logerror("illegal numeric terminator\n");
           return -1;
         }
-        eptr = link_numeric(eptr, *csi++);
+        c = *csi++;
+        eptr = link_numeric(eptr, c);
         if(eptr == NULL){
           return -1;
         }
@@ -334,7 +342,8 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           logerror("illegal kleene terminator\n");
           return -1;
         }
-        eptr = link_kleene(eptr, *csi++);
+        c = *csi++;
+        eptr = link_kleene(eptr, c);
         if(eptr == NULL){
           return -1;
         }
@@ -365,7 +374,6 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         for(int i = 0 ; i < 0x80 ; ++i){
           newe->trie[i] = eptr->trie[c]->trie[i];
         }
-        logwarn("REPLACING NUMERIC FOR %c\n", c);
         eptr->trie[c] = newe;
       }
       eptr = eptr->trie[c];
@@ -440,23 +448,6 @@ growstring(automaton* a, esctrie* e, unsigned candidate){
   e->str[a->stridx] = '\0';
   ++a->stridx;
   return 0;
-}
-
-static int
-dump_escnode(const esctrie* eptr, int indent, int trans){
-  fprintf(stderr, "%*.*s%d -> state: %d\n", indent, indent, "", trans, eptr->ntype);
-  if(eptr->trie){
-    for(int i = 0 ; i < 0x80 ; ++i){
-      if(eptr->trie[i] && eptr->trie[i] != eptr){
-        dump_escnode(eptr->trie[i], indent + 1, i);
-      }
-    }
-  }
-  return 0;
-}
-
-int dump_automaton(const automaton* a){
-  return dump_escnode(a->escapes, 0, 0);
 }
 
 // returns -1 for non-match, 0 for match, 1 for acceptance. if we are in the

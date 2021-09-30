@@ -583,7 +583,7 @@ da1_cb(inputctx* ictx){
   if(ictx->initdata){
     handoff_initial_responses(ictx);
   }
-  return 2;
+  return 1;
 }
 
 static int
@@ -769,7 +769,7 @@ xtversion_cb(inputctx* ictx){
     return 2; // don't replay as input
   }
   if(ictx->initdata == NULL){
-    return 1;
+    return 2;
   }
   static const struct {
     const char* prefix;
