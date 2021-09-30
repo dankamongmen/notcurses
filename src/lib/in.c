@@ -881,7 +881,9 @@ build_cflow_automaton(inputctx* ictx){
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
     { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm)
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[?2026;\\N$y", decrpm_asu_cb, },
