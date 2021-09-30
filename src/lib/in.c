@@ -380,11 +380,13 @@ cursor_location_cb(inputctx* ictx){
   e = esctrie_trie(e)['0'];
   int y = esctrie_numeric(e) - 1;
   e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
+  e = esctrie_trie(e)['9'];
   int x = esctrie_numeric(e) - 1;
+  // the first one doesn't go onto the queue; consume it here
   if(ictx->initdata){
     ictx->initdata->cursory = y;
     ictx->initdata->cursorx = x;
+    return 2;
   }
   pthread_mutex_lock(&ictx->clock);
   if(ictx->cvalid == ictx->csize){
@@ -1770,7 +1772,7 @@ uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
 int get_cursor_location(inputctx* ictx, const char* u7, int* y, int* x){
   pthread_mutex_lock(&ictx->clock);
   while(ictx->cvalid == 0){
-    if(tty_emit(u7, ictx->termfd)){
+    if(tty_emit(u7, ictx->ti->ttyfd)){
       return -1;
     }
     pthread_cond_wait(&ictx->ccond, &ictx->clock);
