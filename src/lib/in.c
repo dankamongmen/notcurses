@@ -117,7 +117,6 @@ inc_input_errors(inputctx* ictx){
 // load all known special keys from terminfo, and build the input sequence trie
 static int
 prep_special_keys(inputctx* ictx){
-  /*
 #ifndef __MINGW64__
   static const struct {
     const char* tinfo;
@@ -289,7 +288,6 @@ prep_special_keys(inputctx* ictx){
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
 #endif
-  */
   (void)ictx;
   return 0;
 }
