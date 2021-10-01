@@ -1225,7 +1225,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     if(candidate == NCKEY_ESC && !ictx->amata.instring){
       ictx->amata.matchstart = buf + ictx->amata.used - 1;
       ictx->amata.state = ictx->amata.escapes;
-      logtrace("initialized automaton to %p\n", ictx->amata.state);
+      logtrace("initialized automaton to %u\n", ictx->amata.state);
       ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
@@ -1236,11 +1236,8 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // coming from a transition, where ictx->triepos->trie is checked below.
     }else{
       ncinput ni = {};
-      logtrace("triepos: %p in: %c instring%c special: 0x%08x\n", ictx->amata.state,
-               isprint(candidate) ? candidate : ' ', ictx->amata.instring ? '+' : '-',
-               ictx->amata.state ? esctrie_id(ictx->amata.state) : 0);
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
-      logdebug("walk result on %u (%c): %d %p\n", candidate,
+      logdebug("walk result on %u (%c): %d %u\n", candidate,
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
