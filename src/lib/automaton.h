@@ -15,15 +15,22 @@ typedef int (*triefunc)(struct inputctx*);
 
 // the state necessary for matching input against our automaton of control
 // sequences. we *do not* match the bulk UTF-8 input. we match online (i.e.
-// we can be passed a byte at a time).
+// we can be passed a byte at a time). initialize with all zeroes.
 typedef struct automaton {
-  struct esctrie* escapes;  // head Esc node of trie
+  unsigned escapes;         // head Esc node of trie
   int used;                 // bytes consumed thus far
   int instring;             // are we in an ST-terminated string?
-  struct esctrie* state;
+  unsigned state;
   const unsigned char* matchstart;   // beginning of active match
+  // we keep a node pool not to save time when allocating, but because
+  // trying to free the automaton without reference counting otherwise
+  // sucks worse than three bitches in a bitchboat.
+  unsigned poolsize;
+  unsigned poolused;
+  struct esctrie* nodepool;
 } automaton;
 
+// wipe out all storage internal to |a| (but not |a| itself).
 void input_free_esctrie(automaton *a);
 
 int inputctx_add_input_escape(automaton* a, const char* esc,
@@ -38,8 +45,6 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   __attribute__ ((nonnull (1, 2, 4)));
 
 uint32_t esctrie_id(const struct esctrie* e);
-// returns 128-way array of esctrie pointers
-struct esctrie** esctrie_trie(struct esctrie* e);
 
 #ifdef __cplusplus
 }

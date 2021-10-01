@@ -19,8 +19,8 @@
 typedef struct esctrie {
   // if non-NULL, this is the next level of radix-128 trie. it is NULL on
   // accepting nodes, since no valid control sequence is a prefix of another
-  // valid control sequence.
-  struct esctrie** trie;
+  // valid control sequence. links are 1-biased (0 is NULL).
+  unsigned* trie;
   enum {
     NODE_SPECIAL,  // an accepting node, or pure transit (if ni.id == 0)
     NODE_NUMERIC,  // accumulates a number
@@ -29,73 +29,67 @@ typedef struct esctrie {
   } ntype;
   ncinput ni;      // composed key terminating here
   triefunc fxn;    // function to call on match
-  struct esctrie* kleene; // kleene match
+  unsigned kleene; // idx of kleene match
 } esctrie;
+
+// get node corresponding to 1-biased index
+static inline esctrie*
+esctrie_from_idx(const automaton* a, unsigned idx){
+  if(idx == 0){
+    return NULL;
+  }
+  return a->nodepool + (idx - 1);
+}
+
+// return 1-biased index of node in pool
+static inline unsigned
+esctrie_idx(const automaton* a, const esctrie* e){
+  return e - a->nodepool + 1;
+}
 
 uint32_t esctrie_id(const esctrie* e){
   return e->ni.id;
 }
 
-esctrie** esctrie_trie(esctrie* e){
-  return e->trie;
-}
-
-static inline esctrie*
-create_esctrie_node(int special){
-  esctrie* e = malloc(sizeof(*e));
-  if(e){
-    memset(e, 0, sizeof(*e));
-    e->ntype = NODE_SPECIAL;
-    if((e->ni.id = special) == 0){
-      const size_t tsize = sizeof(*e->trie) * 0x80;
-      if( (e->trie = malloc(tsize)) ){
-        memset(e->trie, 0, tsize);
-        return e;
-      }
-      free(e);
-      return NULL;
+// returns the idx of the new node, or 0 on failure (idx is 1-biased)
+static inline unsigned
+create_esctrie_node(automaton* a, int special){
+  if(a->poolused == a->poolsize){
+    unsigned newsize = a->poolsize ? a->poolsize * 2 : 2048;
+    esctrie* tmp = realloc(a->nodepool, sizeof(*a->nodepool) * newsize);
+    if(tmp == NULL){
+      return 0;
     }
-    return e;
+    a->nodepool = tmp;
+    a->poolsize = newsize;
   }
-  return e;
-}
-
-static void
-free_trienode(esctrie** eptr){
-  esctrie* e;
-  if( (e = *eptr) ){
-    if(e->trie){
-      int z;
-      for(z = 0 ; z < 0x80 ; ++z){
-        // don't recurse down a link to ourselves
-        if(e->trie[z] && e->trie[z] != e){
-          free_trienode(&e->trie[z]);
-        }
-        // if it's a numeric path, only recurse once
-        if(z == '0'){
-          if(e->trie['1'] == e->trie[z]){
-            z = '9';
-          }
-        }
-        // if it's an all-strings path, only recurse once
-        if(z == ' '){
-          if(e->trie['!'] == e->trie[z]){
-            z = 0x80;
-          }
-        }
-      }
-      free(e->trie);
+  esctrie* e = &a->nodepool[a->poolused++];
+  memset(e, 0, sizeof(*e));
+  e->ntype = NODE_SPECIAL;
+  if((e->ni.id = special) == 0){
+    const size_t tsize = sizeof(*e->trie) * 0x80;
+    if((e->trie = malloc(tsize)) == NULL){
+      --a->poolused;
+      return 0;
     }
-    free(e);
+    memset(e->trie, 0, tsize);
   }
+  return esctrie_idx(a, e);
 }
 
 void input_free_esctrie(automaton* a){
-  free_trienode(&a->escapes);
+  a->escapes = 0;
+  a->poolsize = 0;
+  for(unsigned i = 0 ; i < a->poolused ; ++i){
+    free(a->nodepool[i].trie);
+  }
+  free(a->nodepool);
+  a->poolused = 0;
+  a->nodepool = NULL;
 }
 
 static int
-esctrie_make_numeric(esctrie* e){
+esctrie_make_numeric(automaton* a, esctrie* e){
   if(e->ntype == NODE_NUMERIC){
     return 0;
   }
@@ -111,22 +105,22 @@ esctrie_make_numeric(esctrie* e){
   }
   e->ntype = NODE_NUMERIC;
   for(int i = '0' ; i < '9' ; ++i){
-    e->trie[i] = e;
+    e->trie[i] = esctrie_idx(a, e);
   }
   return 0;
 }
 
 static int
-esctrie_make_kleene(esctrie* e, unsigned follow, esctrie* term){
+esctrie_make_kleene(automaton* a, esctrie* e, unsigned follow, esctrie* term){
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
     return -1;
   }
   for(unsigned i = 0 ; i < 0x80 ; ++i){
     if(i == follow){
-      e->trie[i] = term;
-    }else if(e->trie[i] == NULL){
-      e->trie[i] = e;
+      e->trie[i] = esctrie_idx(a, term);
+    }else if(e->trie[i] == 0){
+      e->trie[i] = esctrie_idx(a, e);
     }
   }
   return 0;
@@ -148,7 +142,7 @@ esctrie_make_function(esctrie* e, triefunc fxn){
 }
 
 static int
-esctrie_make_string(esctrie* e, triefunc fxn){
+esctrie_make_string(automaton* a, esctrie* e, triefunc fxn){
   if(e->ntype == NODE_STRING){
     return 0;
   }
@@ -165,7 +159,7 @@ esctrie_make_string(esctrie* e, triefunc fxn){
       return -1;
     }
   }
-  esctrie* newe = create_esctrie_node(0);
+  esctrie* newe = esctrie_from_idx(a, create_esctrie_node(a, 0));
   if(newe == NULL){
     return -1;
   }
@@ -173,7 +167,7 @@ esctrie_make_string(esctrie* e, triefunc fxn){
     if(!isprint(i)){
       continue;
     }
-    e->trie[i] = newe;
+    e->trie[i] = esctrie_idx(a, newe);
   }
   e = newe;
   e->ntype = NODE_STRING;
@@ -181,16 +175,16 @@ esctrie_make_string(esctrie* e, triefunc fxn){
     if(!isprint(i)){
       continue;
     }
-    e->trie[i] = newe;
+    e->trie[i] = esctrie_idx(a, newe);
   }
-  if((e->trie[0x1b] = create_esctrie_node(0)) == NULL){
+  if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
     return -1;
   }
-  e = e->trie[0x1b];
-  if((e->trie['\\'] = create_esctrie_node(NCKEY_INVALID)) == NULL){
+  e = esctrie_from_idx(a, e->trie[0x1b]);
+  if((e->trie['\\'] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
     return -1;
   }
-  e = e->trie['\\'];
+  e = esctrie_from_idx(a, e->trie['\\']);
   e->ni.id = 0;
   e->ntype = NODE_SPECIAL;
   if(esctrie_make_function(e, fxn)){
@@ -201,60 +195,58 @@ esctrie_make_string(esctrie* e, triefunc fxn){
 }
 
 static esctrie*
-link_kleene(esctrie* e, unsigned follow){
+link_kleene(automaton* a, esctrie* e, unsigned follow){
   if(e->kleene){
-    return e->kleene;
+    return a->nodepool + e->kleene;
   }
-  esctrie* term = create_esctrie_node(0);
+  esctrie* term = esctrie_from_idx(a, create_esctrie_node(a, 0));
   if(term == NULL){
     return NULL;
   }
   esctrie* targ = NULL;
-  if( (targ = create_esctrie_node(0)) ){
-    if(esctrie_make_kleene(targ, follow, term)){
-      free_trienode(&targ);
-      free_trienode(&term);
-      return NULL;
-    }
+  if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
+    return NULL;
+  }
+  if(esctrie_make_kleene(a, targ, follow, term)){
+    return NULL;
   }
   // fill in all NULL numeric links with the new target
   for(unsigned int i = 0 ; i < 0x80 ; ++i){
     if(i == follow){
       if(e->trie[i]){
         logerror("drain terminator already registered\n");
-        free_trienode(&targ);
-        free_trienode(&term);
+        return NULL;
       }
-      e->trie[follow] = term;
-    }else if(e->trie[i] == NULL){
-      e->trie[i] = targ;
+      e->trie[follow] = esctrie_idx(a, term);
+    }else if(e->trie[i] == 0){
+      e->trie[i] = esctrie_idx(a, targ);
       // FIXME travel to the ends and link targ there
     }
   }
-  targ->kleene = targ;
-  return e->trie[follow];
+  targ->kleene = esctrie_idx(a, targ);
+  return esctrie_from_idx(a, e->trie[follow]);
 }
 
 static void
-fill_in_numerics(esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
+fill_in_numerics(automaton* a, esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
   // fill in all NULL numeric links with the new target
   for(int i = '0' ; i <= '9' ; ++i){
-    if(e->trie[i] == NULL){
-      e->trie[i] = targ;
-    }else if(e->trie[i] != e){
-      fill_in_numerics(e->trie[i], targ, follow, efollow);
+    if(e->trie[i] == 0){
+      e->trie[i] = esctrie_idx(a, targ);
+    }else if(e->trie[i] != esctrie_idx(a, e)){
+      fill_in_numerics(a, esctrie_from_idx(a, e->trie[i]), targ, follow, efollow);
     }
   }
-  e->trie[follow] = efollow;
+  e->trie[follow] = esctrie_idx(a, efollow);
 }
 
 // accept any digit and transition to a numeric node.
 static esctrie*
-link_numeric(esctrie* e, unsigned follow){
+link_numeric(automaton* a, esctrie* e, unsigned follow){
   esctrie* targ = NULL;
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
   for(int i = '0' ; i <= '9' ; ++i){
-    targ = e->trie[i];
+    targ = esctrie_from_idx(a, e->trie[i]);
     if(targ && targ->ntype == NODE_NUMERIC){
       break;
     }
@@ -262,37 +254,37 @@ link_numeric(esctrie* e, unsigned follow){
   }
   // we either have a numeric target, or will make one now
   if(targ == NULL){
-    if( (targ = create_esctrie_node(0)) ){
-      if(esctrie_make_numeric(targ)){
-        free_trienode(&targ);
-        return NULL;
-      }
+    if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
+      return NULL;
+    }
+    if(esctrie_make_numeric(a, targ)){
+      return NULL;
     }
   }
   // targ is the numeric node we're either creating or coopting
-  esctrie* efollow = targ->trie[follow];
+  esctrie* efollow = esctrie_from_idx(a, targ->trie[follow]);
   if(efollow == NULL){
-    if((efollow = create_esctrie_node(0)) == NULL){
+    if((efollow = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
       return NULL;
     }
   }
   for(int i = '0' ; i <= '9' ; ++i){
-    if(e->trie[i] == NULL){
-      e->trie[i] = targ;
+    if(e->trie[i] == 0){
+      e->trie[i] = esctrie_idx(a, targ);
     }
-    fill_in_numerics(e->trie[i], targ, follow, efollow);
+    fill_in_numerics(a, esctrie_from_idx(a, e->trie[i]), targ, follow, efollow);
   }
   return efollow;
 }
 
 // add a cflow path to the automaton
 int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
-  if(a->escapes == NULL){
-    if((a->escapes = create_esctrie_node(0)) == NULL){
+  if(a->escapes == 0){
+    if((a->escapes = create_esctrie_node(a, 0)) == 0){
       return -1;
     }
   }
-  esctrie* eptr = a->escapes;
+  esctrie* eptr = esctrie_from_idx(a, a->escapes);
   bool inescape = false;
   unsigned char c;
   while( (c = *csi++) ){
@@ -310,12 +302,12 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           return -1;
         }
         c = *csi++;
-        eptr = link_numeric(eptr, c);
+        eptr = link_numeric(a, eptr, c);
         if(eptr == NULL){
           return -1;
         }
       }else if(c == 'S'){
-        if(esctrie_make_string(eptr, fxn)){
+        if(esctrie_make_string(a, eptr, fxn)){
           return -1;
         }
         return 0;
@@ -326,7 +318,7 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
           return -1;
         }
         c = *csi++;
-        eptr = link_kleene(eptr, c);
+        eptr = link_kleene(a, eptr, c);
         if(eptr == NULL){
           return -1;
         }
@@ -336,27 +328,27 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }
       inescape = false;
     }else{
-      if(eptr->trie[c] == NULL){
-        if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
+      if(eptr->trie[c] == 0){
+        if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
           return -1;
         }
       }else if(eptr->trie[c] == eptr->kleene){
-        if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
+        if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
           return -1;
         }
-      }else if(eptr->trie[c]->ntype == NODE_NUMERIC){
+      }else if(esctrie_from_idx(a, eptr->trie[c])->ntype == NODE_NUMERIC){
         // punch a hole through the numeric loop. create a new one, and fill
         // it in with the existing target.
         struct esctrie* newe;
-        if((newe = create_esctrie_node(0)) == NULL){
+        if((newe = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
           return -1;
         }
         for(int i = 0 ; i < 0x80 ; ++i){
-          newe->trie[i] = eptr->trie[c]->trie[i];
+          newe->trie[i] = esctrie_from_idx(a, eptr->trie[c])->trie[i];
         }
-        eptr->trie[c] = newe;
+        eptr->trie[c] = esctrie_idx(a, newe);
       }
-      eptr = eptr->trie[c];
+      eptr = esctrie_from_idx(a, eptr->trie[c]);
     }
   }
   if(inescape){
@@ -375,13 +367,12 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     logerror("not an escape (0x%x)\n", special);
     return -1;
   }
-  esctrie** eptr = &a->escapes;
-  if(*eptr == NULL){
-    if((*eptr = create_esctrie_node(0)) == NULL){
+  if(a->escapes == 0){
+    if((a->escapes = create_esctrie_node(a, 0)) == 0){
       return -1;
     }
   }
-  esctrie* cur = *eptr;
+  esctrie* cur = esctrie_from_idx(a, a->escapes);
   ++esc; // don't encode initial escape as a transition
   do{
     int valid = *esc;
@@ -389,12 +380,12 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
       logerror("invalid character %d in escape\n", valid);
       return -1;
     }
-    if(cur->trie[valid] == NULL){
-      if((cur->trie[valid] = create_esctrie_node(0)) == NULL){
+    if(cur->trie[valid] == 0){
+      if((cur->trie[valid] = create_esctrie_node(a, 0)) == 0){
         return -1;
       }
     }
-    cur = cur->trie[valid];
+    cur = esctrie_from_idx(a, cur->trie[valid]);
     ++esc;
   }while(*esc);
   // it appears that multiple keys can be mapped to the same escape string. as
@@ -422,8 +413,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     logerror("eight-bit char %u in control sequence\n", candidate);
     return -1;
   }
-  esctrie* e = a->state;
-  logdebug("state: %p candidate: %c %u type: %d\n", e, candidate, candidate, e->ntype);
+  esctrie* e = esctrie_from_idx(a, a->state);
   // we ought not have been called for an escape with any state!
   if(candidate == 0x1b && !a->instring){
     assert(NULL == e);
@@ -437,9 +427,9 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }
     return 0;
   }
-  if((a->state = e->trie[candidate]) == NULL){
+  if((a->state = e->trie[candidate]) == 0){
     if(isprint(candidate)){
-      if(e == a->escapes){
+      if(esctrie_idx(a, e) == a->escapes){
         memset(ni, 0, sizeof(*ni));
         ni->id = candidate;
         ni->alt = true;
@@ -449,7 +439,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     loginfo("unexpected transition %u\n", candidate);
     return -1;
   }
-  e = a->state;
+  e = esctrie_from_idx(a, a->state);
   // initialize any node we've just stepped into
   switch(e->ntype){
     case NODE_NUMERIC:
