@@ -124,7 +124,7 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
 
 nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
-    logwarn("Passed invalid flags 0x%016llx\n", opts->flags);
+    logwarn("Passed invalid flags 0x%016" PRIx64 "\n", opts->flags);
   }
   if(opts->count == 0 || opts->items == NULL){
     logerror("Can't create empty tree\n");
