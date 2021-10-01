@@ -320,8 +320,9 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
     ret += addend;
     ++amata->matchstart;
   }
-  if(*amata->matchstart++ != follow){
-    logerror("didn't see follow (%c)\n", follow);
+  char candidate = *amata->matchstart++;
+  if(candidate != follow){
+    logerror("didn't see follow (%c vs %c)\n", candidate, follow);
     return 0;
   }
   return ret;
@@ -659,7 +660,7 @@ kittygraph_cb(inputctx* ictx){
 
 static int
 decrpm_asu_cb(inputctx* ictx){
-  unsigned ps = amata_next_numeric(&ictx->amata, "\x1b[?2026;", 'y');
+  unsigned ps = amata_next_numeric(&ictx->amata, "\x1b[?2026;", '$');
   loginfo("received decrpm 2026 %u\n", ps);
   if(ps == 2){
     if(ictx->initdata){
