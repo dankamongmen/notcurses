@@ -28,7 +28,6 @@ typedef struct esctrie {
     NODE_FUNCTION, // invokes a function
   } ntype;
   ncinput ni;      // composed key terminating here
-  int number;      // accumulated number; reset to 0 on entry
   char* str;       // accumulated string; reset to NULL on entry
   triefunc fxn;    // function to call on match
   struct esctrie* kleene; // kleene match
@@ -44,13 +43,6 @@ const char* esctrie_string(const esctrie* e){
 
 esctrie** esctrie_trie(esctrie* e){
   return e->trie;
-}
-
-int esctrie_numeric(const esctrie* e){
-  if(e->ntype != NODE_NUMERIC){
-    return -1;
-  }
-  return e->number;
 }
 
 static inline esctrie*
@@ -357,9 +349,6 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
         }
-        if(isdigit(c)){
-          eptr->trie[c]->number = c - '0';
-        }
       }else if(eptr->trie[c] == eptr->kleene){
         if((eptr->trie[c] = create_esctrie_node(0)) == NULL){
           return -1;
@@ -378,7 +367,7 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }
       eptr = eptr->trie[c];
     }
-    logdebug("added %c, now at %p (%d) %d (%u)\n", c, eptr, eptr->ntype, eptr->number, *csi);
+    logdebug("added %c, now at %p (%d) (%u)\n", c, eptr, eptr->ntype, *csi);
   }
   if(inescape){
     logerror("illegal escape at end of line\n");
@@ -468,16 +457,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     a->state = a->escapes;
     return 0;
   }
-  if(e->ntype == NODE_NUMERIC){
-    if(isdigit(candidate)){
-      int digit = candidate - '0';
-      if((INT_MAX - digit) / 10 < e->number){
-        logwarn("digit %c will overflow %d\n", candidate, e->number);
-      }
-      e->number = e->number * 10 + digit;
-      return 0;
-    }
-  }else if(e->ntype == NODE_STRING){
+  if(e->ntype == NODE_STRING){
     if(candidate == 0x1b){
       a->state = e->trie[candidate];
       a->instring = 0;
@@ -502,7 +482,6 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   // initialize any node we've just stepped into
   switch(e->ntype){
     case NODE_NUMERIC:
-      e->number = candidate - '0';
       break;
     case NODE_STRING:
       a->stridx = 1;
@@ -514,12 +493,10 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     case NODE_SPECIAL:
       if(e->ni.id){
         memcpy(ni, &e->ni, sizeof(*ni));
-        a->state = NULL; // FIXME?
         return 1;
       }
       break;
     case NODE_FUNCTION:
-      a->state = NULL; // FIXME?
       if(e->fxn == NULL){
         return 2;
       }

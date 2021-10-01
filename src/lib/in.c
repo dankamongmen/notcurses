@@ -294,6 +294,37 @@ prep_special_keys(inputctx* ictx){
   return 0;
 }
 
+// starting from the current amata match point, match any necessary prefix, then
+// extract the numeric (possibly empty), then match the follow. as we are only
+// called from a callback context, and know we've been properly matched, there
+// is no error-checking per se (we do require prefix/follow matches, but if
+// missed, we just return 0). indicate empty prefix with "", not NULL.
+// updates ictx->amata.matchstart to be pointing past the follow. follow ought
+// not be a digit nor NUL.
+static unsigned
+amata_next_numeric(automaton* amata, const char* prefix, char follow){
+  char c;
+  while( (c = *prefix++) ){
+    if(*amata->matchstart != c){
+      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
+      return 0;
+    }
+    ++amata->matchstart;
+  }
+  // prefix has been matched
+  unsigned ret = 0;
+  while(isdigit(*amata->matchstart)){
+    ret *= 10;
+    ret += *amata->matchstart - '0'; // FIXME overflow check!
+    ++amata->matchstart;
+  }
+  if(*amata->matchstart++ != follow){
+    logerror("didn't see follow (%c)\n", follow);
+    return 0;
+  }
+  return ret;
+}
+
 // get a fixed CSI-anchored node from the trie
 static inline struct esctrie*
 csi_node(automaton *amata, const char* prefix){
@@ -322,28 +353,25 @@ dcs_node(automaton *amata){
 // ('M' for click, 'm' for release).
 static void
 mouse_click(inputctx* ictx, unsigned release){
-  struct esctrie* e = csi_node(&ictx->amata, "<0");
-  const int mods = esctrie_numeric(e);
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  const int x = esctrie_numeric(e) - 1 - ictx->lmargin;
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  const int y = esctrie_numeric(e) - 1 - ictx->tmargin;
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[<", ';');
+  long x = amata_next_numeric(&ictx->amata, "", ';');
+  long y = amata_next_numeric(&ictx->amata, "", ';');
+  x -= (1 + ictx->lmargin);
+  y -= (1 + ictx->tmargin);
   // convert from 1- to 0-indexing, and account for margins
   if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %d/%d\n", y, x);
+    logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping mouse click 0x%02x %d %d\n", mods, y, x);
+    logerror("dropping mouse click 0x%02x %ld %ld\n", mods, y, x);
     inc_input_errors(ictx);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  if(mods >= 0 && mods < 64){
+  if(mods < 64){
     ni->id = NCKEY_BUTTON1 + (mods % 4);
   }else if(mods >= 64 && mods < 128){
     ni->id = NCKEY_BUTTON4 + (mods % 4);
@@ -383,11 +411,8 @@ mouse_release_cb(inputctx* ictx){
 
 static int
 cursor_location_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "0");
-  int y = esctrie_numeric(e) - 1;
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['9'];
-  int x = esctrie_numeric(e) - 1;
+  unsigned y = amata_next_numeric(&ictx->amata, "\x1b[", ';') - 1;
+  unsigned x = amata_next_numeric(&ictx->amata, "", 'R') - 1;
   // the first one doesn't go onto the queue; consume it here
   if(ictx->initdata){
     ictx->initdata->cursory = y;
@@ -397,7 +422,7 @@ cursor_location_cb(inputctx* ictx){
   pthread_mutex_lock(&ictx->clock);
   if(ictx->cvalid == ictx->csize){
     pthread_mutex_unlock(&ictx->clock);
-    logwarn("dropping cursor location report %d/%d\n", y, x);
+    logwarn("dropping cursor location report %u/%u\n", y, x);
     inc_input_errors(ictx);
   }else{
     cursorloc* cloc = &ictx->csrs[ictx->cwrite];
@@ -409,21 +434,16 @@ cursor_location_cb(inputctx* ictx){
     ++ictx->cvalid;
     pthread_mutex_unlock(&ictx->clock);
     pthread_cond_broadcast(&ictx->ccond);
-    loginfo("cursor location: %d/%d\n", y, x);
+    loginfo("cursor location: %u/%u\n", y, x);
   }
   return 2;
 }
 
 static int
 geom_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "0");
-  int kind = esctrie_numeric(e);
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  int y = esctrie_numeric(e);
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  int x = esctrie_numeric(e);
+  unsigned kind = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned y = amata_next_numeric(&ictx->amata, "", ';');
+  unsigned x = amata_next_numeric(&ictx->amata, "", 't');
   if(kind == 4){ // pixel geometry
     if(ictx->initdata){
       ictx->initdata->pixy = y;
@@ -503,59 +523,50 @@ kitty_kbd(inputctx* ictx, int val, int mods){
 
 static int
 kitty_cb_simple(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "0");
-  int val = esctrie_numeric(e);
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", 'u');
   kitty_kbd(ictx, val, 0);
   return 2;
 }
 
 static int
 kitty_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "0");
-  int val = esctrie_numeric(e);
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  int mods = esctrie_numeric(e);
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned mods = amata_next_numeric(&ictx->amata, "", 'u');
   kitty_kbd(ictx, val, mods);
   return 2;
 }
 
 static int
 kitty_keyboard_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "?1");
-  int val = esctrie_numeric(e);
+  unsigned level = amata_next_numeric(&ictx->amata, "\x1b[?", 'u');
   if(ictx->initdata){
-    ictx->initdata->kbdlevel = val;
-    loginfo("kitty keyboard protocol level %u\n", ictx->initdata->kbdlevel);
+    ictx->initdata->kbdlevel = level;
   }
+  loginfo("kitty keyboard protocol level %u\n", level);
   return 2;
 }
 
 // the only xtsmgraphics reply with a single Pv arg is color registers
 static int
 xtsmgraphics_cregs_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "?1;0;0");
-  int pv = esctrie_numeric(e);
+  unsigned pv = amata_next_numeric(&ictx->amata, "\x1b[?1;0;", 'S');
   if(ictx->initdata){
     ictx->initdata->color_registers = pv;
-    loginfo("sixel color registers: %d\n", ictx->initdata->color_registers);
   }
+  loginfo("sixel color registers: %d\n", pv);
   return 2;
 }
 
 // the only xtsmgraphics reply with a dual Pv arg we want is sixel geometry
 static int
 xtsmgraphics_sixel_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "?2;0;0");
-  int width = esctrie_numeric(e);
-  e = esctrie_trie(e)[';'];
-  e = esctrie_trie(e)['0'];
-  int height = esctrie_numeric(e);
+  unsigned width = amata_next_numeric(&ictx->amata, "\x1b[?2;0;", ';');
+  unsigned height = amata_next_numeric(&ictx->amata, "", 'S');
   if(ictx->initdata){
     ictx->initdata->sixelx = width;
     ictx->initdata->sixely = height;
-    loginfo("max sixel geometry: %dx%d\n", ictx->initdata->sixely, ictx->initdata->sixelx);
   }
+  loginfo("max sixel geometry: %dx%d\n", height, width);
   return 2;
 }
 
@@ -599,10 +610,9 @@ da2_cb(inputctx* ictx){
             termname ? termname : "unset");
     return 2;
   }
-  struct esctrie* e = csi_node(&ictx->amata, ">0;0");
-  int pv = esctrie_numeric(e);
+  unsigned pv = amata_next_numeric(&ictx->amata, "\x1b[>0;", 'c');
   int maj, min, patch;
-  if(pv <= 0){
+  if(pv == 0){
     return 2;
   }
   maj = pv / 10000;
@@ -643,9 +653,8 @@ kittygraph_cb(inputctx* ictx){
 
 static int
 decrpm_asu_cb(inputctx* ictx){
-  struct esctrie* e = csi_node(&ictx->amata, "?2026;0");
-  int ps = esctrie_numeric(e);
-  loginfo("received decrpm 2026 %d\n", ps);
+  unsigned ps = amata_next_numeric(&ictx->amata, "\x1b[?2026;", 'y');
+  loginfo("received decrpm 2026 %u\n", ps);
   if(ps == 2){
     if(ictx->initdata){
       ictx->initdata->appsync_supported = 1;
@@ -1212,7 +1221,7 @@ special_key(inputctx* ictx, const ncinput* inni){
 //  precondition: buflen >= 1. precondition: buf[0] == 0x1b.
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
-  assert(1 <= buflen);
+  assert(ictx->amata.used < buflen);
   while(ictx->amata.used < buflen){
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
@@ -1223,6 +1232,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     // an escape always resets the trie (unless we're in the middle of an
     // ST-terminated string), as does a NULL transition.
     if(candidate == NCKEY_ESC && !ictx->amata.instring){
+      ictx->amata.matchstart = buf + ictx->amata.used - 1;
       ictx->amata.state = ictx->amata.escapes;
       logtrace("initialized automaton to %p\n", ictx->amata.state);
       ictx->amata.used = 1;
@@ -1302,6 +1312,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   // move any leftovers to the front; only happens if we fill output queue,
   // or ran out of input data mid-escape
   if(*bufused){
+    ictx->amata.matchstart = buf;
     memmove(buf, buf + offset, *bufused);
   }
 }
