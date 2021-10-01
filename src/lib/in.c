@@ -314,8 +314,12 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
   // prefix has been matched
   unsigned ret = 0;
   while(isdigit(*amata->matchstart)){
+    int addend = *amata->matchstart - '0';
+    if((UINT_MAX - addend) / 10 < ret){
+      logerror("overflow: %u * 10 + %u > %u\n", ret, addend, UINT_MAX);
+    }
     ret *= 10;
-    ret += *amata->matchstart - '0'; // FIXME overflow check!
+    ret += addend;
     ++amata->matchstart;
   }
   if(*amata->matchstart++ != follow){
@@ -325,27 +329,30 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
   return ret;
 }
 
-// get a fixed CSI-anchored node from the trie
-static inline struct esctrie*
-csi_node(automaton *amata, const char* prefix){
-  struct esctrie* e = amata->escapes;
-  e = esctrie_trie(e)['['];
-  unsigned p;
-  while(e && (p = *prefix)){
-    e = esctrie_trie(e)[p];
-    ++prefix;
+// same deal as amata_next_numeric, but returns a heap-allocated string.
+// strings always end with ST ("x1b\\"). this one *does* return NULL on
+// either a match failure or an alloc failure.
+static char*
+amata_next_string(automaton* amata, const char* prefix){
+  char c;
+  while( (c = *prefix++) ){
+    if(*amata->matchstart != c){
+      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
+      return NULL;
+    }
+    ++amata->matchstart;
   }
-  if(*prefix){
-    logerror("error following path: %s\n", prefix);
+  // prefix has been matched. mark start of string and find follow.
+  const unsigned char* start = amata->matchstart;
+  while(*amata->matchstart != '\x1b'){
+    ++amata->matchstart;
   }
-  return e;
-}
-
-// get the DCS node from the trie
-static inline struct esctrie*
-dcs_node(automaton *amata){
-  struct esctrie* e = amata->escapes;
-  return esctrie_trie(e)['P'];
+  char* ret = malloc(amata->matchstart - start + 1);
+  if(ret){
+    memcpy(ret, start, amata->matchstart - start);
+    ret[amata->matchstart - start] = '\0';
+  }
+  return ret;
 }
 
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
@@ -610,7 +617,8 @@ da2_cb(inputctx* ictx){
             termname ? termname : "unset");
     return 2;
   }
-  unsigned pv = amata_next_numeric(&ictx->amata, "\x1b[>0;", 'c');
+  amata_next_numeric(&ictx->amata, "\x1b[>", ';');
+  unsigned pv = amata_next_numeric(&ictx->amata, "", ';');
   int maj, min, patch;
   if(pv == 0){
     return 2;
@@ -666,34 +674,25 @@ decrpm_asu_cb(inputctx* ictx){
 static int
 bgdef_cb(inputctx* ictx){
   if(ictx->initdata){
-      struct esctrie* e = ictx->amata.escapes;
-      e = esctrie_trie(e)[']'];
-      e = esctrie_trie(e)['1'];
-      e = esctrie_trie(e)['1'];
-      e = esctrie_trie(e)[';'];
-      e = esctrie_trie(e)['r'];
-      e = esctrie_trie(e)['g'];
-      e = esctrie_trie(e)['b'];
-      e = esctrie_trie(e)[':'];
-      e = esctrie_trie(e)['a'];
-      const char* str = esctrie_string(e);
-      if(str == NULL){
-        logerror("empty bg string\n");
+    char* str = amata_next_string(&ictx->amata, "\x1b]11;rgb:");
+    if(str == NULL){
+      logerror("empty bg string\n");
+    }else{
+      int r, g, b;
+      if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
+        // great! =]
+      }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
+        r /= 256;
+        g /= 256;
+        b /= 256;
       }else{
-        int r, g, b;
-        if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
-          // great! =]
-        }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
-          r /= 256;
-          g /= 256;
-          b /= 256;
-        }else{
-          logerror("couldn't extract rgb from %s\n", str);
-          r = g = b = 0;
-        }
-        ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
-        loginfo("default background 0x%02x%02x%02x\n", r, g, b);
+        logerror("couldn't extract rgb from %s\n", str);
+        r = g = b = 0;
       }
+      ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
+      loginfo("default background 0x%02x%02x%02x\n", r, g, b);
+      free(str);
+    }
   }
   return 2;
 }
@@ -721,17 +720,13 @@ extract_xtversion(inputctx* ictx, const char* str, char suffix){
 
 static int
 xtversion_cb(inputctx* ictx){
-  struct esctrie* e = dcs_node(&ictx->amata);
-  e = esctrie_trie(e)['>'];
-  e = esctrie_trie(e)['|'];
-  e = esctrie_trie(e)['a'];
-  const char* xtversion = esctrie_string(e);
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  char* xtversion = amata_next_string(&ictx->amata, "\x1bP>|");
   if(xtversion == NULL){
     logwarn("empty xtversion\n");
     return 2; // don't replay as input
-  }
-  if(ictx->initdata == NULL){
-    return 2;
   }
   static const struct {
     const char* prefix;
@@ -755,7 +750,8 @@ xtversion_cb(inputctx* ictx){
         loginfo("found terminal type %d version %s\n", xtv->term, ictx->initdata->version);
         ictx->initdata->qterm = xtv->term;
       }else{
-        return -1;
+        free(xtversion);
+        return 2;
       }
       break;
     }
@@ -763,18 +759,17 @@ xtversion_cb(inputctx* ictx){
   if(xtv->prefix == NULL){
     logwarn("unknown xtversion [%s]\n", xtversion);
   }
+  free(xtversion);
   return 2;
 }
 
 static int
 tcap_cb(inputctx* ictx){
-  struct esctrie* e = dcs_node(&ictx->amata);
-  e = esctrie_trie(e)['1'];
-  e = esctrie_trie(e)['+'];
-  e = esctrie_trie(e)['r'];
-  e = esctrie_trie(e)['a'];
-  const char* str = esctrie_string(e);
-  loginfo("TCAP: %s\n", str);
+  char* str = amata_next_string(&ictx->amata, "\x1bP1+r");
+  if(str){
+    loginfo("TCAP: %s\n", str);
+    free(str);
+  }
     /* FIXME
   if(cap == 0x544e){ // 'TN' terminal name
     loginfo("got TN capability %d\n", val);
@@ -791,11 +786,7 @@ tcap_cb(inputctx* ictx){
 
 static int
 tda_cb(inputctx* ictx){
-  struct esctrie* e = dcs_node(&ictx->amata);
-  e = esctrie_trie(e)['!'];
-  e = esctrie_trie(e)['|'];
-  e = esctrie_trie(e)['a'];
-  const char* str = esctrie_string(e);
+  char* str = amata_next_string(&ictx->amata, "\x1bP!|");
   if(str == NULL){
     logwarn("empty ternary device attribute\n");
     return 2; // don't replay
@@ -810,6 +801,7 @@ tda_cb(inputctx* ictx){
     }
     loginfo("got TDA: %s, terminal type %d\n", str, ictx->initdata->qterm);
   }
+  free(str);
   return 2;
 }
 

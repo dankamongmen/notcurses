@@ -28,17 +28,12 @@ typedef struct esctrie {
     NODE_FUNCTION, // invokes a function
   } ntype;
   ncinput ni;      // composed key terminating here
-  char* str;       // accumulated string; reset to NULL on entry
   triefunc fxn;    // function to call on match
   struct esctrie* kleene; // kleene match
 } esctrie;
 
 uint32_t esctrie_id(const esctrie* e){
   return e->ni.id;
-}
-
-const char* esctrie_string(const esctrie* e){
-  return e->str;
 }
 
 esctrie** esctrie_trie(esctrie* e){
@@ -89,7 +84,6 @@ free_trienode(esctrie** eptr){
           }
         }
       }
-      free(e->str);
       free(e->trie);
     }
     free(e);
@@ -367,7 +361,6 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
       }
       eptr = eptr->trie[c];
     }
-    logdebug("added %c, now at %p (%d) (%u)\n", c, eptr, eptr->ntype, *csi);
   }
   if(inescape){
     logerror("illegal escape at end of line\n");
@@ -422,23 +415,6 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
   return 0;
 }
 
-static int
-growstring(automaton* a, esctrie* e, unsigned candidate){
-  if(!isprint(candidate)){
-    logerror("unexpected char %u in string\n", candidate);
-    return -1;
-  }
-  char* tmp = realloc(e->str, a->stridx + 1);
-  if(tmp == NULL){
-    return -1;
-  }
-  e->str = tmp;
-  e->str[a->stridx - 1] = candidate;
-  e->str[a->stridx] = '\0';
-  ++a->stridx;
-  return 0;
-}
-
 // returns -1 for non-match, 0 for match, 1 for acceptance. if we are in the
 // middle of a sequence, and receive an escape, *do not call this*, but
 // instead call reset_automaton() after replaying the used characters to the
@@ -461,8 +437,6 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     if(candidate == 0x1b){
       a->state = e->trie[candidate];
       a->instring = 0;
-    }else if(growstring(a, e, candidate)){
-      return -1;
     }
     return 0;
   }
@@ -484,11 +458,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     case NODE_NUMERIC:
       break;
     case NODE_STRING:
-      a->stridx = 1;
       a->instring = 1;
-      if(growstring(a, e, candidate)){
-        return -1;
-      }
       break;
     case NODE_SPECIAL:
       if(e->ni.id){

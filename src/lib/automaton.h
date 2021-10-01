@@ -21,7 +21,6 @@ typedef struct automaton {
   int used;                 // bytes consumed thus far
   int instring;             // are we in an ST-terminated string?
   struct esctrie* state;
-  unsigned stridx;          // bytes of accumulating string (includes NUL) FIXME kill
   const unsigned char* matchstart;   // beginning of active match
 } automaton;
 
@@ -39,7 +38,6 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
   __attribute__ ((nonnull (1, 2, 4)));
 
 uint32_t esctrie_id(const struct esctrie* e);
-const char* esctrie_string(const struct esctrie* e);
 // returns 128-way array of esctrie pointers
 struct esctrie** esctrie_trie(struct esctrie* e);
 
