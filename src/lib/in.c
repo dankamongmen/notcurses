@@ -358,10 +358,10 @@ amata_next_string(automaton* amata, const char* prefix){
 // SGR (1006) mouse encoding, so use the final character to determine release
 // ('M' for click, 'm' for release).
 static void
-mouse_click(inputctx* ictx, unsigned release){
+mouse_click(inputctx* ictx, unsigned release, char follow){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[<", ';');
   long x = amata_next_numeric(&ictx->amata, "", ';');
-  long y = amata_next_numeric(&ictx->amata, "", ';');
+  long y = amata_next_numeric(&ictx->amata, "", follow);
   x -= (1 + ictx->lmargin);
   y -= (1 + ictx->tmargin);
   // convert from 1- to 0-indexing, and account for margins
@@ -405,13 +405,13 @@ mouse_click(inputctx* ictx, unsigned release){
 
 static int
 mouse_press_cb(inputctx* ictx){
-  mouse_click(ictx, 0);
+  mouse_click(ictx, 0, 'M');
   return 2;
 }
 
 static int
 mouse_release_cb(inputctx* ictx){
-  mouse_click(ictx, 1);
+  mouse_click(ictx, 1, 'm');
   return 2;
 }
 

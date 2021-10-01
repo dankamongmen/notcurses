@@ -113,7 +113,6 @@ esctrie_make_numeric(esctrie* e){
   for(int i = '0' ; i < '9' ; ++i){
     e->trie[i] = e;
   }
-  logdebug("made numeric: %p\n", e);
   return 0;
 }
 
@@ -130,7 +129,6 @@ esctrie_make_kleene(esctrie* e, unsigned follow, esctrie* term){
       e->trie[i] = e;
     }
   }
-  logdebug("made kleene: %p\n", e);
   return 0;
 }
 
@@ -146,7 +144,6 @@ esctrie_make_function(esctrie* e, triefunc fxn){
   }
   e->ntype = NODE_FUNCTION;
   e->fxn = fxn;
-  logdebug("made function %p: %p\n", fxn, e);
   return 0;
 }
 
