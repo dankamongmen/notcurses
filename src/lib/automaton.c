@@ -55,7 +55,7 @@ uint32_t esctrie_id(const esctrie* e){
 static inline unsigned
 create_esctrie_node(automaton* a, int special){
   if(a->poolused == a->poolsize){
-    unsigned newsize = a->poolsize ? a->poolsize * 2 : 2048;
+    unsigned newsize = a->poolsize ? a->poolsize * 2 : 512;
     esctrie* tmp = realloc(a->nodepool, sizeof(*a->nodepool) * newsize);
     if(tmp == NULL){
       return 0;
