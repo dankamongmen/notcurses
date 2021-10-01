@@ -1166,7 +1166,7 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     animated = true;
   }
   int ret = s->glyph.used;
-  logdebug("dumping %zub for %u at %d %d\n", s->glyph.used, s->id, yoff, xoff);
+  logdebug("dumping %llub for %u at %d %d\n", s->glyph.used, s->id, yoff, xoff);
   if(ret){
     if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
       ret = -1;

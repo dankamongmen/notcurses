@@ -99,7 +99,7 @@ prep_initial_path(nctree* n, unsigned maxdepth){
 }
 
 static nctree*
-nctree_inner_create(ncplane* n, const struct nctree_options* opts){
+nctree_inner_create(ncplane* n, const nctree_options* opts){
   nctree* ret = malloc(sizeof(*ret));
   if(ret){
     ret->cbfxn = opts->nctreecb;
@@ -122,9 +122,9 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   return ret;
 }
 
-nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
+nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
-    logwarn("Passed invalid flags 0x%016jx\n", (uint64_t)opts->flags);
+    logwarn("Passed invalid flags 0x%016llx\n", opts->flags);
   }
   if(opts->count == 0 || opts->items == NULL){
     logerror("Can't create empty tree\n");

@@ -73,7 +73,7 @@ void nctabbed_ensure_selected_header_visible(nctabbed* nt){
 static bool
 nctabbed_validate_opts(const nctabbed_options* opts){
   if(opts->flags > NCTABBED_OPTION_BOTTOM){
-    logwarn("Provided unsupported flags 0x%016jx\n", (uint64_t)opts->flags);
+    logwarn("Provided unsupported flags 0x%016llx\n", opts->flags);
   }
   if(opts->sepchan && !opts->separator){
     logwarn("Provided non-zero separator channel when separator is NULL")
