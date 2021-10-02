@@ -828,10 +828,11 @@ build_cflow_automaton(inputctx* ictx){
     { "[?6c", da1_cb, },   // CSI ? 6 c ("VT102")
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
     { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c ("VT125")
+    { "[?60;\\Dc", da1_cb, }, // CSI ? 6 0 ; Ps c (kmscon)
     { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c ("VT220")
     { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c ("VT320")
     { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
-    { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm)
+    { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm, VT5xx?)
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
