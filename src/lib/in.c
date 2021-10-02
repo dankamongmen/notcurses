@@ -160,18 +160,18 @@ prep_special_keys(inputctx* ictx){
     { .tinfo = "kf22",  .key = NCKEY_F22, },
     { .tinfo = "kf23",  .key = NCKEY_F23, },
     { .tinfo = "kf24",  .key = NCKEY_F24, },
-    { .tinfo = "kf25",  .key = NCKEY_F01, .ctrl = 1, },
-    { .tinfo = "kf26",  .key = NCKEY_F02, .ctrl = 1, },
-    { .tinfo = "kf27",  .key = NCKEY_F03, .ctrl = 1, },
-    { .tinfo = "kf28",  .key = NCKEY_F04, .ctrl = 1, },
-    { .tinfo = "kf29",  .key = NCKEY_F05, .ctrl = 1, },
-    { .tinfo = "kf30",  .key = NCKEY_F06, .ctrl = 1, },
-    { .tinfo = "kf31",  .key = NCKEY_F07, .ctrl = 1, },
-    { .tinfo = "kf32",  .key = NCKEY_F08, .ctrl = 1, },
-    { .tinfo = "kf33",  .key = NCKEY_F09, .ctrl = 1, },
-    { .tinfo = "kf34",  .key = NCKEY_F10, .ctrl = 1, },
-    { .tinfo = "kf35",  .key = NCKEY_F11, .ctrl = 1, },
-    { .tinfo = "kf36",  .key = NCKEY_F12, .ctrl = 1, },
+    { .tinfo = "kf25",  .key = NCKEY_F25, },
+    { .tinfo = "kf26",  .key = NCKEY_F26, },
+    { .tinfo = "kf27",  .key = NCKEY_F27, },
+    { .tinfo = "kf28",  .key = NCKEY_F28, },
+    { .tinfo = "kf29",  .key = NCKEY_F29, },
+    { .tinfo = "kf30",  .key = NCKEY_F30, },
+    { .tinfo = "kf31",  .key = NCKEY_F31, },
+    { .tinfo = "kf32",  .key = NCKEY_F32, },
+    { .tinfo = "kf33",  .key = NCKEY_F33, },
+    { .tinfo = "kf34",  .key = NCKEY_F34, },
+    { .tinfo = "kf35",  .key = NCKEY_F35, },
+    { .tinfo = "kf36",  .key = NCKEY_F36, },
     { .tinfo = "kf37",  .key = NCKEY_F37, },
     { .tinfo = "kf38",  .key = NCKEY_F38, },
     { .tinfo = "kf39",  .key = NCKEY_F39, },
@@ -942,29 +942,27 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
                       memset(&i->amata, 0, sizeof(i->amata));
-                      if(prep_special_keys(i) == 0){
-                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                          memset(i->initdata, 0, sizeof(*i->initdata));
-                          i->iread = i->iwrite = i->ivalid = 0;
-                          i->cread = i->cwrite = i->cvalid = 0;
-                          i->initdata_complete = NULL;
-                          i->stats = stats;
-                          i->ti = ti;
-                          i->stdineof = 0;
+                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                        memset(i->initdata, 0, sizeof(*i->initdata));
+                        i->iread = i->iwrite = i->ivalid = 0;
+                        i->cread = i->cwrite = i->cvalid = 0;
+                        i->initdata_complete = NULL;
+                        i->stats = stats;
+                        i->ti = ti;
+                        i->stdineof = 0;
 #ifdef __MINGW64__
-                          i->stdinhandle = ti->inhandle;
+                        i->stdinhandle = ti->inhandle;
 #endif
-                          i->ibufvalid = 0;
-                          i->linesigs = linesigs_enabled;
-                          i->tbufvalid = 0;
-                          i->midescape = 0;
-                          i->lmargin = lmargin;
-                          i->tmargin = tmargin;
-                          i->drain = drain;
-                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                          return i;
-                        }
+                        i->ibufvalid = 0;
+                        i->linesigs = linesigs_enabled;
+                        i->tbufvalid = 0;
+                        i->midescape = 0;
+                        i->lmargin = lmargin;
+                        i->tmargin = tmargin;
+                        i->drain = drain;
+                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                        return i;
                       }
                       endpipes(i->readypipes);
                     }
@@ -1102,7 +1100,9 @@ prep_all_keys(inputctx* ictx){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
-    input_free_esctrie(&ictx->amata);
+    return -1;
+  }
+  if(prep_special_keys(ictx)){
     return -1;
   }
   return 0;
@@ -1583,10 +1583,10 @@ static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
   if(build_cflow_automaton(ictx)){
-    raise(SIGSEGV); // ? FIXME
+    abort(); // FIXME?
   }
   if(prep_all_keys(ictx)){
-    raise(SIGSEGV); // ? FIXME
+    abort(); // FIXME?
   }
   for(;;){
     read_inputs_nblock(ictx);

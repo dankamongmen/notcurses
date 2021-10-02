@@ -141,14 +141,15 @@ esctrie_make_function(esctrie* e, triefunc fxn){
   return 0;
 }
 
-static int
-esctrie_make_string(automaton* a, esctrie* e, triefunc fxn){
+static esctrie*
+esctrie_make_string(automaton* a, esctrie* e){
   if(e->ntype == NODE_STRING){
-    return 0;
+    logerror("repeated string node\n");
+    return NULL;
   }
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
-    return -1;
+    return NULL;
   }
   for(int i = 0 ; i < 0x80 ; ++i){
     if(!isprint(i)){
@@ -156,12 +157,12 @@ esctrie_make_string(automaton* a, esctrie* e, triefunc fxn){
     }
     if(e->trie[i]){
       logerror("can't make %c-followed string\n", i);
-      return -1;
+      return NULL;
     }
   }
   esctrie* newe = esctrie_from_idx(a, create_esctrie_node(a, 0));
   if(newe == NULL){
-    return -1;
+    return NULL;
   }
   for(int i = 0 ; i < 0x80 ; ++i){
     if(!isprint(i)){
@@ -178,20 +179,17 @@ esctrie_make_string(automaton* a, esctrie* e, triefunc fxn){
     e->trie[i] = esctrie_idx(a, newe);
   }
   if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
-    return -1;
+    return NULL;
   }
   e = esctrie_from_idx(a, e->trie[0x1b]);
   if((e->trie['\\'] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
-    return -1;
+    return NULL;
   }
   e = esctrie_from_idx(a, e->trie['\\']);
   e->ni.id = 0;
   e->ntype = NODE_SPECIAL;
-  if(esctrie_make_function(e, fxn)){
-    return -1;
-  }
   logdebug("made string: %p\n", e);
-  return 0;
+  return e;
 }
 
 static esctrie*
@@ -277,11 +275,11 @@ link_numeric(automaton* a, esctrie* e, unsigned follow){
   return efollow;
 }
 
-// add a cflow path to the automaton
-int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
+static esctrie*
+insert_path(automaton* a, const char* seq){
   if(a->escapes == 0){
     if((a->escapes = create_esctrie_node(a, 0)) == 0){
-      return -1;
+      return NULL;
     }
   }
   esctrie* eptr = esctrie_from_idx(a, a->escapes);
@@ -291,7 +289,7 @@ int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
     if(c == '\\'){
       if(inescape){
         logerror("illegal escape: \\\n");
-        return -1;
+        return NULL;
       }
       inescape = true;
     }else if(inescape){
@@ -299,49 +297,50 @@ int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
         // a numeric must be followed by some terminator
         if(!*seq){
           logerror("illegal numeric terminator\n");
-          return -1;
+          return NULL;
         }
         c = *seq++;
         eptr = link_numeric(a, eptr, c);
         if(eptr == NULL){
-          return -1;
+          return NULL;
         }
       }else if(c == 'S'){
-        if(esctrie_make_string(a, eptr, fxn)){
-          return -1;
+        if((eptr = esctrie_make_string(a, eptr)) == NULL){
+          return NULL;
         }
-        return 0;
+        return eptr;
       }else if(c == 'D'){ // drain (kleene closure)
         // a kleene must be followed by some terminator
         if(!*seq){
           logerror("illegal kleene terminator\n");
-          return -1;
+          return NULL;
         }
         c = *seq++;
         eptr = link_kleene(a, eptr, c);
         if(eptr == NULL){
-          return -1;
+          return NULL;
         }
       }else{
         logerror("illegal escape: %u\n", c);
-        return -1;
+        return NULL;
       }
       inescape = false;
-    }else{
+    }else{ // fixed character
+      logtrace("adding fixed %c %u\n", c, c);
       if(eptr->trie[c] == 0){
         if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
-          return -1;
+          return NULL;
         }
       }else if(eptr->trie[c] == eptr->kleene){
         if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
-          return -1;
+          return NULL;
         }
       }else if(esctrie_from_idx(a, eptr->trie[c])->ntype == NODE_NUMERIC){
         // punch a hole through the numeric loop. create a new one, and fill
         // it in with the existing target.
         struct esctrie* newe;
         if((newe = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
-          return -1;
+          return NULL;
         }
         for(int i = 0 ; i < 0x80 ; ++i){
           newe->trie[i] = esctrie_from_idx(a, eptr->trie[c])->trie[i];
@@ -353,6 +352,15 @@ int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
   }
   if(inescape){
     logerror("illegal escape at end of line\n");
+    return NULL;
+  }
+  return eptr;
+}
+
+// add a cflow path to the automaton
+int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
+  esctrie* eptr = insert_path(a, seq);
+  if(eptr == NULL){
     return -1;
   }
   free(eptr->trie);
@@ -367,38 +375,23 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     logerror("not an escape (0x%x)\n", special);
     return -1;
   }
-  if(a->escapes == 0){
-    if((a->escapes = create_esctrie_node(a, 0)) == 0){
-      return -1;
-    }
+  esctrie* eptr = insert_path(a, esc + 1);
+  if(eptr == NULL){
+    return -1;
   }
-  esctrie* cur = esctrie_from_idx(a, a->escapes);
-  ++esc; // don't encode initial escape as a transition
-  do{
-    int valid = *esc;
-    if(valid <= 0 || valid >= 0x80 || valid == NCKEY_ESC){
-      logerror("invalid character %d in escape\n", valid);
-      return -1;
-    }
-    if(cur->trie[valid] == 0){
-      if((cur->trie[valid] = create_esctrie_node(a, 0)) == 0){
-        return -1;
-      }
-    }
-    cur = esctrie_from_idx(a, cur->trie[valid]);
-    ++esc;
-  }while(*esc);
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
-  if(cur->ni.id){ // already had one here!
-    if(cur->ni.id != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", cur->ni.id, special);
+  if(eptr->ni.id){ // already had one here!
+    if(eptr->ni.id != special){
+      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", eptr->ni.id, special);
     }
   }else{
-    cur->ni.id = special;
-    cur->ni.shift = shift;
-    cur->ni.ctrl = ctrl;
-    cur->ni.alt = alt;
+    eptr->ni.id = special;
+    eptr->ni.shift = shift;
+    eptr->ni.ctrl = ctrl;
+    eptr->ni.alt = alt;
+    eptr->ni.y = 0;
+    eptr->ni.x = 0;
   }
   return 0;
 }
