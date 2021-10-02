@@ -510,9 +510,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
    reset them, and write the new sample anywhere. otherwise, write it to the \
    proper slot based on the current newest slot. */ \
 int window_slide_##T(nc##X##plot* ncp, int64_t x){ \
-  if(x < ncp->plot.slotx - (ncp->plot.slotcount - 1)){ /* x is behind window, won't be counted */ \
-    return -1; \
-  }else if(x <= ncp->plot.slotx){ /* x is within window, do nothing */ \
+  if(x <= ncp->plot.slotx){ /* x is within window, do nothing */ \
     return 0; \
   } /* x is newest; we might be keeping some, might not */ \
   int64_t xdiff = x - ncp->plot.slotx; /* the raw amount we're advancing */ \
@@ -548,6 +546,9 @@ static void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset); \
    the window are lost. The first call will place the initial window. The plot \
    will be redrawn, but notcurses_render() is not called. */ \
 int add_sample_##T(nc##X##plot* ncpp, int64_t x, T y){ \
+  if(x < ncpp->plot.slotx - (ncpp->plot.slotcount - 1)){ /* x is behind window, won't be counted */ \
+    return -1; \
+  } \
   if(y == 0 && x <= ncpp->plot.slotx){ \
     return 0; /* no need to redraw plot; nothing changed */ \
   } \
