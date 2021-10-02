@@ -169,8 +169,7 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t stdc = 0;
-  ncchannels_set_fg_alpha(&stdc, NCALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&stdc, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_rgb(&stdc, 0);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   // returns non-zero if the selected blitter isn't available
   pthread_t tid1, tid2;
