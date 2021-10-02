@@ -265,11 +265,16 @@ link_numeric(automaton* a, esctrie* e, unsigned follow){
     if((efollow = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
       return NULL;
     }
+    logdebug("EFOLLOW: %u\n", esctrie_idx(a, efollow));
   }
   for(int i = '0' ; i <= '9' ; ++i){
     if(e->trie[i] == 0){
       e->trie[i] = esctrie_idx(a, targ);
+    }else{
+      logdebug("SKIPPING[%d] %u\n", i, e->trie[i]);
     }
+  }
+  for(int i = '0' ; i <= '9' ; ++i){
     fill_in_numerics(a, esctrie_from_idx(a, e->trie[i]), targ, follow, efollow);
   }
   return efollow;
@@ -305,6 +310,7 @@ insert_path(automaton* a, const char* seq){
           return NULL;
         }
       }else if(c == 'S'){
+        // strings always end with ST ("\e\\")
         if((eptr = esctrie_make_string(a, eptr)) == NULL){
           return NULL;
         }
@@ -326,7 +332,6 @@ insert_path(automaton* a, const char* seq){
       }
       inescape = false;
     }else{ // fixed character
-      logtrace("adding fixed %c %u\n", c, c);
       if(eptr->trie[c] == 0){
         if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
           return NULL;
@@ -348,6 +353,7 @@ insert_path(automaton* a, const char* seq){
         eptr->trie[c] = esctrie_idx(a, newe);
       }
       eptr = esctrie_from_idx(a, eptr->trie[c]);
+      logtrace("added fixed %c %u as %u\n", c, c, esctrie_idx(a, eptr));
     }
   }
   if(inescape){
@@ -392,6 +398,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     eptr->ni.alt = alt;
     eptr->ni.y = 0;
     eptr->ni.x = 0;
+    logdebug("added 0x%08x to %u\n", special, esctrie_idx(a, eptr));
   }
   return 0;
 }

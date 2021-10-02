@@ -1582,10 +1582,10 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  if(build_cflow_automaton(ictx)){
+  if(prep_all_keys(ictx)){
     abort(); // FIXME?
   }
-  if(prep_all_keys(ictx)){
+  if(build_cflow_automaton(ictx)){
     abort(); // FIXME?
   }
   for(;;){
