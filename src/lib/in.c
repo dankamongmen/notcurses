@@ -842,17 +842,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[?2026;\\N$y", decrpm_asu_cb, },
-    { "[>0;\\N;\\Nc", da2_cb, }, // "VT100"
-    { "[>1;\\N;\\Nc", da2_cb, }, // "VT220"
-    { "[>2;\\N;\\Nc", da2_cb, }, // "VT240" or "VT241"
-    { "[>18;\\N;\\Nc", da2_cb, }, // "VT330"
-    { "[>19;\\N;\\Nc", da2_cb, }, // "VT340"
-    { "[>24;\\N;\\Nc", da2_cb, }, // "VT320"
-    { "[>32;\\N;\\Nc", da2_cb, }, // "VT382"
-    { "[>41;\\N;\\Nc", da2_cb, }, // "VT420"
-    { "[>61;\\N;\\Nc", da2_cb, }, // "VT510"
-    { "[>64;\\N;\\Nc", da2_cb, }, // "VT520"
-    { "[>65;\\N;\\Nc", da2_cb, }, // "VT525"
+    { "[>\\N;\\N;\\Nc", da2_cb, }, // "VT100"
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
