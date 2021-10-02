@@ -226,6 +226,7 @@ get_phi_node(automaton* a, esctrie* e){
   for(int i = '0' ; i <= '9' ; ++i){
     if( (targ = esctrie_from_idx(a, e->trie[i])) ){
       if(targ->ntype == NODE_NUMERIC){
+        logtrace("found existing phi node %u[%c]->%u\n", esctrie_idx(a, e), i, esctrie_idx(a, targ));
         break;
       }else{
         ++nonphis;
@@ -248,6 +249,7 @@ get_phi_node(automaton* a, esctrie* e){
       targ->trie[i] = esctrie_idx(a, targ);
     }
   }
+  assert(NODE_NUMERIC == targ->ntype);
   return targ;
 }
 
@@ -264,14 +266,76 @@ get_eta_node(automaton* a, esctrie* phi, unsigned successor){
   return eta;
 }
 
+// |e| is a known-standard node reached by our prefix; go ahead and prep both
+// phi and eta links from it.
+static inline void
+add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
+                      unsigned follow, unsigned eta){
+  for(int i = '0' ; i <= '9' ; ++i){
+    esctrie* chain = esctrie_from_idx(a, e->trie[i]);
+    if(chain == NULL){
+      e->trie[i] = phi;
+    }else if(chain->ntype == NODE_SPECIAL){
+//logdebug("propagating along %u[%c]\n", e->trie[i], i);
+      add_phi_and_eta_chain(a, esctrie_from_idx(a, e->trie[i]), phi, follow, eta);
+    }
+  }
+  if(e->trie[follow] == 0){
+    e->trie[follow] = eta;
+  }
+}
+
 // phase 3 of the numeric algorithm: walk the automaton, finding all nodes
 // which are prefixes of phi (all nodes matching the prefix, and all numeric
 // non-phi chains from those nodes) and linking them to phi, and finding all
 // nodes which are prefixes of eta (all numeric non-phi chains from the
-// previous set) and linking them to eta.
-static void
+// previous set) and linking them to eta. |e| is the path thus far.
+static inline void
+add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
+                        int pfxlen, esctrie* phi, unsigned follow,
+                        esctrie* eta){
+  //logtrace("working with %u %d prefix [%*.*s]\n", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
+  // if pfxlen == 0, we found a match for our fixed prefix. start adding phi
+  // links whereever we can. where we find chained numerics, add an eta link.
+  if(pfxlen == 0){
+    add_phi_and_eta_chain(a, e, esctrie_idx(a, phi), follow, esctrie_idx(a, eta));
+    return;
+  }
+  --pfxlen;
+  unsigned char p = *prefix++;
+  // when we hit a \N in the prefix, we must recurse along all digit links
+  if(p == '\\'){
+    if(*prefix != 'N'){
+      logerror("illegal wildcard in prefix %c\n", *prefix);
+      return;
+    }
+    ++prefix;
+    --pfxlen;
+    for(int i = '0' ; i <= '9' ; ++i){
+      if(e->trie[i] == 0){
+        e->trie[i] = esctrie_idx(a, phi);
+      }else{
+        add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
+                                prefix, pfxlen, phi, follow, eta);
+      }
+    }
+  }else{
+    if(e->trie[p]){
+      add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[p]),
+                              prefix, pfxlen, phi, follow, eta);
+    }
+  }
+}
+
+// |prefix| does *not* lead with an escape, and does not include the numeric.
+static inline void
 add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
                 esctrie* phi, unsigned follow, esctrie* eta){
+  esctrie* esc = esctrie_from_idx(a, a->escapes);
+  if(esc == NULL){
+    return;
+  }
+  add_phi_and_eta_recurse(a, esc, prefix, pfxlen, phi, follow, eta);
 }
 
 // accept any digit and transition to a numeric node. |e| is the culmination of
@@ -295,12 +359,12 @@ link_numeric(automaton* a, const char* prefix, int pfxlen,
   if(phi == NULL){
     return NULL;
   }
-  logtrace("phi node: %u\n", esctrie_idx(a, phi));
+  logtrace("phi node: %u->%u\n", esctrie_idx(a, e), esctrie_idx(a, phi));
   esctrie* eta = get_eta_node(a, phi, follow);
   if(eta == NULL){
     return NULL;
   }
-  logtrace("eta node: %u\n", esctrie_idx(a, eta));
+  logtrace("eta node: %u philink[%c]: %u\n", esctrie_idx(a, eta), follow, phi->trie[follow]);
   // eta is now bound to phi, and phi links something at all digits, but no
   // other links are guaranteed. walk the automaton, finding all possible
   // prefixes of φ (and linking to φ) and all possible prefixes of ή (and
