@@ -942,31 +942,33 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
                       memset(&i->amata, 0, sizeof(i->amata));
-                      if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                        i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                        memset(i->initdata, 0, sizeof(*i->initdata));
-                        i->iread = i->iwrite = i->ivalid = 0;
-                        i->cread = i->cwrite = i->cvalid = 0;
-                        i->initdata_complete = NULL;
-                        i->stats = stats;
-                        i->ti = ti;
-                        i->stdineof = 0;
+                      if(prep_special_keys(i) == 0){
+                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                          memset(i->initdata, 0, sizeof(*i->initdata));
+                          i->iread = i->iwrite = i->ivalid = 0;
+                          i->cread = i->cwrite = i->cvalid = 0;
+                          i->initdata_complete = NULL;
+                          i->stats = stats;
+                          i->ti = ti;
+                          i->stdineof = 0;
 #ifdef __MINGW64__
-                        i->stdinhandle = ti->inhandle;
+                          i->stdinhandle = ti->inhandle;
 #endif
-                        i->ibufvalid = 0;
-                        i->linesigs = linesigs_enabled;
-                        i->tbufvalid = 0;
-                        i->midescape = 0;
-                        i->lmargin = lmargin;
-                        i->tmargin = tmargin;
-                        i->drain = drain;
-                        logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                        return i;
+                          i->ibufvalid = 0;
+                          i->linesigs = linesigs_enabled;
+                          i->tbufvalid = 0;
+                          i->midescape = 0;
+                          i->lmargin = lmargin;
+                          i->tmargin = tmargin;
+                          i->drain = drain;
+                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                          return i;
+                        }
                       }
-                      endpipes(i->readypipes);
+                      input_free_esctrie(&i->amata);
                     }
-                    input_free_esctrie(&i->amata);
+                    endpipes(i->readypipes);
                   }
                   free(i->initdata);
                 }
@@ -1100,9 +1102,6 @@ prep_all_keys(inputctx* ictx){
     return -1;
   }
   if(prep_kitty_special_keys(ictx)){
-    return -1;
-  }
-  if(prep_special_keys(ictx)){
     return -1;
   }
   return 0;
