@@ -547,7 +547,10 @@ static void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset); \
    x window, the x window is advanced to include x, and values passing beyond \
    the window are lost. The first call will place the initial window. The plot \
    will be redrawn, but notcurses_render() is not called. */ \
-int add_sample_##T(nc##X##plot* ncpp, uint64_t x, T y){ \
+int add_sample_##T(nc##X##plot* ncpp, int64_t x, T y){ \
+  if(y == 0 && x <= ncpp->plot.slotx){ \
+    return 0; /* no need to redraw plot; nothing changed */ \
+  } \
   if(window_slide_##T(ncpp, x)){ \
     return -1; \
   } \
