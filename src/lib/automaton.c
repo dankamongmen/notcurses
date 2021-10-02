@@ -203,19 +203,6 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
   return esctrie_from_idx(a, e->trie[follow]);
 }
 
-/*static void
-fill_in_numerics(automaton* a, esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
-  // fill in all NULL numeric links with the new target
-  for(int i = '0' ; i <= '9' ; ++i){
-    if(e->trie[i] == 0){
-      e->trie[i] = esctrie_idx(a, targ);
-    }else if(e->trie[i] != esctrie_idx(a, e)){
-      fill_in_numerics(a, esctrie_from_idx(a, e->trie[i]), targ, follow, efollow);
-    }
-  }
-  e->trie[follow] = esctrie_idx(a, efollow);
-}*/
-
 // phase 1 of the numeric algorithm; find a φ node on e. not sure what
 // to do if we have non-φ links at every digit...punt for now FIXME.
 static inline esctrie*
