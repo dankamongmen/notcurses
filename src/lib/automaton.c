@@ -278,7 +278,7 @@ link_numeric(automaton* a, esctrie* e, unsigned follow){
 }
 
 // add a cflow path to the automaton
-int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
+int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
   if(a->escapes == 0){
     if((a->escapes = create_esctrie_node(a, 0)) == 0){
       return -1;
@@ -287,7 +287,7 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
   esctrie* eptr = esctrie_from_idx(a, a->escapes);
   bool inescape = false;
   unsigned char c;
-  while( (c = *csi++) ){
+  while( (c = *seq++) ){
     if(c == '\\'){
       if(inescape){
         logerror("illegal escape: \\\n");
@@ -297,11 +297,11 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
     }else if(inescape){
       if(c == 'N'){
         // a numeric must be followed by some terminator
-        if(!*csi){
+        if(!*seq){
           logerror("illegal numeric terminator\n");
           return -1;
         }
-        c = *csi++;
+        c = *seq++;
         eptr = link_numeric(a, eptr, c);
         if(eptr == NULL){
           return -1;
@@ -313,11 +313,11 @@ int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn){
         return 0;
       }else if(c == 'D'){ // drain (kleene closure)
         // a kleene must be followed by some terminator
-        if(!*csi){
+        if(!*seq){
           logerror("illegal kleene terminator\n");
           return -1;
         }
-        c = *csi++;
+        c = *seq++;
         eptr = link_kleene(a, eptr, c);
         if(eptr == NULL){
           return -1;
