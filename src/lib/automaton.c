@@ -89,28 +89,6 @@ void input_free_esctrie(automaton* a){
 }
 
 static int
-esctrie_make_numeric(automaton* a, esctrie* e){
-  if(e->ntype == NODE_NUMERIC){
-    return 0;
-  }
-  if(e->ntype != NODE_SPECIAL){
-    logerror("can't make node type %d numeric\n", e->ntype);
-    return -1;
-  }
-  for(int i = '0' ; i < '9' ; ++i){
-    if(e->trie[i]){
-      logerror("can't make %c-followed numeric\n", i);
-      return -1;
-    }
-  }
-  e->ntype = NODE_NUMERIC;
-  for(int i = '0' ; i < '9' ; ++i){
-    e->trie[i] = esctrie_idx(a, e);
-  }
-  return 0;
-}
-
-static int
 esctrie_make_kleene(automaton* a, esctrie* e, unsigned follow, esctrie* term){
   if(e->ntype != NODE_SPECIAL){
     logerror("can't make node type %d string\n", e->ntype);
@@ -225,7 +203,7 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
   return esctrie_from_idx(a, e->trie[follow]);
 }
 
-static void
+/*static void
 fill_in_numerics(automaton* a, esctrie* e, esctrie* targ, unsigned follow, esctrie* efollow){
   // fill in all NULL numeric links with the new target
   for(int i = '0' ; i <= '9' ; ++i){
@@ -236,48 +214,99 @@ fill_in_numerics(automaton* a, esctrie* e, esctrie* targ, unsigned follow, esctr
     }
   }
   e->trie[follow] = esctrie_idx(a, efollow);
-}
+}*/
 
-// accept any digit and transition to a numeric node.
-static esctrie*
-link_numeric(automaton* a, esctrie* e, unsigned follow){
-  esctrie* targ = NULL;
+// phase 1 of the numeric algorithm; find a φ node on e. not sure what
+// to do if we have non-φ links at every digit...punt for now FIXME.
+static inline esctrie*
+get_phi_node(automaton* a, esctrie* e){
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
+  int nonphis = 0;
+  esctrie* targ;
   for(int i = '0' ; i <= '9' ; ++i){
-    targ = esctrie_from_idx(a, e->trie[i]);
-    if(targ && targ->ntype == NODE_NUMERIC){
-      break;
+    if( (targ = esctrie_from_idx(a, e->trie[i])) ){
+      if(targ->ntype == NODE_NUMERIC){
+        break;
+      }else{
+        ++nonphis;
+        targ = NULL;
+      }
     }
-    targ = NULL;
   }
-  // we either have a numeric target, or will make one now
+  // we either have a numeric target, or will make one now. if we create a new
+  // one, be sure to mark it numeric, and add all digit links back to itself.
   if(targ == NULL){
+    if(nonphis == 10){
+      logerror("ten non-phi links from %u\n", esctrie_idx(a, e));
+      return NULL;
+    }
     if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
       return NULL;
     }
-    if(esctrie_make_numeric(a, targ)){
+    targ->ntype = NODE_NUMERIC;
+    for(int i = '0' ; i < '9' ; ++i){
+      targ->trie[i] = esctrie_idx(a, targ);
+    }
+  }
+  return targ;
+}
+
+// phase 2 of the numeric algorithm; find a ή node for |successor| on |phi|.
+static inline esctrie*
+get_eta_node(automaton* a, esctrie* phi, unsigned successor){
+  esctrie* eta = esctrie_from_idx(a, phi->trie[successor]);
+  if(eta == NULL){
+    if((eta = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
       return NULL;
     }
+    phi->trie[successor] = esctrie_idx(a, eta);
   }
-  // targ is the numeric node we're either creating or coopting
-  esctrie* efollow = esctrie_from_idx(a, targ->trie[follow]);
-  if(efollow == NULL){
-    if((efollow = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
-      return NULL;
-    }
-    logdebug("EFOLLOW: %u\n", esctrie_idx(a, efollow));
+  return eta;
+}
+
+// phase 3 of the numeric algorithm: walk the automaton, finding all nodes
+// which are prefixes of phi (all nodes matching the prefix, and all numeric
+// non-phi chains from those nodes) and linking them to phi, and finding all
+// nodes which are prefixes of eta (all numeric non-phi chains from the
+// previous set) and linking them to eta.
+static void
+add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
+                esctrie* phi, unsigned follow, esctrie* eta){
+}
+
+// accept any digit and transition to a numeric node. |e| is the culmination of
+// the prefix before the numeric. |follow| is the successor of the numeric.
+// here's our approach:
+//  - find a link to a numeric from e. there can only be one node (thought it
+//     might have many links), so we can use the first one we find.
+//  - if there is no such numeric node linked from e, create one.
+//     (FIXME if all ten digits are occupied, what would we do?)
+//  - chosen numeric node is φ.
+//  - if an appropriate follow node exists linked from φ, choose it as ή.
+//  - otherwise, create a new ή and link it from φ.
+//  - walk from the top, finding all possible prefixes of φ.
+//  - at each, link all unused digits to φ.
+//  - from each that is also a possible prefix of ή, link ή.
+static esctrie*
+link_numeric(automaton* a, const char* prefix, int pfxlen,
+             esctrie* e, unsigned char follow){
+  logdebug("adding numeric with follow %c following %*.*s\n", follow, pfxlen, pfxlen, prefix);
+  esctrie* phi = get_phi_node(a, e);
+  if(phi == NULL){
+    return NULL;
   }
-  for(int i = '0' ; i <= '9' ; ++i){
-    if(e->trie[i] == 0){
-      e->trie[i] = esctrie_idx(a, targ);
-    }else{
-      logdebug("SKIPPING[%d] %u\n", i, e->trie[i]);
-    }
+  logtrace("phi node: %u\n", esctrie_idx(a, phi));
+  esctrie* eta = get_eta_node(a, phi, follow);
+  if(eta == NULL){
+    return NULL;
   }
-  for(int i = '0' ; i <= '9' ; ++i){
-    fill_in_numerics(a, esctrie_from_idx(a, e->trie[i]), targ, follow, efollow);
-  }
-  return efollow;
+  logtrace("eta node: %u\n", esctrie_idx(a, eta));
+  // eta is now bound to phi, and phi links something at all digits, but no
+  // other links are guaranteed. walk the automaton, finding all possible
+  // prefixes of φ (and linking to φ) and all possible prefixes of ή (and
+  // linking them to ή).
+  add_phi_and_eta(a, prefix, pfxlen, phi, follow, eta);
+  return eta;
 }
 
 static esctrie*
@@ -289,6 +318,7 @@ insert_path(automaton* a, const char* seq){
   }
   esctrie* eptr = esctrie_from_idx(a, a->escapes);
   bool inescape = false;
+  const char* seqstart = seq;
   unsigned char c;
   while( (c = *seq++) ){
     if(c == '\\'){
@@ -305,7 +335,7 @@ insert_path(automaton* a, const char* seq){
           return NULL;
         }
         c = *seq++;
-        eptr = link_numeric(a, eptr, c);
+        eptr = link_numeric(a, seqstart, seq - 3 - seqstart, eptr, c);
         if(eptr == NULL){
           return NULL;
         }
