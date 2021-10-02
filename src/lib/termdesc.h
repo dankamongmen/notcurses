@@ -304,7 +304,8 @@ term_emit(const char* seq, FILE* out, bool flush){
     return -1;
   }
   if(ncfputs(seq, out) == EOF){
-    logerror("Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
+    logerror("Error emitting %lub escape (%s)\n",
+             (unsigned long)strlen(seq), strerror(errno));
     return -1;
   }
   return flush ? ncflush(out) : 0;
