@@ -232,7 +232,7 @@ get_phi_node(automaton* a, esctrie* e){
       return NULL;
     }
     targ->ntype = NODE_NUMERIC;
-    for(int i = '0' ; i < '9' ; ++i){
+    for(int i = '0' ; i <= '9' ; ++i){
       targ->trie[i] = esctrie_idx(a, targ);
     }
   }
@@ -281,7 +281,7 @@ static inline void
 add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
                         int pfxlen, esctrie* phi, unsigned follow,
                         esctrie* eta){
-  //logtrace("working with %u %d prefix [%*.*s]\n", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
+//logtrace("working with %u %d prefix [%*.*s]\n", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
   // if pfxlen == 0, we found a match for our fixed prefix. start adding phi
   // links whereever we can. where we find chained numerics, add an eta link.
   if(pfxlen == 0){
@@ -517,7 +517,8 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
         return 1;
       }
     }
-    loginfo("unexpected transition %u\n", candidate);
+    loginfo("unexpected transition on %u[%u]\n",
+            esctrie_idx(a, e), candidate);
     return -1;
   }
   e = esctrie_from_idx(a, a->state);
