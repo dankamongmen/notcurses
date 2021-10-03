@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.4 (not yet released)
+* 2.4.4 (2021-10-03)
   * Notcurses no longer uses libreadline, as it was realized to be incompatible
     with the new input system. `ncdirect_readline()` has been rewritten to
     work without libreadline, which means it's now always available (readline
