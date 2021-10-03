@@ -156,18 +156,19 @@ esctrie_make_string(automaton* a, esctrie* e){
     }
     e->trie[i] = esctrie_idx(a, newe);
   }
+  if((e->trie[0x07] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
+    return NULL;
+  }
+  esctrie* term = esctrie_from_idx(a, e->trie[0x07]);
   if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
     return NULL;
   }
   e = esctrie_from_idx(a, e->trie[0x1b]);
-  if((e->trie['\\'] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
-    return NULL;
-  }
-  e = esctrie_from_idx(a, e->trie['\\']);
-  e->ni.id = 0;
-  e->ntype = NODE_SPECIAL;
-  logdebug("made string: %p\n", e);
-  return e;
+  e->trie['\\'] = esctrie_idx(a, term);
+  term->ni.id = 0;
+  term->ntype = NODE_SPECIAL;
+  logdebug("made string: %u\n", esctrie_idx(a, term));
+  return term;
 }
 
 static esctrie*
@@ -502,20 +503,22 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     return 0;
   }
   if(e->ntype == NODE_STRING){
-    if(candidate == 0x1b){
+    if(candidate == 0x1b || candidate == 0x07){
       a->state = e->trie[candidate];
       a->instring = 0;
+    }
+    e = esctrie_from_idx(a, a->state);
+    if(e->ntype == NODE_FUNCTION){ // for the 0x07s of the world
+      return e->fxn(ictx);
     }
     return 0;
   }
   if((a->state = e->trie[candidate]) == 0){
-    if(isprint(candidate)){
-      if(esctrie_idx(a, e) == a->escapes){
-        memset(ni, 0, sizeof(*ni));
-        ni->id = candidate;
-        ni->alt = true;
-        return 1;
-      }
+    if(esctrie_idx(a, e) == a->escapes){
+      memset(ni, 0, sizeof(*ni));
+      ni->id = candidate;
+      ni->alt = true;
+      return 1;
     }
     loginfo("unexpected transition on %u[%u]\n",
             esctrie_idx(a, e), candidate);
