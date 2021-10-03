@@ -843,12 +843,12 @@ build_cflow_automaton(inputctx* ictx){
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?2026;\\N$y", decrpm_asu_cb, },
     { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
-    { "[?2026;\\N$y", decrpm_asu_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, }, // "VT100"
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
