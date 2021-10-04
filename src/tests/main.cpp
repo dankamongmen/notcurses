@@ -134,14 +134,14 @@ auto lang_and_term() -> void {
     std::cerr << "TERM wasn't defined, exiting with success" << std::endl;
     exit(EXIT_SUCCESS);
   }
-  std::cout << "Running with TERM=" << term << " (" << dimx << 'x'
-            << dimy << ")" << std::endl;
+  std::cout << "Running with TERM=" << term << std::endl;
   auto nc = testing_notcurses();
   if(!nc){
     exit(EXIT_FAILURE);
   }
   int dimy, dimx;
   notcurses_stddim_yx(nc, &dimy, &dimx);
+  std::cout << "Detected geometry: " << dimx << 'x' << dimy << std::endl;
   notcurses_stop(nc);
   if(dimx < 50 || dimy < 24){ // minimum assumed geometry
     std::cerr << "Terminal was too small for tests (minimum 50x24)" << std::endl;
