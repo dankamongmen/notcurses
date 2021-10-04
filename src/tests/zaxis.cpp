@@ -225,14 +225,13 @@ TEST_CASE("ZAxis") {
     CHECK(ncplane_below(e) == n_);
     CHECK(ncpile_bottom(n_) == n_);
     ncplane_move_family_bottom(c);
-    // ABDsCE, E is bound to C (FIXME have ABDEsC)
     CHECK(ncpile_top(n_) == a);
     CHECK(ncplane_below(a) == b);
     CHECK(ncplane_below(b) == d);
-    CHECK(ncplane_below(d) == e);
-    CHECK(ncplane_below(e) == n_);
+    CHECK(ncplane_below(d) == n_);
     CHECK(ncplane_below(n_) == c);
-    CHECK(ncpile_bottom(n_) == c);
+    CHECK(ncplane_below(c) == e);
+    CHECK(ncpile_bottom(n_) == e);
   }
 
   CHECK(0 == notcurses_stop(nc_));

@@ -1455,6 +1455,7 @@ void ncplane_move_bottom(ncplane* n){
 // if above is NULL, we're moving to the bottom
 void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
   ncplane* above = ncplane_above(n);
+  ncplane* below = ncplane_below(n);
   ncplane_move_above(n, bpoint);
   // traverse the planes above n, until we hit NULL. do the planes above n
   // first, so that we know the topmost element of our new ensplicification.
@@ -1472,7 +1473,6 @@ void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
   // careful this time not to cross into any we moved below n.
   const ncplane* topmost = targ;
   targ = n;
-  ncplane* below = ncplane_below(n);
   while(below && below != topmost){
     ncplane* tmp = ncplane_below(below);
     if(ncplane_descendant_p(below, n)){
@@ -1486,6 +1486,7 @@ void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
 // if below is NULL, we're moving to the top
 void ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
   ncplane* below = ncplane_below(n);
+  ncplane* above = ncplane_above(n);
   ncplane_move_below(n, bpoint);
   // traverse the planes below n, until we hit NULL. do the planes below n
   // first, so that we know the bottommost element of our new ensplicification.
@@ -1503,7 +1504,6 @@ void ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
   // careful this time not to cross into any we moved below n.
   const ncplane* bottommost = targ;
   targ = n;
-  ncplane* above = ncplane_above(n);
   while(above && above != bottommost){
     ncplane* tmp = ncplane_above(above);
     if(ncplane_descendant_p(above, n)){
