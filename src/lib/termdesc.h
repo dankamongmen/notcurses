@@ -112,7 +112,8 @@ typedef struct tinfo {
   // kitty interprets an RGB background that matches the default background
   // color *as* the default background, meaning it'll be translucent if
   // background_opaque is in use. detect this, and avoid the default if so.
-  // bg_collides_default is either 0x0000000 or (if in use) 0x1RRGGBB.
+  // bg_collides_default is either:
+  // 0xfexxxxxxx (unknown), 0x00RRGGBB (no collide), or 0x01RRGGBB (collides).
   uint32_t bg_collides_default;
 
   // bitmap support. if we support bitmaps, pixel_implementation will be a

@@ -721,6 +721,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   }
   *cursor_x = *cursor_y = -1;
   memset(ti, 0, sizeof(*ti));
+  ti->bg_collides_default = 0xfe000000;
   ti->qterm = TERMINAL_UNKNOWN;
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
@@ -951,7 +952,11 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       ti->cellpixy = ti->pixy / ti->default_rows;
       ti->cellpixx = ti->pixx / ti->default_cols;
     }
-    ti->bg_collides_default = iresp->bg;
+    if(iresp->got_bg){
+      // reset the 0xfe000000 we loaded during initialization. if we're
+      // kitty, we'll add the 0x01000000 in during heuristics.
+      ti->bg_collides_default = iresp->bg;
+    }
     // kitty trumps sixel, when both are available
     if((kitty_graphics = iresp->kitty_graphics) == 0){
       ti->color_registers = iresp->color_registers;
@@ -959,9 +964,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       ti->sixel_maxx = iresp->sixelx;
     }
     free(iresp);
-  }
-  if(nocbreak){
-    if(ti->ttyfd >= 0){
+    if(nocbreak){
       // FIXME do this in input later, upon signaling completion?
       if(tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved)){
         goto err;

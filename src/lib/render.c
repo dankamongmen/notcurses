@@ -146,6 +146,7 @@ static uint32_t
 highcontrast(const tinfo* ti, uint32_t bchannel){
   unsigned r, g, b;
   if(ncchannel_default_p(bchannel)){
+    // FIXME what if we couldn't identify the background color?
     r = ncchannel_r(ti->bg_collides_default);
     g = ncchannel_g(ti->bg_collides_default);
     b = ncchannel_b(ti->bg_collides_default);
@@ -691,7 +692,7 @@ term_bg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b){
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(ti->caps.rgb){
-    if(ti->bg_collides_default){
+    if((ti->bg_collides_default & 0xff000000) == 0x01000000){
       if((r == (ti->bg_collides_default & 0xff0000lu)) &&
          (g == (ti->bg_collides_default & 0xff00lu)) &&
          (b == (ti->bg_collides_default & 0xfflu))){
