@@ -1121,11 +1121,11 @@ int ncplane_move_above(struct ncplane* RESTRICT n,
 int ncplane_move_below(struct ncplane* RESTRICT n,
                        struct ncplane* RESTRICT below);
 
-void ncplane_move_family_above(struct ncplane* RESTRICT n,
-                               struct ncplane* RESTRICT above);
+int ncplane_move_family_above(struct ncplane* RESTRICT n,
+                              struct ncplane* RESTRICT above);
 
-void ncplane_move_family_below(struct ncplane* RESTRICT n,
-                               struct ncplane* RESTRICT below);
+int ncplane_move_family_below(struct ncplane* RESTRICT n,
+                              struct ncplane* RESTRICT below);
 
 // Return the ncplane below this one, or NULL if this is at the stack's bottom.
 struct ncplane* ncplane_below(struct ncplane* n);

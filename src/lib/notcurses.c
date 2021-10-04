@@ -1453,10 +1453,12 @@ void ncplane_move_bottom(ncplane* n){
 }
 
 // if above is NULL, we're moving to the bottom
-void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
+int ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
   ncplane* above = ncplane_above(n);
   ncplane* below = ncplane_below(n);
-  ncplane_move_above(n, bpoint);
+  if(ncplane_move_above(n, bpoint)){
+    return -1;
+  }
   // traverse the planes above n, until we hit NULL. do the planes above n
   // first, so that we know the topmost element of our new ensplicification.
   // at this point, n is the bottommost plane, and we're inserting above it.
@@ -1481,13 +1483,16 @@ void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
     }
     below = tmp;
   }
+  return 0;
 }
 
 // if below is NULL, we're moving to the top
-void ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
+int ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
   ncplane* below = ncplane_below(n);
   ncplane* above = ncplane_above(n);
-  ncplane_move_below(n, bpoint);
+  if(ncplane_move_below(n, bpoint)){
+    return -1;
+  }
   // traverse the planes below n, until we hit NULL. do the planes below n
   // first, so that we know the bottommost element of our new ensplicification.
   // we're inserting below n...
@@ -1512,6 +1517,7 @@ void ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
     }
     above = tmp;
   }
+  return 0;
 }
 
 void ncplane_cursor_yx(const ncplane* n, int* y, int* x){

@@ -1658,10 +1658,10 @@ API void ncplane_move_bottom(struct ncplane* n)
 // reinserted planes. For a plane E bound to C, with z-ordering A B C D E,
 // moving the C family to the top results in C E A B D, while moving it to
 // the bottom results in A B D C E.
-API void ncplane_move_family_above(struct ncplane* n, struct ncplane* targ)
+API int ncplane_move_family_above(struct ncplane* n, struct ncplane* targ)
   __attribute__ ((nonnull (1)));
 
-API void ncplane_move_family_below(struct ncplane* n, struct ncplane* targ)
+API int ncplane_move_family_below(struct ncplane* n, struct ncplane* targ)
   __attribute__ ((nonnull (1)));
 
 __attribute__ ((nonnull (1)))

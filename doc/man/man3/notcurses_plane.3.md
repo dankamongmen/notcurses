@@ -95,9 +95,9 @@ typedef struct ncplane_options {
 
 **int ncplane_base(struct ncplane* ***ncp***, nccell* ***c***);**
 
-**int ncplane_move_top(struct ncplane* ***n***);**
+**void ncplane_move_top(struct ncplane* ***n***);**
 
-**int ncplane_move_bottom(struct ncplane* ***n***);**
+**void ncplane_move_bottom(struct ncplane* ***n***);**
 
 **void ncplane_move_family_top(struct ncplane* ***n***);**
 
@@ -107,9 +107,9 @@ typedef struct ncplane_options {
 
 **int ncplane_move_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
 
-**void ncplane_move_family_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
+**int ncplane_move_family_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
 
-**void ncplane_move_family_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
+**int ncplane_move_family_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
 
 **struct ncplane* ncplane_below(struct ncplane* ***n***);**
 
