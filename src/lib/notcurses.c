@@ -1445,13 +1445,63 @@ void ncplane_move_bottom(ncplane* n){
 }
 
 void ncplane_move_family_top(ncplane* n){
+  ncplane* below = ncplane_below(n);
   ncplane_move_top(n);
-  // FIXME walk above and below, moving descendants
+  // traverse the planes below n, until we hit NULL. do the planes below n
+  // first, so that we know the bottommost element of our new ensplicification.
+  // at this point, n is the topmost plane, and we're inserting below it.
+  ncplane* targ = n;
+  while(below){
+    ncplane* tmp = ncplane_below(below);
+    if(ncplane_descendant_p(below, n)){
+      ncplane_move_below(below, targ);
+      targ = below;
+    }
+    below = tmp;
+  }
+  // n remains the topmost plane, and we're inserting above it. we have to be
+  // careful this time not to cross into any we moved below n.
+  const ncplane* bottommost = targ;
+  targ = n;
+  ncplane* above = ncplane_above(n);
+  while(above && above != bottommost){
+    ncplane* tmp = ncplane_above(above);
+    if(ncplane_descendant_p(above, n)){
+      ncplane_move_above(above, targ);
+      targ = above;
+    }
+    above = tmp;
+  }
 }
 
 void ncplane_move_family_bottom(ncplane* n){
+  ncplane* above = ncplane_above(n);
   ncplane_move_bottom(n);
-  // FIXME walk above and below, moving descendants
+  // traverse the planes above n, until we hit NULL. do the planes above n
+  // first, so that we know the topmost element of our new ensplicification.
+  // at this point, n is the bottommost plane, and we're inserting above it.
+  ncplane* targ = n;
+  while(above){
+    ncplane* tmp = ncplane_above(above);
+    if(ncplane_descendant_p(above, n)){
+      ncplane_move_above(above, targ);
+      targ = above;
+    }
+    above = tmp;
+  }
+  // n remains the topmost plane, and we're inserting above it. we have to be
+  // careful this time not to cross into any we moved below n.
+  const ncplane* topmost = targ;
+  targ = n;
+  ncplane* below = ncplane_below(n);
+  while(below && below != topmost){
+    ncplane* tmp = ncplane_below(below);
+    if(ncplane_descendant_p(below, n)){
+      ncplane_move_below(below, targ);
+      targ = below;
+    }
+    below = tmp;
+  }
 }
 
 void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict above){
@@ -2534,7 +2584,7 @@ unsplice_sprixels_recursive(ncplane* n, sprixel* prev){
   }
   for(ncplane* child = n->blist ; child ; child = child->bnext){
     unsplice_sprixels_recursive(child, prev);
-    while(prev->next){ // FIXME lame
+    while(prev && prev->next){ // FIXME lame
       prev = prev->next;
     }
   }
