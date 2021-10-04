@@ -168,5 +168,72 @@ TEST_CASE("ZAxis") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  SUBCASE("FamilyTop") {
+    struct ncplane_options nopts{};
+    nopts.rows = nopts.cols = 1;
+    auto a = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != a);
+    auto b = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != b);
+    auto c = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != c);
+    auto d = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != d);
+    auto e = ncplane_create(c, &nopts);
+    REQUIRE(nullptr != e);
+    ncplane_move_below(b, a);
+    ncplane_move_below(c, b);
+    ncplane_move_below(d, c);
+    ncplane_move_below(e, d);
+    CHECK(ncpile_top(n_) == a);
+    CHECK(ncplane_below(a) == b);
+    CHECK(ncplane_below(b) == c);
+    CHECK(ncplane_below(c) == d);
+    CHECK(ncplane_below(d) == e);
+    ncplane_move_family_top(c);
+    CHECK(ncpile_top(n_) == c);
+    CHECK(ncplane_below(c) == e);
+    CHECK(ncplane_below(e) == a);
+    CHECK(ncplane_below(a) == b);
+    CHECK(ncplane_below(b) == d);
+    CHECK(ncpile_bottom(n_) == n_);
+  }
+
+  SUBCASE("FamilyBottom") {
+    struct ncplane_options nopts{};
+    nopts.rows = nopts.cols = 1;
+    auto a = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != a);
+    auto b = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != b);
+    auto c = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != c);
+    auto d = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != d);
+    auto e = ncplane_create(c, &nopts);
+    REQUIRE(nullptr != e);
+    ncplane_move_below(b, a);
+    ncplane_move_below(c, b);
+    ncplane_move_below(d, c);
+    ncplane_move_below(e, d);
+    // ABCDEs, E is bound to C
+    CHECK(ncpile_top(n_) == a);
+    CHECK(ncplane_below(a) == b);
+    CHECK(ncplane_below(b) == c);
+    CHECK(ncplane_below(c) == d);
+    CHECK(ncplane_below(d) == e);
+    CHECK(ncplane_below(e) == n_);
+    CHECK(ncplane_bottom(n_) == n_);
+    ncplane_move_family_bottom(c);
+    // ABDsCE, E is bound to C (FIXME have ABDEsC)
+    CHECK(ncpile_top(n_) == a);
+    CHECK(ncplane_below(a) == b);
+    CHECK(ncplane_below(b) == d);
+    CHECK(ncplane_below(d) == e);
+    CHECK(ncplane_below(e) == n_);
+    CHECK(ncplane_below(n_) == c);
+    CHECK(ncpile_bottom(n_) == c);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 }
