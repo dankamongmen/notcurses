@@ -1618,10 +1618,6 @@ API struct ncplane* ncplane_parent(struct ncplane* n)
 API const struct ncplane* ncplane_parent_const(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
-// Get the head of the list of planes bound to 'n'.
-API struct ncplane* ncplane_boundlist(struct ncplane* n)
-  __attribute__ ((nonnull (1)));
-
 // Return non-zero iff 'n' is a proper descendent of 'ancestor'.
 static inline int
 ncplane_descendant_p(const struct ncplane* n, const struct ncplane* ancestor){
@@ -1634,20 +1630,34 @@ ncplane_descendant_p(const struct ncplane* n, const struct ncplane* ancestor){
 }
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-API void ncplane_move_top(struct ncplane* n);
-API void ncplane_move_bottom(struct ncplane* n);
+API void ncplane_move_top(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+API void ncplane_move_bottom(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// Splice ncplane 'n' and its bound planes out of the z-buffer, and reinsert
+// them at the top or bottom. Relative order will be maintained between the
+// reinserted planes. For a plane E bound to C, with z-ordering A B C D E,
+// moving the C family to the top results in C E A B D, while moving it to
+// the bottom results in A B D C E.
+API void ncplane_move_family_top(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+API void ncplane_move_family_bottom(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and
 // 'above' must not be the same plane.
 API int ncplane_move_above(struct ncplane* RESTRICT n,
-                           struct ncplane* RESTRICT above);
+                           struct ncplane* RESTRICT above)
+  __attribute__ ((nonnull (1, 2)));
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and
 // 'below' must not be the same plane.
 API int ncplane_move_below(struct ncplane* RESTRICT n,
-                           struct ncplane* RESTRICT below);
+                           struct ncplane* RESTRICT below)
+  __attribute__ ((nonnull (1, 2)));
 
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n)

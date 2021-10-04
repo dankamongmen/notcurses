@@ -99,9 +99,13 @@ typedef struct ncplane_options {
 
 **int ncplane_move_bottom(struct ncplane* ***n***);**
 
-**int ncplane_move_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***above***);**
+**void ncplane_move_family_top(struct ncplane* ***n***);**
 
-**int ncplane_move_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***below***);**
+**void ncplane_move_family_bottom(struct ncplane* ***n***);**
+
+**int ncplane_move_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
+
+**int ncplane_move_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
 
 **struct ncplane* ncplane_below(struct ncplane* ***n***);**
 
@@ -332,6 +336,22 @@ Each child plane having a non-**NULL** **resizecb** will see that callback
 invoked following resizing of its parent's plane. If it returns non-zero, the
 resizing cascade terminates, returning non-zero. Otherwise, resizing proceeds
 recursively.
+
+**ncplane_move_top** and **ncplane_move_bottom** extract their argument
+***n*** from the z-axis, and reinsert it at the top or bottom, respectively,
+of its pile. These functions are both O(1). **ncplane_move_family_top** and
+**ncplane_move_family_bottom** do the same, and move any bound descendants
+along with the plane. Ordering among the plane and its descendants will be
+maintained. For example, assume a pile with A at the top of its z-axis,
+followed by B, C, D, and E, where E is bound to C. Calling
+**ncplane_move_family_top** on C will result in the order CEABD. Calling
+**ncplane_move_family_bottom** on C will result in the order ABDCE. Calling
+**ncplane_move_family_top** or **ncplane_move_top** on E will result in EABCD.
+Calling **ncplane_move_family_bottom** on E is a no-op. These two functions
+are O(N) on the number of planes in the pile.
+
+**ncplane_move_above** and **ncplane_move_below** move the argument ***n***
+above or below, respectively, the argument ***targ***. Both operate in O(1).
 
 ## Base cells
 

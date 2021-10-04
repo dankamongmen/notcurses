@@ -871,9 +871,6 @@ int ncplane_resize_realign(struct ncplane* n);
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 
-// Get the head of the list of planes bound to 'n'.
-struct ncplane* ncplane_boundlist(struct ncplane* n);
-
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
@@ -1101,6 +1098,14 @@ int ncplane_base(struct ncplane* ncp, nccell* c);
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 void ncplane_move_top(struct ncplane* n);
 void ncplane_move_bottom(struct ncplane* n);
+
+// Splice ncplane 'n' and its bound planes out of the z-buffer, and reinsert
+// them at the top or bottom. Relative order will be maintained between the
+// reinserted planes. For a plane E bound to C, with z-ordering A B C D E,
+// moving the C family to the top results in C E A B D, while moving it to
+// the bottom results in A B D C E.
+void ncplane_move_family_top(struct ncplane* n);
+void ncplane_move_family_bottom(struct ncplane* n);
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and

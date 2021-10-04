@@ -1444,6 +1444,16 @@ void ncplane_move_bottom(ncplane* n){
   }
 }
 
+void ncplane_move_family_top(ncplane* n){
+  ncplane_move_top(n);
+  // FIXME walk above and below, moving descendants
+}
+
+void ncplane_move_family_bottom(ncplane* n){
+  ncplane_move_bottom(n);
+  // FIXME walk above and below, moving descendants
+}
+
 void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
@@ -2354,10 +2364,6 @@ ncplane* ncplane_parent(ncplane* n){
 
 const ncplane* ncplane_parent_const(const ncplane* n){
   return n->boundto;
-}
-
-ncplane* ncplane_boundlist(ncplane* n){
-  return n->blist;
 }
 
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
