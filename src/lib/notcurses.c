@@ -1454,6 +1454,16 @@ void ncplane_move_family_bottom(ncplane* n){
   // FIXME walk above and below, moving descendants
 }
 
+void ncplane_move_family_above(ncplane* restrict n, ncplane* restrict above){
+  ncplane_move_above(n, above);
+  // FIXME walk above and below, moving descendants
+}
+
+void ncplane_move_family_below(ncplane* restrict n, ncplane* restrict below){
+  ncplane_move_below(n, below);
+  // FIXME walk above and below, moving descendants
+}
+
 void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
   if(y){
     *y = n->y;
