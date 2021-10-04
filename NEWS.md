@@ -1,6 +1,12 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.4.5 (not yet released)
+  * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has
+    been removed, having never ought have been born.
+  * Added functions `ncplane_move_family_top()`, `ncplane_move_family_bottom()`,
+    `ncplane_move_family_above()`, and `ncplane_move_family_below()`.
+
 * 2.4.4 (2021-10-03)
   * Notcurses no longer uses libreadline, as it was realized to be incompatible
     with the new input system. `ncdirect_readline()` has been rewritten to

@@ -107,6 +107,10 @@ typedef struct ncplane_options {
 
 **int ncplane_move_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
 
+**void ncplane_move_family_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
+
+**void ncplane_move_family_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***targ***);**
+
 **struct ncplane* ncplane_below(struct ncplane* ***n***);**
 
 **struct ncplane* ncplane_above(struct ncplane* ***n***);**

@@ -1107,15 +1107,25 @@ void ncplane_move_bottom(struct ncplane* n);
 void ncplane_move_family_top(struct ncplane* n);
 void ncplane_move_family_bottom(struct ncplane* n);
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
-// Returns non-zero if 'n' is already in the desired location. 'n' and
-// 'below' must not be the same plane.
-int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);
-
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and
-// 'above' must not be the same plane.
-int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);
+// 'above' must not be the same plane. If 'above' is NULL, 'n' is moved
+// to the bottom of its pile.
+int ncplane_move_above(struct ncplane* RESTRICT n,
+                       struct ncplane* RESTRICT above);
+
+// Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
+// Returns non-zero if 'n' is already in the desired location. 'n' and
+// 'below' must not be the same plane. If 'below' is NULL, 'n' is moved to
+// the top of its pile.
+int ncplane_move_below(struct ncplane* RESTRICT n,
+                       struct ncplane* RESTRICT below);
+
+void ncplane_move_family_above(struct ncplane* RESTRICT n,
+                               struct ncplane* RESTRICT above);
+
+void ncplane_move_family_below(struct ncplane* RESTRICT n,
+                               struct ncplane* RESTRICT below);
 
 // Return the ncplane below this one, or NULL if this is at the stack's bottom.
 struct ncplane* ncplane_below(struct ncplane* n);

@@ -689,6 +689,7 @@ bgdef_cb(inputctx* ictx){
         r = g = b = 0;
       }
       ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
+      ictx->initdata->got_bg = true;
       loginfo("default background 0x%02x%02x%02x\n", r, g, b);
       free(str);
     }

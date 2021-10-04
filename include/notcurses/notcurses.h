@@ -1629,7 +1629,9 @@ ncplane_descendant_p(const struct ncplane* n, const struct ncplane* ancestor){
   return 1;
 }
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
+// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or
+// bottom. FIXME these both become static inline wrappers around
+// ncplane_move_below() and ncplane_move_above() in ABI3.
 API void ncplane_move_top(struct ncplane* n)
   __attribute__ ((nonnull (1)));
 API void ncplane_move_bottom(struct ncplane* n)
@@ -1647,16 +1649,26 @@ API void ncplane_move_family_bottom(struct ncplane* n)
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it above 'above'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and
-// 'above' must not be the same plane.
+// 'above' must not be the same plane. If 'above' is NULL, 'n' is moved
+// to the bottom of its pile.
 API int ncplane_move_above(struct ncplane* RESTRICT n,
                            struct ncplane* RESTRICT above)
   __attribute__ ((nonnull (1, 2)));
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it below 'below'.
 // Returns non-zero if 'n' is already in the desired location. 'n' and
-// 'below' must not be the same plane.
+// 'below' must not be the same plane. If 'below' is NULL, 'n' is moved to
+// the top of its pile.
 API int ncplane_move_below(struct ncplane* RESTRICT n,
                            struct ncplane* RESTRICT below)
+  __attribute__ ((nonnull (1, 2)));
+
+API void ncplane_move_family_above(struct ncplane* RESTRICT n,
+                                   struct ncplane* RESTRICT above)
+  __attribute__ ((nonnull (1, 2)));
+
+API void ncplane_move_family_below(struct ncplane* RESTRICT n,
+                                   struct ncplane* RESTRICT below)
   __attribute__ ((nonnull (1, 2)));
 
 // Return the plane below this one, or NULL if this is at the bottom.

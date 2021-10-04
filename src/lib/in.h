@@ -60,6 +60,7 @@ struct initial_responses {
   queried_terminals_e qterm;   // determined terminal
   unsigned kitty_graphics;     // kitty graphics supported
   uint32_t bg;                 // default background
+  bool got_bg;                 // have we read default background?
   int pixx;                    // screen geometry in pixels
   int pixy;                    // screen geometry in pixels
   int dimx;                    // screen geometry in cells
