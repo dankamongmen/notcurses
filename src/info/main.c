@@ -460,8 +460,11 @@ int main(int argc, const char** argv){
   int dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);
   if(dimx < 80){
+    ncplane_set_fg_rgb(stdn, 0xff5349);
+    ncplane_set_styles(stdn, NCSTYLE_BOLD);
+    ncplane_putstr(stdn, "This program requires at least 80 columns.\n");
+    notcurses_render(nc);
     notcurses_stop(nc);
-    fprintf(stderr, "This program requires at least 80 columns.\n");
     return EXIT_FAILURE;
   }
   ncplane_set_scrolling(stdn, true);
