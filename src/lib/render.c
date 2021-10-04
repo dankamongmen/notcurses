@@ -693,14 +693,12 @@ term_bg_rgb8(const tinfo* ti, fbuf* f, unsigned r, unsigned g, unsigned b){
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(ti->caps.rgb){
     if((ti->bg_collides_default & 0xff000000) == 0x01000000){
-      if((r == (ti->bg_collides_default & 0xff0000lu)) &&
-         (g == (ti->bg_collides_default & 0xff00lu)) &&
-         (b == (ti->bg_collides_default & 0xfflu))){
-        if(b < 255){
-          ++b;
-        }else{
-          --b;
-        }
+      if((r == ncchannel_r(ti->bg_collides_default)) &&
+         (g == ncchannel_g(ti->bg_collides_default)) &&
+         (b == ncchannel_b(ti->bg_collides_default))){
+        // the human eye has fewer blue cones than red or green. toggle
+        // the last bit in the blue component to avoid a collision.
+        b ^= 0x00000001;
       }
     }
     return term_esc_rgb(f, false, r, g, b);

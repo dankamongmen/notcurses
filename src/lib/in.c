@@ -850,7 +850,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
-    { "[>\\N;\\N;\\Nc", da2_cb, }, // "VT100"
+    { "[>\\N;\\N;\\Nc", da2_cb, },
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
