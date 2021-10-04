@@ -71,6 +71,10 @@ typedef struct inputctx {
   int ibufvalid;      // we mustn't read() if ibufvalid == sizeof(ibuf)
   int tbufvalid;      // only used if we have distinct terminal connection
 
+  uint8_t backspace;  // backspace is usually not an escape sequence, but
+                      // instead ^H or ^? or something. only escape sequences
+                      // go into our automaton, so we handle this one
+                      // out-of-band. set to non-zero; match with ctrl.
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
   ncinput* inputs;    // processed input is dumped here
@@ -123,7 +127,8 @@ prep_special_keys(inputctx* ictx){
     uint32_t key;
     bool shift, ctrl, alt;
   } keys[] = {
-    { .tinfo = "kcbt",  .key = '\t', .shift = true, },
+    // backspace (kbs) is handled seperately at the end
+    { .tinfo = "kcbt",  .key = '\t', .shift = true, }, // "back-tab"
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
     { .tinfo = "kcuu1", .key = NCKEY_UP, },
@@ -287,8 +292,21 @@ prep_special_keys(inputctx* ictx){
     }
     logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
   }
-#endif
+  const char* bs = tigetstr("kbs");
+  if(bs == NULL){
+    logwarn("no backspace key was defined\n");
+  }else{
+    if(bs[0] == NCKEY_ESC){
+      if(inputctx_add_input_escape(&ictx->amata, bs, NCKEY_BACKSPACE, 0, 0, 0)){
+        return -1;
+      }
+    }else{
+      ictx->backspace = bs[0];
+    }
+  }
+#else
   (void)ictx;
+#endif
   return 0;
 }
 
@@ -1309,7 +1327,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
 // an error, return -1 to consume 1 byte, restarting the UTF8 lex on the next
 // byte. on a valid UTF8 character, set up the ncinput and return its length.
 static int
-process_input(const unsigned char* buf, int buflen, ncinput* ni){
+process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni){
   assert(1 <= buflen);
   memset(ni, 0, sizeof(*ni));
   const int cpointlen = utf8_codepoint_length(*buf);
@@ -1322,8 +1340,12 @@ process_input(const unsigned char* buf, int buflen, ncinput* ni){
     }else if(buf[0] == '\n' || buf[0] == '\r'){
       ni->id = NCKEY_ENTER;
     }else if(buf[0] > 0 && buf[0] <= 26 && buf[0] != '\t'){
-      ni->id = buf[0] + 'A' - 1;
-      ni->ctrl = true;
+      if(buf[0] == ictx->backspace){
+        ni->id = NCKEY_BACKSPACE;
+      }else{
+        ni->id = buf[0] + 'A' - 1;
+        ni->ctrl = true;
+      }
     }else{
       ni->id = buf[0];
     }
@@ -1357,7 +1379,7 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
     return 0;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
-  int r = process_input(buf, buflen, ni);
+  int r = process_input(ictx, buf, buflen, ni);
   if(r > 0){
     inc_input_events(ictx);
     if(!ictx->drain){
