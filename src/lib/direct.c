@@ -971,6 +971,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   if(fprintf(n->ttyfp, "%s", prompt) < 0){
     return NULL;
   }
+  int dimx = ncdirect_dim_x(n);
   // FIXME what if we're reading from redirected input, not a terminal?
   int y, xstart;
   if(cursor_yx_get(n, u7, &y, &xstart)){
@@ -983,6 +984,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   if((str = malloc(wspace * sizeof(*str))) == NULL){
     return NULL;
   }
+  int wpos = 0;  // cursor location (single-dimensional)
   int wused = 0; // number used
   str[wused++] = L'\0';
   ncinput ni;
@@ -1007,6 +1009,11 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
         str[wused - 2] = L'\0';
         --wused;
       }
+      --wpos;
+    }else if(id == NCKEY_LEFT){
+      if(wpos){
+        --wpos;
+      }
     }else{
       if(wspace - 1 < wused){
         wspace += BUFSIZ;
@@ -1017,9 +1024,17 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
         }
         str = tmp;
       }
-      str[wused - 1] = id;
-      ++wused;
-      str[wused - 1] = L'\0';
+      if(wpos < wused - 1){
+        memmove(str + wpos + 1, str + wpos, (wused - wpos) * sizeof(*str));
+        str[wpos] = id;
+        ++wused;
+        ++wpos;
+      }else{
+        str[wused - 1] = id;
+        ++wused;
+        ++wpos;
+        str[wused - 1] = L'\0';
+      }
       // FIXME check modifiers
       int x;
       if(cursor_yx_get(n, u7, &y, &x)){
@@ -1035,6 +1050,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
         bline = y;
       }
     }
+    // clear to end of line(s)
     const char* el = get_escape(&n->tcache, ESCAPE_EL);
     for(int i = bline ; i >= tline ; --i){
       if(ncdirect_cursor_move_yx(n, i, i > tline ? 0 : xstart)){
@@ -1046,6 +1062,14 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
     }
     if(fprintf(n->ttyfp, "%ls", str) < 0){
       break;
+    }
+    if(wpos != wused){
+      int linear = xstart + wpos;
+      int ylin = linear / dimx;
+      int xlin = linear % dimx;
+      if(ncdirect_cursor_move_yx(n, tline + ylin, xlin)){
+        break;
+      }
     }
     if(fflush(n->ttyfp)){
       break;
