@@ -259,19 +259,20 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
     }
     return 0;
   }
+  int rowsafe, colsafe;
+  if(rows == NULL){
+    rows = &rowsafe;
+  }
+  if(cols == NULL){
+    cols = &colsafe;
+  }
 #ifndef __MINGW64__
   struct winsize ws;
   if(tiocgwinsz(tcache->ttyfd, &ws)){
     return -1;
   }
-  int rowsafe;
-  if(rows == NULL){
-    rows = &rowsafe;
-  }
   *rows = ws.ws_row;
-  if(cols){
-    *cols = ws.ws_col;
-  }
+  *cols = ws.ws_col;
   if(tcache){
 #ifdef __linux__
     if(tcache->linux_fb_fd >= 0){
@@ -296,21 +297,14 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
 #else
   CONSOLE_SCREEN_BUFFER_INFO csbi;
   if(GetConsoleScreenBufferInfo(tcache->outhandle, &csbi)){
-    if(cols){
-      *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    }
-    if(rows){
-      *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    }
+    *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
   }else{
-    if(rows){
-      *rows = tcache->default_rows;
-    }
-    if(cols){
-      *cols = tcache->default_cols;
-    }
+    *rows = tcache->default_rows;
+    *cols = tcache->default_cols;
   }
 #endif
+  update_tinfo_geometry(tcache, *rows, *cols);
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
     // if the bottom margin is at least one row, we can draw into the last

@@ -106,6 +106,7 @@ typedef struct tinfo {
   // be acquired on all terminals with pixel support.
   int cellpixy;                    // cell pixel height, might be 0
   int cellpixx;                    // cell pixel width, might be 0
+  int dimy, dimx;                  // most recent cell geometry
 
   unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv
 
@@ -188,6 +189,13 @@ typedef struct tinfo {
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;
+
+static inline void
+update_tinfo_geometry(tinfo* ti, int dimy, int dimx){
+  // FIXME probably need a lock on this!
+  ti->dimy = dimy;
+  ti->dimx = dimx;
+}
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
 static inline __attribute__ ((pure)) const char*

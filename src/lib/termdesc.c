@@ -41,6 +41,8 @@ get_default_geometry(tinfo* ti){
   loginfo("Default geometry: %d row%s, %d column%s\n",
           ti->default_rows, ti->default_rows != 1 ? "s" : "",
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
+  ti->dimy = ti->default_rows;
+  ti->dimx = ti->default_cols;
 }
 
 // we found Sixel support -- set up its API. invert80 refers to whether the
@@ -943,6 +945,8 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
       // random transient measurement?
       ti->default_rows = iresp->dimy;
       ti->default_cols = iresp->dimx;
+      ti->dimy = iresp->dimy;
+      ti->dimx = iresp->dimx;
     }
     if(iresp->pixy && iresp->pixx){
       ti->pixy = iresp->pixy;
