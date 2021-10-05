@@ -227,10 +227,10 @@ fpsplot_toggle(struct notcurses* nc){
   }
   plot_hidden = !plot_hidden;
   if(plot_hidden){
-    ncplane_reparent(ncuplot_plane(plot), ncuplot_plane(plot));
+    ncplane_reparent_family(ncuplot_plane(plot), ncuplot_plane(plot));
   }else{
-    ncplane_reparent(ncuplot_plane(plot), notcurses_stdplane(nc));
-    ncplane_move_top(ncuplot_plane(plot));
+    ncplane_reparent_family(ncuplot_plane(plot), notcurses_stdplane(nc));
+    ncplane_move_family_top(ncuplot_plane(plot));
   }
   return demo_render(nc);
 }
@@ -680,7 +680,7 @@ int fpsgraph_init(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &ts);
   plottimestart = timespec_to_ns(&ts);
   if(plot_hidden){
-    ncplane_reparent(ncuplot_plane(plot), ncuplot_plane(plot));
+    ncplane_reparent_family(ncuplot_plane(plot), ncuplot_plane(plot));
   }
   return 0;
 }
