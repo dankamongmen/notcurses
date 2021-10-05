@@ -508,15 +508,17 @@ send_synth_signal(int sig){
 }
 
 static void
-kitty_kbd(inputctx* ictx, int val, int mods){
+kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   int synth = 0;
+  assert(evtype >= 0);
   assert(mods >= 0);
   assert(val > 0);
+  logdebug("v/m/e %d %d %d\n", val, mods, evtype);
   ncinput tni = {
     .id = val == 0x7f ? NCKEY_BACKSPACE : val,
-    .shift = !!((mods - 1) & 0x1),
-    .alt = !!((mods - 1) & 0x2),
-    .ctrl = !!((mods - 1) & 0x4),
+    .shift = mods && !!((mods - 1) & 0x1),
+    .alt = mods && !!((mods - 1) & 0x2),
+    .ctrl = mods && !!((mods - 1) & 0x4),
   };
   // FIXME decode remaining modifiers through 128
   // standard keyboard protocol reports ctrl+ascii as the capital form,
@@ -535,6 +537,20 @@ kitty_kbd(inputctx* ictx, int val, int mods){
   }
   tni.x = 0;
   tni.y = 0;
+  switch(evtype){
+    case 1:
+      tni.evtype = NCTYPE_PRESS;
+      break;
+    case 2:
+      tni.evtype = NCTYPE_REPEAT;
+      break;
+    case 3:
+      tni.evtype = NCTYPE_RELEASE;
+      break;
+    default:
+      tni.evtype = NCTYPE_UNKNOWN;
+      break;
+  }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
@@ -557,7 +573,7 @@ kitty_kbd(inputctx* ictx, int val, int mods){
 static int
 kitty_cb_simple(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", 'u');
-  kitty_kbd(ictx, val, 0);
+  kitty_kbd(ictx, val, 0, 0);
   return 2;
 }
 
@@ -565,7 +581,16 @@ static int
 kitty_cb(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", 'u');
-  kitty_kbd(ictx, val, mods);
+  kitty_kbd(ictx, val, mods, 0);
+  return 2;
+}
+
+static int
+kitty_cb_complex(inputctx* ictx){
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'u');
+  kitty_kbd(ictx, val, mods, ev);
   return 2;
 }
 
@@ -856,6 +881,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\Nu", kitty_cb, },
+    { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")

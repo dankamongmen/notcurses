@@ -318,10 +318,10 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // which can be identified directly, sans queries.
 #define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
 
-// request kitty keyboard protocol through level 1, first pushing current.
+// request kitty keyboard protocol through level 3, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
-// FIXME go to level 3, but need handle release codes
-#define KBDSUPPORT "\x1b[>u\x1b[=1u"
+// FIXME go to level 11, but need handle all functional keys
+#define KBDSUPPORT "\x1b[>u\x1b[=3u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this
