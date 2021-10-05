@@ -258,9 +258,11 @@ get_eta_node(automaton* a, esctrie* phi, unsigned successor){
 static inline void
 add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
                       unsigned follow, unsigned eta){
+//logtrace("working with %u phi: %u follow: %u eta: %u\n", esctrie_idx(a, e), phi, follow, eta);
   for(int i = '0' ; i <= '9' ; ++i){
     esctrie* chain = esctrie_from_idx(a, e->trie[i]);
     if(chain == NULL){
+      //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, phi);
       e->trie[i] = phi;
     }else if(chain->ntype == NODE_SPECIAL){
 //logdebug("propagating along %u[%c]\n", e->trie[i], i);
@@ -268,6 +270,7 @@ add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
     }
   }
   if(e->trie[follow] == 0){
+    //logdebug("linking %u[%u] to %u\n", esctrie_idx(a, e), follow, eta);
     e->trie[follow] = eta;
   }
 }
@@ -280,7 +283,7 @@ add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
 static inline void
 add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
                         int pfxlen, esctrie* phi, unsigned follow,
-                        esctrie* eta){
+                        esctrie* eta, unsigned inphi){
 //logtrace("working with %u %d prefix [%*.*s]\n", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
   // if pfxlen == 0, we found a match for our fixed prefix. start adding phi
   // links whereever we can. where we find chained numerics, add an eta link.
@@ -288,10 +291,10 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
     add_phi_and_eta_chain(a, e, esctrie_idx(a, phi), follow, esctrie_idx(a, eta));
     return;
   }
-  --pfxlen;
-  unsigned char p = *prefix++;
   // when we hit a \N in the prefix, we must recurse along all digit links
-  if(p == '\\'){
+  if(*prefix == '\\'){
+    ++prefix;
+    --pfxlen;
     if(*prefix != 'N'){
       logerror("illegal wildcard in prefix %c\n", *prefix);
       return;
@@ -300,16 +303,29 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
     --pfxlen;
     for(int i = '0' ; i <= '9' ; ++i){
       if(e->trie[i] == 0){
+        //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, esctrie_idx(a, phi));
         e->trie[i] = esctrie_idx(a, phi);
       }else{
         add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
-                                prefix, pfxlen, phi, follow, eta);
+                                prefix, pfxlen, phi, follow, eta, 1);
       }
     }
   }else{
+    if(inphi){
+      for(int i = '0' ; i <= '9' ; ++i){
+        if(e->trie[i] == 0){
+          //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, esctrie_idx(a, phi));
+          e->trie[i] = esctrie_idx(a, phi);
+        }else if(e->trie[i] != esctrie_idx(a, e)){
+          add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
+                                  prefix, pfxlen, phi, follow, eta, 1);
+        }
+      }
+    }
+    unsigned char p = *prefix;
     if(e->trie[p]){
       add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[p]),
-                              prefix, pfxlen, phi, follow, eta);
+                              prefix + 1, pfxlen - 1, phi, follow, eta, 0);
     }
   }
 }
@@ -322,7 +338,7 @@ add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
   if(esc == NULL){
     return;
   }
-  add_phi_and_eta_recurse(a, esc, prefix, pfxlen, phi, follow, eta);
+  add_phi_and_eta_recurse(a, esc, prefix, pfxlen, phi, follow, eta, 0);
 }
 
 // accept any digit and transition to a numeric node. |e| is the culmination of
