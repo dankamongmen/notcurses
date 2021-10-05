@@ -721,7 +721,7 @@ validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
     return false;
   }
   if(ropts->flags >= (NCREEL_OPTION_CIRCULAR << 1u)){
-    logwarn("Provided unsupported flags 0x%016jx\n", (uintmax_t)ropts->flags);
+    logwarn("Provided unsupported flags 0x%016" PRIx64 "\n", ropts->flags);
   }
   if(ropts->flags & NCREEL_OPTION_CIRCULAR){
     if(!(ropts->flags & NCREEL_OPTION_INFINITESCROLL)){

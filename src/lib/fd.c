@@ -91,7 +91,7 @@ ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
                           ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn,
                           bool thread){
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
   }
   ncfdplane* ret = malloc(sizeof(*ret));
   if(ret == NULL){

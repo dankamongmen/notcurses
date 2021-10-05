@@ -429,7 +429,7 @@ make_ncpile(notcurses* nc, ncplane* n){
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
   if(nopts->flags >= (NCPLANE_OPTION_FIXED << 1u)){
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)nopts->flags);
+    logwarn("Provided unsupported flags %016" PRIx64 "\n", nopts->flags);
   }
   if(nopts->flags & NCPLANE_OPTION_HORALIGNED || nopts->flags & NCPLANE_OPTION_VERALIGNED){
     if(n == NULL){

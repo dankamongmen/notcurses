@@ -145,7 +145,7 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
     lenx = &fakelenx;
   }
   if(vopts && vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
-    logwarn("Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
+    logwarn("Warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
   }
   if(vopts && (vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
     logerror("Requested child plane with NULL n\n");

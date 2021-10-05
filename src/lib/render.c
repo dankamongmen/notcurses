@@ -1495,7 +1495,7 @@ engorge_crender_vector(ncpile* n){
   const size_t crenderlen = n->dimy * n->dimx; // desired size
 //fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
   if(crenderlen != n->crenderlen){
-    loginfo("Resizing rvec (%zu) for %p to %zu\n", n->crenderlen, n, crenderlen);
+    loginfo("Resizing rvec (%lu) for %p to %zu\n", (long unsigned)n->crenderlen, n, crenderlen);
     struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
