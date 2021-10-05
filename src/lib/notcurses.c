@@ -52,9 +52,6 @@ int notcurses_leave_alternate_screen(notcurses* nc){
 int reset_term_attributes(const tinfo* ti, fbuf* f){
   int ret = 0;
   const char* esc;
-  if((esc = get_escape(ti, ESCAPE_RESTORECOLORS)) && fbuf_emit(f, esc)){
-    ret = -1;
-  }
   if((esc = get_escape(ti, ESCAPE_OP)) && fbuf_emit(f, esc)){
     ret = -1;
   }
@@ -84,6 +81,9 @@ notcurses_stop_minimal(void* vnc){
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
   ret |= mouse_disable(&nc->tcache, f);
+  if((esc = get_escape(&nc->tcache, ESCAPE_RESTORECOLORS)) && fbuf_emit(f, esc)){
+    ret = -1;
+  }
   ret |= reset_term_attributes(&nc->tcache, f);
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;
@@ -1111,21 +1111,20 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
   const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
-  if(cinvis && term_emit(cinvis, ret->ttyfp, false)){
+  if(cinvis && fbuf_emit(&ret->rstate.f, cinvis) < 0){
     free_plane(ret->stdplane);
     goto err;
   }
   const char* pushcolors = get_escape(&ret->tcache, ESCAPE_SAVECOLORS);
-  if(pushcolors && term_emit(pushcolors, ret->ttyfp, false)){
+  if(pushcolors && fbuf_emit(&ret->rstate.f, pushcolors)){
     free_plane(ret->stdplane);
     goto err;
   }
   init_banner(ret, &ret->rstate.f);
-  if(blocking_write(fileno(ret->ttyfp), ret->rstate.f.buf, ret->rstate.f.used)){
+  if(fbuf_flush(&ret->rstate.f, ret->ttyfp) < 0){
     free_plane(ret->stdplane);
     goto err;
   }
-  fbuf_reset(&ret->rstate.f);
   if(ret->rstate.logendy >= 0){ // if either is set, both are
     if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
       if(locate_cursor(&ret->tcache, &ret->rstate.logendy, &ret->rstate.logendx)){
@@ -1155,9 +1154,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     }
   }
   if(ret->rstate.f.used){
-    fwrite(ret->rstate.f.buf, ret->rstate.f.used, 1, ret->ttyfp);
-    fbuf_reset(&ret->rstate.f);
-    if(ncflush(ret->ttyfp)){
+    if(fbuf_flush(&ret->rstate.f, ret->ttyfp) < 0){
       goto err;
     }
   }
