@@ -161,10 +161,11 @@ Only one thread may call into the input stack at once, but unlike almost every
 other function in notcurses, **notcurses_get** and friends can be called
 concurrently with **notcurses_render**.
 
-Do not simply **poll** the input file descriptor. Instead, use the file
-descriptor returned by **notcurses_inputready_fd** to ensure compatibility with
-future versions of Notcurses (it is possible that future versions will process
-input in their own contexts).
+Do not simply **poll** the file descriptor associated with **stdin** to test
+for input readiness. Instead, use the file descriptor returned by
+**notcurses_inputready_fd** to ensure compatibility with future versions of
+Notcurses (it is possible that future versions will process input in their own
+contexts).
 
 When support is detected, the Kitty keyboard disambiguation protocol will be
 requested. This eliminates most of the **BUGS** mentioned below.
@@ -189,6 +190,10 @@ future.
 
 When the Kitty keyboard disambiguation protocol is used, most of these
 issues are resolved.
+
+Mouse events in the top and left margins will never be delivered to the
+application (as is intended), but mouse events in the bottom and right margins
+sometimes can be if the event occurs prior to a window resize.
 
 # SEE ALSO
 
