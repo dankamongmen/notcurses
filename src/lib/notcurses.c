@@ -659,11 +659,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
     .resizecb = ncplane_resizecb(n),
     .flags = 0,
   };
-  ncplane* bindto = n->boundto;
-  if(n == n->boundto){
-    bindto = NULL;
-  }
-  ncplane* newn = ncplane_create(bindto, &nopts);
+  ncplane* newn = ncplane_create(n->boundto, &nopts);
   if(newn == NULL){
     return NULL;
   }
