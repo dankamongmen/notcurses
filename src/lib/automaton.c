@@ -197,7 +197,6 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
       e->trie[follow] = esctrie_idx(a, term);
     }else if(e->trie[i] == 0){
       e->trie[i] = esctrie_idx(a, targ);
-      // FIXME travel to the ends and link targ there
     }
   }
   targ->kleene = esctrie_idx(a, targ);
