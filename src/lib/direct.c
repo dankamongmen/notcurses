@@ -1011,9 +1011,13 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       }
       --wpos;
     }else if(id == NCKEY_LEFT){
-      if(wpos){
-        --wpos;
-      }
+      --wpos;
+    }else if(id == NCKEY_RIGHT){
+      ++wpos;
+    }else if(id == NCKEY_UP){
+      wpos -= dimx;
+    }else if(id == NCKEY_DOWN){
+      wpos += dimx;
     }else{
       if(wspace - 1 < wused){
         wspace += BUFSIZ;
@@ -1049,6 +1053,11 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       if(y > bline){
         bline = y;
       }
+    }
+    if(wpos < 0){
+      wpos = 0;
+    }else if(wpos > wused - 1){
+      wpos = wused - 1;
     }
     // clear to end of line(s)
     const char* el = get_escape(&n->tcache, ESCAPE_EL);
