@@ -349,7 +349,7 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
     return NULL;
   }
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
   }
 #ifndef __MINGW64__
   int fd = -1;

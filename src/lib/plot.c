@@ -413,7 +413,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     opts = &zeroed; \
   } \
   if(opts->flags >= (NCPLOT_OPTION_PRINTSAMPLE << 1u)){ \
-    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags); \
+    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags); \
   } \
   /* if miny == maxy (enabling domain detection), they both must be equal to 0 */ \
   if(miny == maxy && miny){ \

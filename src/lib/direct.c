@@ -861,7 +861,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     outfp = stdout;
   }
   if(flags > (NCDIRECT_OPTION_DRAIN_INPUT << 1)){ // allow them through with warning
-    logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
+    logwarn("Passed unsupported flags 0x%016" PRIx64 "\n", flags);
   }
   if(termtype){
     if(putenv_term(termtype)){
