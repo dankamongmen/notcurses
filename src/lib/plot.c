@@ -41,6 +41,10 @@ create_pixelp(ncplot *p, ncplane* n){
   if(((p->pixelp = ncplane_dup(n, NULL)) == NULL)){
     return -1;
   }
+  if(ncplane_set_name(p->pixelp, "pmap")){
+    ncplane_destroy(p->pixelp);
+    return -1;
+  }
   ncplane_reparent(p->pixelp, n);
   ncplane_move_below(p->pixelp, n);
   uint64_t basechan = 0;
