@@ -396,8 +396,16 @@ When a plane is moved to a different pile (whether new or preexisting), any
 planes which were bound to it are rebound to its previous parent. If the plane
 was a root plane of some pile, any bound planes become root planes. The new
 plane is placed immediately atop its new parent on its new pile's z-axis.
-When `ncplane_reparent_family()` is used, all planes bound to the reparented
+When **ncplane_reparent_family** is used, all planes bound to the reparented
 plane are moved along with it. Their relative z-order is maintained.
+
+## Binding
+
+The planes of a pile make up a directed acyclic forest. Planes bound to
+themselves make up the root planes of the pile. Every plane is either a
+root plane, or bound to some other plane in its pile. A plane and its
+descendants make up a family. When a plane is moved using **ncplane_move_yx**,
+its family is moved along with it.
 
 ## Scrolling
 
@@ -503,7 +511,7 @@ It should not be used in new code.
 # BUGS
 
 **ncplane_at_yx** doesn't yet account for bitmap-based graphics (see
-**notcurses_visual**). Whatever glyph-based contents existed on the plane when
+**notcurses_visual(3)**). Whatever glyph-based contents existed on the plane when
 the bitmap was blitted will continue to be returned.
 
 When the alternate screen is not used (see **notcurses_init(3)**), the contents
