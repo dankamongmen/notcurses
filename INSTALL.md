@@ -38,7 +38,7 @@ Currently, building on Windows requires [MSYS2](https://www.msys2.org/) in its
 64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
 and EXEs, though it does not use Visual Studio. Install build dependencies:
 
-`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain`
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ninja`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `mingw-w64-ucrt-x86_64-ffmpeg`.
