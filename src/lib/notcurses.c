@@ -1217,6 +1217,8 @@ void notcurses_drop_planes(notcurses* nc){
 }
 
 int notcurses_stop(notcurses* nc){
+  logdebug("stopping notcurses\n");
+//notcurses_debug(nc, stderr);
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
@@ -2430,6 +2432,20 @@ ncplane* ncplane_parent(ncplane* n){
 
 const ncplane* ncplane_parent_const(const ncplane* n){
   return n->boundto;
+}
+
+int ncplane_set_name(ncplane* n, const char* name){
+  char* copy = name ? strdup(name) : NULL;
+  if(copy == NULL && name != NULL){
+    return -1;
+  }
+  free(n->name);
+  n->name = copy;
+  return 0;
+}
+
+char* ncplane_name(const ncplane* n){
+  return n->name ? strdup(n->name) : NULL;
 }
 
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){

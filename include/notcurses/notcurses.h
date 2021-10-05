@@ -1270,6 +1270,14 @@ API void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*)
 // Returns the ncplane's current resize callback.
 API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 
+// Set the plane's name (may be NULL), replacing any current name.
+API int ncplane_set_name(struct ncplane* n, const char* name)
+  __attribute__ ((nonnull (1)));
+
+// Return a heap-allocated copy of the plane's name, or NULL if it has none.
+API ALLOC char* ncplane_name(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
 // Plane 'n' will be unbound from its parent plane, and will be made a bound
 // child of 'newparent'. It is an error if 'n' or 'newparent' are NULL. If
 // 'newparent' is equal to 'n', 'n' becomes the root of a new pile, unless 'n'

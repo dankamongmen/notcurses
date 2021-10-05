@@ -227,6 +227,10 @@ typedef struct ncplane_options {
 
 **void ncplane_pixelgeom(struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, int* restrict ***celldimy***, int* restrict ***celldimx***, int* restrict ***maxbmapy***, int* restrict ***maxbmapx***);**
 
+**int ncplane_set_name(struct ncplane* ***n***, const char* ***name***);**
+
+**char* ncplane_name(const struct ncplane* ***n***);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -444,6 +448,9 @@ secondary column of a wide glyph with **ncplane_at_yx_cell** will fill in
 the **nccell** argument such that **nccell_extended_gcluster(3)** returns an
 empty string, and **nccell_wide_right_p(3)** returns **true**.
 
+**ncplane_set_name** sets the plane's name, freeing any old name. ***name***
+may be **NULL**.
+
 # RETURN VALUES
 
 **ncplane_create** and **ncplane_dup** return a new **struct ncplane** on
@@ -480,6 +487,9 @@ dimensions of the specified plane (except for the special value -1).
 
 **ncplane_cursor_move_rel** returns -1 if the coordinates are beyond the
 dimensions of the specified plane.
+
+**ncplane_name** returns a heap-allocated copy of the plane's name, or NULL if
+it has no name (or on error).
 
 Functions returning **int** return 0 on success, and non-zero on error.
 

@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     been removed, having never ought have been born.
   * Added functions `ncplane_move_family_top()`, `ncplane_move_family_bottom()`,
     `ncplane_move_family_above()`, and `ncplane_move_family_below()`.
+  * Added functions `ncplane_set_name()` and `ncplane_name()`.
 
 * 2.4.4 (2021-10-03)
   * Notcurses no longer uses libreadline, as it was realized to be incompatible

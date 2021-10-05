@@ -871,6 +871,12 @@ int ncplane_resize_realign(struct ncplane* n);
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
 
+// Set the plane's name, replacing any current name.
+int ncplane_set_name(struct ncplane* n, const char* name);
+
+// Return a heap-allocated copy of the plane's name, or NULL if it has none.
+char* ncplane_name(const struct ncplane* n);
+
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
