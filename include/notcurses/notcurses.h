@@ -1244,11 +1244,13 @@ typedef struct ncplane_options {
 // must both be positive. This plane is initially at the top of the z-buffer,
 // as if ncplane_move_top() had been called on it. The void* 'userptr' can be
 // retrieved (and reset) later. A 'name' can be set, used in debugging.
-API ALLOC struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
+API ALLOC struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts)
+  __attribute__ ((nonnull (1, 2)));
 
 // Same as ncplane_create(), but creates a new pile. The returned plane will
 // be the top, bottom, and root of this new pile.
-API ALLOC struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
+API ALLOC struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts)
+  __attribute__ ((nonnull (1, 2)));
 
 // Suitable for use as a 'resizecb', this will resize the plane to the visual
 // region's size. It is used for the standard plane.
@@ -1296,7 +1298,8 @@ API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* n
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis, and will
-// be bound to the same parent. Bound planes are *not* duplicated; the new
+// be bound to the same parent (unless 'n' is a root plane, in which case the
+// new plane will be bound to it). Bound planes are *not* duplicated; the new
 // plane is bound to the parent of 'n', but has no bound planes.
 API ALLOC struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque)
   __attribute__ ((nonnull (1)));

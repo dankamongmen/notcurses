@@ -154,7 +154,7 @@ not itself perform any locking.
 * It is **not** safe to add, delete, or reorder ncplanes within a single pile
   from multiple threads.
 
-Only one thread may call **notcurses_getc** or any other input-related thread
+Only one thread may call **notcurses_get(3)** or any other input-related thread
 at a time, but it **is** safe to call for input while another thread renders.
 
 Since multiple threads can concurrently manipulate distinct ncplanes, peak
