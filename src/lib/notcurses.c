@@ -1080,6 +1080,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats,
                           ret->margin_l, ret->margin_t,
+                          ret->margin_r, ret->margin_b,
                           opts->flags & NCOPTION_DRAIN_INPUT)){
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);

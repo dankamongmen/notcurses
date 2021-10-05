@@ -222,7 +222,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out,
                          unsigned utf8, unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
                          struct ncsharedstats* stats, int lmargin, int tmargin,
-                         unsigned draininput)
+                         int rmargin, int bmargin, unsigned draininput)
   __attribute__ ((nonnull (1, 3, 10)));
 
 void free_terminfo_cache(tinfo* ti);

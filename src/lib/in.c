@@ -61,6 +61,7 @@ typedef struct inputctx {
 #endif
 
   int lmargin, tmargin; // margins in use at left and top
+  int rmargin, bmargin; // margins in use at right and bottom
 
   automaton amata;
 
@@ -384,6 +385,14 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   y -= (1 + ictx->tmargin);
   // convert from 1- to 0-indexing, and account for margins
   if(x < 0 || y < 0){ // click was in margins, drop it
+    logwarn("dropping click in margins %ld/%ld\n", y, x);
+    return;
+  }
+  if(x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
+    logwarn("dropping click in margins %ld/%ld\n", y, x);
+    return;
+  }
+  if(y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
     logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
@@ -942,8 +951,8 @@ getpipes(int pipes[static 2]){
 }
 
 static inline inputctx*
-create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                ncsharedstats* stats, unsigned drain,
+create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
+                int bmargin, ncsharedstats* stats, unsigned drain,
                 int linesigs_enabled){
   inputctx* i = malloc(sizeof(*i));
   if(i){
@@ -978,6 +987,8 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin,
                           i->midescape = 0;
                           i->lmargin = lmargin;
                           i->tmargin = tmargin;
+                          i->rmargin = rmargin;
+                          i->bmargin = bmargin;
                           i->drain = drain;
                           logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                           return i;
@@ -1617,10 +1628,10 @@ input_thread(void* vmarshall){
 }
 
 int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
-                    ncsharedstats* stats, unsigned drain,
-                    int linesigs_enabled){
-  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, stats, drain,
-                                   linesigs_enabled);
+                    int rmargin, int bmargin, ncsharedstats* stats,
+                    unsigned drain, int linesigs_enabled){
+  inputctx* ictx = create_inputctx(ti, infp, lmargin, tmargin, rmargin,
+                                   bmargin, stats, drain, linesigs_enabled);
   if(ictx == NULL){
     return -1;
   }
