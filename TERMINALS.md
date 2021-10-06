@@ -243,4 +243,19 @@ are best avoided until the problems are better understood:
 * '۝' U+06DD ARABIC END OF AYAH
 * '࣢' U+08E2 ARABIC DISPUTED END OF AYAH
 * '﷽' U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM
-    '
+
+## Notes for terminal authors
+
+The `notcurses-info` tool built as part of Notcurses can be used to inspect
+how well your terminal supports Notcurses. It is generally desirable that:
+
+* Your terminal draw Unicode's Line- and Box-Drawing characters itself,
+  rather than relying on the font.
+* Your terminal support some graphics protocol, ideally Kitty's. If you
+  support Sixel instead, implement `XTSMGRAPHICS`.
+* Implement a keyboard disambiguation protocol, ideally Kitty's.
+* Implement `hpa`, for absolute horizontal positioning.
+* Size EGCs according to the largest `wcwidth()` result returned for any
+  of the component characters.
+* Honor Unicode rules for segmentation, including Zero-Width Joiners. Emit
+  either zero or one glyph per EGC.
