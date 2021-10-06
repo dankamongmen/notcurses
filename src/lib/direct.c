@@ -1018,6 +1018,10 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       wpos -= dimx;
     }else if(id == NCKEY_DOWN){
       wpos += dimx;
+    }else if(id == 'a' && ni.ctrl){
+      wpos = 1;
+    }else if(id == 'e' && ni.ctrl){
+      wpos = wused - 1;
     }else{
       if(wspace - 1 < wused){
         wspace += BUFSIZ;
