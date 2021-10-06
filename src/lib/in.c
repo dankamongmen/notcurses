@@ -1216,6 +1216,7 @@ add_unicode(inputctx* ictx, uint32_t id){
   ni->ctrl = false;
   ni->shift = false;
   ni->x = ni->y = 0;
+  ni->evtype = NCTYPE_UNKNOWN;
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
   }
