@@ -320,13 +320,18 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 
 // request kitty keyboard protocol through level 1, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
-// FIXME go to level 11, but need handle all functional keys
+// FIXME go to level 11, but first need handle all functional keys
 #define KBDSUPPORT "\x1b[>u\x1b[=1u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this
 // because the "keyboard pop" control code is mishandled by kitty < 0.20.0.
 #define KBDQUERY "\x1b[?u"
+
+// Set modifyFunctionKeys (2) if supported, allowing us to disambiguate
+// function keys when used with modifiers. Set modifyOtherKeys (4) if
+// supported.
+#define XTMODKEYS "\x1b[>2;1m\x1b[>4;1m"
 
 // these queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
@@ -368,6 +373,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 
 #define DIRECTIVES CSI_BGQ \
                    SUMQUERY \
+                   XTMODKEYS \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
                    GEOMXTSM \

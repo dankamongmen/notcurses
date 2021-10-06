@@ -119,6 +119,42 @@ inc_input_errors(inputctx* ictx){
   pthread_mutex_unlock(&ictx->stats->lock);
 }
 
+// load representations used by XTMODKEYS
+static int
+prep_xtmodkeys(inputctx* ictx){
+  // XTMODKEYS enables unambiguous representations of certain inputs. We
+  // enable XTMODKEYS where supported.
+  static const struct {
+    const char* esc;
+    uint32_t key;
+    bool shift, ctrl, alt;
+  } keys[] = {
+    { .esc = "\x1b\x8", .key = NCKEY_BACKSPACE, .alt = 1, },
+    { .esc = "\x1b[2P", .key = NCKEY_F01, .shift = 1, },
+    { .esc = "\x1b[5P", .key = NCKEY_F01, .ctrl = 1, },
+    { .esc = "\x1b[6P", .key = NCKEY_F01, .ctrl = 1, .shift = 1, },
+    { .esc = "\x1b[2Q", .key = NCKEY_F02, .shift = 1, },
+    { .esc = "\x1b[5Q", .key = NCKEY_F02, .ctrl = 1, },
+    { .esc = "\x1b[6Q", .key = NCKEY_F02, .ctrl = 1, .shift = 1, },
+    { .esc = "\x1b[2R", .key = NCKEY_F03, .shift = 1, },
+    { .esc = "\x1b[5R", .key = NCKEY_F03, .ctrl = 1, },
+    { .esc = "\x1b[6R", .key = NCKEY_F03, .ctrl = 1, .shift = 1, },
+    { .esc = "\x1b[2S", .key = NCKEY_F04, .shift = 1, },
+    { .esc = "\x1b[5S", .key = NCKEY_F04, .ctrl = 1, },
+    { .esc = "\x1b[6S", .key = NCKEY_F04, .ctrl = 1, .shift = 1, },
+    { .esc = NULL, .key = 0, },
+  }, *k;
+  for(k = keys ; k->esc ; ++k){
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
+                                 k->shift, k->ctrl, k->alt)){
+      return -1;
+    }
+    logdebug("added %u\n", k->key);
+  }
+  loginfo("added all xtmodkeys\n");
+  return 0;
+}
+
 // load all known special keys from terminfo, and build the input sequence trie
 static int
 prep_special_keys(inputctx* ictx){
@@ -373,6 +409,52 @@ amata_next_string(automaton* amata, const char* prefix){
   return ret;
 }
 
+static inline void
+send_synth_signal(int sig){
+  if(sig){
+#ifndef __MINGW64__
+    raise(sig);
+#endif
+  }
+}
+
+static void
+mark_pipe_ready(int pipes[static 2]){
+  char sig = 1;
+  if(write(pipes[1], &sig, sizeof(sig)) != 1){
+    logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+  }
+}
+
+static void
+load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
+  inc_input_events(ictx);
+  if(ictx->drain){
+    return;
+  }
+  pthread_mutex_lock(&ictx->ilock);
+  if(ictx->ivalid == ictx->isize){
+    pthread_mutex_unlock(&ictx->ilock);
+    logerror("dropping input 0x%08x\n", tni->id);
+    inc_input_errors(ictx);
+    send_synth_signal(synthsig);
+    return;
+  }
+  ncinput* ni = ictx->inputs + ictx->iwrite;
+  memcpy(ni, tni, sizeof(*tni));
+  if(ni->id == 0x7f || ni->id == 0x8){
+    ni->id = NCKEY_BACKSPACE;
+  }
+  if(++ictx->iwrite == ictx->isize){
+    ictx->iwrite = 0;
+  }
+  ++ictx->ivalid;
+  mark_pipe_ready(ictx->readypipes);
+  pthread_mutex_unlock(&ictx->ilock);
+  pthread_cond_broadcast(&ictx->icond);
+  send_synth_signal(synthsig);
+}
+
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
 // SGR (1006) mouse encoding, so use the final character to determine release
 // ('M' for click, 'm' for release).
@@ -396,38 +478,26 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
     logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping mouse click 0x%02x %ld %ld\n", mods, y, x);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
+  ncinput tni = {
+    .ctrl = mods & 0x10,
+    .alt = mods & 0x08,
+    .shift = mods & 0x04,
+  };
   if(mods < 64){
-    ni->id = NCKEY_BUTTON1 + (mods % 4);
+    tni.id = NCKEY_BUTTON1 + (mods % 4);
   }else if(mods >= 64 && mods < 128){
-    ni->id = NCKEY_BUTTON4 + (mods % 4);
+    tni.id = NCKEY_BUTTON4 + (mods % 4);
   }else if(mods >= 128 && mods < 192){
-    ni->id = NCKEY_BUTTON8 + (mods % 4);
+    tni.id = NCKEY_BUTTON8 + (mods % 4);
   }
-  ni->ctrl = mods & 0x10;
-  ni->alt = mods & 0x08;
-  ni->shift = mods & 0x04;
-  // mice don't send repeat events, so we know it's either release or press
   if(release){
-    ni->evtype = NCTYPE_RELEASE;
+    tni.evtype = NCTYPE_RELEASE;
   }else{
-    ni->evtype = NCTYPE_PRESS;
+    tni.evtype = NCTYPE_PRESS;
   }
-  ni->x = x;
-  ni->y = y;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
+  tni.x = x;
+  tni.y = y;
+  load_ncinput(ictx, &tni, 0);
 }
 
 static int
@@ -497,14 +567,18 @@ geom_cb(inputctx* ictx){
 }
 
 static void
-send_synth_signal(int sig){
-#ifndef __MINGW64__
-  if(sig){
-    raise(sig);
+xtmodkey(inputctx* ictx, int val, int mods){
+  assert(mods >= 0);
+  assert(val > 0);
+  logdebug("v/m %d %d\n", val, mods);
+  ncinput tni = {
+    .id = val,
+    .evtype = NCTYPE_UNKNOWN,
+  };
+  if(mods == 5){
+    tni.ctrl = 1;
   }
-#else
-  (void)sig; // FIXME
-#endif
+  load_ncinput(ictx, &tni, 0);
 }
 
 static void
@@ -515,7 +589,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   assert(val > 0);
   logdebug("v/m/e %d %d %d\n", val, mods, evtype);
   ncinput tni = {
-    .id = val == 0x7f ? NCKEY_BACKSPACE : val,
+    .id = val,
     .shift = mods && !!((mods - 1) & 0x1),
     .alt = mods && !!((mods - 1) & 0x2),
     .ctrl = mods && !!((mods - 1) & 0x4),
@@ -535,8 +609,6 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
       }
     }
   }
-  tni.x = 0;
-  tni.y = 0;
   switch(evtype){
     case 1:
       tni.evtype = NCTYPE_PRESS;
@@ -551,23 +623,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
       tni.evtype = NCTYPE_UNKNOWN;
       break;
   }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08x 0x%02x\n", val, mods);
-    inc_input_errors(ictx);
-    send_synth_signal(synth);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  memcpy(ni, &tni, sizeof(tni));
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-  send_synth_signal(synth);
+  load_ncinput(ictx, &tni, synth);
 }
 
 static int
@@ -601,6 +657,14 @@ kitty_keyboard_cb(inputctx* ictx){
     ictx->initdata->kbdlevel = level;
   }
   loginfo("kitty keyboard protocol level %u\n", level);
+  return 2;
+}
+
+static int
+xtmodkey_cb(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[27;", ';');
+  unsigned val = amata_next_numeric(&ictx->amata, "", '~');
+  xtmodkey(ictx, val, mods);
   return 2;
 }
 
@@ -882,6 +946,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\Nu", kitty_cb, },
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
+    { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
@@ -933,14 +998,6 @@ endpipes(int pipes[static 2]){
   }
   if(pipes[1] >= 0){
     close(pipes[1]);
-  }
-}
-
-static void
-mark_pipe_ready(int pipes[static 2]){
-  char sig = 1;
-  if(write(pipes[1], &sig, sizeof(sig)) != 1){
-    logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
   }
 }
 
@@ -1158,6 +1215,9 @@ prep_all_keys(inputctx* ictx){
   if(prep_kitty_special_keys(ictx)){
     return -1;
   }
+  if(prep_xtmodkeys(ictx)){
+    return -1;
+  }
   return 0;
 }
 
@@ -1193,61 +1253,6 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
 static inline bool
 ictx_independent_p(const inputctx* ictx){
   return ictx->termfd >= 0; // FIXME does this hold on MSFT Terminal?
-}
-
-// add a decoded, valid Unicode to the bulk output buffer, or drop it if no
-// space is available.
-static void
-add_unicode(inputctx* ictx, uint32_t id){
-  inc_input_events(ictx);
-  if(ictx->drain){
-    return;
-  }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", id);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  ni->id = id;
-  ni->alt = false;
-  ni->ctrl = false;
-  ni->shift = false;
-  ni->x = ni->y = 0;
-  ni->evtype = NCTYPE_UNKNOWN;
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-}
-
-static void
-special_key(inputctx* ictx, const ncinput* inni){
-  inc_input_events(ictx);
-  if(ictx->drain){
-    return;
-  }
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08xx\n", inni->id);
-    inc_input_errors(ictx);
-    return;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  memcpy(ni, inni, sizeof(*ni));
-  if(++ictx->iwrite == ictx->isize){
-    ictx->iwrite = 0;
-  }
-  ++ictx->ivalid;
-  mark_pipe_ready(ictx->readypipes);
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
@@ -1295,7 +1300,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
-          special_key(ictx, &ni);
+          load_ncinput(ictx, &ni, 0);
         }
         ictx->amata.used = 0;
         return used;
@@ -1373,7 +1378,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
     logwarn("invalid UTF8 initiator on input (0x%02x)\n", *buf);
     return -1;
   }else if(cpointlen == 1){ // pure ascii can't show up mid-utf8-character
-    if(buf[0] == 0x7f){ // ASCII del, treated as backspace
+    if(buf[0] == 0x7f || buf[0] == 0x8){ // ASCII del, treated as backspace
       ni->id = NCKEY_BACKSPACE;
     }else if(buf[0] == '\n' || buf[0] == '\r'){
       ni->id = NCKEY_ENTER;
@@ -1497,7 +1502,10 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
 static void
 process_ibuf(inputctx* ictx){
   if(resize_seen){
-    add_unicode(ictx, NCKEY_RESIZE);
+    ncinput tni = {
+      .id = NCKEY_RESIZE,
+    };
+    load_ncinput(ictx, &tni, 0);
     resize_seen = 0;
   }
   if(ictx->tbufvalid){
