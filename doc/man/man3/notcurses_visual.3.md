@@ -347,6 +347,8 @@ When using non-interpolative blitting together with scaling, unless your goal
 includes minimizing the total area required, lower-resolution blitters will
 generally look just as good as higher resolution blitters, and be faster.
 
+The results of **ncvisual_blitter_geom** are invalidated by a terminal resize.
+
 # BUGS
 
 Functions which describe rendered state such as **ncplane_at_yx** and

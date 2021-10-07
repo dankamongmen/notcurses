@@ -3272,6 +3272,7 @@ it was built up:
 //  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
 // Returns non-zero for an invalid 'vopts'. The blitter that will be used
 // is returned in '*blitter'.
+// These results are invalidated upon a terminal resize.
 int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
                           const struct ncvisual_options* vopts, int* y, int* x,
                           int* scaley, int* scalex, ncblitter_e* blitter);
