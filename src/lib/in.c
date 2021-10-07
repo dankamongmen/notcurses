@@ -665,6 +665,38 @@ kitty_cb_functional(inputctx* ictx){
 }
 
 static int
+kitty_cb_right(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'C');
+  kitty_kbd(ictx, NCKEY_RIGHT, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_left(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'D');
+  kitty_kbd(ictx, NCKEY_LEFT, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_down(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'B');
+  kitty_kbd(ictx, NCKEY_DOWN, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_up(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'A');
+  kitty_kbd(ictx, NCKEY_UP, mods, ev);
+  return 2;
+}
+
+static int
 kitty_cb_complex(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
@@ -971,6 +1003,10 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[\\N;\\N:\\N~", kitty_cb_functional, },
+    { "[1;\\N:\\ND", kitty_cb_left, },
+    { "[1;\\N:\\NC", kitty_cb_right, },
+    { "[1;\\N:\\NB", kitty_cb_down, },
+    { "[1;\\N:\\NA", kitty_cb_up, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
