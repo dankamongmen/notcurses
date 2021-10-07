@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <inttypes.h>
+#include <ncpp/Input.hh>
 #include <ncpp/Direct.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
@@ -114,6 +115,11 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }
     // if we just hit a non-space character to unpause, interpret it
     if(keyp == ' '){ // space for unpause
+      continue;
+    }
+    // we don't care about key release events, especially the enter
+    // release that starts so many interactive programs under Kitty
+    if(ni.evtype == EvType::Release){
       continue;
     }
     if(keyp == NCKey::Resize){
