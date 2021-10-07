@@ -83,6 +83,12 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
                     &cellpxy, &cellpxx, NULL, NULL);
   int odimy, odimx, scaley, scalex;
   ncvisual_blitter_geom(nc, ncv, &vopts, &odimy, &odimx, &scaley, &scalex, NULL);
+  // even if we can't do pixel output, we want her the same size as if weu
+  // *could* do pixel output. if we have no idea as to the geom, use scale.
+  if(cellpxy == 0){
+    cellpxy = scaley;
+    cellpxx = scalex;
+  }
   struct ncplane_options nopts = {
     .rows = (odimy / cellpxy) + !!(odimy % cellpxy),
     .cols = (odimx / cellpxx) + !!(odimx % cellpxx),
