@@ -373,10 +373,9 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    KKEYBOARD_PUSH \
                    XTMODKEYS \
-                   KITTYQUERY \
-                   XTMODKEYS \
                    KBDSUPPORT \
                    KBDQUERY \
+                   KITTYQUERY \
                    CREGSXTSM \
                    GEOMXTSM \
                    GEOMPIXEL \
