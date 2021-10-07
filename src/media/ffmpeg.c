@@ -687,7 +687,7 @@ int ffmpeg_init(int logl){
 }
 
 void ffmpeg_printbanner(fbuf* f){
-  fbuf_printf(f, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u avcodec %u.%u.%u\n",
+  fbuf_printf(f, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u avcodec %u.%u.%u" NL,
               LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
               LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
               LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,

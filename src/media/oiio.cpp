@@ -198,7 +198,7 @@ auto oiio_destroy(ncvisual* ncv) -> void {
 void oiio_printbanner(fbuf* f){
   fbuf_puts(f, "openimageio ");
   fbuf_puts(f, OIIO_VERSION_STRING);
-  fbuf_putc(f, '\n');
+  fbuf_puts(f, NL);
 }
 
 #endif

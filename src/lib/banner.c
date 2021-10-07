@@ -8,11 +8,11 @@ init_banner_warnings(const notcurses* nc, fbuf* f, const char* clreol){
   term_fg_palindex(nc, f, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   if(!notcurses_canutf8(nc)){
     fbuf_puts(f, clreol);
-    fbuf_puts(f, " Warning! Encoding is not UTF-8; output may be degraded.\n");
+    fbuf_puts(f, " Warning! Encoding is not UTF-8; output may be degraded." NL);
   }
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
     fbuf_puts(f, clreol);
-    fbuf_puts(f, " Warning! No absolute horizontal placement.\n");
+    fbuf_puts(f, " Warning! No absolute horizontal placement." NL);
   }
   return 0;
 }
@@ -26,7 +26,7 @@ int init_banner(const notcurses* nc, fbuf* f){
   }
   if(!nc->suppress_banner){
     term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
-    fbuf_printf(f, "%snotcurses %s on %s %s\n",
+    fbuf_printf(f, "%snotcurses %s on %s %s" NL,
                 clreol, notcurses_version(),
                 nc->tcache.termname ? nc->tcache.termname : "?",
                 nc->tcache.termversion ? nc->tcache.termversion : "");
@@ -54,7 +54,7 @@ int init_banner(const notcurses* nc, fbuf* f){
                        14 % nc->tcache.caps.colors : 0x2080e0);
       fbuf_putc(f, '+');
     }
-    fbuf_printf(f, "%u colors\n%s%s%s (%s)\n%sterminfo from %s zlib %s GPM %s\n",
+    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo from %s zlib %s GPM %s" NL,
                 nc->tcache.caps.colors, clreol,
 #ifdef __clang__
             "", // name is contained in __VERSION__

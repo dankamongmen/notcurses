@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #ifdef  __MINGW64__
+#define NL "\r\n"
 #include <Lmcons.h>
 #include <winsock2.h>
 #define tcgetattr(x, y) (0)
@@ -56,6 +57,7 @@ struct winsize {
 };
 #define WNOHANG 0
 #else
+#define NL "\n"
 #include <poll.h>
 #include <termios.h>
 #include <sys/wait.h>
