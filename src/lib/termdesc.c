@@ -321,7 +321,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // request kitty keyboard protocol through level 1, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
 // FIXME go to level 11, but first need handle all functional keys
-#define KBDSUPPORT "\x1b[=1u"
+#define KBDSUPPORT "\x1b[=3u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this
