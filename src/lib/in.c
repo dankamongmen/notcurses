@@ -165,6 +165,7 @@ prep_special_keys(inputctx* ictx){
     bool shift, ctrl, alt;
   } keys[] = {
     // backspace (kbs) is handled seperately at the end
+    { .tinfo = "kbeg",  .key = NCKEY_BEGIN, },
     { .tinfo = "kcbt",  .key = '\t', .shift = true, }, // "back-tab"
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
@@ -252,6 +253,12 @@ prep_special_keys(inputctx* ictx){
     { .tinfo = "kext",  .key = NCKEY_EXIT, },
     { .tinfo = "kprt",  .key = NCKEY_PRINT, },
     { .tinfo = "krfr",  .key = NCKEY_REFRESH, },
+    { .tinfo = "kBEG",  .key = NCKEY_BEGIN, .shift = 1, },
+    { .tinfo = "kBEG3", .key = NCKEY_BEGIN, .alt = 1, },
+    { .tinfo = "kBEG4", .key = NCKEY_BEGIN, .alt = 1, .shift = 1, },
+    { .tinfo = "kBEG5", .key = NCKEY_BEGIN, .ctrl = 1, },
+    { .tinfo = "kBEG6", .key = NCKEY_BEGIN, .ctrl = 1, .shift = 1, },
+    { .tinfo = "kBEG7", .key = NCKEY_BEGIN, .alt = 1, .ctrl = 1, },
     { .tinfo = "kDC",   .key = NCKEY_DEL, .shift = 1, },
     { .tinfo = "kDC3",  .key = NCKEY_DEL, .alt = 1, },
     { .tinfo = "kDC4",  .key = NCKEY_DEL, .alt = 1, .shift = 1, },
@@ -581,6 +588,46 @@ xtmodkey(inputctx* ictx, int val, int mods){
   load_ncinput(ictx, &tni, 0);
 }
 
+static uint32_t
+kitty_functional(uint32_t val){
+  if(val >= 57344 && val <= 63743){
+    if(val >= 57376 && val <= 57398){
+      val = NCKEY_F13 + val - 57376;
+    }else if(val >= 57428 && val <= 57440){
+      val = NCKEY_MEDIA_PLAY + val - 57428;
+    }else if(val >= 57399 && val <= 57408){
+      val = '0' + val - 57399;
+    }else switch(val){
+      case 57358: val = NCKEY_CAPS_LOCK; break;
+      case 57400: val = '1'; break;
+      case 57359: val = NCKEY_SCROLL_LOCK; break;
+      case 57360: val = NCKEY_NUM_LOCK; break;
+      case 57361: val = NCKEY_PRINT_SCREEN; break;
+      case 57362: val = NCKEY_PAUSE; break;
+      case 57363: val = NCKEY_MENU; break;
+      case 57409: val = '.'; break;
+      case 57410: val = '/'; break;
+      case 57411: val = '*'; break;
+      case 57412: val = '-'; break;
+      case 57413: val = '+'; break;
+      case 57414: val = NCKEY_ENTER; break;
+      case 57415: val = '='; break;
+      case 57417: val = NCKEY_LEFT; break;
+      case 57418: val = NCKEY_RIGHT; break;
+      case 57419: val = NCKEY_UP; break;
+      case 57420: val = NCKEY_DOWN; break;
+      case 57421: val = NCKEY_PGUP; break;
+      case 57422: val = NCKEY_PGDOWN; break;
+      case 57423: val = NCKEY_HOME; break;
+      case 57424: val = NCKEY_END; break;
+      case 57425: val = NCKEY_INS; break;
+      case 57426: val = NCKEY_DEL; break;
+      case 57427: val = NCKEY_BEGIN; break;
+    }
+  }
+  return val;
+}
+
 static void
 kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   int synth = 0;
@@ -589,7 +636,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   assert(val > 0);
   logdebug("v/m/e %d %d %d\n", val, mods, evtype);
   ncinput tni = {
-    .id = val,
+    .id = kitty_functional(val),
     .shift = mods && !!((mods - 1) & 0x1),
     .alt = mods && !!((mods - 1) & 0x2),
     .ctrl = mods && !!((mods - 1) & 0x4),
@@ -629,20 +676,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
 static int
 kitty_cb_simple(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", 'u');
-  if(val >= 57344 && val <= 63743){
-    if(val >= 57376 && val <= 57398){
-      val = NCKEY_F13 + val - 57376;
-    }else if(val >= 57428 && val <= 57440){
-      val = NCKEY_MEDIA_PLAY + val - 57428;
-    }else switch(val){
-      case 57358: val = NCKEY_CAPS_LOCK; break;
-      case 57359: val = NCKEY_SCROLL_LOCK; break;
-      case 57360: val = NCKEY_NUM_LOCK; break;
-      case 57361: val = NCKEY_PRINT_SCREEN; break;
-      case 57362: val = NCKEY_PAUSE; break;
-      case 57363: val = NCKEY_MENU; break;
-    }
-  }
+  val = kitty_functional(val);
   kitty_kbd(ictx, val, 0, 0);
   return 2;
 }
@@ -660,27 +694,30 @@ kitty_cb_functional(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", '~');
-  switch(val){
-    case 2: val = NCKEY_INS; break;
-    case 3: val = NCKEY_DEL; break;
-    case 5: val = NCKEY_PGUP; break;
-    case 6: val = NCKEY_PGDOWN; break;
-    case 7: val = NCKEY_HOME; break;
-    case 8: val = NCKEY_END; break;
-    case 11: val = NCKEY_F01; break;
-    case 12: val = NCKEY_F02; break;
-    case 13: val = NCKEY_F03; break;
-    case 14: val = NCKEY_F04; break;
-    case 15: val = NCKEY_F05; break;
-    case 17: val = NCKEY_F06; break;
-    case 18: val = NCKEY_F07; break;
-    case 19: val = NCKEY_F08; break;
-    case 20: val = NCKEY_F09; break;
-    case 21: val = NCKEY_F10; break;
-    case 23: val = NCKEY_F11; break;
-    case 24: val = NCKEY_F12; break;
+  uint32_t kval = kitty_functional(val);
+  if(kval == val){
+    switch(val){
+      case 2: kval = NCKEY_INS; break;
+      case 3: kval = NCKEY_DEL; break;
+      case 5: kval = NCKEY_PGUP; break;
+      case 6: kval = NCKEY_PGDOWN; break;
+      case 7: kval = NCKEY_HOME; break;
+      case 8: kval = NCKEY_END; break;
+      case 11: kval = NCKEY_F01; break;
+      case 12: kval = NCKEY_F02; break;
+      case 13: kval = NCKEY_F03; break;
+      case 14: kval = NCKEY_F04; break;
+      case 15: kval = NCKEY_F05; break;
+      case 17: kval = NCKEY_F06; break;
+      case 18: kval = NCKEY_F07; break;
+      case 19: kval = NCKEY_F08; break;
+      case 20: kval = NCKEY_F09; break;
+      case 21: kval = NCKEY_F10; break;
+      case 23: kval = NCKEY_F11; break;
+      case 24: kval = NCKEY_F12; break;
+    }
   }
-  kitty_kbd(ictx, val, mods, ev);
+  kitty_kbd(ictx, kval, mods, ev);
   return 2;
 }
 
@@ -749,6 +786,14 @@ kitty_cb_up(inputctx* ictx){
 }
 
 static int
+kitty_cb_begin(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'E');
+  kitty_kbd(ictx, NCKEY_BEGIN, mods, ev);
+  return 2;
+}
+
+static int
 kitty_cb_end(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'F');
@@ -769,6 +814,7 @@ kitty_cb_complex(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'u');
+  val = kitty_functional(val);
   kitty_kbd(ictx, val, mods, ev);
   return 2;
 }
@@ -1079,6 +1125,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NC", kitty_cb_right, },
     { "[1;\\N:\\NB", kitty_cb_down, },
     { "[1;\\N:\\NA", kitty_cb_up, },
+    { "[1;\\N:\\NE", kitty_cb_begin, },
     { "[1;\\N:\\NF", kitty_cb_end, },
     { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
