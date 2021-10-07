@@ -43,10 +43,19 @@ const demoresult* demoresult_lookup(int idx){
   return &results[idx];
 }
 
+static inline const char*
+path_separator(void){
+#ifdef __MINGW64__
+  return "\\";
+#else
+  return "/";
+#endif
+}
+
 char* find_data(const char* datum){
   char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
   strcpy(path, datadir);
-  strcat(path, "/");
+  strcat(path, path_separator());
   strcat(path, datum);
   return path;
 }
