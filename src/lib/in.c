@@ -665,6 +665,38 @@ kitty_cb_functional(inputctx* ictx){
 }
 
 static int
+kitty_cb_f1(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'P');
+  kitty_kbd(ictx, NCKEY_F01, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_f2(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'Q');
+  kitty_kbd(ictx, NCKEY_F02, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_f3(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'R');
+  kitty_kbd(ictx, NCKEY_F03, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_f4(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'S');
+  kitty_kbd(ictx, NCKEY_F04, mods, ev);
+  return 2;
+}
+
+static int
 kitty_cb_right(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'C');
@@ -1003,6 +1035,10 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[\\N;\\N:\\N~", kitty_cb_functional, },
+    { "[1;\\N:\\NP", kitty_cb_f1, },
+    { "[1;\\N:\\NQ", kitty_cb_f2, },
+    { "[1;\\N:\\NR", kitty_cb_f3, },
+    { "[1;\\N:\\NS", kitty_cb_f4, },
     { "[1;\\N:\\ND", kitty_cb_left, },
     { "[1;\\N:\\NC", kitty_cb_right, },
     { "[1;\\N:\\NB", kitty_cb_down, },
