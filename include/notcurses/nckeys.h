@@ -102,9 +102,9 @@ extern "C" {
 #define NCKEY_CAPS_LOCK    suppuabize(150)
 #define NCKEY_SCROLL_LOCK  suppuabize(151)
 #define NCKEY_NUM_LOCK     suppuabize(152)
-#define NCKEY_PRINT_SCREEN suppuabize(150)
-#define NCKEY_PAUSE        suppuabize(151)
-#define NCKEY_MENU         suppuabize(152)
+#define NCKEY_PRINT_SCREEN suppuabize(153)
+#define NCKEY_PAUSE        suppuabize(154)
+#define NCKEY_MENU         suppuabize(155)
 // media keys, similarly only available through kitty's protocol
 #define NCKEY_MEDIA_PLAY   suppuabize(158)
 #define NCKEY_MEDIA_PAUSE  suppuabize(159)
