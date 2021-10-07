@@ -98,6 +98,27 @@ extern "C" {
 #define NCKEY_EXIT      suppuabize(133)
 #define NCKEY_PRINT     suppuabize(134)
 #define NCKEY_REFRESH   suppuabize(135)
+// these keys aren't generally available outside of the kitty protocol
+#define NCKEY_CAPS_LOCK    suppuabize(150)
+#define NCKEY_SCROLL_LOCK  suppuabize(151)
+#define NCKEY_NUM_LOCK     suppuabize(152)
+#define NCKEY_PRINT_SCREEN suppuabize(150)
+#define NCKEY_PAUSE        suppuabize(151)
+#define NCKEY_MENU         suppuabize(152)
+// media keys, similarly only available through kitty's protocol
+#define NCKEY_MEDIA_PLAY   suppuabize(158)
+#define NCKEY_MEDIA_PAUSE  suppuabize(159)
+#define NCKEY_MEDIA_PPAUSE suppuabize(160)
+#define NCKEY_MEDIA_REV    suppuabize(161)
+#define NCKEY_MEDIA_STOP   suppuabize(162)
+#define NCKEY_MEDIA_FF     suppuabize(163)
+#define NCKEY_MEDIA_REWIND suppuabize(164)
+#define NCKEY_MEDIA_NEXT   suppuabize(165)
+#define NCKEY_MEDIA_PREV   suppuabize(166)
+#define NCKEY_MEDIA_RECORD suppuabize(167)
+#define NCKEY_MEDIA_LVOL   suppuabize(168)
+#define NCKEY_MEDIA_RVOL   suppuabize(169)
+#define NCKEY_MEDIA_MUTE   suppuabize(170)
 // Mouse events. We try to encode some details into the char32_t (i.e. which
 // button was pressed), but some is embedded in the ncinput event. The release
 // event is generic across buttons; callers must maintain state, if they care.
