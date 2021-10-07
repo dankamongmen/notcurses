@@ -445,6 +445,7 @@ If things break or seem otherwise lackluster, **please** consult the
   everything it's told to write. It is furthermore far less capable—all
   widgets etc. are available only to rendered mode, and will definitely
   not be extended to Direct Mode.
+</details>
 
 <details>
   <summary>Will there ever be Java wrappers?</summary>
