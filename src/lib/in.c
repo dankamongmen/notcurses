@@ -629,6 +629,20 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
 static int
 kitty_cb_simple(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", 'u');
+  if(val >= 57344 && val <= 63743){
+    if(val >= 57376 && val <= 57398){
+      val = NCKEY_F13 + val - 57376;
+    }else if(val >= 57428 && val <= 57440){
+      val = NCKEY_MEDIA_PLAY + val - 57428;
+    }else switch(val){
+      case 57358: val = NCKEY_CAPS_LOCK; break;
+      case 57359: val = NCKEY_SCROLL_LOCK; break;
+      case 57360: val = NCKEY_NUM_LOCK; break;
+      case 57361: val = NCKEY_PRINT_SCREEN; break;
+      case 57362: val = NCKEY_PAUSE; break;
+      case 57363: val = NCKEY_MENU; break;
+    }
+  }
   kitty_kbd(ictx, val, 0, 0);
   return 2;
 }
@@ -647,6 +661,12 @@ kitty_cb_functional(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", '~');
   switch(val){
+    case 2: val = NCKEY_INS; break;
+    case 3: val = NCKEY_DEL; break;
+    case 5: val = NCKEY_PGUP; break;
+    case 6: val = NCKEY_PGDOWN; break;
+    case 7: val = NCKEY_HOME; break;
+    case 8: val = NCKEY_END; break;
     case 11: val = NCKEY_F01; break;
     case 12: val = NCKEY_F02; break;
     case 13: val = NCKEY_F03; break;
@@ -725,6 +745,22 @@ kitty_cb_up(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'A');
   kitty_kbd(ictx, NCKEY_UP, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_end(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'F');
+  kitty_kbd(ictx, NCKEY_END, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_home(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", 'H');
+  kitty_kbd(ictx, NCKEY_HOME, mods, ev);
   return 2;
 }
 
@@ -1043,6 +1079,8 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NC", kitty_cb_right, },
     { "[1;\\N:\\NB", kitty_cb_down, },
     { "[1;\\N:\\NA", kitty_cb_up, },
+    { "[1;\\N:\\NF", kitty_cb_end, },
+    { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
