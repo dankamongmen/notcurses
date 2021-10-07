@@ -125,6 +125,26 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
+    case NCKEY_CAPS_LOCK: return "caps lock";
+    case NCKEY_SCROLL_LOCK: return "scroll lock";
+    case NCKEY_NUM_LOCK: return "num lock";
+    case NCKEY_PRINT_SCREEN: return "print screen";
+    case NCKEY_PAUSE: return "pause";
+    case NCKEY_MENU: return "menu";
+    // media keys, similarly only available through kitty's protocol
+    case NCKEY_MEDIA_PLAY: return "play";
+    case NCKEY_MEDIA_PAUSE: return "pause";
+    case NCKEY_MEDIA_PPAUSE: return "play-pause";
+    case NCKEY_MEDIA_REV: return "reverse";
+    case NCKEY_MEDIA_STOP: return "stop";
+    case NCKEY_MEDIA_FF: return "fast-forward";
+    case NCKEY_MEDIA_REWIND: return "rewind";
+    case NCKEY_MEDIA_NEXT: return "next track";
+    case NCKEY_MEDIA_PREV: return "previous track";
+    case NCKEY_MEDIA_RECORD: return "record";
+    case NCKEY_MEDIA_LVOL: return "lower volume";
+    case NCKEY_MEDIA_RVOL: return "raise volume";
+    case NCKEY_MEDIA_MUTE: return "mute";
     case NCKEY_BUTTON1: return "mouse (button 1)";
     case NCKEY_BUTTON2: return "mouse (button 2)";
     case NCKEY_BUTTON3: return "mouse (button 3)";
