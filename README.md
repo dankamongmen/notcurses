@@ -522,6 +522,15 @@ If things break or seem otherwise lackluster, **please** consult the
   writes directly into a memory map.
 </details>
 
+<details>
+  <summary>I get a `NCKEY_ENTER` immediately after launching a Notcurses
+  program, but I didn't press Enter.</summary>
+  When the Kitty keyboard disambiguation protocol is in use, events are
+  generated for both the press and release of keys. If you launched
+  your program from an interactive shell, you almost certainly released
+  enter after the program was launched.
+</details>
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
