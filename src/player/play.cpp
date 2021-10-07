@@ -104,6 +104,11 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else{
       keyp = nc.get(false, &ni);
     }
+    // we don't care about key release events, especially the enter
+    // release that starts so many interactive programs under Kitty
+    if(ni.evtype == EvType::Release){
+      continue;
+    }
     if(keyp == 0){
       break;
     }
@@ -113,13 +118,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
         return -1;
       }
     }
-    // if we just hit a non-space character to unpause, interpret it
+    // if we just hit a non-space character to unpause, ignore it
     if(keyp == ' '){ // space for unpause
-      continue;
-    }
-    // we don't care about key release events, especially the enter
-    // release that starts so many interactive programs under Kitty
-    if(ni.evtype == EvType::Release){
       continue;
     }
     if(keyp == NCKey::Resize){
