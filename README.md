@@ -254,6 +254,8 @@ If things break or seem otherwise lackluster, **please** consult the
    <code>NCOPTION_NO_CLEAR_BITMAPS</code>, and <code>NCOPTION_PRESERVE_CURSOR</code>,
    and call `ncplane_set_scrolling()` on the standard plane. You still must
    explicitly render.
+</details>
+
 <details>
   <summary>Can I have Notcurses without this huge multimedia stack?</summary>
   Again yes! Build with <code>-DUSE_MULTIMEDIA=none</code>.
