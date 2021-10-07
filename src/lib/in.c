@@ -642,6 +642,29 @@ kitty_cb(inputctx* ictx){
 }
 
 static int
+kitty_cb_functional(inputctx* ictx){
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
+  unsigned ev = amata_next_numeric(&ictx->amata, "", '~');
+  switch(val){
+    case 11: val = NCKEY_F01; break;
+    case 12: val = NCKEY_F02; break;
+    case 13: val = NCKEY_F03; break;
+    case 14: val = NCKEY_F04; break;
+    case 15: val = NCKEY_F05; break;
+    case 17: val = NCKEY_F06; break;
+    case 18: val = NCKEY_F07; break;
+    case 19: val = NCKEY_F08; break;
+    case 20: val = NCKEY_F09; break;
+    case 21: val = NCKEY_F10; break;
+    case 23: val = NCKEY_F11; break;
+    case 24: val = NCKEY_F12; break;
+  }
+  kitty_kbd(ictx, val, mods, ev);
+  return 2;
+}
+
+static int
 kitty_cb_complex(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
@@ -947,6 +970,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\Nu", kitty_cb, },
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
+    { "[\\N;\\N:\\N~", kitty_cb_functional, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
