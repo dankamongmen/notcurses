@@ -597,6 +597,8 @@ kitty_functional(uint32_t val){
       val = NCKEY_MEDIA_PLAY + val - 57428;
     }else if(val >= 57399 && val <= 57408){
       val = '0' + val - 57399;
+    }else if(val >= 57441 && val <= 57452){
+      val = NCKEY_LSHIFT + val - 57441;
     }else switch(val){
       case 57358: val = NCKEY_CAPS_LOCK; break;
       case 57400: val = '1'; break;
@@ -623,6 +625,10 @@ kitty_functional(uint32_t val){
       case 57425: val = NCKEY_INS; break;
       case 57426: val = NCKEY_DEL; break;
       case 57427: val = NCKEY_BEGIN; break;
+    }
+  }else{
+    switch(val){
+      case 0xd: val = NCKEY_ENTER; break;
     }
   }
   return val;
