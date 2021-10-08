@@ -103,13 +103,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else{
       keyp = nc.get(false, &ni);
     }
+    if(keyp == 0){
+      break;
+    }
     // we don't care about key release events, especially the enter
     // release that starts so many interactive programs under Kitty
     if(ni.evtype == EvType::Release){
       continue;
-    }
-    if(keyp == 0){
-      break;
     }
     if(keyp == ' '){
       if((keyp = nc.get(true)) == (uint32_t)-1){
