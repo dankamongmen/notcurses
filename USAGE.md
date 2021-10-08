@@ -3378,6 +3378,13 @@ struct ncvisual_options {
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
   uint32_t transcolor; // used only if NCVISUAL_OPTION_ADDALPHA is set
+  // pixel offsets within the cell. if NCBLIT_PIXEL is used, the bitmap will
+  // be drawn offset from the upper-left cell's origin by these amounts. it is
+  // an error if either number exceeds the cell-pixel geometry in its
+  // dimension. if NCBLIT_PIXEL is not used, these fields are ignored.
+  // this functionality can be used for smooth bitmap movement.
+  // FIXME not yet implemented.
+  unsigned pxoffy, pxoffx;
 };
 
 typedef enum {
