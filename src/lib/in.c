@@ -689,6 +689,31 @@ kitty_cb(inputctx* ictx){
   return 2;
 }
 
+static uint32_t
+legacy_functional(uint32_t id){
+  switch(id){
+    case 2: id = NCKEY_INS; break;
+    case 3: id = NCKEY_DEL; break;
+    case 5: id = NCKEY_PGUP; break;
+    case 6: id = NCKEY_PGDOWN; break;
+    case 7: id = NCKEY_HOME; break;
+    case 8: id = NCKEY_END; break;
+    case 11: id = NCKEY_F01; break;
+    case 12: id = NCKEY_F02; break;
+    case 13: id = NCKEY_F03; break;
+    case 14: id = NCKEY_F04; break;
+    case 15: id = NCKEY_F05; break;
+    case 17: id = NCKEY_F06; break;
+    case 18: id = NCKEY_F07; break;
+    case 19: id = NCKEY_F08; break;
+    case 20: id = NCKEY_F09; break;
+    case 21: id = NCKEY_F10; break;
+    case 23: id = NCKEY_F11; break;
+    case 24: id = NCKEY_F12; break;
+  }
+  return id;
+}
+
 static int
 kitty_cb_functional(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
@@ -696,28 +721,18 @@ kitty_cb_functional(inputctx* ictx){
   unsigned ev = amata_next_numeric(&ictx->amata, "", '~');
   uint32_t kval = kitty_functional(val);
   if(kval == val){
-    switch(val){
-      case 2: kval = NCKEY_INS; break;
-      case 3: kval = NCKEY_DEL; break;
-      case 5: kval = NCKEY_PGUP; break;
-      case 6: kval = NCKEY_PGDOWN; break;
-      case 7: kval = NCKEY_HOME; break;
-      case 8: kval = NCKEY_END; break;
-      case 11: kval = NCKEY_F01; break;
-      case 12: kval = NCKEY_F02; break;
-      case 13: kval = NCKEY_F03; break;
-      case 14: kval = NCKEY_F04; break;
-      case 15: kval = NCKEY_F05; break;
-      case 17: kval = NCKEY_F06; break;
-      case 18: kval = NCKEY_F07; break;
-      case 19: kval = NCKEY_F08; break;
-      case 20: kval = NCKEY_F09; break;
-      case 21: kval = NCKEY_F10; break;
-      case 23: kval = NCKEY_F11; break;
-      case 24: kval = NCKEY_F12; break;
-    }
+    kval = legacy_functional(val);
   }
   kitty_kbd(ictx, kval, mods, ev);
+  return 2;
+}
+
+static int
+wezterm_cb(inputctx* ictx){
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned mods = amata_next_numeric(&ictx->amata, "", '~');
+  uint32_t kval = legacy_functional(val);
+  kitty_kbd(ictx, kval, mods, 0);
   return 2;
 }
 
@@ -1113,6 +1128,7 @@ build_cflow_automaton(inputctx* ictx){
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
+    { "[\\N;\\N~", wezterm_cb, },
     { "[\\N;\\Nu", kitty_cb, },
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
