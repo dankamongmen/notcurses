@@ -145,6 +145,18 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_MEDIA_LVOL: return "lower volume";
     case NCKEY_MEDIA_RVOL: return "raise volume";
     case NCKEY_MEDIA_MUTE: return "mute";
+    case NCKEY_LSHIFT: return "left shift";
+    case NCKEY_LCTRL: return "left ctrl";
+    case NCKEY_LALT: return "left alt";
+    case NCKEY_LSUPER: return "left super";
+    case NCKEY_LHYPER: return "left hyper";
+    case NCKEY_LMETA: return "left meta";
+    case NCKEY_RSHIFT: return "right shift";
+    case NCKEY_RCTRL: return "right ctrl";
+    case NCKEY_RALT: return "right alt";
+    case NCKEY_RSUPER: return "right super";
+    case NCKEY_RHYPER: return "right hyper";
+    case NCKEY_RMETA: return "right meta";
     case NCKEY_BUTTON1: return "mouse (button 1)";
     case NCKEY_BUTTON2: return "mouse (button 2)";
     case NCKEY_BUTTON3: return "mouse (button 3)";
