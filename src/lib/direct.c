@@ -991,6 +991,9 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   uint32_t id;
   int oldx = xstart;
   while((id = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
+    if(ni.evtype == NCTYPE_RELEASE){
+      continue;
+    }
     if(id == NCKEY_EOF || id == NCKEY_ENTER){
       if(id == NCKEY_ENTER){
         if(fputc('\n', n->ttyfp) < 0){
