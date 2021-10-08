@@ -239,8 +239,10 @@ Some characters seem to cause problems with one terminal or another. These
 are best avoided until the problems are better understood:
 
 * '­' U+00AD SOFT HYPHEN (some terminals allocate it a cell, some don't)
-* '܏' U+070F SYRIAC ABBREVIATION MARK
-* '۝' U+06DD ARABIC END OF AYAH
+* '܏' U+070F [SYRIAC ABBREVIATION MARK](https://en.wikipedia.org/wiki/Syriac_Abbreviation_Mark): puts an
+  overbar above following characters until a non-Syriac character is found.
+* '۝' U+06DD[ARABIC END OF AYAH](https://scriptsource.org/cms/scripts/page.php?item_id=character_detail_des&key=U0006DD):
+   bound to up to three digits, which ought be drawn inside.
 * '࣢' U+08E2 ARABIC DISPUTED END OF AYAH
 * '﷽' U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM
 
