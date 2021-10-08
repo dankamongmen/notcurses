@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <iostream>
 #include <inttypes.h>
-#include <ncpp/Input.hh>
 #include <ncpp/Direct.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
@@ -410,20 +409,23 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               ncplane_destroy(n);
               return -1;
             }
-            uint32_t ie = nc.get(true);
-            if(ie == (uint32_t)-1){
+            ncinput ni;
+            do{
+              nc.get(true, &ni);
+            }while(ni.evtype == EvType::Release);
+            if(ni.id == (uint32_t)-1){
               return -1;
-            }else if(ie == 'q'){
+            }else if(ni.id == 'q'){
               return 0;
-            }else if(ie == 'L'){
+            }else if(ni.id == 'L'){
               --i;
               nc.refresh(nullptr, nullptr);
-            }else if(ie >= '0' && ie <= '6'){
-              blitter = vopts.blitter = static_cast<ncblitter_e>(ie - '0');
+            }else if(ni.id >= '0' && ni.id <= '6'){
+              blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
               --i; // rerun same input with the new blitter
-            }else if(ie >= '7' && ie <= '9'){
+            }else if(ni.id >= '7' && ni.id <= '9'){
               --i; // just absorb the input
-            }else if(ie == NCKey::Resize){
+            }else if(ni.id == NCKey::Resize){
               --i; // rerun with the new size
               if(!nc.refresh(&dimy, &dimx)){
                 ncplane_destroy(n);
