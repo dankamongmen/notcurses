@@ -119,8 +119,22 @@ extern "C" {
 #define NCKEY_MEDIA_LVOL   suppuabize(168)
 #define NCKEY_MEDIA_RVOL   suppuabize(169)
 #define NCKEY_MEDIA_MUTE   suppuabize(170)
-// Mouse events. We try to encode some details into the char32_t (i.e. which
-// button was pressed), but some is embedded in the ncinput event. The release
+// modifiers when pressed by themselves. this ordering comes from the Kitty
+// keyboard protocol, and mustn't be changed without updating handlers.
+#define NCKEY_LSHIFT       suppuabize(171)
+#define NCKEY_LCTRL        suppuabize(172)
+#define NCKEY_LALT         suppuabize(173)
+#define NCKEY_LSUPER       suppuabize(174)
+#define NCKEY_LHYPER       suppuabize(175)
+#define NCKEY_LMETA        suppuabize(176)
+#define NCKEY_RSHIFT       suppuabize(177)
+#define NCKEY_RCTRL        suppuabize(178)
+#define NCKEY_RALT         suppuabize(179)
+#define NCKEY_RSUPER       suppuabize(180)
+#define NCKEY_RHYPER       suppuabize(181)
+#define NCKEY_RMETA        suppuabize(182)
+// mouse events. We try to encode some details into the char32_t (i.e. which
+// button was pressed), but some is embedded in the ncinput event. the release
 // event is generic across buttons; callers must maintain state, if they care.
 #define NCKEY_BUTTON1   suppuabize(201)
 #define NCKEY_BUTTON2   suppuabize(202)
