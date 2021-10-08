@@ -477,6 +477,14 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>Notcurses initialization locks up in MSYS2/Cygwin.</summary>
+  Notcurses requires the [Windows ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/)
+  layer. This is available in Cygwin by default since 3.2.0, but is disabled
+  by default in MSYS. Launch `mintty` with `-P on` arguments, or export
+  `MSYS=enable_pcon` before launching it.
+</details>
+
+<details>
   <summary>Can I avoid manually exporting <code>COLORTERM=24bit</code>
   everywhere?</summary>
   Sure. Add <code>SendEnv COLORTERM</code> to <code>.ssh/config</code>, and
