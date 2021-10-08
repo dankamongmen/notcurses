@@ -112,11 +112,6 @@ namespace ncpp
 		static constexpr char32_t ScrollDown = NCKEY_SCROLL_DOWN;
 		static constexpr char32_t Return    = NCKEY_RETURN;
 
-		static constexpr int TypeUnknown = ncinput::NCTYPE_UNKNOWN;
-		static constexpr int TypePress   = ncinput::NCTYPE_PRESS;
-		static constexpr int TypeRepeat  = ncinput::NCTYPE_REPEAT;
-		static constexpr int TypeRelease = ncinput::NCTYPE_RELEASE;
-
 		static bool IsMouse (char32_t ch) noexcept
 		{
 			return nckey_mouse_p (ch);
@@ -127,5 +122,14 @@ namespace ncpp
 			return nckey_supppuab_p (ch);
 		}
 	};
+
+	struct EvType
+	{
+		static constexpr unsigned Unknown = ncinput::NCTYPE_UNKNOWN;
+		static constexpr unsigned Press = ncinput::NCTYPE_PRESS;
+		static constexpr unsigned Repeat = ncinput::NCTYPE_REPEAT;
+		static constexpr unsigned Release = ncinput::NCTYPE_RELEASE;
+	};
+
 }
 #endif

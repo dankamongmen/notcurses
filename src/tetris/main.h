@@ -6,6 +6,9 @@ bool IOLoop(ncpp::NotCurses& nc, Tetris& t, std::atomic_bool& gameover) {
     if(input == 'q'){
       break;
     }
+    if(ni.evtype == ncpp::EvType::Release){
+      continue;
+    }
     ncmtx.lock();
     switch(input){
       case NCKEY_LEFT: case 'h': t.MoveLeft(); break;

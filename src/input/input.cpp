@@ -225,13 +225,13 @@ void Ticker(ncpp::NotCurses* nc) {
 
 char evtype_to_char(ncinput* ni){
   switch(ni->evtype){
-    case NCKey::TypeUnknown:
+    case EvType::Unknown:
       return 'u';
-    case NCKey::TypePress:
+    case EvType::Press:
       return 'P';
-    case NCKey::TypeRepeat:
+    case EvType::Repeat:
       return 'R';
-    case NCKey::TypeRelease:
+    case EvType::Release:
       return 'L';
   }
   return 'X';
