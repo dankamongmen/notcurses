@@ -340,6 +340,9 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
 //  * anything with Ctrl, except 'U' (which clears all input)
 //  * anything synthesized, save arrow keys and backspace
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
+  if(ni->evtype == NCTYPE_RELEASE){
+    return false;
+  }
   if(ni->ctrl && !n->no_cmd_keys){
     return ncreader_ctrl_input(n, ni);
   }else if(ni->alt && !n->no_cmd_keys){
