@@ -2804,7 +2804,6 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
 #define NCVISUAL_OPTION_ADDALPHA      0x0010ull // transcolor is in effect
 #define NCVISUAL_OPTION_CHILDPLANE    0x0020ull // interpret n as parent
 #define NCVISUAL_OPTION_NOINTERPOLATE 0x0040ull // non-interpolative scaling
-                                                // 0x0080 is used internally
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2834,6 +2833,13 @@ struct ncvisual_options {
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
   uint32_t transcolor; // treat this color as transparent under NCVISUAL_OPTION_ADDALPHA
+  // pixel offsets within the cell. if NCBLIT_PIXEL is used, the bitmap will
+  // be drawn offset from the upper-left cell's origin by these amounts. it is
+  // an error if either number exceeds the cell-pixel geometry in its
+  // dimension. if NCBLIT_PIXEL is not used, these fields are ignored.
+  // this functionality can be used for smooth bitmap movement.
+  // FIXME not yet implemented.
+  unsigned pxoffy, pxoffx;
 };
 
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.

@@ -47,6 +47,7 @@ struct ncvisual_options {
   ncblitter_e blitter; // glyph set to use
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
   uint32_t transcolor; // use this color for ADDALPHA
+  unsigned pxoffy, pxoffx; // pixel offset from origin
 };
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
@@ -286,6 +287,12 @@ Only one bitmap can be blitted onto a plane at a time (but multiple planes
 with bitmaps may be visible); blitting a second to the same plane will delete
 the original.
 
+**pxoffy** and **pxoffx** can specify an offset from the origin of the upper
+left cell. This can be used for absolute positioning of a bitmap, or for
+smooth movement of same. It is an error if **pxoffy** exceeds the cell height
+in pixels, or **pxoffx** exceeds the cell width in pixels. If
+**NCBLIT_PIXEL** is not used, these fields are ignored.
+
 # RETURN VALUES
 
 **ncvisual_from_file** returns an **ncvisual** object on success, or **NULL**
@@ -370,6 +377,8 @@ This situation might improve in the future.
 Multiple threads may not currently call **ncvisual_render** concurrently
 using the same **ncvisual**, even if targeting distinct **ncplane**s. This
 will likely change in the future.
+
+**pxoffy** and **pxoffx** are not yet implemented.
 
 # SEE ALSO
 
