@@ -27,16 +27,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(0 == ncvisual_resize(ncv, 1, 1));
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -54,16 +47,10 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != ncv);
     auto nn = ncplane_dup(n_, nullptr);
     REQUIRE(nullptr != nn);
-    struct ncvisual_options vopts = {
-      .n = nn,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = nn;
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     int maxy, maxx;
     ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
@@ -90,17 +77,10 @@ TEST_CASE("Bitmaps") {
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
     auto n = ncplane_create(n_, &nopts);
-    struct ncvisual_options vopts = {
-      .n = n,
-      .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = n;
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -120,17 +100,10 @@ TEST_CASE("Bitmaps") {
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
     auto n = ncplane_create(n_, &nopts);
-    struct ncvisual_options vopts = {
-      .n = n,
-      .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = n;
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -152,17 +125,9 @@ TEST_CASE("Bitmaps") {
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
     auto n = ncplane_create(n_, &nopts);
-    struct ncvisual_options vopts = {
-      .n = n,
-      .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     CHECK(nullptr != ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 > ncplane_putchar_yx(n, ' ', 0, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -177,16 +142,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr, .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto botn = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != botn);
     // should just have a red plane
@@ -240,16 +198,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
@@ -320,16 +271,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xff7799dd));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     struct ncplane_options nopts = {
@@ -388,6 +332,7 @@ TEST_CASE("Bitmaps") {
                NCVISUAL_OPTION_HORALIGNED |
                NCVISUAL_OPTION_VERALIGNED,
       .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto y = nc_->tcache.cellpixy * 6;
     auto x = nc_->tcache.cellpixx;
@@ -430,6 +375,7 @@ TEST_CASE("Bitmaps") {
                NCVISUAL_OPTION_HORALIGNED |
                NCVISUAL_OPTION_VERALIGNED,
       .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto y = nc_->tcache.cellpixy * 6;
     auto x = nc_->tcache.cellpixx;
@@ -454,16 +400,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = y, .lenx = x,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
@@ -492,16 +431,9 @@ TEST_CASE("Bitmaps") {
     }
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = y, .lenx = x,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
@@ -530,16 +462,9 @@ TEST_CASE("Bitmaps") {
     }
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = y, .lenx = x,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
@@ -576,16 +501,9 @@ TEST_CASE("Bitmaps") {
     }
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 2, .x = 2,
-      .begy = 0, .begx = 0,
-      .leny = y, .lenx = x,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     ncvisual_destroy(ncv);
@@ -673,16 +591,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     for(int i = 0 ; i <= ncplane_dim_x(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
@@ -698,16 +609,10 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = ncplane_dim_x(n_) - 3,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.x = ncplane_dim_x(n_) - 3;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     for(int i = ncplane_dim_x(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
@@ -723,16 +628,9 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     for(int i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
@@ -748,16 +646,10 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = ncplane_dim_y(n_) - 3, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_PIXEL,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.y = ncplane_dim_y(n_) - 3;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     for(int i = ncplane_dim_y(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, i, 0));

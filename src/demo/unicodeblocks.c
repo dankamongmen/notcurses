@@ -103,33 +103,14 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
     int z;
     for(z = 0 ; z < CHUNKSIZE ; ++z){
-      wchar_t w = blockstart + chunk * CHUNKSIZE + z;
-      char utf8arr[MB_CUR_MAX * 3 + 5];
+      uint32_t w = blockstart + chunk * CHUNKSIZE + z;
       // problematic characters FIXME (see TERMINALS.md)
-      if(w == 0x070f || w == 0x08e2 || w == 0x06dd){
-        strcpy(utf8arr, "  ");
-      }else if(wcwidth(w) >= 1 && iswgraph(w)){
-        mbstate_t ps;
-        memset(&ps, 0, sizeof(ps));
-        int bwc = wcrtomb(utf8arr, w, &ps);
-        if(bwc < 0){
-          fprintf(stderr, "Couldn't convert %u (%x) (%lc) (%s)\n",
-                  blockstart + chunk * CHUNKSIZE + z,
-                  blockstart + chunk * CHUNKSIZE + z,
-                  (wint_t)w, strerror(errno));
+      if(w != 0x070f && w != 0x08e2 && w != 0x06dd){
+        ncplane_set_fg_rgb8(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
+        ncplane_set_bg_rgb8(nn, 8 * chunk, 8 * chunk, 8 * chunk);
+        if(ncplane_putwc_yx(nn, chunk + 1, z * 2 + 1, w) < 0){
           return -1;
         }
-        if(wcwidth(w) < 2){
-          utf8arr[bwc++] = ' ';
-        }
-        utf8arr[bwc++] = '\0';
-      }else{ // don't dump non-printing codepoints
-        strcpy(utf8arr, "  ");
-      }
-      ncplane_set_fg_rgb8(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
-      ncplane_set_bg_rgb8(nn, 8 * chunk, 8 * chunk, 8 * chunk);
-      if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, utf8arr) < 0){
-        return -1;
       }
     }
   }

@@ -107,6 +107,7 @@ TEST_CASE("Visual") {
       .blitter = NCBLIT_1x1,
       .flags = NCVISUAL_OPTION_HORALIGNED,
       .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
     REQUIRE(nullptr != ncv);
@@ -132,6 +133,7 @@ TEST_CASE("Visual") {
       .leny = 5, .lenx = 8,
       .blitter = NCBLIT_1x1,
       .flags = 0, .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -157,6 +159,7 @@ TEST_CASE("Visual") {
       .leny = 0, .lenx = 0,
       .blitter = NCBLIT_1x1,
       .flags = 0, .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
@@ -193,6 +196,7 @@ TEST_CASE("Visual") {
       .leny = 5, .lenx = 8,
       .blitter = NCBLIT_1x1,
       .flags = 0, .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -216,6 +220,7 @@ TEST_CASE("Visual") {
       .leny = 0, .lenx = 0,
       .blitter = NCBLIT_1x1,
       .flags = 0, .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
@@ -477,6 +482,7 @@ TEST_CASE("Visual") {
         .blitter = NCBLIT_2x2,
         .flags = 0,
         .transcolor = 0,
+        .pxoffy = 0, .pxoffx = 0,
       };
       auto ncvp = ncvisual_render(nc_, ncv, &vopts);
       REQUIRE(nullptr != ncvp);
@@ -521,6 +527,7 @@ TEST_CASE("Visual") {
           .blitter = NCBLIT_2x2,
           .flags = 0,
           .transcolor = 0,
+          .pxoffy = 0, .pxoffx = 0,
         };
         auto ncvp = ncvisual_render(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
@@ -568,6 +575,7 @@ TEST_CASE("Visual") {
           .blitter = NCBLIT_2x2,
           .flags = 0,
           .transcolor = 0,
+          .pxoffy = 0, .pxoffx = 0,
         };
         auto ncvp = ncvisual_render(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
@@ -620,6 +628,7 @@ TEST_CASE("Visual") {
           .blitter = NCBLIT_2x2,
           .flags = 0,
           .transcolor = 0,
+          .pxoffy = 0, .pxoffx = 0,
         };
         auto ncvp = ncvisual_render(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
@@ -671,6 +680,7 @@ TEST_CASE("Visual") {
           .blitter = NCBLIT_2x2,
           .flags = 0,
           .transcolor = 0,
+          .pxoffy = 0, .pxoffx = 0,
         };
         auto ncvp = ncvisual_render(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
@@ -716,6 +726,7 @@ TEST_CASE("Visual") {
       .blitter = NCBLIT_1x1,
       .flags = 0,
       .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     const uint32_t pixels[16] = {
       htole(0xffffffff), htole(0xffffffff), htole(0xffc0ffff), htole(0xffffc0ff),
@@ -771,6 +782,7 @@ TEST_CASE("Visual") {
                NCVISUAL_OPTION_HORALIGNED |
                NCVISUAL_OPTION_VERALIGNED,
       .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
     };
     const uint32_t pixels[1] = { htole(0xffffffff) };
     auto ncv = ncvisual_from_rgba(pixels, 1, 4, 1);
