@@ -356,16 +356,11 @@ TEST_CASE("Media") {
     };
     auto parent = ncplane_create(n_, &opts);
     REQUIRE(parent);
-    struct ncvisual_options vopts = {
-      .n = parent,
-      .scaling = NCSCALE_STRETCH,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.scaling = NCSCALE_STRETCH;
+    vopts.n = parent;
+    vopts.blitter = NCBLIT_1x1;
+    vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto ncv = ncvisual_from_file(find_data("onedot.png").get());
     REQUIRE(ncv);
     auto child = ncvisual_render(nc_, ncv, &vopts);

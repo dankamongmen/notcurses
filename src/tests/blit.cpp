@@ -27,19 +27,11 @@ TEST_CASE("Blit") {
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
-    struct ncvisual_options vopts = {
-      .n = ncp,
-      .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0,
-      .begx = 0,
-      .leny = 2,
-      .lenx = 4,
-      .blitter = NCBLIT_1x1,
-      .flags = 0,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = ncp;
+    vopts.leny = 2;
+    vopts.lenx = 4;
+    vopts.blitter = NCBLIT_1x1;
     ncblit_bgrx(data, 16, &vopts);
     for(int y = 0 ; y < 2 ; ++y){
       for(int x = 0 ; x < 4 ; ++x){
@@ -77,19 +69,11 @@ TEST_CASE("Blit") {
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
-    struct ncvisual_options vopts = {
-      .n = ncp,
-      .scaling = NCSCALE_NONE,
-      .y = 0,
-      .x = 0,
-      .begy = 0,
-      .begx = 0,
-      .leny = 2,
-      .lenx = 4,
-      .blitter = NCBLIT_1x1,
-      .flags = 0,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = ncp;
+    vopts.leny = 2;
+    vopts.lenx = 4;
+    vopts.blitter = NCBLIT_1x1;
     ncblit_bgrx(data, 20, &vopts);
     for(int y = 0 ; y < 2 ; ++y){
       for(int x = 0 ; x < 4 ; ++x){
@@ -137,12 +121,8 @@ TEST_CASE("Blit") {
         ncpixel_set_b(pbr, 0x95);
         auto ncv = ncvisual_from_rgba(p2x2, 2, 8, 2);
         REQUIRE(nullptr != ncv);
-        struct ncvisual_options vopts = {
-          .n = nullptr, .scaling = NCSCALE_NONE,
-          .y = 0, .x = 0, .begy = 0, .begx = 0, .leny = 0, .lenx = 0,
-          .blitter = NCBLIT_2x2, .flags = 0,
-          .transcolor = 0,
-        };
+        struct ncvisual_options vopts{};
+        vopts.blitter = NCBLIT_2x2;
         auto ncp = ncvisual_render(nc_, ncv, &vopts);
         ncvisual_destroy(ncv);
         REQUIRE(nullptr != ncp);
@@ -167,16 +147,8 @@ TEST_CASE("Blit") {
     };
     auto ncv = ncvisual_from_rgba(data, 1, 8, 2);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = 0,
-      .transcolor = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_1x1;
     auto p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
@@ -201,16 +173,8 @@ TEST_CASE("Blit") {
       };
       auto ncv = ncvisual_from_rgba(data, 2, 16, 4);
       REQUIRE(nullptr != ncv);
-      struct ncvisual_options vopts = {
-        .n = nullptr,
-        .scaling = NCSCALE_NONE,
-        .y = 0, .x = 0,
-        .begy = 0, .begx = 0,
-        .leny = 0, .lenx = 0,
-        .blitter = NCBLIT_2x1,
-        .flags = 0,
-        .transcolor = 0,
-      };
+      struct ncvisual_options vopts{};
+      vopts.blitter = NCBLIT_2x1;
       auto p = ncvisual_render(nc_, ncv, &vopts);
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
@@ -252,16 +216,8 @@ TEST_CASE("Blit") {
       };
       auto ncv = ncvisual_from_rgba(data, 2, 128, 32);
       REQUIRE(nullptr != ncv);
-      struct ncvisual_options vopts = {
-        .n = nullptr,
-        .scaling = NCSCALE_NONE,
-        .y = 0, .x = 0,
-        .begy = 0, .begx = 0,
-        .leny = 0, .lenx = 0,
-        .blitter = NCBLIT_2x2,
-        .flags = 0,
-        .transcolor = 0,
-      };
+      struct ncvisual_options vopts{};
+      vopts.blitter = NCBLIT_2x2;
       auto p = ncvisual_render(nc_, ncv, &vopts);
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
