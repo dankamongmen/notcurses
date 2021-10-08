@@ -23,7 +23,11 @@ extern "C" {
 #define RESTRICT restrict
 #endif
 
+#ifndef __MINGW64__
 #define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 // Get a human-readable string describing the running Notcurses version.
