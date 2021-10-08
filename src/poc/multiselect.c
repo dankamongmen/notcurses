@@ -44,6 +44,9 @@ run_mselect(struct notcurses* nc, struct ncmultiselector* ns){
   uint32_t keypress;
   ncinput ni;
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
+    if(ni.evtype == NCTYPE_RELEASE){
+      continue;
+    }
     if(!ncmultiselector_offer_input(ns, &ni)){
       switch(keypress){
         case NCKEY_ENTER: ncmultiselector_destroy(ns); return;

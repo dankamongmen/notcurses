@@ -35,6 +35,9 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
   ncinput ni;
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncselector_offer_input(ns, &ni)){
+      if(ni.evtype == NCTYPE_RELEASE){
+        continue;
+      }
       switch(keypress){
         case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
         case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
