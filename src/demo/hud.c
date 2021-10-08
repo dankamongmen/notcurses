@@ -252,6 +252,9 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
   }else{
     memcpy(&tmpni, ni, sizeof(tmpni));
   }
+  if(tmpni.evtype == NCTYPE_RELEASE){
+    return false;
+  }
   // toggle the HUD
   if(tmpni.id == 'H' && !tmpni.alt && !tmpni.ctrl){
     hud_toggle(nc);
