@@ -457,33 +457,7 @@ const char* ncselector_nextitem(ncselector* n){
 
 bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   const int items_shown = ncplane_dim_y(n->ncp) - 4 - (n->title ? 2 : 0);
-  if(nc->id == NCKEY_UP){
-    ncselector_previtem(n);
-    return true;
-  }else if(nc->id == NCKEY_DOWN){
-    ncselector_nextitem(n);
-    return true;
-  }else if(nc->id == NCKEY_SCROLL_UP){
-    ncselector_previtem(n);
-    return true;
-  }else if(nc->id == NCKEY_SCROLL_DOWN){
-    ncselector_nextitem(n);
-    return true;
-  }else if(nc->id == NCKEY_PGDOWN){
-    if(items_shown > 0){
-      for(int i = 0 ; i < items_shown ; ++i){
-        ncselector_nextitem(n);
-      }
-    }
-    return true;
-  }else if(nc->id == NCKEY_PGUP){
-    if(items_shown > 0){
-      for(int i = 0 ; i < items_shown ; ++i){
-        ncselector_previtem(n);
-      }
-    }
-    return true;
-  }else if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
+  if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
     int y = nc->y, x = nc->x;
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;
@@ -509,6 +483,34 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
       while(click < cury){
         ncselector_previtem(n);
         --cury;
+      }
+      return true;
+    }
+  }else if(nc->evtype != NCTYPE_RELEASE){
+    if(nc->id == NCKEY_UP){
+      ncselector_previtem(n);
+      return true;
+    }else if(nc->id == NCKEY_DOWN){
+      ncselector_nextitem(n);
+      return true;
+    }else if(nc->id == NCKEY_SCROLL_UP){
+      ncselector_previtem(n);
+      return true;
+    }else if(nc->id == NCKEY_SCROLL_DOWN){
+      ncselector_nextitem(n);
+      return true;
+    }else if(nc->id == NCKEY_PGDOWN){
+      if(items_shown > 0){
+        for(int i = 0 ; i < items_shown ; ++i){
+          ncselector_nextitem(n);
+        }
+      }
+      return true;
+    }else if(nc->id == NCKEY_PGUP){
+      if(items_shown > 0){
+        for(int i = 0 ; i < items_shown ; ++i){
+          ncselector_previtem(n);
+        }
       }
       return true;
     }
@@ -732,37 +734,7 @@ const char* ncmultiselector_nextitem(ncmultiselector* n){
 
 bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
   const int items_shown = ncplane_dim_y(n->ncp) - 4 - (n->title ? 2 : 0);
-  if(nc->id == ' '){
-    n->items[n->current].selected = !n->items[n->current].selected;
-    ncmultiselector_draw(n);
-    return true;
-  }else if(nc->id == NCKEY_UP){
-    ncmultiselector_previtem(n);
-    return true;
-  }else if(nc->id == NCKEY_DOWN){
-    ncmultiselector_nextitem(n);
-    return true;
-  }else if(nc->id == NCKEY_PGDOWN){
-    if(items_shown > 0){
-      for(int i = 0 ; i < items_shown ; ++i){
-        ncmultiselector_nextitem(n);
-      }
-    }
-    return true;
-  }else if(nc->id == NCKEY_PGUP){
-    if(items_shown > 0){
-      for(int i = 0 ; i < items_shown ; ++i){
-        ncmultiselector_previtem(n);
-      }
-    }
-    return true;
-  }else if(nc->id == NCKEY_SCROLL_UP){
-    ncmultiselector_previtem(n);
-    return true;
-  }else if(nc->id == NCKEY_SCROLL_DOWN){
-    ncmultiselector_nextitem(n);
-    return true;
-  }else if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
+  if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
     int y = nc->y, x = nc->x;
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;
@@ -789,6 +761,38 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
         ncmultiselector_previtem(n);
         --cury;
       }
+      return true;
+    }
+  }else if(nc->evtype != NCTYPE_RELEASE){
+    if(nc->id == ' '){
+      n->items[n->current].selected = !n->items[n->current].selected;
+      ncmultiselector_draw(n);
+      return true;
+    }else if(nc->id == NCKEY_UP){
+      ncmultiselector_previtem(n);
+      return true;
+    }else if(nc->id == NCKEY_DOWN){
+      ncmultiselector_nextitem(n);
+      return true;
+    }else if(nc->id == NCKEY_PGDOWN){
+      if(items_shown > 0){
+        for(int i = 0 ; i < items_shown ; ++i){
+          ncmultiselector_nextitem(n);
+        }
+      }
+      return true;
+    }else if(nc->id == NCKEY_PGUP){
+      if(items_shown > 0){
+        for(int i = 0 ; i < items_shown ; ++i){
+          ncmultiselector_previtem(n);
+        }
+      }
+      return true;
+    }else if(nc->id == NCKEY_SCROLL_UP){
+      ncmultiselector_previtem(n);
+      return true;
+    }else if(nc->id == NCKEY_SCROLL_DOWN){
+      ncmultiselector_nextitem(n);
       return true;
     }
   }
