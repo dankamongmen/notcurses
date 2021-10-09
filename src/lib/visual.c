@@ -930,6 +930,15 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
   return n;
 }
 
+static tament*
+create_tam(int rows, int cols){
+  tament* tam = malloc(sizeof(*tam) * rows * cols);
+  if(tam){
+    memset(tam, 0, sizeof(*tam) * rows * cols);
+  }
+  return tam;
+}
+
 // when a sprixel is blitted to a plane, that plane becomes a sprixel plane. it
 // must not be used with other output mechanisms unless erased. the plane will
 // be shrunk to fit the output, and the output is always placed at the origin.
@@ -1010,15 +1019,28 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.lenx = lenx;
   bargs.flags = flags;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
+  int cols = disppixx / nc->tcache.cellpixx + !!(disppixx % nc->tcache.cellpixx);
+  int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
   if(n->sprite == NULL){
-    int cols = disppixx / nc->tcache.cellpixx + !!(disppixx % nc->tcache.cellpixx);
-    int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
     if((n->sprite = sprixel_alloc(&nc->tcache, n, rows, cols)) == NULL){
       ncplane_destroy(createdn);
       return NULL;
     }
+    if((n->tam = create_tam(rows, cols)) == NULL){
+      ncplane_destroy(createdn);
+      return NULL;;
+    }
   }else{
     n->sprite = sprixel_recycle(n);
+    if(n->sprite->dimy != rows || n->sprite->dimx != cols){
+      free(n->tam);
+      if((n->tam = create_tam(rows, cols)) == NULL){
+        ncplane_destroy(createdn);
+        return NULL;;
+      }
+    }
+    n->sprite->dimx = cols;
+    n->sprite->dimy = rows;
   }
   bargs.u.pixel.spx = n->sprite;
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
