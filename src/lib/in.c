@@ -1133,6 +1133,8 @@ tcap_cb(inputctx* ictx){
       ictx->initdata->qterm = TERMINAL_MLTERM;
     }else if(strcasecmp(tn, "787465726d2d6b69747479") == 0){
       ictx->initdata->qterm = TERMINAL_KITTY;
+    }else if(strcasecmp(tn, "787465726D2D323536636F6C6F72") == 0){
+      ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
     }else{
       logdebug("unknown terminal name %s\n", tn);
     }
