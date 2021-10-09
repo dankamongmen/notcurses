@@ -1025,7 +1025,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       wpos = 1;
     }else if(id == 'e' && ni.ctrl){
       wpos = wused - 1;
-    }else if(nckey_synthesized_p(ni.id)){
+    }else if(nckey_supppuab_p(ni.id)){
       continue;
     }else{
       if(wspace - 1 < wused){

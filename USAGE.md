@@ -623,13 +623,56 @@ must be readable without delay for it to be interpreted as such.
 // returned to indicate that no input was available. Otherwise (including on
 // EOF) (uint32_t)-1 is returned.
 
-#define beyondunicode(w) ((w) + 0x100000)
+#define suppuabize(w) ((w) + 0x100000)
 
-// the special key definitions can be found in `<notcurses/nckeys.h>`
+// Special composed key definitions. These values are added to 0x100000.
+#define NCKEY_INVALID   suppuabize(0)
+#define NCKEY_RESIZE    suppuabize(1) // generated internally in response to SIGWINCH
+#define NCKEY_UP        suppuabize(2)
+#define NCKEY_RIGHT     suppuabize(3)
+#define NCKEY_DOWN      suppuabize(4)
+#define NCKEY_LEFT      suppuabize(5)
+#define NCKEY_INS       suppuabize(6)
+#define NCKEY_DEL       suppuabize(7)
+#define NCKEY_BACKSPACE suppuabize(8) // backspace (sometimes)
+#define NCKEY_PGDOWN    suppuabize(9)
+#define NCKEY_PGUP      suppuabize(10)
+#define NCKEY_HOME      suppuabize(11)
+#define NCKEY_END       suppuabize(12)
+#define NCKEY_F00       suppuabize(20)
+#define NCKEY_F01       suppuabize(21)
+#define NCKEY_F02       suppuabize(22)
+#define NCKEY_F03       suppuabize(23)
+#define NCKEY_F04       suppuabize(24)
+// ... up to 100 function keys, egads
+#define NCKEY_ENTER     suppuabize(121)
+#define NCKEY_CLS       suppuabize(122) // "clear-screen or erase"
+#define NCKEY_DLEFT     suppuabize(123) // down + left on keypad
+#define NCKEY_DRIGHT    suppuabize(124)
+#define NCKEY_ULEFT     suppuabize(125) // up + left on keypad
+#define NCKEY_URIGHT    suppuabize(126)
+#define NCKEY_CENTER    suppuabize(127) // the most truly neutral of keypresses
+#define NCKEY_BEGIN     suppuabize(128)
+#define NCKEY_CANCEL    suppuabize(129)
+#define NCKEY_CLOSE     suppuabize(130)
+#define NCKEY_COMMAND   suppuabize(131)
+#define NCKEY_COPY      suppuabize(132)
+#define NCKEY_EXIT      suppuabize(133)
+#define NCKEY_PRINT     suppuabize(134)
+#define NCKEY_REFRESH   suppuabize(135)
+// Mouse events. We try to encode some details into the uint32_t (i.e. which
+// button was pressed), but some is embedded in the ncinput event. The release
+// event is generic across buttons; callers must maintain state, if they care.
+#define NCKEY_BUTTON1   suppuabize(201)
+#define NCKEY_BUTTON2   suppuabize(202)
+#define NCKEY_BUTTON3   suppuabize(203)
+// ... up to 11 mouse buttons
+#define NCKEY_EOF       suppuabize(300)
 
+// Is this uint32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
-nckey_synthesized_p(uint32_t w){
-  return w >= 0x110000 && w != (uint32_t)-1;
+nckey_supppuab_p(uint32_t w){
+  return w >= 0x100000 && w <= 0x10fffd;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse events.

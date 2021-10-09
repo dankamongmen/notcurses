@@ -334,7 +334,7 @@ int input_demo(ncpp::NotCurses* nc) {
         break;
       }
     }else{
-      if(nckey_synthesized_p(r)){
+      if(nckey_supppuab_p(r)){
         n->set_fg_rgb8(250, 64, 128);
         if(n->printf("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r)) < 0){
           break;

@@ -1,13 +1,6 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.0 (not yet released) **"In the A"**
-  * **ABI3!** You will need a recompile, and possibly to update your code.
-  * The synthesized keys have been moved past Unicode's 17th plane, freeing
-    up the Private Use Area-B for clients. **nckey_suppuable_p()** has been
-    removed, as it's no longer relevant. **nckey_synthesized_p()** has been
-    added, as it now is.
-
 * 2.4.6 (not yet released)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including

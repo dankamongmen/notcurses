@@ -117,9 +117,9 @@ namespace ncpp
 			return nckey_mouse_p (ch);
 		}
 
-		static bool IsSynthesized (char32_t ch) noexcept
+		static bool IsSuppUAB (char32_t ch) noexcept
 		{
-			return nckey_synthesized_p (ch);
+			return nckey_supppuab_p (ch);
 		}
 	};
 

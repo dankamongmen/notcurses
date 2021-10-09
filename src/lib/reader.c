@@ -368,7 +368,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   }else if(ni->id == NCKEY_DOWN){
     ncreader_move_down(n);
     return true;
-  }else if(nckey_synthesized_p(ni->id)){
+  }else if(nckey_supppuab_p(ni->id)){
     return false;
   }
   // FIXME need to collect full EGCs
