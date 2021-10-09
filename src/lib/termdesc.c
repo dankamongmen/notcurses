@@ -1056,18 +1056,16 @@ char* termdesc_longterm(const tinfo* ti){
 // user input looking at infd.
 int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
 #ifdef __MINGW64__
-  if(ti->qterm == TERMINAL_MSTERMINAL){
-    if(ti->outhandle){
-      CONSOLE_SCREEN_BUFFER_INFO conbuf;
-      if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
-        logerror("couldn't get cursor info\n");
-        return -1;
-      }
-      *cursor_y = conbuf.dwCursorPosition.Y;
-      *cursor_x = conbuf.dwCursorPosition.X;
-      loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
-      return 0;
+  if(ti->outhandle){
+    CONSOLE_SCREEN_BUFFER_INFO conbuf;
+    if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
+      logerror("couldn't get cursor info\n");
+      return -1;
     }
+    *cursor_y = conbuf.dwCursorPosition.Y;
+    *cursor_x = conbuf.dwCursorPosition.X;
+    loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
+    return 0;
   }
 #endif
   const char* u7 = get_escape(ti, ESCAPE_U7);
