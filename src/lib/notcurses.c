@@ -71,12 +71,12 @@ int reset_term_attributes(const tinfo* ti, fbuf* f){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
+  int ret = 0;
+  ret |= drop_signals(nc);
   // collect output into the memstream buffer, and then dump it directly using
   // blocking_write(), to avoid problems with unreliable fflush().
   fbuf* f = &nc->rstate.f;
   fbuf_reset(f);
-  int ret = 0;
-  ret |= drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
@@ -100,17 +100,20 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
+    // don't use use leave_alternate_screen() here; we need pop the keyboard
+    // whether we're in regular or altnerate screen, and we need it done
+    // before returning to the regular screen if we're in the alternate.
     if(nc->tcache.kbdlevel){
       if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
         ret = -1;
       }
     }
-    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
-      if(sprite_clear_all(&nc->tcache, f)){ // send this to f
-        ret = -1;
-      }
-      if(tty_emit(esc, nc->tcache.ttyfd)){ // but this goes to ttyfd
-        ret = -1;
+    if(nc->tcache.in_alt_screen){
+      if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
+        if(tty_emit(esc, nc->tcache.ttyfd)){
+          ret = -1;
+        }
+        nc->tcache.in_alt_screen = 0;
       }
     }
   }
