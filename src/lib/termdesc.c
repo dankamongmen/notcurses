@@ -619,13 +619,13 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
+    if(compare_versions(ti->termversion, "369") < 0){
+      *invertsixel = true; // xterm 369 inverted DECSDM
+    }
     // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
     if(compare_versions(ti->termversion, "357") >= 0){
       if(add_pushcolors_escapes(ti, tablelen, tableused)){
         return -1;
-      }
-      if(compare_versions(ti->termversion, "359") < 0){
-        *invertsixel = true;
       }
     }
   }else if(qterm == TERMINAL_MINTTY){
