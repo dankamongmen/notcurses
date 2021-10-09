@@ -355,6 +355,36 @@ prep_special_keys(inputctx* ictx){
 }
 
 // starting from the current amata match point, match any necessary prefix, then
+// extract the (possibly empty) content, then match the follow. as we are only
+// called from a callback context, and know we've been properly matched, there
+// is no error-checking per se (we do require prefix/follow matches, but if
+// missed, we just return NULL). indicate empty prefix with "", not NULL.
+// updates ictx->amata.matchstart to be pointing past the follow. follow ought
+// not be NUL.
+static char*
+amata_next_kleene(automaton* amata, const char* prefix, char follow){
+  char c;
+  while( (c = *prefix++) ){
+    if(*amata->matchstart != c){
+      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
+      return NULL;
+    }
+    ++amata->matchstart;
+  }
+  // prefix has been matched. mark start of string and find follow.
+  const unsigned char* start = amata->matchstart;
+  while(*amata->matchstart != follow){
+    ++amata->matchstart;
+  }
+  char* ret = malloc(amata->matchstart - start + 1);
+  if(ret){
+    memcpy(ret, start, amata->matchstart - start);
+    ret[amata->matchstart - start] = '\0';
+  }
+  return ret;
+}
+
+// starting from the current amata match point, match any necessary prefix, then
 // extract the numeric (possibly empty), then match the follow. as we are only
 // called from a callback context, and know we've been properly matched, there
 // is no error-checking per se (we do require prefix/follow matches, but if
@@ -395,25 +425,7 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
 // either a match failure or an alloc failure.
 static char*
 amata_next_string(automaton* amata, const char* prefix){
-  char c;
-  while( (c = *prefix++) ){
-    if(*amata->matchstart != c){
-      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
-      return NULL;
-    }
-    ++amata->matchstart;
-  }
-  // prefix has been matched. mark start of string and find follow.
-  const unsigned char* start = amata->matchstart;
-  while(*amata->matchstart != '\x1b'){
-    ++amata->matchstart;
-  }
-  char* ret = malloc(amata->matchstart - start + 1);
-  if(ret){
-    memcpy(ret, start, amata->matchstart - start);
-    ret[amata->matchstart - start] = '\0';
-  }
-  return ret;
+  return amata_next_kleene(amata, prefix, '\x1b');
 }
 
 static inline void
@@ -902,6 +914,19 @@ da1_cb(inputctx* ictx){
 }
 
 static int
+da1_attrs_cb(inputctx* ictx){
+  loginfo("read primary device attributes\n");
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[?", ';');
+  char* attrlist = amata_next_kleene(&ictx->amata, "", 'c');
+  logdebug("DA1: %u [%s]\n", val, attrlist);
+  if(ictx->initdata){
+    handoff_initial_responses(ictx);
+  }
+  free(attrlist);
+  return 1;
+}
+
+static int
 da2_cb(inputctx* ictx){
   loginfo("read secondary device attributes\n");
   if(ictx->initdata == NULL){
@@ -1151,24 +1176,25 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NF", kitty_cb_end, },
     { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
+    { "[?2026;\\N$y", decrpm_asu_cb, },
+    { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
     { "[?6c", da1_cb, },   // CSI ? 6 c ("VT102")
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
-    { "[?12;\\Dc", da1_cb, }, // CSI ? 1 2 ; Ps c ("VT125")
-    { "[?60;\\Dc", da1_cb, }, // CSI ? 6 0 ; Ps c (kmscon)
-    { "[?62;\\Dc", da1_cb, }, // CSI ? 6 2 ; Ps c ("VT220")
-    { "[?63;\\Dc", da1_cb, }, // CSI ? 6 3 ; Ps c ("VT320")
-    { "[?64;\\Dc", da1_cb, }, // CSI ? 6 4 ; Ps c ("VT420")
-    { "[?65;\\Dc", da1_cb, }, // CSI ? 6 5 ; Ps c (WezTerm, VT5xx?)
-    { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
-    { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
-    { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
-    { "[?2026;\\N$y", decrpm_asu_cb, },
-    { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
-    { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
-    { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
+    // CSI ? 1 2 ; Ps c ("VT125")
+    // CSI ? 6 0 ; Ps c (kmscon)
+    // CSI ? 6 2 ; Ps c ("VT220")
+    // CSI ? 6 3 ; Ps c ("VT320")
+    // CSI ? 6 4 ; Ps c ("VT420")
+    // CSI ? 6 5 ; Ps c (WezTerm, VT5xx?)
+    { "[?\\N;\\Dc", da1_attrs_cb, },
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, },
