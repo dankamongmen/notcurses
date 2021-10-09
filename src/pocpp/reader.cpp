@@ -55,18 +55,25 @@ auto main(int argc, const char** argv) -> int {
     return EXIT_FAILURE;
   }
   ncinput ni;
+  int tgeomy, tgeomx, vgeomy, vgeomx;
+  struct ncplane* ncp = ncreader_plane(nr);
+  struct ncplane* tplane = ncplane_above(ncp);
+  ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
+  ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
+  (*n)->printf(0, 0, "Scroll: %c Cursor: 000/000 Viewgeom: %03d/%03d Textgeom: %03d/%03d",
+               horscroll ? '+' : '-', vgeomy, vgeomx, tgeomy, tgeomx);
   nc.render();
   while(nc.get(true, &ni) != (char32_t)-1){
+    if(ni.evtype == EvType::Release){
+      continue;
+    }
     if(ni.ctrl && ni.id == 'L'){
       notcurses_refresh(nc, NULL, NULL);
     }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){
       break;
     }else if(ncreader_offer_input(nr, &ni)){
-      struct ncplane* ncp = ncreader_plane(nr);
       int ncpy, ncpx;
       ncplane_cursor_yx(ncp, &ncpy, &ncpx);
-      struct ncplane* tplane = ncplane_above(ncp);
-      int tgeomy, tgeomx, vgeomy, vgeomx;
       ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
       ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
       (*n)->printf(0, 0, "Scroll: %c Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
@@ -77,9 +84,9 @@ auto main(int argc, const char** argv) -> int {
   nc.render();
   char* contents;
   ncreader_destroy(nr, &contents);
-  //nc.stop();
+  nc.stop();
   if(contents){
-    fprintf(stderr, "\n input: %s\n", contents);
+    printf("\n input: %s\n", contents);
   }
   return EXIT_SUCCESS;
 }
