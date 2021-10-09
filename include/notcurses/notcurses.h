@@ -1018,8 +1018,8 @@ API void notcurses_drop_planes(struct notcurses* nc);
 // Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
 // possible that we will read a special keypress, i.e. anything that doesn't
 // correspond to a Unicode codepoint (e.g. arrow keys, function keys, screen
-// resize events, etc.). These are mapped into Unicode's Supplementary
-// Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
+// resize events, etc.). These are mapped past Unicode's 17th plane, starting
+// at U+110000. See <notcurses/nckeys.h>.
 //
 // notcurses_getc_nblock() is nonblocking. notcurses_getc_blocking() blocks
 // until a codepoint or special key is read, or until interrupted by a signal.
@@ -1029,10 +1029,9 @@ API void notcurses_drop_planes(struct notcurses* nc);
 // returned to indicate that no input was available. Otherwise (including on
 // EOF) (uint32_t)-1 is returned.
 
-// Is this uint32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
-nckey_supppuab_p(uint32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
+nckey_synthesized_p(uint32_t r){
+  return r >= 0x110000 && r != (uint32_t)-1;
 }
 
 // Is the event a synthesized mouse event?

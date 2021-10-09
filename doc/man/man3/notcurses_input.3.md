@@ -32,6 +32,8 @@ typedef struct ncinput {
 
 **bool nckey_mouse_p(uint32_t ***r***);**
 
+**bool nckey_synthesized_p(uint32_t ***r***);**
+
 **bool ncinput_nomod_p(const ncinput* ***ni***);**
 
 **uint32_t notcurses_get(struct notcurses* ***n***, const struct timespec* ***ts***, ncinput* ***ni***);**
@@ -150,6 +152,9 @@ does **notcurses_mouse_disable**.
 **ncinput_equal_p** returns **true** if the two **ncinput** structs represent
 the same input (though not necessarily the same input event), and
 **false** otherwise.
+
+**nckey_synthesized_p** returns **true** if ***r*** is greater than 0x10ffff
+(the maximum Unicode codepoint), and not equal to **(uint32_t)-1**.
 
 # NOTES
 
