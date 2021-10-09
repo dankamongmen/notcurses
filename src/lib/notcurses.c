@@ -117,6 +117,7 @@ notcurses_stop_minimal(void* vnc){
       }
     }
   }
+  logdebug("reset terminal, returning %d\n", ret);
   return ret;
 }
 
