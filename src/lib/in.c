@@ -913,6 +913,16 @@ da1_cb(inputctx* ictx){
   return 1;
 }
 
+static inline void
+da1_attr_op(struct initial_responses* idata, unsigned attr){
+  if(attr == 4){
+    if(idata->color_registers <= 0){
+      logdebug("wooo enabling 256 sixel cregs\n");
+      idata->color_registers = 256;
+    }
+  }
+}
+
 static int
 da1_attrs_cb(inputctx* ictx){
   loginfo("read primary device attributes\n");
@@ -920,6 +930,17 @@ da1_attrs_cb(inputctx* ictx){
   char* attrlist = amata_next_kleene(&ictx->amata, "", 'c');
   logdebug("DA1: %u [%s]\n", val, attrlist);
   if(ictx->initdata){
+    unsigned curattr = 0;
+    for(const char* a = attrlist ; *a ; ++a){
+      if(isdigit(*a)){
+        curattr *= 10;
+        curattr += *a - '0';
+      }else if(*a == ';'){
+        da1_attr_op(ictx->initdata, curattr);
+        curattr = 0;
+      }
+    }
+    da1_attr_op(ictx->initdata, curattr);
     handoff_initial_responses(ictx);
   }
   free(attrlist);
