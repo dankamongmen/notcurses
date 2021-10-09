@@ -367,13 +367,10 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // request the cell geometry of the textual area
 #define GEOMCELL "\x1b[18t"
 
-#define DIRECTIVES CSI_BGQ \
+#define DIRECTIVES KBDQUERY \
+                   CSI_BGQ \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
-                   KKEYBOARD_PUSH \
-                   XTMODKEYS \
-                   KBDSUPPORT \
-                   KBDQUERY \
                    KITTYQUERY \
                    CREGSXTSM \
                    GEOMXTSM \
@@ -381,11 +378,16 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    GEOMCELL \
                    PRIDEVATTR
 
+// written whenever we switch between standard and alternate screen, or upon
+// startup (that's an entry into a screen! presumably the standard one).
+#define KBDENTER KKEYBOARD_PUSH XTMODKEYS KBDSUPPORT
+#define KBDLEAVE KKEYBOARD_POP // FIXME undo XTMODKEYS!
+
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
-#define SMCUP "\x1b[?1049h"
-#define RMCUP "\x1b[?1049l"
+#define SMCUP "\x1b[?1049h" KBDENTER
+#define RMCUP KBDLEAVE "\x1b[?1049l"
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
@@ -397,9 +399,9 @@ send_initial_queries(int fd, bool minimal, bool noaltscreen){
   const char *queries;
   if(noaltscreen){
     if(minimal){
-      queries = DSRCPR DIRECTIVES;
+      queries = KBDENTER DSRCPR DIRECTIVES;
     }else{
-      queries = DSRCPR IDQUERIES DIRECTIVES;
+      queries = KBDENTER DSRCPR IDQUERIES DIRECTIVES;
     }
   }else{
     if(minimal){
@@ -413,6 +415,40 @@ send_initial_queries(int fd, bool minimal, bool noaltscreen){
   if(blocking_write(fd, queries, len)){
     return -1;
   }
+  return 0;
+}
+
+int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
+  if(ti->in_alt_screen){
+    return 0;
+  }
+  const char* smcup = get_escape(ti, ESCAPE_SMCUP);
+  if(smcup == NULL){
+    logerror("alternate screen is unavailable");
+    return -1;
+  }
+  if(term_emit(smcup, fp, false) || term_emit(KBDENTER, fp, flush)){
+    return -1;
+  }
+  ti->in_alt_screen = true;
+  return 0;
+}
+
+int leave_alternate_screen(FILE* fp, tinfo* ti){
+  if(!ti->in_alt_screen){
+    return 0;
+  }
+  const char* rmcup = get_escape(ti, ESCAPE_RMCUP);
+  if(rmcup == NULL){
+    logerror("can't leave alternate screen");
+    return -1;
+  }
+  if(term_emit(KBDLEAVE, fp, false) ||
+     term_emit(rmcup, fp, false) ||
+     term_emit(KBDENTER, fp, true)){
+    return -1;
+  }
+  ti->in_alt_screen = false;
   return 0;
 }
 

@@ -321,39 +321,8 @@ term_emit(const char* seq, FILE* out, bool flush){
   return flush ? ncflush(out) : 0;
 }
 
-static inline int
-enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
-  if(ti->in_alt_screen){
-    return 0;
-  }
-  const char* smcup = get_escape(ti, ESCAPE_SMCUP);
-  if(smcup == NULL){
-    logerror("alternate screen is unavailable");
-    return -1;
-  }
-  if(term_emit(smcup, fp, flush)){
-    return -1;
-  }
-  ti->in_alt_screen = true;
-  return 0;
-}
-
-static inline int
-leave_alternate_screen(FILE* fp, tinfo* ti){
-  if(!ti->in_alt_screen){
-    return 0;
-  }
-  const char* rmcup = get_escape(ti, ESCAPE_RMCUP);
-  if(rmcup == NULL){
-    logerror("can't leave alternate screen");
-    return -1;
-  }
-  if(term_emit(rmcup, fp, true)){
-    return -1;
-  }
-  ti->in_alt_screen = false;
-  return 0;
-}
+int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush);
+int leave_alternate_screen(FILE* fp, tinfo* ti);
 
 int cbreak_mode(tinfo* ti);
 
