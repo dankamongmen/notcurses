@@ -1,7 +1,16 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.5 (not yet released)
+* 2.4.6 (not yet released)
+  * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
+    provides much more detailed and fine-grained keyboard reports, including
+    key repeat and release events, and modifier events (i.e. pressing Shift by
+    itself now generates an event; it is not required to press another key
+    along with the modifier). Only Kitty supports this protocol at this time.
+  * `XTMODKEYS` is now used where supported. This is essentially a subset of
+    the Kitty protocol discussed above.
+
+* 2.4.5 (2021-10-06)
   * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has
     been removed, having never ought have been born.
   * Added functions `ncplane_move_family_top()`, `ncplane_move_family_bottom()`,
