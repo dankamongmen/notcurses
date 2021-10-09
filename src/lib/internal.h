@@ -8,6 +8,7 @@ extern "C" {
 #include "version.h"
 #include "builddef.h"
 #include "compat/compat.h"
+#include "notcurses/ncport.h"
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
 
@@ -38,9 +39,6 @@ extern "C" {
 #include "lib/sprite.h"
 #include "lib/fbuf.h"
 #include "lib/gpm.h"
-
-#define API __attribute__((visibility("default")))
-#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 struct sixelmap;
 struct ncvisual_details;
@@ -1785,9 +1783,6 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 
 // replace or populate the TERM environment variable with 'termname'
 int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
-
-#undef ALLOC
-#undef API
 
 #ifdef __cplusplus
 }

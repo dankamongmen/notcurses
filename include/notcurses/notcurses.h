@@ -23,13 +23,6 @@ extern "C" {
 #define RESTRICT restrict
 #endif
 
-#ifndef __MINGW64__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
-#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
-
 // Get a human-readable string describing the running Notcurses version.
 API const char* notcurses_version(void);
 // Cannot be inline, as we want to get the versions of the actual Notcurses
@@ -4135,9 +4128,6 @@ API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
 API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
                            const void* unused, ncinput* ni)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-#undef ALLOC
-#undef API
 
 #ifdef __cplusplus
 } // extern "C"
