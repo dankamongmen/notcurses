@@ -12,6 +12,13 @@ extern "C" {
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
 
+#ifndef __MINGW64__
+#define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
 // KEY_EVENT is defined by both ncurses.h and wincon.h. since we don't use
 // either definition, kill it before inclusion of ncurses.h.
 #undef KEY_EVENT
@@ -1783,6 +1790,9 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 
 // replace or populate the TERM environment variable with 'termname'
 int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
+
+#undef API
+#undef ALLOC
 
 #ifdef __cplusplus
 }

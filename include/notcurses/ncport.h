@@ -12,7 +12,6 @@ extern "C" {
 
 #ifndef __MINGW64__                               // All but Windows
 #include <netinet/in.h>
-#define API __attribute__((visibility("default")))
 #endif
 
 #if defined(__linux__)                            // Linux
@@ -32,13 +31,10 @@ extern "C" {
 #define wcwidth(w) 1 // FIXME lol, no
 #define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no
 #define htole(x) (x) // FIXME are all windows installs LE? ugh
-#define API __declspec(dllexport)
 #else                                             // BSDs
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
 #endif
-
-#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 #ifdef __cplusplus
 } // extern "C"

@@ -7,6 +7,13 @@
 extern "C" {
 #endif
 
+#ifndef __MINGW64__
+#define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
 // ncdirect_init() will call setlocale() to inspect the current locale. If
 // that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
 // the locale according to the LANG environment variable. Ideally, this will
@@ -488,6 +495,9 @@ ncdirect_canbraille(const struct ncdirect* nc){
 // u7 terminfo capability, and that we are connected to an actual terminal.
 API bool ncdirect_canget_cursor(const struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
+
+#undef API
+#undef ALLOC
 
 #ifdef __cplusplus
 }
