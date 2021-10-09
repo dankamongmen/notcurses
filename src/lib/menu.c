@@ -641,6 +641,8 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
       ncmenu_unroll(n, i);
     }
     return true;
+  }else if(nc->evtype == NCTYPE_RELEASE){
+    return false;
   }
   for(int si = 0 ; si < n->sectioncount ; ++si){
     const ncmenu_int_section* sec = &n->sections[si];

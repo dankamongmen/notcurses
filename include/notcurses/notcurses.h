@@ -1051,6 +1051,7 @@ typedef struct ncinput {
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
+  // FIXME kitty protocol also exposes hyper, meta, caps_lock, num_lock
   enum {
     NCTYPE_UNKNOWN,
     NCTYPE_PRESS,

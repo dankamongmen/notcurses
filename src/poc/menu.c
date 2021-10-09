@@ -34,6 +34,8 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
         return 0;
+      }else if(ni.evtype == NCTYPE_RELEASE){
+        continue;
       }else if(keypress == NCKEY_ENTER){ // selected a menu item
         const char* sel;
         if( (sel = ncmenu_selected(ncm, &ni)) ){
