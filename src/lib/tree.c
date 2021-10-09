@@ -433,6 +433,9 @@ int nctree_redraw(nctree* n){
 }
 
 bool nctree_offer_input(nctree* n, const ncinput* ni){
+  if(ni->evtype == NCTYPE_RELEASE){
+    return false;
+  }
   if(ni->id == NCKEY_UP){
     nctree_prev(n);
     return true;
