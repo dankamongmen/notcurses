@@ -186,6 +186,12 @@ typedef struct tinfo {
   HANDLE outhandle;
 #endif
 
+  // kitty keyboard protocol level. we initialize this to UINT_MAX, in case we
+  // crash while running the initialization automata (in that case, we want to
+  // pop the keyboard support level, which we normally do only if we detected
+  // actual support. at that point, we obviously haven't detected anything).
+  // after getting the initialization package back, if it's still UINT_MAX, we
+  // set it back to 0, since we know at that point that there's no support.
   unsigned kbdlevel;         // kitty keyboard support level
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
