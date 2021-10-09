@@ -894,6 +894,9 @@ nctablet* ncreel_prev(ncreel* nr){
 }
 
 bool ncreel_offer_input(ncreel* n, const ncinput* nc){
+  if(nc->evtype == NCTYPE_RELEASE){
+    return false;
+  }
   if(nc->id == NCKEY_UP){
     ncreel_prev(n);
     return true;
