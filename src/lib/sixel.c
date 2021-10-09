@@ -911,38 +911,16 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
-  tament* tam = NULL;
-  bool reuse = false;
-  // if we have a sprixel attached to this plane, see if we can reuse it
-  // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->tam){
-    if(n->leny == rows && n->lenx == cols){
-      tam = n->tam;
-      reuse = true;
-    }
+  typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
+  rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
+  if(rmatrix == NULL){
+    sixelmap_free(stable.map);
+    free(stable.deets);
+    return -1;
   }
-  if(!reuse){
-    tam = malloc(sizeof(*tam) * rows * cols);
-    if(tam == NULL){
-      sixelmap_free(stable.map);
-      free(stable.deets);
-      return -1;
-    }
-    memset(tam, 0, sizeof(*tam) * rows * cols);
-  }else{
-    typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
-    rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
-    if(rmatrix == NULL){
-      sixelmap_free(stable.map);
-      free(stable.deets);
-      return -1;
-    }
-    bargs->u.pixel.spx->needs_refresh = rmatrix;
-  }
-  if(extract_color_table(data, linesize, cols, leny, lenx, &stable, tam, bargs)){
-    if(!reuse){
-      free(tam);
-    }
+  bargs->u.pixel.spx->needs_refresh = rmatrix;
+  assert(n->tam);
+  if(extract_color_table(data, linesize, cols, leny, lenx, &stable, n->tam, bargs)){
     free(bargs->u.pixel.spx->needs_refresh);
     sixelmap_free(stable.map);
     free(stable.deets);
@@ -950,7 +928,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   // takes ownership of sixelmap on success
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs->u.pixel.spx, tam);
+  int r = sixel_blit_inner(leny, lenx, &stable, bargs->u.pixel.spx, n->tam);
   if(r < 0){
     sixelmap_free(stable.map);
   }

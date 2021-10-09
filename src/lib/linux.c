@@ -32,8 +32,6 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
 int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   uint32_t transcolor = bargs->transcolor;
-  int cols = bargs->u.pixel.spx->dimx;
-  int rows = bargs->u.pixel.spx->dimy;
   sprixel* s = bargs->u.pixel.spx;
   int cdimx = s->cellpxx;
   int cdimy = s->cellpxy;
@@ -41,21 +39,6 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
   size_t flen = leny * lenx * 4;
   if(fbuf_reserve(&s->glyph, flen)){
     return -1;
-  }
-  tament* tam = NULL;
-  bool reuse = false;
-  if(n->tam){
-    if(n->leny == rows && n->lenx == cols){
-      tam = n->tam;
-      reuse = true;
-    }
-  }
-  if(!reuse){
-    tam = malloc(sizeof(*tam) * rows * cols);
-    if(tam == NULL){
-      goto error;
-    }
-    memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   for(int l = 0 ; l < leny ; ++l){
     int ycell = l / cdimy;
@@ -66,32 +49,32 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     for(int c = 0 ; c < lenx ; ++c){
       int xcell = c / cdimx;
       int tyx = xcell + ycell * bargs->u.pixel.spx->dimx;
-      if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
+      if(n->tam[tyx].state >= SPRIXCELL_ANNIHILATED){
         if(rgba_trans_p(*(uint32_t*)src, transcolor)){
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
           if(c % cdimx == 0 && l % cdimy == 0){
-            tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
+            n->tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
           }
         }else{
-          tam[tyx].state = SPRIXCELL_ANNIHILATED;
+          n->tam[tyx].state = SPRIXCELL_ANNIHILATED;
         }
         dst[3] = 0;
         const int vyx = (l % cdimy) * cdimx + (c % cdimx);
-        tam[tyx].auxvector[vyx] = src[3];
+        n->tam[tyx].auxvector[vyx] = src[3];
       }else{
         if(rgba_trans_p(*(uint32_t*)src, transcolor)){
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
           if(c % cdimx == 0 && l % cdimy == 0){
-            tam[tyx].state = SPRIXCELL_TRANSPARENT;
-          }else if(tam[tyx].state == SPRIXCELL_OPAQUE_SIXEL){
-            tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
+            n->tam[tyx].state = SPRIXCELL_TRANSPARENT;
+          }else if(n->tam[tyx].state == SPRIXCELL_OPAQUE_SIXEL){
+            n->tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
           }
           dst[3] = 0;
         }else{
           if(c % cdimx == 0 && l % cdimy == 0){
-            tam[tyx].state = SPRIXCELL_OPAQUE_SIXEL;
-          }else if(tam[tyx].state == SPRIXCELL_TRANSPARENT){
-            tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
+            n->tam[tyx].state = SPRIXCELL_OPAQUE_SIXEL;
+          }else if(n->tam[tyx].state == SPRIXCELL_TRANSPARENT){
+            n->tam[tyx].state = SPRIXCELL_MIXED_SIXEL;
           }
           memcpy(dst + 3, src + 3, 1);
         }
@@ -103,16 +86,13 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
       src += 4;
     }
   }
-  scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
-  if(plane_blit_sixel(s, &s->glyph, leny, lenx, 0, tam, SPRIXEL_INVALIDATED) < 0){
+  scrub_tam_boundaries(n->tam, leny, lenx, cdimy, cdimx);
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, 0, n->tam, SPRIXEL_INVALIDATED) < 0){
     goto error;
   }
   return 1;
 
 error:
-  if(!reuse){
-    free(tam);
-  }
   fbuf_free(&s->glyph);
   s->glyph.size = 0;
   return -1;

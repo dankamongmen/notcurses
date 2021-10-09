@@ -1054,47 +1054,26 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
                 const blitterargs* bargs, ncpixelimpl_e level){
 //fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
-  int rows = bargs->u.pixel.spx->dimy;
   sprixel* s = bargs->u.pixel.spx;
   if(init_sprixel_animation(s)){
     return -1;
   }
-  tament* tam = NULL;
-  bool reuse = false;
-  // if we have a sprixel attached to this plane, see if we can reuse it
-  // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->tam){
-    if(n->leny == rows && n->lenx == cols){
-      tam = n->tam;
-      reuse = true;
-    }
-  }
   int parse_start = 0;
-  if(!reuse){
-    tam = malloc(sizeof(*tam) * rows * cols);
-    if(tam == NULL){
-      goto error;
-    }
-    memset(tam, 0, sizeof(*tam) * rows * cols);
-  }
   fbuf* f = &s->glyph;
   if(write_kitty_data(f, linesize, leny, lenx, cols, data,
-                      bargs, tam, &parse_start, level)){
+                      bargs, n->tam, &parse_start, level)){
     goto error;
   }
   if(level == NCPIXEL_KITTY_STATIC){
     s->animating = false;
   }
   // take ownership of |buf| and |tam| on success.
-  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, tam, SPRIXEL_UNSEEN) < 0){
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, n->tam, SPRIXEL_UNSEEN) < 0){
     goto error;
   }
   return 1;
 
 error:
-  if(!reuse){
-    free(tam);
-  }
   fbuf_free(&s->glyph);
   return -1;
 }
