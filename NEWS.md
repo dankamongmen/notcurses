@@ -9,6 +9,10 @@ rearrangements of Notcurses.
     along with the modifier). Only Kitty supports this protocol at this time.
   * `XTMODKEYS` is now used where supported. This is essentially a subset of
     the Kitty protocol discussed above.
+  * In the absence of any `XTSMGRAPHICS` replies, advertising feature 4 in a
+    DA1 response will be considered as claiming support for Sixel with 256
+    color registers. If you're a terminal author, please do `XTSMGRAPHICS`.
+    Actually, please implement the vastly superior Kitty graphics protocol.
 
 * 2.4.5 (2021-10-06)
   * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has
