@@ -601,7 +601,7 @@ endif()
 ############################################################################
 # ncneofetch
 file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
-add_executable(ncneofetch ${FETCHSRCS})
+add_executable(ncneofetch ${FETCHSRCS} ${COMPATSRC})
 target_include_directories(ncneofetch
   BEFORE
   PRIVATE
