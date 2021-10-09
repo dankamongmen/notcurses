@@ -477,7 +477,7 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>Notcurses initialization locks up in MSYS2/Cygwin.</summary>
+  <summary>Notcurses exits immediately in MSYS2/Cygwin.</summary>
   Notcurses requires the [Windows ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/)
   layer. This is available in Cygwin by default since 3.2.0, but is disabled
   by default in MSYS. Launch `mintty` with `-P on` arguments, or export

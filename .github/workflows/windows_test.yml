@@ -14,7 +14,6 @@ jobs:
         shell: msys2 {0}
     env:
       COLORTERM: truecolor
-      NPROC: 2
       TERM: xterm
     name: 🏁 build, test, & install
     runs-on: windows-latest
@@ -63,7 +62,7 @@ jobs:
       - name: make
         run: |
           cd build
-          make -j${NPROC}
+          ninja
 
       - name: ctest
         run: |
