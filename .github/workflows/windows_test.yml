@@ -49,7 +49,7 @@ jobs:
           cd /ucrt64/lib && \
             ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" ./libqrcodegen.a
 
-      - name: cmake
+      - name: config
         run: |
           mkdir build && cd build
           cmake .. \
@@ -58,20 +58,20 @@ jobs:
             -DUSE_PANDOC=off \
             -DUSE_QRCODEGEN=on
 
-      - name: make
+      - name: build
         run: |
           cd build
           ninja
 
-      - name: ctest
+      - name: test
         run: |
           cd build
           #ctest --output-on-failure
 
-      - name: make install
+      - name: install
         run: |
           cd build
-          make install
+          ninja install
 
           #- name: python wrappers
           #run: |
