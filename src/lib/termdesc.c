@@ -501,6 +501,11 @@ static int
 apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm,
                       size_t* tablelen, size_t* tableused, bool* invertsixel,
                       unsigned nonewfonts){
+#ifdef __MINGW64__
+  if(qterm == TERMINAL_UNKNOWN){
+    qterm = TERMINAL_MSTERMINAL;
+  }
+#endif
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = ti->termname ? ti->termname : "unknown";
@@ -596,6 +601,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       *invertsixel = true;
     }
     ti->bce = true;
+  }else if(qterm == TERMINAL_MSTERMINAL){
+    ti->termname = "Windows Terminal";
+    ti->caps.rgb = true;
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
@@ -744,11 +752,11 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
   if(termtype){
     logwarn("termtype (%s) ignored on windows\n", termtype);
   }
-  if(prepare_windows_terminal(ti, &tablelen, &tableused) == 0){
-    ti->qterm = TERMINAL_MSTERMINAL;
-    if(cursor_y && cursor_x){
-      locate_cursor(ti, cursor_y, cursor_x);
-    }
+  if(prepare_windows_terminal(ti, &tablelen, &tableused)){
+    return -1;
+  }
+  if(cursor_y && cursor_x){
+    locate_cursor(ti, cursor_y, cursor_x);
   }
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;

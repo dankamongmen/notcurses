@@ -87,8 +87,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     logerror("couldn't set output console mode\n");
     return -1;
   }
-  ti->termname = "Windows Terminal";
-  loginfo("verified Windows Terminal\n");
+  loginfo("verified Windows ConPTY\n");
   return 0;
 }
 #endif
