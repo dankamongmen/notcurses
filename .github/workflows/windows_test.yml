@@ -55,7 +55,6 @@ jobs:
           cmake .. \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_DOCTEST=off \
             -DUSE_PANDOC=off \
             -DUSE_QRCODEGEN=on
 
@@ -67,7 +66,7 @@ jobs:
       - name: ctest
         run: |
           cd build
-          ctest --output-on-failure
+          #ctest --output-on-failure
 
       - name: make install
         run: |
