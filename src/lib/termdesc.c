@@ -753,6 +753,7 @@ int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned ut
     logwarn("termtype (%s) ignored on windows\n", termtype);
   }
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
+    logpanic("failed opening Windows ConPTY\n");
     return -1;
   }
   if(cursor_y && cursor_x){
