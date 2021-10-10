@@ -947,11 +947,31 @@ da1_attrs_cb(inputctx* ictx){
   return 1;
 }
 
+// we use secondary device attributes to recognize the alacritty crate
+// version, and to ascertain the version of old, pre-XTVERSION XTerm.
 static int
 da2_cb(inputctx* ictx){
   loginfo("read secondary device attributes\n");
   if(ictx->initdata == NULL){
     return 2;
+  }
+  amata_next_numeric(&ictx->amata, "\x1b[>", ';');
+  unsigned pv = amata_next_numeric(&ictx->amata, "", ';');
+  int maj, min, patch;
+  if(pv == 0){
+    return 2;
+  }
+  if(ictx->initdata->qterm == TERMINAL_XTERM){
+    if(ictx->initdata->version == NULL){
+      char ver[8];
+      int s = snprintf(ver, sizeof(ver), "%u", pv);
+      if(s < 0 || (unsigned)s >= sizeof(ver)){
+        logerror("bad version: %u\n", pv);
+      }else{
+        ictx->initdata->version = strdup(ver);
+      }
+      return 2;
+    }
   }
   // SDA yields up Alacritty's crate version, but it doesn't unambiguously
   // identify Alacritty. If we've got any other version information, don't
@@ -966,12 +986,6 @@ da2_cb(inputctx* ictx){
   if(termname == NULL || strstr(termname, "alacritty") == NULL){
     loginfo("termname was [%s], probably not alacritty\n",
             termname ? termname : "unset");
-    return 2;
-  }
-  amata_next_numeric(&ictx->amata, "\x1b[>", ';');
-  unsigned pv = amata_next_numeric(&ictx->amata, "", ';');
-  int maj, min, patch;
-  if(pv == 0){
     return 2;
   }
   maj = pv / 10000;
