@@ -930,15 +930,6 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
   return n;
 }
 
-static tament*
-create_tam(int rows, int cols){
-  tament* tam = malloc(sizeof(*tam) * rows * cols);
-  if(tam){
-    memset(tam, 0, sizeof(*tam) * rows * cols);
-  }
-  return tam;
-}
-
 // when a sprixel is blitted to a plane, that plane becomes a sprixel plane. it
 // must not be used with other output mechanisms unless erased. the plane will
 // be shrunk to fit the output, and the output is always placed at the origin.

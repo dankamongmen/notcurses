@@ -720,6 +720,10 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   if(!ncdv){
     return NULL;
   }
+  if((ncdv->tam = create_tam(ncplane_dim_y(ncdv), ncplane_dim_x(ncdv))) == NULL){
+    free_plane(ncdv);
+    return NULL;
+  }
   blitterargs bargs = {};
   bargs.flags = vopts->flags;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){

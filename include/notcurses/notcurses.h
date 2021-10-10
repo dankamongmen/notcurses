@@ -2008,8 +2008,15 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 // On success, returns the number of columns written. On failure, returns -1.
 static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  wchar_t warr[2] = { w, L'\0' };
-  return ncplane_putwstr_yx(n, y, x, warr);
+  char utf8c[MB_CUR_MAX + 1];
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  size_t s = wcrtomb(utf8c, w, &ps);
+  if(s == (size_t)-1){
+    return -1;
+  }
+  utf8c[s] = '\0';
+  return ncplane_putegc_yx(n, y, x, utf8c, NULL);
 }
 
 // Write 'w' at the current cursor position, using the plane's current styling.

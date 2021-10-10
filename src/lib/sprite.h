@@ -157,6 +157,16 @@ typedef struct sprixel {
   bool animating;        // do we have an active animation?
 } sprixel;
 
+static inline tament*
+create_tam(int rows, int cols){
+  // need cast for c++ callers
+  tament* tam = (tament*)malloc(sizeof(*tam) * rows * cols);
+  if(tam){
+    memset(tam, 0, sizeof(*tam) * rows * cols);
+  }
+  return tam;
+}
+
 int sixel_wipe(sprixel* s, int ycell, int xcell);
 // nulls out a cell from a kitty bitmap via changing the alpha value
 // throughout to 0. the same trick doesn't work on sixel, but there we
