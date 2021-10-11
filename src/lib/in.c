@@ -445,8 +445,14 @@ send_synth_signal(int sig){
 static void
 mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
+#ifndef __MINGW64__
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
     logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+#else
+  DWORD wrote;
+  if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
+    logwarn("error writing to readypipe (%u)\n", GetLastError());
+#endif
   }
 }
 
@@ -1299,7 +1305,7 @@ getpipes(ipipe pipes[static 2]){
   }
 #endif
 #else // windows
-  if(!CreatePipe(&ipipe[0], &ipipe[1], NULL, BUFSIZ)){
+  if(!CreatePipe(pipes[0], pipes[1], NULL, BUFSIZ)){
     logerror("couldn't get pipes (%u)\n", GetLastError());
     return -1;
   }
@@ -2018,7 +2024,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   }else if(ictx->ivalid){
     logtrace("draining event readiness pipe\n");
     char c;
+#ifndef __MINGW64__
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
+#else
+    // FIXME windows ReadFile()
+#endif
       // FIXME accelerate;
     }
   }
