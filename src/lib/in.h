@@ -41,8 +41,9 @@ typedef enum {
     TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
     TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
     TERMINAL_TMUX,          // XTVERSION == "tmux ver"
+    TERMINAL_GNUSCREEN,     // SDA: "83;ver;0c"
     TERMINAL_WEZTERM,       // XTVERSION == 'WezTerm *'
-    TERMINAL_ALACRITTY,     // can't be detected; match TERM+DA2
+    TERMINAL_ALACRITTY,     // can't be detected; match TERM+SDA
     TERMINAL_CONTOUR,       // XTVERSION == 'contour ver'
     TERMINAL_ITERM,         // XTVERSION == 'iTerm2 [ver]'
     TERMINAL_TERMINOLOGY,   // TDA: "~~TY"

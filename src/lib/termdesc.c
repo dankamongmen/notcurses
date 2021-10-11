@@ -341,6 +341,9 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                   SECDEVATTR
 
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
+// GNU screen passes this on to the underlying terminal rather than answering
+// itself, unlike most other queries, so send this first since it will take
+// longer to be answered.
 #define CSI_BGQ "\x1b]11;?\e\\"
 
 // FIXME ought be using the u7 terminfo string here, if it exists. the great
@@ -367,8 +370,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // request the cell geometry of the textual area
 #define GEOMCELL "\x1b[18t"
 
-#define DIRECTIVES KBDQUERY \
-                   CSI_BGQ \
+#define DIRECTIVES CSI_BGQ \
+                   KBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    KITTYQUERY \
@@ -604,6 +607,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   }else if(qterm == TERMINAL_TMUX){
     termname = "tmux";
     // FIXME what, oh what to do with tmux?
+  }else if(qterm == TERMINAL_GNUSCREEN){
+    termname = "GNU screen";
+    // FIXME disable rgb?
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0

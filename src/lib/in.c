@@ -981,6 +981,34 @@ da1_attrs_cb(inputctx* ictx){
   return 1;
 }
 
+// GNU screen primarily identifies itself via an "83" as the first parameter
+// of its DA2 reply. the version is the second parameter.
+static int
+da2_screen_cb(inputctx* ictx){
+  if(ictx->initdata == NULL){
+    return 2;
+  }
+  if(ictx->initdata->qterm != TERMINAL_UNKNOWN){
+    logwarn("already identified term (%d)\n", ictx->initdata->qterm);
+    return 2;
+  }
+  unsigned ver = amata_next_numeric(&ictx->amata, "\x1b[>83;", ';');
+  if(ver < 10000){
+    logwarn("version %u doesn't look like GNU screen\n", ver);
+    return 2;
+  }
+  char verstr[9]; // three two-digit components plus two delims
+  int s = snprintf(verstr, sizeof(verstr), "%u.%02u.%02u",
+                   ver / 10000, ver / 100 % 100, ver % 100);
+  if(s < 0 || (unsigned)s >= sizeof(verstr)){
+    logwarn("bad screen version %u\n", ver);
+    return 2;
+  }
+  ictx->initdata->version = strdup(verstr);
+  ictx->initdata->qterm = TERMINAL_GNUSCREEN;
+  return 2;
+}
+
 // we use secondary device attributes to recognize the alacritty crate
 // version, and to ascertain the version of old, pre-XTVERSION XTerm.
 static int
@@ -1268,6 +1296,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?\\N;\\Dc", da1_attrs_cb, },
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
+    { "[>83;\\N;0c", da2_screen_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, },
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
