@@ -105,15 +105,13 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
     ncplane_set_bg_rgb8(nn, 8 * chunk, 8 * chunk, 8 * chunk);
     for(z = 0 ; z < CHUNKSIZE ; ++z){
       uint32_t w = blockstart + chunk * CHUNKSIZE + z;
+      if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, "  ") < 0){
+        return -1;
+      }
       // problematic characters FIXME (see TERMINALS.md)
       if(w != 0x070f && w != 0x08e2 && w != 0x06dd){
-        if(ncplane_putstr_yx(nn, chunk + 1, z * 2 + 1, "  ") < 0){
-          return -1;
-        }
         ncplane_set_fg_rgb8(nn, 0xad + z * 2, 0xff, 0x2f - z * 2);
-        if(ncplane_putwc_yx(nn, chunk + 1, z * 2 + 1, w) < 0){
-          return -1;
-        }
+        ncplane_putwc_yx(nn, chunk + 1, z * 2 + 1, w);
       }
     }
   }
