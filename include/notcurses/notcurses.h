@@ -2850,7 +2850,6 @@ struct ncvisual_options {
   // an error if either number exceeds the cell-pixel geometry in its
   // dimension. if NCBLIT_PIXEL is not used, these fields are ignored.
   // this functionality can be used for smooth bitmap movement.
-  // FIXME not yet implemented.
   unsigned pxoffy, pxoffx;
 };
 

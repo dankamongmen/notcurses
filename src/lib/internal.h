@@ -401,6 +401,8 @@ typedef struct blitterargs {
     struct {
       int colorregs;   // number of color registers
       sprixel* spx;    // sprixel object
+      int pxoffy;      // pixel y-offset within origin cell
+      int pxoffx;      // pixel x-offset within origin cell
     } pixel;           // for pixels
   } u;
 } blitterargs;
