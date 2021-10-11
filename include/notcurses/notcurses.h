@@ -1505,13 +1505,15 @@ typedef struct ncstats {
   uint64_t writeouts;        // successful ncpile_rasterize() runs
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t failed_writeouts; // aborted writes
-  // FIXME these next three all ought be "writeout" or "raster"
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t raster_bytes;     // bytes emitted to ttyfp
+  int64_t raster_max_bytes;  // max bytes emitted for a frame
+  int64_t raster_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent rendering
   int64_t render_max_ns;     // max ns spent in render for a frame
   int64_t render_min_ns;     // min ns spent in render for a frame
+  uint64_t raster_ns;        // nanoseconds spent rasterizing
+  int64_t raster_max_ns;     // max ns spent in raster for a frame
+  int64_t raster_min_ns;     // min ns spent in raster for a frame
   uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame
@@ -1524,21 +1526,16 @@ typedef struct ncstats {
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
   uint64_t refreshes;        // refresh requests (non-optimized redraw)
+  uint64_t sprixelemissions; // sprixel draw count
+  uint64_t sprixelelisions;  // sprixel elision count
+  uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t appsync_updates;  // how many application-synchronized updates?
+  uint64_t input_errors;     // errors processing control sequences/utf8
+  uint64_t input_events;     // characters returned to userspace
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
   unsigned planes;           // number of planes currently in existence
-
-  // FIXME placed here for ABI compatibility; move up for ABI3
-  uint64_t raster_ns;        // nanoseconds spent rasterizing
-  int64_t raster_max_ns;     // max ns spent in raster for a frame
-  int64_t raster_min_ns;     // min ns spent in raster for a frame
-  uint64_t sprixelemissions; // sprixel draw count
-  uint64_t sprixelelisions;  // sprixel elision count
-  uint64_t sprixelbytes;     // sprixel bytes emitted
-  uint64_t input_errors;     // errors processing control sequences/utf8
-  uint64_t input_events;     // characters returned to userspace
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
