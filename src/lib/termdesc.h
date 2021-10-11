@@ -105,8 +105,8 @@ typedef struct tinfo {
   unsigned pixx;                   // total pixel geometry, width
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
-  int cellpixy;                    // cell pixel height, might be 0
-  int cellpixx;                    // cell pixel width, might be 0
+  unsigned cellpixy;               // cell pixel height, might be 0
+  unsigned cellpixx;               // cell pixel width, might be 0
   int dimy, dimx;                  // most recent cell geometry
 
   unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv

@@ -214,11 +214,19 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
         }
         // FIXME clamp to sprixel limits
         if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+          if(vopts->pxoffy >= nc->tcache.cellpixy){
+            logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, nc->tcache.cellpixy);
+            return -1;
+          }
           int rows = ((*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy)
                       + !!vopts->pxoffy;
           if(rows > ncplane_dim_y(vopts->n)){
             logerror("sprixel too tall %d for plane %d\n",
                      *leny + vopts->pxoffy, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
+            return -1;
+          }
+          if(vopts->pxoffx >= nc->tcache.cellpixx){
+            logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, nc->tcache.cellpixx);
             return -1;
           }
           int cols = ((*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx)
@@ -1004,7 +1012,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     }
     clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy, scaling);
     // FIXME use a closed form
-    while((outy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy > ncplane_dim_y(n)){
+    while((outy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy > (unsigned)ncplane_dim_y(n)){
       outy -= nc->tcache.sprixel_scale_height;
       disppixy = outy;
     }

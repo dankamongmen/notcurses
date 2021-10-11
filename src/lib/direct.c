@@ -659,8 +659,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   }
   int ymax = vopts->leny / bset->height;
   int xmax = vopts->lenx / bset->width;
-  int dimy = vopts->leny > 0 ? ymax : ncdirect_dim_y(n);
-  int dimx = vopts->lenx > 0 ? xmax : ncdirect_dim_x(n);
+  unsigned dimy = vopts->leny > 0 ? ymax : ncdirect_dim_y(n);
+  unsigned dimx = vopts->lenx > 0 ? xmax : ncdirect_dim_x(n);
   int disprows, dispcols, outy;
   if(vopts->scaling != NCSCALE_NONE && vopts->scaling != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
