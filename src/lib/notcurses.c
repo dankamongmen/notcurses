@@ -3113,9 +3113,9 @@ int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
   return *validwidth;
 }
 
-void ncplane_pixelgeom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
-                       int* RESTRICT celldimy, int* RESTRICT celldimx,
-                       int* RESTRICT maxbmapy, int* RESTRICT maxbmapx){
+void ncplane_pixel_geom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+                        int* RESTRICT celldimy, int* RESTRICT celldimx,
+                        int* RESTRICT maxbmapy, int* RESTRICT maxbmapx){
   notcurses* nc = ncplane_notcurses(n);
   if(celldimy){
     *celldimy = nc->tcache.cellpixy;

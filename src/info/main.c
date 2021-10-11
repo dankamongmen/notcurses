@@ -329,7 +329,7 @@ unicodedumper(struct ncplane* n, const char* indent){
 static int
 display_logo(struct ncplane* n, const char* path){
   int cpixy, cpixx;
-  ncplane_pixelgeom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
+  ncplane_pixel_geom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
     return -1;

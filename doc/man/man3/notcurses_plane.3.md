@@ -225,7 +225,7 @@ typedef struct ncplane_options {
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
-**void ncplane_pixelgeom(struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, int* restrict ***celldimy***, int* restrict ***celldimx***, int* restrict ***maxbmapy***, int* restrict ***maxbmapx***);**
+**void ncplane_pixel_geom(struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, int* restrict ***celldimy***, int* restrict ***celldimx***, int* restrict ***maxbmapy***, int* restrict ***maxbmapx***);**
 
 **int ncplane_set_name(struct ncplane* ***n***, const char* ***name***);**
 
@@ -433,7 +433,7 @@ they intersect the plane. This can be disabled with the
 
 ## Bitmaps
 
-**ncplane_pixelgeom** retrieves pixel geometry details. **pxy** and **pxx**
+**ncplane_pixel_geom** retrieves pixel geometry details. **pxy** and **pxx**
 return the size of the plane in pixels. **celldimy** and **celldimx** return
 the size of a cell in pixels (these ought be the same across planes).
 **maxbmapy** and **maxbmapx** describe the largest bitmap which can be

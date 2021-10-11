@@ -105,7 +105,7 @@ int main(void){
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
   int cellpixy, cellpixx;
-  ncplane_pixelgeom(stdn, NULL, NULL, &cellpixy, &cellpixx, NULL, NULL);
+  ncplane_pixel_geom(stdn, NULL, NULL, &cellpixy, &cellpixx, NULL, NULL);
   if(interp(nc, cellpixy, cellpixx)){
     goto err;
   }

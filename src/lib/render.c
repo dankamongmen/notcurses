@@ -1507,7 +1507,7 @@ int ncpile_render(ncplane* n){
   ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->stats.lock);
-    update_raster_stats(&renderdone, &start, &nc->stats.s);
+    update_render_stats(&renderdone, &start, &nc->stats.s);
   pthread_mutex_unlock(&nc->stats.lock);
   return 0;
 }
