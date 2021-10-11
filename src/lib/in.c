@@ -23,7 +23,6 @@
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
 // FIXME still need to:
-//  integrate main specials trie with automaton, enable input_errors
 //  probably want pipes/eventfds rather than SIGCONT
 
 static sig_atomic_t resize_seen;
@@ -49,6 +48,12 @@ typedef struct termqueries {
 typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
+
+#ifndef __MINGW64__
+typedef int ipipe;
+#else
+typedef PHANDLE ipipe;
+#endif
 
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
@@ -100,7 +105,7 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
-  int readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
+  ipipe readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
@@ -438,7 +443,7 @@ send_synth_signal(int sig){
 }
 
 static void
-mark_pipe_ready(int pipes[static 2]){
+mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
     logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
@@ -1270,7 +1275,7 @@ endpipes(int pipes[static 2]){
 
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
 static int
-getpipes(int pipes[static 2]){
+getpipes(ipipe pipes[static 2]){
 #ifndef __MINGW64__
 #ifndef __APPLE__
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
@@ -1292,10 +1297,12 @@ getpipes(int pipes[static 2]){
     endpipes(pipes);
     return -1;
   }
-  // FIXME what to do on windows?
 #endif
 #else // windows
-  pipes[0] = pipes[1] = -1;
+  if(!CreatePipe(&ipipe[0], &ipipe[1], NULL, BUFSIZ)){
+    logerror("couldn't get pipes (%u)\n", GetLastError());
+    return -1;
+  }
 #endif
   return 0;
 }
