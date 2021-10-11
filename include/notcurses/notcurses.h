@@ -921,7 +921,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  FILE* renderfp; // deprecated, must be NULL, will be removed for ABI3 FIXME
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
