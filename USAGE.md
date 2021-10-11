@@ -223,8 +223,10 @@ int notcurses_render(struct notcurses* nc);
 // must be freed by the caller.
 int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
 
-// Write the last rendered frame, in its entirety, to 'fp'. If
-// notcurses_render() has not yet been called, nothing will be written.
+// Write the last rendered frame, in its entirety, to 'fp'. If a frame has
+// not yet been rendered, nothing will be written.
+int ncpile_render_to_file(struct ncplane* p, FILE* fp);
+
 int ncpile_render_to_file(struct ncplane* p, FILE* fp);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
