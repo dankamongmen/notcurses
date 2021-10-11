@@ -2136,18 +2136,6 @@ uint32_t ncdirect_get(ncdirect* n, const struct timespec* ts, ncinput* ni){
   return internal_get(n->tcache.ictx, ts, ni);
 }
 
-uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,
-                        const void* unused, ncinput* ni){
-  (void)unused; // FIXME remove for abi3
-  return notcurses_get(nc, ts, ni);
-}
-
-uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
-                       const void* unused, ncinput* ni){
-  (void)unused; // FIXME remove for abi3
-  return ncdirect_get(nc, ts, ni);
-}
-
 int get_cursor_location(inputctx* ictx, const char* u7, int* y, int* x){
   pthread_mutex_lock(&ictx->clock);
   while(ictx->cvalid == 0){
