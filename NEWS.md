@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.6 (not yet released)
+* 2.4.6 (not yet released) **"In the A"**
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including
     key repeat and release events, and modifier events (i.e. pressing Shift by
