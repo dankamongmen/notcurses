@@ -4110,19 +4110,6 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
-// DEPRECATED MATERIAL, GOING AWAY IN ABI3
-
-__attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
-
-__attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
-
-API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-
 #undef API
 #undef ALLOC
 

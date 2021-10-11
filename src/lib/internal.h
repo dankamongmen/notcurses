@@ -397,7 +397,7 @@ void summarize_stats(notcurses* nc);
 
 void update_raster_stats(const struct timespec* time1, const struct timespec* time0, ncstats* stats);
 void update_render_stats(const struct timespec* time1, const struct timespec* time0, ncstats* stats);
-void update_render_bytes(ncstats* stats, int bytes);
+void update_raster_bytes(ncstats* stats, int bytes);
 void update_write_stats(const struct timespec* time1, const struct timespec* time0, ncstats* stats, int bytes);
 
 void sigwinch_handler(int signo);

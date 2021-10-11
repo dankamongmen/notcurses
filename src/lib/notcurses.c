@@ -1776,26 +1776,14 @@ void ncplane_set_styles(ncplane* n, unsigned stylebits){
   n->stylemask = (stylebits & NCSTYLE_MASK);
 }
 
-void ncplane_styles_set(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_set_styles(n, stylebits);
-}
-
 // turn on any specified stylebits
 void ncplane_on_styles(ncplane* n, unsigned stylebits){
   n->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
-void ncplane_styles_on(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_on_styles(n, stylebits);
-}
-
 // turn off any specified stylebits
 void ncplane_off_styles(ncplane* n, unsigned stylebits){
   n->stylemask &= ~(stylebits & NCSTYLE_MASK);
-}
-
-void ncplane_styles_off(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_off_styles(n, stylebits);
 }
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
