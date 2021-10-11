@@ -690,6 +690,7 @@ TEST_CASE("Bitmaps") {
       vopts.pxoffy = yat % nc_->tcache.cellpixy;
       CHECK(0 == ncplane_destroy(n));
       n = ncvisual_render(nc_, ncv, &vopts);
+      REQUIRE(nullptr != n);
       CHECK(0 == notcurses_render(nc_));
     }
     ncvisual_destroy(ncv);

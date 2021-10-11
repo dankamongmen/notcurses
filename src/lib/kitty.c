@@ -730,9 +730,8 @@ static int
 write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
                  tament* tam, int* parse_start, ncpixelimpl_e level){
-//fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
-    logerror("Stride (%d) badly aligned\n", linesize);
+    logerror("stride (%d) badly aligned\n", linesize);
     return -1;
   }
   // we only deflate if we're using animation, since otherwise we need be able
@@ -805,7 +804,6 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
         if(translucent){
           ncpixel_set_a(&source[e], ncpixel_a(source[e]) / 2);
         }
-//fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
@@ -820,6 +818,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
                                     data, linesize, tam[tyx].auxvector,
                                     transcolor);
             if(tmp == NULL){
+              logerror("got a NULL auxvec at %d/%d\n", y, x);
               goto err;
             }
             tam[tyx].auxvector = tmp;
@@ -827,6 +826,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             if(tam[tyx].auxvector == NULL){
               tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
               if(tam[tyx].auxvector == NULL){
+                logerror("got a NULL auxvec at %d\n", tyx);
                 goto err;
               }
             }
@@ -1052,7 +1052,6 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 static inline int
 kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
                 const blitterargs* bargs, ncpixelimpl_e level){
-//fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   sprixel* s = bargs->u.pixel.spx;
   if(init_sprixel_animation(s)){
@@ -1060,15 +1059,19 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   int parse_start = 0;
   fbuf* f = &s->glyph;
+  int pxoffx = bargs->u.pixel.pxoffx;
+  int pxoffy = bargs->u.pixel.pxoffy;
   if(write_kitty_data(f, linesize, leny, lenx, cols, data,
                       bargs, n->tam, &parse_start, level)){
     goto error;
   }
+  // FIXME need set pxoffx and pxoffy in sprixel
   if(level == NCPIXEL_KITTY_STATIC){
     s->animating = false;
   }
   // take ownership of |buf| and |tam| on success.
-  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, n->tam, SPRIXEL_UNSEEN) < 0){
+  if(plane_blit_sixel(s, &s->glyph, leny + pxoffy, lenx + pxoffx, parse_start,
+                      n->tam, SPRIXEL_UNSEEN) < 0){
     goto error;
   }
   return 1;
