@@ -533,7 +533,16 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 
 int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   loginfo("Committing Kitty graphic id %u\n", s->id);
-  fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
+  int i;
+  if(s->pxoffx || s->pxoffy){
+    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s\e\\", s->id,
+                    s->pxoffx, s->pxoffy, noscroll ? ",C=1" : "");
+  }else{
+    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
+  }
+  if(i < 0){
+    return -1;
+  }
   s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
 }
@@ -1074,6 +1083,8 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
                       n->tam, SPRIXEL_UNSEEN) < 0){
     goto error;
   }
+  s->pxoffx = pxoffx;
+  s->pxoffy = pxoffy;
   return 1;
 
 error:

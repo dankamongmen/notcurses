@@ -150,6 +150,7 @@ typedef struct sprixel {
   int movedfromx;       // so that we can damage old cells when redrawn
   // only used for kitty-based sprixels
   int parse_start;      // where to start parsing for cell wipes
+  int pxoffy, pxoffx;   // X and Y parameters to display command
   // only used for sixel-based sprixels
   unsigned char* needs_refresh; // one per cell, whether new frame needs damage
   struct sixelmap* smap;  // copy of palette indices + transparency bits
