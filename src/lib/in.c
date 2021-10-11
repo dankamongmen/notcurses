@@ -449,6 +449,7 @@ static void
 load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
   inc_input_events(ictx);
   if(ictx->drain){
+    send_synth_signal(synthsig);
     return;
   }
   pthread_mutex_lock(&ictx->ilock);
