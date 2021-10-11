@@ -2331,10 +2331,6 @@ ncpalette* ncpalette_new(notcurses* nc){
   return p;
 }
 
-ncpalette* palette256_new(notcurses* nc){
-  return ncpalette_new(nc);
-}
-
 int ncpalette_use(notcurses* nc, const ncpalette* p){
   int ret = -1;
   if(!notcurses_canchangecolor(nc)){
@@ -2350,16 +2346,8 @@ int ncpalette_use(notcurses* nc, const ncpalette* p){
   return ret;
 }
 
-int palette256_use(notcurses* nc, const ncpalette* p){
-  return ncpalette_use(nc, p);
-}
-
 void ncpalette_free(ncpalette* p){
   free(p);
-}
-
-void palette256_free(ncpalette* p){
-  ncpalette_free(p);
 }
 
 bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
