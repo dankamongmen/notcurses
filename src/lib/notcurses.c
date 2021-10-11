@@ -2900,8 +2900,8 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
         ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         ba = ncchannels_bg_alpha(channels);
         // handle each destination pixel from this cell
-        for(int py = 0 ; py < bset->height ; ++py){
-          for(int px = 0 ; px < bset->width ; ++px){
+        for(unsigned py = 0 ; py < bset->height ; ++py){
+          for(unsigned px = 0 ; px < bset->width ; ++px){
             uint32_t* p = &ret[(targy + py) * (lenx * bset->width) + (targx + px)];
             bool background = is_bg_p(idx, py, px, bset->width);
             if(background){

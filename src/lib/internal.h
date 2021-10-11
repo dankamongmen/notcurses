@@ -416,8 +416,8 @@ typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
 // a system for rendering RGBA pixels as text glyphs or sixel/kitty bitmaps
 struct blitset {
   ncblitter_e geom;
-  int width;        // number of input pixels per output cell, width
-  int height;       // number of input pixels per output cell, height
+  unsigned width;   // number of input pixels per output cell, width
+  unsigned height;  // number of input pixels per output cell, height
   // the EGCs which form the blitter. bits grow left to right, and then top to
   // bottom. the first character is always a space, the last a full block.
   const wchar_t* egcs;
