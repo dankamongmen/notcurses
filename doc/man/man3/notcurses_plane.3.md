@@ -505,9 +505,6 @@ All other functions cannot fail (and return **void**).
 
 # NOTES
 
-**ncplane_new** is defined as a deprecated wrapper around **ncplane_create**.
-It should not be used in new code.
-
 # BUGS
 
 **ncplane_at_yx** doesn't yet account for bitmap-based graphics (see
