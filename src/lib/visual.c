@@ -195,34 +195,45 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   if(blitter){
     *blitter = bset;
   }
-  if(bset->geom == NCBLIT_PIXEL && vopts){
-    if(vopts->n){
-      if(vopts->n == notcurses_stdplane_const(nc)){
-        if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
-          logerror("Won't blit bitmaps to the standard plane\n");
+  if(vopts){
+    if(bset->geom == NCBLIT_PIXEL){
+      if(vopts->n){
+        if(vopts->n == notcurses_stdplane_const(nc)){
+          if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
+            logerror("Won't blit bitmaps to the standard plane\n");
+            return -1;
+          }
+        }
+        if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
+          logerror("Non-origin y placement %d for sprixel\n", vopts->y);
           return -1;
         }
+        if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
+          logerror("Non-origin x placement %d for sprixel\n", vopts->x);
+          return -1;
+        }
+        // FIXME clamp to sprixel limits
+        if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+          int rows = ((*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy)
+                      + !!vopts->pxoffy;
+          if(rows > ncplane_dim_y(vopts->n)){
+            logerror("sprixel too tall %d for plane %d\n",
+                     *leny + vopts->pxoffy, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
+            return -1;
+          }
+          int cols = ((*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx)
+                      + !!vopts->pxoffx;
+          if(cols > ncplane_dim_x(vopts->n)){
+            logerror("sprixel too wide %d for plane %d\n",
+                     *lenx + vopts->pxoffx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
+            return -1;
+          }
+        }
       }
-      if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-        logerror("Non-origin y placement %d for sprixel\n", vopts->y);
+    }else{
+      if(vopts->pxoffx || vopts->pxoffy){
+        logerror("pixel offsets cannot be used with cell blitting\n");
         return -1;
-      }
-      if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-        logerror("Non-origin x placement %d for sprixel\n", vopts->x);
-        return -1;
-      }
-      // FIXME clamp to sprixel limits
-      if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-        int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
-        if(rows > ncplane_dim_y(vopts->n)){
-          logerror("Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
-          return -1;
-        }
-        int cols = (*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx;
-        if(cols > ncplane_dim_x(vopts->n)){
-          logerror("Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
-          return -1;
-        }
       }
     }
   }
@@ -950,7 +961,8 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
                                 int leny, int lenx, ncplane* n, ncscale_e scaling,
-                                uint64_t flags, uint32_t transcolor){
+                                uint64_t flags, uint32_t transcolor,
+                                int pxoffy, int pxoffx){
   ncplane* stdn = notcurses_stdplane(nc);
   if(n == stdn && !(flags & NCVISUAL_OPTION_CHILDPLANE)){
     logerror("Won't blit bitmaps to the standard plane\n");
@@ -1010,6 +1022,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.lenx = lenx;
   bargs.flags = flags;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
+  bargs.u.pixel.pxoffy = pxoffy;
+  bargs.u.pixel.pxoffx = pxoffx;
   int cols = disppixx / nc->tcache.cellpixx + !!(disppixx % nc->tcache.cellpixx);
   int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
   if(n->sprite == NULL){
@@ -1108,7 +1122,9 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx,
                                leny, lenx, n, scaling,
-                               vopts ? vopts->flags : 0, transcolor);
+                               vopts ? vopts->flags : 0, transcolor,
+                               vopts ? vopts->pxoffy : 0,
+                               vopts ? vopts->pxoffx : 0);
   }
   return n;
 }
