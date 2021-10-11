@@ -1975,7 +1975,10 @@ ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr){
   if(mbstr == NULL){
     return -1;
   }
-  size_t s = wcstombs(mbstr, gclustarr, mbytes);
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  const wchar_t** gend = &gclustarr;
+  size_t s = wcsrtombs(mbstr, gend, mbytes, &ps);
   if(s == (size_t)-1){
     free(mbstr);
     return -1;
