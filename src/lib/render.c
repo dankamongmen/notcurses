@@ -1428,10 +1428,6 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
   return ret;
 }
 
-int notcurses_render_to_file(notcurses* nc, FILE* fp){
-  return ncpile_render_to_file(notcurses_stdplane(nc), fp);
-}
-
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
 // which cells were changed. We solve for each coordinate's cell by walking
@@ -1526,18 +1522,6 @@ int ncpile_render(ncplane* n){
   return 0;
 }
 
-int notcurses_render(notcurses* nc){
-//fprintf(stderr, "--------------- BEGIN RENDER\n");
-//notcurses_debug(nc, stderr);
-  ncplane* stdn = notcurses_stdplane(nc);
-  if(ncpile_render(stdn)){
-    return -1;
-  }
-  int i = ncpile_rasterize(stdn);
-//fprintf(stderr, "----------------- END RENDER\n");
-  return i;
-}
-
 // for now, we just run the top half of notcurses_render(), and copy out the
 // memstream from within rstate. we want to allocate our own here, and return
 // it, to avoid the copy, but we need feed the params through to do so FIXME.
@@ -1561,10 +1545,6 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   }
   *buflen = nc->rstate.f.used;
   return 0;
-}
-
-int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
-  return ncpile_render_to_buffer(notcurses_stdplane(nc), buf, buflen);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the

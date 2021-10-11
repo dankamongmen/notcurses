@@ -977,6 +977,45 @@ API int notcurses_enter_alternate_screen(struct notcurses* nc)
 API int notcurses_leave_alternate_screen(struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the terminal.
+API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+
+// Return the dimensions of this ncplane. y or x may be NULL.
+API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+
+static inline int
+ncplane_dim_y(const struct ncplane* n){
+  int dimy;
+  ncplane_dim_yx(n, &dimy, NULL);
+  return dimy;
+}
+
+static inline int
+ncplane_dim_x(const struct ncplane* n){
+  int dimx;
+  ncplane_dim_yx(n, NULL, &dimx);
+  return dimx;
+}
+
+// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+static inline struct ncplane*
+notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
+  struct ncplane* s = notcurses_stdplane(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
+static inline const struct ncplane*
+notcurses_stddim_yx_const(const struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
+  const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n);
 
@@ -993,7 +1032,14 @@ API int ncpile_render(struct ncplane* n);
 API int ncpile_rasterize(struct ncplane* n);
 
 // Renders and rasterizes the standard pile in one shot. Blocking call.
-API int notcurses_render(struct notcurses* nc);
+static inline int
+notcurses_render(struct notcurses* nc){
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  if(ncpile_render(stdn)){
+    return -1;
+  }
+  return ncpile_rasterize(stdn);
+}
 
 // Perform the rendering and rasterization portion of ncpile_render() and
 // ncpile_rasterize(), but do not write the resulting buffer out to the
@@ -1001,8 +1047,8 @@ API int notcurses_render(struct notcurses* nc);
 // The returned buffer must be freed by the caller.
 API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
 
-// Write the last rendered frame, in its entirety, to 'fp'. If
-// notcurses_render() has not yet been called, nothing will be written.
+// Write the last rendered frame, in its entirety, to 'fp'. If a frame has
+// not yet been rendered, nothing will be written.
 API int ncpile_render_to_file(struct ncplane* p, FILE* fp);
 
 // Return the topmost ncplane of the standard pile.
@@ -1155,45 +1201,6 @@ API struct notcurses* ncplane_notcurses(const struct ncplane* n)
 
 API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
-
-// Return the dimensions of this ncplane. y or x may be NULL.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
-  __attribute__ ((nonnull (1)));
-
-// Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal. The standard plane always exists, and its
-// origin is always at the uppermost, leftmost cell of the terminal.
-API struct ncplane* notcurses_stdplane(struct notcurses* nc);
-API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
-
-// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-static inline struct ncplane*
-notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-  struct ncplane* s = notcurses_stdplane(nc); // can't fail
-  ncplane_dim_yx(s, y, x); // accepts NULL
-  return s;
-}
-
-static inline const struct ncplane*
-notcurses_stddim_yx_const(const struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-  const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
-  ncplane_dim_yx(s, y, x); // accepts NULL
-  return s;
-}
-
-static inline int
-ncplane_dim_y(const struct ncplane* n){
-  int dimy;
-  ncplane_dim_yx(n, &dimy, NULL);
-  return dimy;
-}
-
-static inline int
-ncplane_dim_x(const struct ncplane* n){
-  int dimx;
-  ncplane_dim_yx(n, NULL, &dimx);
-  return dimx;
-}
 
 // Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
@@ -4122,12 +4129,6 @@ API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
 // Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
 API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
   __attribute__ ((nonnull (1)));
-
-API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen)
-  __attribute__ ((deprecated));
-
-API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
-  __attribute__ ((deprecated));
 
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
