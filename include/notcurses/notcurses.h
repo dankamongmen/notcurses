@@ -4135,9 +4135,6 @@ API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int sc
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
 
-API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
 #undef API
 #undef ALLOC
 

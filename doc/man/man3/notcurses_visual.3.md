@@ -93,7 +93,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
 
-**struct ncplane* ncvisual_subtitle(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
+**struct ncplane* ncvisual_subtitle_plane(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
 
 **int notcurses_lex_scalemode(const char* ***op***, ncscale_e* ***scaling***);**
 
@@ -124,7 +124,7 @@ Once the visual is loaded, it can be transformed using **ncvisual_rotate**,
 **ncvisual_resize**, and **ncvisual_resize_noninterpolative**. These are
 persistent operations, unlike any scaling that takes place at render time. If a
 subtitle is associated with the frame, it can be acquired with
-**ncvisual_subtitle**. **ncvisual_resize** uses the media layer's best scheme
+**ncvisual_subtitle_plane**. **ncvisual_resize** uses the media layer's best scheme
 to enlarge or shrink the original data, typically involving some interpolation.
 **ncvisual_resize_noninterpolative** performs a naive linear sampling,
 retaining only original colors.
@@ -152,9 +152,10 @@ glyphs within this region are those used by the specified blitter.
 **ncvisual_rotate** executes a rotation of ***rads*** radians, in the clockwise
 (positive) or counterclockwise (negative) direction.
 
-**ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
-the current frame if such a subtitle was decoded. Note that a subtitle might
-be returned for multiple frames, or might not.
+**ncvisual_subtitle_plane** returns a **struct ncplane** suitable for display,
+if the current frame had such a subtitle. Note that the same subtitle might
+be returned for multiple frames, or might not. It is atypical for all frames
+to have subtitles. Subtitles can be text or graphics.
 
 **ncvisual_render** blits the visual to an **ncplane**, based on the contents
 of its **struct ncvisual_options**. If ***n*** is not **NULL**, it specifies the
@@ -328,7 +329,8 @@ aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
 linked library. OpenImageIO does not support subtitles. Functions requiring
-a multimedia backend include **ncvisual_from_file** and **ncvisual_subtitle**.
+a multimedia backend include **ncvisual_from_file** and
+**ncvisual_subtitle_plane**.
 
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).

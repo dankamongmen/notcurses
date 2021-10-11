@@ -32,7 +32,7 @@ void ncvisual_printbanner(fbuf* f){
 
 // you need an actual multimedia implementation for functions which work with
 // codecs, including ncvisual_decode(), ncvisual_decode_loop(),
-// ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle().
+// ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle_plane().
 int ncvisual_decode(ncvisual* nc){
   if(!visual_implementation.visual_decode){
     return -1;
@@ -68,11 +68,6 @@ ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
     return NULL;
   }
   return visual_implementation.visual_subtitle(parent, ncv);
-}
-
-char* ncvisual_subtitle(const ncvisual* ncv){
-  (void)ncv; // FIXME remove for abi3
-  return NULL;
 }
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
