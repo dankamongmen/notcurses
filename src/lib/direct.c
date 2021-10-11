@@ -1167,7 +1167,7 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   return ncdirect_off_styles(n, stylebits);
 }
 
-unsigned ncdirect_styles(const ncdirect* n){
+uint16_t ncdirect_styles(const ncdirect* n){
   return n->stylemask;
 }
 
@@ -1609,7 +1609,7 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
   return r;
 }
 
-unsigned ncdirect_supported_styles(const ncdirect* nc){
+uint16_t ncdirect_supported_styles(const ncdirect* nc){
   return term_supported_styles(&nc->tcache);
 }
 

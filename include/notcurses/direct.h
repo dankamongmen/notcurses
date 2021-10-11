@@ -201,7 +201,7 @@ API int ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
-API unsigned ncdirect_supported_styles(const struct ncdirect* nc);
+API uint16_t ncdirect_supported_styles(const struct ncdirect* nc);
 
 // ncplane_styles_*() analogues
 API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits)
@@ -210,7 +210,7 @@ API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
 API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
-API unsigned ncdirect_styles(const struct ncdirect* n)
+API uint16_t ncdirect_styles(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
 // Deprecated forms of above.
