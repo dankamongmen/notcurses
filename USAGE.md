@@ -1045,9 +1045,9 @@ ncplane_dim_x(const struct ncplane* n){
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
 // 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
 // be 0. Any of the geometry arguments may be NULL.
-void ncplane_pixelgeom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
-                       int* restrict celldimy, int* restrict celldimx,
-                       int* restrict maxbmapy, int* restrict maxbmapx);
+void ncplane_pixel_geom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
+                        int* restrict celldimy, int* restrict celldimx,
+                        int* restrict maxbmapy, int* restrict maxbmapx);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'

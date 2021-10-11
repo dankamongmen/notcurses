@@ -110,10 +110,10 @@ NcPlane_dim_y(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-NcPlane_pixelgeom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+NcPlane_pixel_geom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
     int pxy = 0, pxx = 0, celldimy = 0, celldimx = 0, maxbmapy = 0, maxbmapx = 0;
-    ncplane_pixelgeom(self->ncplane_ptr, &pxy, &pxx, &celldimy, &celldimx, &maxbmapy, &maxbmapx);
+    ncplane_pixel_geom(self->ncplane_ptr, &pxy, &pxx, &celldimy, &celldimx, &maxbmapy, &maxbmapx);
 
     return Py_BuildValue("ii ii ii", pxy, pxx, celldimy, celldimx, maxbmapy, maxbmapx);
 }
@@ -1718,7 +1718,7 @@ static PyMethodDef NcPlane_methods[] = {
     {"dim_yx", (PyCFunction)NcPlane_dim_yx, METH_NOARGS, PyDoc_STR("Return the dimensions of this ncplane.")},
     {"dim_x", (PyCFunction)NcPlane_dim_x, METH_NOARGS, PyDoc_STR("Return X dimension of this ncplane.")},
     {"dim_y", (PyCFunction)NcPlane_dim_y, METH_NOARGS, PyDoc_STR("Return Y dimension of this ncplane.")},
-    {"pixelgeom", (PyCFunction)NcPlane_pixelgeom, METH_NOARGS, PyDoc_STR("Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy', 'maxbmapx'). Note that this will call notcurses_check_pixel_support(), possibly leading to an interrogation of the terminal. If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry arguments may be NULL.")},
+    {"pixel_geom", (PyCFunction)NcPlane_pixel_geom, METH_NOARGS, PyDoc_STR("Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy', 'maxbmapx'). Note that this will call notcurses_check_pixel_support(), possibly leading to an interrogation of the terminal. If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry arguments may be NULL.")},
 
     {"set_resizecb", (PyCFunction)NcPlane_set_resizecb, METH_VARARGS, PyDoc_STR("Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL). The standard plane's resizecb may not be changed.")},
     {"reparent", (PyCFunction)NcPlane_reparent, METH_VARARGS, PyDoc_STR("Plane 'n' will be unbound from its parent plane, and will be made a bound child of 'newparent'.")},

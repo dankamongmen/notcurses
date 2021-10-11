@@ -524,7 +524,7 @@ class NcPlane:
         """Return Y dimension of this NcPlane."""
         raise NotImplementedError('Stub')
 
-    def pixelgeom(self) -> Tuple[int, int, int, int, int, int]:
+    def pixel_geom(self) -> Tuple[int, int, int, int, int, int]:
         """Retrieve pixel geometry for the display region, each cell
         and the maximum displayable bitmap."""
         raise NotImplementedError('Stub')

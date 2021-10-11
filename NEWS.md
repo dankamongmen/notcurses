@@ -1,7 +1,17 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.6 (not yet released) **"In the A"**
+* 3.0.0 (not yet released) **"In the A"**
+  * Made the ABI changes that have been planned/collected during 2.x
+    development. This primarily involved removing deprecated functions,
+    and making some `static inline` (and thus no longer linkable symbols).
+    There have been a few small renamings (i.e. `ncplane_pixelgeom()` to
+    `ncplane_pixel_geom()`) for purposes of regularity. The only thing removed
+    without an obvious replacement is the `renderfp` field of
+    `notcurses_options`, for which I make no apology. If you've been avoiding
+    deprecated functionality, ABI3 ought require small changes, if any.
+
+* 2.4.6 (not yet released)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including
     key repeat and release events, and modifier events (i.e. pressing Shift by

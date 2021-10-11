@@ -4,7 +4,7 @@ struct ncvisual*
 draw_grid(struct ncplane* stdn){
   int maxby, maxbx;
   int cellpxy, cellpxx;
-  ncplane_pixelgeom(stdn, NULL, NULL, &cellpxy, &cellpxx, &maxby, &maxbx);
+  ncplane_pixel_geom(stdn, NULL, NULL, &cellpxy, &cellpxx, &maxby, &maxbx);
   if(cellpxy <= 1 || cellpxx <= 1){
     fprintf(stderr, "cell-pixel geometry: %d %d\n", cellpxy, cellpxx);
     return NULL;

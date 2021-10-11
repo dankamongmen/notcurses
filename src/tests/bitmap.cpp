@@ -52,7 +52,7 @@ TEST_CASE("Bitmaps") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     int maxy, maxx;
-    ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
+    ncplane_pixel_geom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nn == n);
