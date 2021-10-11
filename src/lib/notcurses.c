@@ -1342,32 +1342,44 @@ const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c){
 
 // 'n' ends up above 'above'
 int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
-  if(n == above){
+  if(n == above){ // probably gets optimized out =/
     return -1;
   }
+  ncpile* p = ncplane_pile(n);
   if(above == NULL){
-    ncplane_move_bottom(n);
+    if(n->below){
+      if( (n->below->above = n->above) ){
+        n->above->below = n->below;
+      }else{
+        p->top = n->below;
+      }
+      n->below = NULL;
+      if( (n->above = p->bottom) ){
+        n->above->below = n;
+      }
+      p->bottom = n;
+    }
     return 0;
   }
-  if(ncplane_pile(n) != ncplane_pile(above)){ // can't move among piles
-    return -1;
-  }
   if(n->below != above){
+    if(p != ncplane_pile(above)){ // can't move among piles
+      return -1;
+    }
     // splice out 'n'
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_pile(n)->bottom = n->above;
+      p->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_pile(n)->top = n->below;
+      p->top = n->below;
     }
     if( (n->above = above->above) ){
       above->above->below = n;
     }else{
-      ncplane_pile(n)->top = n;
+      p->top = n;
     }
     above->above = n;
     n->below = above;
@@ -1375,33 +1387,45 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   return 0;
 }
 
-// 'n' ends up below 'below'
+// 'n' ends up below 'below', or on top if 'below' == NULL
 int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
-  if(n == below){
+  if(n == below){ // probably gets optimized out =/
     return -1;
   }
+  ncpile* p = ncplane_pile(n);
   if(below == NULL){
-    ncplane_move_top(n);
+    if(n->above){
+      if( (n->above->below = n->below) ){
+        n->below->above = n->above;
+      }else{
+        p->bottom = n->above;
+      }
+      n->above = NULL;
+      if( (n->below = p->top) ){
+        n->below->above = n;
+      }
+      p->top = n;
+    }
     return 0;
   }
-  if(ncplane_pile(n) != ncplane_pile(below)){ // can't move among piles
-    return -1;
-  }
   if(n->above != below){
+    if(p != ncplane_pile(below)){ // can't move among piles
+      return -1;
+    }
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_pile(n)->bottom = n->above;
+      p->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_pile(n)->top = n->below;
+      p->top = n->below;
     }
     if( (n->below = below->below) ){
       below->below->above = n;
     }else{
-      ncplane_pile(n)->bottom = n;
+      p->bottom = n;
     }
     below->below = n;
     n->above = below;
