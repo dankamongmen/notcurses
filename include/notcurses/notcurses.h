@@ -4146,14 +4146,6 @@ cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 API struct ncplane* nctablet_ncplane(struct nctablet* t)
   __attribute__ ((deprecated));
 
-API ALLOC ncpalette* palette256_new(struct notcurses* nc)
-  __attribute__ ((deprecated));
-
-API int palette256_use(struct notcurses* nc, const ncpalette* p)
-  __attribute__ ((deprecated));
-
-API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
-
 #undef API
 #undef ALLOC
 
