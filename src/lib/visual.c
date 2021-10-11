@@ -1269,10 +1269,3 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
   }
   return visual_implementation.canopen_videos;
 }
-
-int ncvisual_inflate(ncvisual* n, int scale){
-  if(scale <= 0){
-    return -1;
-  }
-  return ncvisual_resize_noninterpolative(n, n->pixy * scale, n->pixx * scale);
-}

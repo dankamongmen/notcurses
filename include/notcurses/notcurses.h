@@ -4126,15 +4126,6 @@ API int palette256_use(struct notcurses* nc, const ncpalette* p)
 
 API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
 
-// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
-// if 'scale' is less than 1. The original color is retained.
-// Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
-API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
-  __attribute__ ((nonnull (1)));
-
-API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
-
 #undef API
 #undef ALLOC
 
