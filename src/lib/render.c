@@ -122,11 +122,6 @@ void nccell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
 
-// FIXME deprecated, goes away in abi3
-void cell_release(ncplane* n, nccell* c){
-  nccell_release(n, c);
-}
-
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
@@ -134,11 +129,6 @@ int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
     return -1;
   }
   return 0;
-}
-
-// deprecated, goes away in abi3
-int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
-  return nccell_duplicate(n, targ, c);
 }
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
@@ -1471,7 +1461,7 @@ int ncpile_rasterize(ncplane* n){
   // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats.s, bytes);
+    update_raster_bytes(&nc->stats.s, bytes);
     update_raster_stats(&rasterdone, &start, &nc->stats.s);
     update_write_stats(&writedone, &rasterdone, &nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
@@ -1517,7 +1507,7 @@ int ncpile_render(ncplane* n){
   ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_stats(&renderdone, &start, &nc->stats.s);
+    update_raster_stats(&renderdone, &start, &nc->stats.s);
   pthread_mutex_unlock(&nc->stats.lock);
   return 0;
 }
@@ -1534,7 +1524,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   fbuf_reset(&nc->rstate.f);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), &nc->rstate.f, &useasu);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats.s, bytes);
+    update_raster_bytes(&nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
