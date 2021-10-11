@@ -4120,30 +4120,11 @@ __attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* t
 
 __attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
 
-// This function will be removed in ABI3 in favor of ncplane_create().
-// It persists in ABI2 only for backwards compatibility.
-API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
-  __attribute__ ((deprecated));
-
 API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
   __attribute__ ((deprecated));
 API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
   __attribute__ ((deprecated));
 API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) API int
-cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                  nccell* ul, nccell* ur, nccell* ll,
-                  nccell* lr, nccell* hl, nccell* vl);
-
-__attribute__ ((deprecated)) API int
-cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                 nccell* ul, nccell* ur, nccell* ll,
-                 nccell* lr, nccell* hl, nccell* vl);
-
-// Deprecated form of nctablet_plane().
-API struct ncplane* nctablet_ncplane(struct nctablet* t)
   __attribute__ ((deprecated));
 
 #undef API

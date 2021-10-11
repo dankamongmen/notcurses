@@ -583,20 +583,6 @@ ncplane* ncpile_create(notcurses* nc, const struct ncplane_options* nopts){
   return ncplane_new_internal(nc, NULL, nopts);
 }
 
-struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
-  ncplane_options nopts = {
-    .y = y,
-    .x = x,
-    .rows = rows,
-    .cols = cols,
-    .userptr = opaque,
-    .name = name,
-    .resizecb = NULL,
-    .flags = 0,
-  };
-  return ncplane_create(n, &nopts);
-}
-
 void ncplane_home(ncplane* n){
   n->x = 0;
   n->y = 0;
@@ -2994,22 +2980,12 @@ int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
-int cells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
-                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_double_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
 int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
                         nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
   }
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int cells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
-                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_rounded_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
 // find the center coordinate of a plane, preferring the top/left in the

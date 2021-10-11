@@ -749,10 +749,6 @@ ncplane* nctablet_plane(nctablet* t){
   return t->cbp;
 }
 
-ncplane* nctablet_ncplane(nctablet* t){ // deprecated
-  return nctablet_plane(t);
-}
-
 ncplane* ncreel_plane(ncreel* nr){
   return nr->p;
 }
