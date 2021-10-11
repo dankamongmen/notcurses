@@ -679,9 +679,9 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    auto xpx = ncplane_dim_x(n_) * nc_->tcache.cellpixx;
-    auto ypx = ncplane_dim_y(n_) * nc_->tcache.cellpixy;
-    double xyrat = (double)xpx / ypx;
+    auto xpx = (ncplane_dim_x(n_) - 2) * nc_->tcache.cellpixx;
+    auto ypx = (ncplane_dim_y(n_) - 2) * nc_->tcache.cellpixy;
+    double xyrat = (double)ypx / xpx;
     for(unsigned xat = 0 ; xat < xpx ; ++xat){
       vopts.x = xat / nc_->tcache.cellpixx;
       vopts.pxoffx = xat % nc_->tcache.cellpixx;
