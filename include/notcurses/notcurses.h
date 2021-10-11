@@ -715,7 +715,7 @@ nccell_set_styles(nccell* c, unsigned stylebits){
 }
 
 // Extract the style bits from the nccell.
-static inline unsigned
+static inline uint16_t
 nccell_styles(const nccell* c){
   return c->stylemask;
 }
@@ -1403,7 +1403,7 @@ typedef struct nccapabilities {
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
-API unsigned notcurses_supported_styles(const struct notcurses* nc)
+API uint16_t notcurses_supported_styles(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if

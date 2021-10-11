@@ -1749,7 +1749,7 @@ int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
   return 0;
 }
 
-unsigned notcurses_supported_styles(const notcurses* nc){
+uint16_t notcurses_supported_styles(const notcurses* nc){
   return term_supported_styles(&nc->tcache);
 }
 
