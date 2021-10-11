@@ -1104,8 +1104,17 @@ int ncplane_base(struct ncplane* ncp, nccell* c);
 
 ```c
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-void ncplane_move_top(struct ncplane* n);
-void ncplane_move_bottom(struct ncplane* n);
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_top(struct ncplane* n){
+  ncplane_move_below(n, NULL);
+}
+
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_bottom(struct ncplane* n){
+  ncplane_move_above(n, NULL);
+}
 
 // Splice ncplane 'n' and its bound planes out of the z-buffer, and reinsert
 // them at the top or bottom. Relative order will be maintained between the

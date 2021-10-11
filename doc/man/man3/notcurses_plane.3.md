@@ -95,9 +95,9 @@ typedef struct ncplane_options {
 
 **int ncplane_base(struct ncplane* ***ncp***, nccell* ***c***);**
 
-**void ncplane_move_top(struct ncplane* ***n***);**
+**static inline void ncplane_move_top(struct ncplane* ***n***);**
 
-**void ncplane_move_bottom(struct ncplane* ***n***);**
+**static inline void ncplane_move_bottom(struct ncplane* ***n***);**
 
 **void ncplane_move_family_top(struct ncplane* ***n***);**
 

@@ -1409,36 +1409,6 @@ int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
   return 0;
 }
 
-void ncplane_move_top(ncplane* n){
-  if(n->above){
-    if( (n->above->below = n->below) ){
-      n->below->above = n->above;
-    }else{
-      ncplane_pile(n)->bottom = n->above;
-    }
-    n->above = NULL;
-    if( (n->below = ncplane_pile(n)->top) ){
-      n->below->above = n;
-    }
-    ncplane_pile(n)->top = n;
-  }
-}
-
-void ncplane_move_bottom(ncplane* n){
-  if(n->below){
-    if( (n->below->above = n->above) ){
-      n->above->below = n->below;
-    }else{
-      ncplane_pile(n)->top = n->below;
-    }
-    n->below = NULL;
-    if( (n->above = ncplane_pile(n)->bottom) ){
-      n->above->below = n;
-    }
-    ncplane_pile(n)->bottom = n;
-  }
-}
-
 // if above is NULL, we're moving to the bottom
 int ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
   ncplane* above = ncplane_above(n);
