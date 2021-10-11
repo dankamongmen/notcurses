@@ -595,11 +595,13 @@ TEST_CASE("Bitmaps") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
     for(int i = 0 ; i <= ncplane_dim_x(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
       CHECK(0 == notcurses_render(nc_));
     }
-    REQUIRE(nullptr != n);
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   SUBCASE("BitmapMoveOffscreenRight") {
@@ -614,11 +616,13 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     vopts.x = ncplane_dim_x(n_) - 3;
     auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
     for(int i = ncplane_dim_x(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
       CHECK(0 == notcurses_render(nc_));
     }
-    REQUIRE(nullptr != n);
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   SUBCASE("BitmapMoveOffscreenDown") {
@@ -632,11 +636,13 @@ TEST_CASE("Bitmaps") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
     for(int i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
       CHECK(0 == notcurses_render(nc_));
     }
-    REQUIRE(nullptr != n);
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   SUBCASE("BitmapMoveOffscreenUp") {
@@ -651,11 +657,44 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     vopts.y = ncplane_dim_y(n_) - 3;
     auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
     for(int i = ncplane_dim_y(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
       CHECK(0 == notcurses_render(nc_));
     }
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+  }
+
+  // smoothly move a bitmap diagonally across the screen
+  SUBCASE("BitmapSmoothMove") {
+    // first, assemble a visual equivalent to 2x2 cells
+    auto y = nc_->tcache.cellpixy * 2;
+    auto x = nc_->tcache.cellpixx * 2;
+    std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
+    auto xpx = ncplane_dim_x(n_) * nc_->tcache.cellpixx;
+    auto ypx = ncplane_dim_y(n_) * nc_->tcache.cellpixy;
+    double xyrat = (double)xpx / ypx;
+    for(unsigned xat = 0 ; xat < xpx ; ++xat){
+      vopts.x = xat / nc_->tcache.cellpixx;
+      vopts.pxoffx = xat % nc_->tcache.cellpixx;
+      int yat = xat * xyrat;
+      vopts.y = yat / nc_->tcache.cellpixy;
+      vopts.pxoffy = yat % nc_->tcache.cellpixy;
+      CHECK(0 == ncplane_destroy(n));
+      n = ncvisual_render(nc_, ncv, &vopts);
+      CHECK(0 == notcurses_render(nc_));
+    }
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   CHECK(!notcurses_stop(nc_));
