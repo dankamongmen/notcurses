@@ -5,7 +5,6 @@ using namespace ncpp;
 
 notcurses_options NotCurses::default_notcurses_options = {
 	/* termtype */                 nullptr,
-	/* renderfp */                 nullptr,
 	/* loglevel */                 NCLogLevel::Silent,
 	/* margin_t */                 0,
 	/* margin_r */                 0,
