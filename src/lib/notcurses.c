@@ -1600,10 +1600,6 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
   return ret;
 }
 
-int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
-  return nccell_cols(c);
-}
-
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
   int cols;
   int bytes = utf8_egc_len(gcluster, &cols);
@@ -3147,10 +3143,6 @@ int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
     return -1;
   }
   return buflen;
-}
-
-int ncstrwidth(const char* mbs){
-  return ncstrwidth_valid(mbs, NULL, NULL);
 }
 
 int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){

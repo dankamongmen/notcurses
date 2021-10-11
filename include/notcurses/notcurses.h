@@ -95,17 +95,19 @@ typedef enum {
   NCSCALE_SCALE_HIRES,
 } ncscale_e;
 
-// Returns the number of columns occupied by a multibyte (UTF-8) string, or
-// -1 if a non-printable/illegal character is encountered.
-// FIXME becomes a static inline in ABI3.
-API int ncstrwidth(const char* mbs);
-
 // Returns the number of columns occupied by a the valid prefix of a multibyte
 // (UTF-8) string. If an invalid character is encountered, -1 will be returned,
 // and the number of valid bytes and columns will be written into *|validbytes|
 // and *|validwidth| (assuming them non-NULL). If the entire string is valid,
 // *|validbytes| and *|validwidth| reflect the entire string.
 API int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth);
+
+// Returns the number of columns occupied by a multibyte (UTF-8) string, or
+// -1 if a non-printable/illegal character is encountered.
+static inline int
+ncstrwidth(const char* mbs){
+  return ncstrwidth_valid(mbs, NULL, NULL);
+}
 
 // Returns a heap-allocated copy of the user name under which we are running.
 API ALLOC char* notcurses_accountname(void);
@@ -4161,17 +4163,7 @@ API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int sc
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
 
-__attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
-
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
-                            const void* unused, ncinput* ni)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
-                           const void* unused, ncinput* ni)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #undef API
