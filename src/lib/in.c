@@ -905,23 +905,42 @@ handoff_initial_responses(inputctx* ictx){
   loginfo("handing off initial responses\n");
 }
 
+// if XTSMGRAPHICS responses were provided, but DA1 didn't advertise sixel
+// support, we need scrub those responses, lest we try to use Sixel.
+static inline void
+scrub_sixel_responses(struct initial_responses* idata){
+  if(idata->color_registers || idata->sixelx || idata->sixely){
+    logwarn("answered XTSMGRAPHICS, but no sixel in DA1\n");
+    idata->color_registers = 0;
+    idata->sixelx = 0;
+    idata->sixely = 0;
+  }
+}
+
+// annoyingly, alacritty (well, branches of alacritty) supports Sixel, but
+// does not indicate this in their Primary Device Attributes response (there
+// is no room for attributes in a VT102-style DA1, which alacritty uses).
+// so, iff we've determined we're alacritty, don't scrub out Sixel details.
 static int
-da1_cb(inputctx* ictx){
+da1_vt102_cb(inputctx* ictx){
   loginfo("read primary device attributes\n");
   if(ictx->initdata){
+    if(ictx->initdata->qterm != TERMINAL_ALACRITTY){
+      scrub_sixel_responses(ictx->initdata);
+    }
     handoff_initial_responses(ictx);
   }
   return 1;
 }
 
-static inline void
-da1_attr_op(struct initial_responses* idata, unsigned attr){
-  if(attr == 4){
-    if(idata->color_registers <= 0){
-      logdebug("wooo enabling 256 sixel cregs\n");
-      idata->color_registers = 256;
-    }
+static int
+da1_cb(inputctx* ictx){
+  loginfo("read primary device attributes\n");
+  if(ictx->initdata){
+    scrub_sixel_responses(ictx->initdata);
+    handoff_initial_responses(ictx);
   }
+  return 1;
 }
 
 static int
@@ -931,17 +950,31 @@ da1_attrs_cb(inputctx* ictx){
   char* attrlist = amata_next_kleene(&ictx->amata, "", 'c');
   logdebug("DA1: %u [%s]\n", val, attrlist);
   if(ictx->initdata){
+    int foundsixel = 0;
     unsigned curattr = 0;
     for(const char* a = attrlist ; *a ; ++a){
       if(isdigit(*a)){
         curattr *= 10;
         curattr += *a - '0';
       }else if(*a == ';'){
-        da1_attr_op(ictx->initdata, curattr);
+        if(curattr == 4){
+          foundsixel = 1;
+          if(ictx->initdata->color_registers <= 0){
+            ictx->initdata->color_registers = 256;
+          }
+        }
         curattr = 0;
       }
     }
-    da1_attr_op(ictx->initdata, curattr);
+    if(curattr == 4){
+      foundsixel = 1;
+      if(ictx->initdata->color_registers <= 0){
+        ictx->initdata->color_registers = 256;
+      }
+    }
+    if(!foundsixel){
+      scrub_sixel_responses(ictx->initdata);
+    }
     handoff_initial_responses(ictx);
   }
   free(attrlist);
@@ -1221,10 +1254,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
-    { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
-    { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
-    { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
-    { "[?6c", da1_cb, },   // CSI ? 6 c ("VT102")
+    { "[?6c", da1_vt102_cb, },   // CSI ? 6 c ("VT102")
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
     // CSI ? 1 2 ; Ps c ("VT125")
     // CSI ? 6 0 ; Ps c (kmscon)

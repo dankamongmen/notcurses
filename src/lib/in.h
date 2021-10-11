@@ -65,6 +65,9 @@ struct initial_responses {
   int pixy;                    // screen geometry in pixels
   int dimx;                    // screen geometry in cells
   int dimy;                    // screen geometry in cells
+  // these next three might be set even if there is no actual Sixel support
+  // (see e.g. XTerm prior to 370). we determine whether there is Sixel
+  // support by checking the DA1 attributes, and scrub them if necessary.
   int color_registers;         // sixel color registers
   int sixely;                  // maximum sixel height
   int sixelx;                  // maximum sixel width
