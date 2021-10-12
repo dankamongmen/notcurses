@@ -1270,13 +1270,22 @@ build_cflow_automaton(inputctx* ictx){
 }
 
 static void
-endpipes(int pipes[static 2]){
-  if(pipes[0] >= 0){
-    close(pipes[0]);
+closepipe(ipipe p){
+#ifndef __MINGW64__
+  if(p >= 0){
+    close(p);
   }
-  if(pipes[1] >= 0){
-    close(pipes[1]);
+#else
+  if(p){
+    CloseHandle(p);
   }
+#endif
+}
+
+static void
+endpipes(ipipe pipes[static 2]){
+  closepipe(pipes[0]);
+  closepipe(pipes[1]);
 }
 
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
