@@ -609,7 +609,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     // FIXME what, oh what to do with tmux?
   }else if(qterm == TERMINAL_GNUSCREEN){
     termname = "GNU screen";
-    // FIXME disable rgb?
+    if(compare_versions(ti->termversion, "5.0") < 0){
+      ti->caps.rgb = false;
+    }
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
