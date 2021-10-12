@@ -79,8 +79,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
-**static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
-
 **int ncvisual_simple_streamer(struct ncplane* ***n***, struct ncvisual* ***ncv***, const struct timespec* ***disptime***, void* ***curry***);**
 
 **int ncvisual_stream(struct notcurses* ***nc***, struct ncvisual* ***ncv***, float ***timescale***, streamcb ***streamer***, const struct ncvisual_options* ***vopts***, void* ***curry***);**

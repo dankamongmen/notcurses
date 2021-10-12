@@ -2945,7 +2945,7 @@ API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
 // standard plane.
 API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts)
-  __attribute__ ((nonnull (2)));
+  __attribute__ ((deprecated)) __attribute__ ((nonnull (2)));
 
 // Render the decoded frame according to the provided options (which may be
 // NULL). The plane used for rendering depends on vopts->n and vopts->flags.

@@ -1168,11 +1168,11 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
   struct ncvisual_options fakevopts;
   if(vopts == NULL){
-    memset(&fakevopts, 0, sizeof(fakevopts));
+    vopts = &fakevopts;
+    memset(&fakevopts, 0, sizeof(*vopts));
   }else{
-    memcpy(&fakevopts, vopts, sizeof(fakevopts));
+    memcpy(&fakevopts, vopts, sizeof(*vopts));
   }
-  vopts = &fakevopts;
   if(vopts->n == NULL){
     fakevopts.n = notcurses_stdplane(nc);
     fakevopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
