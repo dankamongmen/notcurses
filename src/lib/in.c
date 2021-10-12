@@ -1305,7 +1305,7 @@ getpipes(ipipe pipes[static 2]){
   }
 #endif
 #else // windows
-  if(!CreatePipe(&pipes[0], &pipes[1], NULL, BUFSIZ)){
+  if(!CreatePipe(pipes[0], pipes[1], NULL, BUFSIZ)){
     logerror("couldn't get pipes (%u)\n", GetLastError());
     return -1;
   }
