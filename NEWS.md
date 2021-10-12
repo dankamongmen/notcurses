@@ -23,6 +23,9 @@ rearrangements of Notcurses.
     DA1 response will be considered as claiming support for Sixel with 256
     color registers. If you're a terminal author, please do `XTSMGRAPHICS`.
     Actually, please implement the vastly superior Kitty graphics protocol.
+  * `ncvisualplane_create()` now allows for a new pile to be created, by
+    passing a `NULL` ancestor `ncplane` in `vopts`. The first argument is
+    now a `struct notcurses*` rather than a `struct ncplane*`.
 
 * 2.4.5 (2021-10-06)
   * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has

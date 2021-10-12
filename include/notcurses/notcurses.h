@@ -2932,35 +2932,50 @@ API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel)
 API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
   __attribute__ ((nonnull (1)));
 
-// Render the decoded frame to the specified ncplane. If one is not provided,
-// one will be created, having the exact size necessary to display the visual.
+// Render the decoded frame according to the provided options (which may be
+// NULL). The plane used for rendering depends on vopts->n and vopts->flags.
+// If NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the
+// plane will always be created as a child of vopts->n. If this flag is not
+// set, and vopts->n is NULL, a new plane is created as root of a new pile.
+// If the flag is not set and vopts->n is not NULL, we render to vopts->n.
 // A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
 // 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
-// specify any region beyond the boundaries of the frame. Returns the
-// (possibly newly-created) plane to which we drew.
+// specify any region beyond the boundaries of the frame. Returns the (possibly
+// newly-created) plane to which we drew. Pixels may not be blitted to the
+// standard plane.
 API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts)
   __attribute__ ((nonnull (2)));
 
+// Create a new plane as prescribed in opts, either as a child of 'vopts->n',
+// or the root of a new pile if 'vopts->n' is NULL (or 'vopts' itself is NULL).
+// Blit 'ncv' to the created plane according to 'vopts'. If 'vopts->n' is
+// non-NULL, NCVISUAL_OPTION_CHILDPLANE must be supplied.
 __attribute__ ((nonnull (1, 2, 3))) static inline struct ncplane*
-ncvisualplane_create(struct ncplane* n, const struct ncplane_options* opts,
+ncvisualplane_create(struct notcurses* nc, const struct ncplane_options* opts,
                      struct ncvisual* ncv, struct ncvisual_options* vopts){
-  if(vopts && vopts->n){ // the whole point is to create a new plane
+  struct ncplane* newn;
+  if(vopts && vopts->n){
+    if(vopts->flags & NCVISUAL_OPTION_CHILDPLANE){
+      return NULL; // the whole point is to create a new plane
+    }
+    newn = ncplane_create(vopts->n, opts);
+  }else{
+    newn = ncpile_create(nc, opts);
+  }
+  if(newn == NULL){
     return NULL;
   }
-  struct ncplane* newn = ncplane_create(n, opts);
-  if(newn){
-    struct ncvisual_options v;
-    if(!vopts){
-      vopts = &v;
-      memset(vopts, 0, sizeof(*vopts));
-    }
-    vopts->n = newn;
-    if(ncvisual_render(ncplane_notcurses(n), ncv, vopts) == NULL){
-      ncplane_destroy(newn);
-      vopts->n = NULL;
-      return NULL;
-    }
+  struct ncvisual_options v;
+  if(!vopts){
+    vopts = &v;
+    memset(vopts, 0, sizeof(*vopts));
+  }
+  vopts->n = newn;
+  if(ncvisual_render(nc, ncv, vopts) == NULL){
+    ncplane_destroy(newn);
+    vopts->n = NULL;
+    return NULL;
   }
   return newn;
 }
