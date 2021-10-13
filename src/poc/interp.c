@@ -86,6 +86,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   }
   ncplane_putstr_yx(stdn, 2, 41, "resize(no)");
   notcurses_render(nc);
+  ncvisual_destroy(ncv);
   ncplane_destroy(ncvp);
   ncplane_destroy(scalep);
   ncplane_destroy(scalepni);
