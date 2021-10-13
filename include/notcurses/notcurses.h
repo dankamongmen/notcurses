@@ -3332,9 +3332,9 @@ struct ncselector_item {
 };
 
 typedef struct ncselector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
+  const char* title; // title may be NULL, inhibiting riser, saving two rows.
+  const char* secondary; // secondary may be NULL
+  const char* footer; // footer may be NULL
   struct ncselector_item* items; // initial items and descriptions
   // default item (selected at start), must be < itemcount unless itemcount is
   // 0, in which case 'defidx' must also be 0
@@ -3411,9 +3411,9 @@ struct ncmselector_item {
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.
 typedef struct ncmultiselector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
+  const char* title; // title may be NULL, inhibiting riser, saving two rows.
+  const char* secondary; // secondary may be NULL
+  const char* footer; // footer may be NULL
   struct ncmselector_item* items; // initial items, descriptions, and statuses
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
