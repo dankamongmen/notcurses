@@ -6,7 +6,7 @@
 #include "version.h"
 
 static struct ncselector_item items[] = {
-#define SITEM(short, long) { short, long, 0, 0, }
+#define SITEM(s, l) { s, l, }
   SITEM("Afrikaans", "Ek kan glas eet, dit maak my nie seer nie."),
   SITEM("AngloSax", "ᛁᚳ᛫ᛗᚨᚷ᛫ᚷᛚᚨᛋ᛫ᛖᚩᛏᚪᚾ᛫ᚩᚾᛞ᛫ᚻᛁᛏ᛫ᚾᛖ᛫ᚻᛖᚪᚱᛗᛁᚪᚧ᛫ᛗᛖ᛬"),
   SITEM("Japanese", "私はガラスを食べられます。それは私を傷つけません。"),

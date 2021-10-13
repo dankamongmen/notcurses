@@ -1,5 +1,19 @@
 #include "internal.h"
 
+// internal ncselector item
+struct ncselector_int {
+  char* option;
+  char* desc;
+  size_t opcolumns;   // filled in by library
+  size_t desccolumns; // filled in by library
+};
+
+struct ncmselector_int {
+  char* option;
+  char* desc;
+  bool selected;
+};
+
 typedef struct ncselector {
   ncplane* ncp;                  // backing ncplane
   unsigned selected;             // index of selection
@@ -7,7 +21,7 @@ typedef struct ncselector {
   unsigned maxdisplay;           // max number of items to display, 0 -> no limit
   int longop;                    // columns occupied by longest option
   int longdesc;                  // columns occupied by longest description
-  struct ncselector_item* items; // list of items and descriptions, heap-copied
+  struct ncselector_int* items;  // list of items and descriptions, heap-copied
   unsigned itemcount;            // number of pairs in 'items'
   char* title;                   // can be NULL, in which case there's no riser
   int titlecols;                 // columns occupied by title
@@ -29,7 +43,7 @@ typedef struct ncmultiselector {
   unsigned startdisp;             // index of first option displayed
   unsigned maxdisplay;            // max number of items to display, 0 -> no limit
   int longitem;                   // columns occupied by longest item
-  struct ncmselector_item* items; // items, descriptions, and statuses, heap-copied
+  struct ncmselector_int* items;  // items, descriptions, and statuses, heap-copied
   unsigned itemcount;             // number of pairs in 'items'
   char* title;                    // can be NULL, in which case there's no riser
   int titlecols;                  // columns occupied by title
@@ -332,7 +346,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   int origdimy, origdimx;
   ncselector_dim_yx(n, &origdimy, &origdimx);
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
-  struct ncselector_item* items = realloc(n->items, newsize);
+  struct ncselector_int* items = realloc(n->items, newsize);
   if(!items){
     return -1;
   }

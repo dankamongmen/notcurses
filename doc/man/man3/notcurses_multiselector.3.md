@@ -16,9 +16,8 @@ struct notcurses;
 struct ncmultiselector;
 
 struct ncmselector_item {
-  char* option;
-  char* desc;
-  bool selected;
+  const char* option;
+  const char* desc;
 };
 
 typedef struct ncmultiselector_options {

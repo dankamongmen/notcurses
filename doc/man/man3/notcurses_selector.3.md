@@ -16,8 +16,8 @@ struct notcurses;
 struct ncselector;
 
 struct ncselector_item {
-  char* option;
-  char* desc;
+  const char* option;
+  const char* desc;
 };
 
 typedef struct ncselector_options {

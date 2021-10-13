@@ -3325,10 +3325,8 @@ API void ncplane_greyscale(struct ncplane* n);
 //
 // At all times, exactly one item is selected.
 struct ncselector_item {
-  char* option;
-  char* desc;
-  size_t opcolumns;   // filled in by library
-  size_t desccolumns; // filled in by library
+  const char* option;
+  const char* desc;
 };
 
 typedef struct ncselector_options {
@@ -3384,8 +3382,8 @@ API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc)
 API void ncselector_destroy(struct ncselector* n, char** item);
 
 struct ncmselector_item {
-  char* option;
-  char* desc;
+  const char* option;
+  const char* desc;
   bool selected;
 };
 
