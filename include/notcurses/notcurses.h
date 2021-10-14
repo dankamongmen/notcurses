@@ -3646,7 +3646,7 @@ typedef struct nctabbed_options {
   uint64_t selchan; // channel for the selected tab header
   uint64_t hdrchan; // channel for unselected tab headers
   uint64_t sepchan; // channel for the tab separator
-  char* separator;  // separator string (copied by nctabbed_create())
+  const char* separator;  // separator string (copied by nctabbed_create())
   uint64_t flags;   // bitmask of NCTABBED_OPTION_*
 } nctabbed_options;
 
@@ -3982,17 +3982,17 @@ typedef struct ncsubproc_options {
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
 API ALLOC struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
-                                              const char* bin,  char* const arg[],
+                                              const char* bin, char* const arg[],
                                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
-                                               const char* bin,  char* const arg[],
+                                               const char* bin, char* const arg[],
                                                ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
-                                                const char* bin,  char* const arg[], char* const env[],
+                                                const char* bin, char* const arg[], char* const env[],
                                                 ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 

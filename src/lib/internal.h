@@ -230,18 +230,6 @@ typedef struct nctab {
   struct nctab* next;
 } nctab;
 
-typedef struct nctabbed {
-  ncplane* ncp;          // widget ncplane
-  ncplane* p;            // tab content ncplane
-  ncplane* hp;           // tab headers ncplane
-  // a doubly-linked circular list of tabs
-  nctab* leftmost;       // the tab most to the left
-  nctab* selected;       // the currently selected tab
-  int tabcount;          // tab separator (can be NULL)
-  int sepcols;           // separator with in columns
-  nctabbed_options opts; // copied in nctabbed_create()
-} nctabbed;
-
 // various moving parts within a notcurses context (and the user) might need to
 // access the stats object, so throw a lock on it. we don't want the lock in
 // the actual structure since (a) it's usually unnecessary and (b) it breaks
