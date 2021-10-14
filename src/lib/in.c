@@ -1303,12 +1303,12 @@ getpipes(ipipe pipes[static 2]){
     return -1;
   }
   if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_nonblocking(pipes[0], 1, NULL)){
-    logerror("couldn't prep pipe[0] (%d) (%s)\n", pipes[0], strerror(errno));
+    logerror("couldn't prep pipe[0] (%s)\n", strerror(errno));
     endpipes(pipes);
     return -1;
   }
   if(set_fd_cloexec(pipes[1], 1, NULL) || set_fd_nonblocking(pipes[1], 1, NULL)){
-    logerror("couldn't prep pipe[1] (%d) (%s)\n", pipes[1], strerror(errno));
+    logerror("couldn't prep pipe[1] (%s)\n", strerror(errno));
     endpipes(pipes);
     return -1;
   }
@@ -1986,7 +1986,13 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
+#ifndef __MINGW64__
   return ictx->readypipes[0];
+#else
+  (void)ictx;
+  logerror("readiness descriptor unavailable on windows\n");
+  return -1;
+#endif
 }
 
 static inline uint32_t
@@ -2035,11 +2041,13 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     char c;
 #ifndef __MINGW64__
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
-#else
-    // FIXME windows ReadFile()
-#endif
-      // FIXME accelerate;
+      // FIXME accelerate?
     }
+#else
+    while(ReadFile(ictx->readypipes[0], &c, sizeof(c), NULL, NULL)){
+      // FIXME accelerate?
+    }
+#endif
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
