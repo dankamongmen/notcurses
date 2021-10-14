@@ -104,10 +104,16 @@ finish_line(struct ncplane* n){
 
 static int
 emoji_viz(struct ncplane* n){
-  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️🌿🎱🏧"
-                              "💉💊"
+  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️"
+                              "\U0001F33F" // herb
+                              "\U0001F3B1" // billiards
+                              "\U0001F3E7" // automated teller machine
+                              "\U0001F489" // syringe
+                              "\U0001F48A" // pill
                               "\U0001f574\ufe0f" // man in suit levitating
-                              "📡🤻🦑🇮🇱🇦🇶"
+                              "\U0001F4E1" // satellite antenna
+                              "\U0001F93B" // modern pentathlon
+                              "\U0001F991" // squid
                               "\U0001f469\u200d\U0001f52c" // woman scientist
                               "\U0001faa4" // mouse trap
                               "\U0001f6b1" // non-potable water
