@@ -1,5 +1,40 @@
 #include "internal.h"
 
+// ncmenu_item and ncmenu_section have internal and (minimal) external forms
+typedef struct ncmenu_int_item {
+  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  ncinput shortcut;     // shortcut, all should be distinct
+  int shortcut_offset;  // column offset with desc of shortcut EGC
+  char* shortdesc;      // description of shortcut, can be NULL
+  int shortdesccols;    // columns occupied by shortcut description
+  bool disabled;        // disabled?
+} ncmenu_int_item;
+
+typedef struct ncmenu_int_section {
+  char* name;             // utf-8 c string
+  int itemcount;
+  ncmenu_int_item* items; // items, NULL iff itemcount == 0
+  ncinput shortcut;       // shortcut, will be underlined if present in name
+  int xoff;               // column offset from beginning of menu bar
+  int bodycols;           // column width of longest item
+  int itemselected;       // current item selected, -1 for no selection
+  int shortcut_offset;    // column offset within name of shortcut EGC
+  int enabled_item_count; // number of enabled items: section is disabled iff 0
+} ncmenu_int_section;
+
+typedef struct ncmenu {
+  ncplane* ncp;
+  int sectioncount;         // must be positive
+  ncmenu_int_section* sections; // NULL iff sectioncount == 0
+  int unrolledsection;      // currently unrolled section, -1 if none
+  int headerwidth;          // minimum space necessary to display all sections
+  uint64_t headerchannels;  // styling for header
+  uint64_t dissectchannels; // styling for disabled section headers
+  uint64_t sectionchannels; // styling for sections
+  uint64_t disablechannels; // styling for disabled entries
+  bool bottom;              // are we on the bottom (vs top)?
+} ncmenu;
+
 // Search the provided multibyte (UTF8) string 's' for the provided unicode
 // codepoint 'cp'. If found, return the column offset of the EGC in which the
 // codepoint appears in 'col', and the byte offset as the return value. If not

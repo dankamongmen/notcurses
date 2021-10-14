@@ -3519,12 +3519,12 @@ API void nctree_destroy(struct nctree* n);
 // a plane resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 struct ncmenu_item {
-  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  const char* desc;     // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
 };
 
 struct ncmenu_section {
-  char* name;             // utf-8 c string
+  const char* name;       // utf-8 c string
   int itemcount;
   struct ncmenu_item* items;
   ncinput shortcut;       // shortcut, will be underlined if present in name

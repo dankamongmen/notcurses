@@ -16,10 +16,10 @@ struct ncplane;
 struct notcurses;
 
 struct ncmenu_section {
-  char* name;  // utf-8 c string
+  const char* name;   // utf-8 c string
   struct ncmenu_item {
-    char* desc;  // utf-8 menu item, NULL for horizontal separator
-    ncinput shortcut;  // shortcut, all should be distinct
+    const char* desc; // utf-8 menu item, NULL for horizontal separator
+    ncinput shortcut; // shortcut, all should be distinct
   }* items;
   int itemcount;
 };
