@@ -88,6 +88,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     return -1;
   }
   loginfo("verified Windows ConPTY\n");
+  ti->qterm = TERMINAL_MSTERMINAL;
   return 0;
 }
 #endif

@@ -1377,7 +1377,7 @@ getpipes(ipipe pipes[static 2]){
 #endif
 #else // windows
   if(!CreatePipe(&pipes[0], &pipes[1], NULL, BUFSIZ)){
-    logerror("couldn't get pipes (%u)\n", GetLastError());
+    logerror("couldn't get pipes\n");
     return -1;
   }
 #endif
@@ -1406,6 +1406,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
+			  i->initdata->qterm = ti->qterm;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
