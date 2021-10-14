@@ -451,7 +451,7 @@ mark_pipe_ready(ipipe pipes[static 2]){
 #else
   DWORD wrote;
   if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
-    logwarn("error writing to readypipe (%u)\n", GetLastError());
+    logwarn("error writing to readypipe\n");
 #endif
   }
 }
@@ -1314,7 +1314,7 @@ getpipes(ipipe pipes[static 2]){
   }
 #endif
 #else // windows
-  if(!CreatePipe(pipes[0], pipes[1], NULL, BUFSIZ)){
+  if(!CreatePipe(&pipes[0], &pipes[1], NULL, BUFSIZ)){
     logerror("couldn't get pipes (%u)\n", GetLastError());
     return -1;
   }
