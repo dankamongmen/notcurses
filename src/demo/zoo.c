@@ -27,7 +27,7 @@ draw_background(struct notcurses* nc){
 
 // we list all distributions on which notcurses is known to exist
 static struct ncselector_item select_items[] = {
-#define SITEM(s, l) { s, l, }
+#define SITEM(short, long) { short, long, 0, 0, }
   SITEM("fbsd", "FreeBSD"),
   SITEM("deb", "Debian Unstable Linux"),
   SITEM("rpm", "Fedora Rawhide Linux"),

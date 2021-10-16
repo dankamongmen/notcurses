@@ -79,8 +79,8 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
     .scaling = NCSCALE_STRETCH,
   };
   int cellpxy, cellpxx;
-  ncplane_pixelgeom(notcurses_stdplane_const(nc), NULL, NULL,
-                    &cellpxy, &cellpxx, NULL, NULL);
+  ncplane_pixel_geom(notcurses_stdplane_const(nc), NULL, NULL,
+                     &cellpxy, &cellpxx, NULL, NULL);
   int odimy, odimx, scaley, scalex;
   ncvisual_blitter_geom(nc, ncv, &vopts, &odimy, &odimx, &scaley, &scalex, NULL);
   // even if we can't do pixel output, we want her the same size as if weu

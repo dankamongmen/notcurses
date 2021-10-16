@@ -123,7 +123,9 @@ TEST_CASE("Blit") {
         REQUIRE(nullptr != ncv);
         struct ncvisual_options vopts{};
         vopts.blitter = NCBLIT_2x2;
-        auto ncp = ncvisual_render(nc_, ncv, &vopts);
+        vopts.n = n_;
+        vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+        auto ncp = ncvisual_blit(nc_, ncv, &vopts);
         ncvisual_destroy(ncv);
         REQUIRE(nullptr != ncp);
         CHECK(0 == notcurses_render(nc_));
@@ -149,7 +151,9 @@ TEST_CASE("Blit") {
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_1x1;
-    auto p = ncvisual_render(nc_, ncv, &vopts);
+    vopts.n = n_;
+    vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+    auto p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_dim_y(p));
@@ -175,7 +179,9 @@ TEST_CASE("Blit") {
       REQUIRE(nullptr != ncv);
       struct ncvisual_options vopts{};
       vopts.blitter = NCBLIT_2x1;
-      auto p = ncvisual_render(nc_, ncv, &vopts);
+      vopts.n = n_;
+      vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+      auto p = ncvisual_blit(nc_, ncv, &vopts);
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
       CHECK(4 == ncplane_dim_x(p));
@@ -218,7 +224,9 @@ TEST_CASE("Blit") {
       REQUIRE(nullptr != ncv);
       struct ncvisual_options vopts{};
       vopts.blitter = NCBLIT_2x2;
-      auto p = ncvisual_render(nc_, ncv, &vopts);
+      vopts.n = n_;
+      vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+      auto p = ncvisual_blit(nc_, ncv, &vopts);
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
       CHECK(16 == ncplane_dim_x(p));

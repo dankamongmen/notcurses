@@ -28,21 +28,23 @@ TEST_CASE("Media") {
     struct ncvisual_options vopts{};
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
-    auto p = ncvisual_render(nc_, ncv, &vopts);
+    vopts.n = n_;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
+                    | NCVISUAL_OPTION_CHILDPLANE;
+    auto p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_resize(ncv, 20, 20));
-    p = ncvisual_render(nc_, ncv, &vopts);
+    p = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
-    p = ncvisual_render(nc_, ncv, &vopts);
+    p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    p = ncvisual_render(nc_, ncv, &vopts);
+    p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
@@ -58,7 +60,10 @@ TEST_CASE("Media") {
     CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
     opts.scaling = NCSCALE_STRETCH;
-    auto newn = ncvisual_render(nc_, ncv, &opts);
+    opts.n = n_;
+    opts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
+                   | NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &opts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncvisual_decode(ncv));
@@ -76,7 +81,7 @@ TEST_CASE("Media") {
     struct ncvisual_options opts{};
     opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncvisual_decode(ncv));
     ncvisual_destroy(ncv);
@@ -91,13 +96,13 @@ TEST_CASE("Media") {
     struct ncvisual_options opts{};
     opts.n = ncp_;
     CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &odimy, &odimx, nullptr, nullptr, nullptr));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 2, ncv->pixx * 2));
     CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &ndimy, &ndimx, nullptr, nullptr, nullptr));
     CHECK(ndimy == odimy * 2);
     CHECK(ndimx == odimx * 2);
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }
@@ -110,7 +115,7 @@ TEST_CASE("Media") {
     struct ncvisual_options opts{};
     opts.n = ncp_;
     opts.scaling = NCSCALE_STRETCH;
-    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncvisual_blit(nc_, ncv, &opts));
     void* needle = malloc(1);
     REQUIRE(nullptr != needle);
     struct ncplane* newn = ncplane_dup(ncp_, needle);
@@ -142,7 +147,7 @@ TEST_CASE("Media") {
         opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_1x1;
-        CHECK(ncvisual_render(nc_, ncv, &opts));
+        CHECK(ncvisual_blit(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -165,7 +170,7 @@ TEST_CASE("Media") {
         opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_2x1;
-        CHECK(ncvisual_render(nc_, ncv, &opts));
+        CHECK(ncvisual_blit(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -189,7 +194,7 @@ TEST_CASE("Media") {
         opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_2x2;
-        CHECK(ncvisual_render(nc_, ncv, &opts));
+        CHECK(ncvisual_blit(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -212,7 +217,7 @@ TEST_CASE("Media") {
         opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_3x2;
-        CHECK(ncvisual_render(nc_, ncv, &opts));
+        CHECK(ncvisual_blit(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -235,7 +240,7 @@ TEST_CASE("Media") {
         opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_BRAILLE;
-        CHECK(ncvisual_render(nc_, ncv, &opts));
+        CHECK(ncvisual_blit(nc_, ncv, &opts));
         CHECK(0 == notcurses_render(nc_));
       }
       ncvisual_destroy(ncv);
@@ -261,7 +266,7 @@ TEST_CASE("Media") {
           opts.scaling = NCSCALE_SCALE;
           opts.blitter = NCBLIT_PIXEL;
           opts.n = n;
-          n = ncvisual_render(nc_, ncv, &opts);
+          n = ncvisual_blit(nc_, ncv, &opts);
           REQUIRE(nullptr != n);
           CHECK(0 == notcurses_render(nc_));
         }
@@ -288,7 +293,7 @@ TEST_CASE("Media") {
           struct ncvisual_options opts{};
           opts.scaling = NCSCALE_SCALE;
           opts.blitter = NCBLIT_PIXEL;
-          REQUIRE(ncvisual_render(nc_, ncv, &opts));
+          REQUIRE(ncvisual_blit(nc_, ncv, &opts));
           CHECK(0 == notcurses_render(nc_));
         }
         ncvisual_destroy(ncv);
@@ -310,13 +315,13 @@ TEST_CASE("Media") {
       CHECK(1 == ret);
       ret = ncvisual_decode_loop(ncv);
       CHECK(1 == ret);
-      struct ncplane* ncp = ncvisual_render(nc_, ncv, nullptr);
+      struct ncplane* ncp = ncvisual_blit(nc_, ncv, nullptr);
       CHECK(nullptr != ncp);
       CHECK(0 == ncplane_destroy(ncp));
       // FIXME verify that it is first frame, not last?
       ret = ncvisual_decode_loop(ncv);
       CHECK(0 == ret);
-      ncp = ncvisual_render(nc_, ncv, nullptr);
+      ncp = ncvisual_blit(nc_, ncv, nullptr);
       CHECK(nullptr != ncp);
       CHECK(0 == ncplane_destroy(ncp));
       ncvisual_destroy(ncv);
@@ -334,7 +339,7 @@ TEST_CASE("Media") {
       CHECK(dimx == frame->width); FIXME */
       struct ncvisual_options opts{};
       opts.scaling = NCSCALE_STRETCH;
-      auto newn = ncvisual_render(nc_, ncv, &opts);
+      auto newn = ncvisual_blit(nc_, ncv, &opts);
       CHECK(newn);
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncplane_destroy(newn));
@@ -363,7 +368,7 @@ TEST_CASE("Media") {
     vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto ncv = ncvisual_from_file(find_data("onedot.png").get());
     REQUIRE(ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
+    auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(5 == ncplane_dim_y(child));
     CHECK(5 == ncplane_dim_x(child));

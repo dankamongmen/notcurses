@@ -162,9 +162,10 @@ TEST_CASE("Sixels") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
     auto rgb = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
@@ -184,9 +185,10 @@ TEST_CASE("Sixels") {
     auto ncv = ncvisual_from_file(find_data("natasha-blur.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     auto rgbold = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
                                newn->sprite->pixy, newn->sprite->pixx);
