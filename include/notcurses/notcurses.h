@@ -2933,12 +2933,12 @@ API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
   __attribute__ ((nonnull (1)));
 
 // Render the decoded frame according to the provided options (which may be
-// NULL). The plane used for rendering depends on vopts->n and vopts->flags. If
-// NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the plane
-// will always be created as a child of vopts->n. If this flag is not set, and
-// vopts->n is NULL, a new plane is created as a child of the standard plane.
-// If the flag is not set and vopts->n is not NULL, we render to vopts->n. A
-// subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
+// NULL). The plane used for rendering depends on vopts->n and vopts->flags.
+// If NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the
+// plane will always be created as a child of vopts->n. If this flag is not
+// set, and vopts->n is NULL, a new plane is created as root of a new pile.
+// If the flag is not set and vopts->n is not NULL, we render to vopts->n.
+// A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
 // 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
 // specify any region beyond the boundaries of the frame. Returns the (possibly
 // newly-created) plane to which we drew. Pixels may not be blitted to the
