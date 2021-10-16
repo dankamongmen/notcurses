@@ -407,34 +407,40 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         vopts.blitter = marsh.blitter;
         if(!loop){
           if(displaytime < 0){
-            stdn->printf(0, NCAlign::Center, "press a key to advance");
+            stdn->printf(0, NCAlign::Center, "press space to advance");
             if(!nc.render()){
               ncplane_destroy(n);
               return -1;
             }
             ncinput ni;
             do{
-              nc.get(true, &ni);
-            }while(ni.evtype == EvType::Release);
-            if(ni.id == (uint32_t)-1){
-              return -1;
-            }else if(ni.id == 'q'){
-              return 0;
-            }else if(ni.id == 'L'){
-              --i;
-              nc.refresh(nullptr, nullptr);
-            }else if(ni.id >= '0' && ni.id <= '6'){
-              blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
-              --i; // rerun same input with the new blitter
-            }else if(ni.id >= '7' && ni.id <= '9'){
-              --i; // just absorb the input
-            }else if(ni.id == NCKey::Resize){
-              --i; // rerun with the new size
-              if(!nc.refresh(&dimy, &dimx)){
-                ncplane_destroy(n);
+              do{
+                nc.get(true, &ni);
+              }while(ni.evtype == EvType::Release);
+              if(ni.id == (uint32_t)-1){
                 return -1;
+              }else if(ni.id == 'q'){
+                return 0;
+              }else if(ni.id == 'L'){
+                --i;
+                nc.refresh(nullptr, nullptr);
+                break;
+              }else if(ni.id >= '0' && ni.id <= '6'){
+                blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
+                --i; // rerun same input with the new blitter
+                break;
+              }else if(ni.id >= '7' && ni.id <= '9'){
+                --i; // just absorb the input
+                break;
+              }else if(ni.id == NCKey::Resize){
+                --i; // rerun with the new size
+                if(!nc.refresh(&dimy, &dimx)){
+                  ncplane_destroy(n);
+                  return -1;
+                }
+                break;
               }
-            }
+            }while(ni.id != ' ');
           }else{
             // FIXME do we still want to honor keybindings when timing out?
             struct timespec ts;
