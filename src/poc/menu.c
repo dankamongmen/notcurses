@@ -30,12 +30,12 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   notcurses_render(nc);
   while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
-      if(keypress == 'q'){
+      if(ni.evtype == NCTYPE_RELEASE){
+        continue;
+      }else if(keypress == 'q'){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
         return 0;
-      }else if(ni.evtype == NCTYPE_RELEASE){
-        continue;
       }else if(keypress == NCKEY_ENTER){ // selected a menu item
         const char* sel;
         if( (sel = ncmenu_selected(ncm, &ni)) ){
