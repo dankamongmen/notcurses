@@ -43,7 +43,7 @@ int main(int argc, char** argv){
   }
   int scaley, scalex;
   vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if((ncvisual_blit(nc, ncv, &vopts)) == NULL){
     goto err;
   }
   if(notcurses_render(nc)){
@@ -56,8 +56,7 @@ int main(int argc, char** argv){
   if(ncvisual_resize(ncv, dimy * scaley, dimx * scalex)){
     goto err;
   }
-  vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     goto err;
   }
   if(notcurses_render(nc)){
@@ -65,11 +64,12 @@ int main(int argc, char** argv){
   }
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
-  vopts.n = NULL;
   vopts.x = NCALIGN_CENTER;
   vopts.y = NCALIGN_CENTER;
-  vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
-  ncplane_destroy(n);
+  vopts.flags |= NCVISUAL_OPTION_HORALIGNED
+                 | NCVISUAL_OPTION_VERALIGNED
+                 | NCVISUAL_OPTION_CHILDPLANE;
+  vopts.n = notcurses_stdplane(nc);
   for(double i = 0 ; i < 256 ; ++i){
     clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
     if(ncvisual_rotate(ncv, M_PI / ((i / 32) + 2))){
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
       break;
     }
     struct ncplane* newn;
-    if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
+    if((newn = ncvisual_blit(nc, ncv, &vopts)) == NULL){
       failed = true;
       break;
     }
