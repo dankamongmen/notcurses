@@ -206,8 +206,9 @@ int fission_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = stdn,
     .scaling = NCSCALE_STRETCH,
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     goto err;
   }

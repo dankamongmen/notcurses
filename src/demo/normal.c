@@ -84,7 +84,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
           .n = stdn,
           .scaling = NCSCALE_STRETCH,
         };
-        if(ncvisual_render(nc, nncv, &nvopts) == NULL){
+        if(ncvisual_blit(nc, nncv, &nvopts) == NULL){
           return -1;
         }
       }
@@ -97,11 +97,14 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       r = -1;
       break;
     }
+    vopts.n = notcurses_stdplane(nc);
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED
+                   | NCVISUAL_OPTION_VERALIGNED
+                   | NCVISUAL_OPTION_CHILDPLANE;
     struct ncplane* newn;
-    if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
+    if((newn = ncvisual_blit(nc, ncv, &vopts)) == NULL){
       r = -1;
       break;
     }

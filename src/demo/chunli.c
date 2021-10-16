@@ -23,7 +23,11 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
     if(chuns[i].ncv == NULL){
       return -1;
     }
-    if((chuns[i].n = ncvisual_render(nc, chuns[i].ncv, NULL)) == NULL){
+    struct ncvisual_options vopts = {
+      .n = notcurses_stdplane(nc),
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+    };
+    if((chuns[i].n = ncvisual_blit(nc, chuns[i].ncv, &vopts)) == NULL){
       return -1;
     }
     ncplane_set_base_cell(chuns[i].n, b);
@@ -68,7 +72,11 @@ int chunli_demo(struct notcurses* nc){
     }
     free(path);
     struct ncplane* ncp;
-    if((ncp = ncvisual_render(nc, ncv, NULL)) == NULL){
+    struct ncvisual_options vopts = {
+      .n = notcurses_stdplane(nc),
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+    };
+    if((ncp = ncvisual_blit(nc, ncv, &vopts)) == NULL){
       return -1;
     }
     ncplane_set_base_cell(ncp, &b);

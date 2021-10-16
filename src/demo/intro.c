@@ -58,7 +58,7 @@ greatscott(struct notcurses* nc, int dimx){
     .scaling = NCSCALE_STRETCH,
     .flags = NCVISUAL_OPTION_NODEGRADE,
   };
-  struct ncplane* ret = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* ret = ncvisual_blit(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
   return ret;
 }
@@ -79,7 +79,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
     .scaling = NCSCALE_STRETCH,
   };
   int cellpxy, cellpxx;
-  ncplane_pixel_geom(notcurses_stdplane_const(nc), NULL, NULL,
+  ncplane_pixelgeom(notcurses_stdplane_const(nc), NULL, NULL,
                      &cellpxy, &cellpxx, NULL, NULL);
   int odimy, odimx, scaley, scalex;
   ncvisual_blitter_geom(nc, ncv, &vopts, &odimy, &odimx, &scaley, &scalex, NULL);
@@ -108,7 +108,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
     return NULL;
   }
   vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
   }

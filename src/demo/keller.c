@@ -34,7 +34,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     ncplane_erase(stdn); // to clear out old text
     struct ncplane* n = NULL;
     if(ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL) == 0){
-      if( (n = ncvisual_render(nc, ncv, &vopts)) ){
+      if( (n = ncvisual_blit(nc, ncv, &vopts)) ){
         ncplane_move_below(n, stdn);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
                               "%03dx%03d", truex, truey);
