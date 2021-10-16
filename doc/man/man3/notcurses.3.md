@@ -89,7 +89,7 @@ Following initialization, a single ncplane exists, the "standard plane" (see
 **notcurses_stdplane(3)**). This plane cannot be destroyed nor manually resized,
 and is always exactly as large as the screen (if run without a TTY, the "screen"
 is assumed to be 80x24 cells). Further ncplanes can be created with
-**ncplane_new(3)**. A total z-ordering always exists on the set of ncplanes,
+**ncplane_create(3)**. A total z-ordering always exists on the set of ncplanes,
 and new ncplanes are placed at the top of the z-buffer. Ncplanes can be larger,
 smaller, or the same size as the physical screen, and can be placed anywhere
 relative to it (including entirely off-screen). Ncplanes are made up of

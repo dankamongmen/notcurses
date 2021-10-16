@@ -1,7 +1,17 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.4.6 (not yet released) **"In the A"**
+* 3.0.0 (not yet released) **"In the A"**
+  * Made the ABI changes that have been planned/collected during 2.x
+    development. This primarily involved removing deprecated functions,
+    and making some `static inline` (and thus no longer linkable symbols).
+    There have been a few small renamings (i.e. `ncplane_pixelgeom()` to
+    `ncplane_pixel_geom()`) for purposes of regularity. The only thing removed
+    without an obvious replacement is the `renderfp` field of
+    `notcurses_options`, for which I make no apology. If you've been avoiding
+    deprecated functionality, ABI3 ought require small changes, if any.
+
+* 2.4.6 (not yet released)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including
     key repeat and release events, and modifier events (i.e. pressing Shift by
@@ -13,6 +23,20 @@ rearrangements of Notcurses.
     DA1 response will be considered as claiming support for Sixel with 256
     color registers. If you're a terminal author, please do `XTSMGRAPHICS`.
     Actually, please implement the vastly superior Kitty graphics protocol.
+  * `ncvisualplane_create()` now allows for a new pile to be created, by
+    passing a `NULL` ancestor `ncplane` in `vopts`. The first argument is
+    now a `struct notcurses*` rather than a `struct ncplane*`.
+  * `ncvisual_render()` has been deprecated in favor of the new function
+    `ncvisual_blit()`. When a `NULL` `vopts->n` is passed to `ncvisual_blit()`,
+    a new plane is created (as it was in `ncvisual_render()`, but that plane
+    is the root of a new pile, rather than a child of the standard plane.
+    The only tricky conversion is if you previously had `vopts.n` as `NULL`,
+    and were not using `NCVISUAL_OPTION_CHILDPLANE` (or were passing `NULL`
+    as `vopts`). This would result in a new plane bound to the standard plane
+    with `ncvisual_render()`, but with `ncvisual_blit()` it will create a new
+    pile. To keep the behavior, explicitly pass the standard plane as
+    `vopts->n`, and include `NCVISUAL_OPTION_CHILDPLANE` in `vopts->flags`.
+    All other cases will continue to work as they did before.
 
 * 2.4.5 (2021-10-06)
   * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has

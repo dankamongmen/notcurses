@@ -75,7 +75,9 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_decode_loop(struct ncvisual* ***ncv***);**
 
-**struct ncplane* ncvisual_render(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
+**struct ncplane* ncvisual_blit(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
+
+**static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
 **int ncvisual_simple_streamer(struct ncplane* ***n***, struct ncvisual* ***ncv***, const struct timespec* ***disptime***, void* ***curry***);**
 
@@ -93,7 +95,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
 
-**struct ncplane* ncvisual_subtitle(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
+**struct ncplane* ncvisual_subtitle_plane(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
 
 **int notcurses_lex_scalemode(const char* ***op***, ncscale_e* ***scaling***);**
 
@@ -124,7 +126,7 @@ Once the visual is loaded, it can be transformed using **ncvisual_rotate**,
 **ncvisual_resize**, and **ncvisual_resize_noninterpolative**. These are
 persistent operations, unlike any scaling that takes place at render time. If a
 subtitle is associated with the frame, it can be acquired with
-**ncvisual_subtitle**. **ncvisual_resize** uses the media layer's best scheme
+**ncvisual_subtitle_plane**. **ncvisual_resize** uses the media layer's best scheme
 to enlarge or shrink the original data, typically involving some interpolation.
 **ncvisual_resize_noninterpolative** performs a naive linear sampling,
 retaining only original colors.
@@ -152,11 +154,12 @@ glyphs within this region are those used by the specified blitter.
 **ncvisual_rotate** executes a rotation of ***rads*** radians, in the clockwise
 (positive) or counterclockwise (negative) direction.
 
-**ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
-the current frame if such a subtitle was decoded. Note that a subtitle might
-be returned for multiple frames, or might not.
+**ncvisual_subtitle_plane** returns a **struct ncplane** suitable for display,
+if the current frame had such a subtitle. Note that the same subtitle might
+be returned for multiple frames, or might not. It is atypical for all frames
+to have subtitles. Subtitles can be text or graphics.
 
-**ncvisual_render** blits the visual to an **ncplane**, based on the contents
+**ncvisual_blit** draws the visual to an **ncplane**, based on the contents
 of its **struct ncvisual_options**. If ***n*** is not **NULL**, it specifies the
 plane on which to render, and ***y***/***x*** specify a location within that plane.
 Otherwise, a new plane will be created, and placed at ***y***/***x*** relative to
@@ -270,7 +273,7 @@ information.
 
 Some terminals support pixel-based output via one of a number of protocols.
 **NCBLIT_PIXEL** has some stringent requirements on the type of planes it can
-be used with; it is usually best to let **ncvisual_render** create the backing
+be used with; it is usually best to let **ncvisual_blit** create the backing
 plane by providing a **NULL** value for **n**. If you must bring your own
 plane, it must be perfectly sized for the bitmap (i.e. large enough, and not
 more than a full cell larger in either dimension--the bitmap, always placed at
@@ -304,12 +307,12 @@ that the entire file is properly-formed.
 failure. It is only necessary for multimedia-based visuals. It advances one
 frame for each call. **ncvisual_decode_loop** has the same return values: when
 called following decoding of the last frame, it will return 1, but a subsequent
-**ncvisual_render** will return the first frame.
+**ncvisual_blit** will return the first frame.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.
 
-**ncvisual_render** returns **NULL** on error, and otherwise the plane to
+**ncvisual_blit** returns **NULL** on error, and otherwise the plane to
 which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
@@ -328,7 +331,8 @@ aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
 linked library. OpenImageIO does not support subtitles. Functions requiring
-a multimedia backend include **ncvisual_from_file** and **ncvisual_subtitle**.
+a multimedia backend include **ncvisual_from_file** and
+**ncvisual_subtitle_plane**.
 
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
@@ -365,7 +369,7 @@ sprixel cannot be accessed.
 **ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
 radians for **rads**, but this will change soon.
 
-**ncvisual_render** should be able to create new planes in piles other than
+**ncvisual_blit** should be able to create new planes in piles other than
 the standard pile. This ought become a reality soon.
 
 **ncvisual_stream** currently requires a multimedia engine, which is silly.
@@ -374,7 +378,7 @@ This will change in the near future.
 Sprixels interact poorly with multiple planes, and such usage is discouraged.
 This situation might improve in the future.
 
-Multiple threads may not currently call **ncvisual_render** concurrently
+Multiple threads may not currently call **ncvisual_blit** concurrently
 using the same **ncvisual**, even if targeting distinct **ncplane**s. This
 will likely change in the future.
 
