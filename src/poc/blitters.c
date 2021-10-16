@@ -45,9 +45,11 @@ int main(int argc, char** argv){
         struct ncvisual_options vopts = {
           .scaling = scaling,
           .blitter = *blitter,
+          .n = notcurses_stdplane(nc),
+          .flags = NCVISUAL_OPTION_CHILDPLANE,
         };
         struct ncplane* cn;
-        if((cn = ncvisual_render(nc, ncv, &vopts)) == NULL){
+        if((cn = ncvisual_blit(nc, ncv, &vopts)) == NULL){
           ncvisual_destroy(ncv);
           goto err;
         }
