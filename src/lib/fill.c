@@ -641,7 +641,7 @@ int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t le
           .n = n,
           .blitter = blitfxn,
         };
-        if(ncvisual_render(ncplane_notcurses(n), ncv, &vopts) == n){
+        if(ncvisual_blit(ncplane_notcurses(n), ncv, &vopts) == n){
           ret = square;
         }
         ncvisual_blitter_geom(ncplane_notcurses(n), ncv, &vopts, NULL, NULL,

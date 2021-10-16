@@ -439,7 +439,7 @@ the size of a cell in pixels (these ought be the same across planes).
 **maxbmapy** and **maxbmapx** describe the largest bitmap which can be
 displayed in the plane. Any parameter (save **n**) may be **NULL**.
 
-When a plane is blitted to using **ncvisual_render** and **NCBLIT_PIXEL** (see
+When a plane is blitted to using **ncvisual_blit** and **NCBLIT_PIXEL** (see
 **notcurses_visual(3)**), it ceases to accept cell-based output. The sprixel
 will remain associated until a new sprixel is blitted to the plane, the plane
 is resized, the plane is erased, or the plane is destroyed. The base cell of a

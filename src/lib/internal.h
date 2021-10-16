@@ -993,7 +993,7 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 }
 
 // ncdirect needs to "fake" an isolated ncplane as a drawing surface for
-// ncvisual_render(), and thus calls these low-level internal functions.
+// ncvisual_blit(), and thus calls these low-level internal functions.
 // they are not for general use -- check ncplane_new() and ncplane_destroy().
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts);
 
