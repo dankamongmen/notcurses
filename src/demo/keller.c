@@ -23,10 +23,13 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   ncplane_set_base(stdn, "", 0, channels);
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
+      .n = notcurses_stdplane(nc),
       .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
-      .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED
-                | NCVISUAL_OPTION_VERALIGNED,
+      .flags = NCVISUAL_OPTION_NODEGRADE
+                | NCVISUAL_OPTION_HORALIGNED
+                | NCVISUAL_OPTION_VERALIGNED
+                | NCVISUAL_OPTION_CHILDPLANE,
     };
     int scalex, scaley, truey, truex;
     vopts.x = NCALIGN_CENTER;
