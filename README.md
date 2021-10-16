@@ -323,10 +323,19 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>Why didn't you just render everything to Sixel?</summary>
+  <summary>I'm getting strange and/or duplicate inputs in Kitty.</summary>
+  Notcurses supports Kitty's powerful [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/),
+  which includes things like key release events and modifier keypresses by
+  themselves. This means, among other things, that a program in Kitty will
+  usually immediately get an `NC_ENTER` `NCTYPE_RELEASE` event, and each
+  keypress will typically result in at least two inputs.
+</details>
+
+<details>
+  <summary>Why didn't you just render everything to bitmaps?</summary>
   That's not a TUI; it's a slow and inflexible GUI. Many terminal emulators
-  don't support Sixel. Sixel doesn't work well with mouse selection.
-  Sixel has a limited color palette. With that said, both Sixel and the
+  don't support bitmaps. They doesn't work well with mouse selection.
+  Sixels have a limited color palette. With that said, both Sixel and the
   Kitty bitmap protocol are well-supported.
 </details>
 
