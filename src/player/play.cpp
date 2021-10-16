@@ -47,7 +47,7 @@ struct marshal {
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vmarshal) -> int {
   struct marshal* marsh = static_cast<struct marshal*>(vmarshal);
-  NotCurses &nc = NotCurses::get_instance ();
+  NotCurses &nc = NotCurses::get_instance();
   auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
     start = static_cast<struct timespec*>(malloc(sizeof(struct timespec)));
@@ -112,17 +112,18 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       continue;
     }
     if(keyp == ' '){
-      if((keyp = nc.get(true)) == (uint32_t)-1){
-        ncplane_destroy(subp);
-        return -1;
-      }
+      do{
+        if((keyp = nc.get(true, &ni)) == (uint32_t)-1){
+          ncplane_destroy(subp);
+          return -1;
+        }
+      }while(ni.id != 'q' && (ni.evtype == EvType::Release || ni.id != ' '));
     }
     // if we just hit a non-space character to unpause, ignore it
-    if(keyp == ' '){ // space for unpause
-      continue;
-    }
     if(keyp == NCKey::Resize){
       return 0;
+    }else if(keyp == ' '){ // space for unpause
+      continue;
     }else if(keyp == 'L' && ni.ctrl && !ni.alt){
       nc.refresh(nullptr, nullptr);
       continue;
@@ -143,6 +144,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       continue;
     }else if(keyp == NCKey::Left){
       // FIXME move backwards
+      continue;
+    }else if(keyp != 'q'){
       continue;
     }
     ncplane_destroy(subp);
