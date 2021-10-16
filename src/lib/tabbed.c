@@ -1,5 +1,25 @@
 #include "internal.h"
 
+typedef struct nctabbed_opsint {
+  uint64_t selchan; // channel for the selected tab header
+  uint64_t hdrchan; // channel for unselected tab headers
+  uint64_t sepchan; // channel for the tab separator
+  char* separator;  // separator string (copied by nctabbed_create())
+  uint64_t flags;   // bitmask of NCTABBED_OPTION_*
+} nctabbed_opsint;
+
+typedef struct nctabbed {
+  ncplane* ncp;          // widget ncplane
+  ncplane* p;            // tab content ncplane
+  ncplane* hp;           // tab headers ncplane
+  // a doubly-linked circular list of tabs
+  nctab* leftmost;       // the tab most to the left
+  nctab* selected;       // the currently selected tab
+  int tabcount;          // tab separator (can be NULL)
+  int sepcols;           // separator with in columns
+  nctabbed_opsint opts;  // copied in nctabbed_create()
+} nctabbed;
+
 void nctabbed_redraw(nctabbed* nt){
   nctab* t;
   int drawn_cols = 0;
@@ -144,8 +164,12 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   nt->leftmost = nt->selected = NULL;
   nt->tabcount = 0;
   memcpy(&nt->opts, topts, sizeof(*topts));
-  if(nt->opts.separator){
-    if((nt->opts.separator = strdup(nt->opts.separator)) == NULL){
+  nt->opts.selchan = topts->selchan;
+  nt->opts.hdrchan = topts->hdrchan;
+  nt->opts.sepchan = topts->sepchan;
+  nt->opts.flags = topts->flags;
+  if(topts->separator){
+    if((nt->opts.separator = strdup(topts->separator)) == NULL){
       logerror("Couldn't allocate nctabbed separator");
       free(nt);
       return NULL;
@@ -157,6 +181,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
       return NULL;
     }
   }else{
+    nt->opts.separator = NULL;
     nt->sepcols = 0;
   }
   ncplane_dim_yx(n, &nrows, &ncols);
@@ -267,6 +292,7 @@ int nctabbed_del(nctabbed* nt, nctab* t){
     t->next->prev = t->prev;
     t->prev->next = t->next;
   }
+  free(t->name);
   free(t);
   --nt->tabcount;
   return 0;

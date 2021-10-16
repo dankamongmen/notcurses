@@ -59,9 +59,10 @@ videothread(void* vnc){
     .n = ncp,
     .y = 1,
     .flags = NCVISUAL_OPTION_ADDALPHA,
+    .blitter = NCBLIT_PIXEL,
   };
   int three = 3;
-  if(ncvisual_render(nc, ncv, &ovopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &ovopts) == NULL){
     return NULL;
   }
   struct timespec fade;
@@ -197,8 +198,9 @@ int outro(struct notcurses* nc){
       return -1;
     }
     vopts.scaling = NCSCALE_STRETCH;
-    vopts.flags = NCVISUAL_OPTION_BLEND;
-    if((vopts.n = ncvisual_render(nc, chncv, &vopts)) == NULL){
+    vopts.flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.n = notcurses_stdplane(nc);
+    if((vopts.n = ncvisual_blit(nc, chncv, &vopts)) == NULL){
       ncvisual_destroy(chncv);
       return -1;
     }

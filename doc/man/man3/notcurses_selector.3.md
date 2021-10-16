@@ -16,14 +16,14 @@ struct notcurses;
 struct ncselector;
 
 struct ncselector_item {
-  char* option;
-  char* desc;
+  const char* option;
+  const char* desc;
 };
 
 typedef struct ncselector_options {
-  char* title; // title may be NULL, inhibiting riser
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
+  const char* title; // title may be NULL, inhibiting riser
+  const char* secondary; // secondary may be NULL
+  const char* footer; // footer may be NULL
   struct ncselector_item* items; // initial items and descriptions
   // default item (selected at start)
   unsigned defidx;

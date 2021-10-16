@@ -2899,7 +2899,7 @@ API int ncvisual_decode(struct ncvisual* nc)
   __attribute__ ((nonnull (1)));
 
 // decode the next frame ala ncvisual_decode(), but if we have reached the end,
-// rewind to the first frame of the ncvisual. a subsequent 'ncvisual_render()'
+// rewind to the first frame of the ncvisual. a subsequent 'ncvisual_blit()'
 // will render the first frame, as if the ncvisual had been closed and reopened.
 // the return values remain the same as those of ncvisual_decode().
 API int ncvisual_decode_loop(struct ncvisual* nc)
@@ -2945,6 +2945,21 @@ API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
 // standard plane.
 API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts)
+  __attribute__ ((deprecated)) __attribute__ ((nonnull (2)));
+
+// Render the decoded frame according to the provided options (which may be
+// NULL). The plane used for rendering depends on vopts->n and vopts->flags.
+// If NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the
+// plane will always be created as a child of vopts->n. If this flag is not
+// set, and vopts->n is NULL, a new plane is created as root of a new pile.
+// If the flag is not set and vopts->n is not NULL, we render to vopts->n.
+// A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
+// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the (possibly
+// newly-created) plane to which we drew. Pixels may not be blitted to the
+// standard plane.
+API struct ncplane* ncvisual_blit(struct notcurses* nc, struct ncvisual* ncv,
+                                  const struct ncvisual_options* vopts)
   __attribute__ ((nonnull (2)));
 
 // Create a new plane as prescribed in opts, either as a child of 'vopts->n',
@@ -2972,7 +2987,7 @@ ncvisualplane_create(struct notcurses* nc, const struct ncplane_options* opts,
     memset(vopts, 0, sizeof(*vopts));
   }
   vopts->n = newn;
-  if(ncvisual_render(nc, ncv, vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, vopts) == NULL){
     ncplane_destroy(newn);
     vopts->n = NULL;
     return NULL;
@@ -3047,7 +3062,7 @@ API int ncblit_rgb_loose(const void* data, int linesize,
 
 // The ncpixel API facilitates direct management of the pixels within an
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
-// them down to terminal graphics in ncvisual_render()).
+// them down to terminal graphics in ncvisual_blit()).
 //
 // Per libav, we "store as BGRA on little-endian, and ARGB on big-endian".
 // This is an RGBA *byte-order* scheme. libav emits bytes, not words. Those
@@ -3350,17 +3365,15 @@ API void ncplane_greyscale(struct ncplane* n);
 //
 // At all times, exactly one item is selected.
 struct ncselector_item {
-  char* option;
-  char* desc;
-  size_t opcolumns;   // filled in by library
-  size_t desccolumns; // filled in by library
+  const char* option;
+  const char* desc;
 };
 
 typedef struct ncselector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
-  struct ncselector_item* items; // initial items and descriptions
+  const char* title; // title may be NULL, inhibiting riser, saving two rows.
+  const char* secondary; // secondary may be NULL
+  const char* footer; // footer may be NULL
+  const struct ncselector_item* items; // initial items and descriptions
   // default item (selected at start), must be < itemcount unless itemcount is
   // 0, in which case 'defidx' must also be 0
   unsigned defidx;
@@ -3409,8 +3422,8 @@ API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc)
 API void ncselector_destroy(struct ncselector* n, char** item);
 
 struct ncmselector_item {
-  char* option;
-  char* desc;
+  const char* option;
+  const char* desc;
   bool selected;
 };
 
@@ -3436,10 +3449,10 @@ struct ncmselector_item {
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.
 typedef struct ncmultiselector_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
-  struct ncmselector_item* items; // initial items, descriptions, and statuses
+  const char* title; // title may be NULL, inhibiting riser, saving two rows.
+  const char* secondary; // secondary may be NULL
+  const char* footer; // footer may be NULL
+  const struct ncmselector_item* items; // initial items, descriptions, and statuses
   // maximum number of options to display at once, 0 to use all available space
   unsigned maxdisplay;
   // exhaustive styling options
@@ -3546,12 +3559,12 @@ API void nctree_destroy(struct nctree* n);
 // a plane resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 struct ncmenu_item {
-  char* desc;           // utf-8 menu item, NULL for horizontal separator
+  const char* desc;     // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
 };
 
 struct ncmenu_section {
-  char* name;             // utf-8 c string
+  const char* name;       // utf-8 c string
   int itemcount;
   struct ncmenu_item* items;
   ncinput shortcut;       // shortcut, will be underlined if present in name
@@ -3673,7 +3686,7 @@ typedef struct nctabbed_options {
   uint64_t selchan; // channel for the selected tab header
   uint64_t hdrchan; // channel for unselected tab headers
   uint64_t sepchan; // channel for the tab separator
-  char* separator;  // separator string (copied by nctabbed_create())
+  const char* separator;  // separator string (copied by nctabbed_create())
   uint64_t flags;   // bitmask of NCTABBED_OPTION_*
 } nctabbed_options;
 
@@ -4009,17 +4022,17 @@ typedef struct ncsubproc_options {
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
 API ALLOC struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
-                                              const char* bin,  char* const arg[],
+                                              const char* bin, char* const arg[],
                                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
-                                               const char* bin,  char* const arg[],
+                                               const char* bin, char* const arg[],
                                                ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
-                                                const char* bin,  char* const arg[], char* const env[],
+                                                const char* bin, char* const arg[], char* const env[],
                                                 ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 

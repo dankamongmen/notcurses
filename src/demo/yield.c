@@ -39,7 +39,7 @@ int yield_demo(struct notcurses* nc){
     ncplane_destroy(vopts.n);
     return -1;
   }
-  if(ncvisual_render(nc, wmv, &vopts) == NULL){
+  if(ncvisual_blit(nc, wmv, &vopts) == NULL){
     ncvisual_destroy(wmv);
     ncplane_destroy(vopts.n);
     return -1;
@@ -111,7 +111,7 @@ int yield_demo(struct notcurses* nc){
       DEMO_RENDER(nc);
     }while(pfilled == 0);
     tfilled += pfilled;
-    if(ncvisual_render(nc, wmv, &vopts) == NULL){
+    if(ncvisual_blit(nc, wmv, &vopts) == NULL){
       ncvisual_destroy(wmv);
       ncplane_destroy(vopts.n);
       return -1;

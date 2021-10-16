@@ -19,10 +19,12 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
     return -1;
   }
   struct ncvisual_options vopts = {
+    .n = stdn,
     .y = 1,
     .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_NODEGRADE,
   };
-  struct ncplane* ncvp = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* ncvp = ncvisual_blit(nc, ncv, &vopts);
   if(ncvp == NULL){
     free(randrgb);
     return -1;
@@ -38,7 +40,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.n = scalep;
   vopts.scaling = NCSCALE_STRETCH;
   popts.x += ncplane_dim_x(scalep) + 1;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     free(randrgb);
     return -1;
   }
@@ -46,7 +48,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   struct ncplane* scalepni = ncplane_create(stdn, &popts);
   vopts.n = scalepni;
   vopts.flags = NCVISUAL_OPTION_NOINTERPOLATE;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     free(randrgb);
     return -1;
   }
@@ -64,7 +66,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.flags = 0;
   vopts.n = resizep;
   vopts.scaling = NCSCALE_NONE;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     free(randrgb);
     return -1;
   }
@@ -81,11 +83,12 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_resize_noninterpolative(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
     return -1;
   }
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     return -1;
   }
   ncplane_putstr_yx(stdn, 2, 41, "resize(no)");
   notcurses_render(nc);
+  ncvisual_destroy(ncv);
   ncplane_destroy(ncvp);
   ncplane_destroy(scalep);
   ncplane_destroy(scalepni);
@@ -107,7 +110,9 @@ int main(void){
     goto err;
   }
   ncinput ni;
-  notcurses_getc_blocking(nc, &ni);
+  do{
+    notcurses_getc_blocking(nc, &ni);
+  }while(ni.id != (uint32_t)-1 && ni.evtype != NCTYPE_RELEASE);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 

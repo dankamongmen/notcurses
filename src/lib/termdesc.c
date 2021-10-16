@@ -609,7 +609,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     // FIXME what, oh what to do with tmux?
   }else if(qterm == TERMINAL_GNUSCREEN){
     termname = "GNU screen";
-    // FIXME disable rgb?
+    if(compare_versions(ti->termversion, "5.0") < 0){
+      ti->caps.rgb = false;
+    }
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
@@ -644,11 +646,12 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
     ti->bce = true;
   }else if(qterm == TERMINAL_MSTERMINAL){
-    ti->termname = "Windows Terminal";
+    termname = "Windows Terminal";
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
+    ti->caps.sextants = true;
     ti->caps.rgb = true;
     *invertsixel = true;
   }else if(qterm == TERMINAL_ITERM){
@@ -766,11 +769,12 @@ macos_early_matches(void){
 // Device Attributes, allowing us to get a negative response if our queries
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
-int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
+int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats,
                          int lmargin, int tmargin, int rmargin, int bmargin,
                          unsigned draininput){
+  const char* termtype = getenv("TERM");
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
     cursor_x = &foolcursor_x;

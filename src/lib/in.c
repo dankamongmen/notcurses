@@ -23,7 +23,6 @@
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
 // FIXME still need to:
-//  integrate main specials trie with automaton, enable input_errors
 //  probably want pipes/eventfds rather than SIGCONT
 
 static sig_atomic_t resize_seen;
@@ -49,6 +48,12 @@ typedef struct termqueries {
 typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
+
+#ifndef __MINGW64__
+typedef int ipipe;
+#else
+typedef HANDLE ipipe;
+#endif
 
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
@@ -100,7 +105,7 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
-  int readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
+  ipipe readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
 } inputctx;
@@ -438,10 +443,16 @@ send_synth_signal(int sig){
 }
 
 static void
-mark_pipe_ready(int pipes[static 2]){
+mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
+#ifndef __MINGW64__
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
     logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+#else
+  DWORD wrote;
+  if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
+    logwarn("error writing to readypipe\n");
+#endif
   }
 }
 
@@ -1321,18 +1332,27 @@ build_cflow_automaton(inputctx* ictx){
 }
 
 static void
-endpipes(int pipes[static 2]){
-  if(pipes[0] >= 0){
-    close(pipes[0]);
+closepipe(ipipe p){
+#ifndef __MINGW64__
+  if(p >= 0){
+    close(p);
   }
-  if(pipes[1] >= 0){
-    close(pipes[1]);
+#else
+  if(p){
+    CloseHandle(p);
   }
+#endif
+}
+
+static void
+endpipes(ipipe pipes[static 2]){
+  closepipe(pipes[0]);
+  closepipe(pipes[1]);
 }
 
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
 static int
-getpipes(int pipes[static 2]){
+getpipes(ipipe pipes[static 2]){
 #ifndef __MINGW64__
 #ifndef __APPLE__
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
@@ -1345,19 +1365,21 @@ getpipes(int pipes[static 2]){
     return -1;
   }
   if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_nonblocking(pipes[0], 1, NULL)){
-    logerror("couldn't prep pipe[0] (%d) (%s)\n", pipes[0], strerror(errno));
+    logerror("couldn't prep pipe[0] (%s)\n", strerror(errno));
     endpipes(pipes);
     return -1;
   }
   if(set_fd_cloexec(pipes[1], 1, NULL) || set_fd_nonblocking(pipes[1], 1, NULL)){
-    logerror("couldn't prep pipe[1] (%d) (%s)\n", pipes[1], strerror(errno));
+    logerror("couldn't prep pipe[1] (%s)\n", strerror(errno));
     endpipes(pipes);
     return -1;
   }
-  // FIXME what to do on windows?
 #endif
 #else // windows
-  pipes[0] = pipes[1] = -1;
+  if(!CreatePipe(&pipes[0], &pipes[1], NULL, BUFSIZ)){
+    logerror("couldn't get pipes\n");
+    return -1;
+  }
 #endif
   return 0;
 }
@@ -1384,6 +1406,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
+			  i->initdata->qterm = ti->qterm;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
@@ -2026,7 +2049,13 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
+#ifndef __MINGW64__
   return ictx->readypipes[0];
+#else
+  (void)ictx;
+  logerror("readiness descriptor unavailable on windows\n");
+  return -1;
+#endif
 }
 
 static inline uint32_t
@@ -2073,9 +2102,15 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   }else if(ictx->ivalid){
     logtrace("draining event readiness pipe\n");
     char c;
+#ifndef __MINGW64__
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
-      // FIXME accelerate;
+      // FIXME accelerate?
     }
+#else
+    while(ReadFile(ictx->readypipes[0], &c, sizeof(c), NULL, NULL)){
+      // FIXME accelerate?
+    }
+#endif
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){

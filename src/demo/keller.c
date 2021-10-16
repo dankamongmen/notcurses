@@ -23,10 +23,13 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   ncplane_set_base(stdn, "", 0, channels);
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
+      .n = notcurses_stdplane(nc),
       .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
-      .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED
-                | NCVISUAL_OPTION_VERALIGNED,
+      .flags = NCVISUAL_OPTION_NODEGRADE
+                | NCVISUAL_OPTION_HORALIGNED
+                | NCVISUAL_OPTION_VERALIGNED
+                | NCVISUAL_OPTION_CHILDPLANE,
     };
     int scalex, scaley, truey, truex;
     vopts.x = NCALIGN_CENTER;
@@ -34,7 +37,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     ncplane_erase(stdn); // to clear out old text
     struct ncplane* n = NULL;
     if(ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL) == 0){
-      if( (n = ncvisual_render(nc, ncv, &vopts)) ){
+      if( (n = ncvisual_blit(nc, ncv, &vopts)) ){
         ncplane_move_below(n, stdn);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
                               "%03dx%03d", truex, truey);

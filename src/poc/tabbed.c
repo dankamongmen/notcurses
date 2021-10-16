@@ -102,7 +102,11 @@ int main(int argc, char** argv){
   }
   int tabnameind = 0;
   uint32_t c;
-  while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
+  ncinput ni;
+  while((c = notcurses_getc_blocking(nc, &ni)) != 'q'){
+    if(ni.evtype == NCTYPE_RELEASE){
+      continue;
+    }
     switch(c){
       case NCKEY_RIGHT:
         nctabbed_next(nct);

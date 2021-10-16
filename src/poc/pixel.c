@@ -15,12 +15,14 @@ handle(struct notcurses* nc, const char *fn){
       uint64_t channels = NCCHANNELS_INITIALIZER(rand() % 256, rand() % 256, 100, rand() % 256, 100, 140);
       ncplane_set_base(stdn, "a", 0, channels);
       struct ncvisual_options vopts = {
+        .n = notcurses_stdplane(nc),
         .y = y,
         .x = x,
         .scaling = NCSCALE_NONE_HIRES,
         .blitter = NCBLIT_PIXEL,
+        .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_NODEGRADE,
       };
-      struct ncplane* nv = ncvisual_render(nc, ncv, &vopts);
+      struct ncplane* nv = ncvisual_blit(nc, ncv, &vopts);
       if(nv == NULL){
         ncvisual_destroy(ncv);
         return -1;

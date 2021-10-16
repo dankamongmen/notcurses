@@ -200,7 +200,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
         .blitter = NCBLIT_PIXEL,
         .scaling = NCSCALE_STRETCH,
       };
-      if(ncvisual_render(nc, v, &vopts) == NULL){
+      if(ncvisual_blit(nc, v, &vopts) == NULL){
         ncplane_destroy(vn);
         ncvisual_destroy(v);
         return NULL;
@@ -501,7 +501,7 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     // was actually rendered with
     ncvisual_blitter_geom(nc, ncv, &activevopts, NULL, NULL, NULL, NULL,
                           &activevopts.blitter);
-    if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
+    if((newn = ncvisual_blit(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);
       }

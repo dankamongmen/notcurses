@@ -158,7 +158,7 @@ int luigi_demo(struct notcurses* nc){
     .scaling = NCSCALE_STRETCH,
     .flags = NCVISUAL_OPTION_NOINTERPOLATE,
   };
-  if(ncvisual_render(nc, nv, &vopts) == NULL){
+  if(ncvisual_blit(nc, nv, &vopts) == NULL){
     return -1;
   }
   assert(1 == ncvisual_decode(nv));
@@ -200,7 +200,11 @@ int luigi_demo(struct notcurses* nc){
   uint64_t channels = 0;
   ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-  struct ncplane* wmplane = ncvisual_render(nc, wmncv, NULL);
+  struct ncvisual_options wvopts = {
+    .n = notcurses_stdplane(nc),
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
+  };
+  struct ncplane* wmplane = ncvisual_blit(nc, wmncv, &wvopts);
   if(wmplane == NULL){
     ncvisual_destroy(wmncv);
     return -1;

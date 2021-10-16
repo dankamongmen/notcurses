@@ -20,7 +20,7 @@ typedef struct nctabbed_options {
   uint64_t selchan; // channel for the selected tab header
   uint64_t hdrchan; // channel for unselected tab headers
   uint64_t sepchan; // channel for the tab separator
-  char* separator;  // separator string (copied by nctabbed_create())
+  const char* separator; // separator string (copied by nctabbed_create())
   uint64_t flags;   // bitmask of NCTABBED_OPTION_*
 } nctabbed_options;
 

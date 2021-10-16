@@ -607,12 +607,13 @@ display_thread(void* vmarshal){
         pixeling = true;
       }
       struct ncvisual_options vopts = {
+        .n = notcurses_stdplane(m->nc),
         .x = NCALIGN_CENTER,
         .blitter = pixeling ? NCBLIT_PIXEL : NCBLIT_3x2,
         .scaling = pixeling ? NCSCALE_NONE : NCSCALE_SCALE_HIRES,
-        .flags = NCVISUAL_OPTION_HORALIGNED,
+        .flags = NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE,
       };
-      struct ncplane* iplane = ncvisual_render(m->nc, ncv, &vopts);
+      struct ncplane* iplane = ncvisual_blit(m->nc, ncv, &vopts);
       ncvisual_destroy(ncv);
       if(iplane){
         int x = ncplane_x(iplane);

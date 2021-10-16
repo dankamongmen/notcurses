@@ -58,7 +58,7 @@ greatscott(struct notcurses* nc, int dimx){
     .scaling = NCSCALE_STRETCH,
     .flags = NCVISUAL_OPTION_NODEGRADE,
   };
-  struct ncplane* ret = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* ret = ncvisual_blit(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
   return ret;
 }
@@ -108,7 +108,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
     return NULL;
   }
   vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
   }

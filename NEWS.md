@@ -26,6 +26,17 @@ rearrangements of Notcurses.
   * `ncvisualplane_create()` now allows for a new pile to be created, by
     passing a `NULL` ancestor `ncplane` in `vopts`. The first argument is
     now a `struct notcurses*` rather than a `struct ncplane*`.
+  * `ncvisual_render()` has been deprecated in favor of the new function
+    `ncvisual_blit()`. When a `NULL` `vopts->n` is passed to `ncvisual_blit()`,
+    a new plane is created (as it was in `ncvisual_render()`, but that plane
+    is the root of a new pile, rather than a child of the standard plane.
+    The only tricky conversion is if you previously had `vopts.n` as `NULL`,
+    and were not using `NCVISUAL_OPTION_CHILDPLANE` (or were passing `NULL`
+    as `vopts`). This would result in a new plane bound to the standard plane
+    with `ncvisual_render()`, but with `ncvisual_blit()` it will create a new
+    pile. To keep the behavior, explicitly pass the standard plane as
+    `vopts->n`, and include `NCVISUAL_OPTION_CHILDPLANE` in `vopts->flags`.
+    All other cases will continue to work as they did before.
 
 * 2.4.5 (2021-10-06)
   * The poorly-considered function `ncplane_boundlist()`, added in 2.3.17, has

@@ -331,7 +331,7 @@ Its `data` field holds RGBA pixels as provided from disk or memory. Its `pixx`,
 `rowstride` bytes, each containing `pixx` RGBA pixels at the front, plus any
 necessary padding (external libraries might generate padded output).
 
-`ncvisual_render` works with at least four geometries:
+`ncvisual_blit` works with at least four geometries:
 * `vopts->begy`/`begx`: offsets into unscaled data (pixels)
 * `vopts->leny`/`lenx`: lengths of unscaled data to use (pixels)
   * These geometries, when summed, must not exceed `ncv->pixy`/`ncv->pixx`.

@@ -14,8 +14,9 @@ draw_background(struct notcurses* nc){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .n = n,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       return -1;
     }
@@ -27,7 +28,7 @@ draw_background(struct notcurses* nc){
 
 // we list all distributions on which notcurses is known to exist
 static struct ncselector_item select_items[] = {
-#define SITEM(short, long) { short, long, 0, 0, }
+#define SITEM(short, long) { short, long, }
   SITEM("fbsd", "FreeBSD"),
   SITEM("deb", "Debian Unstable Linux"),
   SITEM("rpm", "Fedora Rawhide Linux"),

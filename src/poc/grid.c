@@ -67,10 +67,11 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncvisual_options vopts = {
+    .n = stdn,
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE,
   };
-  struct ncplane* bitn = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* bitn = ncvisual_blit(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
   if(bitn == NULL){
     notcurses_stop(nc);

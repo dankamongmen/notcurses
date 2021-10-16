@@ -182,28 +182,6 @@ typedef struct ncreel {
   ncreel_options ropts; // copied in ncreel_create()
 } ncreel;
 
-// ncmenu_item and ncmenu_section have internal and (minimal) external forms
-typedef struct ncmenu_int_item {
-  char* desc;           // utf-8 menu item, NULL for horizontal separator
-  ncinput shortcut;     // shortcut, all should be distinct
-  int shortcut_offset;  // column offset with desc of shortcut EGC
-  char* shortdesc;      // description of shortcut, can be NULL
-  int shortdesccols;    // columns occupied by shortcut description
-  bool disabled;        // disabled?
-} ncmenu_int_item;
-
-typedef struct ncmenu_int_section {
-  char* name;             // utf-8 c string
-  int itemcount;
-  ncmenu_int_item* items; // items, NULL iff itemcount == 0
-  ncinput shortcut;       // shortcut, will be underlined if present in name
-  int xoff;               // column offset from beginning of menu bar
-  int bodycols;           // column width of longest item
-  int itemselected;       // current item selected, -1 for no selection
-  int shortcut_offset;    // column offset within name of shortcut EGC
-  int enabled_item_count; // number of enabled items: section is disabled iff 0
-} ncmenu_int_section;
-
 typedef struct ncfdplane {
   ncfdplane_callback cb;      // invoked with fresh hot data
   ncfdplane_done_cb donecb;   // invoked on EOF (if !follow) or error
@@ -235,19 +213,6 @@ typedef struct ncreader {
   bool manage_cursor;         // enable and place a virtual cursor
 } ncreader;
 
-typedef struct ncmenu {
-  ncplane* ncp;
-  int sectioncount;         // must be positive
-  ncmenu_int_section* sections; // NULL iff sectioncount == 0
-  int unrolledsection;      // currently unrolled section, -1 if none
-  int headerwidth;          // minimum space necessary to display all sections
-  uint64_t headerchannels;  // styling for header
-  uint64_t dissectchannels; // styling for disabled section headers
-  uint64_t sectionchannels; // styling for sections
-  uint64_t disablechannels; // styling for disabled entries
-  bool bottom;              // are we on the bottom (vs top)?
-} ncmenu;
-
 typedef struct ncprogbar {
   ncplane* ncp;
   double progress;          // on the range [0, 1]
@@ -264,18 +229,6 @@ typedef struct nctab {
   struct nctab* prev;
   struct nctab* next;
 } nctab;
-
-typedef struct nctabbed {
-  ncplane* ncp;          // widget ncplane
-  ncplane* p;            // tab content ncplane
-  ncplane* hp;           // tab headers ncplane
-  // a doubly-linked circular list of tabs
-  nctab* leftmost;       // the tab most to the left
-  nctab* selected;       // the currently selected tab
-  int tabcount;          // tab separator (can be NULL)
-  int sepcols;           // separator with in columns
-  nctabbed_options opts; // copied in nctabbed_create()
-} nctabbed;
 
 // various moving parts within a notcurses context (and the user) might need to
 // access the stats object, so throw a lock on it. we don't want the lock in
@@ -1040,7 +993,7 @@ calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
 }
 
 // ncdirect needs to "fake" an isolated ncplane as a drawing surface for
-// ncvisual_render(), and thus calls these low-level internal functions.
+// ncvisual_blit(), and thus calls these low-level internal functions.
 // they are not for general use -- check ncplane_new() and ncplane_destroy().
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts);
 
@@ -1051,9 +1004,9 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncvisual to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                  ncplane* n, const struct blitset* bset,
-                  const blitterargs* bargs);
+int ncvisual_blit_internal(struct ncvisual* ncv, int rows, int cols,
+                           ncplane* n, const struct blitset* bset,
+                           const blitterargs* bargs);
 
 static inline int
 tty_emit(const char* seq, int fd){

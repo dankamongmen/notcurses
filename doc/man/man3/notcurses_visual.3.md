@@ -75,7 +75,9 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_decode_loop(struct ncvisual* ***ncv***);**
 
-**struct ncplane* ncvisual_render(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
+**struct ncplane* ncvisual_blit(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
+
+**static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
 **static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
@@ -159,7 +161,7 @@ if the current frame had such a subtitle. Note that the same subtitle might
 be returned for multiple frames, or might not. It is atypical for all frames
 to have subtitles. Subtitles can be text or graphics.
 
-**ncvisual_render** blits the visual to an **ncplane**, based on the contents
+**ncvisual_blit** draws the visual to an **ncplane**, based on the contents
 of its **struct ncvisual_options**. If ***n*** is not **NULL**, it specifies the
 plane on which to render, and ***y***/***x*** specify a location within that plane.
 Otherwise, a new plane will be created, and placed at ***y***/***x*** relative to
@@ -273,7 +275,7 @@ information.
 
 Some terminals support pixel-based output via one of a number of protocols.
 **NCBLIT_PIXEL** has some stringent requirements on the type of planes it can
-be used with; it is usually best to let **ncvisual_render** create the backing
+be used with; it is usually best to let **ncvisual_blit** create the backing
 plane by providing a **NULL** value for **n**. If you must bring your own
 plane, it must be perfectly sized for the bitmap (i.e. large enough, and not
 more than a full cell larger in either dimension--the bitmap, always placed at
@@ -307,12 +309,12 @@ that the entire file is properly-formed.
 failure. It is only necessary for multimedia-based visuals. It advances one
 frame for each call. **ncvisual_decode_loop** has the same return values: when
 called following decoding of the last frame, it will return 1, but a subsequent
-**ncvisual_render** will return the first frame.
+**ncvisual_blit** will return the first frame.
 
 **ncvisual_from_plane** returns **NULL** if the **ncvisual** cannot be created
 and bound. This is usually due to illegal content in the source **ncplane**.
 
-**ncvisual_render** returns **NULL** on error, and otherwise the plane to
+**ncvisual_blit** returns **NULL** on error, and otherwise the plane to
 which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
@@ -369,7 +371,7 @@ sprixel cannot be accessed.
 **ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
 radians for **rads**, but this will change soon.
 
-**ncvisual_render** should be able to create new planes in piles other than
+**ncvisual_blit** should be able to create new planes in piles other than
 the standard pile. This ought become a reality soon.
 
 **ncvisual_stream** currently requires a multimedia engine, which is silly.
@@ -378,7 +380,7 @@ This will change in the near future.
 Sprixels interact poorly with multiple planes, and such usage is discouraged.
 This situation might improve in the future.
 
-Multiple threads may not currently call **ncvisual_render** concurrently
+Multiple threads may not currently call **ncvisual_blit** concurrently
 using the same **ncvisual**, even if targeting distinct **ncplane**s. This
 will likely change in the future.
 
