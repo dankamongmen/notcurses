@@ -14,6 +14,7 @@ draw_background(struct notcurses* nc){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .n = n,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
     if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);

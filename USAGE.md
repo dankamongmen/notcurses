@@ -3301,8 +3301,8 @@ int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
 // If a subtitle ought be displayed at this time, return a new plane (bound
 // to 'parent' containing the subtitle, which might be text or graphics
 // (depending on the input format).
-struct ncplane* ncvisual_subtitle(struct ncplane* parent,
-                                  const struct ncvisual* ncv);
+struct ncplane* ncvisual_subtitle_plane(struct ncplane* parent,
+                                        const struct ncvisual* ncv);
 ```
 
 And finally, the `ncvisual` can be blitted to one or more `ncplane`s:
@@ -3424,27 +3424,8 @@ typedef int (*streamcb)(struct ncplane*, struct ncvisual*,
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
-static inline int
-ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv,
-                         const struct timespec* tspec, void* curry){
-  if(notcurses_render(ncplane_notcurses(n))){
-    return -1;
-  }
-  int ret = 0;
-  if(curry){
-    // need a cast for C++ callers
-    struct ncplane* subncp = (struct ncplane*)curry;
-    char* subtitle = ncvisual_subtitle(ncv);
-    if(subtitle){
-      if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
-        ret = -1;
-      }
-      free(subtitle);
-    }
-  }
-  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
-  return ret;
-}
+int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
+                             const struct timespec* tspec, void* curry);
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
