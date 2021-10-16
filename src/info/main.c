@@ -104,7 +104,21 @@ finish_line(struct ncplane* n){
 
 static int
 emoji_viz(struct ncplane* n){
-  static const char emoji[] = "👾🏴🤘🚬🌍🌎🌏🥆💣🗡🔫⚗️⚛️☢️☣️"
+  static const char emoji[] = "\U0001f47e" // alien monster
+                              "\U0001f3f4" // waving black flag
+                              "\U0001f918" // sign of the horns
+                              "\U0001f6ac" // cigarette, delicious
+                              "\U0001f30d" // globe europe/africa
+                              "\U0001f30e" // globe americas
+                              "\U0001f30f" // globe asia/australia
+                              "\U0001F946" // rifle
+                              "\U0001f4a3" // bomb
+                              "\U0001f5e1" // dagger
+                              "\U0001F52B" // pistol
+                              "\u2697\ufe0f" // alembic
+                              "\u269b\ufe0f" // atom
+                              "\u2622\ufe0f" // radiation sign
+                              "\u2623\ufe0f" // biohazard
                               "\U0001F33F" // herb
                               "\U0001F3B1" // billiards
                               "\U0001F3E7" // automated teller machine
@@ -114,6 +128,7 @@ emoji_viz(struct ncplane* n){
                               "\U0001F4E1" // satellite antenna
                               "\U0001F93B" // modern pentathlon
                               "\U0001F991" // squid
+                              "\U0001f1e6\U0001f1f6" // regional indicators AQ (antarctica)
                               "\U0001f469\u200d\U0001f52c" // woman scientist
                               "\U0001faa4" // mouse trap
                               "\U0001f6b1" // non-potable water
@@ -332,7 +347,7 @@ display_logo(struct ncplane* n, const char* path){
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_NODEGRADE,
   };
-  struct ncplane* bitm = ncvisual_render(ncplane_notcurses(n), ncv, &vopts);
+  struct ncplane* bitm = ncvisual_blit(ncplane_notcurses(n), ncv, &vopts);
   if(bitm == NULL){
     ncvisual_destroy(ncv);
     return -1;
