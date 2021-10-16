@@ -101,7 +101,7 @@ get_next_frame(struct ncvisual* ncv, struct ncvisual_options* vopts){
   ret = marsh.next_frame++;
   if(ncvisual_decode(ncv)){
     ret = -1;
-  }else if(ncvisual_render(marsh.nc, ncv, vopts) == NULL){
+  }else if(ncvisual_blit(marsh.nc, ncv, vopts) == NULL){
     ret = -1;
   }
   pthread_mutex_unlock(&lock);
