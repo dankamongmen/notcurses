@@ -198,7 +198,8 @@ int outro(struct notcurses* nc){
       return -1;
     }
     vopts.scaling = NCSCALE_STRETCH;
-    vopts.flags = NCVISUAL_OPTION_BLEND;
+    vopts.flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.n = notcurses_stdplane(nc);
     if((vopts.n = ncvisual_blit(nc, chncv, &vopts)) == NULL){
       ncvisual_destroy(chncv);
       return -1;

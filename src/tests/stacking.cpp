@@ -45,7 +45,7 @@ TEST_CASE("Stacking") {
       .leny = 2, .lenx = 1, .blitter = NCBLIT_2x1, .flags = 0,
       .transcolor = 0, .pxoffy = 0, .pxoffx = 0,
     };
-    CHECK(top == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(top == ncvisual_blit(nc_, ncv, &vopts));
     ncvisual_destroy(ncv);
 
     // create an ncvisual of 2 rows, 1 column, with the top 0xffffff
@@ -53,19 +53,24 @@ TEST_CASE("Stacking") {
     ncv = ncvisual_from_rgba(botv, 2, 4, 1);
     REQUIRE(nullptr != ncv);
     vopts.n = n_;
-    CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+    vopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
+    REQUIRE(nullptr != newn);
     ncvisual_destroy(ncv);
+    ncplane_move_below(newn, top);
 
     CHECK(0 == notcurses_render(nc_));
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
+notcurses_debug(nc_, stderr);
     // ought yield space with white background FIXME currently just yields
     // a lower half block
     CHECK(0 == strcmp("\u2584", egc));
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
-    ncplane_destroy(top);
+    CHECK(0 == ncplane_destroy(top));
+    CHECK(0 == ncplane_destroy(newn));
   }
 
   SUBCASE("UpperAtopLowerWhite") {
@@ -83,7 +88,7 @@ TEST_CASE("Stacking") {
       .leny = 2, .lenx = 1, .blitter = NCBLIT_2x1, .flags = 0,
       .transcolor = 0, .pxoffy = 0, .pxoffx = 0,
     };
-    CHECK(top == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(top == ncvisual_blit(nc_, ncv, &vopts));
     ncvisual_destroy(ncv);
 
     // create an ncvisual of 2 rows, 1 column, with the bottom 0xffffff
@@ -91,8 +96,11 @@ TEST_CASE("Stacking") {
     ncv = ncvisual_from_rgba(botv, 2, 4, 1);
     REQUIRE(nullptr != ncv);
     vopts.n = n_;
-    CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+    vopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
+    REQUIRE(nullptr != newn);
     ncvisual_destroy(ncv);
+    ncplane_move_below(newn, top);
 
     CHECK(0 == notcurses_render(nc_));
     uint64_t channels;
@@ -103,7 +111,8 @@ TEST_CASE("Stacking") {
     CHECK(0 == strcmp("\u2580", egc));
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
-    ncplane_destroy(top);
+    CHECK(0 == ncplane_destroy(top));
+    CHECK(0 == ncplane_destroy(newn));
   }
 
   SUBCASE("StackedQuadHalves") {
@@ -122,7 +131,7 @@ TEST_CASE("Stacking") {
         .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
         .transcolor = 0, .pxoffy = 0, .pxoffx = 0,
       };
-      CHECK(top == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(top == ncvisual_blit(nc_, ncv, &vopts));
       ncvisual_destroy(ncv);
 
       // create an ncvisual of 2 rows, 2 columns, with the bottom 0xffffff
@@ -130,8 +139,11 @@ TEST_CASE("Stacking") {
       ncv = ncvisual_from_rgba(botv, 2, 8, 2);
       REQUIRE(nullptr != ncv);
       vopts.n = n_;
-      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+      auto newn = ncvisual_blit(nc_, ncv, &vopts); 
+      REQUIRE(nullptr != newn);
       ncvisual_destroy(ncv);
+      ncplane_move_below(newn, top);
 
       CHECK(0 == notcurses_render(nc_));
       uint64_t channels;
@@ -142,7 +154,8 @@ TEST_CASE("Stacking") {
       CHECK(0 == strcmp("\u2580", egc));
       CHECK(0x00ff00 == ncchannels_fg_rgb(channels));
       CHECK(0x00ff00 == ncchannels_bg_rgb(channels));
-      ncplane_destroy(top);
+      CHECK(0 == ncplane_destroy(top));
+      CHECK(0 == ncplane_destroy(newn));
     }
   }
 
@@ -164,7 +177,7 @@ TEST_CASE("Stacking") {
         .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
         .transcolor = 0, .pxoffy = 0, .pxoffx = 0,
       };
-      CHECK(top == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(top == ncvisual_blit(nc_, ncv, &vopts));
       ncvisual_destroy(ncv);
 
       // create an ncvisual of 2 rows, 2 columns, with the tr, bl 0xffffff
@@ -172,8 +185,11 @@ TEST_CASE("Stacking") {
       ncv = ncvisual_from_rgba(botv, 2, 8, 2);
       REQUIRE(nullptr != ncv);
       vopts.n = n_;
-      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+      auto newn = ncvisual_blit(nc_, ncv, &vopts);
+      REQUIRE(nullptr != newn);
       ncvisual_destroy(ncv);
+      ncplane_move_below(newn, top);
 
       CHECK(0 == notcurses_render(nc_));
       uint64_t channels;
@@ -184,7 +200,8 @@ TEST_CASE("Stacking") {
       CHECK(0 == strcmp("\u259a", egc)); // quadrant upper left and lower right
       CHECK(0xffffff == ncchannels_fg_rgb(channels));
       CHECK(0xffffff == ncchannels_bg_rgb(channels));
-      ncplane_destroy(top);
+      CHECK(0 == ncplane_destroy(top));
+      CHECK(0 == ncplane_destroy(newn));
     }
   }
 

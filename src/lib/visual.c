@@ -70,6 +70,11 @@ ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
   return visual_implementation.visual_subtitle(parent, ncv);
 }
 
+char* ncvisual_subtitle(const ncvisual* ncv){
+  (void)ncv; // FIXME remove for abi3
+  return NULL;
+}
+
 int ncvisual_blit_internal(ncvisual* ncv, int rows, int cols, ncplane* n,
                            const struct blitset* bset, const blitterargs* barg){
   if(!(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
