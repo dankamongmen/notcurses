@@ -295,7 +295,7 @@ If things break or seem otherwise lackluster, **please** consult the
   Notcurses will not make use of bitmap protocols unless the terminal positively
   indicates support for them, even if `NCBLIT_PIXEL` has been requested. Likewise,
   sextants (`NCBLIT_3x2`) won't be used without Unicode 13 support, etc.
-  `ncvisual_render()` will use the best blitter available, unless
+  `ncvisual_blit()` will use the best blitter available, unless
   `NCVISUAL_OPTION_NODEGRADE` is provided (in which case it will fail).
 </details>
 
