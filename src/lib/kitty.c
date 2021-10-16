@@ -404,10 +404,10 @@ kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
 // cell id with which we can delete it in O(1) for a rebuild. this
 // way, we needn't delete and redraw the entire sprixel.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
-  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   fbuf* f = &s->glyph;
   if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
     return -1;
@@ -552,6 +552,7 @@ cleanup_tam(tament* tam, int ydim, int xdim){
   for(int y = 0 ; y < ydim ; ++y){
     for(int x = 0 ; x < xdim ; ++x){
       free(tam[y * xdim + x].auxvector);
+      tam[y * xdim + x].auxvector = NULL;
     }
   }
 }
@@ -928,6 +929,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   return 0;
 
 err:
+  logerror("failed blitting kitty graphics\n");
   cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
   destroy_deflator(animated, &zctx, leny, lenx);
   return -1;
@@ -956,11 +958,11 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  logdebug("rebuilding sprixel %u %d at %d/%d\n", s->id, s->invalidated, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
   fbuf* f = &s->glyph;
-  logdebug("rebuilding sprixel %u %d at %d/%d\n", s->id, s->invalidated, ycell, xcell);
   const int ystart = ycell * s->cellpxy;
   const int xstart = xcell * s->cellpxx;
   const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
@@ -1088,6 +1090,7 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
   return 1;
 
 error:
+  cleanup_tam(n->tam, bargs->u.pixel.spx->dimy, bargs->u.pixel.spx->dimx);
   fbuf_free(&s->glyph);
   return -1;
 }
