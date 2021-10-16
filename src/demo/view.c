@@ -26,7 +26,7 @@ streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
       marsh.pipopts.scaling = NCSCALE_STRETCH;
     }
     if(marsh.pipopts.n){
-      ncvisual_render(ncplane_notcurses(marsh.pipopts.n), ncv, &marsh.pipopts);
+      ncvisual_blit(ncplane_notcurses(marsh.pipopts.n), ncv, &marsh.pipopts);
       ncplane_move_above(marsh.pipopts.n, vopts->n);
     }
   }
@@ -130,7 +130,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     .scaling = NCSCALE_STRETCH,
     .y = 1,
   };
-  if(ncvisual_render(nc, ncv2, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv2, &vopts) == NULL){
     ncvisual_destroy(ncv2);
     ncplane_destroy(dsplane);
     return -1;
@@ -153,7 +153,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   }
   free(pic);
   vopts.n = notcurses_stdplane(nc);
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     ncplane_destroy(dsplane);
     return -1;

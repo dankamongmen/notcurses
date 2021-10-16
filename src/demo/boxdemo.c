@@ -129,19 +129,20 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     return -1;
   }
   int cdimy, cdimx;
-  ncplane_pixel_geom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
+  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
   if(ncvisual_resize(wmv, cdimy * SHIPHEIGHT, cdimx * SHIPWIDTH)){
     ncvisual_destroy(wmv);
     return -1;
   }
   struct ncvisual_options vopts = {
+    .n = notcurses_stdplane(nc),
     .y = 30,//rand() % (ncplane_dim_y(notcurses_stdplane_const(nc)) - SHIPHEIGHT),
     .x = 30,//rand() % (ncplane_dim_x(notcurses_stdplane_const(nc)) - SHIPWIDTH),
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE,
   };
   for(unsigned s = 0 ; s < shipcount ; ++s){
-    if((ships[s].n = ncvisual_render(nc, wmv, &vopts)) == NULL){
+    if((ships[s].n = ncvisual_blit(nc, wmv, &vopts)) == NULL){
       while(s--){
         ncplane_destroy(ships[s].n);
         ncvisual_destroy(wmv);

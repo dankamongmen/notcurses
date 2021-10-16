@@ -76,7 +76,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   vwidth /= xscale;
   vopts.n = zncp;
   vopts.scaling = NCSCALE_STRETCH;
-  if(ncvisual_render(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
     ncvisual_destroy(ncv);
     ncplane_destroy(zncp);
     return NULL;
@@ -99,7 +99,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
     if((truex += deltx) > vwidth){
       truex = vwidth;
     }
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       ncplane_destroy(zncp);
       return NULL;
