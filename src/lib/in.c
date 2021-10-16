@@ -52,7 +52,7 @@ typedef struct cursorloc {
 #ifndef __MINGW64__
 typedef int ipipe;
 #else
-typedef PHANDLE ipipe;
+typedef HANDLE ipipe;
 #endif
 
 // local state for the input thread. don't put this large struct on the stack.
