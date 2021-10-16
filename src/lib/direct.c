@@ -737,7 +737,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     }
     ncdv->sprite = bargs.u.pixel.spx;
   }
-  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, &bargs)){
+  if(ncvisual_blit_internal(ncv, disprows, dispcols, ncdv, bset, &bargs)){
     free_plane(ncdv);
     return NULL;
   }

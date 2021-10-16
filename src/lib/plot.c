@@ -220,7 +220,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     .blitter = NCBLIT_PIXEL, \
     .flags = NCVISUAL_OPTION_NODEGRADE, \
   }; \
-  if(ncvisual_render(ncplane_notcurses(ncp->plot.ncp), ncv, &vopts) == NULL){ \
+  if(ncvisual_blit(ncplane_notcurses(ncp->plot.ncp), ncv, &vopts) == NULL){ \
     ncvisual_destroy(ncv); \
     return -1; \
   } \

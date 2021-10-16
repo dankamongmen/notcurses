@@ -32,7 +32,7 @@ void ncvisual_printbanner(fbuf* f){
 
 // you need an actual multimedia implementation for functions which work with
 // codecs, including ncvisual_decode(), ncvisual_decode_loop(),
-// ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle().
+// ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle_plane().
 int ncvisual_decode(ncvisual* nc){
   if(!visual_implementation.visual_decode){
     return -1;
@@ -70,13 +70,8 @@ ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
   return visual_implementation.visual_subtitle(parent, ncv);
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){
-  (void)ncv; // FIXME remove for abi3
-  return NULL;
-}
-
-int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                  const struct blitset* bset, const blitterargs* barg){
+int ncvisual_blit_internal(ncvisual* ncv, int rows, int cols, ncplane* n,
+                           const struct blitset* bset, const blitterargs* barg){
   if(!(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
     if(visual_implementation.visual_blit){
       if(visual_implementation.visual_blit(ncv, rows, cols, n, bset, barg) < 0){
@@ -809,14 +804,15 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p\n", n);
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-    if(n == NULL){
-      n = notcurses_stdplane(nc);
-    }
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = lenx;
       disprows = leny;
     }else{
-      ncplane_dim_yx(n, &disprows, &dispcols);
+      if(n == NULL){
+        ncplane_dim_yx(notcurses_stdplane(nc), &disprows, &dispcols);
+      }else{
+        ncplane_dim_yx(n, &disprows, &dispcols);
+      }
       dispcols *= encoding_x_scale(&nc->tcache, bset);
       disprows *= encoding_y_scale(&nc->tcache, bset);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
@@ -842,7 +838,12 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     if(flags & NCVISUAL_OPTION_VERALIGNED){
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
     }
-    if((n = ncplane_create(n, &nopts)) == NULL){
+    if(n){
+      n = ncplane_create(n, &nopts);
+    }else{
+      n = ncpile_create(nc, &nopts);
+    }
+    if(n == NULL){
       return NULL;
     }
     createdn = n;
@@ -887,7 +888,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.flags = flags;
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
-  if(ncvisual_blit(ncv, disprows, dispcols, n, bset, &bargs)){
+  if(ncvisual_blit_internal(ncv, disprows, dispcols, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -909,7 +910,11 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
                    uint64_t flags, int* outy, int* outx,
                    int* placey, int* placex, int pxoffy, int pxoffx){
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-    ncplane_dim_yx(parent, disppixy, disppixx);
+    if(parent == NULL){
+      ncplane_dim_yx(notcurses_stdplane(nc), disppixy, disppixx);
+    }else{
+      ncplane_dim_yx(parent, disppixy, disppixx);
+    }
     // FIXME why do we clamp only vertical, not horizontal, here?
     if(*placey + *disppixy >= ncplane_dim_y(notcurses_stdplane_const(nc))){
       *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey;
@@ -948,8 +953,12 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
            | ((flags & NCVISUAL_OPTION_VERALIGNED) ? NCPLANE_OPTION_VERALIGNED : 0),
   };
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
-  // FIXME might need some particular pile
-  ncplane* n = ncplane_create(parent, &nopts);
+  ncplane* n;
+  if(parent == NULL){
+    n = ncpile_create(nc, &nopts);
+  }else{
+    n = ncplane_create(parent, &nopts);
+  }
   if(n == NULL){
     return NULL;
   }
@@ -993,9 +1002,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   int disppixy = 0, disppixx = 0, outy = 0, outx = 0;
   ncplane* createdn = NULL;
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-    if(n == NULL){
-      n = notcurses_stdplane(nc);
-    }
     if((createdn = make_sprixel_plane(nc, n, ncv, scaling, &disppixy, &disppixx,
                                       flags, &outy, &outx, &placey, &placex,
                                       pxoffy, pxoffx)) == NULL){
@@ -1080,7 +1086,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   // at this point, disppixy/disppixx are the output geometry (might be larger
   // than scaledy/scaledx for sixel), while scaledy/scaledx are the scaled
   // geometry. cells occupied are determined based off disppixy/disppixx.
-  if(ncvisual_blit(ncv, disppixy, disppixx, n, bset, &bargs)){
+  if(ncvisual_blit_internal(ncv, disppixy, disppixx, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -1123,7 +1129,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   return n;
 }
 
-ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
+ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
   const struct blitset* bset;
   int leny, lenx;
   if(ncvisual_blitset_geom(nc, &nc->tcache, ncv, vopts, NULL, NULL, NULL, NULL,
@@ -1155,6 +1161,23 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
                                vopts ? vopts->pxoffx : 0);
   }
   return n;
+}
+
+// compatability wrapper around ncvisual_blit that provides the standard plane
+// plus NCVISUAL_OPTION_CHILDPLANE if vopts->n is NULL.
+ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
+  struct ncvisual_options fakevopts;
+  if(vopts == NULL){
+    memset(&fakevopts, 0, sizeof(fakevopts));
+  }else{
+    memcpy(&fakevopts, vopts, sizeof(fakevopts));
+  }
+  vopts = &fakevopts;
+  if(vopts->n == NULL){
+    fakevopts.n = notcurses_stdplane(nc);
+    fakevopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
+  }
+  return ncvisual_blit(nc, ncv, vopts);
 }
 
 ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
@@ -1273,11 +1296,4 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
     return false;
   }
   return visual_implementation.canopen_videos;
-}
-
-int ncvisual_inflate(ncvisual* n, int scale){
-  if(scale <= 0){
-    return -1;
-  }
-  return ncvisual_resize_noninterpolative(n, n->pixy * scale, n->pixx * scale);
 }

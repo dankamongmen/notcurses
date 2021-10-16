@@ -28,10 +28,11 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     CHECK(0 == ncvisual_resize(ncv, 1, 1));
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -52,9 +53,9 @@ TEST_CASE("Bitmaps") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     int maxy, maxx;
-    ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
+    ncplane_pixel_geom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nn == n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -81,7 +82,7 @@ TEST_CASE("Bitmaps") {
     vopts.n = n;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(nullptr == ncvisual_blit(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
@@ -104,7 +105,7 @@ TEST_CASE("Bitmaps") {
     vopts.n = n;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(nullptr == ncvisual_blit(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
@@ -126,9 +127,10 @@ TEST_CASE("Bitmaps") {
     };
     auto n = ncplane_create(n_, &nopts);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    CHECK(nullptr != ncvisual_render(nc_, ncv, &vopts));
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    CHECK(nullptr != ncvisual_blit(nc_, ncv, &vopts));
     CHECK(0 > ncplane_putchar_yx(n, ' ', 0, 0));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -143,9 +145,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto botn = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto botn = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != botn);
     // should just have a red plane
     CHECK(0 == notcurses_render(nc_));
@@ -154,7 +157,7 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v2(x * y, htole(0x8142f1ff));
     auto ncv2 = ncvisual_from_rgba(v2.data(), y, sizeof(decltype(v2)::value_type) * x, x);
     REQUIRE(nullptr != ncv2);
-    auto topn = ncvisual_render(nc_, ncv2, &vopts);
+    auto topn = ncvisual_blit(nc_, ncv2, &vopts);
     REQUIRE(nullptr != topn);
     // should have a yellow plane partially obscuring a red one
     CHECK(0 == notcurses_render(nc_));
@@ -179,9 +182,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(newn));
@@ -199,9 +203,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -220,18 +225,20 @@ TEST_CASE("Bitmaps") {
     auto bigp = ncplane_create(n_, &nopts);
     REQUIRE(bigp);
     vopts.n = bigp;
+    vopts.flags &= ~NCVISUAL_OPTION_CHILDPLANE;
     uint64_t white = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
     ncplane_set_base(bigp, "x", 0, white);
-    CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(vopts.n == ncvisual_blit(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
     CHECK(4 * nc_->tcache.cellpixy == ncv->pixy);
     CHECK(4 * nc_->tcache.cellpixx == ncv->pixx);
     vopts.y = 1;
     vopts.x = 6;
-    vopts.n = nullptr;
+    vopts.n = n_;
     vopts.scaling = NCSCALE_NONE;
-    auto infn = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
+    auto infn = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(infn);
     if(nc_->tcache.sprixel_scale_height == 6){
       if(4 * nc_->tcache.cellpixy % 6){
@@ -249,7 +256,7 @@ TEST_CASE("Bitmaps") {
     CHECK(ncv->pixy == 8);
     CHECK(ncv->pixx == 8);
     vopts.x = 11;
-    auto resizen = ncvisual_render(nc_, ncv, &vopts);
+    auto resizen = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(resizen);
     CHECK((8 + nc_->tcache.cellpixy - 1) / nc_->tcache.cellpixy == ncplane_dim_y(resizen));
     CHECK((8 + nc_->tcache.cellpixx - 1) / nc_->tcache.cellpixx == ncplane_dim_x(resizen));
@@ -272,14 +279,15 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     struct ncplane_options nopts = {
       .y = 2,
       .x = 0,
-      .rows = 5,
+      .rows = 4,
       .cols = 4,
       .userptr = nullptr, .name = "scale", .resizecb = nullptr,
       .flags = 0, .margin_b = 0, .margin_r = 0,
@@ -288,14 +296,15 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != nres);
     vopts.n = nres;
     vopts.scaling = NCSCALE_SCALE;
-    ncvisual_render(nc_, ncv, &vopts);
+    ncvisual_blit(nc_, ncv, &vopts);
     CHECK(4 == ncplane_dim_x(vopts.n));
     CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
-    vopts.n = nullptr;
+    vopts.n = nres;
     vopts.y = 2;
     vopts.x = 5;
     vopts.scaling = NCSCALE_NONE;
-    auto ninf = ncvisual_render(nc_, ncv, &vopts);
+    auto ninf = ncvisual_blit(nc_, ncv, &vopts);
+notcurses_debug(nc_, stderr);
     REQUIRE(nullptr != ninf);
     CHECK(ncplane_dim_y(nres) == ncplane_dim_y(ninf));
     CHECK(ncplane_dim_x(nres) == ncplane_dim_x(ninf));
@@ -339,7 +348,7 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
+    auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(18 == ncplane_dim_y(child));
     CHECK(5 == ncplane_dim_x(child));
@@ -382,7 +391,7 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
+    auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(6 == ncplane_dim_y(child));
     CHECK(1 == ncplane_dim_x(child));
@@ -401,9 +410,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -432,9 +442,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -463,9 +474,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
@@ -502,9 +514,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
@@ -561,10 +574,11 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     vopts.scaling = NCSCALE_STRETCH;
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     ncplane_move_bottom(newn);
     CHECK(0 == notcurses_render(nc_));
@@ -592,9 +606,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     for(int i = 0 ; i <= ncplane_dim_x(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
@@ -612,10 +627,11 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     vopts.x = ncplane_dim_x(n_) - 3;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     for(int i = ncplane_dim_x(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
@@ -633,9 +649,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     for(int i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
@@ -653,10 +670,11 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     vopts.y = ncplane_dim_y(n_) - 3;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     for(int i = ncplane_dim_y(n_) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
@@ -675,9 +693,10 @@ TEST_CASE("Bitmaps") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
+    vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto xpx = (ncplane_dim_x(n_) - 2) * nc_->tcache.cellpixx;
     auto ypx = (ncplane_dim_y(n_) - 2) * nc_->tcache.cellpixy;
@@ -689,10 +708,8 @@ TEST_CASE("Bitmaps") {
       vopts.y = yat / nc_->tcache.cellpixy;
       vopts.pxoffy = yat % nc_->tcache.cellpixy;
       CHECK(0 == ncplane_destroy(n));
-      n = ncvisual_render(nc_, ncv, &vopts);
-      // FIXME disabled REQUIRE until sixel works
-      // FIXME REQUIRE(nullptr != n);
-      WARN(nullptr != n);
+      n = ncvisual_blit(nc_, ncv, &vopts);
+      REQUIRE(nullptr != n);
       CHECK(0 == notcurses_render(nc_));
     }
     ncvisual_destroy(ncv);

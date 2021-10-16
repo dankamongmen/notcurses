@@ -171,7 +171,9 @@ TEST_CASE("Rotate") {
     auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
     ncvisual_options opts{};
-    auto rendered = ncvisual_render(nc_, ncv, &opts);
+    opts.n = n_;
+    opts.flags = NCVISUAL_OPTION_CHILDPLANE;
+    auto rendered = ncvisual_blit(nc_, ncv, &opts);
     REQUIRE(rendered);
     int pxdimy, pxdimx;
     uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
@@ -207,16 +209,16 @@ TEST_CASE("Rotate") {
       opts.n = rendered;
       // FIXME check pixels after all rotations
       CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
     }
     ncvisual_destroy(ncv);
@@ -231,7 +233,9 @@ TEST_CASE("Rotate") {
     auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
     ncvisual_options opts{};
-    auto rendered = ncvisual_render(nc_, ncv, &opts);
+    opts.n = n_;
+    opts.flags = NCVISUAL_OPTION_CHILDPLANE;
+    auto rendered = ncvisual_blit(nc_, ncv, &opts);
     REQUIRE(rendered);
     int pxdimy, pxdimx;
     uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
@@ -267,16 +271,16 @@ TEST_CASE("Rotate") {
       // FIXME check pixels after all rotations
       opts.n = rendered;
       CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
       CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(ncvisual_blit(nc_, ncv, &opts));
       CHECK(0 == notcurses_render(nc_));
     }
     ncvisual_destroy(ncv);

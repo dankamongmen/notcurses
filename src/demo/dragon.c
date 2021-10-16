@@ -101,7 +101,7 @@ int dragon_demo(struct notcurses* nc){
       .y = 1,
       .scaling = NCSCALE_STRETCH,
     };
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    if(ncvisual_blt(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
       return -1;
     }

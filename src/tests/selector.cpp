@@ -109,10 +109,10 @@ TEST_CASE("Selectors") {
 
   SUBCASE("PopulatedSelector") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
-      { NULL, NULL, },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.items = items;
@@ -164,10 +164,10 @@ TEST_CASE("Selectors") {
 
   SUBCASE("SelectorMovement") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
-      { NULL, NULL, },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.items = items;
@@ -210,10 +210,10 @@ TEST_CASE("Selectors") {
   // Provide three items, limited to 1 shown at a time
   SUBCASE("ScrollingSelectorOne") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
-      { NULL, NULL, },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.maxdisplay = 1;
@@ -262,10 +262,10 @@ TEST_CASE("Selectors") {
   // Provide three items, limited to 2 shown at a time
   SUBCASE("ScrollingSelectorTwo") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
-      { NULL, NULL, },
+      { strdup("op1"), strdup("this is option 1"), 0, 0, },
+      { strdup("2ndop"), strdup("this is option #2"), 0, 0, },
+      { strdup("tres"), strdup("option the third"), 0, 0, },
+      { NULL, NULL, 0, 0, },
     };
     struct ncselector_options opts{};
     opts.maxdisplay = 2;

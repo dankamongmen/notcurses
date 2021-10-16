@@ -66,9 +66,9 @@ namespace ncpp
 			return ncvisual_decode_loop (visual);
 		}
 
-		ncplane* render (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
+		ncplane* blit (const ncvisual_options* vopts) const NOEXCEPT_MAYBE
 		{
-			return error_guard<ncplane*, ncplane*> (ncvisual_render (get_notcurses (), visual, vopts), nullptr);
+			return error_guard<ncplane*, ncplane*> (ncvisual_blit (get_notcurses (), visual, vopts), nullptr);
 		}
 
 		int stream (const ncvisual_options* vopts, float timescale, ncstreamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE

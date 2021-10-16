@@ -74,18 +74,20 @@ TEST_CASE("Visual") {
     struct ncvisual_options vopts{};
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
-    auto p = ncvisual_render(nc_, ncv, &vopts);
+    vopts.n = n_;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
+                    | NCVISUAL_OPTION_CHILDPLANE;
+    auto p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_resize(ncv, 20, 20));
-    p = ncvisual_render(nc_, ncv, &vopts);
+    p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    p = ncvisual_render(nc_, ncv, &vopts);
+    p = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(p));
@@ -96,7 +98,7 @@ TEST_CASE("Visual") {
   SUBCASE("VisualAligned") {
     const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff0000ff), htole(0xffffffff) };
     ncvisual_options vopts = {
-      .n = nullptr,
+      .n = n_,
       .scaling = NCSCALE_NONE,
       .y = 0,
       .x = NCALIGN_LEFT,
@@ -105,13 +107,13 @@ TEST_CASE("Visual") {
       .leny = 2,
       .lenx = 2,
       .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_HORALIGNED,
+      .flags = NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE,
       .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
     auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
     REQUIRE(nullptr != ncv);
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
@@ -126,16 +128,17 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts = {
-      .n = nullptr,
+      .n = n_,
       .scaling = NCSCALE_NONE,
       .y = 0, .x = 0,
       .begy = 0, .begx = 0,
       .leny = 5, .lenx = 8,
       .blitter = NCBLIT_1x1,
-      .flags = 0, .transcolor = 0,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     CHECK(5 == ncplane_dim_y(n));
     CHECK(8 == ncplane_dim_x(n));
@@ -152,16 +155,17 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_rgba(v.data(), 1, sizeof(decltype(v)::value_type), 1);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts = {
-      .n = nullptr,
+      .n = n_,
       .scaling = NCSCALE_STRETCH,
       .y = 0, .x = 0,
       .begy = 0, .begx = 0,
       .leny = 0, .lenx = 0,
       .blitter = NCBLIT_1x1,
-      .flags = 0, .transcolor = 0,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     REQUIRE(nullptr != n);
     CHECK(dimy == ncplane_dim_y(n));
@@ -198,7 +202,7 @@ TEST_CASE("Visual") {
       .flags = 0, .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto n = ncvisual_render(nc_, ncv, &vopts);
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     CHECK(5 == ncplane_dim_y(n));
     CHECK(8 == ncplane_dim_x(n));
@@ -222,7 +226,7 @@ TEST_CASE("Visual") {
       .flags = 0, .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 3, ncv->pixx * 3));
     CHECK(6 == ncv->pixy);
@@ -244,7 +248,7 @@ TEST_CASE("Visual") {
       }
     }
     REQUIRE(newn);
-    auto enewn = ncvisual_render(nc_, ncv, &vopts);
+    auto enewn = ncvisual_blit(nc_, ncv, &vopts);
     int newy, newx;
     ncplane_dim_yx(enewn, &newy, &newx);
     CHECK(6 == newy);
@@ -265,7 +269,7 @@ TEST_CASE("Visual") {
     struct ncvisual_options opts{};
     opts.blitter = NCBLIT_1x1;
     opts.n = ncp_;
-    CHECK(ncp_ == ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncp_ == ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
@@ -293,7 +297,7 @@ TEST_CASE("Visual") {
     struct ncvisual_options opts{};
     opts.blitter = NCBLIT_1x1;
     opts.n = ncp_;
-    CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
+    CHECK(nullptr != ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
@@ -333,7 +337,7 @@ TEST_CASE("Visual") {
       vopts.n = n_;
       vopts.blitter = NCBLIT_2x1;
       vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(n_ == ncvisual_blit(nc_, ncv, &vopts));
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX ; ++x){
@@ -373,7 +377,7 @@ TEST_CASE("Visual") {
       vopts.n = n_;
       vopts.blitter = NCBLIT_2x2;
       vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(n_ == ncvisual_blit(nc_, ncv, &vopts));
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX / 2 ; ++x){
@@ -431,7 +435,7 @@ TEST_CASE("Visual") {
       vopts.n = n_;
       vopts.blitter = NCBLIT_2x2;
       vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-      CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+      CHECK(n_ == ncvisual_blit(nc_, ncv, &vopts));
       CHECK(0 == notcurses_render(nc_));
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX / 2 ; ++x){
@@ -471,7 +475,7 @@ TEST_CASE("Visual") {
       auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
       REQUIRE(nullptr != ncv);
       struct ncvisual_options vopts = {
-        .n = nullptr,
+        .n = n_,
         .scaling = NCSCALE_NONE,
         .y = 0,
         .x = 0,
@@ -480,11 +484,11 @@ TEST_CASE("Visual") {
         .leny = 0,
         .lenx = 0,
         .blitter = NCBLIT_2x2,
-        .flags = 0,
+        .flags = NCVISUAL_OPTION_CHILDPLANE,
         .transcolor = 0,
         .pxoffy = 0, .pxoffx = 0,
       };
-      auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+      auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
       REQUIRE(nullptr != ncvp);
       int dimy, dimx;
       ncplane_dim_yx(ncvp, &dimy, &dimx);
@@ -516,7 +520,7 @@ TEST_CASE("Visual") {
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
         REQUIRE(nullptr != ncv);
         struct ncvisual_options vopts = {
-          .n = nullptr,
+          .n = n_,
           .scaling = NCSCALE_NONE,
           .y = 0,
           .x = 0,
@@ -525,11 +529,11 @@ TEST_CASE("Visual") {
           .leny = 0,
           .lenx = 0,
           .blitter = NCBLIT_2x2,
-          .flags = 0,
+          .flags = NCVISUAL_OPTION_CHILDPLANE,
           .transcolor = 0,
           .pxoffy = 0, .pxoffx = 0,
         };
-        auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+        auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
         int dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
@@ -564,7 +568,7 @@ TEST_CASE("Visual") {
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
         REQUIRE(nullptr != ncv);
         struct ncvisual_options vopts = {
-          .n = nullptr,
+          .n = n_,
           .scaling = NCSCALE_NONE,
           .y = 0,
           .x = 0,
@@ -573,11 +577,11 @@ TEST_CASE("Visual") {
           .leny = 0,
           .lenx = 0,
           .blitter = NCBLIT_2x2,
-          .flags = 0,
+          .flags = NCVISUAL_OPTION_CHILDPLANE,
           .transcolor = 0,
           .pxoffy = 0, .pxoffx = 0,
         };
-        auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+        auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
         int dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
@@ -617,7 +621,7 @@ TEST_CASE("Visual") {
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
         REQUIRE(nullptr != ncv);
         struct ncvisual_options vopts = {
-          .n = nullptr,
+          .n = n_,
           .scaling = NCSCALE_NONE,
           .y = 0,
           .x = 0,
@@ -626,11 +630,11 @@ TEST_CASE("Visual") {
           .leny = 0,
           .lenx = 0,
           .blitter = NCBLIT_2x2,
-          .flags = 0,
+          .flags = NCVISUAL_OPTION_CHILDPLANE,
           .transcolor = 0,
           .pxoffy = 0, .pxoffx = 0,
         };
-        auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+        auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
         int dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
@@ -669,7 +673,7 @@ TEST_CASE("Visual") {
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
         REQUIRE(nullptr != ncv);
         struct ncvisual_options vopts = {
-          .n = nullptr,
+          .n = n_,
           .scaling = NCSCALE_NONE,
           .y = 0,
           .x = 0,
@@ -678,11 +682,11 @@ TEST_CASE("Visual") {
           .leny = 0,
           .lenx = 0,
           .blitter = NCBLIT_2x2,
-          .flags = 0,
+          .flags = NCVISUAL_OPTION_CHILDPLANE,
           .transcolor = 0,
           .pxoffy = 0, .pxoffx = 0,
         };
-        auto ncvp = ncvisual_render(nc_, ncv, &vopts);
+        auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
         int dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
@@ -702,7 +706,7 @@ TEST_CASE("Visual") {
     }
   }
 
-  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + null alignment
+  // test NCVISUAL_OPTION_CHILDPLANE + stretch + null alignment
   SUBCASE("ImageChildScaling") {
     struct ncplane_options opts = {
       .y = 0, .x = 0,
@@ -717,14 +721,14 @@ TEST_CASE("Visual") {
     auto parent = ncplane_create(n_, &opts);
     REQUIRE(parent);
     struct ncvisual_options vopts = {
-      .n = nullptr,
+      .n = n_,
       .scaling = NCSCALE_NONE,
       .y = 0,
       .x = 0,
       .begy = 0, .begx = 0,
       .leny = 0, .lenx = 0,
       .blitter = NCBLIT_1x1,
-      .flags = 0,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
       .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
@@ -736,7 +740,7 @@ TEST_CASE("Visual") {
     };
     auto ncv = ncvisual_from_rgba(pixels, 4, 16, 4);
     REQUIRE(ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
+    auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(4 == ncplane_dim_y(child));
     CHECK(4 == ncplane_dim_x(child));
@@ -747,7 +751,7 @@ TEST_CASE("Visual") {
     vopts.n = parent,
     vopts.scaling = NCSCALE_STRETCH,
     vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
-    child = ncvisual_render(nc_, ncv, &vopts);
+    child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(20 == ncplane_dim_y(child));
     CHECK(20 == ncplane_dim_x(child));
@@ -787,7 +791,7 @@ TEST_CASE("Visual") {
     const uint32_t pixels[1] = { htole(0xffffffff) };
     auto ncv = ncvisual_from_rgba(pixels, 1, 4, 1);
     REQUIRE(ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
+    auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
     CHECK(1 == ncplane_dim_y(child));
     CHECK(1 == ncplane_dim_x(child));

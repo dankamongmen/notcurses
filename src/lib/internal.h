@@ -1004,9 +1004,9 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncvisual to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                  ncplane* n, const struct blitset* bset,
-                  const blitterargs* bargs);
+int ncvisual_blit_internal(struct ncvisual* ncv, int rows, int cols,
+                           ncplane* n, const struct blitset* bset,
+                           const blitterargs* bargs);
 
 static inline int
 tty_emit(const char* seq, int fd){
