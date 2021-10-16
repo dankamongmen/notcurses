@@ -911,7 +911,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   int cursor_y = -1;
   int cursor_x = -1;
-  if(interrogate_terminfo(&ret->tcache, termtype, ret->ttyfp, utf8, 1,
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfp, utf8, 1,
                           flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
                           0, &cursor_y, &cursor_x, &ret->stats, 0, 0, 0, 0,
                           flags & NCDIRECT_OPTION_DRAIN_INPUT)){

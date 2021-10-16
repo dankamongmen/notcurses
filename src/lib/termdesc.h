@@ -222,15 +222,13 @@ term_supported_styles(const tinfo* ti){
 // prepare |ti| from the terminfo database and other sources. set |utf8| if
 // we've verified UTF8 output encoding. set |noaltscreen| to inhibit alternate
 // screen detection. |stats| may be NULL; either way, it will be handed to the
-// input layer so that its stats can be recorded. if |termtype| is not NULL, it
-// will be used to look up the terminfo database entry; the value of TERM is
-// otherwise used.
-int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out,
-                         unsigned utf8, unsigned noaltscreen, unsigned nocbreak,
+// input layer so that its stats can be recorded.
+int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
+                         unsigned noaltscreen, unsigned nocbreak,
                          unsigned nonewfonts, int* cursor_y, int* cursor_x,
                          struct ncsharedstats* stats, int lmargin, int tmargin,
                          int rmargin, int bmargin, unsigned draininput)
-  __attribute__ ((nonnull (1, 3, 10)));
+  __attribute__ ((nonnull (1, 2, 9)));
 
 void free_terminfo_cache(tinfo* ti);
 

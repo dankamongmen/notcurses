@@ -769,11 +769,12 @@ macos_early_matches(void){
 // Device Attributes, allowing us to get a negative response if our queries
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
-int interrogate_terminfo(tinfo* ti, const char* termtype, FILE* out, unsigned utf8,
+int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats,
                          int lmargin, int tmargin, int rmargin, int bmargin,
                          unsigned draininput){
+  const char* termtype = getenv("TERM");
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
     cursor_x = &foolcursor_x;

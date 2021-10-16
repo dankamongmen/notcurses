@@ -1079,7 +1079,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                   &ret->rstate.logendy : &fakecursory;
   int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendx : &fakecursorx;
-  if(interrogate_terminfo(&ret->tcache, opts->termtype, ret->ttyfp, utf8,
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfp, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats,
