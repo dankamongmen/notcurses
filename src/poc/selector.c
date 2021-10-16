@@ -90,7 +90,7 @@ int main(void){
       .scaling = NCSCALE_STRETCH,
       .n = n,
     };
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       goto err;
     }
     ncvisual_destroy(ncv);

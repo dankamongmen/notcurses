@@ -41,10 +41,11 @@ handle(struct notcurses* nc, const char* fn){
   }
   // render by itself
   struct ncvisual_options vopts = {
+    .n = notcurses_stdplane(nc),
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE,
   };
-  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* n = ncvisual_blit(nc, ncv, &vopts);
   if(n == NULL){
     ncvisual_destroy(ncv);
     return -1;

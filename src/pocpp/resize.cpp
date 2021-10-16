@@ -30,6 +30,7 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
+  vopts.n = notcurses_stdplane(nc);
   vopts.scaling = NCSCALE_STRETCH;
   vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
   struct ncplane* ntarg;

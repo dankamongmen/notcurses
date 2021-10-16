@@ -13,7 +13,7 @@ static int
 wipebitmap(struct notcurses* nc){
   int cellpxy, cellpxx;
   ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL,
-                    &cellpxy, &cellpxx, NULL, NULL);
+                     &cellpxy, &cellpxx, NULL, NULL);
   int pixy = cellpxy * 6;
   int pixx = cellpxx * 6;
   uint32_t pixels[pixx * pixy];
@@ -27,8 +27,10 @@ wipebitmap(struct notcurses* nc){
   }
   struct ncvisual_options vopts = {
     .blitter = NCBLIT_PIXEL,
+    .n = notcurses_stdplane(nc),
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
-  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* n = ncvisual_blit(nc, ncv, &vopts);
   if(n == NULL){
     return -1;
   }
@@ -84,7 +86,7 @@ wipebitmap(struct notcurses* nc){
   if(ncve == NULL){
     return -1;
   }
-  if((n = ncvisual_render(nc, ncve, &vopts)) == NULL){
+  if((n = ncvisual_blit(nc, ncve, &vopts)) == NULL){
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought see empty square");
@@ -96,7 +98,7 @@ wipebitmap(struct notcurses* nc){
 
   // now, actually wipe the middle with *s, and then ensure that a new render
   // gets wiped out before being displayed
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought see full square");
@@ -114,7 +116,7 @@ wipebitmap(struct notcurses* nc){
   notcurses_render(nc);
   sleep(2);
 
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought *still* see 16 *s");
