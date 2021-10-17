@@ -157,11 +157,11 @@ int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
   if(spx->cellpxy > 0){ // don't explode on ncdirect case
-    if((pixy + spx->cellpxy - 1) / spx->cellpxy != spx->dimy){
+    if((pixy + spx->cellpxy - 1) / spx->cellpxy > spx->dimy){
       logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->cellpxy, spx->dimy);
       return -1;
     }
-    if((pixx + spx->cellpxx - 1) / spx->cellpxx != spx->dimx){
+    if((pixx + spx->cellpxx - 1) / spx->cellpxx > spx->dimx){
       logerror("bad pixx %d (cellpxx %d dimx %d)\n", pixx, spx->cellpxx, spx->dimx);
       return -1;
     }
