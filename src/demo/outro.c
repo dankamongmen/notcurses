@@ -59,7 +59,6 @@ videothread(void* vnc){
     .n = ncp,
     .y = 1,
     .flags = NCVISUAL_OPTION_ADDALPHA,
-    .blitter = NCBLIT_PIXEL,
   };
   int three = 3;
   if(ncvisual_blit(nc, ncv, &ovopts) == NULL){
