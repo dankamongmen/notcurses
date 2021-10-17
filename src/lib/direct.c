@@ -909,6 +909,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }else{
     loglevel = NCLOGLEVEL_SILENT;
   }
+  set_loglevel_from_env(&loglevel);
   int cursor_y = -1;
   int cursor_x = -1;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfp, utf8, 1,

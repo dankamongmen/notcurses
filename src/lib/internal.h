@@ -1746,6 +1746,10 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 // replace or populate the TERM environment variable with 'termname'
 int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
 
+// check environment for NOTCURSES_LOGLEVEL, and use it if defined.
+int set_loglevel_from_env(ncloglevel_e* loglevel)
+  __attribute__ ((nonnull (1)));
+
 #undef API
 #undef ALLOC
 

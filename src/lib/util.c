@@ -8,6 +8,22 @@
 #endif
 #include "internal.h"
 
+int set_loglevel_from_env(ncloglevel_e* llptr){
+  const char* ll = getenv("NOTCURSES_LOGLEVEL");
+  if(ll == NULL){
+    return 0;
+  }
+  char* endl;
+  long l = strtol(ll, &endl, 10);
+  if(l < NCLOGLEVEL_PANIC || l > NCLOGLEVEL_TRACE){
+    logpanic("Illegal NOTCURSES_LOGLEVEL: %s\n", ll);
+    return -1;
+  }
+  *llptr = l;
+  loginfo("Got loglevel from environment: %ld\n", l);
+  return 0;
+}
+
 char* notcurses_accountname(void){
 #ifndef __MINGW64__
   const char* un;

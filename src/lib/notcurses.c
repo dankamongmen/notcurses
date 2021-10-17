@@ -1002,6 +1002,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.f.used = 0;
   ret->rstate.f.size = 0;
   ret->loglevel = opts->loglevel;
+  set_loglevel_from_env(&ret->loglevel);
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
   }
