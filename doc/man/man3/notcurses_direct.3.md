@@ -185,6 +185,9 @@ The following flags are defined:
 * **NCDIRECT_OPTION_VERY_VERBOSE**: Enable all diagnostics (equivalent to
     **NCLOGLEVEL_TRACE**). Implies **NCDIRECT_OPTION_VERBOSE**.
 
+The loglevel can also be set externally using the **NOTCURSES_LOGLEVEL**
+environment variable. See **notcurses_init(3)** for more information.
+
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see
 **getenv(3)**), but a non-**NULL** value for **termtype** will override this. An
@@ -254,6 +257,7 @@ mapping them to **NCDIRECT_OPTION_VERBOSE** and
 
 **getenv(3)**,
 **notcurses(3)**,
+**notcurses_init(3)**,
 **notcurses_plane(3)**,
 **notcurses_visual(3)**,
 **terminfo(5)**,
