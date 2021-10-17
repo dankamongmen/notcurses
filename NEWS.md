@@ -11,9 +11,7 @@ rearrangements of Notcurses.
     `notcurses_options`, for which I make no apology. If you've been avoiding
     deprecated functionality, ABI3 ought require small changes, if any.
 
-* 2.4.7 (not yet released)
-
-* 2.4.6 (2021-10-16)
+* 2.4.7 (2021-10-16)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including
     key repeat and release events, and modifier events (i.e. pressing Shift by

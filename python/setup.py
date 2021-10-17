@@ -38,7 +38,7 @@ if environ.get('LDFLAGS') is None:
 
 setup(
     name="notcurses",
-    version="2.4.6",
+    version="2.4.7",
     packages=['notcurses'],
     ext_modules=[
         Extension(
