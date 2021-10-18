@@ -140,7 +140,6 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
         }
       }
       s->glyph.buf[offset + 3] = auxvec[vyx];
-      offset += 4;
     }
   }
   s->n->tam[s->dimx * ycell + xcell].state = state;
