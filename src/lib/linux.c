@@ -60,7 +60,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
         }
         dst[3] = 0;
         const int vyx = (l % cdimy) * cdimx + (c % cdimx);
-        n->tam[tyx].auxvector[vyx] = src[3];
+        ((uint8_t*)n->tam[tyx].auxvector)[vyx] = src[3];
       }else{
         if(rgba_trans_p(*(uint32_t*)src, transcolor)){
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor

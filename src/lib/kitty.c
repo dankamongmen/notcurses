@@ -347,8 +347,8 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
         }
       }
     }
+    ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   }
-  ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   return a;
 }
 
@@ -849,12 +849,12 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             // out, to present a glyph "atop" it). we will continue to mark it
             // transparent, but we need to update the auxiliary vector.
             const int vyx = (y % cdimy) * cdimx + (x % cdimx);
-            tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+            ((uint8_t*)tam[tyx].auxvector)[vyx] =  ncpixel_a(source[e]);
             wipe[e] = 1;
           }else if(level == NCPIXEL_KITTY_SELFREF){
             selfref_annihilated = true;
           }else{
-            tam[tyx].auxvector[s->cellpxx * s->cellpxy * 4] = 1;
+            ((uint8_t*)tam[tyx].auxvector)[s->cellpxx * s->cellpxy * 4] = 1;
             wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
@@ -862,16 +862,16 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
               if(level == NCPIXEL_KITTY_SELFREF){
-                *tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
+                *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
               }
             }else if(level == NCPIXEL_KITTY_SELFREF && tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
-                *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
+                *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
           }else{
             if(x % cdimx == 0 && y % cdimy == 0 && level == NCPIXEL_KITTY_SELFREF){
-              *tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
-            }else if(level == NCPIXEL_KITTY_SELFREF && *tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
-              *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
+              *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
+            }else if(level == NCPIXEL_KITTY_SELFREF && *(sprixcell_e*)tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
+              *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
             tam[tyx].state = SPRIXCELL_ANNIHILATED;
           }

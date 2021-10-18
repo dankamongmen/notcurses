@@ -727,7 +727,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
     s->n->tam[idx].state = SPRIXCELL_TRANSPARENT;
   }else if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
-    uint8_t* auxvec = s->n->tam[idx].auxvector;
+    uint8_t* auxvec = (uint8_t*)s->n->tam[idx].auxvector;
     assert(auxvec);
     // sets the new state itself
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
