@@ -179,11 +179,11 @@ compare_versions(const char* restrict v1, const char* restrict v2){
   if(v1 == NULL){
     return -1;
   }
-  char* v1e;
-  char* v2e;
+  const char* v1e = v1;
+  const char* v2e = v2;
   while(*v1 && *v2){
-    long v1v = strtol(v1, &v1e, 10);
-    long v2v = strtol(v2, &v2e, 10);
+    long v1v = strtol(v1, (char **)&v1e, 10);
+    long v2v = strtol(v2, (char **)&v2e, 10);
     if(v1e == v1 && v2e == v2){ // both are done
       return 0;
     }else if(v1e == v1){ // first is done
@@ -208,12 +208,21 @@ compare_versions(const char* restrict v1, const char* restrict v2){
     v1 = v1e + 1;
     v2 = v2e + 1;
   }
+  if(*v1e == *v2e){
+    return 0;
+  }
   // can only get out here if at least one was not a period
   if(*v1e == '.'){
     return 1;
   }
   if(*v2e == '.'){
     return -1;
+  }
+  if(!*v1e){
+    return -1;
+  }
+  if(!*v2e){
+    return 1;
   }
   return 0;
 }
