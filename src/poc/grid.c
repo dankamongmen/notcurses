@@ -43,6 +43,7 @@ draw_grid(struct ncplane* stdn){
     memset(row, 0xff, maxbx * sizeof(*rgba));
   }
   struct ncvisual* ncv = ncvisual_from_rgba(rgba, maxby, maxbx * sizeof(*rgba), maxbx);
+  free(rgba);
   return ncv;
 }
 
