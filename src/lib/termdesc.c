@@ -1210,7 +1210,7 @@ int putenv_term(const char* termname){
   }else{
     loginfo("provided %s value %s\n", ENVVAR, termname);
   }
-  if(strcmp(oldterm, termname) == 0){
+  if(oldterm && strcmp(oldterm, termname) == 0){
     return 0;
   }
   char* buf = malloc(strlen(termname) + strlen(ENVVAR) + 1);
