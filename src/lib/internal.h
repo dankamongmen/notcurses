@@ -1356,7 +1356,7 @@ plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
   if(n){
 //fprintf(stderr, "TAM WAS: %p NOW: %p\n", n->tam, tam);
     if(n->tam != tam){
-      free(n->tam);
+      destroy_tam(n);
     }
     n->tam = tam;
     n->sprite = spx;
