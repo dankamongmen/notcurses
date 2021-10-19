@@ -618,8 +618,8 @@ reprogram_linux_font(tinfo* ti, int fd, struct console_font_op* cfo,
     logwarn("error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Kernel font size (glyphcount): %hu\n", cfo->charcount);
-  loginfo("Kernel font character geometry: %hux%hu\n", cfo->width, cfo->height);
+  loginfo("Kernel font size (glyphcount): %u\n", cfo->charcount);
+  loginfo("Kernel font character geometry: %ux%u\n", cfo->width, cfo->height);
   if(cfo->charcount > 512){
     logwarn("Warning: kernel returned excess charcount\n");
     return -1;
@@ -628,7 +628,7 @@ reprogram_linux_font(tinfo* ti, int fd, struct console_font_op* cfo,
     logwarn("error reading Linux unimap (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
+  loginfo("Kernel Unimap size: %u/%u\n", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
   // do want to ensure they map to something plausible...this doesn't reset
   // the framebuffer, even if we do some reprogramming.
