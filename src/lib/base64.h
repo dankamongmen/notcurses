@@ -18,9 +18,9 @@ static unsigned const char b64subs[] =
 // check the pixel against the transcolor. matches (and sufficiently low alpha)
 // are likewise flattened to alpha=0.
 static inline void
-base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 3],
-             uint32_t transcolor){
-  uint32_t pixel = *pixels++;
+base64_rgba3(const uint32_t pixels[static 3], size_t pcount,
+             char b64[static 17], bool wipe[static 3], uint32_t transcolor){
+  uint32_t pixel = pixels[0];
   unsigned r = ncpixel_r(pixel);
   unsigned g = ncpixel_g(pixel);
   unsigned b = ncpixel_b(pixel);
@@ -43,7 +43,7 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
     return;
   }
   b64[5] = (a & 0x3) << 4;
-  pixel = *pixels++;
+  pixel = pixels[1];
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
@@ -60,7 +60,7 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
     return;
   }
   b64[10] = (a & 0xf) << 2;
-  pixel = *pixels;
+  pixel = pixels[2];
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
