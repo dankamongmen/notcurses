@@ -364,15 +364,7 @@ void free_plane(ncplane* p){
     if(p->sprite){
       sprixel_hide(p->sprite);
     }
-    if(p->tam){
-      for(int y = 0 ; y < p->leny ; ++y){
-        for(int x = 0 ; x < p->lenx ; ++x){
-          free(p->tam[y * p->lenx + x].auxvector);
-          p->tam[y * p->lenx + x].auxvector = NULL;
-        }
-      }
-    }
-    free(p->tam);
+    destroy_tam(p);
     egcpool_dump(&p->pool);
     free(p->name);
     free(p->fb);
@@ -2635,7 +2627,10 @@ splice_zaxis_recursive(ncplane* n, ncpile* p){
 }
 
 ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane){
+  // ncplane_notcurses() goes through ncplane_pile(). since we're possibly
+  // destroying piles below, get the notcurses reference early on.
+  notcurses* nc = ncplane_notcurses(n);
+  if(n == nc->stdplane){
     return NULL; // can't reparent standard plane
   }
   if(ncplane_descendant_p(newparent, n)){
@@ -2654,9 +2649,6 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   n->bprev = NULL;
   n->bnext = NULL;
-  // ncplane_notcurses() goes through ncplane_pile(). since we're possibly
-  // destroying piles below, get the notcurses reference early on.
-  notcurses* nc = ncplane_notcurses(n);
   // if leaving a pile, extract n from the old zaxis, and also any sprixel
   sprixel* s = NULL;
   if(n == newparent || ncplane_pile(n) != ncplane_pile(newparent)){
@@ -2673,7 +2665,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
       ncpile_destroy(ncplane_pile(n));
     }
-    make_ncpile(ncplane_notcurses(n), n);
+    make_ncpile(nc, n);
     pthread_mutex_unlock(&nc->pilelock);
     splice_zaxis_recursive(n, ncplane_pile(n));
   }else{ // establish ourselves as a sibling of new parent's children

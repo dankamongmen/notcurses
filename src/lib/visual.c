@@ -1077,10 +1077,10 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }else{
     n->sprite = sprixel_recycle(n);
     if(n->sprite->dimy != rows || n->sprite->dimx != cols){
-      free(n->tam);
+      destroy_tam(n);
       if((n->tam = create_tam(rows, cols)) == NULL){
         ncplane_destroy(createdn);
-        return NULL;;
+        return NULL;
       }
     }
     n->sprite->dimx = cols;

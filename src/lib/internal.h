@@ -717,6 +717,19 @@ sprite_commit(tinfo* ti, fbuf* f, sprixel* s, unsigned forcescroll){
   return 0;
 }
 
+static inline void
+destroy_tam(ncplane* p){
+  if(p->tam){
+    for(int y = 0 ; y < p->leny ; ++y){
+      for(int x = 0 ; x < p->lenx ; ++x){
+        free(p->tam[y * p->lenx + x].auxvector);
+        p->tam[y * p->lenx + x].auxvector = NULL;
+      }
+    }
+    free(p->tam);
+  }
+}
+
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   logdebug("rebuilding %d %d/%d\n", s->id, ycell, xcell);
