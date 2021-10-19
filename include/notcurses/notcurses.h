@@ -1409,6 +1409,32 @@ API unsigned notcurses_palette_size(const struct notcurses* nc)
 ALLOC API char* notcurses_detected_terminal(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
+// pixel blitting implementations. informative only; don't special-case
+// based off any of this information!
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  NCPIXEL_KITTY_STATIC,
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  NCPIXEL_KITTY_ANIMATED,
+  // with 0.22.0, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  NCPIXEL_KITTY_SELFREF,
+} ncpixelimpl_e;
+
+// Can we blit pixel-accurate bitmaps?
+API ncpixelimpl_e notcurses_check_pixel_support(const struct notcurses* nc)
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
+
 // Can we directly specify RGB values per cell, or only use palettes?
 API bool notcurses_cantruecolor(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
@@ -1463,31 +1489,12 @@ API bool notcurses_cansextant(const struct notcurses* nc)
 API bool notcurses_canbraille(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
-// pixel blitting implementations. informative only; don't special-case
-// based off any of this information!
-typedef enum {
-  NCPIXEL_NONE = 0,
-  NCPIXEL_SIXEL,           // sixel
-  NCPIXEL_LINUXFB,         // linux framebuffer
-  NCPIXEL_ITERM2,          // iTerm2
-  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
-  // time as animation. prior to this, graphics had to be entirely redrawn
-  // on any change, and it wasn't possible to use the bottom line.
-  NCPIXEL_KITTY_STATIC,
-  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
-  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
-  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
-  // the auxvec on the fly.
-  NCPIXEL_KITTY_ANIMATED,
-  // with 0.22.0, we only ever write transparent cells after writing the
-  // original image (which we now deflate, since we needn't unpack it later).
-  // the only data we need keep is the auxvecs.
-  NCPIXEL_KITTY_SELFREF,
-} ncpixelimpl_e;
-
 // Can we blit pixel-accurate bitmaps?
-API ncpixelimpl_e notcurses_check_pixel_support(const struct notcurses* nc)
-  __attribute__ ((nonnull (1))) __attribute__ ((pure));
+__attribute__ ((nonnull (1))) __attribute__ ((pure))
+static inline bool
+notcurses_canpixel(const struct notcurses* nc){
+  return notcurses_check_pixel_support(nc) != NCPIXEL_NONE;
+}
 
 // whenever a new field is added here, ensure we add the proper rule to
 // notcurses_stats_reset(), so that values are preserved in the stash stats.
