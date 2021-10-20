@@ -372,7 +372,9 @@ void free_plane(ncplane* p){
   }
 }
 
-// create a new ncpile. only call with pilelock held.
+// create a new ncpile. only call with pilelock held. the return value
+// was assigned to n->pile.
+__attribute__((malloc))
 static ncpile*
 make_ncpile(notcurses* nc, ncplane* n){
   ncpile* ret = malloc(sizeof(*ret));
@@ -391,7 +393,6 @@ make_ncpile(notcurses* nc, ncplane* n){
       ret->prev = ret;
       ret->next = ret;
     }
-    n->pile = ret;
     n->above = NULL;
     n->below = NULL;
     ret->dimy = 0;
@@ -401,6 +402,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->sprixelcache = NULL;
     ret->scrolls = 0;
   }
+  n->pile = ret;
   return ret;
 }
 
@@ -854,6 +856,7 @@ int ncplane_destroy(ncplane* ncp){
       ncp->bnext->bprev = ncp->bprev;
     }
   }else if(ncp->bnext){
+    //assert(ncp->boundto->blist == ncp);
     ncp->bnext->bprev = NULL;
   }
   // recursively reparent our children to the plane to which we are bound.
@@ -2667,7 +2670,9 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     }
     make_ncpile(nc, n);
     pthread_mutex_unlock(&nc->pilelock);
-    splice_zaxis_recursive(n, ncplane_pile(n));
+    if(ncplane_pile(n)){ // FIXME otherwise, we've got a problem...!
+      splice_zaxis_recursive(n, ncplane_pile(n));
+    }
   }else{ // establish ourselves as a sibling of new parent's children
     if( (n->bnext = newparent->blist) ){
       n->bnext->bprev = &n->bnext;
