@@ -45,8 +45,6 @@ elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}').")
 endif()
 
-# 3.14.0 introduced NAME_WLE
-cmake_minimum_required(VERSION 3.14.0)
 if(${USE_CPP})
   enable_language(CXX)
 endif()
