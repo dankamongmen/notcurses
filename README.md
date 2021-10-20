@@ -560,7 +560,7 @@ If things break or seem otherwise lackluster, **please** consult the
 * [ECMA-35 Character Code Structure and Extension Techniques](https://www.ecma-international.org/publications/standards/Ecma-035.htm) (ISO/IEC 2022)
 * [ECMA-43 8-bit Coded Character Set Structure and Rules](https://www.ecma-international.org/publications/standards/Ecma-043.htm)
 * [ECMA-48 Control Functions for Coded Character Sets](https://www.ecma-international.org/publications/standards/Ecma-048.htm) (ISO/IEC 6429)
-* [Unicode 13.1 Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html)
+* [Unicode 14.0 Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html)
 * [Unicode Standard Annex #29 Text Segmentation](http://www.unicode.org/reports/tr29)
 * [Unicode Standard Annex #15 Normalization Forms](https://unicode.org/reports/tr15/)
 * [mintty tips](https://github.com/mintty/mintty/wiki/Tips)
