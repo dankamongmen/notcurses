@@ -115,7 +115,8 @@ if(NOT WIN32)
 add_compile_definitions(_FORTIFY_SOURCE=2)
 add_compile_options(-Wformat -Werror=format-security)
 endif()
-add_compile_options(-Wall -Wextra -W -Wshadow -fexceptions -fstrict-aliasing)
+add_compile_options(-Wall -Wextra -W -Wshadow)
+add_compile_options(-ffast-math -fexceptions -fstrict-aliasing)
 
 # don't use REQUIRED with subsequent find_package() operations; we use
 # feature_summary + set_package_properties to fail in one fell swoop.
