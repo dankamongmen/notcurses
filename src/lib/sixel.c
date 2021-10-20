@@ -388,9 +388,11 @@ void sixel_refresh(const ncpile* p, sprixel* s){
       int idx = y * s->dimx + x;
       if(s->needs_refresh[idx]){
         const int xx = absx + x;
-        int ridx = yy * p->dimx + xx;
-        struct crender *r = &p->crender[ridx];
-        r->s.damaged = 1;
+        if(xx < p->dimx && yy < p->dimy){
+          int ridx = yy * p->dimx + xx;
+          struct crender *r = &p->crender[ridx];
+          r->s.damaged = 1;
+        }
       }
     }
   }
