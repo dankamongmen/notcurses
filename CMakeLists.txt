@@ -12,6 +12,7 @@ include(FeatureSummary)
 ###################### USER-SELECTABLE OPTIONS ###########################
 # BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
+option(USE_ASAN "Build with AddressSanitizer" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
 option(USE_CPP "Build C++ code" ON)
 cmake_dependent_option(
@@ -117,6 +118,11 @@ add_compile_options(-Wformat -Werror=format-security)
 endif()
 add_compile_options(-Wall -Wextra -W -Wshadow)
 add_compile_options(-ffast-math -fexceptions -fstrict-aliasing)
+
+if(${USE_ASAN})
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+endif()
 
 # don't use REQUIRED with subsequent find_package() operations; we use
 # feature_summary + set_package_properties to fail in one fell swoop.
