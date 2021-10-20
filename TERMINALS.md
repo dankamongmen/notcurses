@@ -73,12 +73,12 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
-| [ITerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=xterm-256color`  ||
+| [iTerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=iterm2`  | |
 | [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅    |`TERM=xterm-kitty`                 | See below. |
 | [kmscon](https://github.com/dvdhrm/kmscon)        | | ❌    | ❌      |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. No actual `ccc` implementation. Sets `COLORTERM=kmscon`.|
 | [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
-| [mintty](https://github.com/mintty/mintty) | ? | ? | ? | ? | ? |
+| [mintty](https://github.com/mintty/mintty) | ✅ | ✅ | ? | `TERM=mintty-direct` | ? |
 | [mlterm](https://github.com/arakiken/mlterm)          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
 | rxvt            | ✅                 |  ?    |?       |                                 | Seems unmaintained; many forks exist. |
@@ -145,6 +145,14 @@ Where `EXTERNALTERM` is your `TERM` variable at the time of attachment, e.g.:
 `set -ga terminal-overrides ",vte-256color:Tc"`
 
 You'll then need `COLORTERM=24bit` defined within your tmux environment.
+
+### iTerm2
+
+You're recommented to change "Report terminal type" to `iterm2`.
+
+### mintty
+
+You're recommended to change the default `TERM` to `mintty-direct`.
 
 ### The Linux console
 
