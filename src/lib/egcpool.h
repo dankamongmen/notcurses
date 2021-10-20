@@ -103,7 +103,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
     r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
-      logerror("Invalid UTF8: %s\n", gcluster);
+      logerror("invalid UTF8: %s\n", gcluster);
       return -1;
     }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
@@ -114,8 +114,11 @@ utf8_egc_len(const char* gcluster, int* colcount){
       if(iswspace(wc)){ // newline or tab
         return ret + 1;
       }
-      logerror("Prohibited or invalid Unicode: 0x%x\n", wc);
-      return -1;
+      if(iswcntrl(wc)){
+        logerror("prohibited or invalid Unicode: 0x%x\n", wc);
+        return -1;
+      }
+      cols = 1;
     }
     injoin = (wc == L'\u200d');
     *colcount += cols;
