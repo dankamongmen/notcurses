@@ -726,6 +726,7 @@ destroy_tam(ncplane* p){
   if(p->tam){
     cleanup_tam(p->tam, p->leny, p->lenx);
     free(p->tam);
+    p->tam = NULL;
   }
 }
 

@@ -2170,6 +2170,7 @@ void ncplane_erase(ncplane* n){
   loginfo("erasing plane\n");
   if(n->sprite){
     sprixel_hide(n->sprite);
+    destroy_tam(n);
   }
   // we must preserve the background, but a pure nccell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
