@@ -445,9 +445,21 @@ sprixel* kitty_recycle(ncplane* n){
   return sprixel_alloc(&ncplane_notcurses_const(n)->tcache, n, dimy, dimx);
 }
 
+// for pre-animation kitty (NCPIXEL_KITTY_STATIC), we need a byte per pixel,
+// in which we stash the alpha.
+static inline uint8_t*
+kitty_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
+  return ret;
+}
+
 int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = kitty_auxiliary_vector(s);
   if(auxvec == NULL){
     return -1;
   }

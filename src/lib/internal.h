@@ -649,12 +649,6 @@ void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
 
-// create an auxiliary vector suitable for a sprixcell, and zero it out. there
-// are two bytes per pixel in the cell. kitty uses only one (for an alpha
-// value). sixel uses both (for palette index, and transparency). FIXME fold
-// the transparency vector up into 1/8th as many bytes.
-uint8_t* sprixel_auxiliary_vector(const sprixel* s);
-
 // update any necessary cells underneath the sprixel pursuant to its removal.
 // for sixel, this *achieves* the removal, and is performed on every cell.
 // returns 1 if the graphic can be immediately freed (which is equivalent to

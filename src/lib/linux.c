@@ -3,8 +3,18 @@
 
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
 // and store the original alpha value.
+static inline uint8_t*
+fbcon_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
+  return ret;
+}
+
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = fbcon_auxiliary_vector(s);
   if(auxvec == NULL){
     return -1;
   }

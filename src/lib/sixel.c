@@ -20,6 +20,21 @@ sixelcount(int dimy, int dimx){
   return (dimy + 5) / 6 * dimx;
 }
 
+// create an auxiliary vector suitable for a Sixel sprixcell, and zero it out.
+// there are two bytes per pixel in the cell: a contiguous set of palette
+// indices (yet another reason that we work with 256 colors), and a contiguous
+// set of two-value transparencies (these could be folded down to bits from
+// bytes, saving 7/8 of the space FIXME).
+static inline uint8_t*
+sixel_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
+  return ret;
+}
+
 // we keep a color-indexed set of sixels (a single-row column of six pixels,
 // encoded as a byte) across the life of the sprixel. This provides a good
 // combination of easy-to-edit (for wipes and restores) -- you can index by
@@ -210,7 +225,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = sixel_auxiliary_vector(s);
   if(auxvec == NULL){
     return -1;
   }
