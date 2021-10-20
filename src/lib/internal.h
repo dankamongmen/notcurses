@@ -718,14 +718,19 @@ sprite_commit(tinfo* ti, fbuf* f, sprixel* s, unsigned forcescroll){
 }
 
 static inline void
+cleanup_tam(tament* tam, int ydim, int xdim){
+  for(int y = 0 ; y < ydim ; ++y){
+    for(int x = 0 ; x < xdim ; ++x){
+      free(tam[y * xdim + x].auxvector);
+      tam[y * xdim + x].auxvector = NULL;
+    }
+  }
+}
+
+static inline void
 destroy_tam(ncplane* p){
   if(p->tam){
-    for(int y = 0 ; y < p->leny ; ++y){
-      for(int x = 0 ; x < p->lenx ; ++x){
-        free(p->tam[y * p->lenx + x].auxvector);
-        p->tam[y * p->lenx + x].auxvector = NULL;
-      }
-    }
+    cleanup_tam(p->tam, p->leny, p->lenx);
     free(p->tam);
   }
 }

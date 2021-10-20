@@ -1125,6 +1125,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 //fprintf(stderr, "ABOUT TO RESIZE: yoff/xoff: %d/%d\n",  placey, placex);
   // FIXME might need shrink down the TAM and kill unnecessary auxvecs
   if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey, placex, s->dimy, s->dimx)){
+    // if we blow up here, then we've got a TAM sized to the sprixel, rather
+    // than the plane. running it through destroy_tam() via ncplane_destroy()
+    // will use incorrect bounds for scrubbing said TAM. do it manually here.
+    cleanup_tam(n->tam, rows, cols);
+    free(n->tam);
+    n->tam = NULL;
     sprixel_hide(bargs.u.pixel.spx);
     ncplane_destroy(createdn);
     return NULL;

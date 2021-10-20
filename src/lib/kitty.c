@@ -547,16 +547,6 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   return 0;
 }
 
-static void
-cleanup_tam(tament* tam, int ydim, int xdim){
-  for(int y = 0 ; y < ydim ; ++y){
-    for(int x = 0 ; x < xdim ; ++x){
-      free(tam[y * xdim + x].auxvector);
-      tam[y * xdim + x].auxvector = NULL;
-    }
-  }
-}
-
 static inline void*
 zctx_origbuf(z_stream* zctx, int pixy, int pixx){
   size_t blen = pixx * pixy * 4;
