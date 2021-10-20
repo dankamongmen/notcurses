@@ -41,10 +41,11 @@ int init_banner(const notcurses* nc, fbuf* f){
   }
   if(!nc->suppress_banner){
     term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
-    fbuf_printf(f, "%snotcurses %s on %s %s (%s)" NL,
+    fbuf_printf(f, "%snotcurses %s on %s %s%s(%s)" NL,
                 clreol, notcurses_version(),
                 nc->tcache.termname ? nc->tcache.termname : "?",
                 nc->tcache.termversion ? nc->tcache.termversion : "",
+                nc->tcache.termversion ? " " : "",
                 osname());
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
