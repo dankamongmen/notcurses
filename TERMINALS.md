@@ -150,6 +150,13 @@ You'll then need `COLORTERM=24bit` defined within your tmux environment.
 
 You're recommented to change "Report terminal type" to `iterm2`.
 
+You're recommended to enable "Use Unicode version 9+ widths" under
+`Profiles/Text`.
+
+You're recommended to enable the following "Experimental Features":
+* REP (Repeat previous character)
+* Support variation selector 16 making emoji fullwidth
+
 ### mintty
 
 You're recommended to change the default `TERM` to `mintty-direct`.
