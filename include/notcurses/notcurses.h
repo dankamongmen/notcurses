@@ -113,6 +113,9 @@ API ALLOC char* notcurses_accountname(void);
 // Returns a heap-allocated copy of the local host name.
 API ALLOC char* notcurses_hostname(void);
 
+// Returns a heap-allocated copy of human-readable OS name and version.
+API ALLOC char* notcurses_osversion(void);
+
 // input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 // a series of uint32_t to utf8. result must be at least 4 bytes per input
 // uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).

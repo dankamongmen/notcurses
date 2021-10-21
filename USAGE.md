@@ -345,10 +345,44 @@ bool notcurses_cansextants(const struct notcurses* nc);
 // Can we draw Braille? The Linux console cannot.
 bool notcurses_canbraille(const struct notcurses* nc);
 
+// Can we draw bitmaps?
+bool notcurses_canpixel(const struct notcurses* nc);
+
+// pixel blitting implementations. informative only; don't special-case
+// based off any of this information!
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  NCPIXEL_KITTY_STATIC,
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  NCPIXEL_KITTY_ANIMATED,
+  // with 0.22.0, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  NCPIXEL_KITTY_SELFREF,
+} ncpixelimpl_e;
+
 // Returns a non-zero constant corresponding to some pixel-blitting
 // mechanism if bitmap support (via any mechanism) has been detected,
 // or else 0 (NCPIXEL_NONE).
 ncpixelimpl_e notcurses_check_pixel_support(struct notcurses* nc);
+
+// Returns a heap-allocated copy of the user name under which we are running.
+char* notcurses_accountname(void);
+
+// Returns a heap-allocated copy of the local host name.
+char* notcurses_hostname(void);
+
+// Returns a heap-allocated copy of human-readable OS name and version.
+char* notcurses_osversion(void);
 ```
 
 ## Direct mode
