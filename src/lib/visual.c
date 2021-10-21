@@ -938,6 +938,7 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
     clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
     if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, disppixy, disppixx); // can only shrink
+      *outx = *disppixx;
       clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
     }
   }else{
@@ -1065,6 +1066,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.pxoffx = pxoffx;
   int cols = outx / nc->tcache.cellpixx + !!(outx % nc->tcache.cellpixx);
   int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
+  logdebug("cblit: rows/cols: %dx%d plane: %d/%d out: %d/%d\n", rows, cols, ncplane_dim_y(n), ncplane_dim_x(n), outy, outx);
   if(n->sprite == NULL){
     if((n->sprite = sprixel_alloc(&nc->tcache, n, rows, cols)) == NULL){
       ncplane_destroy(createdn);

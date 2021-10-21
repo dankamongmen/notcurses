@@ -29,7 +29,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
       .n = notcurses_stdplane(nc),
-      .scaling = NCSCALE_SCALE,
+      .scaling = NCSCALE_SCALE_HIRES,
       .blitter = bs[i].b,
       .flags = NCVISUAL_OPTION_NODEGRADE
                 | NCVISUAL_OPTION_HORALIGNED
