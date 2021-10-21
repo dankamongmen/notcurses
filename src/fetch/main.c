@@ -350,24 +350,13 @@ dragonfly_ncneofetch(fetched_info* fi){
 
 static const distro_info*
 xnu_ncneofetch(fetched_info* fi){
-  static distro_info fbsd = {
+  static distro_info xnu = {
     .name = "OS X",
     .logofile = "/System/Library/PrivateFrameworks/LoginUIKit.framework/Versions/A/Frameworks/LoginUICore.framework/Versions/A/Resources/apple@2x.png",
   };
   fi->neologo = get_neofetch_art("Darwin");
-  #ifdef __APPLE__
-  #define PREFIX "macOS "
-  char osver[30] = PREFIX; // shrug
-  size_t oldlenp = sizeof(osver) - strlen(PREFIX);
-  if(sysctlbyname("kern.osproductversion", osver + strlen(PREFIX),
-                  &oldlenp, NULL, 0) == 0){
-    fi->distro_pretty = strdup(osver);
-  }
-  #undef PREFIX
-  #else
-  fi->distro_pretty = strdup("macOS");
-  #endif
-  return &fbsd;
+  fi->distro_pretty = notcurses_osversion();
+  return &xnu;
 }
 
 static int

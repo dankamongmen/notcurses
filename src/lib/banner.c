@@ -17,21 +17,6 @@ init_banner_warnings(const notcurses* nc, fbuf* f, const char* clreol){
   return 0;
 }
 
-static inline const char*
-osname(void){
-#ifdef __MINGW64__
-  return "Windows";
-#elif defined(__APPLE__)
-  return "macOS";
-#elif defined(__gnu_hurd__)
-  return "GNU Hurd";
-#elif defined(BSD)
-  return "BSD";
-#else
-  return "Linux";
-#endif
-}
-
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to ttyfp. we are not yet on the alternate screen.
 int init_banner(const notcurses* nc, fbuf* f){
@@ -41,12 +26,13 @@ int init_banner(const notcurses* nc, fbuf* f){
   }
   if(!nc->suppress_banner){
     term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
+    char* osver = notcurses_osversion();
     fbuf_printf(f, "%snotcurses %s on %s %s%s(%s)" NL,
                 clreol, notcurses_version(),
                 nc->tcache.termname ? nc->tcache.termname : "?",
                 nc->tcache.termversion ? nc->tcache.termversion : "",
-                nc->tcache.termversion ? " " : "",
-                osname());
+                nc->tcache.termversion ? " " : "", osver ? osver : "unknown");
+    free(osver);
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
