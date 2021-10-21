@@ -108,6 +108,7 @@ typedef struct inputctx {
   ipipe readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
+  bool failed;          // error initializing input automaton, abort
 } inputctx;
 
 static inline void
@@ -1265,7 +1266,6 @@ build_cflow_automaton(inputctx* ictx){
     // CSI (\e[)
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
-    { "[\\N;\\NR", cursor_location_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
@@ -1287,6 +1287,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?2026;\\N$y", decrpm_asu_cb, },
+    { "[\\N;\\NR", cursor_location_cb, },
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
@@ -1406,7 +1407,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
-			  i->initdata->qterm = ti->qterm;
+			                    i->initdata->qterm = ti->qterm;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
@@ -1425,6 +1426,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                           i->rmargin = rmargin;
                           i->bmargin = bmargin;
                           i->drain = drain;
+                          i->failed = false;
                           logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                           return i;
                         }
@@ -2000,11 +2002,9 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  if(prep_all_keys(ictx)){
-    abort(); // FIXME?
-  }
-  if(build_cflow_automaton(ictx)){
-    abort(); // FIXME?
+  if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
+    ictx->failed = true;
+    handoff_initial_responses(ictx);
   }
   for(;;){
     read_inputs_nblock(ictx);
@@ -2299,5 +2299,10 @@ struct initial_responses* inputlayer_get_responses(inputctx* ictx){
   iresp = ictx->initdata_complete;
   ictx->initdata_complete = NULL;
   pthread_mutex_unlock(&ictx->ilock);
+  if(ictx->failed){
+    logpanic("aborting after automaton construction failure\n");
+    free(iresp);
+    return NULL;
+  }
   return iresp;
 }
