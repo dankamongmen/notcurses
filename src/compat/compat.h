@@ -38,6 +38,8 @@ extern "C" {
 #define SIGQUIT 0
 #define SIGCONT 0
 #define SIGWINCH 0
+// FIXME actually implement this honoring c: CLOCK_MONOTONIC
+#define pthread_cond_clockwait(a, b, c, d) pthread_cond_timedwait(a, b, d)
 #define gettimeofday mingw_gettimeofday
 #define sigaddset(x, y)
 typedef struct siginfo_t {
