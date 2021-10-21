@@ -13,6 +13,8 @@ rearrangements of Notcurses.
 
 * 2.4.8 (not yet released)
   * Added `notcurses_canpixel()`.
+  * `notcurses_get()` now evaluates its timeout against `CLOCK_MONOTONIC`
+    instead of `CLOCK_REALTIME`.
 
 * 2.4.7 (2021-10-16)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This

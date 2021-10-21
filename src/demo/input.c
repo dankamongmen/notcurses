@@ -47,10 +47,8 @@ handle_mouse(const ncinput* ni){
 // absolute deadline, so convert it up.
 uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni){
   struct timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
+  clock_gettime(CLOCK_MONOTONIC, &now);
   uint64_t ns;
-  // yes, i'd like CLOCK_MONOTONIC too, but pthread_cond_timedwait() is based off
-  // of crappy CLOCK_REALTIME :/
   // abstime shouldn't be further out than our maximum sleep time -- this can
   // lead to 0 frames output during the wait
   if(ts){
@@ -68,12 +66,12 @@ uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
   do{
     pthread_mutex_lock(&lock);
     while(!queue){
-      clock_gettime(CLOCK_REALTIME, &now);
+      clock_gettime(CLOCK_MONOTONIC, &now);
       if(timespec_to_ns(&now) > timespec_to_ns(&abstime)){
         pthread_mutex_unlock(&lock);
         return 0;
       }
-      pthread_cond_timedwait(&cond, &lock, &abstime);
+      pthread_cond_clockwait(&cond, &lock, CLOCK_MONOTONIC, &abstime);
     }
     nciqueue* q = queue;
     queue = queue->next;
