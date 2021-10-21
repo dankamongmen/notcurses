@@ -1385,24 +1385,6 @@ getpipes(ipipe pipes[static 2]){
   return 0;
 }
 
-// attempt to set up a pthread_condattr_t such that pthread_cond_timedwait()
-// uses CLOCK_MONOTONIC rather than CLOCK_REALTIME. unfortunately, this isn't
-// available on all operating systems. return success so long as we can
-// initialize the condattr_t; it does not imply successful clock selection =\.
-static int
-prep_condattr(pthread_condattr_t* cattr){
-  int e;
-  if( (e = pthread_condattr_init(cattr)) ){
-    logerror("couldn't initialize condattr (%s)\n", strerror(e));
-    return -1;
-  }
-  // remember, return success even if this doesn't fly
-  if( (e = pthread_condattr_setclock(cattr, CLOCK_MONOTONIC)) ){
-    logwarn("warning: couldn't set CLOCK_MONOTONIC for condvar (%s)\n", strerror(e));
-  }
-  return 0;
-}
-
 static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                 int bmargin, ncsharedstats* stats, unsigned drain,
@@ -1414,56 +1396,52 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
       i->isize = BUFSIZ;
       if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
         if(pthread_mutex_init(&i->ilock, NULL) == 0){
-          pthread_condattr_t condattr;
-          if(prep_condattr(&condattr) == 0){
-            if(pthread_cond_init(&i->icond, &condattr) == 0){
-              if(pthread_mutex_init(&i->clock, NULL) == 0){
-                if(pthread_cond_init(&i->ccond, &condattr) == 0){
-                  if((i->stdinfd = fileno(infp)) >= 0){
-                    if( (i->initdata = malloc(sizeof(*i->initdata))) ){
-                      if(getpipes(i->readypipes) == 0){
-                        memset(&i->amata, 0, sizeof(i->amata));
-                        if(prep_special_keys(i) == 0){
-                          if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                            i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                            memset(i->initdata, 0, sizeof(*i->initdata));
-                            i->initdata->qterm = ti->qterm;
-                            i->iread = i->iwrite = i->ivalid = 0;
-                            i->cread = i->cwrite = i->cvalid = 0;
-                            i->initdata_complete = NULL;
-                            i->stats = stats;
-                            i->ti = ti;
-                            i->stdineof = 0;
+          if(pthread_cond_init(&i->icond, NULL) == 0){
+            if(pthread_mutex_init(&i->clock, NULL) == 0){
+              if(pthread_cond_init(&i->ccond, NULL) == 0){
+                if((i->stdinfd = fileno(infp)) >= 0){
+                  if( (i->initdata = malloc(sizeof(*i->initdata))) ){
+                    if(getpipes(i->readypipes) == 0){
+                      memset(&i->amata, 0, sizeof(i->amata));
+                      if(prep_special_keys(i) == 0){
+                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                          memset(i->initdata, 0, sizeof(*i->initdata));
+                          i->initdata->qterm = ti->qterm;
+                          i->iread = i->iwrite = i->ivalid = 0;
+                          i->cread = i->cwrite = i->cvalid = 0;
+                          i->initdata_complete = NULL;
+                          i->stats = stats;
+                          i->ti = ti;
+                          i->stdineof = 0;
 #ifdef __MINGW64__
-                            i->stdinhandle = ti->inhandle;
+                          i->stdinhandle = ti->inhandle;
 #endif
-                            i->ibufvalid = 0;
-                            i->linesigs = linesigs_enabled;
-                            i->tbufvalid = 0;
-                            i->midescape = 0;
-                            i->lmargin = lmargin;
-                            i->tmargin = tmargin;
-                            i->rmargin = rmargin;
-                            i->bmargin = bmargin;
-                            i->drain = drain;
-                            i->failed = false;
-                            logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                            return i;
-                          }
+                          i->ibufvalid = 0;
+                          i->linesigs = linesigs_enabled;
+                          i->tbufvalid = 0;
+                          i->midescape = 0;
+                          i->lmargin = lmargin;
+                          i->tmargin = tmargin;
+                          i->rmargin = rmargin;
+                          i->bmargin = bmargin;
+                          i->drain = drain;
+                          i->failed = false;
+                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                          return i;
                         }
-                        input_free_esctrie(&i->amata);
                       }
-                      endpipes(i->readypipes);
+                      input_free_esctrie(&i->amata);
                     }
-                    free(i->initdata);
+                    endpipes(i->readypipes);
                   }
-                  pthread_cond_destroy(&i->ccond);
+                  free(i->initdata);
                 }
-                pthread_mutex_destroy(&i->clock);
+                pthread_cond_destroy(&i->ccond);
               }
-              pthread_cond_destroy(&i->icond);
+              pthread_mutex_destroy(&i->clock);
             }
-            pthread_condattr_destroy(&condattr);
+            pthread_cond_destroy(&i->icond);
           }
           pthread_mutex_destroy(&i->ilock);
         }
@@ -2101,7 +2079,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(ts == NULL){
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
     }else{
-      int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
+      int r = pthread_cond_clockwait(&ictx->icond, &ictx->ilock, CLOCK_MONOTONIC, ts);
       if(r == ETIMEDOUT){
         pthread_mutex_unlock(&ictx->ilock);
         return 0;
