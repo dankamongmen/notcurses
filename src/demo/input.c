@@ -119,7 +119,7 @@ pass_along(const ncinput* ni){
   pthread_mutex_unlock(&lock);
   const uint64_t eventcount = 1;
   int ret = 0;
-  if(write(input_pipefds[0], &eventcount, sizeof(eventcount)) < 0){
+  if(write(input_pipefds[1], &eventcount, sizeof(eventcount)) < 0){
     ret = -1;
   }
   pthread_cond_signal(&cond);
