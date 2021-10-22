@@ -60,19 +60,17 @@ make_slider(struct notcurses* nc, int dimx){
 }
 
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t render_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // initialized per run
-static struct marsh {
+struct marsh {
   struct notcurses* nc;
-  struct ncvisual* ncv;     // video stream
+  struct ncvisual* ncv;     // video stream, one copy per thread
   struct ncplane* slider;   // text plane at top, sliding to the left
   float dm;                 // delay multiplier
   int next_frame;
-  int last_frame_rendered;
-  struct ncplane* lplane;   // last sprixel plane rendered
-} marsh;
+  int* frame_to_render; // protected by renderlock
+};
 
 // make a plane on a new pile suitable for rendering a frame of the video
 static int
@@ -95,22 +93,32 @@ make_plane(struct notcurses* nc, struct ncplane** t){
 // returns the index of the next frame, which can immediately begin to be
 // rendered onto the thread's plane.
 static int
-get_next_frame(struct ncvisual* ncv, struct ncvisual_options* vopts){
-  int ret;
-  pthread_mutex_lock(&lock);
-  ret = marsh.next_frame++;
-  if(ncvisual_decode(ncv)){
-    ret = -1;
-  }else if(ncvisual_blit(marsh.nc, ncv, vopts) == NULL){
-    ret = -1;
+get_next_frame(struct marsh* m, struct ncvisual_options* vopts){
+  int ret = 0;
+  // one does the odds, and one the evens. load two unless we're the even,
+  // and it's the first frame.
+  if(m->next_frame){
+    if(ncvisual_decode(m->ncv)){
+      ret = -1;
+    }
   }
-  pthread_mutex_unlock(&lock);
+  if(ret == 0){
+    if(ncvisual_decode(m->ncv)){
+      ret = -1;
+    }else if(ncvisual_blit(m->nc, m->ncv, vopts) == NULL){
+      ret = -1;
+    }
+  }
+  if(ret == 0){
+    ret = m->next_frame;
+    m->next_frame += 2;
+  }
   return ret;
 }
 
 static void*
-xray_thread(void *v){
-  (void)v;
+xray_thread(void *vmarsh){
+  struct marsh* m = vmarsh;
   int frame = -1;
   struct ncvisual_options vopts = {
     .x = NCALIGN_CENTER,
@@ -121,28 +129,30 @@ xray_thread(void *v){
               | NCVISUAL_OPTION_ADDALPHA,
   };
   int ret;
+  struct ncplane* lplane = NULL;
   do{
-    if(make_plane(marsh.nc, &vopts.n)){
+    if(make_plane(m->nc, &vopts.n)){
       return NULL;
     }
-    if((frame = get_next_frame(marsh.ncv, &vopts)) < 0){
+    if((frame = get_next_frame(m, &vopts)) < 0){
+      // FIXME need to cancel other one; it won't be able to progress
       return NULL;
     }
     ret = -1;
     // only one thread can render the standard pile at a time
     pthread_mutex_lock(&render_lock);
-    while(marsh.last_frame_rendered + 1 != frame){
+    while(*m->frame_to_render != frame){
       pthread_cond_wait(&cond, &render_lock);
     }
-    int x = ncplane_x(marsh.slider);
-    if(ncplane_move_yx(marsh.slider, 1, x - 1) == 0){
-      ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
+    int x = ncplane_x(m->slider);
+    if(ncplane_move_yx(m->slider, 1, x - 1) == 0){
+      ncplane_reparent(vopts.n, notcurses_stdplane(m->nc));
       ncplane_move_top(vopts.n);
-      ncplane_destroy(marsh.lplane);
-      ret = demo_render(marsh.nc);
+      ncplane_destroy(lplane);
+      ret = demo_render(m->nc);
     }
-    marsh.last_frame_rendered = frame;
-    marsh.lplane = vopts.n;
+    *m->frame_to_render = frame + 1;
+    lplane = vopts.n;
     pthread_mutex_unlock(&render_lock);
     pthread_cond_signal(&cond);
     vopts.n = NULL;
@@ -158,14 +168,16 @@ int xray_demo(struct notcurses* nc){
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_erase(notcurses_stdplane(nc));
   char* path = find_data("notcursesIII.mkv");
-  struct ncvisual* ncv = ncvisual_from_file(path);
+  struct ncvisual* ncv1 = ncvisual_from_file(path);
+  struct ncvisual* ncv2 = ncvisual_from_file(path);
   free(path);
-  if(ncv == NULL){
+  if(ncv1 == NULL || ncv2 == NULL){
     return -1;
   }
   struct ncplane* slider = make_slider(nc, dimx);
   if(slider == NULL){
-    ncvisual_destroy(ncv);
+    ncvisual_destroy(ncv1);
+    ncvisual_destroy(ncv2);
     return -1;
   }
   uint64_t stdc = 0;
@@ -173,27 +185,36 @@ int xray_demo(struct notcurses* nc){
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   // returns non-zero if the selected blitter isn't available
   pthread_t tid1, tid2;
-  marsh.slider = slider;
-  marsh.nc = nc;
-  marsh.ncv = ncv;
-  marsh.next_frame = 0;
-  marsh.last_frame_rendered = -1;
-  marsh.lplane = NULL;
-  marsh.dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier;
+  int last_frame = 0;
+  struct marsh m1 = {
+    .slider = slider,
+    .nc = nc,
+    .next_frame = 0,
+    .frame_to_render = &last_frame,
+    .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
+    .ncv = ncv1,
+  };
+  struct marsh m2 = {
+    .slider = slider,
+    .nc = nc,
+    .next_frame = 1,
+    .frame_to_render = &last_frame,
+    .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
+    .ncv = ncv2,
+  };
   int ret = -1;
-  if(pthread_create(&tid1, NULL, xray_thread, NULL)){
+  if(pthread_create(&tid1, NULL, xray_thread, &m1)){
     goto err;
   }
-  if(pthread_create(&tid2, NULL, xray_thread, NULL)){
+  if(pthread_create(&tid2, NULL, xray_thread, &m2)){
     pthread_join(tid1, NULL);
     goto err;
   }
-  // FIXME need wake them more reliably
   ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
 
 err:
-  ncplane_destroy(marsh.lplane);
-  ncvisual_destroy(ncv);
+  ncvisual_destroy(ncv1);
+  ncvisual_destroy(ncv2);
   ncplane_destroy(slider);
   return ret;
 }
