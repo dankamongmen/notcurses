@@ -12,7 +12,7 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.8 (not yet released)
-  * Added `notcurses_canpixel()` and `notcurses_osversion()`.
+  * Added new functions `notcurses_canpixel()` and `notcurses_osversion()`.
   * `notcurses_get()` now evaluates its timeout against `CLOCK_MONOTONIC`
     instead of `CLOCK_REALTIME`.
 

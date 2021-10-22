@@ -186,9 +186,11 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     // update said auxvec, but needn't actually change the glyph. auxvec will
     // be entirely 0s coming from pixel_trans_auxvec().
     if(s->n->tam[idx].auxvector == NULL){
-      s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
-      if(s->n->tam[idx].auxvector == NULL){
-        return -1;
+      if(nc->tcache.pixel_trans_auxvec){
+        s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
+        if(s->n->tam[idx].auxvector == NULL){
+          return -1;
+        }
       }
     }
     // no need to update to INVALIDATED; no redraw is necessary
