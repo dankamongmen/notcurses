@@ -99,6 +99,7 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 
 // you played yourself https://genius.com/De-la-soul-fallin-lyrics
 int fission_demo(struct notcurses* nc){
+  struct ncplane* npl = NULL;
   int dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
@@ -197,32 +198,34 @@ int fission_demo(struct notcurses* nc){
   ncplane_erase(stdn);
 #ifndef DFSG_BUILD
   if(notcurses_canopen_images(nc)){
-  char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncvisual_from_file(path);
-  free(path);
-  if(ncv == NULL){
-    goto err;
-  }
-  struct ncvisual_options vopts = {
-    .n = stdn,
-    .scaling = NCSCALE_STRETCH,
-    .flags = NCVISUAL_OPTION_CHILDPLANE,
-  };
-  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    char* path = find_data("lamepatents.jpg");
+    struct ncvisual* ncv = ncvisual_from_file(path);
+    free(path);
+    if(ncv == NULL){
+      goto err;
+    }
+    struct ncvisual_options vopts = {
+      .n = stdn,
+      .scaling = NCSCALE_STRETCH,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+    };
+    if((npl = ncvisual_blit(nc, ncv, &vopts)) == NULL){
+      ncvisual_destroy(ncv);
+      goto err;
+    }
+    assert(ncvisual_decode(ncv) == 1);
     ncvisual_destroy(ncv);
-    goto err;
-  }
-  assert(ncvisual_decode(ncv) == 1);
-  ncvisual_destroy(ncv);
   }
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   free(arr);
   free(usemap);
+  ncplane_destroy(npl);
   return ret;
 
 err:
   free(usemap);
   free(arr);
+  ncplane_destroy(npl);
   return -1;
 }
