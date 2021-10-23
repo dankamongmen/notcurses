@@ -307,15 +307,17 @@ egcpool_extended_gcluster(const egcpool* pool, const nccell* c) {
 // contents in 'dst'.
 static inline int
 egcpool_dup(egcpool* dst, const egcpool* src){
-  char* tmp;
-  if((tmp = (char*)realloc(dst->pool, src->poolsize)) == NULL){
-    return -1;
+  if(src->pool){
+    char* tmp;
+    if((tmp = (char*)realloc(dst->pool, src->poolsize)) == NULL){
+      return -1;
+    }
+    dst->pool = tmp;
+    memcpy(dst->pool, src->pool, src->poolsize);
   }
-  dst->pool = tmp;
   dst->poolsize = src->poolsize;
   dst->poolused = src->poolused;
   dst->poolwrite = src->poolwrite;
-  memcpy(dst->pool, src->pool, src->poolsize);
   return 0;
 }
 
