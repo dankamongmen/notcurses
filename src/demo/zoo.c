@@ -14,7 +14,6 @@ draw_background(struct notcurses* nc){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .n = n,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
     if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
@@ -83,7 +82,9 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
     .x = 0,
     .rows = 1,
     .cols = 1,
-    NULL, NULL, NULL, 0,
+    NULL,
+    .name = "msel",
+    NULL, 0,
   };
   struct ncplane* mseln = ncplane_create(n, &nopts);
   if(mseln == NULL){
@@ -120,7 +121,9 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
     .x = dimx,
     .rows = 1,
     .cols = 1,
-    NULL, NULL, NULL, 0,
+    NULL,
+    .name = "sel",
+    NULL, 0,
   };
   struct ncplane* seln = ncplane_create(n, &nopts);
   if(seln == NULL){
