@@ -652,9 +652,9 @@ int fpsgraph_init(struct notcurses* nc){
   uint32_t style = 0;
   uint64_t channels = 0;
   ncchannels_set_fg_alpha(&channels, NCALPHA_BLEND);
-  ncchannels_set_fg_rgb(&channels, 0x201020);
+  ncchannels_set_fg_rgb(&channels, 0x201040);
   ncchannels_set_bg_alpha(&channels, NCALPHA_BLEND);
-  ncchannels_set_bg_rgb(&channels, 0x201020);
+  ncchannels_set_bg_rgb(&channels, 0x201040);
   ncplane_set_base(newp, "", style, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
@@ -666,10 +666,10 @@ int fpsgraph_init(struct notcurses* nc){
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
   opts.title = "frames per second";
   ncchannels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
-  ncchannels_set_bg_rgb(&opts.minchannels, 0x201020);
+  ncchannels_set_bg_rgb(&opts.minchannels, 0x201040);
   ncchannels_set_bg_alpha(&opts.minchannels, NCALPHA_BLEND);
   ncchannels_set_fg_rgb8(&opts.maxchannels, 0x80, 0xff, 0x80);
-  ncchannels_set_bg_rgb(&opts.maxchannels, 0x201020);
+  ncchannels_set_bg_rgb(&opts.maxchannels, 0x201040);
   ncchannels_set_bg_alpha(&opts.maxchannels, NCALPHA_BLEND);
   // takes ownership of newp on all paths
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
