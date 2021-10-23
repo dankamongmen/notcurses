@@ -239,15 +239,6 @@ If things break or seem otherwise lackluster, **please** consult the
 `TERM` and `LANG` definition, and probably want `COLORTERM`.
 
 <details>
-  <summary>The demo fails in the middle of <code>intro</code>.</summary>
-  Check that your <code>TERM</code> value is correct for your terminal.
-  <code>intro</code> does a palette fade, which is prone to breaking under
-  incorrect <code>TERM</code> values.
-  If you're not using <code>xterm</code>, your <code>TERM</code> should not be
-  <code>xterm</code>!
-</details>
-
-<details>
   <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
    with Notcurses?</summary>
    Yes! Use the flags <code>NCOPTION_NO_ALTERNATE_SCREEN</code>,
