@@ -265,6 +265,8 @@ int yield_demo(struct notcurses* nc){
   ret = pthread_join(t1, NULL) | pthread_join(t2, NULL);
 
   ncplane_destroy(label);
+  ncplane_reparent(m1.vopts.n, notcurses_stdplane(nc));
+  ncplane_reparent(m2.vopts.n, notcurses_stdplane(nc));
   ncplane_destroy(m1.vopts.n);
   ncplane_destroy(m2.vopts.n);
   ncvisual_destroy(v1);
