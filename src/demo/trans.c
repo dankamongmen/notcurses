@@ -241,7 +241,6 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   }
   ncplane_destroy(l);
 
-  clock_gettime(CLOCK_MONOTONIC, &cur);
   char* logop = find_data("notcurses.png");
   struct ncvisual* ncv = ncvisual_from_file(logop);
   if(ncv == NULL){
@@ -259,6 +258,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
     return err;
   }
   ncvisual_destroy(ncv);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "partially-transparent image");
   deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
