@@ -106,8 +106,6 @@ yielder(struct marsh* m){
     ncplane_reparent(m->vopts.n, m->vopts.n);
     pthread_mutex_unlock(&rlock);
     pthread_cond_signal(&rcond);
-    // FIXME only sleep if we didn't take enough time updating ncvisual!
-    //demo_nanosleep(m->nc, &m->tspec);
     pthread_mutex_lock(&lock);
     while(*m->turn != m->id && !*m->done){
       pthread_cond_wait(&cond, &lock);
