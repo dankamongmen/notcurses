@@ -123,8 +123,8 @@ add_compile_options(-fno-math-errno -freciprocal-math -funsafe-math-optimization
 add_compile_options(-fexceptions -fstrict-aliasing)
 
 if(${USE_ASAN})
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
+add_compile_options(-fsanitize=thread)
+add_link_options(-fsanitize=thread)
 endif()
 
 # don't use REQUIRED with subsequent find_package() operations; we use
