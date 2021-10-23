@@ -472,7 +472,8 @@ postpaint_cell(const tinfo* ti, nccell* lastframe, int dimx,
       // we don't need to change it when under an opaque cell, because
       // that's always printed on top.
       if(!crender->s.p_beats_sprixel){
-        if(state != SPRIXCELL_OPAQUE_SIXEL && state != SPRIXCELL_OPAQUE_KITTY){
+        // leaving out SPRIXCELL_OPAQUE_KITTY here results in cruft
+        if(state != SPRIXCELL_OPAQUE_SIXEL){
 //fprintf(stderr, "damaged due to opaque %d/%d\n", y, *x);
           crender->s.damaged = 1;
         }
