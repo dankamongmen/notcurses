@@ -1,6 +1,6 @@
 % notcurses_menu(3)
 % nick black <nickblack@linux.com>
-% v2.4.7
+% v2.4.8
 
 # NAME
 
