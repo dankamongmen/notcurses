@@ -38,7 +38,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc,
                               unsigned ctrl, unsigned alt);
 
 int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn)
-  __attribute__ ((nonnull (1, 2, 3)));
+  __attribute__ ((nonnull (1, 2)));
 
 int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
                    struct ncinput* ni)

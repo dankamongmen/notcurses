@@ -135,6 +135,8 @@ xray_thread(void *vmarsh){
       return NULL;
     }
     if((frame = get_next_frame(m, &vopts)) < 0){
+      ncplane_destroy(lplane);
+      ncplane_destroy(vopts.n);
       // FIXME need to cancel other one; it won't be able to progress
       return NULL;
     }
@@ -157,6 +159,7 @@ xray_thread(void *vmarsh){
     pthread_cond_signal(&cond);
     vopts.n = NULL;
   }while(ret == 0);
+  ncplane_destroy(lplane);
   return NULL;
 }
 

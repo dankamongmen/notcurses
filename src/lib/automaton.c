@@ -542,6 +542,9 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }
     e = esctrie_from_idx(a, a->state);
     if(e->ntype == NODE_FUNCTION){ // for the 0x07s of the world
+      if(e->fxn == NULL){
+        return 2;
+      }
       return e->fxn(ictx);
     }
     return 0;
