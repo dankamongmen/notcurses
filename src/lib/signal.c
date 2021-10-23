@@ -54,6 +54,7 @@ static bool handling_fatals;
 static struct sigaction old_winch;
 static struct sigaction old_cont;
 static struct sigaction old_abrt;
+static struct sigaction old_bus;
 static struct sigaction old_fpe;
 static struct sigaction old_ill;
 static struct sigaction old_int;
@@ -94,6 +95,7 @@ int drop_signals(void* nc){
     }
     if(handling_fatals){
       sigaction(SIGABRT, &old_abrt, NULL);
+      sigaction(SIGBUS, &old_bus, NULL);
       sigaction(SIGFPE, &old_fpe, NULL);
       sigaction(SIGILL, &old_ill, NULL);
       sigaction(SIGINT, &old_int, NULL);
@@ -136,6 +138,7 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
       case SIGINT: invoke_old(&old_int, signo, siginfo, v); break;
       case SIGILL: invoke_old(&old_ill, signo, siginfo, v); break;
       case SIGFPE: invoke_old(&old_fpe, signo, siginfo, v); break;
+      case SIGBUS: invoke_old(&old_bus, signo, siginfo, v); break;
       case SIGABRT: invoke_old(&old_abrt, signo, siginfo, v); break;
     }
     raise(signo); // FIXME does this invoke twice? hrmmm
@@ -180,21 +183,23 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     memset(&sa, 0, sizeof(sa));
     fatal_callback = handler;
     sa.sa_sigaction = fatal_handler;
+    sigaddset(&sa.sa_mask, SIGABRT);
+    sigaddset(&sa.sa_mask, SIGBUS);
     sigaddset(&sa.sa_mask, SIGFPE);
     sigaddset(&sa.sa_mask, SIGILL);
     sigaddset(&sa.sa_mask, SIGINT);
     sigaddset(&sa.sa_mask, SIGQUIT);
     sigaddset(&sa.sa_mask, SIGSEGV);
-    sigaddset(&sa.sa_mask, SIGABRT);
     sigaddset(&sa.sa_mask, SIGTERM);
     sa.sa_flags = SA_SIGINFO | SA_RESETHAND; // don't try fatal signals twice
     int ret = 0;
+    ret |= sigaction(SIGABRT, &sa, &old_abrt);
+    ret |= sigaction(SIGBUS, &sa, &old_bus);
     ret |= sigaction(SIGFPE, &sa, &old_fpe);
     ret |= sigaction(SIGILL, &sa, &old_ill);
     ret |= sigaction(SIGINT, &sa, &old_int);
     ret |= sigaction(SIGQUIT, &sa, &old_quit);
     ret |= sigaction(SIGSEGV, &sa, &old_segv);
-    ret |= sigaction(SIGABRT, &sa, &old_abrt);
     ret |= sigaction(SIGTERM, &sa, &old_term);
     if(ret){
       atomic_store(&signal_nc, NULL);

@@ -174,10 +174,10 @@ The following flags are defined:
     buffer up, eventually preventing Notcurses from processing terminal
     messages. It will furthermore avoid wasting time processing useless input.
 
-* **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
-    for **SIGABRT**, **SIGFPE**, **SIGILL**, **SIGINT**, **SIGQUIT**,
-    **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such exceptions.
-    With this flag, the handler will not be installed.
+* **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be
+    installed for **SIGABRT**, **SIGBUS**, **SIGFPE**, **SIGILL**, **SIGINT**,
+    **SIGQUIT**, **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on
+    such exceptions. With this flag, the handler will not be installed.
 
 * **NCDIRECT_OPTION_VERBOSE**: Enable diagnostics to **stderr** at the level of
     **NCLOGLEVEL_WARNING**.

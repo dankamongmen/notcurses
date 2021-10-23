@@ -127,9 +127,9 @@ zero. The following flags are defined:
     installed.
 
 * **NCOPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
-    for **SIGABRT**, **SIGFPE**, **SIGILL**, **SIGINT**, **SIGQUIT**,
-    **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such exceptions.
-    With this flag, the handler will not be installed.
+    for **SIGABRT**, **SIGBUS**, **SIGFPE**, **SIGILL**, **SIGINT**,
+    **SIGQUIT**, **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such
+    exceptions. With this flag, the handler will not be installed.
 
 * **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
     information printed on startup, and the performance summary on exit.

@@ -15,6 +15,8 @@ rearrangements of Notcurses.
   * Added new functions `notcurses_canpixel()` and `notcurses_osversion()`.
   * `notcurses_get()` now evaluates its timeout against `CLOCK_MONOTONIC`
     instead of `CLOCK_REALTIME`.
+  * `SIGBUS` is now included among the signals for which a handler is
+    by default installed.
 
 * 2.4.7 (2021-10-16)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
