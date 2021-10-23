@@ -8,6 +8,14 @@ TEST_CASE("Blit") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
+  SUBCASE("BlitterStrings") {
+    CHECK(0 == strcmp("pixel", notcurses_str_blitter(NCBLIT_PIXEL)));
+    CHECK(0 == strcmp("sex", notcurses_str_blitter(NCBLIT_3x2)));
+    CHECK(0 == strcmp("quad", notcurses_str_blitter(NCBLIT_2x2)));
+    CHECK(0 == strcmp("half", notcurses_str_blitter(NCBLIT_2x1)));
+    CHECK(0 == strcmp("ascii", notcurses_str_blitter(NCBLIT_1x1)));
+  }
+
   SUBCASE("BgraToRgba") {
     const uint32_t data[8] = {
       // bgra (BE): RGBA bgra (LE): ABGR
