@@ -39,18 +39,19 @@ yielder(struct marsh* m){
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
   const long threshold_painted = total * 11 / 50;
+  pthread_mutex_lock(&lock);
+  while(*m->turn != m->id && !*m->done){
+    pthread_cond_wait(&cond, &lock);
+  }
   while(*m->filled < threshold_painted && iters < MAXITER && !*m->done){
 //fprintf(stderr, "%d/%d tfilled: %ld thresh: %ld total: %ld\n", maxy, maxx, *m->filled, threshold_painted, total);
     int pfilled = 0;
-    pthread_mutex_lock(&lock);
-    while(*m->turn != m->id && !*m->done){
-      pthread_cond_wait(&cond, &lock);
-    }
     // the first time the first thread runs, it does not pick up the previous
     // polyfill origin (as there was none). all other runs, we do.
     if(iters || m->id){
       ncvisual_polyfill_yx(m->ncv, *m->polyy, *m->polyx, *m->polypixel);
     }
+    int filledcopy;
     do{
       ++iters;
       int x = rand() % maxx;
@@ -66,13 +67,21 @@ yielder(struct marsh* m){
       ncpixel_set_rgb8(m->polypixel, (rand() % 128) + 128, 0, ncpixel_b(*m->polypixel) / 4);
       pfilled = ncvisual_polyfill_yx(m->ncv, y, x, *m->polypixel);
       if(pfilled < 0){
-        return -1;
+        break;
       }else if(pfilled){
         *m->polyy = y;
         *m->polyx = x;
       }
     }while(pfilled == 0);
+    if(pfilled < 0){
+      break;
+    }
     *m->turn = !*m->turn;
+    *m->filled += pfilled;
+    if(*m->filled > threshold_painted){
+      *m->filled = threshold_painted; // don't allow printing of 100.1% etc
+    }
+    filledcopy = *m->filled;
     pthread_mutex_unlock(&lock);
     pthread_cond_signal(&cond);
 
@@ -80,28 +89,30 @@ yielder(struct marsh* m){
     while(*m->rturn != m->id && !*m->done){
       pthread_cond_wait(&rcond, &rlock);
     }
-    ncplane_printf_aligned(m->label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)*m->filled * 100) / threshold_painted);
+    ncplane_printf_aligned(m->label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)filledcopy * 100) / threshold_painted);
     ncplane_reparent(m->vopts.n, m->label);
     ncplane_move_below(m->vopts.n, m->label);
     if(ncvisual_blit(m->nc, m->ncv, &m->vopts) == NULL){
-      return -1;
-    }
-    *m->filled += pfilled;
-    if(*m->filled > threshold_painted){
-      *m->filled = threshold_painted; // don't allow printing of 100.1% etc
+      pthread_mutex_unlock(&rlock);
+      pthread_mutex_lock(&lock);
+      break;
     }
     if(demo_render(m->nc)){
       pthread_mutex_unlock(&rlock);
-      return -1;
+      pthread_mutex_lock(&lock);
+      break;
     }
     *m->rturn = !*m->rturn;
     ncplane_reparent(m->vopts.n, m->vopts.n);
     pthread_mutex_unlock(&rlock);
     pthread_cond_signal(&rcond);
     // FIXME only sleep if we didn't take enough time updating ncvisual!
-    demo_nanosleep(m->nc, &m->tspec);
+    //demo_nanosleep(m->nc, &m->tspec);
+    pthread_mutex_lock(&lock);
+    while(*m->turn != m->id && !*m->done){
+      pthread_cond_wait(&cond, &lock);
+    }
   }
-  pthread_mutex_lock(&lock);
   *m->done = 1;
   pthread_mutex_unlock(&lock);
   pthread_cond_signal(&cond);
