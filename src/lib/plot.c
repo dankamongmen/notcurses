@@ -369,7 +369,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
       if(sumidx){ \
         uint64_t chan = ncp->plot.channels[y]; \
         if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
-          char utf8[MB_CUR_MAX + 1]; \
+          char utf8[MB_LEN_MAX + 1]; \
           int bytes = wctomb(utf8, egc[sumidx]); \
           if(bytes < 0){ \
             return -1; \
