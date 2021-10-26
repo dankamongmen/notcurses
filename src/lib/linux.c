@@ -364,8 +364,9 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
   for(size_t sidx = 0 ; sidx < sizeof(sets) / sizeof(*sets) ; ++sidx){
     int fontidx = -1;
     struct simset* s = &sets[sidx];
-    bool found[wcslen(s->ws)];
-    memset(found, 0, sizeof(found));
+    size_t fsize = sizeof(bool) * wcslen(s->ws);
+    bool* found = malloc(fsize);
+    memset(found, 0, fsize);
     for(unsigned idx = 0 ; idx < map->entry_ct ; ++idx){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(map->entries[idx].unicode == s->ws[widx]){
@@ -390,6 +391,7 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
     }else{
       logwarn("Couldn't find any glyphs for set %zu\n", sidx);
     }
+    free(found);
   }
   if(toadd == 0){
     return 0;
