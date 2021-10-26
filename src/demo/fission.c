@@ -17,7 +17,10 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   int ranges = 0;
   int rangee = 0;
   const int FALLINGMAX = arrcount < 10 ? 1 : arrcount / 10;
-  int speeds[FALLINGMAX];
+  int* speeds = malloc(sizeof(*speeds) * FALLINGMAX);
+  if(speeds == NULL){
+    return -1;
+  }
   while(ranges < arrcount){
     // if we don't have a full set active, and there is another available, go
     // ahead and get it kicked off
@@ -76,6 +79,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       }
     }while(rangee - ranges + 1 >= FALLINGMAX);
   }
+  free(speeds);
   return 0;
 }
 
