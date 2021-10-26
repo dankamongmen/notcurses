@@ -1065,7 +1065,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   // don't set loglevel until we've acquired the signal handler, lest we
   // change the loglevel out from under a running instance
-  loglevel = opts->loglevel;
+  loglevel = ret->loglevel;
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
