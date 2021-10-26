@@ -54,6 +54,17 @@ create_pixelp(ncplot *p, ncplane* n){
   return 0;
 }
 
+// we have some gradient across the life of the plot
+static void
+calculate_gradient_vector(ncplot* p, size_t states, uint64_t* channels){
+  const int dimy = ncplane_dim_y(p->ncp);
+  for(size_t y = 0 ; y < dimy * states ; ++y){ \
+    calc_gradient_channels(&channels[y], p->minchannels, p->minchannels,
+                           p->maxchannels, p->maxchannels,
+                           y, 0, dimy * states, 0);
+  }
+}
+
 #define MAXWIDTH 2
 #define CREATE(T, X) \
 typedef struct nc##X##plot { \
@@ -135,10 +146,15 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   } \
   memset(pixels, 0, dimy * dimx * states * scale * sizeof(*pixels)); \
   int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
+  /* FIXME we could precalculate this! */ \
+  uint64_t channels[dimy * states]; \
+  calculate_gradient_vector(&ncp->plot, states, channels); \
+  /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
+  T gvals[scale]; \
+  /* iterate backwards across the plot from the final (rightmost) x being \
+     plotted (finalx) to the first (leftmost) x being plotted (startx).   */ \
   for(int x = finalx ; x >= startx ; --x){ \
-    /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
-    T gvals[scale]; \
-    /* load it retaining the same ordering we have in the actual array */ \
+    /* load gvals retaining the same ordering we have in the actual array */ \
     for(int i = scale - 1 ; i >= 0 ; --i){ \
       gvals[i] = ncp->slots[idx]; /* clip the value at the limits of the graph */ \
       if(gvals[i] < ncp->miny){ \
@@ -158,7 +174,6 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     T intervalbase = ncp->miny; \
     bool done = !ncp->plot.bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
-      uint64_t channels = 0; \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
         we're going to print *something* */ \
@@ -183,10 +198,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
 /*fprintf(stderr, "WRITING TO y/x %d/%d (%zu)\n", y, x, dimx * dimy * scale * states); */\
         for(size_t yy = 0 ; yy < egcidx ; ++yy){ \
           int poff = x * scale + i + (((dimy - 1 - y) * states + (states - 1 - yy)) * dimx * scale); \
-          calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                                ncp->plot.maxchannels, ncp->plot.maxchannels, \
-                                y * states + yy, x, dimy * states, dimx); \
-          uint32_t color = ncchannels_fg_rgb(channels); \
+          uint32_t color = ncchannels_fg_rgb(channels[y * states + yy]); \
           ncpixel_set_a(&color, 0xff); \
           pixels[poff] = color; \
         } \
@@ -253,6 +265,9 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   }else{ \
     interval = ncp->maxy < ncp->miny ? 0 : (ncp->maxy - ncp->miny) / ((double)dimy * states); \
   } \
+  /* we don't get a color per state with cell blitting, as we do with pixels */ \
+  uint64_t channels[dimy]; \
+  calculate_gradient_vector(&ncp->plot, 1, channels); \
   const int startx = ncp->plot.labelaxisd ? PREFIXCOLUMNS : 0; /* plot cols begin here */ \
   /* if we want fewer slots than there are available columns, our final column \
      will be other than the plane's final column. most recent x goes here. */ \
@@ -262,10 +277,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   if(ncp->plot.labelaxisd){ \
     /* show the *top* of each interval range */ \
     for(int y = 0 ; y < dimy ; ++y){ \
-      uint64_t channels = 0; \
-      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, 0, dimy, dimx); \
-      ncplane_set_channels(ncp->plot.ncp, channels); \
+      ncplane_set_channels(ncp->plot.ncp, channels[y]); \
       char buf[PREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
@@ -283,10 +295,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
       } \
     } \
   }else if(strlen(ncp->plot.title)){ \
-    uint64_t channels = 0; \
-    calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                           ncp->plot.maxchannels, ncp->plot.maxchannels, dimy - 1, 0, dimy, dimx); \
-    ncplane_set_channels(ncp->plot.ncp, channels); \
+    ncplane_set_channels(ncp->plot.ncp, channels[dimy - 1]); \
     ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
   } \
   ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
@@ -322,10 +331,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     const wchar_t* egc = ncp->plot.bset->plotegcs; \
     bool done = !ncp->plot.bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
-      uint64_t channels = 0; \
-      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, x, dimy, dimx); \
-      ncplane_set_channels(ncp->plot.ncp, channels); \
+      ncplane_set_channels(ncp->plot.ncp, channels[y]); \
       size_t egcidx = 0, sumidx = 0; \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
@@ -358,6 +364,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
         modes, sumidx == 0 means don't do shit, since we erased earlier. */ \
 /* if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]); */ \
       if(sumidx){ \
+        uint64_t chan = channels[y]; \
         if(notcurses_canutf8(ncplane_notcurses(ncp->plot.ncp))){ \
           char utf8[MB_CUR_MAX + 1]; \
           int bytes = wctomb(utf8, egc[sumidx]); \
@@ -366,24 +373,24 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
           } \
           utf8[bytes] = '\0'; \
           nccell* c = ncplane_cell_ref_yx(ncp->plot.ncp, dimy - y - 1, x); \
-          cell_set_bchannel(c, ncchannels_bchannel(channels)); \
-          cell_set_fchannel(c, ncchannels_fchannel(channels)); \
+          cell_set_bchannel(c, ncchannels_bchannel(chan)); \
+          cell_set_fchannel(c, ncchannels_fchannel(chan)); \
           nccell_set_styles(c, NCSTYLE_NONE); \
           if(pool_blit_direct(&ncp->plot.ncp->pool, c, utf8, bytes, 1) <= 0){ \
             return -1; \
           } \
         }else{ \
-          const uint64_t swapbg = ncchannels_bchannel(channels); \
-          const uint64_t swapfg = ncchannels_fchannel(channels); \
-          ncchannels_set_bchannel(&channels, swapfg); \
-          ncchannels_set_fchannel(&channels, swapbg); \
-          ncplane_set_channels(ncp->plot.ncp, channels); \
+          const uint64_t swapbg = ncchannels_bchannel(chan); \
+          const uint64_t swapfg = ncchannels_fchannel(chan); \
+          ncchannels_set_bchannel(&chan, swapfg); \
+          ncchannels_set_fchannel(&chan, swapbg); \
+          ncplane_set_channels(ncp->plot.ncp, chan); \
           if(ncplane_putchar_yx(ncp->plot.ncp, dimy - y - 1, x, ' ') <= 0){ \
             return -1; \
           } \
-          ncchannels_set_bchannel(&channels, swapbg); \
-          ncchannels_set_fchannel(&channels, swapfg); \
-          ncplane_set_channels(ncp->plot.ncp, channels); \
+          ncchannels_set_bchannel(&chan, swapbg); \
+          ncchannels_set_fchannel(&chan, swapfg); \
+          ncplane_set_channels(ncp->plot.ncp, chan); \
         } \
       } \
       if(done){ \
