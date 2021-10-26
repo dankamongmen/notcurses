@@ -16,8 +16,8 @@ wipebitmap(struct notcurses* nc){
                      &cellpxy, &cellpxx, NULL, NULL);
   int pixy = cellpxy * 6;
   int pixx = cellpxx * 6;
-  uint32_t pixels[pixx * pixy];
-  memset(pixels, 0xff, sizeof(pixels));
+  uint32_t* pixels = malloc(sizeof(*pixels) * pixx * pixy);
+  memset(pixels, 0xff, sizeof(*pixels) * pixx * pixy);
   struct ncvisual* ncv = ncvisual_from_rgba(pixels,
                                             6 * cellpxy,
                                             6 * cellpxx * 4,
@@ -145,6 +145,7 @@ wipebitmap(struct notcurses* nc){
   ncvisual_destroy(ncve);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
+  free(pixels);
   return 0;
 }
 
