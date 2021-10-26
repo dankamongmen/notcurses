@@ -57,7 +57,11 @@ int init_banner(const notcurses* nc, fbuf* f){
                        14 % nc->tcache.caps.colors : 0x2080e0);
       fbuf_putc(f, '+');
     }
-    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo from %s zlib %s GPM %s" NL,
+    // we want the terminfo version, which is tied to ncurses
+    const char* ncursesver = curses_version();
+    const char* ncver = strchr(ncursesver, ' ');
+    ncver = ncver ? ncver + 1 : ncursesver;
+    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo %s zlib %s GPM %s" NL,
                 nc->tcache.caps.colors, clreol,
 #ifdef __clang__
             "", // name is contained in __VERSION__
@@ -78,7 +82,7 @@ int init_banner(const notcurses* nc, fbuf* f){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            clreol, curses_version(), zlibVersion(), gpm_version());
+            clreol, ncver, zlibVersion(), gpm_version());
     fbuf_puts(f, clreol); // for ncvisual banner
     ncvisual_printbanner(f);
     init_banner_warnings(nc, f, clreol);
