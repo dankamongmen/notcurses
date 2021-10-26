@@ -2021,7 +2021,9 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 // On success, returns the number of columns written. On failure, returns -1.
 static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  char utf8c[MB_CUR_MAX + 1];
+  // we use MB_LEN_MAX (and potentially "waste" a few stack bytes to avoid
+  // the greater sin of a VLA (and to be locale-independent).
+  char utf8c[MB_LEN_MAX + 1];
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
   size_t s = wcrtomb(utf8c, w, &ps);
