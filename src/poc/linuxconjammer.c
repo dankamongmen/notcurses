@@ -66,7 +66,7 @@ is_linux_console(int fd){
 //
 //  height * rowbytes, where rowbytes = width + 7 / 8
 static int
-explode_glyph_row(const unsigned char** row, unsigned width){
+explode_glyph_row(unsigned char** row, unsigned width){
   unsigned char mask = 0x80;
   while(width--){
     printf("%s", **row & mask ? "*" : " ");
@@ -200,7 +200,7 @@ jam_linux_consolefont(int fd, unsigned showglyphs, unsigned* upper, unsigned* lo
   if(showglyphs){
     // FIXME get real screen width
     const int atonce = 80 / (cfo.width + 1);
-    const unsigned char* g[atonce];
+    unsigned char** g = malloc(sizeof(*g) * atonce);
     for(unsigned i = 0 ; i < cfo.charcount ; i += atonce){
       for(int o = 0 ; o < atonce ; ++o){
         g[o] = (unsigned char*)cfo.data + Bper(&cfo) * (i + o);
@@ -213,6 +213,7 @@ fprintf(stderr, "Bper: %zu %d at %p\n", Bper(&cfo), i + o, g[o]);
         printf("\n");
       }
     }
+    free(g);
   }
   free(cfo.data);
   return 0;
