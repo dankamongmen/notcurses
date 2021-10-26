@@ -1383,8 +1383,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   if(xlen < 2 || ylen < 2){
     return -1;
   }
-  char hl[MB_CUR_MAX + 1];
-  char vl[MB_CUR_MAX + 1];
+  char hl[MB_LEN_MAX + 1];
+  char vl[MB_LEN_MAX + 1];
   unsigned edges;
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
