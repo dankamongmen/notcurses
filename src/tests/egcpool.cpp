@@ -119,7 +119,7 @@ TEST_CASE("EGCpool") {
     std::vector<int> candidates;
     char* firstalloc = nullptr;
     for(auto i = 0u ; i < 1u << 20u ; ++i){
-      char mb[MB_CUR_MAX + 1];
+      char mb[MB_LEN_MAX + 1];
       wchar_t wcs = i + 0x80;
       auto r = wctomb(mb, wcs);
       if(r < 0){
@@ -138,7 +138,7 @@ TEST_CASE("EGCpool") {
     REQUIRE(pool_.pool != firstalloc);
     for(auto i = 0u ; i < candidates.size() ; ++i){
       auto stored = pool_.pool + candidates[i];
-      char mb[MB_CUR_MAX + 1];
+      char mb[MB_LEN_MAX + 1];
       wchar_t wcs = i + 0x80;
       auto r = wctomb(mb, wcs);
       if(r < 0){
@@ -158,7 +158,7 @@ TEST_CASE("EGCpool") {
     std::vector<int> candidates;
     char* curpool = nullptr;
     for(auto i = 0u ; i < 1u << 20u ; ++i){
-      char mb[MB_CUR_MAX + 1];
+      char mb[MB_LEN_MAX + 1];
       wchar_t wcs = (i % 0x1000) + 0x80;
       auto r = wctomb(mb, wcs);
       if(r < 0){
@@ -190,7 +190,7 @@ TEST_CASE("EGCpool") {
         continue;
       }
       auto stored = pool_.pool + candidates[i];
-      char mb[MB_CUR_MAX + 1];
+      char mb[MB_LEN_MAX + 1];
       wchar_t wcs = (i % 0x1000) + 0x80;
       auto r = wctomb(mb, wcs);
       if(r < 0){
@@ -219,7 +219,7 @@ TEST_CASE("EGCpoolLong" * doctest::skip(true)) {
     wchar_t wcs = 0x4e00;
     uint64_t total = 0;
     while(true){
-      char mb[MB_CUR_MAX + 1];
+      char mb[MB_LEN_MAX + 1];
       auto r = wctomb(mb, wcs);
       CHECK(0 < r);
       REQUIRE(sizeof(mb) >= r);
