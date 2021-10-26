@@ -36,6 +36,20 @@ notcurses_capabilities - runtime capability detection
 
 **bool notcurses_canbraille(const struct notcurses* ***nc***);**
 
+**bool notcurses_canpixel(const struct notcurses* ***nc***);**
+
+```c
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  NCPIXEL_KITTY_STATIC,    // kitty pre-0.20.0
+  NCPIXEL_KITTY_ANIMATED,  // kitty pre-0.22.0
+  NCPIXEL_KITTY_SELFREF,   // kitty 0.22.0+, wezterm
+} ncpixelimpl_e;
+```
+
 **ncpixelimpl_e notcurses_check_pixel_support(struct notcurses* ***nc***);**
 
 # DESCRIPTION
@@ -88,7 +102,7 @@ these functions return **true** unless UTF-8 encoding is in use.
 
 **notcurses_check_pixel_support** returns a non-zero pixel implementation
 if bitmap support (via any mechanism) has been detected, and otherwise 0
-(**NCPIXEL_NONE**).
+(**NCPIXEL_NONE**). **notcurses_canpixel** folds this down to a boolean.
 
 # NOTES
 

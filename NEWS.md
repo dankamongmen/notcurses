@@ -35,7 +35,7 @@ rearrangements of Notcurses.
     now a `struct notcurses*` rather than a `struct ncplane*`.
   * `ncvisual_render()` has been deprecated in favor of the new function
     `ncvisual_blit()`. When a `NULL` `vopts->n` is passed to `ncvisual_blit()`,
-    a new plane is created (as it was in `ncvisual_render()`, but that plane
+    a new plane is created (as it was in `ncvisual_render()`), but that plane
     is the root of a new pile, rather than a child of the standard plane.
     The only tricky conversion is if you previously had `vopts.n` as `NULL`,
     and were not using `NCVISUAL_OPTION_CHILDPLANE` (or were passing `NULL`
