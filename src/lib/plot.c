@@ -123,10 +123,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   if(ncp->plot.labelaxisd){ \
     /* show the *top* of each interval range */ \
     for(int y = 0 ; y < dimy ; ++y){ \
-      uint64_t channels = 0; \
-      calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                             ncp->plot.maxchannels, ncp->plot.maxchannels, y, 0, dimy, dimx); \
-      ncplane_set_channels(ncp->plot.ncp, channels); \
+      ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[y * states]); \
       char buf[PREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
@@ -146,10 +143,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
       } \
     } \
   }else if(strlen(ncp->plot.title)){ \
-    uint64_t channels = 0; \
-    calc_gradient_channels(&channels, ncp->plot.minchannels, ncp->plot.minchannels, \
-                           ncp->plot.maxchannels, ncp->plot.maxchannels, dimy - 1, 0, dimy, dimx); \
-    ncplane_set_channels(ncp->plot.ncp, channels); \
+    ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[(dimy - 1) * states]); \
     ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
   } \
   ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
@@ -163,6 +157,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   if(pixels == NULL){ \
     return -1; \
   } \
+  /* FIXME just zero out as we copy to each */ \
   memset(pixels, 0, dimy * dimx * states * scale * sizeof(*pixels)); \
   /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
   T* gvals = malloc(sizeof(*gvals) * scale); \
