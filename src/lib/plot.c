@@ -17,6 +17,7 @@ typedef struct ncplot {
   uint64_t minchannels;
   uint16_t legendstyle;
   bool vertical_indep; /* not yet implemented FIXME */
+  unsigned chancount; // channel count (can change on cell-pixel geom change)
   uint64_t* channels; // computed in calculate_gradient_vector() (constructor)
   const struct blitset* bset;
   char* title;
@@ -55,21 +56,27 @@ create_pixelp(ncplot *p, ncplane* n){
   return 0;
 }
 
-// we have some gradient across the life of the plot. if we're using cell
-// blitting, we only get one channel pair per row, no matter what height
-// we have. with pixels, we get cellpixy * rows.
+// we have some color gradient across the life of the plot (almost; it gets
+// recalculated if the cell-pixel geometry changes and we're using
+// NCBLIT_PIXEL). if we're using cell blitting, we only get one channel pair
+// per row, no matter what height we have. with pixels, we get cellpixy * rows.
 static int
 calculate_gradient_vector(ncplot* p, unsigned pixelp){
   const int dimy = ncplane_dim_y(p->ncp);
-  const int states = pixelp ? ncplane_notcurses(p->ncp)->tcache.cellpixy : 1;
-  p->channels = malloc(dimy * states * sizeof(*p->channels));
-  if(p->channels == NULL){
+  const unsigned states = dimy * (pixelp ? ncplane_notcurses(p->ncp)->tcache.cellpixy : 1);
+  if(states == p->chancount){ // no need to recalculate
+    return 0;
+  }
+  uint64_t* tmp = realloc(p->channels, states * sizeof(*p->channels));
+  if(tmp == NULL){
     return -1;
   }
-  for(int y = 0 ; y < dimy * states ; ++y){ \
+  p->channels = tmp;
+  p->chancount = states;
+  for(unsigned y = 0 ; y < p->chancount ; ++y){ \
     calc_gradient_channels(&p->channels[y], p->minchannels, p->minchannels,
-                            p->maxchannels, p->maxchannels,
-                            y, 0, dimy * states, 0);
+                           p->maxchannels, p->maxchannels,
+                           y, 0, p->chancount, 0);
   }
   return 0;
 }
@@ -83,6 +90,9 @@ typedef struct nc##X##plot { \
 } nc##X##plot; \
 \
 int redraw_pixelplot_##T(nc##X##plot* ncp){ \
+  if(calculate_gradient_vector(&ncp->plot, 1)){ \
+    return -1; \
+  } \
   const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
   ncplane_erase(ncp->plot.ncp); \
   int dimy, dimx; \
@@ -254,6 +264,9 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
 int redraw_plot_##T(nc##X##plot* ncp){ \
   if(ncp->plot.bset->geom == NCBLIT_PIXEL){ \
     return redraw_pixelplot_##T(ncp); \
+  } \
+  if(calculate_gradient_vector(&ncp->plot, 0)){ \
+    return -1; \
   } \
   ncplane_erase(ncp->plot.ncp); \
   const int scale = ncp->plot.bset->width; \
@@ -514,10 +527,8 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   } \
   ncpp->plot.slotstart = 0; \
   ncpp->plot.slotx = 0; \
-  if(calculate_gradient_vector(&ncpp->plot, bset->geom == NCBLIT_PIXEL)){ \
-    ncplane_destroy(n); \
-    return NULL; \
-  } \
+  ncpp->plot.chancount = 0; \
+  ncpp->plot.channels = NULL; \
   if(bset->geom == NCBLIT_PIXEL){ \
     if(create_pixelp(&ncpp->plot, n)){ \
       ncplane_destroy(n); \
