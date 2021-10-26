@@ -215,6 +215,7 @@ int fission_demo(struct notcurses* nc){
     }
     assert(ncvisual_decode(ncv) == 1);
     ncvisual_destroy(ncv);
+    ncplane_move_above(npl, stdn);
   }
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
