@@ -154,9 +154,13 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
     return -1; \
   } \
   memset(pixels, 0, dimy * dimx * states * scale * sizeof(*pixels)); \
-  int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
   /* a column corresponds to |scale| slots' worth of samples. prepare the working gval set. */ \
-  T gvals[scale]; \
+  T* gvals = malloc(sizeof(*gvals) * scale); \
+  if(gvals == NULL){ \
+    free(pixels); \
+    return -1; \
+  } \
+  int idx = ncp->plot.slotstart; /* idx holds the real slot index; we move backwards */ \
   /* iterate backwards across the plot from the final (rightmost) x being \
      plotted (finalx) to the first (leftmost) x being plotted (startx).   */ \
   for(int x = finalx ; x >= startx ; --x){ \
@@ -230,6 +234,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   ncplane_home(ncp->plot.ncp); \
   struct ncvisual* ncv = ncvisual_from_rgba(pixels, dimy * states, dimx * scale * 4, dimx * scale); \
   free(pixels); \
+  free(gvals); \
   if(ncv == NULL){ \
     return -1; \
   } \
