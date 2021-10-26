@@ -693,7 +693,7 @@ bool is_linux_console(int fd){
   }
   int mode;
   if(ioctl(fd, KDGETMODE, &mode)){
-    logdebug("not a Linux console, KDGETMODE failed\n");
+    logdebug("not a Linux console (no KDGETMODE)\n");
     return false;
   }
   loginfo("verified Linux console, mode %d\n", mode);
