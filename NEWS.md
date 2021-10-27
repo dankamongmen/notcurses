@@ -11,6 +11,16 @@ rearrangements of Notcurses.
     `notcurses_options`, for which I make no apology. If you've been avoiding
     deprecated functionality, ABI3 ought require small changes, if any.
 
+* 2.4.9 (not yet released)
+  * On transition between `ncplane`s (on terminals implementing complex wide
+    glyphs), Notcurses now always issues an `hpa` sequence to force horizontal
+    positioning. This fixes a number of longstanding bugs in e.g. the
+    `[uniblock]` and `[whiteout]` demos at the cost of some extra control
+    sequences. For more information, see
+    [issue 2199](https://github.com/dankamongmen/notcurses/issues/2199). The
+    number of `hpa`s issued in this manner is tracked in a new stat,
+    `hpa_gratuitous`.
+
 * 2.4.8 (2021-10-23)
   * Added new functions `notcurses_canpixel()` and `notcurses_osversion()`.
   * `notcurses_get()` now evaluates its timeout against `CLOCK_MONOTONIC`
