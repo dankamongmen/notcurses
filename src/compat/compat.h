@@ -7,6 +7,7 @@ extern "C" {
 
 #include <time.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <sys/types.h>
 
 #define NANOSECS_IN_SEC 1000000000ul
