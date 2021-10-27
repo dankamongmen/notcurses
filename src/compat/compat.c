@@ -1,4 +1,5 @@
 #include "compat/compat.h"
+#include <pthread.h>
 #ifdef  __MINGW64__
 #include <string.h>
 #include <stdlib.h>
@@ -44,11 +45,38 @@ pid_t waitpid(pid_t pid, int* state, int options){ // FIXME
   */
   return 0;
 }
+
+int pthread_condmonotonic_init(pthread_cond_t* cond){
+  if(pthread_cond_init(cond, &cat)){
+    return -1;
+  }
+  return 0;
+}
 #else // not windows
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+// initializes a pthread_cond_t to use CLOCK_MONOTONIC (as opposed to the
+// default CLOCK_REALTIME) if possible. if not possible, initializes a
+// regular ol' CLOCK_REALTIME condvar.
+int pthread_condmonotonic_init(pthread_cond_t* cond){
+  pthread_condattr_t cat;
+  if(pthread_condattr_init(&cat)){
+    return -1;
+  }
+  if(pthread_condattr_setclock(&cat, CLOCK_MONOTONIC)){
+    pthread_condattr_destroy(&cat);
+    return -1;
+  }
+  if(pthread_cond_init(cond, &cat)){
+    pthread_condattr_destroy(&cat);
+    return -1;
+  }
+  pthread_condattr_destroy(&cat);
+  return 0;
+}
+
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   int flags = fcntl(fd, F_GETFL);
   if(flags < 0){

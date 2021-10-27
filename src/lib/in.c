@@ -1396,9 +1396,9 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
       i->isize = BUFSIZ;
       if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
         if(pthread_mutex_init(&i->ilock, NULL) == 0){
-          if(pthread_cond_init(&i->icond, NULL) == 0){
+          if(pthread_condmonotonic_init(&i->icond) == 0){
             if(pthread_mutex_init(&i->clock, NULL) == 0){
-              if(pthread_cond_init(&i->ccond, NULL) == 0){
+              if(pthread_condmonotonic_init(&i->ccond) == 0){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
@@ -2079,7 +2079,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(ts == NULL){
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
     }else{
-      int r = pthread_cond_clockwait(&ictx->icond, &ictx->ilock, CLOCK_MONOTONIC, ts);
+      int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
       if(r == ETIMEDOUT){
         pthread_mutex_unlock(&ictx->ilock);
         return 0;
@@ -2119,15 +2119,17 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   return id;
 }
 
+// FIXME kill off for API3, and expect an absolute deadline directly
 static void
 delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
   if(ts){
     // incoming ts is a delay bound, but we want an absolute deadline for
-    // pthread_cond_timedwait(). convert it.
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    absdl->tv_sec = ts->tv_sec + tv.tv_sec;
-    absdl->tv_nsec = ts->tv_nsec + tv.tv_usec * 1000;
+    // pthread_cond_timedwait(). convert it, using CLOCK_MONOTONIC (we
+    // initialized the condvar with pthread_condmonotonic_init()).
+    struct timespec tspec;
+    clock_gettime(CLOCK_MONOTONIC, &tspec);
+    absdl->tv_sec = ts->tv_sec + tspec.tv_sec;
+    absdl->tv_nsec = ts->tv_nsec + tspec.tv_nsec;
     if(absdl->tv_nsec > 1000000000){
       ++absdl->tv_sec;
       absdl->tv_nsec -= 1000000000;
