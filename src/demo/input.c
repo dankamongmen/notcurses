@@ -17,8 +17,8 @@ static int input_pipefds[2] = {-1, -1};
 static pthread_t tid;
 static nciqueue* queue;
 static nciqueue** enqueue = &queue;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond; // use pthread_condmonotonic_init()
 
 static int
 handle_mouse(const ncinput* ni){
@@ -71,7 +71,7 @@ uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
         pthread_mutex_unlock(&lock);
         return 0;
       }
-      pthread_cond_clockwait(&cond, &lock, CLOCK_MONOTONIC, &abstime);
+      pthread_cond_timedwait(&cond, &lock, &abstime);
     }
     nciqueue* q = queue;
     queue = queue->next;
@@ -153,6 +153,10 @@ int input_dispatcher(struct notcurses* nc){
   if(input_pipefds[0] >= 0){
     return -1;
   }
+  if(pthread_condmonotonic_init(&cond)){
+    fprintf(stderr, "error creating monotonic condvar\n");
+    return -1;
+  }
   // freebsd doesn't have eventfd :/ and apple doesn't even have pipe2() =[ =[
   // omg windows doesn't have pipe() fml FIXME
 #ifndef __MINGW64__
@@ -182,6 +186,7 @@ int stop_input(void){
     ret |= close(input_pipefds[0]);
     ret |= close(input_pipefds[1]);
     input_pipefds[0] = input_pipefds[1] = -1;
+    ret |= pthread_cond_destroy(&cond);
   }
   return ret;
 }

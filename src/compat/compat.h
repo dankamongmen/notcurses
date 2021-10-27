@@ -67,10 +67,11 @@ struct winsize {
 #include <sys/ioctl.h>
 #endif
 
-#ifndef _USE_GNU
-// FIXME actually implement this honoring c: CLOCK_MONOTONIC
-#define pthread_cond_clockwait(a, b, c, d) pthread_cond_timedwait(a, b, d)
-#endif
+// initializes a pthread_cond_t to use CLOCK_MONOTONIC (as opposed to the
+// default CLOCK_REALTIME) if possible. if not possible, initializes a
+// regular ol' CLOCK_REALTIME condvar. this eliminates the need for
+// pthread_cond_clockwait(), which is highly nonportable.
+int pthread_condmonotonic_init(pthread_cond_t* cond);
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate);
