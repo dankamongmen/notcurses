@@ -423,7 +423,7 @@ send_initial_queries(int fd, bool minimal, bool noaltscreen){
     }
   }
   size_t len = strlen(queries);
-  loginfo("sending %lluB queries\n", (unsigned long long)len);
+  loginfo("sending %lluB\n", (unsigned long long)len);
   if(blocking_write(fd, queries, len)){
     return -1;
   }
