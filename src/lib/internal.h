@@ -1324,33 +1324,6 @@ cell_blend_bchannel(nccell* cl, unsigned channel, unsigned* blends){
   return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 }
 
-// examine the UTF-8 EGC in the first |*bytes| bytes of |egc|. if the EGC is
-// right-to-left, we make a copy, appending an U+200E to force left-to-right.
-// only the first unicode char of the EGC is currently checked FIXME. if the
-// EGC is not RTL, we return NULL.
-ALLOC static inline char*
-egc_rtl(const char* egc, int* bytes){
-  wchar_t w;
-  mbstate_t mbstate = { };
-  size_t r = mbrtowc(&w, egc, *bytes, &mbstate);
-  if(r == (size_t)-1 || r == (size_t)-2){
-    return NULL;
-  }
-  const int bidic = uc_bidi_category(w);
-//fprintf(stderr, "BIDI CAT (%lc): %d\n", w, bidic);
-  if(bidic != UC_BIDI_R && bidic != UC_BIDI_AL && bidic != UC_BIDI_RLE && bidic != UC_BIDI_RLO){
-    return NULL;
-  }
-  // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction
-  // after emitting a potentially RTL EGC.
-  const char LTRMARK[] = "\xe2\x80\x8e";
-  char* s = (char*)malloc(*bytes + sizeof(LTRMARK)); // cast for C++ callers
-  memcpy(s, egc, *bytes);
-  memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
-  *bytes += strlen(LTRMARK);
-  return s;
-}
-
 // a sprixel occupies the entirety of its associated plane, usually an entirely
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
 static inline int
@@ -1418,21 +1391,12 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
   return bytes;
 }
 
-// Do an RTL-check, reset the quadrant occupancy bits, and pass the cell down to
+// Reset the quadrant occupancy bits, and pass the cell down to
 // pool_blit_direct(). Returns the number of bytes loaded.
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
-  char* rtl = NULL;
   c->channels &= ~NC_NOBACKGROUND_MASK;
-  if(bytes >= 0){
-    rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
-  }
-  if(rtl){
-    gcluster = rtl;
-  }
-  int r = pool_blit_direct(pool, c, gcluster, bytes, cols);
-  free(rtl);
-  return r;
+  return pool_blit_direct(pool, c, gcluster, bytes, cols);
 }
 
 static inline int

@@ -479,13 +479,6 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>Why does my right-to-left text appear left-to-right?</summary>
-  Notcurses doesn't honor the BiDi state machine, and in fact forces
-  left-to-right with BiDi codes. Likewise, ultra-wide glyphs will have
-  interesting effects. ﷽!
-</details>
-
-<details>
   <summary>I get linker errors when statically linking.</summary>
   Are you linking all necessary libraries? Use
   <code>pkg-config --static --libs notcurses</code>
