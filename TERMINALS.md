@@ -67,7 +67,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
 | [Alacritty](https://github.com/alacritty/alacritty)       | ✅         |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
-| [Contour](https://github.com/christianparpart/contour)    | ❌         |  ✅   |?       |`TERM=contour-latest` ?            | Claims Sixel support             |
+| [Contour](https://github.com/christianparpart/contour)    | ✅         |  ✅   |✅       |`TERM=contour`             | Sixel support.             |
 | [ETerm](https://github.com/mej/Eterm) | | | | `TERM=Eterm` | Doesn't reply to Send Device Attributes |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)  | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
