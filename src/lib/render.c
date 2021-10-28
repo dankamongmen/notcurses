@@ -1322,7 +1322,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
-    goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx, NULL);
+    goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx, nc->rstate.lastsrcp);
     if(fbuf_flush(f, nc->ttyfp)){
       ret = -1;
     }
