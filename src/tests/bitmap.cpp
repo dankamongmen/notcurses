@@ -185,6 +185,7 @@ TEST_CASE("Bitmaps") {
     vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.scaling = NCSCALE_STRETCH;
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
