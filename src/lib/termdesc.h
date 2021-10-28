@@ -167,6 +167,8 @@ typedef struct tinfo {
   struct termios *tpreserved;// terminal state upon entry
   struct inputctx* ictx;     // new input layer
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
+  // ought we issue gratuitous HPAs to work around ambiguous widths?
+  unsigned gratuitous_hpa;
 
   // if we get a reply to our initial \e[18t cell geometry query, it will
   // replace these values. note that LINES/COLUMNS cannot be used to limit

@@ -1166,7 +1166,7 @@ goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
   const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
   if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
     if(nc->rstate.x == x){
-      if(nc->rstate.lastsrcp == srcp){
+      if(nc->rstate.lastsrcp == srcp || !nc->tcache.gratuitous_hpa){
         return 0; // needn't move shit
       }
       ++nc->stats.s.hpa_gratuitous;

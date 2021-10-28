@@ -585,6 +585,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     // kitty SUM doesn't want long sequences, which is exactly where we use
     // it. remove support (we pick it up from queries).
     kill_appsync_escapes(ti);
+    ti->gratuitous_hpa = true;
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
     ti->caps.quadrants = true;
