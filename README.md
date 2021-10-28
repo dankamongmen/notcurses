@@ -217,8 +217,8 @@ each release. Download it, and install the contents as you deem fit.
 
 Glyph width, and indeed whether a glyph can be displayed at all, is dependent
 in part on the font configuration. Ideally, your font configuration has a
-glyph for every Unicode EGC, and each glyph's width matches up with the C
-library's `wcswidth()` result for the EGC. If this is not the case, you'll
+glyph for every Unicode EGC, and each glyph's width matches up with the POSIX
+function's `wcswidth()` result for the EGC. If this is not the case, you'll
 likely get blanks or � (U+FFFD, REPLACEMENT CHARACTER) for missing characters,
 and subsequent characters on the line may be misplaced.
 
@@ -235,8 +235,8 @@ inspect your environment's rendering of drawing characters, run
 ## FAQs
 
 If things break or seem otherwise lackluster, **please** consult the
-[Environment Notes](#environment-notes) section! You **need** to have a correct
-`TERM` and `LANG` definition, and probably want `COLORTERM`.
+[Environment Notes](#environment-notes) section! You **need** correct
+`TERM` and `LANG` definitions, and might want `COLORTERM`.
 
 <details>
   <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
@@ -317,7 +317,8 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>I'm getting strange and/or duplicate inputs in Kitty.</summary>
-  Notcurses supports Kitty's powerful [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/),
+  Notcurses supports Kitty's powerful
+  <a href="https://sw.kovidgoyal.net/kitty/keyboard-protocol/">keyboard protocol</a>,
   which includes things like key release events and modifier keypresses by
   themselves. This means, among other things, that a program in Kitty will
   usually immediately get an <code>NC_ENTER</code> <code>NCTYPE_RELEASE</code>
@@ -480,7 +481,8 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>Notcurses exits immediately in MSYS2/Cygwin.</summary>
-  Notcurses requires the [Windows ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/)
+  Notcurses requires the
+  <a href="https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/">Windows ConPTY</a>
   layer. This is available in Cygwin by default since 3.2.0, but is disabled
   by default in MSYS. Launch <code>mintty</code> with <code>-P on</code>
   arguments, or export <code>MSYS=enable_pcon</code> before launching it.
@@ -533,15 +535,6 @@ If things break or seem otherwise lackluster, **please** consult the
   than total bytes written to the terminal?</summary>
   Linux framebuffer graphics aren't implemented via terminal writes, but instead
   writes directly into a memory map.
-</details>
-
-<details>
-  <summary>I get a <code>NCKEY_ENTER</code> immediately after launching a Notcurses
-  program, but I didn't press Enter.</summary>
-  When the Kitty keyboard disambiguation protocol is in use, events are
-  generated for both the press and release of keys. If you launched
-  your program from an interactive shell, you almost certainly released
-  enter after the program was launched.
 </details>
 
 ## Useful links
