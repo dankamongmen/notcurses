@@ -1183,7 +1183,7 @@ int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
   const int targx = s->n->absx;
   logdebug("moving %u to %d %d\n", s->id, targy, targx);
   int ret = 0;
-  if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff)){
+  if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff, s->n)){
     ret = -1;
   }else if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
                        noscroll ? ",C=1" : "") < 0){

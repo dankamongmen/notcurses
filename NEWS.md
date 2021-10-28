@@ -196,7 +196,7 @@ rearrangements of Notcurses.
   * Added `ncplane_moverel()`.
   * Documented `ncplane_move_yx()` in `notcurses_plane.3`, and removed the
     false comment that "passing -1 as a coordinate will hold that axis
-    constant" from `USGAE.md` and `notcurses.h`. This has never been true.
+    constant" from `USAGE.md` and `notcurses.h`. This has never been true.
   * Added `ncdirect_putegc()` to perform Unicode segmentation. It returns
     the number of columns consumed, and makes available the number of bytes
     used by the EGC.
@@ -588,10 +588,7 @@ rearrangements of Notcurses.
     * Add new function `ncpile_render()`, which renders the pile containing the
       specified plane to the specified buffer. Add new function
       `ncpile_rasterize()` to rasterize the specified buffer to output.
-  * Added `NCSTYLE_STRUCK` for strikethrough. Note that this is not supported
-    by terminfo, and we instead just hardcode the control sequence. Use at your
-    own risk! If your terminal doesn't support this control sequence, behavior
-    is undefined.
+  * Added `NCSTYLE_STRUCK` for strikethrough.
 
 * 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`

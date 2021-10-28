@@ -128,6 +128,8 @@ typedef struct rasterstate {
   // modified by: output, cursor moves, clearing the screen (during refresh).
   int y, x;
 
+  const ncplane* lastsrcp; // last source plane (we emit hpa on plane changes)
+
   unsigned lastr;   // foreground rgb, overloaded for palindexed fg
   unsigned lastg;
   unsigned lastb;
@@ -1148,13 +1150,14 @@ mouse_disable(tinfo* ti, fbuf* f){
 // sync the drawing position to the specified location with as little overhead
 // as possible (with nothing, if already at the right location). we prefer
 // absolute horizontal moves (hpa) to relative ones, in the rare event that
-// our understanding of our horizontal location is faulty.
+// our understanding of our horizontal location is faulty. if we're moving from
+// one plane to another, we emit an hpa no matter what.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
 // if hardcursorpos is non-zero, we always perform a cup. this is done when we
 // don't know where the cursor currently is =].
 static inline int
-goto_location(notcurses* nc, fbuf* f, int y, int x){
+goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, nc->rstate.hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
@@ -1162,8 +1165,11 @@ goto_location(notcurses* nc, fbuf* f, int y, int x){
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
   const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
   if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
-    if(nc->rstate.x == x){ // needn't move shit
-      return 0;
+    if(nc->rstate.x == x){
+      if(nc->rstate.lastsrcp == srcp){
+        return 0; // needn't move shit
+      }
+      ++nc->stats.s.hpa_gratuitous;
     }
     if(fbuf_emit(f, tiparm(hpa, x))){
       return -1;
@@ -1182,6 +1188,7 @@ goto_location(notcurses* nc, fbuf* f, int y, int x){
   nc->rstate.x = x;
   nc->rstate.y = y;
   nc->rstate.hardcursorpos = 0;
+  nc->rstate.lastsrcp = srcp;
   return ret;
 }
 
