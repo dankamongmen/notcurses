@@ -2473,8 +2473,13 @@ int ncplane_resize_marginalized(ncplane* n){
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > maxy ? maxy : oldy;
   int keeplenx = oldx > maxx ? maxx : oldx;
-  // FIXME place it according to top/left
-  return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx);
+  if(ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx)){
+    return -1;
+  }
+  int targy = maxy - n->margin_b;
+  int targx = maxx - n->margin_b;
+  loginfo("marg %d/%d, pdim %d/%d, move %d/%d\n", n->margin_b, n->margin_r, maxy, maxx, targy, targx);
+  return ncplane_move_yx(n, targy, targx);
 }
 
 int ncplane_resize_maximize(ncplane* n){
