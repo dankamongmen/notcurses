@@ -35,7 +35,6 @@ most of the functionality of Notcurses.
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 ![Windows](https://img.shields.io/badge/-Windows-grey?logo=windows)
 ![macOS](https://img.shields.io/badge/-macOS-grey?logo=macos)
-[![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
 
 [![Linux](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg?branch=master)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml?query=branch%3Amaster)
 [![macOS](https://github.com/dankamongmen/notcurses/actions/workflows/macos_test.yml/badge.svg?branch=master)](https://github.com/dankamongmen/notcurses/actions/workflows/macos_test.yml?query=branch%3Amaster)
@@ -44,6 +43,7 @@ most of the functionality of Notcurses.
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
 
+[![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
 ## Introduction
@@ -243,8 +243,8 @@ If things break or seem otherwise lackluster, **please** consult the
    with Notcurses?</summary>
    Yes! Use the flags <code>NCOPTION_NO_ALTERNATE_SCREEN</code>,
    <code>NCOPTION_NO_CLEAR_BITMAPS</code>, and <code>NCOPTION_PRESERVE_CURSOR</code>,
-   and call `ncplane_set_scrolling()` on the standard plane. You still must
-   explicitly render.
+   and call <code>ncplane_set_scrolling()</code> on the standard plane. You
+   still must explicitly render.
 </details>
 
 <details>
@@ -268,26 +268,28 @@ If things break or seem otherwise lackluster, **please** consult the
   Some of it! You won't be able to build several binaries, nor the NCPP C++
   wrappers, nor can you build with the OpenImageIO multimedia backend (OIIO
   ships C++ headers). You'll be able to build the main library, though, as
-  well as `notcurses-demo` (and maybe a few other binaries).
+  well as <code>notcurses-demo</code> (and maybe a few other binaries).
 </details>
 
 <details>
   <summary>Does it work with hardware terminals?</summary>
-  With the correct `TERM` value, many hardware terminals are supported. The VT100
-  is sadly unsupported due to its extensive need for delays. In general, if the
-  terminfo database entry indicates mandatory delays, Notcurses will not currently
-  support that terminal properly. It's known that Notcurses can drive the VT320
-  and VT340, including Sixel graphics on the latter.
+  With the correct <code>TERM</code> value, many hardware terminals are
+  supported. The VT100 is sadly unsupported due to its extensive need for
+  delays. In general, if the terminfo database entry indicates mandatory
+  delays, Notcurses will not currently support that terminal properly. It's
+  known that Notcurses can drive the VT320 and VT340, including Sixel graphics
+  on the latter.
 </details>
 
 <details>
   <summary>What happens if I try blitting bitmap graphics on a terminal which
   doesn't support them?</summary>
   Notcurses will not make use of bitmap protocols unless the terminal positively
-  indicates support for them, even if `NCBLIT_PIXEL` has been requested. Likewise,
-  sextants (`NCBLIT_3x2`) won't be used without Unicode 13 support, etc.
-  `ncvisual_blit()` will use the best blitter available, unless
-  `NCVISUAL_OPTION_NODEGRADE` is provided (in which case it will fail).
+  indicates support for them, even if <code>NCBLIT_PIXEL</code> has been
+  requested. Likewise, sextants (<code>NCBLIT_3x2</code>) won't be used without
+  Unicode 13 support, etc. <code>ncvisual_blit()</code> will use the best blitter
+  available, unless <code>NCVISUAL_OPTION_NODEGRADE</code> is provided (in
+  which case it will fail).
 </details>
 
 <details>
@@ -309,8 +311,8 @@ If things break or seem otherwise lackluster, **please** consult the
   Go to [Language Settings](ms-settings:regionlanguage), click "Administrative
   language settings", click "Change system locale", and check the "Beta: Use
   Unicode UTF-8 for worldwide language support" option. Restart the computer.
-  That ought help a little bit. Ensure your code page is 65001 with `chcp 65001`.
-  Try playing with fonts.
+  That ought help a little bit. Ensure your code page is 65001 with
+  <code>chcp 65001</code>. Try playing with fonts.
 </details>
 
 <details>
@@ -318,8 +320,8 @@ If things break or seem otherwise lackluster, **please** consult the
   Notcurses supports Kitty's powerful [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/),
   which includes things like key release events and modifier keypresses by
   themselves. This means, among other things, that a program in Kitty will
-  usually immediately get an `NC_ENTER` `NCTYPE_RELEASE` event, and each
-  keypress will typically result in at least two inputs.
+  usually immediately get an <code>NC_ENTER</code> <code>NCTYPE_RELEASE</code>
+  event, and each keypress will typically result in at least two inputs.
 </details>
 
 <details>
@@ -422,7 +424,7 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>How can I use Direct Mode in conjunction with libreadline?</summary>
   You can't anymore (you could up until 2.4.1, but the new input system is
-  fundamentally incompatible with it). `ncdirect_readline()` still exists,
+  fundamentally incompatible with it). <code>ncdirect_readline()</code> still exists,
   though, and now actually works even without libreadline, though it is of
   course not exactly libreadline. In any case, you'd probably be better off
   using CLI mode with a <code>ncreader</code>.
@@ -480,8 +482,8 @@ If things break or seem otherwise lackluster, **please** consult the
   <summary>Notcurses exits immediately in MSYS2/Cygwin.</summary>
   Notcurses requires the [Windows ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/)
   layer. This is available in Cygwin by default since 3.2.0, but is disabled
-  by default in MSYS. Launch `mintty` with `-P on` arguments, or export
-  `MSYS=enable_pcon` before launching it.
+  by default in MSYS. Launch <code>mintty</code> with <code>-P on</code>
+  arguments, or export <code>MSYS=enable_pcon</code> before launching it.
 </details>
 
 <details>
@@ -534,7 +536,7 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>I get a `NCKEY_ENTER` immediately after launching a Notcurses
+  <summary>I get a <code>NCKEY_ENTER</code> immediately after launching a Notcurses
   program, but I didn't press Enter.</summary>
   When the Kitty keyboard disambiguation protocol is in use, events are
   generated for both the press and release of keys. If you launched
