@@ -239,6 +239,18 @@ If things break or seem otherwise lackluster, **please** consult the
 `TERM` and `LANG` definitions, and might want `COLORTERM`.
 
 <details>
+ <summary>Can I use Notcurses in my closed-source program?</summary>
+ Notcurses is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache2</a>,
+ a demonstration that I have transcended your petty world of material goods,
+ fiat currencies, and closed sources. Implement Microsoft Bob in it. Charge
+ rubes for it. Put it in your ballistic missiles so that you have a nice LED
+ display of said missile's speed and projected yield; right before impact,
+ scroll "FUCK YOU" in all the world's languages, and close it out with a smart
+ palette fade. Carve the compiled objects onto bricks and mail them to Richard
+ Stallman, taunting him through a bullhorn as you do so.
+</details>
+
+<details>
   <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
    with Notcurses?</summary>
    Yes! Use the flags <code>NCOPTION_NO_ALTERNATE_SCREEN</code>,
@@ -308,11 +320,11 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>Notcurses looks like absolute crap in Windows Terminal.</summary>
-  Go to [Language Settings](ms-settings:regionlanguage), click "Administrative
-  language settings", click "Change system locale", and check the "Beta: Use
-  Unicode UTF-8 for worldwide language support" option. Restart the computer.
-  That ought help a little bit. Ensure your code page is 65001 with
-  <code>chcp 65001</code>. Try playing with fonts.
+  Go to <a href="ms-settings:regionlanguage">Language Setting</a>, click
+  "Administrative language settings", click "Change system locale", and check
+  the "Beta: Use Unicode UTF-8 for worldwide language support" option. Restart
+  the computer. That ought help a little bit. Ensure your code page is 65001
+  with <code>chcp 65001</code>. Try playing with fonts.
 </details>
 
 <details>
@@ -334,8 +346,8 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>I'm not seeing <code>NCKEY_RESIZE</code> until I press
-  some other key.</summary>
+  <summary>My multithreaded program doesn't see <code>NCKEY_RESIZE</code> until
+  I press some other key.</summary>
   You've almost certainly failed to mask <code>SIGWINCH</code> in some thread,
   and that thread is receiving the signal instead of the thread which called
   <code>notcurses_getc_blocking()</code>. As a result, the <code>poll()</code>
@@ -498,7 +510,7 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>How about *arbitrary image manipulation here* functionality?</summary>
+  <summary>How about <i>arbitrary image manipulation here</i> functionality?</summary>
   I'm not going to beat ImageMagick et al. on image manipulation, but you can
   load an <code>ncvisual</code> from RGBA memory using
   <code>ncvisual_from_rgba()</code>.
