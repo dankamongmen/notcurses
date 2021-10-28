@@ -1010,7 +1010,7 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   if(p){
     const int targy = s->n->absy + yoff;
     const int targx = s->n->absx + xoff;
-    if(goto_location(p->nc, f, targy, targx)){
+    if(goto_location(p->nc, f, targy, targx, NULL)){
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){

@@ -1035,6 +1035,8 @@ da2_cb(inputctx* ictx){
   if(pv == 0){
     return 2;
   }
+  // modern XTerm replies to XTVERSION, but older versions require extracting
+  // the version from secondary DA
   if(ictx->initdata->qterm == TERMINAL_XTERM){
     if(ictx->initdata->version == NULL){
       char ver[8];
@@ -1217,11 +1219,14 @@ tcap_cb(inputctx* ictx){
   // 'TN' (Terminal Name)
   if(strncasecmp(str, "544e=", 5) == 0){
     const char* tn = str + 5;
+    // FIXME clean this crap up
     if(strcasecmp(tn, "6D6C7465726D") == 0){
       ictx->initdata->qterm = TERMINAL_MLTERM;
+    }else if(strcasecmp(tn, "787465726d") == 0){
+      ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
     }else if(strcasecmp(tn, "787465726d2d6b69747479") == 0){
-      ictx->initdata->qterm = TERMINAL_KITTY;
-    }else if(strcasecmp(tn, "787465726D2D323536636F6C6F72") == 0){
+      ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
+    }else if(strcasecmp(tn, "787465726d2d323536636f6c6f72") == 0){
       ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
     }else{
       logdebug("unknown terminal name %s\n", tn);

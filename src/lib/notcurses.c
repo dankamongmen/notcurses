@@ -1093,7 +1093,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
-    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx)){
+    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx, NULL)){
       goto err;
     }
   }
@@ -1227,7 +1227,7 @@ int notcurses_stop(notcurses* nc){
         fbuf_putc(&nc->rstate.f, '\n');
         --targy;
       }
-      goto_location(nc, &nc->rstate.f, targy, 0);
+      goto_location(nc, &nc->rstate.f, targy, 0, NULL);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
     if(nc->stdplane){

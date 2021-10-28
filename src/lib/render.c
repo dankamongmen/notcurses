@@ -976,7 +976,7 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
   if(p->nc->tcache.pixel_scroll){
     p->nc->tcache.pixel_scroll(p, &p->nc->tcache, scrolls);
   }
-  if(goto_location(p->nc, f, p->dimy, 0)){
+  if(goto_location(p->nc, f, p->dimy, 0, NULL)){
     return -1;
   }
   // terminals advertising 'bce' will scroll in the current background color;
@@ -1018,7 +1018,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
       if(nc->tcache.pixel_commit){
         int y, x;
         ncplane_abs_yx(s->n, &y, &x);
-        if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l)){
+        if(goto_location(nc, f, y + nc->margin_t, x + nc->margin_l, NULL)){
           return -1;
         }
         if(sprite_commit(&nc->tcache, f, s, false)){
@@ -1107,7 +1107,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         // was not above a sprixel (and the cell is damaged). in the second
         // phase, we draw everything that remains damaged.
         ++nc->stats.s.cellemissions;
-        if(goto_location(nc, f, y, x)){
+        if(goto_location(nc, f, y, x, rvec[damageidx].p)){
           return -1;
         }
         // set the style. this can change the color back to the default; if it
@@ -1322,7 +1322,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
-    goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx);
+    goto_location(nc, f, nc->rstate.logendy, nc->rstate.logendx, NULL);
     if(fbuf_flush(f, nc->ttyfp)){
       ret = -1;
     }
@@ -1341,18 +1341,10 @@ int clear_and_home(notcurses* nc, tinfo* ti, fbuf* f){
       goto success;
     }
   }
-  const ncplane* stdn = notcurses_stdplane_const(nc);
-  // clearscr didn't fly. try scrolling everything off. first, go to the
-  // bottom of the screen, then write N newlines.
-  if(goto_location(nc, f, ncplane_dim_y(stdn) - 1, 0)){
+  if(emit_scrolls(ti, ncplane_dim_y(notcurses_stdplane_const(nc)), f)){
     return -1;
   }
-  for(int y = 0 ; y < ncplane_dim_y(stdn) ; ++y){
-    if(fbuf_putc(f, '\n') < 0){
-      return -1;
-    }
-  }
-  if(goto_location(nc, f, 0, 0)){
+  if(goto_location(nc, f, 0, 0, NULL)){
     return -1;
   }
 
@@ -1682,7 +1674,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     return -1;
   }
   // updates nc->rstate.cursor{y,x}
-  if(goto_location(nc, &f, y + nc->margin_t, x + nc->margin_l)){
+  if(goto_location(nc, &f, y + nc->margin_t, x + nc->margin_l, nc->rstate.lastsrcp)){
     fbuf_free(&f);
     return -1;
   }

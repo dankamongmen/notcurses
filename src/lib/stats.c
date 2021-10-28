@@ -204,10 +204,11 @@ void summarize_stats(notcurses* nc){
             1, minbuf, 1),
     bprefix(stats->renders ? stats->render_bytes / stats->renders : 0, 1, avgbuf, 1);
     bprefix(stats->render_max_bytes, 1, maxbuf, 1),
-    fprintf(stderr, "%s%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s" NL,
+    fprintf(stderr, "%s%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s Ghpa: %"PRIu64 NL,
             clreol, totalbuf, minbuf, avgbuf, maxbuf,
             stats->input_events,
-            stats->input_events == 1 ? "" : "s");
+            stats->input_events == 1 ? "" : "s",
+            stats->hpa_gratuitous);
   }
   fprintf(stderr, "%s%"PRIu64" failed render%s, %"PRIu64" failed raster%s, %"
                   PRIu64" refresh%s, %"PRIu64" input error%s" NL,
@@ -216,14 +217,13 @@ void summarize_stats(notcurses* nc){
           stats->refreshes, stats->refreshes == 1 ? "" : "es",
           stats->input_errors, stats->input_errors == 1 ? "" : "s");
   fprintf(stderr, "%sRGB emits:elides: def %"PRIu64":%"PRIu64" fg %"PRIu64":%"
-                  PRIu64" bg %"PRIu64":%"PRIu64" Ghpa: %"PRIu64 NL,
+                  PRIu64" bg %"PRIu64":%"PRIu64 NL,
           clreol, stats->defaultemissions,
           stats->defaultelisions,
           stats->fgemissions,
           stats->fgelisions,
           stats->bgemissions,
-          stats->bgelisions,
-          stats->hpa_gratuitous);
+          stats->bgelisions);
   fprintf(stderr, "%sCell emits:elides: %"PRIu64":%"PRIu64" (%.2f%%) %.2f%% %.2f%% %.2f%%" NL,
           clreol, stats->cellemissions, stats->cellelisions,
           (stats->cellemissions + stats->cellelisions) == 0 ? 0 :
