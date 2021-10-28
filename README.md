@@ -117,7 +117,6 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
-* (OPTIONAL) (rust bindings): rust 1.47.0+, [bindgen](https://crates.io/crates/bindgen) 0.55.1+, pkg-config 0.3.18+, cty 0.2.1+
 * (runtime) Linux 5.3+, FreeBSD 11+, DragonFly BSD 5.9+, Windows Vista+, or macOS 11.4+
 
 [Here's more information](INSTALL.md) on building and installation.
@@ -450,7 +449,9 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>Will there ever be Java wrappers?</summary>
   I should hope not. If you want a Java solution, try Autumn Lamonte's
-  <a href="https://jexer.sourceforge.io/">Jexer</a>.
+  <a href="https://jexer.sourceforge.io/">Jexer</a>. Autumn's a good
+  woman, and thorough. We seem to have neatly partitioned the language
+  space.
 </details>
 
 <details>
