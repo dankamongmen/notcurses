@@ -269,15 +269,20 @@ are best avoided until the problems are better understood:
 ## Notes for terminal authors
 
 The `notcurses-info` tool built as part of Notcurses can be used to inspect
-how well your terminal supports Notcurses. It is generally desirable that:
+how well your terminal supports Notcurses. It is generally desirable that your
+terminal:
 
-* Your terminal draw Unicode's Line- and Box-Drawing characters itself,
-  rather than relying on the font.
-* Your terminal support some graphics protocol, ideally Kitty's. If you
-  support Sixel instead, implement `XTSMGRAPHICS`.
-* Implement a keyboard disambiguation protocol, ideally Kitty's.
-* Implement `hpa`, for absolute horizontal positioning.
-* Size EGCs according to the largest `wcwidth()` result returned for any
-  of the component characters.
-* Honor Unicode rules for segmentation, including Zero-Width Joiners. Emit
-  either zero or one glyph per EGC.
+* implements `XTVERSION` (no matter your personal philosophical stance).
+* implements `XTGETTCAP` (especially for the `rgb` capability).
+* uses the communication channel to perform flow control. don't read data more quickly than you can actually display it; you'll end up dropping frames or effecting bufferbloat latency. this wastes work, and moves the drop decision away from the client code.
+* draws Unicode's Line- and Box-Drawing characters itself, rather than relying on the font.
+* supports some graphics protocol, ideally Kitty's. if you support Sixel instead, please implement `XTSMGRAPHICS`.
+* implement a keyboard disambiguation protocol, ideally Kitty's.
+* implement `hpa` for cheap absolute horizontal positioning.
+* size EGCs according to the largest `wcwidth()` result returned for any of the component characters. draw them all the same size otherwise.
+* honor Unicode rules for segmentation, including Zero-Width Joiners. emit either zero or one glyph per EGC.
+
+Without a properly-bracketed Primary Device Attributes reply to my DA1 query,
+Notcurses is not going to work on your terminal emulator.
+
+BiDi's gonna be a mess no matter what. Don't stress too much about it.
