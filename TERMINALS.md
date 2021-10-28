@@ -107,22 +107,27 @@ Kitty has some interesting, atypical behaviors. Foremost among these is that
 an RGB background color equivalent to the configured default background color
 will be rendered as the default background. This means, for instance, that if
 the configured default background color is RGB(0, 0, 0), and is translucent,
-a background of RGB(0, 0, 0) will be translucent. To work around this, when
-`TERM` begins with "kitty", we detect the default background color, and when
-we would write this as RGB, we alter one of the colors by 1. See
-https://github.com/kovidgoyal/kitty/issues/3185 and
+a background of RGB(0, 0, 0) will be translucent. To work around this, we
+detect the default background color if possible, and when we have done so *and*
+verified that the terminal is Kitty *and* we would write this as RGB, we alter
+one of the colors by 1. See https://github.com/kovidgoyal/kitty/issues/3185 and
 https://github.com/dankamongmen/notcurses/issues/1117.
 
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
-Color Erase) capability, but Notcurses never relies on `bce` behavior.
+Color Erase) capability, but Notcurses never relies on `bce` behavior, and
+goes to some lengths to avoid triggering it.
 
 Kitty has introduced an unambiguous [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 Notcurses supports this protocol when it is detected.
 
+The Kitty [graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
+is superior in just about every way (save breadth of support) to Sixel.
+
 ### WezTerm
 
 WezTerm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
-interesting underline options, and both the Sixel and Kitty graphic protocols.
+interesting underline options, and both the Sixel and Kitty graphic protocols
+(I think it even handles iTerm2).
 
 ### GNU screen
 
