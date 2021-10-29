@@ -12,6 +12,12 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.9 (not yet released)
+  * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
+    introduced for direct mode. This allows complete statement of geometry
+    for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been
+    deprecated, and will be removed in ABI3. It furthermore exposes some of
+    the information previously available only from `ncplane_pixelgeom()`,
+    though that function continues to be supported.
   * On transition between `ncplane`s (on terminals implementing complex wide
     glyphs), Notcurses now always issues an `hpa` sequence to force horizontal
     positioning. This fixes a number of longstanding bugs in e.g. the

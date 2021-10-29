@@ -3299,17 +3299,38 @@ Various transformations can be applied to an `ncvisual`, regardless of how
 it was built up:
 
 ```c
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
-// The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
-//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
-// Returns non-zero for an invalid 'vopts'. The blitter that will be used
-// is returned in '*blitter'.
-// These results are invalidated upon a terminal resize.
-int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                          const struct ncvisual_options* vopts, int* y, int* x,
-                          int* scaley, int* scalex, ncblitter_e* blitter);
+// describes all geometries of an ncvisual: those which are inherent, and those
+// dependent upon a given rendering regime. pixy and pixx are the true internal
+// pixel geometry, taken directly from the load (and updated by
+// ncvisual_resize()). cdimy/cdimx are the cell-pixel geometry *at the time
+// of this call* (it can change with a font change, in which case all values
+// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
+// handed to the blitter, following any scaling. scaley/scalex are the number
+// of input pixels drawn to a single cell; when using NCBLIT_PIXEL, they are
+// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
+// the blitter, following any padding (there is padding whenever rpix{y, x} is
+// not evenly divided by scale{y, x}, and also sometimes for Sixel).
+// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
+// the largest bitmap that the terminal is willing to accept. blitter is the
+// blitter which will be used, a function of the requested blitter and the
+// blitters actually supported by this environment. if no ncvisual was
+// supplied, only cdimy/cdimx are filled in.
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  int rcelly, rcellx; // rendered cell geometry (per visual_options)
+  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;// blitter that will be used
+} ncvgeom;
+
+// all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
+// non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
+// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter, and (if
+// applicable) maxpixely/maxpixelx are filled in.
+int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                  const struct ncvisual_options* vopts, ncvgeom* geom);
 
 // Scale the visual to 'rows' X 'columns' pixels, using the best scheme
 // available. This is a lossy transformation, unless the size is unchanged.

@@ -237,7 +237,8 @@ int yield_demo(struct notcurses* nc){
   ncplane_set_fg_rgb8(label, 0xff, 0xff, 0xff);
   ncplane_set_styles(label, NCSTYLE_BOLD);
   ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %03.1f%%", 0.0);
-  if(ncvisual_blitter_geom(nc, v1, &m1.vopts, &maxy, &maxx, NULL, NULL, NULL)){
+  ncvgeom geom;
+  if(ncvisual_geom(nc, v1, &m1.vopts, &geom)){
     ncplane_destroy(label);
     ncvisual_destroy(v1);
     ncvisual_destroy(v2);
@@ -253,7 +254,7 @@ int yield_demo(struct notcurses* nc){
     ncplane_destroy(m1.vopts.n);
     return -1;
   }
-  total = maxx * maxy;
+  total = geom.pixy * geom.pixx;
 
   DEMO_RENDER(nc);
 

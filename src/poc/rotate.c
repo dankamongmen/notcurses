@@ -41,7 +41,6 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
-  int scaley, scalex;
   vopts.n = n;
   if((ncvisual_blit(nc, ncv, &vopts)) == NULL){
     goto err;
@@ -52,8 +51,9 @@ int main(int argc, char** argv){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
   ncplane_erase(n);
-  ncvisual_blitter_geom(nc, ncv, &vopts, NULL, NULL, &scaley, &scalex, NULL);
-  if(ncvisual_resize(ncv, dimy * scaley, dimx * scalex)){
+  ncvgeom geom;
+  ncvisual_geom(nc, ncv, &vopts, &geom);
+  if(ncvisual_resize(ncv, dimy * geom.scaley, dimx * geom.scalex)){
     goto err;
   }
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
