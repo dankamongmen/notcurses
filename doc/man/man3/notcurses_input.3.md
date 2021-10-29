@@ -172,9 +172,6 @@ requested. This eliminates most of the **BUGS** mentioned below.
 
 # BUGS
 
-Failed escape sequences are not yet played back in their entirety; only an
-ESC (ASCII 0x1b) will be seen by the application.
-
 The Shift key is only indicated in conjunction with mouse button presses. If
 e.g. Shift is used to generate a capital letter 'A', **id** will equal 'A',
 and **shift** will be **false**. This should be fixed in the future.
