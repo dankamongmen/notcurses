@@ -776,7 +776,8 @@ nccell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-API __attribute__ ((returns_nonnull)) const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+API __attribute__ ((returns_nonnull)) const char*
+nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // return the number of columns occupied by 'c'. see ncstrwidth() for an
 // equivalent for multiple EGCs.
@@ -1778,6 +1779,17 @@ API void* ncplane_userptr(struct ncplane* n);
 // center is then modified relative to the plane's origin.
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
+
+// Create an RGBA flat array from the selected region of the ncplane 'nc'.
+// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
+// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
+                                    int begy, int begx, int leny, int lenx,
+                                    int* pxdimy, int* pxdimx)
+  __attribute__ ((nonnull (1)));
 
 // Return the offset into 'availu' at which 'u' ought be output given the
 // requirements of 'align'. Return -INT_MAX on invalid 'align'. Undefined
@@ -2869,16 +2881,30 @@ struct ncvisual_options {
   unsigned pxoffy, pxoffx;
 };
 
-// Create an RGBA flat array from the selected region of the ncplane 'nc'.
-// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
-// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
-// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
-API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                                    int begy, int begx, int leny, int lenx,
-                                    int* pxdimy, int* pxdimx)
-  __attribute__ ((nonnull (1)));
+// describes all geometries of an ncvisual: those which are inherent, and those
+// dependent upon a given rendering regime. pixy and pixx are the true internal
+// pixel geometry, taken directly from the load (and updated by
+// ncvisual_resize()). cdimy/cdimx are the cell-pixel geometry *at the time
+// of this call* (it can change with a font change, in which case all values
+// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
+// handed to the blitter, following any scaling. scaley/scalex are the number
+// of input pixels drawn to a single cell; when using NCBLIT_PIXEL, they are
+// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
+// the blitter, following any padding (there is padding whenever rpix{y, x} is
+// not evenly divided by scale{y, x}, and also sometimes for Sixel).
+// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
+// the largest bitmap that the terminal is willing to accept. blitter is the
+// blitter which will be used, a function of the requested blitter and the
+// blitters actually supported by this environment.
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry
+  int rcelly, rcellx; // rendered cell geometry
+  int scaley, scalex; // pixels per filled cell
+  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;// blitter that will be used
+} ncvgeom;
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // and x axes. The input size (in pixels) will be written to 'y' and 'x'.

@@ -350,31 +350,6 @@ API int ncdirect_stop(struct ncdirect* nc);
 typedef struct ncplane ncdirectv;
 typedef struct ncvisual ncdirectf;
 
-// FIXME this ought be used in the rendered mode API as well; it's currently
-// only used by direct mode. describes all geometries of an ncvisual--both those
-// which are inherent, and those in a given rendering regime. pixy and pixx are
-// the true internal pixel geometry, taken directly from the load (and updated
-// by ncvisual_resize()). cdimy/cdimx are the cell pixel geometry *at the time
-// of this call* (it can change with a font change, in which case all values
-// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
-// handed to the blitter, following any scaling. scaley/scalex are the number
-// of input pixels drawn to full cell; when using NCBLIT_PIXEL, they are
-// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
-// the blitter, following any padding (there is padding whenever rpix{y, x} is
-// not evenly divided by scale{y, x}, and also sometimes for Sixel).
-// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
-// the largest bitmap that the terminal is willing to accept.
-typedef struct ncvgeom {
-  int pixy, pixx;     // true pixel geometry of ncvisual data
-  int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry
-  int rcelly, rcellx; // rendered cell geometry
-  int scaley, scalex; // pixels per filled cell
-  // only defined for NCBLIT_PIXEL
-  int maxpixely, maxpixelx;
-  ncblitter_e blitter;// blitter that will be used
-} ncvgeom;
-
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
 // the column of the cursor, and those to the right. The render/raster process
