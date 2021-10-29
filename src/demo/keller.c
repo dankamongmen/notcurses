@@ -36,18 +36,18 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
                 | NCVISUAL_OPTION_VERALIGNED
                 | NCVISUAL_OPTION_CHILDPLANE,
     };
-    int scalex, scaley, truey, truex;
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
     ncplane_erase(stdn); // to clear out old text
     struct ncplane* n = NULL;
-    if(ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL) == 0){
+    ncvgeom geom;
+    if(ncvisual_geom(nc, ncv, &vopts, &geom) == 0){
       if( (n = ncvisual_blit(nc, ncv, &vopts)) ){
         ncplane_move_below(n, stdn);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
-                              "%03dx%03d", truex, truey);
+                              "%03dx%03d", geom.pixx, geom.pixy);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
-                              "%d:%d pixels -> cell", scalex, scaley);
+                              "%d:%d pixels -> cell", geom.scalex, geom.scaley);
       }
     }
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);

@@ -167,10 +167,10 @@ int normal_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = nstd,
   };
-  int yscale, xscale;
-  ncvisual_blitter_geom(nc, NULL, &vopts, NULL, NULL, &yscale, &xscale, NULL);
-  dy *= yscale;
-  dx *= xscale;
+  ncvgeom geom;
+  ncvisual_geom(nc, NULL, &vopts, &geom);
+  dy *= geom.scaley;
+  dx *= geom.scalex;
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
   if(!rgba){
     goto err;
@@ -179,10 +179,10 @@ int normal_demo(struct notcurses* nc){
     rgba[off] = 0xff000000;
   }
   int y;
-  if(dy / yscale % 2){
-    y = dy / yscale + 1;
+  if(dy / geom.scaley % 2){
+    y = dy / geom.scaley + 1;
     for(int x = 0 ; x < dx ; ++x){
-      if(mcell(offset(rgba, y, x, dx), y, x, dy / yscale, dx)){
+      if(mcell(offset(rgba, y, x, dx), y, x, dy / geom.scaley, dx)){
         goto err;
       }
     }

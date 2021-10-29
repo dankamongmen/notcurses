@@ -2895,13 +2895,14 @@ struct ncvisual_options {
 // maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
 // the largest bitmap that the terminal is willing to accept. blitter is the
 // blitter which will be used, a function of the requested blitter and the
-// blitters actually supported by this environment.
+// blitters actually supported by this environment. if no ncvisual was
+// supplied, only cdimy/cdimx are filled in.
 typedef struct ncvgeom {
   int pixy, pixx;     // true pixel geometry of ncvisual data
   int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry
-  int rcelly, rcellx; // rendered cell geometry
-  int scaley, scalex; // pixels per filled cell
+  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  int rcelly, rcellx; // rendered cell geometry (per visual_options)
+  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
   int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
   ncblitter_e blitter;// blitter that will be used
 } ncvgeom;
@@ -2916,7 +2917,15 @@ typedef struct ncvgeom {
 API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
                               const struct ncvisual_options* vopts, int* y, int* x,
                               int* scaley, int* scalex, ncblitter_e* blitter)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+// all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
+// non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
+// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter, and (if
+// applicable) maxpixely/maxpixelx are filled in.
+API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                      const struct ncvisual_options* vopts, ncvgeom* geom)
+  __attribute__ ((nonnull (4)));
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
