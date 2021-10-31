@@ -81,16 +81,10 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
   ncvgeom geom;
   ncvisual_geom(nc, ncv, &vopts, &geom);
   struct ncplane_options nopts = {
-    .rows = geom.rcelly,
-    .cols = geom.rcellx,
+    .rows = geom.rcelly > dimy / 2 ? dimy / 2 : geom.rcelly,
+    .cols = geom.rcellx > dimx / 4 ? dimx / 4 : geom.rcellx,
     .name = "orca",
   };
-  if(nopts.cols > dimx - 1){
-    nopts.cols = dimx - 1;
-  }
-  if(nopts.rows > dimy - 1){
-    nopts.rows = dimy - 1;
-  }
   nopts.y = dimy - nopts.rows - 1;
   nopts.x = dimx - nopts.cols - 1;
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
