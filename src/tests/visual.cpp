@@ -54,7 +54,7 @@ TEST_CASE("Visual") {
   // ncvisual_geom() with a NULL nc
   SUBCASE("VisualIntrinsicGeometry") {
     std::vector v(20, 0xfffffffflu);
-    auto ncv = ncvisual_from_rgba(v.data(), 2, v.size() * sizeof(decltype(v)::value_type), 10);
+    auto ncv = ncvisual_from_rgba(v.data(), 2, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     ncvgeom g{};
     CHECK(0 == ncvisual_geom(nullptr, ncv, nullptr, &g));
