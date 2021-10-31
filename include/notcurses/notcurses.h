@@ -2907,22 +2907,10 @@ typedef struct ncvgeom {
   ncblitter_e blitter;// blitter that will be used
 } ncvgeom;
 
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
-// The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
-//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
-// Returns non-zero for an invalid 'vopts'. The blitter that will be used
-// is returned in '*blitter'.
-API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                              const struct ncvisual_options* vopts, int* y, int* x,
-                              int* scaley, int* scalex, ncblitter_e* blitter)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
 // all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
 // non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
-// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter, and (if
-// applicable) maxpixely/maxpixelx are filled in.
+// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter,
+// scaley/scalex, and (if applicable) maxpixely/maxpixelx are filled in.
 API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
                       const struct ncvisual_options* vopts, ncvgeom* geom)
   __attribute__ ((nonnull (4)));
@@ -4219,6 +4207,18 @@ API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
 
 API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
                            const void* unused, ncinput* ni)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+// Get the size and ratio of ncvisual pixels to output cells along the y
+// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
+// The scaling will be written to 'scaley' and 'scalex'. With these:
+//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
+//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
+// Returns non-zero for an invalid 'vopts'. The blitter that will be used
+// is returned in '*blitter'.
+API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
+                              const struct ncvisual_options* vopts, int* y, int* x,
+                              int* scaley, int* scalex, ncblitter_e* blitter)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #undef API
