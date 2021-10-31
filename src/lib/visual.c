@@ -186,11 +186,13 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       return -1;
     }
   }
+  if(n){
+    geom->pixy = n->pixy;
+    geom->pixx = n->pixx;
+  }
   // when nc is NULL, we only report properties intrinsic to the ncvisual,
   // i.e. only its original pixel geometry.
   if(ti == NULL){
-    geom->pixy = n->pixy;
-    geom->pixx = n->pixx;
     return 0;
   }
   // determine our blitter
