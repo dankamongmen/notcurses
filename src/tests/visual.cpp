@@ -29,6 +29,26 @@ TEST_CASE("Visual") {
     }
   }
 
+  // ncvisual_geom() with a NULL nc
+  SUBCASE("VisualIntrinsicGeometry") {
+    std::vector v(20, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 2, v.size() * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    ncvgeom g{};
+    CHECK(0 == ncvisual_geom(nullptr, ncv, nullptr, &g));
+    CHECK(2 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(0 == g.cdimy);
+    CHECK(0 == g.cdimx);
+    CHECK(0 == g.rpixy);
+    CHECK(0 == g.rpixx);
+    CHECK(0 == g.scaley);
+    CHECK(0 == g.scalex);
+    CHECK(0 == g.maxpixely);
+    CHECK(0 == g.maxpixelx);
+    CHECK(NCBLIT_DEFAULT == g.blitter);
+  }
+
   // check that we properly populate RGB + A -> RGBA from 35x4 (see #1806)
   SUBCASE("VisualFromRGBPacked35x4") {
     unsigned char rgb[4 * 35 * 3] = "";

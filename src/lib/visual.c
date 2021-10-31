@@ -194,6 +194,7 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   if(blitter){
     *blitter = bset;
   }
+  // FIXME several unsafe uses of NULL nc within here!
   if(vopts){
     if(bset->geom == NCBLIT_PIXEL){
       if(vopts->n){
@@ -286,14 +287,44 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
   return ret;
 }
 
-int ncvisual_geom(const notcurses* nc, const ncvisual* n,
-                  const struct ncvisual_options* vopts, ncvgeom* geom){
-  if(nc == NULL && n == NULL){
+int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
+                        const struct ncvisual_options* vopts, ncvgeom* geom){
+  if(ti == NULL && n == NULL){
     logerror("got NULL for both sources\n");
     return -1;
   }
-  // FIXME
+  // when nc is NULL, we only report properties intrinsic to the ncvisual,
+  // i.e. only its original pixel geometry.
+  if(ti == NULL){
+    geom->pixy = n->pixy;
+    geom->pixx = n->pixx;
+    return 0;
+  }
+  // when n is NULL, we only report properties unrelated to the ncvisual,
+  // i.e. the cell-pixel geometry, max bitmap geometry, blitter, and scaling.
+  if(n == NULL){
+    const struct blitset* bset = rgba_blitter(ti, vopts);
+    if(!bset){
+      logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+      return -1;
+    }
+    geom->cdimy = ti->cellpixy;
+    geom->cdimx = ti->cellpixx;
+    if((geom->blitter = bset->geom) == NCBLIT_PIXEL){
+      geom->maxpixely = ti->sixel_maxy_pristine;
+      geom->maxpixelx = ti->sixel_maxx;
+    }
+    geom->scaley = bset->height;
+    geom->scaley = bset->width;
+    return 0;
+  }
+  // FIXME now work with full variant
   return 0;
+}
+
+int ncvisual_geom(const notcurses* nc, const ncvisual* n,
+                  const struct ncvisual_options* vopts, ncvgeom* geom){
+  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom);
 }
 
 void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
