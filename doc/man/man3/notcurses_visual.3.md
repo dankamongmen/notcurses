@@ -59,6 +59,8 @@ typedef struct ncvgeom {
   int rcelly, rcellx; // rendered cell geometry (per visual_options)
   int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
   int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  int begy, begx;     // upper-left corner of used section
+  int leny, lenx;     // geometry of used section
   ncblitter_e blitter;// blitter that will be used
 } ncvgeom;
 ```
