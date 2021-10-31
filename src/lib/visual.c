@@ -1018,7 +1018,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv,
     placey = 0;
     placex = 0;
   }
-//fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
+  logdebug("cblit: rows/cols: %dx%d plane: %d/%d pix: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n), geom->rpixy, geom->rpixx);
   blitterargs bargs;
   bargs.transcolor = transcolor;
   bargs.begy = geom->begy;
@@ -1093,7 +1093,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   if(n == NULL){
     return NULL;
   }
-  logdebug("cblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
+  logdebug("pblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   if(n->sprite == NULL){
     if((n->sprite = sprixel_alloc(&nc->tcache, n, geom->rcelly, geom->rcellx)) == NULL){
       ncplane_destroy(createdn);
