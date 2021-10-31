@@ -111,6 +111,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
+    return NULL;
   }
   ncvisual_destroy(ncv);
   return n;
