@@ -12,7 +12,7 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libdrm-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
@@ -95,12 +95,13 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
                 Software Guidelines
 * `BUILD_TESTING`: build test targets
-* `USE_ASAN`: build with AddressSanitizer
+* `USE_ASAN`: build with AddressSanitizer (debug builds only!)
 * `USE_CPP`: build C++ code (requires a C++ compiler)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 * `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
-  * `USE_DOCTEST=on` requires `USE_CPP=off`
+  * `USE_DOCTEST=on` cannot be used with `USE_CPP=off`
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
+* `USE_DRM`: build DRM support via libdrm
 * `USE_GPM`: build GPM console mouse support via libgpm
 * `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
   * `oiio` cannot be used with `USE_CPP=off`
