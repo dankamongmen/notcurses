@@ -1591,7 +1591,10 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, const struct ncvisual
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    const struct ncvisual_options* vopts, ncvgeom* geom){
   const struct blitset* bset;
-  return ncvisual_geom_inner(&n->tcache, frame, vopts, geom, &bset);
+  int disppxy, disppxx, outy, outx, placey, placex;
+  return ncvisual_geom_inner(&n->tcache, frame, vopts, geom, &bset,
+                             &disppxy, &disppxx, &outy, &outx,
+                             &placey, &placex);
 }
 
 unsigned ncdirect_supported_styles(const ncdirect* nc){
