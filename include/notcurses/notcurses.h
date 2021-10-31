@@ -2910,7 +2910,9 @@ typedef struct ncvgeom {
 // all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
 // non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
 // pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter,
-// scaley/scalex, and (if applicable) maxpixely/maxpixelx are filled in.
+// scaley/scalex, and maxpixely/maxpixelx are filled in; this is the same as
+// calling with a NULL 'n' and a default 'vopts'. cdimy/cdimx and
+// maxpixely/maxpixelx are only ever filled in if we know them.
 API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
                       const struct ncvisual_options* vopts, ncvgeom* geom)
   __attribute__ ((nonnull (4)));

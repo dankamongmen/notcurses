@@ -313,9 +313,12 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     if((geom->blitter = bset->geom) == NCBLIT_PIXEL){
       geom->maxpixely = ti->sixel_maxy_pristine;
       geom->maxpixelx = ti->sixel_maxx;
+      geom->scaley = ti->cellpixy;
+      geom->scalex = ti->cellpixx;
+    }else{
+      geom->scaley = bset->height;
+      geom->scalex = bset->width;
     }
-    geom->scaley = bset->height;
-    geom->scaley = bset->width;
     return 0;
   }
   // FIXME now work with full variant

@@ -3,6 +3,28 @@
 #include <vector>
 #include <cmath>
 
+// verify results for extrinsic geometries with NULL or default vopts
+void default_visual_extrinsics(const notcurses* nc, const ncvgeom& g) {
+  CHECK(0 == g.pixy);
+  CHECK(0 == g.pixx);
+  if(notcurses_canpixel(nc)){
+    CHECK(1 <= g.cdimy);
+    CHECK(1 <= g.cdimx);
+  }else{
+    CHECK(0 == g.cdimy);
+    CHECK(0 == g.cdimx);
+  }
+  CHECK(1 <= g.scaley);
+  CHECK(1 <= g.scalex);
+  CHECK(0 == g.rpixy);
+  CHECK(0 == g.rpixx);
+  CHECK(0 <= g.maxpixely);
+  CHECK(0 <= g.maxpixelx);
+  // we never use pixel by default, and must not revolve to default
+  CHECK(NCBLIT_PIXEL != g.blitter);
+  CHECK(NCBLIT_DEFAULT != g.blitter);
+}
+
 TEST_CASE("Visual") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
@@ -36,6 +58,7 @@ TEST_CASE("Visual") {
     REQUIRE(nullptr != ncv);
     ncvgeom g{};
     CHECK(0 == ncvisual_geom(nullptr, ncv, nullptr, &g));
+    ncvisual_destroy(ncv);
     CHECK(2 == g.pixy);
     CHECK(10 == g.pixx);
     CHECK(0 == g.cdimy);
@@ -47,6 +70,47 @@ TEST_CASE("Visual") {
     CHECK(0 == g.maxpixely);
     CHECK(0 == g.maxpixelx);
     CHECK(NCBLIT_DEFAULT == g.blitter);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and NULL visual_options
+  SUBCASE("VisualExtrinsicGeometryNULL") {
+    ncvgeom g{};
+    CHECK(0 == ncvisual_geom(nc_, nullptr, nullptr, &g));
+    default_visual_extrinsics(nc_, g);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and default visual_options
+  SUBCASE("VisualExtrinsicGeometryDefault") {
+    ncvgeom g{};
+    struct ncvisual_options vopts{};
+    CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
+    default_visual_extrinsics(nc_, g);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and NCBLIT_PIXEL requested
+  SUBCASE("VisualExtrinsicGeometryPixel") {
+    ncvgeom g{};
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
+    CHECK(0 == g.pixy);
+    CHECK(0 == g.pixx);
+    if(notcurses_canpixel(nc_)){
+      CHECK(1 <= g.cdimy);
+      CHECK(1 <= g.cdimx);
+      CHECK(g.cdimy == g.scaley);
+      CHECK(g.cdimx == g.scalex);
+    }else{
+      CHECK(0 == g.cdimy);
+      CHECK(0 == g.cdimx);
+      CHECK(1 <= g.scaley);
+      CHECK(1 <= g.scalex);
+    }
+    CHECK(0 == g.rpixy);
+    CHECK(0 == g.rpixx);
+    CHECK(0 <= g.maxpixely);
+    CHECK(0 <= g.maxpixelx);
+    CHECK(NCBLIT_DEFAULT != g.blitter); // we must not revolve to default
   }
 
   // check that we properly populate RGB + A -> RGBA from 35x4 (see #1806)
