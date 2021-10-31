@@ -402,14 +402,60 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->rpixx = *disppixx;
     geom->rcellx = *outx / ti->cellpixx + !!(*outx % ti->cellpixx);
     geom->rcelly = *outy / ti->cellpixy + !!(*outy % ti->cellpixy);
-  }else{
-    if(vopts->pxoffx || vopts->pxoffy){
-      logerror("pixel offsets cannot be used with cell blitting\n");
-      return -1;
+  }else{ // cellblit
+    int dispcols, disprows;
+    if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+      if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+        dispcols = geom->lenx;
+        disprows = geom->leny;
+      }else{
+        if(vopts->n == NULL){
+          disprows = ti->dimy;
+          dispcols = ti->dimx;
+        }else{
+          ncplane_dim_yx(vopts->n, &disprows, &dispcols);
+        }
+        dispcols *= geom->scalex;
+        disprows *= geom->scaley;
+        if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+          scale_visual(n, &disprows, &dispcols);
+        } // else stretch
+      }
+    }else{
+      if(vopts->pxoffx || vopts->pxoffy){
+        logerror("pixel offsets cannot be used with cell blitting\n");
+        return -1;
+      }
+      if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+        dispcols = geom->lenx;
+        disprows = geom->leny;
+      }else{
+        ncplane_dim_yx(vopts->n, &disprows, &dispcols);
+        dispcols *= geom->scalex;
+        disprows *= geom->scaley;
+        if(!(vopts->flags & NCVISUAL_OPTION_HORALIGNED)){
+          dispcols -= *placex;
+        }
+        if(!(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
+          disprows -= *placey;
+        }
+        if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+          scale_visual(n, &disprows, &dispcols);
+        } // else stretch
+      }
+      if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+        *placex = ncplane_halign(vopts->n, *placex, dispcols / geom->scalex);
+      }
+      if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+        *placey = ncplane_valign(vopts->n, *placey, disprows / geom->scaley);
+      }
     }
-    // FIXME rcellx/rcelly!
+    geom->rcelly = dispcols;
+    geom->rcellx = disprows;
+    geom->rpixy = geom->leny;
+    geom->rpixx = geom->lenx;
   }
-  logdebug("rgeom: %d %d %d %d (%d)\n", geom->rcelly, geom->rcellx, geom->rpixy, geom->rpixx, (*bset)->geom);
+  logdebug("rgeom: %d %d %d %d (%d on %p)\n", geom->rcelly, geom->rcellx, geom->rpixy, geom->rpixx, (*bset)->geom, vopts->n);
   return 0;
 }
 
@@ -935,36 +981,20 @@ int ncvisual_resize_noninterpolative(ncvisual* n, int rows, int cols){
 // the origin of the source region to draw (in pixels). leny/lenx define the
 // geometry of the source region to draw, again in pixels. ncv->pixy and
 // ncv->pixx define the source geometry in pixels.
-ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, int scaley, int scalex,
+ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv,
                                const struct blitset* bset,
-                               int placey, int placex, int begy, int begx,
-                               int leny, int lenx, ncplane* n, ncscale_e scaling,
+                               int placey, int placex,
+                               ncvgeom* geom, ncplane* n,
                                uint64_t flags, uint32_t transcolor){
-  int disprows, dispcols;
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p\n", n);
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = lenx;
-      disprows = leny;
-    }else{
-      if(n == NULL){
-        ncplane_dim_yx(notcurses_stdplane(nc), &disprows, &dispcols);
-      }else{
-        ncplane_dim_yx(n, &disprows, &dispcols);
-      }
-      dispcols *= scalex;
-      disprows *= scaley;
-      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      } // else stretch
-    }
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d %d/%d\n", disprows, dispcols, placey, placex, begy, begx);
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = disprows / scaley + !!(disprows % scaley),
-      .cols = dispcols / scalex + !!(dispcols % scalex),
+      .rows = geom->rcelly,
+      .cols = geom->rcellx,
       .userptr = NULL,
       .name = "cvis",
       .resizecb = NULL,
@@ -987,42 +1017,18 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, int scaley, int sca
     createdn = n;
     placey = 0;
     placex = 0;
-  }else{
-    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = lenx;
-      disprows = leny;
-    }else{
-      ncplane_dim_yx(n, &disprows, &dispcols);
-      dispcols *= scalex;
-      disprows *= scaley;
-      if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
-        dispcols -= placex;
-      }
-      if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        disprows -= placey;
-      }
-      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      } // else stretch
-    }
-    if(flags & NCVISUAL_OPTION_HORALIGNED){
-      placex = ncplane_halign(n, placex, dispcols / scalex);
-    }
-    if(flags & NCVISUAL_OPTION_VERALIGNED){
-      placey = ncplane_valign(n, placey, disprows / scaley);
-    }
   }
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
   blitterargs bargs;
   bargs.transcolor = transcolor;
-  bargs.begy = begy;
-  bargs.begx = begx;
-  bargs.leny = leny;
-  bargs.lenx = lenx;
+  bargs.begy = geom->begy;
+  bargs.begx = geom->begx;
+  bargs.leny = geom->leny;
+  bargs.lenx = geom->lenx;
   bargs.flags = flags;
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
-  if(ncvisual_blit_internal(ncv, disprows, dispcols, n, bset, &bargs)){
+  if(ncvisual_blit_internal(ncv, geom->rpixy, geom->rpixx, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -1178,17 +1184,13 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     return NULL;
   }
   ncplane* n = vopts->n;
-  ncscale_e scaling = vopts->scaling;
   uint32_t transcolor = 0;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     transcolor = 0x1000000ull | vopts->transcolor;
   }
   if(geom.blitter != NCBLIT_PIXEL){
-    n = ncvisual_render_cells(nc, ncv, geom.scaley, geom.scalex,
-                              bset, placey, placex,
-                              geom.begy, geom.begx,
-                              geom.leny, geom.lenx, n, scaling,
-                              vopts->flags, transcolor);
+    n = ncvisual_render_cells(nc, ncv, bset, placey, placex,
+                              &geom, n, vopts->flags, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex,
                                &geom, n,
