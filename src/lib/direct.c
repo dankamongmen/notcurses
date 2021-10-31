@@ -1590,24 +1590,8 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, const struct ncvisual
 
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    const struct ncvisual_options* vopts, ncvgeom* geom){
-  geom->cdimy = n->tcache.cellpixy;
-  geom->cdimx = n->tcache.cellpixx;
-  geom->maxpixely = n->tcache.sixel_maxy;
-  geom->maxpixelx = n->tcache.sixel_maxx;
   const struct blitset* bset;
-  int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, vopts,
-                                &geom->pixy, &geom->pixx,
-                                &geom->scaley, &geom->scalex,
-                                &geom->rpixy, &geom->rpixx, &bset);
-  if(r == 0){
-    // FIXME ncvisual_blitset_geom() ought calculate these two for us; until
-    // then, derive them ourselves. the row count might be short by one if
-    // we're using sixel, and we're not a multiple of 6
-    geom->rcelly = geom->pixy / geom->scaley;
-    geom->rcellx = geom->pixx / geom->scalex;
-    geom->blitter = bset->geom;
-  }
-  return r;
+  return ncvisual_geom_inner(&n->tcache, frame, vopts, geom, &bset);
 }
 
 unsigned ncdirect_supported_styles(const ncdirect* nc){

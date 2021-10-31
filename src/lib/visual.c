@@ -128,14 +128,13 @@ ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* r
 
 // 'leny' and 'lenx' get the number of pixels to actually be rendered, 'y' and
 // 'x' get the original size of the visual in pixels, and 'scaley' and 'scalex'
-// get the number of pixels per cell with the selected 'blitter'.
-// FIXME we ought also do the output calculations here (how many rows x cols,
-//   given the input plane vopts->n and scaling vopts->scaling)--but do not
-//   perform any actual scaling, nor create any planes!
-int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
-                          const ncvisual* n, const struct ncvisual_options* vopts,
-                          int* y, int* x, int* scaley, int* scalex,
-                          int* leny, int* lenx, const struct blitset** blitter){
+// get the number of pixels per cell with the selected 'blitter'. this is the
+// first part of real geometry calculation.
+static int
+ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
+                      const ncvisual* n, const struct ncvisual_options* vopts,
+                      int* y, int* x, int* scaley, int* scalex,
+                      int* leny, int* lenx, const struct blitset** blitter){
   int fakeleny, fakelenx;
   if(leny == NULL){
     leny = &fakeleny;
@@ -288,7 +287,8 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
 }
 
 int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
-                        const struct ncvisual_options* vopts, ncvgeom* geom){
+                        const struct ncvisual_options* vopts, ncvgeom* geom,
+                        const struct blitset** bset){
   if(ti == NULL && n == NULL){
     logerror("got NULL for both sources\n");
     return -1;
@@ -301,34 +301,65 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     return 0;
   }
   // determine our blitter
-  const struct blitset* bset = rgba_blitter(ti, vopts);
-  if(!bset){
+  *bset = rgba_blitter(ti, vopts);
+  if(!*bset){
     logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
   geom->cdimy = ti->cellpixy;
   geom->cdimx = ti->cellpixx;
-  if((geom->blitter = bset->geom) == NCBLIT_PIXEL){
+  if((geom->blitter = (*bset)->geom) == NCBLIT_PIXEL){
     geom->maxpixely = ti->sixel_maxy_pristine;
     geom->maxpixelx = ti->sixel_maxx;
     geom->scaley = ti->cellpixy;
     geom->scalex = ti->cellpixx;
   }else{
-    geom->scaley = bset->height;
-    geom->scalex = bset->width;
+    geom->scaley = (*bset)->height;
+    geom->scalex = (*bset)->width;
   }
   // when n is NULL, we only report properties unrelated to the ncvisual,
   // i.e. the cell-pixel geometry, max bitmap geometry, blitter, and scaling.
   if(n == NULL){
     return 0;
   }
-  // FIXME now work with full variant
+  // determine how much of the original image we're using (leny/lenx)
+  ncvisual_origin(vopts, &geom->begy, &geom->begx);
+  geom->lenx = vopts ? vopts->lenx : 0;
+  geom->leny = vopts ? vopts->leny : 0;
+  logdebug("blit %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
+  if(geom->begy < 0 || geom->begx < 0){
+    logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
+    return -1;
+  }
+  if(n->data == NULL){
+    logerror("no data in visual\n");
+    return -1;
+  }
+  if(geom->begx >= n->pixx || geom->begy >= n->pixy){
+    logerror("visual too large %d > %d or %d > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
+    return -1;
+  }
+  if(geom->lenx == 0){ // 0 means "to the end"; use all available source material
+    geom->lenx = n->pixx - geom->begx;
+  }
+  if(geom->leny == 0){
+    geom->leny = n->pixy - geom->begy;
+  }
+  if(geom->lenx <= 0 || geom->leny <= 0){ // no need to draw zero-size object, exit
+    logerror("zero-size object %d %d\n", geom->leny, geom->lenx);
+    return -1;
+  }
+  if(geom->begx + geom->lenx > n->pixx || geom->begy + geom->leny > n->pixy){
+    logerror("geometry too large %d > %d or %d > %d\n", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
+    return -1;
+  }
   return 0;
 }
 
 int ncvisual_geom(const notcurses* nc, const ncvisual* n,
                   const struct ncvisual_options* vopts, ncvgeom* geom){
-  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom);
+  const struct blitset* bset;
+  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom, &bset);
 }
 
 void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
@@ -845,7 +876,8 @@ int ncvisual_resize_noninterpolative(ncvisual* n, int rows, int cols){
 // the origin of the source region to draw (in pixels). leny/lenx define the
 // geometry of the source region to draw, again in pixels. ncv->pixy and
 // ncv->pixx define the source geometry in pixels.
-ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
+ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, int scaley, int scalex,
+                               const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
                                uint64_t flags, uint32_t transcolor){
@@ -862,8 +894,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       }else{
         ncplane_dim_yx(n, &disprows, &dispcols);
       }
-      dispcols *= encoding_x_scale(&nc->tcache, bset);
-      disprows *= encoding_y_scale(&nc->tcache, bset);
+      dispcols *= scalex;
+      disprows *= scaley;
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
@@ -872,10 +904,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = disprows / encoding_y_scale(&nc->tcache, bset) +
-              !!(disprows % encoding_y_scale(&nc->tcache, bset)),
-      .cols = dispcols / encoding_x_scale(&nc->tcache, bset) +
-              !!(dispcols % encoding_x_scale(&nc->tcache, bset)),
+      .rows = disprows / scaley + !!(disprows % scaley),
+      .cols = dispcols / scalex + !!(dispcols % scalex),
       .userptr = NULL,
       .name = "cvis",
       .resizecb = NULL,
@@ -904,8 +934,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       disprows = leny;
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
-      dispcols *= encoding_x_scale(&nc->tcache, bset);
-      disprows *= encoding_y_scale(&nc->tcache, bset);
+      dispcols *= scalex;
+      disprows *= scaley;
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
         dispcols -= placex;
       }
@@ -917,10 +947,10 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       } // else stretch
     }
     if(flags & NCVISUAL_OPTION_HORALIGNED){
-      placex = ncplane_halign(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
+      placex = ncplane_halign(n, placex, dispcols / scalex);
     }
     if(flags & NCVISUAL_OPTION_VERALIGNED){
-      placey = ncplane_valign(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
+      placey = ncplane_valign(n, placey, disprows / scaley);
     }
   }
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
@@ -1187,32 +1217,32 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 }
 
 ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
+//fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
+//fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
+  ncvgeom geom;
   const struct blitset* bset;
-  int leny, lenx;
-  if(ncvisual_blitset_geom(nc, &nc->tcache, ncv, vopts, NULL, NULL, NULL, NULL,
-                           &leny, &lenx, &bset) < 0){
+  if(ncvisual_geom_inner(&nc->tcache, ncv, vopts, &geom, &bset)){
     // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
   }
-  int begy, begx;
-  ncvisual_origin(vopts, &begy, &begx);
-  int placey = vopts ? vopts->y : 0;
-  int placex = vopts ? vopts->x : 0;
-//fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
   ncplane* n = (vopts ? vopts->n : NULL);
-//fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   uint32_t transcolor = 0;
   if(vopts && vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     transcolor = 0x1000000ull | vopts->transcolor;
   }
-  if(bset->geom != NCBLIT_PIXEL){
-    n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx,
-                              leny, lenx, n, scaling,
+  int placey = vopts ? vopts->y : 0;
+  int placex = vopts ? vopts->x : 0;
+  if(geom.blitter != NCBLIT_PIXEL){
+    n = ncvisual_render_cells(nc, ncv, geom.scaley, geom.scalex,
+                              bset, placey, placex,
+                              geom.begy, geom.begx,
+                              geom.leny, geom.lenx, n, scaling,
                               vopts ? vopts->flags : 0, transcolor);
   }else{
-    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx,
-                               leny, lenx, n, scaling,
+    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex,
+                               geom.begy, geom.begx,
+                               geom.leny, geom.lenx, n, scaling,
                                vopts ? vopts->flags : 0, transcolor,
                                vopts ? vopts->pxoffy : 0,
                                vopts ? vopts->pxoffx : 0);

@@ -222,6 +222,7 @@ int luigi_demo(struct notcurses* nc){
     ncvgeom geom;
     ncvisual_geom(nc, wmncv, NULL, &geom);
     geom.pixy /= geom.scaley;
+    // FIXME what the fuck is this
     ncplane_move_yx(wmplane, rows * 4 / 5 - geom.pixy + 1 + (i % 2), i - 60);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &stepdelay);

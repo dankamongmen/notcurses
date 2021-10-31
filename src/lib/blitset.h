@@ -1,7 +1,9 @@
 #ifndef NOTCURSES_BLITSET
 #define NOTCURSES_BLITSET
 
-#include "notcurses/notcurses.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // number of pixels that map to a single cell, height-wise
 static inline int
@@ -49,5 +51,9 @@ ncplot_defblitter(const notcurses* nc){
 }
 
 void set_pixel_blitter(ncblitter blitfxn);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
