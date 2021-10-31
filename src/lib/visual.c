@@ -300,25 +300,26 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->pixx = n->pixx;
     return 0;
   }
+  // determine our blitter
+  const struct blitset* bset = rgba_blitter(ti, vopts);
+  if(!bset){
+    logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+    return -1;
+  }
+  geom->cdimy = ti->cellpixy;
+  geom->cdimx = ti->cellpixx;
+  if((geom->blitter = bset->geom) == NCBLIT_PIXEL){
+    geom->maxpixely = ti->sixel_maxy_pristine;
+    geom->maxpixelx = ti->sixel_maxx;
+    geom->scaley = ti->cellpixy;
+    geom->scalex = ti->cellpixx;
+  }else{
+    geom->scaley = bset->height;
+    geom->scalex = bset->width;
+  }
   // when n is NULL, we only report properties unrelated to the ncvisual,
   // i.e. the cell-pixel geometry, max bitmap geometry, blitter, and scaling.
   if(n == NULL){
-    const struct blitset* bset = rgba_blitter(ti, vopts);
-    if(!bset){
-      logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
-      return -1;
-    }
-    geom->cdimy = ti->cellpixy;
-    geom->cdimx = ti->cellpixx;
-    if((geom->blitter = bset->geom) == NCBLIT_PIXEL){
-      geom->maxpixely = ti->sixel_maxy_pristine;
-      geom->maxpixelx = ti->sixel_maxx;
-      geom->scaley = ti->cellpixy;
-      geom->scalex = ti->cellpixx;
-    }else{
-      geom->scaley = bset->height;
-      geom->scalex = bset->width;
-    }
     return 0;
   }
   // FIXME now work with full variant
