@@ -161,21 +161,26 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     logerror("got NULL for both sources\n");
     return -1;
   }
+  struct ncvisual_options fakevopts;
+  if(vopts == NULL){
+    memset(&fakevopts, 0, sizeof(fakevopts));
+    vopts = &fakevopts;
+  }
   // check basic vopts preconditions
-  if(vopts && vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
+  if(vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
     logwarn("Warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
   }
-  if(vopts && (vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
+  if((vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
     logerror("Requested child plane with NULL n\n");
     return -1;
   }
-  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+  if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
       logerror("Bad x %d for horizontal alignment\n", vopts->x);
       return -1;
     }
   }
-  if(vopts && vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+  if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
     if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
       logerror("Bad y %d for vertical alignment\n", vopts->y);
       return -1;
@@ -209,8 +214,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   }
   // determine how much of the original image we're using (leny/lenx)
   ncvisual_origin(vopts, &geom->begy, &geom->begx);
-  geom->lenx = vopts ? vopts->lenx : 0;
-  geom->leny = vopts ? vopts->leny : 0;
+  geom->lenx = vopts->lenx;
+  geom->leny = vopts->leny;
   logdebug("blit %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
   if(geom->begy < 0 || geom->begx < 0){
     logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
@@ -238,59 +243,53 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     logerror("geometry too large %d > %d or %d > %d\n", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
     return -1;
   }
-  /*
-  // FIXME several unsafe uses of NULL nc within here!
-  if(vopts){
-    if(bset->geom == NCBLIT_PIXEL){
-      if(vopts->n){
-        if(vopts->n == notcurses_stdplane_const(nc)){
-          if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
-            logerror("Won't blit bitmaps to the standard plane\n");
-            return -1;
-          }
-        }
-        if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-          logerror("Non-origin y placement %d for sprixel\n", vopts->y);
+  if((*bset)->geom == NCBLIT_PIXEL){
+    if(vopts->n){
+      // FIXME does this work from direct mode?
+      if(vopts->n == notcurses_stdplane_const(ncplane_notcurses_const(vopts->n))){
+        if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
+          logerror("Won't blit bitmaps to the standard plane\n");
           return -1;
-        }
-        if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-          logerror("Non-origin x placement %d for sprixel\n", vopts->x);
-          return -1;
-        }
-        // FIXME clamp to sprixel limits
-        if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-          if(vopts->pxoffy >= nc->tcache.cellpixy){
-            logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, nc->tcache.cellpixy);
-            return -1;
-          }
-          int rows = ((*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy)
-                      + !!vopts->pxoffy;
-          if(rows > ncplane_dim_y(vopts->n)){
-            logerror("sprixel too tall %d for plane %d\n",
-                     *leny + vopts->pxoffy, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
-            return -1;
-          }
-          if(vopts->pxoffx >= nc->tcache.cellpixx){
-            logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, nc->tcache.cellpixx);
-            return -1;
-          }
-          int cols = ((*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx)
-                      + !!vopts->pxoffx;
-          if(cols > ncplane_dim_x(vopts->n)){
-            logerror("sprixel too wide %d for plane %d\n",
-                     *lenx + vopts->pxoffx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
-            return -1;
-          }
         }
       }
-    }else{
-      if(vopts->pxoffx || vopts->pxoffy){
-        logerror("pixel offsets cannot be used with cell blitting\n");
+      if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
+        logerror("Non-origin y placement %d for sprixel\n", vopts->y);
         return -1;
       }
+      if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
+        logerror("Non-origin x placement %d for sprixel\n", vopts->x);
+        return -1;
+      }
+      // FIXME clamp to sprixel limits
+      if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+        if(vopts->pxoffy >= ti->cellpixy){
+          logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, ti->cellpixy);
+          return -1;
+        }
+        int rows = ((geom->leny + ti->cellpixy - 1) / ti->cellpixy) + !!vopts->pxoffy;
+        if(rows > ncplane_dim_y(vopts->n)){
+          logerror("sprixel too tall %d for plane %d\n", geom->leny + vopts->pxoffy,
+                   ncplane_dim_y(vopts->n) * ti->cellpixy);
+          return -1;
+        }
+        if(vopts->pxoffx >= ti->cellpixx){
+          logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, ti->cellpixx);
+          return -1;
+        }
+        int cols = ((geom->lenx + ti->cellpixx - 1) / ti->cellpixx) + !!vopts->pxoffx;
+        if(cols > ncplane_dim_x(vopts->n)){
+          logerror("sprixel too wide %d for plane %d\n", geom->lenx + vopts->pxoffx,
+                   ncplane_dim_x(vopts->n) * ti->cellpixx);
+          return -1;
+        }
+      }
+    }
+  }else{
+    if(vopts->pxoffx || vopts->pxoffy){
+      logerror("pixel offsets cannot be used with cell blitting\n");
+      return -1;
     }
   }
-  */
   return 0;
 }
 
