@@ -20,6 +20,8 @@ cmake_dependent_option(
   "BUILD_TESTING;USE_CPP" OFF
 )
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
+# FIXME probably want this ON by default for Linux, and unavailable elsewhere?
+option(USE_DRM "Enable libdrm console graphics support" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
@@ -76,7 +78,7 @@ if(${USE_COVERAGE})
   endif()
 endif()
 
-# under msys2 (and all other operating systems) we want pkgconfig. when
+# under msys2 (and all other environments) we want pkgconfig. when
 # building with visual studio, don't require it.
 if(NOT MSVC)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -92,6 +94,10 @@ else()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
 find_package(PkgConfig REQUIRED)
+if(${USE_DRM})
+pkg_check_modules(DRM REQUIRED libdrm>=2.4)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND DRM)
+endif()
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
@@ -148,7 +154,7 @@ endif()
 
 if(${USE_DOCTEST})
 find_package(doctest 2.3.5)
-set_package_properties(doctest PROPERTIES TYPE REQUIRED)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND doctest)
 endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
@@ -244,6 +250,7 @@ target_link_libraries(notcurses-core
     "${LIBM}"
     "${unistring}"
     "${gpm}"
+    "${drm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -255,6 +262,7 @@ target_link_libraries(notcurses-core-static
     "${LIBM}"
     "${unistring}"
     "${gpm}"
+    "${drm}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
