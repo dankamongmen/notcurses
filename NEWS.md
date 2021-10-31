@@ -18,6 +18,8 @@ rearrangements of Notcurses.
     deprecated, and will be removed in ABI3. It furthermore exposes some of
     the information previously available only from `ncplane_pixelgeom()`,
     though that function continues to be supported.
+  * `ncvgeom`'s `rcelly` and `rcellx` fields are now (finally) filled in
+    by `ncvisual_geom()` (and thus `ncdirectf_geom()`), and suitable for use.
   * On transition between `ncplane`s (on terminals implementing complex wide
     glyphs), Notcurses now always issues an `hpa` sequence to force horizontal
     positioning. This fixes a number of longstanding bugs in e.g. the
