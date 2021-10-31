@@ -126,22 +126,42 @@ ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* r
   *begx = vopts ? vopts->begx : 0;
 }
 
-// 'leny' and 'lenx' get the number of pixels to actually be rendered, 'y' and
-// 'x' get the original size of the visual in pixels, and 'scaley' and 'scalex'
-// get the number of pixels per cell with the selected 'blitter'. this is the
-// first part of real geometry calculation.
-static int
-ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
-                      const ncvisual* n, const struct ncvisual_options* vopts,
-                      int* y, int* x, int* scaley, int* scalex,
-                      int* leny, int* lenx, const struct blitset** blitter){
-  int fakeleny, fakelenx;
-  if(leny == NULL){
-    leny = &fakeleny;
+
+int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
+                          const struct ncvisual_options* vopts,
+                          int* y, int* x, int* scaley, int* scalex,
+                          ncblitter_e* blitter){
+  ncvgeom geom;
+  const struct blitset* bset;
+  if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset)){
+    return -1;
   }
-  if(lenx == NULL){
-    lenx = &fakelenx;
+  if(y){
+    *y = geom.pixy;
   }
+  if(x){
+    *x = geom.pixx;
+  }
+  if(scaley){
+    *scaley = geom.scaley;
+  }
+  if(scalex){
+    *scalex = geom.scalex;
+  }
+  if(blitter){
+    *blitter = bset->geom;
+  }
+  return 0;
+}
+
+int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
+                        const struct ncvisual_options* vopts, ncvgeom* geom,
+                        const struct blitset** bset){
+  if(ti == NULL && n == NULL){
+    logerror("got NULL for both sources\n");
+    return -1;
+  }
+  // check basic vopts preconditions
   if(vopts && vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
     logwarn("Warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
   }
@@ -149,50 +169,76 @@ ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
     logerror("Requested child plane with NULL n\n");
     return -1;
   }
-  int begy, begx;
-  ncvisual_origin(vopts, &begy, &begx);
-  *lenx = vopts ? vopts->lenx : 0;
-  *leny = vopts ? vopts->leny : 0;
-//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, *leny, *lenx, ncv->data);
-  if(begy < 0 || begx < 0 || *lenx <= -1 || *leny <= -1){
-    logerror("Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
-    return -1;
-  }
-  if(n){
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", n->data, n->pixy, n->pixx);
-    if(n->data == NULL){
-      logerror("No data in visual\n");
-      return -1;
-    }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
-    if(begx >= n->pixx || begy >= n->pixy){
-      logerror("Visual too large %d > %d or %d > %d\n", begy, n->pixy, begx, n->pixx);
-      return -1;
-    }
-    if(*lenx == 0){ // 0 means "to the end"; use all available source material
-      *lenx = n->pixx - begx;
-    }
-    if(*leny == 0){
-      *leny = n->pixy - begy;
-    }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
-    if(*lenx <= 0 || *leny <= 0){ // no need to draw zero-size object, exit
-      logerror("Zero-size object %d %d\n", *leny, *lenx);
-      return -1;
-    }
-    if(begx + *lenx > n->pixx || begy + *leny > n->pixy){
-      logerror("Geometry too large %d > %d or %d > %d\n", begy + *leny, n->pixy, begx + *lenx, n->pixx);
+  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
+      logerror("Bad x %d for horizontal alignment\n", vopts->x);
       return -1;
     }
   }
-  const struct blitset* bset = rgba_blitter(tcache, vopts);
-  if(!bset){
+  if(vopts && vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+    if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
+      logerror("Bad y %d for vertical alignment\n", vopts->y);
+      return -1;
+    }
+  }
+  // when nc is NULL, we only report properties intrinsic to the ncvisual,
+  // i.e. only its original pixel geometry.
+  if(ti == NULL){
+    geom->pixy = n->pixy;
+    geom->pixx = n->pixx;
+    return 0;
+  }
+  // determine our blitter
+  *bset = rgba_blitter(ti, vopts);
+  if(!*bset){
     logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
-  if(blitter){
-    *blitter = bset;
+  geom->cdimy = ti->cellpixy;
+  geom->cdimx = ti->cellpixx;
+  if((geom->blitter = (*bset)->geom) == NCBLIT_PIXEL){
+    geom->maxpixely = ti->sixel_maxy_pristine;
+    geom->maxpixelx = ti->sixel_maxx;
   }
+  geom->scaley = encoding_y_scale(ti, *bset);
+  geom->scalex = encoding_x_scale(ti, *bset);
+  // when n is NULL, we only report properties unrelated to the ncvisual,
+  // i.e. the cell-pixel geometry, max bitmap geometry, blitter, and scaling.
+  if(n == NULL){
+    return 0;
+  }
+  // determine how much of the original image we're using (leny/lenx)
+  ncvisual_origin(vopts, &geom->begy, &geom->begx);
+  geom->lenx = vopts ? vopts->lenx : 0;
+  geom->leny = vopts ? vopts->leny : 0;
+  logdebug("blit %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
+  if(geom->begy < 0 || geom->begx < 0){
+    logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
+    return -1;
+  }
+  if(n->data == NULL){
+    logerror("no data in visual\n");
+    return -1;
+  }
+  if(geom->begx >= n->pixx || geom->begy >= n->pixy){
+    logerror("visual too large %d > %d or %d > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
+    return -1;
+  }
+  if(geom->lenx == 0){ // 0 means "to the end"; use all available source material
+    geom->lenx = n->pixx - geom->begx;
+  }
+  if(geom->leny == 0){
+    geom->leny = n->pixy - geom->begy;
+  }
+  if(geom->lenx <= 0 || geom->leny <= 0){ // no need to draw zero-size object, exit
+    logerror("zero-size object %d %d\n", geom->leny, geom->lenx);
+    return -1;
+  }
+  if(geom->begx + geom->lenx > n->pixx || geom->begy + geom->leny > n->pixy){
+    logerror("geometry too large %d > %d or %d > %d\n", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
+    return -1;
+  }
+  /*
   // FIXME several unsafe uses of NULL nc within here!
   if(vopts){
     if(bset->geom == NCBLIT_PIXEL){
@@ -244,115 +290,7 @@ ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
       }
     }
   }
-  if(n){
-    if(y){
-      *y = n->pixy;
-    }
-    if(x){
-      *x = n->pixx;
-    }
-  }
-  if(scaley){
-    *scaley = encoding_y_scale(tcache, bset);
-  }
-  if(scalex){
-    *scalex = encoding_x_scale(tcache, bset);
-  }
-  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
-    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror("Bad x %d for horizontal alignment\n", vopts->x);
-      return -1;
-    }
-  }
-  if(vopts && vopts->flags & NCVISUAL_OPTION_VERALIGNED){
-    if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
-      logerror("Bad y %d for vertical alignment\n", vopts->y);
-      return -1;
-    }
-  }
-  return 0;
-}
-
-int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
-                          const struct ncvisual_options* vopts,
-                          int* y, int* x, int* scaley, int* scalex,
-                          ncblitter_e* blitter){
-  const struct blitset* bset;
-  int ret = ncvisual_blitset_geom(nc, &nc->tcache, n, vopts, y, x,
-                                  scaley, scalex, NULL, NULL, &bset);
-  if(ret == 0 && blitter){
-    *blitter = bset->geom;
-  }
-  return ret;
-}
-
-int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
-                        const struct ncvisual_options* vopts, ncvgeom* geom,
-                        const struct blitset** bset){
-  if(ti == NULL && n == NULL){
-    logerror("got NULL for both sources\n");
-    return -1;
-  }
-  // when nc is NULL, we only report properties intrinsic to the ncvisual,
-  // i.e. only its original pixel geometry.
-  if(ti == NULL){
-    geom->pixy = n->pixy;
-    geom->pixx = n->pixx;
-    return 0;
-  }
-  // determine our blitter
-  *bset = rgba_blitter(ti, vopts);
-  if(!*bset){
-    logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
-    return -1;
-  }
-  geom->cdimy = ti->cellpixy;
-  geom->cdimx = ti->cellpixx;
-  if((geom->blitter = (*bset)->geom) == NCBLIT_PIXEL){
-    geom->maxpixely = ti->sixel_maxy_pristine;
-    geom->maxpixelx = ti->sixel_maxx;
-    geom->scaley = ti->cellpixy;
-    geom->scalex = ti->cellpixx;
-  }else{
-    geom->scaley = (*bset)->height;
-    geom->scalex = (*bset)->width;
-  }
-  // when n is NULL, we only report properties unrelated to the ncvisual,
-  // i.e. the cell-pixel geometry, max bitmap geometry, blitter, and scaling.
-  if(n == NULL){
-    return 0;
-  }
-  // determine how much of the original image we're using (leny/lenx)
-  ncvisual_origin(vopts, &geom->begy, &geom->begx);
-  geom->lenx = vopts ? vopts->lenx : 0;
-  geom->leny = vopts ? vopts->leny : 0;
-  logdebug("blit %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
-  if(geom->begy < 0 || geom->begx < 0){
-    logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
-    return -1;
-  }
-  if(n->data == NULL){
-    logerror("no data in visual\n");
-    return -1;
-  }
-  if(geom->begx >= n->pixx || geom->begy >= n->pixy){
-    logerror("visual too large %d > %d or %d > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
-    return -1;
-  }
-  if(geom->lenx == 0){ // 0 means "to the end"; use all available source material
-    geom->lenx = n->pixx - geom->begx;
-  }
-  if(geom->leny == 0){
-    geom->leny = n->pixy - geom->begy;
-  }
-  if(geom->lenx <= 0 || geom->leny <= 0){ // no need to draw zero-size object, exit
-    logerror("zero-size object %d %d\n", geom->leny, geom->lenx);
-    return -1;
-  }
-  if(geom->begx + geom->lenx > n->pixx || geom->begy + geom->leny > n->pixy){
-    logerror("geometry too large %d > %d or %d > %d\n", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
-    return -1;
-  }
+  */
   return 0;
 }
 
