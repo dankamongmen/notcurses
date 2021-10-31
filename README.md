@@ -538,9 +538,11 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>Why do the stats show more Linux framebuffer bitmap bytes written
-  than total bytes written to the terminal?</summary>
-  Linux framebuffer graphics aren't implemented via terminal writes, but instead
-  writes directly into a memory map.
+  than total bytes written to the terminal? And why don't Linux console
+  graphics work when I ssh?</summary>
+  Linux framebuffer graphics aren't implemented via terminal writes, but rather
+  writes directly into a memory map. This memory map isn't available on remote
+  machines, and these writes aren't tracked by the standard statistics.
 </details>
 
 ## Useful links
