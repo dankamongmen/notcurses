@@ -565,7 +565,7 @@ ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
   const AVFrame* inframe = ncv->details->frame;
 //print_frame_summary(NULL, inframe);
   const int targformat = AV_PIX_FMT_RGBA;
-//fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inframe->format, inframe->height, inframe->width, targformat, rows, cols);
+fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inframe->format, inframe->height, inframe->width, targformat, rows, cols);
   // FIXME need account for beg{y,x} here, no? what if no inframe?
   if(!inframe || (cols == inframe->width && rows == inframe->height && inframe->format == targformat)){
     // no change necessary. return original data -- we don't duplicate.
@@ -574,7 +574,7 @@ ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
   }
   const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
   const int srcleny = bargs->leny ? bargs->leny : inframe->height;
-//fprintf(stderr, "src %d/%d -> targ %d/%d ctx: %p\n", srcleny, srclenx, rows, cols, ncv->details->swsctx);
+fprintf(stderr, "src %d/%d -> targ %d/%d ctx: %p\n", srcleny, srclenx, rows, cols, ncv->details->swsctx);
   ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
                                               srclenx, srcleny,
                                               inframe->format,
@@ -639,10 +639,10 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   if(data == NULL){
     return -1;
   }
-//fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d targ: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx, rows, cols);
+fprintf(stderr, "WHN NCV: bargslen: %d/%d targ: %d/%d\n", bargs->leny, bargs->lenx, rows, cols);
   int ret = 0;
   if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
-//fprintf(stderr, "rgba dispatch failed!\n");
+fprintf(stderr, "rgba dispatch failed!\n");
     ret = -1;
   }
   if(data != ncv->data){

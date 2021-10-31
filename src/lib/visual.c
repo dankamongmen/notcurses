@@ -133,7 +133,10 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
                           ncblitter_e* blitter){
   ncvgeom geom;
   const struct blitset* bset;
-  if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset)){
+  int disppxy, disppxx, outy, outx, placey, placex;
+  if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset,
+                         &disppxy, &disppxx, &outy, &outx,
+                         &placey, &placex)){
     return -1;
   }
   if(y){
@@ -154,9 +157,74 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
   return 0;
 }
 
+// create a plane in which to blit the sprixel. |disppixx| and |disppixy| are
+// scaled pixel geometry on output, and unused on input. |placey| and |placex|
+// are used to position the new plane, and reset to 0 on output. |outy| and
+// |outx| are true output geometry on output, and unused on input (actual input
+// pixel geometry come from ncv->pixy and ncv->pixx).
+// |pxoffy| and |pxoffx| are pixel offset within the origin cell. they are not
+// included within |disppixx| nor |disppixy|, but count towards |outx| and
+// |outy|. these last two are furthermore clamped to sixel maxima, and |outy|
+// accounts for sixels being a multiple of six pixels tall.
+static void
+shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
+                    ncscale_e scaling, int* disppixy, int* disppixx,
+                    uint64_t flags, int* outy, int* outx,
+                    int* placey, int* placex, int pxoffy, int pxoffx){
+  if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
+    // disppixy/disppix are treated initially as cells
+    if(parent == NULL){
+      *disppixy = ti->dimy;
+      *disppixx = ti->dimx;
+    }else{
+      ncplane_dim_yx(parent, disppixy, disppixx);
+    }
+    // FIXME why do we clamp only vertical, not horizontal, here?
+    if(*placey + *disppixy >= ti->dimy){
+      *disppixy = ti->dimy - *placey;
+    }
+    if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
+      *disppixy -= *placey;
+    }
+    if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
+      *disppixx -= *placex;
+    }
+    *disppixx *= ti->cellpixx;
+    *disppixy *= ti->cellpixy;
+    *disppixx += pxoffx;
+    *disppixy += pxoffy;
+    *outx = *disppixx;
+    clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+    if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+      scale_visual(ncv, disppixy, disppixx); // can only shrink
+      *outx = *disppixx;
+      clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+    }
+  }else{
+    *disppixx = ncv->pixx + pxoffx;
+    *disppixy = ncv->pixy + pxoffy;
+    *outx = *disppixx;
+    clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+  }
+  // pixel offsets ought be counted for clamping purposes, but not returned
+  // as part of the scaled geometry (they are included in outx/outy).
+  *disppixy -= pxoffy;
+  *disppixx -= pxoffx;
+  // we always actually blit to the origin of the plane
+  *placey = 0;
+  *placex = 0;
+}
+
+// in addition to the geom fields, we pass out:
+//  * 'disppixx'/'disppixy': scaled output size in pixels
+//  * 'outy'/'outx': true output size in pixels (ie post-sixel clamping)
+//  * 'placey'/'placex': offset at which to draw
 int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
-                        const struct blitset** bset){
+                        const struct blitset** bset,
+                        int* disppixy, int* disppixx,
+                        int* outy, int* outx,
+                        int* placey, int* placex){
   if(ti == NULL && n == NULL){
     logerror("got NULL for both sources\n");
     return -1;
@@ -168,21 +236,21 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   }
   // check basic vopts preconditions
   if(vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
-    logwarn("Warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
+    logwarn("warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
   }
   if((vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
-    logerror("Requested child plane with NULL n\n");
+    logerror("requested child plane with NULL n\n");
     return -1;
   }
   if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror("Bad x %d for horizontal alignment\n", vopts->x);
+      logerror("bad x %d for horizontal alignment\n", vopts->x);
       return -1;
     }
   }
   if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
     if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
-      logerror("Bad y %d for vertical alignment\n", vopts->y);
+      logerror("bad y %d for vertical alignment\n", vopts->y);
       return -1;
     }
   }
@@ -198,7 +266,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   // determine our blitter
   *bset = rgba_blitter(ti, vopts);
   if(!*bset){
-    logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+    logerror("couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
   geom->cdimy = ti->cellpixy;
@@ -214,11 +282,14 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   if(n == NULL){
     return 0;
   }
+  ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   // determine how much of the original image we're using (leny/lenx)
   ncvisual_origin(vopts, &geom->begy, &geom->begx);
   geom->lenx = vopts->lenx;
   geom->leny = vopts->leny;
-  logdebug("blit %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
+  *placey = vopts->y;
+  *placex = vopts->x;
+  logdebug("vis %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
   if(geom->begy < 0 || geom->begx < 0){
     logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
     return -1;
@@ -262,20 +333,20 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         logerror("non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
-      // FIXME clamp to sprixel limits
-      if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-        if(vopts->pxoffy >= ti->cellpixy){
-          logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, ti->cellpixy);
-          return -1;
-        }
+      if(vopts->pxoffy >= ti->cellpixy){
+        logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, ti->cellpixy);
+        return -1;
+      }
+      if(vopts->pxoffx >= ti->cellpixx){
+        logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, ti->cellpixx);
+        return -1;
+      }
+      if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+        // FIXME clamp to sprixel limits
         int rows = ((geom->leny + ti->cellpixy - 1) / ti->cellpixy) + !!vopts->pxoffy;
         if(rows > ncplane_dim_y(vopts->n)){
           logerror("sprixel too tall %d for plane %d\n", geom->leny + vopts->pxoffy,
                    ncplane_dim_y(vopts->n) * ti->cellpixy);
-          return -1;
-        }
-        if(vopts->pxoffx >= ti->cellpixx){
-          logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, ti->cellpixx);
           return -1;
         }
         int cols = ((geom->lenx + ti->cellpixx - 1) / ti->cellpixx) + !!vopts->pxoffx;
@@ -286,19 +357,68 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         }
       }
     }
+    if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+      shape_sprixel_plane(ti, vopts->n, n, scaling, disppixy, disppixx,
+                          vopts->flags, outy, outx, placey, placex,
+                          vopts->pxoffy, vopts->pxoffx);
+    }else{
+      if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
+        ncplane_dim_yx(vopts->n, disppixy, disppixx);
+        *disppixx *= ti->cellpixx;
+        *disppixx += vopts->pxoffx;
+        *disppixy *= ti->cellpixy;
+        *disppixy += vopts->pxoffy;
+        clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+        int absplacex = 0, absplacey = 0;
+        if(!(vopts->flags & NCVISUAL_OPTION_HORALIGNED)){
+          absplacex = *placex;
+        }
+        if(!(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
+          absplacey = *placey;
+        }
+        *disppixx -= absplacex * ti->cellpixx;
+        *disppixy -= absplacey * ti->cellpixy;
+      }else{
+        *disppixx = geom->lenx + vopts->pxoffx;
+        *disppixy = geom->leny + vopts->pxoffy;
+      }
+      logdebug("pixel prescale: %d %d %d %d\n", n->pixy, n->pixx, *disppixy, *disppixx);
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+        scale_visual(n, disppixy, disppixx);
+      }
+      clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
+      // FIXME use a closed form
+      while((*outy + ti->cellpixy - 1) / ti->cellpixy > (unsigned)ncplane_dim_y(vopts->n)){
+        *outy -= ti->sprixel_scale_height;
+        *disppixy = *outy;
+      }
+      *outx = *disppixx;
+      *disppixx -= vopts->pxoffx;
+      *disppixy -= vopts->pxoffy;
+    }
+    logdebug("pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, ti->cellpixx);
+    geom->rpixy = *disppixy;
+    geom->rpixx = *disppixx;
+    geom->rcellx = *outx / ti->cellpixx + !!(*outx % ti->cellpixx);
+    geom->rcelly = *outy / ti->cellpixy + !!(*outy % ti->cellpixy);
   }else{
     if(vopts->pxoffx || vopts->pxoffy){
       logerror("pixel offsets cannot be used with cell blitting\n");
       return -1;
     }
+    // FIXME rcellx/rcelly!
   }
+  logdebug("rgeom: %d %d %d %d (%d)\n", geom->rcelly, geom->rcellx, geom->rpixy, geom->rpixx, (*bset)->geom);
   return 0;
 }
 
 int ncvisual_geom(const notcurses* nc, const ncvisual* n,
                   const struct ncvisual_options* vopts, ncvgeom* geom){
   const struct blitset* bset;
-  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom, &bset);
+  int disppxy, disppxx, outy, outx, placey, placex;
+  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom, &bset,
+                             &disppxy, &disppxx, &outy, &outx, &placey, &placex);
 }
 
 void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
@@ -894,11 +1014,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, int scaley, int sca
   }
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
   blitterargs bargs;
-  if(flags & NCVISUAL_OPTION_ADDALPHA){
-    bargs.transcolor = transcolor | 0x1000000ul;
-  }else{
-    bargs.transcolor = 0;
-  }
+  bargs.transcolor = transcolor;
   bargs.begy = begy;
   bargs.begx = begx;
   bargs.leny = leny;
@@ -911,62 +1027,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, int scaley, int sca
     return NULL;
   }
   return n;
-}
-
-// create a plane in which to blit the sprixel. |disppixx| and |disppixy| are
-// scaled pixel geometry on output, and unused on input. |placey| and |placex|
-// are used to position the new plane, and reset to 0 on output. |outy| and
-// |outx| are true output geometry on output, and unused on input (actual input
-// pixel geometry come from ncv->pixy and ncv->pixx).
-// |pxoffy| and |pxoffx| are pixel offset within the origin cell. they are not
-// included within |disppixx| nor |disppixy|, but count towards |outx| and
-// |outy|. these last two are furthermore clamped to sixel maxima, and |outy|
-// accounts for sixels being a multiple of six pixels tall.
-static void
-shape_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
-                    ncscale_e scaling, int* disppixy, int* disppixx,
-                    uint64_t flags, int* outy, int* outx,
-                    int* placey, int* placex, int pxoffy, int pxoffx){
-  if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-    if(parent == NULL){
-      ncplane_dim_yx(notcurses_stdplane(nc), disppixy, disppixx);
-    }else{
-      ncplane_dim_yx(parent, disppixy, disppixx);
-    }
-    // FIXME why do we clamp only vertical, not horizontal, here?
-    if(*placey + *disppixy >= ncplane_dim_y(notcurses_stdplane_const(nc))){
-      *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey;
-    }
-    if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-      *disppixy -= *placey;
-    }
-    if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
-      *disppixx -= *placex;
-    }
-    *disppixx *= nc->tcache.cellpixx;
-    *disppixy *= nc->tcache.cellpixy;
-    *disppixx += pxoffx;
-    *disppixy += pxoffy;
-    *outx = *disppixx;
-    clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
-    if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-      scale_visual(ncv, disppixy, disppixx); // can only shrink
-      *outx = *disppixx;
-      clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
-    }
-  }else{
-    *disppixx = ncv->pixx + pxoffx;
-    *disppixy = ncv->pixy + pxoffy;
-    *outx = *disppixx;
-    clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
-  }
-  // pixel offsets ought be counted for clamping purposes, but not returned
-  // as part of the scaled geometry (they are included in outx/outy).
-  *disppixy -= pxoffy;
-  *disppixx -= pxoffx;
-  // we always actually blit to the origin of the plane
-  *placey = 0;
-  *placex = 0;
 }
 
 // when a sprixel is blitted to a plane, that plane becomes a sprixel plane. it
@@ -987,74 +1047,27 @@ shape_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
 // must not exceed ncv->cols. these sums define the selected geometry. the
 // output width is always equal to the scaled width; it has no distinct name.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
-                                int placey, int placex, int begy, int begx,
-                                int leny, int lenx, ncplane* n, ncscale_e scaling,
-                                uint64_t flags, uint32_t transcolor,
+                                int placey, int placex, const ncvgeom* geom,
+                                ncplane* n, uint64_t flags, uint32_t transcolor,
                                 int pxoffy, int pxoffx){
-  int disppixy = 0, disppixx = 0, outy = 0, outx = 0;
-  if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-    shape_sprixel_plane(nc, n, ncv, scaling, &disppixy, &disppixx,
-                        flags, &outy, &outx, &placey, &placex,
-                        pxoffy, pxoffx);
-  }else{
-    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-      ncplane_dim_yx(n, &disppixy, &disppixx);
-      disppixx *= nc->tcache.cellpixx;
-      disppixx += pxoffx;
-      disppixy *= nc->tcache.cellpixy;
-      disppixy += pxoffy;
-      clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy, scaling);
-      int absplacex = 0, absplacey = 0;
-      if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
-        absplacex = placex;
-      }
-      if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        absplacey = placey;
-      }
-      disppixx -= absplacex * nc->tcache.cellpixx;
-      disppixy -= absplacey * nc->tcache.cellpixy;
-    }else{
-      disppixx = lenx + pxoffx;
-      disppixy = leny + pxoffy;
-    }
-    if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-      clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy, scaling);
-      scale_visual(ncv, &disppixy, &disppixx);
-    }
-    clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy, scaling);
-    // FIXME use a closed form
-    while((outy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy > (unsigned)ncplane_dim_y(n)){
-      outy -= nc->tcache.sprixel_scale_height;
-      disppixy = outy;
-    }
-    outx = disppixx;
-    disppixx -= pxoffx;
-    disppixy -= pxoffy;
-  }
-  logdebug("pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disppixy, disppixx, begy, begx, ncv->pixy, ncv->pixx, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
+  const tinfo* ti = &nc->tcache;
   blitterargs bargs;
-  if(flags & NCVISUAL_OPTION_ADDALPHA){
-    bargs.transcolor = transcolor | 0x1000000ul;
-  }else{
-    bargs.transcolor = 0;
-  }
-  bargs.begy = begy;
-  bargs.begx = begx;
-  bargs.leny = leny;
-  bargs.lenx = lenx;
+  bargs.transcolor = transcolor;
+  bargs.begy = geom->begy;
+  bargs.begx = geom->begx;
+  bargs.leny = geom->leny;
+  bargs.lenx = geom->lenx;
   bargs.flags = flags;
-  bargs.u.pixel.colorregs = nc->tcache.color_registers;
+  bargs.u.pixel.colorregs = ti->color_registers;
   bargs.u.pixel.pxoffy = pxoffy;
   bargs.u.pixel.pxoffx = pxoffx;
-  int cols = outx / nc->tcache.cellpixx + !!(outx % nc->tcache.cellpixx);
-  int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
   ncplane* createdn = NULL; // to destroy on error
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = rows,
-      .cols = cols, // FIXME used to be disppix, not outx
+      .rows = geom->rcelly,
+      .cols = geom->rcellx,
       .userptr = NULL,
       .name = "bmap",
       .resizecb = NULL,
@@ -1068,38 +1081,37 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       n = ncplane_create(n, &nopts);
     }
     createdn = n;
+    placey = 0;
+    placex = 0;
   }
   if(n == NULL){
     return NULL;
   }
-  logdebug("cblit: rows/cols: %dx%d plane: %d/%d out: %d/%d\n", rows, cols, ncplane_dim_y(n), ncplane_dim_x(n), outy, outx);
+  logdebug("cblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   if(n->sprite == NULL){
-    if((n->sprite = sprixel_alloc(&nc->tcache, n, rows, cols)) == NULL){
+    if((n->sprite = sprixel_alloc(&nc->tcache, n, geom->rcelly, geom->rcellx)) == NULL){
       ncplane_destroy(createdn);
       return NULL;
     }
-    if((n->tam = create_tam(rows, cols)) == NULL){
+    if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
       ncplane_destroy(createdn);
       return NULL;;
     }
   }else{
     n->sprite = sprixel_recycle(n);
-    if(n->sprite->dimy != rows || n->sprite->dimx != cols){
+    if(n->sprite->dimy != geom->rcelly || n->sprite->dimx != geom->rcellx){
       destroy_tam(n);
-      if((n->tam = create_tam(rows, cols)) == NULL){
+      if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
         ncplane_destroy(createdn);
         return NULL;
       }
     }
-    n->sprite->dimx = cols;
-    n->sprite->dimy = rows;
+    n->sprite->dimx = geom->rcellx;
+    n->sprite->dimy = geom->rcelly;
   }
   bargs.u.pixel.spx = n->sprite;
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
-  // at this point, disppixy/disppixx are the output geometry (might be larger
-  // than scaledy/scaledx for sixel), while scaledy/scaledx are the scaled
-  // geometry. cells occupied are determined based off disppixy/disppixx.
-  if(ncvisual_blit_internal(ncv, disppixy, disppixx, n, bset, &bargs)){
+  if(ncvisual_blit_internal(ncv, geom->rpixy, geom->rpixx, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -1107,9 +1119,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   // zeroed out, thus neither of these will have any effect.
   if(flags & NCVISUAL_OPTION_HORALIGNED){
     if(placex == NCALIGN_CENTER){
-      placex = (ncplane_dim_x(ncplane_parent_const(n)) * nc->tcache.cellpixx - disppixx) / 2 / nc->tcache.cellpixx;
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * ti->cellpixx - geom->rpixx) / 2 / ti->cellpixx;
     }else if(placex == NCALIGN_RIGHT){
-      placex = (ncplane_dim_x(ncplane_parent_const(n)) * nc->tcache.cellpixy - disppixx) / nc->tcache.cellpixx;
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * ti->cellpixx - geom->rpixx) / ti->cellpixx;
     }
     if(placex < 0){
       return NULL;
@@ -1117,9 +1129,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   if(flags & NCVISUAL_OPTION_VERALIGNED){
     if(placey == NCALIGN_CENTER){
-      placey = (ncplane_dim_y(ncplane_parent_const(n)) * nc->tcache.cellpixy - disppixy) / 2 / nc->tcache.cellpixy;
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * ti->cellpixy - geom->rpixy) / 2 / ti->cellpixy;
     }else if(placey == NCALIGN_BOTTOM){
-      placey = (ncplane_dim_y(ncplane_parent_const(n)) * nc->tcache.cellpixy - disppixy) / nc->tcache.cellpixy;
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * ti->cellpixy - geom->rpixy) / ti->cellpixy;
     }
     if(placey < 0){
       return NULL;
@@ -1136,7 +1148,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     // if we blow up here, then we've got a TAM sized to the sprixel, rather
     // than the plane. running it through destroy_tam() via ncplane_destroy()
     // will use incorrect bounds for scrubbing said TAM. do it manually here.
-    cleanup_tam(n->tam, rows, cols);
+    cleanup_tam(n->tam, geom->rcelly, geom->rcellx);
     free(n->tam);
     n->tam = NULL;
     sprixel_hide(bargs.u.pixel.spx);
@@ -1149,36 +1161,41 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 }
 
 ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-//fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
 //fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
+  struct ncvisual_options fakevopts;
+  if(vopts == NULL){
+    memset(&fakevopts, 0, sizeof(fakevopts));
+    vopts = &fakevopts;
+  }
+  loginfo("trueblit %dx%d %d@%d %dx%d %p\n", ncv->pixy, ncv->pixx, vopts->begy, vopts->begx, vopts->leny, vopts->lenx, vopts->n);
   ncvgeom geom;
   const struct blitset* bset;
-  if(ncvisual_geom_inner(&nc->tcache, ncv, vopts, &geom, &bset)){
+  int disppxy, disppxx, outy, outx, placey, placex;
+  if(ncvisual_geom_inner(&nc->tcache, ncv, vopts, &geom, &bset,
+                         &disppxy, &disppxx, &outy, &outx,
+                         &placey, &placex)){
     // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
   }
-  ncplane* n = (vopts ? vopts->n : NULL);
-  ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
+  ncplane* n = vopts->n;
+  ncscale_e scaling = vopts->scaling;
   uint32_t transcolor = 0;
-  if(vopts && vopts->flags & NCVISUAL_OPTION_ADDALPHA){
+  if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     transcolor = 0x1000000ull | vopts->transcolor;
   }
-  int placey = vopts ? vopts->y : 0;
-  int placex = vopts ? vopts->x : 0;
   if(geom.blitter != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, geom.scaley, geom.scalex,
                               bset, placey, placex,
                               geom.begy, geom.begx,
                               geom.leny, geom.lenx, n, scaling,
-                              vopts ? vopts->flags : 0, transcolor);
+                              vopts->flags, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex,
-                               geom.begy, geom.begx,
-                               geom.leny, geom.lenx, n, scaling,
-                               vopts ? vopts->flags : 0, transcolor,
-                               vopts ? vopts->pxoffy : 0,
-                               vopts ? vopts->pxoffx : 0);
+                               &geom, n,
+                               vopts->flags, transcolor,
+                               vopts->pxoffy, vopts->pxoffx);
   }
+fprintf(stderr, "N: %p\n", n);
   return n;
 }
 

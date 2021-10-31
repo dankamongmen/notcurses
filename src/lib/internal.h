@@ -1557,7 +1557,9 @@ rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
 
 int ncvisual_geom_inner(const tinfo* ti, const struct ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
-                        const struct blitset** bset);
+                        const struct blitset** bset,
+                        int* disppxy, int* disppxx, int* outy, int* outx,
+                        int* placey, int* placex);
 
 static inline const struct blitset*
 rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
