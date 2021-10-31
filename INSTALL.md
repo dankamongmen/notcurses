@@ -26,7 +26,7 @@ If you want to build the Python wrappers, you'll also need:
 
 Install build dependencies:
 
-`dnf install cmake doctest-devel zlib-devel ncurses-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+`dnf install cmake doctest-devel zlib-devel ncurses-devel libdrm-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
