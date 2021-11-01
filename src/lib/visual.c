@@ -403,6 +403,10 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->rcellx = *outx / ti->cellpixx + !!(*outx % ti->cellpixx);
     geom->rcelly = *outy / ti->cellpixy + !!(*outy % ti->cellpixy);
   }else{ // cellblit
+    if(vopts->pxoffx || vopts->pxoffy){
+      logerror("pixel offsets cannot be used with cell blitting\n");
+      return -1;
+    }
     int dispcols, disprows;
     if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
@@ -422,10 +426,6 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         } // else stretch
       }
     }else{
-      if(vopts->pxoffx || vopts->pxoffy){
-        logerror("pixel offsets cannot be used with cell blitting\n");
-        return -1;
-      }
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         dispcols = geom->lenx;
         disprows = geom->leny;
@@ -450,8 +450,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         *placey = ncplane_valign(vopts->n, *placey, disprows / geom->scaley);
       }
     }
-    geom->rcelly = dispcols;
-    geom->rcellx = disprows;
+    geom->rcelly = disprows;
+    geom->rcellx = dispcols;
     geom->rpixy = geom->leny;
     geom->rpixx = geom->lenx;
   }
