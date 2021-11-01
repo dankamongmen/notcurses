@@ -409,6 +409,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     }
     int dispcols, disprows;
     if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+//fprintf(stderr, "CPATH1, create beg %dx%d len %dx%d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         dispcols = geom->lenx;
         disprows = geom->leny;
@@ -426,6 +427,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         } // else stretch
       }
     }else{
+//fprintf(stderr, "CPATH2, reuse beg %dx%d len %dx%d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         dispcols = geom->lenx;
         disprows = geom->leny;
@@ -450,10 +452,10 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         *placey = ncplane_valign(vopts->n, *placey, disprows / geom->scaley);
       }
     }
-    geom->rcelly = disprows;
-    geom->rcellx = dispcols;
-    geom->rpixy = geom->leny;
-    geom->rpixx = geom->lenx;
+    geom->rpixy = disprows;
+    geom->rpixx = dispcols;
+    geom->rcellx = dispcols / geom->scalex + !!(dispcols % geom->scalex);
+    geom->rcelly = disprows / geom->scaley + !!(disprows % geom->scaley);
   }
   logdebug("rgeom: %d %d %d %d (%d on %p)\n", geom->rcelly, geom->rcellx, geom->rpixy, geom->rpixx, (*bset)->geom, vopts->n);
   return 0;
@@ -1197,7 +1199,6 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
                                vopts->flags, transcolor,
                                vopts->pxoffy, vopts->pxoffx);
   }
-fprintf(stderr, "N: %p\n", n);
   return n;
 }
 
