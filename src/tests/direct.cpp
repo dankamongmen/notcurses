@@ -126,7 +126,7 @@ TEST_CASE("Direct") {
     }
   }
 
-  SUBCASE("CursorPostGlyphRender") {
+  SUBCASE("CursorPostCellBlit") {
     if(ncdirect_canget_cursor(nc_)){
       auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
