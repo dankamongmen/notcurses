@@ -307,7 +307,6 @@ TEST_CASE("Bitmaps") {
     vopts.scaling = NCSCALE_NONE;
     auto ninf = ncvisual_blit(nc_, ncv, &vopts);
     ncplane_set_name(ninf, "ninf");
-notcurses_debug(nc_, stderr);
     REQUIRE(nullptr != ninf);
     // y of scaled might not be exactly equal to y of inflated since one
     // is based around what can be fit into a specific space, whereas the
