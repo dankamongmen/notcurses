@@ -113,8 +113,8 @@ TEST_CASE("Visual") {
     CHECK(NCBLIT_DEFAULT != g.blitter); // we must not revolve to default
   }
 
-  // build a simple ncvisual and check the calculated geometries for various
-  // cell blitters in the absence of scaling
+  // build a simple ncvisual and check the calculated geometries for 1x1
+  // cell blitting in the absence of scaling
   SUBCASE("VisualCellGeometryNoScaling") {
     std::vector v(80, 0xfffffffflu);
     auto ncv = ncvisual_from_rgba(v.data(), 8, 10 * sizeof(decltype(v)::value_type), 10);
@@ -122,7 +122,7 @@ TEST_CASE("Visual") {
     struct ncvisual_options vopts{};
     ncvgeom g{};
     vopts.blitter = NCBLIT_1x1;
-    CHECK(0 == ncvisual_geom(nullptr, ncv, &vopts, &g));
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
     ncvisual_destroy(ncv);
     CHECK(8 == g.pixy);
     CHECK(10 == g.pixx);
@@ -132,7 +132,30 @@ TEST_CASE("Visual") {
     CHECK(10 == g.rpixx);
     CHECK(8 == g.rcelly);
     CHECK(10 == g.rcellx);
-    CHECK(NCBLIT_DEFAULT == g.blitter);
+    CHECK(NCBLIT_1x1 == g.blitter);
+  }
+
+  // build a simple ncvisual and check the calculated geometries for 1x1
+  // cell blitting with scaling
+  SUBCASE("VisualCellGeometryScaling") {
+    std::vector v(80, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 8, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    ncvgeom g{};
+    vopts.blitter = NCBLIT_1x1;
+    vopts.scaling = NCSCALE_SCALE;
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
+    ncvisual_destroy(ncv);
+    CHECK(8 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(1 == g.scaley);
+    CHECK(1 == g.scalex);
+    CHECK(8 == g.rpixy);
+    CHECK(10 == g.rpixx);
+    CHECK(8 == g.rcelly);
+    CHECK(10 == g.rcellx);
+    CHECK(NCBLIT_1x1 == g.blitter);
   }
 
   // check that we properly populate RGB + A -> RGBA from 35x4 (see #1806)
