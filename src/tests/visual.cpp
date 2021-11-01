@@ -154,8 +154,8 @@ TEST_CASE("Visual") {
     CHECK(10 == g.pixx);
     CHECK(1 == g.scaley);
     CHECK(1 == g.scalex);
-    CHECK(10 == g.rpixy);
-    CHECK(10 == g.rpixx);
+    CHECK(mindim == g.rpixy);
+    CHECK(mindim == g.rpixx);
     CHECK(mindim == g.rcelly);
     CHECK(mindim == g.rcellx);
     CHECK(NCBLIT_1x1 == g.blitter);
@@ -179,8 +179,8 @@ TEST_CASE("Visual") {
     CHECK(10 == g.pixx);
     CHECK(1 == g.scaley);
     CHECK(1 == g.scalex);
-    CHECK(10 == g.rpixy);
-    CHECK(10 == g.rpixx);
+    CHECK(dimy == g.rpixy);
+    CHECK(dimx == g.rpixx);
     CHECK(dimy == g.rcelly);
     CHECK(dimx == g.rcellx);
     CHECK(NCBLIT_1x1 == g.blitter);
@@ -306,22 +306,16 @@ TEST_CASE("Visual") {
   // ensure that NCSCALE_STRETCH gives us a full plane, and that we write
   // everywhere within that plane
   SUBCASE("Stretch") {
-    std::vector<uint32_t> v(1, htole(0xe61c28ff));
+    std::vector<uint32_t> v(1, htole(0xff1c28ff));
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_rgba(v.data(), 1, sizeof(decltype(v)::value_type), 1);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = n_,
-      .scaling = NCSCALE_STRETCH,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
-      .transcolor = 0,
-      .pxoffy = 0, .pxoffx = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = n_;
+    vopts.scaling = NCSCALE_STRETCH;
+    vopts.blitter = NCBLIT_1x1;
+    vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     REQUIRE(nullptr != n);
