@@ -4,16 +4,14 @@
 // the only dynamic information which needs be shared between the two threads
 // is the last polyfill origin, the total filled count, and whose turn it is.
 
-static int maxy;
-static int maxx;
-static int total;
-
 struct marsh {
   int id;                 // unique for each thread, mono-increasing
   int* turn;              // whose turn it is to prep the ncvisual, shared
   int* rturn;             // whose turn it is to render, shared
   int* polyy;             // last shared polyfill origin (y)
   int* polyx;             // last shared polyfill origin (x)
+  int maxy;               // pixels, y dimension
+  int maxx;               // pixels, x dimension
   uint32_t* polypixel;    // last shared polyfill pixel (rgba)
   int* filled;            // shared, how many have we filled?
   unsigned* done;         // shared, are we done?
@@ -38,13 +36,13 @@ yielder(struct marsh* m){
   int iters = 0;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
-  const long threshold_painted = total * 11 / 50;
+  const long threshold_painted = m->maxy * m->maxx * 11 / 50;
   pthread_mutex_lock(&lock);
   while(*m->turn != m->id && !*m->done){
     pthread_cond_wait(&cond, &lock);
   }
   while(*m->filled < threshold_painted && iters < MAXITER && !*m->done){
-//fprintf(stderr, "%d/%d tfilled: %ld thresh: %ld total: %ld\n", maxy, maxx, *m->filled, threshold_painted, total);
+//fprintf(stderr, "%d/%d tfilled: %d thresh: %ld total: %d\n", m->maxy, m->maxx, *m->filled, threshold_painted, m->maxy * m->maxx);
     int pfilled = 0;
     // the first time the first thread runs, it does not pick up the previous
     // polyfill origin (as there was none). all other runs, we do.
@@ -54,8 +52,8 @@ yielder(struct marsh* m){
     int filledcopy;
     do{
       ++iters;
-      int x = rand() % maxx;
-      int y = rand() % maxy;
+      int x = rand() % m->maxx;
+      int y = rand() % m->maxy;
       ncvisual_at_yx(m->ncv, y, x, m->polypixel);
       if(ncpixel_a(*m->polypixel) != 0xff){ // don't do areas we've already done
         continue;
@@ -254,7 +252,8 @@ int yield_demo(struct notcurses* nc){
     ncplane_destroy(m1.vopts.n);
     return -1;
   }
-  total = geom.pixy * geom.pixx;
+  m1.maxy = m2.maxy = geom.pixy;
+  m1.maxx = m2.maxx = geom.pixx;
 
   DEMO_RENDER(nc);
 
