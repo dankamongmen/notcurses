@@ -135,11 +135,11 @@ TEST_CASE("Visual") {
     CHECK(NCBLIT_1x1 == g.blitter);
   }
 
-  // build a simple ncvisual and check the calculated geometries for 1x1
+  // build a square ncvisual and check the calculated geometries for 1x1
   // cell blitting with scaling
   SUBCASE("VisualCellGeometryScaling") {
-    std::vector v(80, 0xfffffffflu);
-    auto ncv = ncvisual_from_rgba(v.data(), 8, 10 * sizeof(decltype(v)::value_type), 10);
+    std::vector v(100, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
     ncvgeom g{};
@@ -147,14 +147,42 @@ TEST_CASE("Visual") {
     vopts.scaling = NCSCALE_SCALE;
     CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
     ncvisual_destroy(ncv);
-    CHECK(8 == g.pixy);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    int mindim = dimy < dimx ? dimy : dimx;
+    CHECK(10 == g.pixy);
     CHECK(10 == g.pixx);
     CHECK(1 == g.scaley);
     CHECK(1 == g.scalex);
-    CHECK(8 == g.rpixy);
+    CHECK(10 == g.rpixy);
     CHECK(10 == g.rpixx);
-    CHECK(8 == g.rcelly);
-    CHECK(10 == g.rcellx);
+    CHECK(mindim == g.rcelly);
+    CHECK(mindim == g.rcellx);
+    CHECK(NCBLIT_1x1 == g.blitter);
+  }
+
+  // build a square ncvisual and check the calculated geometries for 1x1
+  // cell blitting with stretching
+  SUBCASE("VisualCellGeometryStretching") {
+    std::vector v(100, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    ncvgeom g{};
+    vopts.blitter = NCBLIT_1x1;
+    vopts.scaling = NCSCALE_STRETCH;
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
+    ncvisual_destroy(ncv);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    CHECK(10 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(1 == g.scaley);
+    CHECK(1 == g.scalex);
+    CHECK(10 == g.rpixy);
+    CHECK(10 == g.rpixx);
+    CHECK(dimy == g.rcelly);
+    CHECK(dimx == g.rcellx);
     CHECK(NCBLIT_1x1 == g.blitter);
   }
 
