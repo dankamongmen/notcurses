@@ -53,7 +53,7 @@ TEST_CASE("Visual") {
 
   // ncvisual_geom() with a NULL nc
   SUBCASE("VisualIntrinsicGeometry") {
-    std::vector v(20, 0xfffffffflu);
+    std::vector<uint32_t> v(20, 0xfffffffflu);
     auto ncv = ncvisual_from_rgba(v.data(), 2, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     ncvgeom g{};
@@ -116,7 +116,7 @@ TEST_CASE("Visual") {
   // build a simple ncvisual and check the calculated geometries for 1x1
   // cell blitting in the absence of scaling
   SUBCASE("VisualCellGeometryNoScaling") {
-    std::vector v(80, 0xfffffffflu);
+    std::vector<uint32_t> v(80, 0xfffffffflu);
     auto ncv = ncvisual_from_rgba(v.data(), 8, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
@@ -138,7 +138,7 @@ TEST_CASE("Visual") {
   // build a square ncvisual and check the calculated geometries for 1x1
   // cell blitting with scaling
   SUBCASE("VisualCellGeometryScaling") {
-    std::vector v(100, 0xfffffffflu);
+    std::vector<uint32_t> v(100, 0xfffffffflu);
     auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
@@ -164,7 +164,7 @@ TEST_CASE("Visual") {
   // build a square ncvisual and check the calculated geometries for 1x1
   // cell blitting with stretching
   SUBCASE("VisualCellGeometryStretching") {
-    std::vector v(100, 0xfffffffflu);
+    std::vector<uint32_t> v(100, 0xfffffffflu);
     auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
