@@ -38,7 +38,7 @@ static void
 get_default_geometry(tinfo* ti){
   ti->default_rows = get_default_dimension("LINES", "lines", 24);
   ti->default_cols = get_default_dimension("COLUMNS", "cols", 80);
-  loginfo("Default geometry: %d row%s, %d column%s\n",
+  loginfo("default geometry: %d row%s, %d column%s\n",
           ti->default_rows, ti->default_rows != 1 ? "s" : "",
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
   ti->dimy = ti->default_rows;
