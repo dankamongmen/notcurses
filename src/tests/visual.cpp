@@ -49,6 +49,7 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
   }
 
   // ncvisual_geom() with a NULL nc
@@ -202,6 +203,7 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
   }
 
   // check that we properly populate RGBx + A -> RGBA
@@ -220,6 +222,7 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
   }
 
   // resize followed by rotate, see #1800
@@ -502,6 +505,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 
@@ -542,6 +546,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 
@@ -616,6 +621,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 
