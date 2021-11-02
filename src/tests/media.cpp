@@ -123,6 +123,7 @@ TEST_CASE("Media") {
     void* needle = malloc(1);
     REQUIRE(nullptr != needle);
     struct ncplane* newn = ncplane_dup(ncp_, needle);
+    free(needle);
     int ndimx, ndimy;
     REQUIRE(nullptr != newn);
     ncvisual_destroy(ncv);
