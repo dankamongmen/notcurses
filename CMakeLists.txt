@@ -252,7 +252,7 @@ target_link_libraries(notcurses-core
     "${LIBM}"
     "${unistring}"
     "${gpm}"
-    "${drm}"
+    "${DRM_LIBRARIES}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -264,7 +264,7 @@ target_link_libraries(notcurses-core-static
     "${LIBM}"
     "${unistring}"
     "${gpm}"
-    "${drm}"
+    "${DRM_STATIC_LIBRARIES}"
   PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
@@ -273,11 +273,13 @@ target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
     "${ZLIB_LIBRARY_DIRS}"
+    "${DRM_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
     "${ZLIB_STATIC_LIBRARY_DIRS}"
+    "${DRM_STATIC_LIBRARY_DIRS}"
 )
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses-core PRIVATE qrcodegen)
