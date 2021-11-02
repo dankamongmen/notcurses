@@ -260,7 +260,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   ncvisual_destroy(ncv);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "partially-transparent image");
-  deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
+  deadlinens = timespec_to_ns(&cur) + 2 * timespec_to_ns(&demodelay);
   if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
     ncplane_destroy(n);
     ncplane_destroy(l);
