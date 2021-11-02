@@ -232,6 +232,7 @@ target_include_directories(notcurses-core
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
+    "${DRM_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   BEFORE
@@ -242,6 +243,7 @@ target_include_directories(notcurses-core-static
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${ZLIB_STATIC_INCLUDE_DIRS}"
+    "${DRM_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE

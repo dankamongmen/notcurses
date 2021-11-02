@@ -737,11 +737,41 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
   return 0;
 }
 
+#ifdef USE_DRM
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+
+bool is_linux_drm(tinfo* ti){
+  // FIXME need check for multiple devices! same problem below for framebuffers
+  const char* dev = "/dev/dri/card1";
+  loginfo("checking for linux drm at %s\n", dev);
+  int fd = open(dev, O_RDWR | O_CLOEXEC);
+  if(fd < 0){
+    logdebug("couldn't open drm device %s\n", dev);
+    return false;
+  }
+  drmModeResPtr dptr = drmModeGetResources(fd);
+  if(dptr == NULL){
+    close(fd);
+    return false;
+  }
+  loginfo("found drm on %s (fd %d)\n", dev, fd);
+  close(fd);
+  // FIXME
+  return true;
+}
+#else
+bool is_linux_drm(tinfo* ti){
+  (void)ti;
+  return false;
+}
+#endif
+
 bool is_linux_framebuffer(tinfo* ti){
   // FIXME there might be multiple framebuffers present; how do we determine
   // which one is ours?
   const char* dev = "/dev/fb0";
-  loginfo("Checking for Linux framebuffer at %s\n", dev);
+  loginfo("checking for linux framebuffer at %s\n", dev);
   int fd = open(dev, O_RDWR | O_CLOEXEC);
   if(fd < 0){
     logdebug("Couldn't open framebuffer device %s\n", dev);

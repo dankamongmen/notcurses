@@ -114,7 +114,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, ncpixelimpl_e level){
 
 #ifdef __linux__
 static inline void
-setup_fbcon_bitmaps(tinfo* ti, int fd){
+setup_fbcon_bitmaps(tinfo* ti, int fd, ncpixelimpl_e impl){
   ti->pixel_scrub = fbcon_scrub;
   ti->pixel_remove = NULL;
   ti->pixel_draw = NULL;
@@ -128,7 +128,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
   ti->pixel_wipe = fbcon_wipe;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(fbcon_blit);
-  ti->pixel_implementation = NCPIXEL_LINUXFB;
+  ti->pixel_implementation = impl;
   sprite_init(ti, fd);
 }
 #endif
@@ -677,18 +677,15 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     // no quadrants, no sextants, no rgb, but it does have braille
 #ifdef __linux__
   }else if(qterm == TERMINAL_LINUX){
-    struct utsname un;
-    if(uname(&un) == 0){
-      ti->termversion = strdup(un.release);
-    }
-    if(is_linux_framebuffer(ti)){
-      termname = "Linux framebuffer";
-      setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
+    if(is_linux_drm(ti)){
+      termname = "DRM";
+      setup_fbcon_bitmaps(ti, ti->linux_fb_fd, NCPIXEL_DRM);
+    }else if(is_linux_framebuffer(ti)){
+      termname = "FBcon";
+      setup_fbcon_bitmaps(ti, ti->linux_fb_fd, NCPIXEL_LINUXFB);
     }else{
-      termname = "Linux console";
+      termname = "Linux VT";
     }
-    ti->caps.halfblocks = false;
-    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
     if(ti->ttyfd >= 0){
       reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks,
                              &ti->caps.quadrants);

@@ -386,8 +386,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
     case NCPIXEL_LINUXFB:
       ncplane_printf(n, "%sframebuffer graphics supported", indent);
       break;
-    case NCPIXEL_ITERM2:
-      ncplane_printf(n, "%siTerm2 graphics supported", indent);
+    case NCPIXEL_DRM:
+      ncplane_printf(n, "%sDRM graphics supported", indent);
       break;
     case NCPIXEL_KITTY_STATIC:
       ncplane_printf(n, "%srgba pixel graphics support", indent);

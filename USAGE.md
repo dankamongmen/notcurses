@@ -354,7 +354,6 @@ typedef enum {
   NCPIXEL_NONE = 0,
   NCPIXEL_SIXEL,           // sixel
   NCPIXEL_LINUXFB,         // linux framebuffer
-  NCPIXEL_ITERM2,          // iTerm2
   // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
   // time as animation. prior to this, graphics had to be entirely redrawn
   // on any change, and it wasn't possible to use the bottom line.
@@ -368,6 +367,7 @@ typedef enum {
   // original image (which we now deflate, since we needn't unpack it later).
   // the only data we need keep is the auxvecs.
   NCPIXEL_KITTY_SELFREF,
+  NCPIXEL_DRM,             // direct rendering manager (unix)
 } ncpixelimpl_e;
 
 // Returns a non-zero constant corresponding to some pixel-blitting

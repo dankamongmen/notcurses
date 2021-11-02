@@ -179,7 +179,7 @@ typedef struct tinfo {
   int gpmfd;                 // connection to GPM daemon
   pthread_t gpmthread;       // thread handle for GPM watcher
 #ifdef __linux__
-  int linux_fb_fd;           // linux framebuffer device fd
+  int linux_fb_fd;           // linux drm/fbcon device fd
   char* linux_fb_dev;        // device corresponding to linux_fb_dev
   uint8_t* linux_fbuffer;    // mmap()ed framebuffer
   size_t linux_fb_len;       // size of map

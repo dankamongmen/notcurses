@@ -27,6 +27,10 @@ int reprogram_console_font(struct tinfo* ti, unsigned no_font_changes,
                            bool* halfblocks, bool* quadrants);
 
 // if is_linux_console() returned true, call this to determine whether it is
+// a drawable DRM buffer. do not call if not a verified console!
+bool is_linux_drm(struct tinfo* ti);
+
+// if is_linux_console() returned true, call this to determine whether it is
 // a drawable framebuffer console. do not call if not a verified console!
 bool is_linux_framebuffer(struct tinfo* ti);
 

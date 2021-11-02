@@ -43,10 +43,10 @@ typedef enum {
   NCPIXEL_NONE = 0,
   NCPIXEL_SIXEL,           // sixel
   NCPIXEL_LINUXFB,         // linux framebuffer
-  NCPIXEL_ITERM2,          // iTerm2
   NCPIXEL_KITTY_STATIC,    // kitty pre-0.20.0
   NCPIXEL_KITTY_ANIMATED,  // kitty pre-0.22.0
   NCPIXEL_KITTY_SELFREF,   // kitty 0.22.0+, wezterm
+  NCPIXEL_DRM,             // direct rendering manager
 } ncpixelimpl_e;
 ```
 

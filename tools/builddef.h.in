@@ -1,5 +1,6 @@
 // Populated by CMake; not installed
 #cmakedefine DFSG_BUILD
+#cmakedefine USE_DRM
 #cmakedefine USE_GPM
 #cmakedefine USE_QRCODEGEN
 // exclusive with USE_OIIO
