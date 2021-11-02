@@ -2125,7 +2125,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
 }
 
 // FIXME kill off for API3, and expect an absolute deadline directly
-static void
+static inline void
 delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
   if(ts){
     // incoming ts is a delay bound, but we want an absolute deadline for
