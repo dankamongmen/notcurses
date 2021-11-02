@@ -547,7 +547,7 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   loginfo("Committing Kitty graphic id %u\n", s->id);
   int i;
   if(s->pxoffx || s->pxoffy){
-    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s\e\\", s->id,
+    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s,q=2\e\\", s->id,
                     s->pxoffx, s->pxoffy, noscroll ? ",C=1" : "");
   }else{
     i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
