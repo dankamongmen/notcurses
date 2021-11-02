@@ -210,9 +210,6 @@ shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
   // as part of the scaled geometry (they are included in outx/outy).
   *disppixy -= pxoffy;
   *disppixx -= pxoffx;
-  // we always actually blit to the origin of the plane
-  *placey = 0;
-  *placex = 0;
 }
 
 // in addition to the geom fields, we pass out:
@@ -357,7 +354,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         }
       }
     }
-    if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+    if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
+      // we'll need to create the plane
       shape_sprixel_plane(ti, vopts->n, n, scaling, disppixy, disppixx,
                           vopts->flags, outy, outx, placey, placex,
                           vopts->pxoffy, vopts->pxoffx);
@@ -397,7 +395,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       *disppixx -= vopts->pxoffx;
       *disppixy -= vopts->pxoffy;
     }
-    logdebug("pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, ti->cellpixx);
+    logdebug("pblit: %dx%d ← %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, ti->cellpixx);
     geom->rpixy = *disppixy;
     geom->rpixx = *disppixx;
     geom->rcellx = *outx / ti->cellpixx + !!(*outx % ti->cellpixx);
@@ -457,7 +455,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->rcellx = dispcols / geom->scalex + !!(dispcols % geom->scalex);
     geom->rcelly = disprows / geom->scaley + !!(disprows % geom->scaley);
   }
-  logdebug("rgeom: %d %d %d %d (%d on %p)\n", geom->rcelly, geom->rcellx, geom->rpixy, geom->rpixx, (*bset)->geom, vopts->n);
+  logdebug("rgeom: %d %d %d %d @ %d/%d (%d on %p)\n", geom->rcelly, geom->rcellx,
+           geom->rpixy, geom->rpixx, *placey, *placex, (*bset)->geom, vopts->n);
   return 0;
 }
 
@@ -1110,7 +1109,8 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     memset(&fakevopts, 0, sizeof(fakevopts));
     vopts = &fakevopts;
   }
-  loginfo("trueblit %dx%d %d@%d %dx%d %p\n", ncv->pixy, ncv->pixx, vopts->begy, vopts->begx, vopts->leny, vopts->lenx, vopts->n);
+  loginfo("inblit %dx%d %d@%d %dx%d @ %dx%d %p\n", ncv->pixy, ncv->pixx, vopts->y, vopts->x,
+          vopts->leny, vopts->lenx, vopts->begy, vopts->begx, vopts->n);
   ncvgeom geom;
   const struct blitset* bset;
   int disppxy, disppxx, outy, outx, placey, placex;
