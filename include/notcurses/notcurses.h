@@ -2984,7 +2984,7 @@ API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
 // set, and vopts->n is NULL, a new plane is created as root of a new pile.
 // If the flag is not set and vopts->n is not NULL, we render to vopts->n.
 // A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
-// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// 'leny'. Negative values for any of these are an error. It is an error to
 // specify any region beyond the boundaries of the frame. Returns the (possibly
 // newly-created) plane to which we drew. Pixels may not be blitted to the
 // standard plane.
