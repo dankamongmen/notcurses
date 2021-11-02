@@ -762,7 +762,7 @@ get_drm_fb(int fd, const char* dev, const drmModeResPtr dptr){
 bool is_linux_drm(tinfo* ti){
   // FIXME need check for multiple devices! same problem below for framebuffers
   const char* dev = "/dev/dri/card0";
-  loginfo("checking for linux drm at %s\n", dev);
+  loginfo("checking for drm at %s\n", dev);
   int fd = open(dev, O_RDWR | O_CLOEXEC);
   if(fd < 0){
     logdebug("couldn't open drm device %s\n", dev);
@@ -770,6 +770,7 @@ bool is_linux_drm(tinfo* ti){
   }
   drmModeResPtr dptr = drmModeGetResources(fd);
   if(dptr == NULL){
+    logdebug("no drm on fd %d (%s)\n", fd, dev);
     close(fd);
     return false;
   }
