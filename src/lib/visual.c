@@ -1024,6 +1024,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
                                 int placey, int placex, const ncvgeom* geom,
                                 ncplane* n, uint64_t flags, uint32_t transcolor,
                                 int pxoffy, int pxoffx){
+  logdebug("pblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   const tinfo* ti = &nc->tcache;
   blitterargs bargs;
   bargs.transcolor = transcolor;
@@ -1035,7 +1036,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.colorregs = ti->color_registers;
   bargs.u.pixel.pxoffy = pxoffy;
   bargs.u.pixel.pxoffx = pxoffx;
-  logdebug("pblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   if(n->sprite == NULL){
     if((n->sprite = sprixel_alloc(&nc->tcache, n, geom->rcelly, geom->rcellx)) == NULL){
       return NULL;
@@ -1135,9 +1135,16 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
       .userptr = NULL,
       .name = geom.blitter == NCBLIT_PIXEL ? "bmap" : "cvis",
       .resizecb = NULL,
-      .flags = ((vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? NCPLANE_OPTION_HORALIGNED : 0)
-             | ((vopts->flags & NCVISUAL_OPTION_VERALIGNED) ? NCPLANE_OPTION_VERALIGNED : 0),
+      .flags = 0,
     };
+    if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+      nopts.flags |= NCPLANE_OPTION_HORALIGNED;
+      nopts.x = vopts->x;
+    }
+    if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+      nopts.flags |= NCPLANE_OPTION_VERALIGNED;
+      nopts.y = vopts->y;
+    }
     loginfo("placing new plane: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
     if(n == NULL){
       n = ncpile_create(nc, &nopts);
@@ -1150,7 +1157,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     placey = 0;
     placex = 0;
   }
-//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d %d/%d\n", disprows, dispcols, placey, placex, begy, begx);
+  logdebug("blit to plane %p at %d/%d geom %dx%d\n", n, ncplane_y(n), ncplane_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
   if(geom.blitter != NCBLIT_PIXEL){
     n = ncvisual_render_cells(ncv, bset, placey, placex,
                               &geom, n, vopts->flags, transcolor);

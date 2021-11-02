@@ -362,6 +362,7 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != ncv);
     auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(18 == ncplane_dim_y(child));
     CHECK(5 == ncplane_dim_x(child));
     CHECK(0 == ncplane_y(child));
