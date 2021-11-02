@@ -740,6 +740,24 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
 #ifdef USE_DRM
 #include <xf86drm.h>
 #include <xf86drmMode.h>
+static void*
+get_drm_fb(int fd, const char* dev, const drmModeResPtr dptr){
+  for(int i = 0 ; i < dptr->count_connectors ; ++i){
+    drmModeConnectorPtr cptr = drmModeGetConnector(fd, i);
+    if(cptr == NULL){
+      logdebug("no connector at %d\n", i);
+      continue;
+    }
+		loginfo("connector %d: %d mode%s conn %d\n", i,
+		      cptr->count_modes, cptr->count_modes == 1 ? "" : "s",
+		      cptr->connection);
+		if(cptr->connection == DRM_MODE_CONNECTED && cptr->count_modes > 0){
+		      loginfo("LOOKS GOOD?\n");
+		}
+		drmModeFreeConnector(cptr);
+  }
+  return NULL;
+}
 
 bool is_linux_drm(tinfo* ti){
   // FIXME need check for multiple devices! same problem below for framebuffers
@@ -755,9 +773,17 @@ bool is_linux_drm(tinfo* ti){
     close(fd);
     return false;
   }
-  loginfo("found drm on %s (fd %d)\n", dev, fd);
+  loginfo("found drm on %s (fd %d %d fb%s %d crtc%s %d enc%s %d cxn%s)\n", dev, fd,
+          dptr->count_fbs, dptr->count_fbs == 1 ? "" : "s",
+          dptr->count_crtcs, dptr->count_crtcs == 1 ? "" : "s",
+          dptr->count_encoders, dptr->count_encoders == 1 ? "" : "s",
+          dptr->count_connectors, dptr->count_connectors == 1 ? "" : "s");
+  void* fb = get_drm_fb(fd, dev, dptr);
   close(fd);
-  // FIXME
+  drmModeFreeResources(dptr);
+  if(fb == NULL){
+    return false;
+  }
   return true;
 }
 #else
