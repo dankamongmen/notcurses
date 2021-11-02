@@ -17,7 +17,13 @@ draw_grid(struct ncplane* stdn){
   // at 0, 9, 10, 19, 20, 29, etc.
   for(int y = 0 ; y < maxby ; ++y){
     uint32_t* row = rgba + y * maxbx;
-    memset(row, 0xff, maxbx * sizeof(*rgba));
+    for(int x = 0 ; x < maxbx ; ++x){
+      uint32_t* px = row + x;
+      ncpixel_set_a(px, 255);
+      ncpixel_set_r(px, 0x39);
+      ncpixel_set_g(px, 0xff);
+      ncpixel_set_b(px, 0xa0);
+    }
     for(int yi = 0 ; yi < cellpxy - 2 ; ++yi){
       ++y;
       if(y < maxby){
@@ -40,7 +46,15 @@ draw_grid(struct ncplane* stdn){
     }
     ++y;
     row = rgba + y * maxbx;
-    memset(row, 0xff, maxbx * sizeof(*rgba));
+    if(y < maxby){
+      for(int x = 0 ; x < maxbx ; ++x){
+	uint32_t* px = row + x;
+	ncpixel_set_a(px, 255);
+	ncpixel_set_r(px, 0x39);
+	ncpixel_set_g(px, 0xff);
+	ncpixel_set_b(px, 0xa0);
+      }
+    }
   }
   struct ncvisual* ncv = ncvisual_from_rgba(rgba, maxby, maxbx * sizeof(*rgba), maxbx);
   free(rgba);
