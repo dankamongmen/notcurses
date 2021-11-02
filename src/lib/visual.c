@@ -983,43 +983,10 @@ int ncvisual_resize_noninterpolative(ncvisual* n, int rows, int cols){
 // the origin of the source region to draw (in pixels). leny/lenx define the
 // geometry of the source region to draw, again in pixels. ncv->pixy and
 // ncv->pixx define the source geometry in pixels.
-ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv,
-                               const struct blitset* bset,
+ncplane* ncvisual_render_cells(ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex,
                                ncvgeom* geom, ncplane* n,
                                uint64_t flags, uint32_t transcolor){
-  ncplane* createdn = NULL;
-//fprintf(stderr, "INPUT N: %p\n", n);
-  if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d %d/%d\n", disprows, dispcols, placey, placex, begy, begx);
-    struct ncplane_options nopts = {
-      .y = placey,
-      .x = placex,
-      .rows = geom->rcelly,
-      .cols = geom->rcellx,
-      .userptr = NULL,
-      .name = "cvis",
-      .resizecb = NULL,
-      .flags = 0,
-    };
-    if(flags & NCVISUAL_OPTION_HORALIGNED){
-      nopts.flags |= NCPLANE_OPTION_HORALIGNED;
-    }
-    if(flags & NCVISUAL_OPTION_VERALIGNED){
-      nopts.flags |= NCPLANE_OPTION_VERALIGNED;
-    }
-    if(n){
-      n = ncplane_create(n, &nopts);
-    }else{
-      n = ncpile_create(nc, &nopts);
-    }
-    if(n == NULL){
-      return NULL;
-    }
-    createdn = n;
-    placey = 0;
-    placex = 0;
-  }
   logdebug("cblit: rows/cols: %dx%d plane: %d/%d pix: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n), geom->rpixy, geom->rpixx);
   blitterargs bargs;
   bargs.transcolor = transcolor;
@@ -1031,7 +998,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv,
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
   if(ncvisual_blit_internal(ncv, geom->rpixy, geom->rpixx, n, bset, &bargs)){
-    ncplane_destroy(createdn);
     return NULL;
   }
   return n;
@@ -1069,40 +1035,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.colorregs = ti->color_registers;
   bargs.u.pixel.pxoffy = pxoffy;
   bargs.u.pixel.pxoffx = pxoffx;
-  ncplane* createdn = NULL; // to destroy on error
-  if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
-    struct ncplane_options nopts = {
-      .y = placey,
-      .x = placex,
-      .rows = geom->rcelly,
-      .cols = geom->rcellx,
-      .userptr = NULL,
-      .name = "bmap",
-      .resizecb = NULL,
-      .flags = ((flags & NCVISUAL_OPTION_HORALIGNED) ? NCPLANE_OPTION_HORALIGNED : 0)
-            | ((flags & NCVISUAL_OPTION_VERALIGNED) ? NCPLANE_OPTION_VERALIGNED : 0),
-    };
-    loginfo("placing new plane: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
-    if(n == NULL){
-      n = ncpile_create(nc, &nopts);
-    }else{
-      n = ncplane_create(n, &nopts);
-    }
-    createdn = n;
-    placey = 0;
-    placex = 0;
-  }
-  if(n == NULL){
-    return NULL;
-  }
   logdebug("pblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   if(n->sprite == NULL){
     if((n->sprite = sprixel_alloc(&nc->tcache, n, geom->rcelly, geom->rcellx)) == NULL){
-      ncplane_destroy(createdn);
       return NULL;
     }
     if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
-      ncplane_destroy(createdn);
       return NULL;;
     }
   }else{
@@ -1110,7 +1048,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if(n->sprite->dimy != geom->rcelly || n->sprite->dimx != geom->rcellx){
       destroy_tam(n);
       if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
-        ncplane_destroy(createdn);
         return NULL;
       }
     }
@@ -1120,7 +1057,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.spx = n->sprite;
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
   if(ncvisual_blit_internal(ncv, geom->rpixy, geom->rpixx, n, bset, &bargs)){
-    ncplane_destroy(createdn);
     return NULL;
   }
   // if we created the plane earlier, placex/placey were taken into account, and
@@ -1160,7 +1096,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     free(n->tam);
     n->tam = NULL;
     sprixel_hide(bargs.u.pixel.spx);
-    ncplane_destroy(createdn);
     return NULL;
   }
   n->sprite = bargs.u.pixel.spx;
@@ -1190,14 +1125,43 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     transcolor = 0x1000000ull | vopts->transcolor;
   }
+  ncplane* createdn = NULL; // to destroy on error
+  if(n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+    struct ncplane_options nopts = {
+      .y = placey,
+      .x = placex,
+      .rows = geom.rcelly,
+      .cols = geom.rcellx,
+      .userptr = NULL,
+      .name = geom.blitter == NCBLIT_PIXEL ? "bmap" : "cvis",
+      .resizecb = NULL,
+      .flags = ((vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? NCPLANE_OPTION_HORALIGNED : 0)
+             | ((vopts->flags & NCVISUAL_OPTION_VERALIGNED) ? NCPLANE_OPTION_VERALIGNED : 0),
+    };
+    loginfo("placing new plane: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
+    if(n == NULL){
+      n = ncpile_create(nc, &nopts);
+    }else{
+      n = ncplane_create(n, &nopts);
+    }
+    if((createdn = n) == NULL){
+      return NULL;
+    }
+    placey = 0;
+    placex = 0;
+  }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d %d/%d\n", disprows, dispcols, placey, placex, begy, begx);
   if(geom.blitter != NCBLIT_PIXEL){
-    n = ncvisual_render_cells(nc, ncv, bset, placey, placex,
+    n = ncvisual_render_cells(ncv, bset, placey, placex,
                               &geom, n, vopts->flags, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex,
                                &geom, n,
                                vopts->flags, transcolor,
                                vopts->pxoffy, vopts->pxoffx);
+  }
+  if(n == NULL){
+    ncplane_destroy(createdn);
   }
   return n;
 }
