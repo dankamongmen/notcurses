@@ -167,6 +167,11 @@ TEST_CASE("Tree") {
     nctree_destroy(tree);
   }
 
+  free(subs[0].curry);
+  free(subs[1].curry);
+  free(items[0].curry);
+  free(items[1].curry);
+
   nctree_item alphaUs[] = {
     {
       .curry = const_cast<char*>("²¹⁴U"),
