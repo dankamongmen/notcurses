@@ -31,17 +31,48 @@ static pthread_mutex_t rlock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t rcond = PTHREAD_COND_INITIALIZER;
 
 static int
+display(struct marsh* m, int filledcopy, long threshold_painted){
+  ncplane_printf_aligned(m->label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)filledcopy * 100) / threshold_painted);
+  ncplane_reparent(m->vopts.n, m->label);
+  ncplane_move_below(m->vopts.n, m->label);
+  if(ncvisual_blit(m->nc, m->ncv, &m->vopts) == NULL){
+    return -1;
+  }
+  if(demo_render(m->nc)){
+    return -1;
+  }
+  *m->rturn = !*m->rturn;
+  ncplane_reparent(m->vopts.n, m->vopts.n);
+  pthread_mutex_unlock(&rlock);
+  pthread_cond_signal(&rcond);
+  pthread_mutex_lock(&lock);
+  while(*m->turn != m->id && !*m->done){
+    pthread_cond_wait(&cond, &lock);
+  }
+  return 0;
+}
+
+static int
 yielder(struct marsh* m){
 #define MAXITER (1024 / 2)
   int iters = 0;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
   const long threshold_painted = m->maxy * m->maxx * 11 / 50;
-  pthread_mutex_lock(&lock);
-  while(*m->turn != m->id && !*m->done){
-    pthread_cond_wait(&cond, &lock);
+  if(m->id == 1){
+    pthread_mutex_lock(&rlock);
+    if(display(m, 0, threshold_painted)){
+      *m->done = 1;
+      pthread_mutex_unlock(&rlock);
+      return -1;
+    }
+  }else{
+    pthread_mutex_lock(&lock);
+    while(*m->turn != m->id && !*m->done){
+      pthread_cond_wait(&cond, &lock);
+    }
   }
-  while(*m->filled < threshold_painted && iters < MAXITER && !*m->done){
+  while(!*m->done && *m->filled < threshold_painted && iters < MAXITER){
     int pfilled = 0;
     // the first time the first thread runs, it does not pick up the previous
     // polyfill origin (as there was none). all other runs, we do. fill in our
@@ -87,26 +118,10 @@ yielder(struct marsh* m){
     while(*m->rturn != m->id && !*m->done){
       pthread_cond_wait(&rcond, &rlock);
     }
-    ncplane_printf_aligned(m->label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)filledcopy * 100) / threshold_painted);
-    ncplane_reparent(m->vopts.n, m->label);
-    ncplane_move_below(m->vopts.n, m->label);
-    if(ncvisual_blit(m->nc, m->ncv, &m->vopts) == NULL){
+    if(display(m, filledcopy, threshold_painted)){
       pthread_mutex_unlock(&rlock);
       pthread_mutex_lock(&lock);
       break;
-    }
-    if(demo_render(m->nc)){
-      pthread_mutex_unlock(&rlock);
-      pthread_mutex_lock(&lock);
-      break;
-    }
-    *m->rturn = !*m->rturn;
-    ncplane_reparent(m->vopts.n, m->vopts.n);
-    pthread_mutex_unlock(&rlock);
-    pthread_cond_signal(&rcond);
-    pthread_mutex_lock(&lock);
-    while(*m->turn != m->id && !*m->done){
-      pthread_cond_wait(&cond, &lock);
     }
   }
   *m->done = 1;
@@ -146,7 +161,7 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   // can we do bitmaps?
-  const bool bitmaps = (notcurses_check_pixel_support(nc) > 0);
+  const bool bitmaps = notcurses_canpixel(nc);
   struct ncplane_options nopts = {
     .y = 1,
     .rows = dimy - 1 - bitmaps, // FIXME
@@ -168,7 +183,7 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   int turn = 0;
-  int rturn = 0;
+  int rturn = 1; // second thread draws the unmodified map first
   unsigned done = 0;
   int filled = 0;
   uint32_t polypixel = 0;
@@ -191,7 +206,7 @@ int yield_demo(struct notcurses* nc){
       .blitter = NCBLIT_PIXEL,
     },
   };
-  m1.vopts.n = ncplane_create(std, &nopts);
+  m1.vopts.n = ncpile_create(nc, &nopts);
   if(m1.vopts.n == NULL){
     ncvisual_destroy(v1);
     ncvisual_destroy(v2);
@@ -244,18 +259,12 @@ int yield_demo(struct notcurses* nc){
     ncplane_destroy(m1.vopts.n);
     return -1;
   }
-  if(ncvisual_blit(nc, v1, &m1.vopts) == NULL){
-    ncplane_destroy(label);
-    ncvisual_destroy(v1);
-    ncvisual_destroy(v2);
-    ncplane_destroy(m2.vopts.n);
-    ncplane_destroy(m1.vopts.n);
-    return -1;
-  }
-  m1.maxy = m2.maxy = geom.pixy;
-  m1.maxx = m2.maxx = geom.pixx;
-
-  DEMO_RENDER(nc);
+  // we resize the visuals ahead of time, so that we're not rescaling them
+  // every time we call ncvisual_blit().
+  ncvisual_resize_noninterpolative(m1.ncv, geom.rpixy, geom.rpixx);
+  ncvisual_resize_noninterpolative(m2.ncv, geom.rpixy, geom.rpixx);
+  m1.maxy = m2.maxy = geom.rpixy;
+  m1.maxx = m2.maxx = geom.rpixx;
 
   pthread_t t1, t2;
   int ret = 0;
