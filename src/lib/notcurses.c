@@ -101,10 +101,14 @@ notcurses_stop_minimal(void* vnc){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
     // don't use use leave_alternate_screen() here; we need pop the keyboard
-    // whether we're in regular or altnerate screen, and we need it done
+    // whether we're in regular or alternate screen, and we need it done
     // before returning to the regular screen if we're in the alternate.
     if(nc->tcache.kbdlevel){
       if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+        ret = -1;
+      }
+    }else{
+      if(tty_emit(XTMODKEYSUNDO, nc->tcache.ttyfd)){
         ret = -1;
       }
     }

@@ -16,8 +16,15 @@ extern "C" {
 #include "fbuf.h"
 #include "in.h"
 
+// kitty keyboard protocol pop, used at end
 #define KKEYBOARD_POP  "\x1b[<u"
-#define KKEYBOARD_PUSH "\x1b[>u"
+
+// disable key modifier options; this corresponds to a resource value of
+// "-1", which cannot be set with the [>m sequence. supposedly, "[>m" by
+// itself ought reset all of them, but this doesn't seem to work FIXME.
+#define XTMODKEYSUNDO "\x1b[>2n\x1b[>4n"
+
+#define KBDLEAVE KKEYBOARD_POP XTMODKEYSUNDO
 
 struct ncpile;
 struct sprixel;

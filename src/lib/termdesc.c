@@ -341,11 +341,6 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // supported. these ought follow keyboard push and precede kitty keyboard.
 #define XTMODKEYS "\x1b[>2;1m\x1b[>4;1m"
 
-// disable key modifier options; this corresponds to a resource value of
-// "-1", which cannot be set with the [>m sequence. supposedly, "[>m" by
-// itself ought reset all of them, but this doesn't seem to work FIXME.
-#define XTMODKEYSUNDO "\x1b[>2n\x1b[>4n"
-
 // these queries can hopefully uniquely and unquestionably identify the
 // terminal to which we are talking. if we already know what we're talking
 // to, there's no point in sending them.
@@ -395,10 +390,12 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    GEOMCELL \
                    PRIDEVATTR
 
+// kitty keyboard push, used at start
+#define KKEYBOARD_PUSH "\x1b[>u"
+
 // written whenever we switch between standard and alternate screen, or upon
 // startup (that's an entry into a screen! presumably the standard one).
 #define KBDENTER KKEYBOARD_PUSH XTMODKEYS KBDSUPPORT
-#define KBDLEAVE KKEYBOARD_POP XTMODKEYSUNDO
 
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we

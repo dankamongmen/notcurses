@@ -42,10 +42,10 @@ yielder(struct marsh* m){
     pthread_cond_wait(&cond, &lock);
   }
   while(*m->filled < threshold_painted && iters < MAXITER && !*m->done){
-//fprintf(stderr, "%d/%d tfilled: %d thresh: %ld total: %d\n", m->maxy, m->maxx, *m->filled, threshold_painted, m->maxy * m->maxx);
     int pfilled = 0;
     // the first time the first thread runs, it does not pick up the previous
-    // polyfill origin (as there was none). all other runs, we do.
+    // polyfill origin (as there was none). all other runs, we do. fill in our
+    // own copy with the other thread's move.
     if(iters || m->id){
       ncvisual_polyfill_yx(m->ncv, *m->polyy, *m->polyx, *m->polypixel);
     }
