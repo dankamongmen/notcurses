@@ -9,8 +9,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unigbrk.h>
 #include <stdbool.h>
+#include <unigbrk.h>
+#include <unictype.h>
 #include "notcurses/notcurses.h"
 #include "compat/compat.h"
 #include "logging.h"
@@ -109,23 +110,34 @@ utf8_egc_len(const char* gcluster, int* colcount){
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
+    if(uc_is_property_variation_selector(wc)){ // ends EGC
+      ret += r;
+      break;
+    }
     int cols = wcwidth(wc);
     if(cols < 0){
+      injoin = false;
       if(iswspace(wc)){ // newline or tab
         return ret + 1;
       }
-      if(iswcntrl(wc)){
+      cols = 1;
+      if(wc == L'\u200d'){ // ZWJ is iswcntrl, so check it first
+        injoin = true;
+        cols = 0;
+      }else if(iswcntrl(wc)){
         logerror("prohibited or invalid Unicode: 0x%x\n", wc);
         return -1;
       }
-      cols = 1;
+    }else if(injoin){
+      cols = 0;
+      injoin = false;
     }
-    injoin = (wc == L'\u200d');
     *colcount += cols;
     ret += r;
     gcluster += r;
     prevw = wc;
   }while(r);
+  // FIXME what if injoin is set? incomplete EGC!
   return ret;
 }
 
