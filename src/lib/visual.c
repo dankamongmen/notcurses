@@ -1262,25 +1262,72 @@ int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
   return 0;
 }
 
+// a neighbor on which to polyfill. by the time we get to it, it might or
+// might not have been filled in. if so, discard immediately. otherwise,
+// check self, and if valid, push all neighbors.
+struct topolyfill {
+  int y, x;
+  struct topolyfill* next;
+};
+
+static inline struct topolyfill*
+create_polyfill_op(int y, int x, struct topolyfill** stack){
+  struct topolyfill* n = malloc(sizeof(*n));
+  if(n){
+    n->y = y;
+    n->x = x;
+    n->next = *stack;
+    *stack = n;
+  }
+  return n;
+}
+
+// originally i wrote this recursively, at which point it promptly began
+// exploding once i multithreaded the [yield] demo. hence the clumsy stack
+// and hand-rolled iteration. alas, poor yorick!
 static int
-ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
-  if(y < 0 || y >= n->pixy){
-    return 0;
+ncvisual_polyfill_core(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
+  struct topolyfill* stack = malloc(sizeof(*stack));
+  if(stack == NULL){
+    return -1;
   }
-  if(x < 0 || x >= n->pixx){
-    return 0;
-  }
-  uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
-  if(*pixel != match || *pixel == rgba){
-    return 0;
-  }
-// fprintf(stderr, "%d/%d: setting %08x to %08x\n", y, x, *pixel, rgba);
-  *pixel = rgba;
-  int ret = 1;
-  ret += ncvisual_polyfill_recurse(n, y - 1, x, rgba, match);
-  ret += ncvisual_polyfill_recurse(n, y + 1, x, rgba, match);
-  ret += ncvisual_polyfill_recurse(n, y, x - 1, rgba, match);
-  ret += ncvisual_polyfill_recurse(n, y, x + 1, rgba, match);
+  stack->y = y;
+  stack->x = x;
+  stack->next = NULL;
+  int ret = 0;
+  do{
+    struct topolyfill* s = stack;
+    stack = s->next;
+    y = s->y;
+    x = s->x;
+    uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
+    if(*pixel == match && *pixel != rgba){
+      ++ret;
+    // fprintf(stderr, "%d/%d: setting %08x to %08x\n", y, x, *pixel, rgba);
+      *pixel = rgba;
+      if(y){
+        if(create_polyfill_op(y - 1, x, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(y + 1 < n->pixy){
+        if(create_polyfill_op(y + 1, x, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(x){
+        if(create_polyfill_op(y, x - 1, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(x + 1 < n->pixx){
+        if(create_polyfill_op(y, x + 1, &stack) == NULL){
+          return -1;
+        }
+      }
+    }
+    free(s);
+  }while(stack);
   return ret;
 }
 
@@ -1292,7 +1339,7 @@ int ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba){
     return -1;
   }
   uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
-  return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
+  return ncvisual_polyfill_core(n, y, x, rgba, *pixel);
 }
 
 bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
