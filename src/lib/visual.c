@@ -1145,7 +1145,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
       nopts.y = vopts->y;
     }
-    loginfo("placing new plane: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
+    loginfo("placing new plane: %d/%d @ %d/%d 0x%016" PRIx64 "\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
     if(n == NULL){
       n = ncpile_create(nc, &nopts);
     }else{
@@ -1262,7 +1262,8 @@ int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
   return 0;
 }
 
-int ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
+static int
+ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
   if(y < 0 || y >= n->pixy){
     return 0;
   }
