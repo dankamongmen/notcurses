@@ -110,27 +110,26 @@ utf8_egc_len(const char* gcluster, int* colcount){
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
+    int cols;
     if(uc_is_property_variation_selector(wc)){ // ends EGC
       ret += r;
       break;
-    }
-    int cols = wcwidth(wc);
-    if(cols < 0){
-      injoin = false;
-      if(iswspace(wc)){ // newline or tab
-        return ret + 1;
-      }
-      cols = 1;
-      if(wc == L'\u200d'){ // ZWJ is iswcntrl, so check it first
-        injoin = true;
-        cols = 0;
-      }else if(iswcntrl(wc)){
-        logerror("prohibited or invalid Unicode: 0x%x\n", wc);
-        return -1;
-      }
-    }else if(injoin){
+    }else if(wc == L'\u200d' || injoin){ // ZWJ is iswcntrl, so check it first
+      injoin = true;
       cols = 0;
-      injoin = false;
+    }else{
+      cols = wcwidth(wc);
+      if(cols < 0){
+        injoin = false;
+        if(iswspace(wc)){ // newline or tab
+          return ret + 1;
+        }
+        cols = 1;
+        if(iswcntrl(wc)){
+          logerror("prohibited or invalid Unicode: 0x%x\n", wc);
+          return -1;
+        }
+      }
     }
     *colcount += cols;
     ret += r;
