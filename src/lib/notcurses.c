@@ -421,22 +421,22 @@ make_ncpile(notcurses* nc, ncplane* n){
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
   if(nopts->flags >= (NCPLANE_OPTION_FIXED << 1u)){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", nopts->flags);
+    logwarn("provided unsupported flags %016" PRIx64 "\n", nopts->flags);
   }
   if(nopts->flags & NCPLANE_OPTION_HORALIGNED || nopts->flags & NCPLANE_OPTION_VERALIGNED){
     if(n == NULL){
-      logerror("Alignment requires a parent plane\n");
+      logerror("alignment requires a parent plane\n");
       return NULL;
     }
   }
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     if(nopts->rows != 0 || nopts->cols != 0){
-      logerror("Geometry specified with margins (r=%d, c=%d)\n",
+      logerror("geometry specified with margins (r=%d, c=%d)\n",
                nopts->rows, nopts->cols);
       return NULL;
     }
   }else if(nopts->rows <= 0 || nopts->cols <= 0){
-    logerror("Won't create denormalized plane (r=%d, c=%d)\n",
+    logerror("won't create denormalized plane (r=%d, c=%d)\n",
              nopts->rows, nopts->cols);
     return NULL;
   }
@@ -467,7 +467,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   size_t fbsize = sizeof(*p->fb) * (p->leny * p->lenx);
   if((p->fb = malloc(fbsize)) == NULL){
-    logerror("Error allocating cellmatrix (r=%d, c=%d)\n",
+    logerror("error allocating cellmatrix (r=%d, c=%d)\n",
              p->leny, p->lenx);
     free(p);
     return NULL;
@@ -540,7 +540,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
       pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
-  loginfo("Created new %dx%d plane \"%s\" @ %dx%d\n",
+  loginfo("created new %dx%d plane \"%s\" @ %dx%d\n",
           p->leny, p->lenx, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
