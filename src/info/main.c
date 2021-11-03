@@ -297,7 +297,8 @@ unicodedumper(struct ncplane* n, const char* indent){
     wviz(n, NCDIGITSSUBW);
     wviz(n, L" ⎛");
     wviz(n, NCEIGHTHSB);
-    wviz(n, L" ⎞⎪🭨🭪⎪╰╯││║╔═╝⊴⊵");
+    // 🭫⎞⎪🭨🭪⎪╰╯││║╔═╝⊴⊵
+    wviz(n, L"\U0001FB6B\u239e⎪🭨🭪⎪╰╯││║╔═╝⊴⊵");
     if(ncplane_dim_x(n) > 80){
       ncplane_putchar(n, '\n');
     }
@@ -305,7 +306,8 @@ unicodedumper(struct ncplane* n, const char* indent){
     wviz(n, NCDIGITSSUPERW);
     wviz(n, L" ⎝");
     wviz(n, NCEIGHTHST);
-    wviz(n, L" ⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩⟃⟄");
+    // 🭩⎠⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩⟃⟄
+    wviz(n, L"\U0001FB69\u23a0⎩🭪🭨⎭⧒⧑╰╯╚╝❨❩⟃⟄");
     if(ncplane_dim_x(n) > 80){
       ncplane_putchar(n, '\n');
     }

@@ -185,6 +185,7 @@ TEST_CASE("Bitmaps") {
     vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.scaling = NCSCALE_STRETCH;
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
@@ -270,7 +271,7 @@ TEST_CASE("Bitmaps") {
   }
 
   // create an image of exactly 1 cell, inflate it, scale it, and compare the
-  // resulting geometries for equality
+  // resulting geometries for (rough) equality
   SUBCASE("InflateVsScale") {
     // first, assemble a visual equivalent to 1 cell
     auto y = nc_->tcache.cellpixy;
@@ -287,32 +288,43 @@ TEST_CASE("Bitmaps") {
     struct ncplane_options nopts = {
       .y = 2,
       .x = 0,
-      .rows = 4,
+      .rows = 5,
       .cols = 4,
       .userptr = nullptr, .name = "scale", .resizecb = nullptr,
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
-    auto nres = ncplane_create(n_, &nopts);
-    REQUIRE(nullptr != nres);
-    vopts.n = nres;
+    auto scal = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != scal);
+    vopts.n = scal;
     vopts.scaling = NCSCALE_SCALE;
-    ncvisual_blit(nc_, ncv, &vopts);
+    auto bmap = ncvisual_blit(nc_, ncv, &vopts);
+    REQUIRE(nullptr != bmap);
     CHECK(4 == ncplane_dim_x(vopts.n));
-    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
-    vopts.n = nres;
+    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 5, ncv->pixx * 4));
+    vopts.n = scal;
     vopts.y = 2;
     vopts.x = 5;
     vopts.scaling = NCSCALE_NONE;
     auto ninf = ncvisual_blit(nc_, ncv, &vopts);
-notcurses_debug(nc_, stderr);
     REQUIRE(nullptr != ninf);
-    CHECK(ncplane_dim_y(nres) == ncplane_dim_y(ninf));
-    CHECK(ncplane_dim_x(nres) == ncplane_dim_x(ninf));
+    ncplane_set_name(ninf, "ninf");
+    // y of scaled might not be exactly equal to y of inflated since one
+    // is based around what can be fit into a specific space, whereas the
+    // other is based on a multiple of the original image size, which might
+    // not be a multiple of the sixel quantum.
+    CHECK(5 == ncplane_dim_y(scal));
+    if(5 >= ncplane_dim_y(ninf)){
+      CHECK(5 == ncplane_dim_y(ninf));
+    }else{
+      CHECK(6 == ncplane_dim_y(ninf));
+    }
+    CHECK(ncplane_dim_x(scal) == ncplane_dim_x(ninf));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
     CHECK(0 == ncplane_destroy(ninf));
-    CHECK(0 == ncplane_destroy(nres));
+    CHECK(0 == ncplane_destroy(scal));
+    CHECK(0 == ncplane_destroy(bmap));
   }
 
   // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + (null) alignment
@@ -350,6 +362,7 @@ notcurses_debug(nc_, stderr);
     REQUIRE(nullptr != ncv);
     auto child = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(child);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(18 == ncplane_dim_y(child));
     CHECK(5 == ncplane_dim_x(child));
     CHECK(0 == ncplane_y(child));

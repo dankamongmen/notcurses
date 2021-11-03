@@ -277,16 +277,21 @@ TEST_CASE("Wide") {
     auto egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
     CHECK(0 == strcmp("\u5f62", egc));
+    free(egc);
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
     CHECK(0 == strcmp("", egc));
+    free(egc);
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
     CHECK(0 == strcmp("\u5168", egc));
+    free(egc);
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
+    free(egc);
     egc = notcurses_at_yx(nc_, 0, 4, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
+    free(egc);
   }
 
   // If an ncplane is moved atop the right half of a wide glyph, the entire

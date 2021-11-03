@@ -29,8 +29,6 @@ static int plot_grab_y = -1;
 // position of the plot *when grab started*
 static int plot_pos_y;
 
-#define FPSHZ 2
-
 #define FPSGRAPH_MAX_COLS 72 // give it some room on each side of an 80-column term
 
 // how many columns for runtime?
@@ -587,7 +585,7 @@ int demo_render(struct notcurses* nc){
     if(!plot_hidden){
       ncplane_move_family_top(ncuplot_plane(plot));
     }
-    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (NANOSECS_IN_SEC / FPSHZ);
+    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / NANOSECS_IN_SEC;
     ncuplot_add_sample(plot, ns, 1);
   }
   if(menu){
@@ -654,9 +652,9 @@ int fpsgraph_init(struct notcurses* nc){
   uint32_t style = 0;
   uint64_t channels = 0;
   ncchannels_set_fg_alpha(&channels, NCALPHA_BLEND);
-  ncchannels_set_fg_rgb(&channels, 0x201020);
+  ncchannels_set_fg_rgb(&channels, 0x201040);
   ncchannels_set_bg_alpha(&channels, NCALPHA_BLEND);
-  ncchannels_set_bg_rgb(&channels, 0x201020);
+  ncchannels_set_bg_rgb(&channels, 0x201040);
   ncplane_set_base(newp, "", style, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
@@ -666,12 +664,12 @@ int fpsgraph_init(struct notcurses* nc){
                NCPLOT_OPTION_PRINTSAMPLE;
   opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
-  opts.title = "frames per semisecond";
+  opts.title = "frames per second";
   ncchannels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
-  ncchannels_set_bg_rgb(&opts.minchannels, 0x201020);
+  ncchannels_set_bg_rgb(&opts.minchannels, 0x201040);
   ncchannels_set_bg_alpha(&opts.minchannels, NCALPHA_BLEND);
   ncchannels_set_fg_rgb8(&opts.maxchannels, 0x80, 0xff, 0x80);
-  ncchannels_set_bg_rgb(&opts.maxchannels, 0x201020);
+  ncchannels_set_bg_rgb(&opts.maxchannels, 0x201040);
   ncchannels_set_bg_alpha(&opts.maxchannels, NCALPHA_BLEND);
   // takes ownership of newp on all paths
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);

@@ -1,6 +1,6 @@
 # 3.14.0 introduced NAME_WLE
 cmake_minimum_required(VERSION 3.14.0)
-project(notcurses VERSION 2.4.5
+project(notcurses VERSION 2.4.8
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C)
@@ -12,6 +12,7 @@ include(FeatureSummary)
 ###################### USER-SELECTABLE OPTIONS ###########################
 # BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
+option(USE_ASAN "Build with AddressSanitizer" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
 option(USE_CPP "Build C++ code" ON)
 cmake_dependent_option(
@@ -45,8 +46,6 @@ elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}').")
 endif()
 
-# 3.14.0 introduced NAME_WLE
-cmake_minimum_required(VERSION 3.14.0)
 if(${USE_CPP})
   enable_language(CXX)
 endif()
@@ -114,10 +113,25 @@ endif()
 # global compiler flags
 if(NOT WIN32)
 # MSYS2 needs -lssp and -fstack-protector for _FORTIFY_SOURCE
+# macOS with ASAN can't handle _FORTIFY_SOURCE != 1
+if(NOT ${USE_ASAN})
 add_compile_definitions(_FORTIFY_SOURCE=2)
+endif()
 add_compile_options(-Wformat -Werror=format-security)
 endif()
-add_compile_options(-Wall -Wextra -W -Wshadow -fexceptions -fstrict-aliasing)
+if(MSVC)
+add_compile_options(/W4)
+else()
+add_compile_options(-Wall -Wextra -W -Wshadow -Wvla)
+# -ffast-math dies on NaNs we draw from libav (by -ffinite-math-only)
+add_compile_options(-fno-signed-zeros -fno-trapping-math -fassociative-math)
+add_compile_options(-fno-math-errno -freciprocal-math -funsafe-math-optimizations)
+add_compile_options(-fexceptions -fstrict-aliasing)
+if(${USE_ASAN})
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+endif()
+endif()
 
 # don't use REQUIRED with subsequent find_package() operations; we use
 # feature_summary + set_package_properties to fail in one fell swoop.

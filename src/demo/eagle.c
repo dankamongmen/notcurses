@@ -36,8 +36,6 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   if(ncv == NULL){
     return NULL;
   }
-  // true height and width of visual, and blitter scaling parameters
-  int vheight, yscale, vwidth, xscale;
   // first we want to get the true size, so don't supply NCSSCALE_STRETCH yet,
   // but *do* explicitly supply NCBLIT_2x2 since we're not scaling.
   struct ncvisual_options vopts = {
@@ -45,11 +43,16 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
     .blitter = NCBLIT_2x2,
     .flags = NCVISUAL_OPTION_NOINTERPOLATE,
   };
-  if(ncvisual_blitter_geom(nc, ncv, &vopts, &vheight, &vwidth,
-                           &yscale, &xscale, NULL)){
+  ncvgeom geom;
+  if(ncvisual_geom(nc, ncv, &vopts, &geom)){
     ncvisual_destroy(ncv);
     return NULL;
   }
+  // true height and width of visual, and blitter scaling parameters
+  int vheight = geom.pixy;
+  int vwidth = geom.pixx;
+  int yscale = geom.scaley;
+  int xscale = geom.scalex;
 //fprintf(stderr, "VHEIGHT: %d VWIDTH: %d scale: %d/%d\n", vheight, vwidth, yscale, xscale);
   // we start at the lower left corner of the outzoomed map
   int placey, placex; // dimensions of true display

@@ -219,10 +219,11 @@ int luigi_demo(struct notcurses* nc){
       ncplane_move_top(lastseen);
     }
     ncplane_move_yx(lastseen, yoff, i);
-    int dimy, scaley;
-    ncvisual_blitter_geom(nc, wmncv, NULL, &dimy, NULL, &scaley, NULL, NULL);
-    dimy /= scaley;
-    ncplane_move_yx(wmplane, rows * 4 / 5 - dimy + 1 + (i % 2), i - 60);
+    ncvgeom geom;
+    ncvisual_geom(nc, wmncv, NULL, &geom);
+    geom.pixy /= geom.scaley;
+    // FIXME what the fuck is this
+    ncplane_move_yx(wmplane, rows * 4 / 5 - geom.pixy + 1 + (i % 2), i - 60);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &stepdelay);
   }

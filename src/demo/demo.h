@@ -213,7 +213,7 @@ pulser(struct notcurses* nc, struct ncplane* ncp __attribute__ ((unused)),
   struct timespec* start = curry;
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
-  if(timespec_to_ns(&now) - timespec_to_ns(start) >= timespec_to_ns(&demodelay) * 10 / 3){
+  if(timespec_to_ns(&now) - timespec_to_ns(start) >= timespec_to_ns(&demodelay)){
     return 2;
   }
   return demo_render(nc);

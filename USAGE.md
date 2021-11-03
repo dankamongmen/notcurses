@@ -347,10 +347,44 @@ bool notcurses_cansextants(const struct notcurses* nc);
 // Can we draw Braille? The Linux console cannot.
 bool notcurses_canbraille(const struct notcurses* nc);
 
+// Can we draw bitmaps?
+bool notcurses_canpixel(const struct notcurses* nc);
+
+// pixel blitting implementations. informative only; don't special-case
+// based off any of this information!
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  NCPIXEL_KITTY_STATIC,
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  NCPIXEL_KITTY_ANIMATED,
+  // with 0.22.0, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  NCPIXEL_KITTY_SELFREF,
+} ncpixelimpl_e;
+
 // Returns a non-zero constant corresponding to some pixel-blitting
 // mechanism if bitmap support (via any mechanism) has been detected,
 // or else 0 (NCPIXEL_NONE).
 ncpixelimpl_e notcurses_check_pixel_support(struct notcurses* nc);
+
+// Returns a heap-allocated copy of the user name under which we are running.
+char* notcurses_accountname(void);
+
+// Returns a heap-allocated copy of the local host name.
+char* notcurses_hostname(void);
+
+// Returns a heap-allocated copy of human-readable OS name and version.
+char* notcurses_osversion(void);
 ```
 
 ## Direct mode
@@ -698,7 +732,7 @@ typedef struct ncinput {
 // timespec to bound blocking. Returns a single Unicode code point, or
 // (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
 // return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
-// a delay bound against gettimeofday() (see pthread_cond_timedwait(3)).
+// a delay bound against CLOCK_MONOTONIC (see clock_gettime(2)).
 uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                        ncinput* ni);
 
@@ -3276,17 +3310,40 @@ Various transformations can be applied to an `ncvisual`, regardless of how
 it was built up:
 
 ```c
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
-// The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
-//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
-// Returns non-zero for an invalid 'vopts'. The blitter that will be used
-// is returned in '*blitter'.
-// These results are invalidated upon a terminal resize.
-int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                          const struct ncvisual_options* vopts, int* y, int* x,
-                          int* scaley, int* scalex, ncblitter_e* blitter);
+// describes all geometries of an ncvisual: those which are inherent, and those
+// dependent upon a given rendering regime. pixy and pixx are the true internal
+// pixel geometry, taken directly from the load (and updated by
+// ncvisual_resize()). cdimy/cdimx are the cell-pixel geometry *at the time
+// of this call* (it can change with a font change, in which case all values
+// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
+// handed to the blitter, following any scaling. scaley/scalex are the number
+// of input pixels drawn to a single cell; when using NCBLIT_PIXEL, they are
+// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
+// the blitter, following any padding (there is padding whenever rpix{y, x} is
+// not evenly divided by scale{y, x}, and also sometimes for Sixel).
+// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
+// the largest bitmap that the terminal is willing to accept. blitter is the
+// blitter which will be used, a function of the requested blitter and the
+// blitters actually supported by this environment. if no ncvisual was
+// supplied, only cdimy/cdimx are filled in.
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  int rcelly, rcellx; // rendered cell geometry (per visual_options)
+  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  int begy, begx;     // upper-left corner of used section
+  int leny, lenx;     // geometry of used section
+  ncblitter_e blitter;// blitter that will be used
+} ncvgeom;
+
+// all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
+// non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
+// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter, and (if
+// applicable) maxpixely/maxpixelx are filled in.
+int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                  const struct ncvisual_options* vopts, ncvgeom* geom);
 
 // Scale the visual to 'rows' X 'columns' pixels, using the best scheme
 // available. This is a lossy transformation, unless the size is unchanged.
@@ -3326,7 +3383,7 @@ And finally, the `ncvisual` can be blitted to one or more `ncplane`s:
 // set, and vopts->n is NULL, a new plane is created as root of a new pile.
 // If the flag is not set and vopts->n is not NULL, we render to vopts->n.
 // A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
-// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// 'leny'. Negative values for any of thse are an error. It is an error to
 // specify any region beyond the boundaries of the frame. Returns the (possibly
 // newly-created) plane to which we drew. Pixels may not be blitted to the
 // standard plane.
@@ -3565,6 +3622,7 @@ typedef struct ncstats {
   uint64_t appsync_updates;  // how many application-synchronized updates?
   uint64_t input_errors;     // errors processing control sequences/utf8
   uint64_t input_events;     // characters returned to userspace
+  uint64_t hpa_gratuitous;   // unnecessary hpas issued
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers

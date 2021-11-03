@@ -3,8 +3,18 @@
 
 // auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
 // and store the original alpha value.
+static inline uint8_t*
+fbcon_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
+  return ret;
+}
+
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = fbcon_auxiliary_vector(s);
   if(auxvec == NULL){
     return -1;
   }
@@ -60,7 +70,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
         }
         dst[3] = 0;
         const int vyx = (l % cdimy) * cdimx + (c % cdimx);
-        n->tam[tyx].auxvector[vyx] = src[3];
+        ((uint8_t*)n->tam[tyx].auxvector)[vyx] = src[3];
       }else{
         if(rgba_trans_p(*(uint32_t*)src, transcolor)){
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
@@ -140,7 +150,6 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
         }
       }
       s->glyph.buf[offset + 3] = auxvec[vyx];
-      offset += 4;
     }
   }
   s->n->tam[s->dimx * ycell + xcell].state = state;
@@ -302,7 +311,7 @@ shim_lower_eighths(struct console_font_op* cfo, unsigned idx, int eighths){
 // add UCS2 codepoint |w| to |map| for font idx |fidx|
 static int
 add_to_map(struct unimapdesc* map, wchar_t w, unsigned fidx){
-  logdebug("Adding mapping U+%04x -> %03u\n", w, fidx);
+  logdebug("adding mapping U+%04x -> %03u\n", w, fidx);
   struct unipair* tmp = realloc(map->entries, sizeof(*map->entries) * (map->entry_ct + 1));
   if(tmp == NULL){
     return -1;
@@ -355,12 +364,13 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
   for(size_t sidx = 0 ; sidx < sizeof(sets) / sizeof(*sets) ; ++sidx){
     int fontidx = -1;
     struct simset* s = &sets[sidx];
-    bool found[wcslen(s->ws)];
-    memset(found, 0, sizeof(found));
+    size_t fsize = sizeof(bool) * wcslen(s->ws);
+    bool* found = malloc(fsize);
+    memset(found, 0, fsize);
     for(unsigned idx = 0 ; idx < map->entry_ct ; ++idx){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(map->entries[idx].unicode == s->ws[widx]){
-          logtrace("Found desired character U+%04x -> %03u\n",
+          logtrace("found desired character U+%04x -> %03u\n",
                    map->entries[idx].unicode, map->entries[idx].fontpos);
           found[widx] = true;
           if(fontidx == -1){
@@ -379,8 +389,9 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
         }
       }
     }else{
-      logwarn("Couldn't find any glyphs for set %zu\n", sidx);
+      logwarn("couldn't find any glyphs for set %zu\n", sidx);
     }
+    free(found);
   }
   if(toadd == 0){
     return 0;
@@ -389,7 +400,7 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
     logwarn("error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Successfully added %d kernel unicode mapping%s\n",
+  loginfo("added %d kernel unicode mapping%s\n",
           toadd, toadd == 1 ? "" : "s");
   return 0;
 }
@@ -465,7 +476,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
       for(size_t s = 0 ; s < sizeof(half) / sizeof(*half) ; ++s){
         if(map->entries[i].unicode == half[s].w){
-          logdebug("Found %lc at fontidx %u\n", half[s].w, i);
+          logdebug("found %lc at fontidx %u\n", half[s].w, i);
           half[s].found = true;
           ++halvesfound;
           break;
@@ -473,7 +484,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
       }
       for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
         if(map->entries[i].unicode == quads[s].w){
-          logdebug("Found %lc at fontidx %u\n", quads[s].w, i);
+          logdebug("found %lc at fontidx %u\n", quads[s].w, i);
           quads[s].found = true;
           ++numfound;
           break;
@@ -481,7 +492,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
       }
       for(size_t s = 0 ; s < sizeof(eighths) / sizeof(*eighths) ; ++s){
         if(map->entries[i].unicode == eighths[s].w){
-          logdebug("Found %lc at fontidx %u\n", eighths[s].w, i);
+          logdebug("found %lc at fontidx %u\n", eighths[s].w, i);
           eighths[s].found = true;
           ++numfound;
           break;
@@ -597,6 +608,9 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
   }
   added += halvesadded;
   loginfo("successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
+  if(ti->linux_fb_fd){ // console doesn't imply framebuffer
+    return 0;
+  }
   unsigned pixely, pixelx;
   if(get_linux_fb_pixelgeom(ti, &pixely, &pixelx)){
     kill_fbcopy(&fbdup);
@@ -619,17 +633,17 @@ reprogram_linux_font(tinfo* ti, int fd, struct console_font_op* cfo,
     logwarn("error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Kernel font size (glyphcount): %hu\n", cfo->charcount);
-  loginfo("Kernel font character geometry: %hux%hu\n", cfo->width, cfo->height);
+  loginfo("kernel font size (glyphcount): %u\n", cfo->charcount);
+  loginfo("kernel font character geometry: %ux%u\n", cfo->width, cfo->height);
   if(cfo->charcount > 512){
-    logwarn("Warning: kernel returned excess charcount\n");
+    logwarn("warning: kernel returned excess charcount\n");
     return -1;
   }
   if(ioctl(fd, GIO_UNIMAP, map)){
     logwarn("error reading Linux unimap (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
+  loginfo("kernel unimap size: %u/%u\n", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
   // do want to ensure they map to something plausible...this doesn't reset
   // the framebuffer, even if we do some reprogramming.
@@ -684,7 +698,7 @@ bool is_linux_console(int fd){
   }
   int mode;
   if(ioctl(fd, KDGETMODE, &mode)){
-    logdebug("not a Linux console, KDGETMODE failed\n");
+    logdebug("not a Linux console (no KDGETMODE)\n");
     return false;
   }
   loginfo("verified Linux console, mode %d\n", mode);
@@ -701,10 +715,11 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
   }
   struct fb_var_screeninfo fbi = {};
   if(ioctl(ti->linux_fb_fd, FBIOGET_VSCREENINFO, &fbi)){
-    logwarn("no framebuffer info from %s (%s?)\n", ti->linux_fb_dev, strerror(errno));
+    logerror("no framebuffer info from %s %d (%s?)\n", ti->linux_fb_dev,
+             ti->linux_fb_fd, strerror(errno));
     return -1;
   }
-  loginfo("Linux %s geometry: %dx%d\n", ti->linux_fb_dev, fbi.yres, fbi.xres);
+  loginfo("linux %s geometry: %dx%d\n", ti->linux_fb_dev, fbi.yres, fbi.xres);
   *ypix = fbi.yres;
   *xpix = fbi.xres;
   size_t len = *ypix * *xpix * fbi.bits_per_pixel / 8;
@@ -717,11 +732,11 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
     ti->linux_fbuffer = mmap(NULL, len, PROT_READ|PROT_WRITE,
                              MAP_SHARED, ti->linux_fb_fd, 0);
     if(ti->linux_fbuffer == MAP_FAILED){
-      logerror("Couldn't map %zuB on %s (%s?)\n", len, ti->linux_fb_dev, strerror(errno));
+      logerror("couldn't map %zuB on %s (%s?)\n", len, ti->linux_fb_dev, strerror(errno));
       return -1;
     }
     ti->linux_fb_len = len;
-    loginfo("Mapped %zuB on %s\n", len, ti->linux_fb_dev);
+    loginfo("mapped %zuB on %s\n", len, ti->linux_fb_dev);
   }
   return 0;
 }
@@ -730,10 +745,10 @@ bool is_linux_framebuffer(tinfo* ti){
   // FIXME there might be multiple framebuffers present; how do we determine
   // which one is ours?
   const char* dev = "/dev/fb0";
-  loginfo("Checking for Linux framebuffer at %s\n", dev);
+  loginfo("checking for Linux framebuffer at %s\n", dev);
   int fd = open(dev, O_RDWR | O_CLOEXEC);
   if(fd < 0){
-    logdebug("Couldn't open framebuffer device %s\n", dev);
+    logdebug("couldn't open framebuffer device %s\n", dev);
     return false;
   }
   ti->linux_fb_fd = fd;

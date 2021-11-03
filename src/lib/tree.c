@@ -153,6 +153,7 @@ error:
 void nctree_destroy(nctree* n){
   if(n){
     free_tree_items(&n->items);
+    free(n->currentpath);
     free(n);
   }
 }

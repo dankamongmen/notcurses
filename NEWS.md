@@ -11,7 +11,32 @@ rearrangements of Notcurses.
     `notcurses_options`, for which I make no apology. If you've been avoiding
     deprecated functionality, ABI3 ought require small changes, if any.
 
-* 2.4.6 (not yet released)
+* 2.4.9 (not yet released)
+  * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
+    introduced for direct mode. This allows complete statement of geometry
+    for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been
+    deprecated, and will be removed in ABI3. It furthermore exposes some of
+    the information previously available only from `ncplane_pixelgeom()`,
+    though that function continues to be supported.
+  * `ncvgeom`'s `rcelly` and `rcellx` fields are now (finally) filled in
+    by `ncvisual_geom()` (and thus `ncdirectf_geom()`), and suitable for use.
+  * On transition between `ncplane`s (on terminals implementing complex wide
+    glyphs), Notcurses now always issues an `hpa` sequence to force horizontal
+    positioning. This fixes a number of longstanding bugs in e.g. the
+    `[uniblock]` and `[whiteout]` demos at the cost of some extra control
+    sequences. For more information, see
+    [issue 2199](https://github.com/dankamongmen/notcurses/issues/2199). The
+    number of `hpa`s issued in this manner is tracked in a new stat,
+    `hpa_gratuitous`.
+
+* 2.4.8 (2021-10-23)
+  * Added new functions `notcurses_canpixel()` and `notcurses_osversion()`.
+  * `notcurses_get()` now evaluates its timeout against `CLOCK_MONOTONIC`
+    instead of `CLOCK_REALTIME`.
+  * `SIGBUS` is now included among the signals for which a handler is
+    by default installed.
+
+* 2.4.7 (2021-10-16)
   * Features 1, 2, and 8 of the Kitty keyboard protocol are now supported. This
     provides much more detailed and fine-grained keyboard reports, including
     key repeat and release events, and modifier events (i.e. pressing Shift by
@@ -28,7 +53,7 @@ rearrangements of Notcurses.
     now a `struct notcurses*` rather than a `struct ncplane*`.
   * `ncvisual_render()` has been deprecated in favor of the new function
     `ncvisual_blit()`. When a `NULL` `vopts->n` is passed to `ncvisual_blit()`,
-    a new plane is created (as it was in `ncvisual_render()`, but that plane
+    a new plane is created (as it was in `ncvisual_render()`), but that plane
     is the root of a new pile, rather than a child of the standard plane.
     The only tricky conversion is if you previously had `vopts.n` as `NULL`,
     and were not using `NCVISUAL_OPTION_CHILDPLANE` (or were passing `NULL`
@@ -179,7 +204,7 @@ rearrangements of Notcurses.
   * Added `ncplane_moverel()`.
   * Documented `ncplane_move_yx()` in `notcurses_plane.3`, and removed the
     false comment that "passing -1 as a coordinate will hold that axis
-    constant" from `USGAE.md` and `notcurses.h`. This has never been true.
+    constant" from `USAGE.md` and `notcurses.h`. This has never been true.
   * Added `ncdirect_putegc()` to perform Unicode segmentation. It returns
     the number of columns consumed, and makes available the number of bytes
     used by the EGC.
@@ -571,10 +596,7 @@ rearrangements of Notcurses.
     * Add new function `ncpile_render()`, which renders the pile containing the
       specified plane to the specified buffer. Add new function
       `ncpile_rasterize()` to rasterize the specified buffer to output.
-  * Added `NCSTYLE_STRUCK` for strikethrough. Note that this is not supported
-    by terminfo, and we instead just hardcode the control sequence. Use at your
-    own risk! If your terminal doesn't support this control sequence, behavior
-    is undefined.
+  * Added `NCSTYLE_STRUCK` for strikethrough.
 
 * 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`

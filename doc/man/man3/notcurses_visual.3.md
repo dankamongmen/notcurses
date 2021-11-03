@@ -1,6 +1,6 @@
 % notcurses_visual(3)
 % nick black <nickblack@linux.com>
-% v2.4.5
+% v2.4.8
 
 # NAME
 notcurses_visual - notcurses multimedia
@@ -51,6 +51,18 @@ struct ncvisual_options {
 };
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
+
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  int rcelly, rcellx; // rendered cell geometry (per visual_options)
+  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  int begy, begx;     // upper-left corner of used section
+  int leny, lenx;     // geometry of used section
+  ncblitter_e blitter;// blitter that will be used
+} ncvgeom;
 ```
 
 **struct ncvisual* ncvisual_from_file(const char* ***file***);**
@@ -67,7 +79,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncvisual_blitter_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, int* ***y***, int* ***x***, int* ***scaley***, int* ***scalex***, ncblitter_e* ***blitter***);**
+**int ncvisual_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, ncvgeom* ***geom***);**
 
 **void ncvisual_destroy(struct ncvisual* ***ncv***);**
 
@@ -76,8 +88,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 **int ncvisual_decode_loop(struct ncvisual* ***ncv***);**
 
 **struct ncplane* ncvisual_blit(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
-
-**static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
 **static inline struct ncplane* ncvisualplane_create(struct notcurses* ***nc***, const struct ncplane_options* ***opts***, struct ncvisual* ***ncv***, struct ncvisual_options* ***vopts***);**
 
@@ -179,9 +189,14 @@ geometry of same. ***flags*** is a bitfield over:
   as a transparent color.
 * **NCVISUAL_OPTION_CHILDPLANE**: Make a new plane, as a child of ***n***.
 
-**ncvisual_blitter_geom** allows the caller to determine any or all of the
-visual's pixel geometry, the blitter to be used, and that blitter's scaling
-in both dimensions. Any but the first argument may be **NULL**.
+**ncvisual_geom** allows the caller to determine any or all of the visual's
+pixel geometry, the blitter to be used, and that blitter's scaling in both
+dimensions. Any but the final argument may be **NULL**, though at least one
+of ***nc*** and ***n*** must be non-**NULL**. If ***nc*** is **NULL**,
+only properties intrinsic to the visual are returned (i.e. its original
+pixel geometry). If ***n*** is **NULL**, only properties independent of the
+visual are returned (i.e. cell-pixel geometry and maximum bitmap geometry).
+If both are supplied, all fields of the **ncvgeom** structure are filled in.
 
 **ncplane_qrcode** draws an ISO/IEC 18004:2015 QR Code for the **len** bytes of
 **data** using **NCBLIT_2x1** (this is the only blitter that will work with QR
@@ -319,7 +334,8 @@ which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
 
-**ncvisual_blitter_geom** returns non-zero if the specified blitter is invalid.
+**ncvisual_geom** returns non-zero if the specified configuration is invalid,
+or if both ***nc*** and ***n*** are **NULL**.
 
 **ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
@@ -360,7 +376,7 @@ When using non-interpolative blitting together with scaling, unless your goal
 includes minimizing the total area required, lower-resolution blitters will
 generally look just as good as higher resolution blitters, and be faster.
 
-The results of **ncvisual_blitter_geom** are invalidated by a terminal resize.
+The results of **ncvisual_geom** are invalidated by a terminal resize.
 
 # BUGS
 

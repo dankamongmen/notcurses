@@ -10,7 +10,9 @@
 #include <filesystem>
 
 const char* datadir = NOTCURSES_SHARE;
-ncloglevel_e cliloglevel = NCLOGLEVEL_SILENT;
+// NCLOGLEVEL_INFO for initial testing framework creation. we then switch to
+// command line-specified loglevel, _SILENT if none specified.
+ncloglevel_e cliloglevel = NCLOGLEVEL_INFO;
 
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
@@ -43,6 +45,9 @@ auto is_test_tty() -> bool {
 
 static void
 handle_opts(const char** argv){
+  // now that we've spun up one testing framework, switch to _SILENT unless
+  // something else has been provided on the command line.
+  cliloglevel = NCLOGLEVEL_SILENT;
   bool inarg = false;
   while(*argv){
     if(inarg){
@@ -137,6 +142,7 @@ auto lang_and_term() -> void {
   std::cout << "Running with TERM=" << term << std::endl;
   auto nc = testing_notcurses();
   if(!nc){
+    std::cerr << "Couldn't create notcurses testing framework" << std::endl;
     exit(EXIT_FAILURE);
   }
   int dimy, dimx;

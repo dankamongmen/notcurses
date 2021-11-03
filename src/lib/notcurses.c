@@ -101,10 +101,14 @@ notcurses_stop_minimal(void* vnc){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
     // don't use use leave_alternate_screen() here; we need pop the keyboard
-    // whether we're in regular or altnerate screen, and we need it done
+    // whether we're in regular or alternate screen, and we need it done
     // before returning to the regular screen if we're in the alternate.
     if(nc->tcache.kbdlevel){
       if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+        ret = -1;
+      }
+    }else{
+      if(tty_emit(XTMODKEYSUNDO, nc->tcache.ttyfd)){
         ret = -1;
       }
     }
@@ -117,7 +121,7 @@ notcurses_stop_minimal(void* vnc){
       }
     }
   }
-  logdebug("reset terminal, returning %d\n", ret);
+  logdebug("restored terminal, returning %d\n", ret);
   return ret;
 }
 
@@ -364,15 +368,7 @@ void free_plane(ncplane* p){
     if(p->sprite){
       sprixel_hide(p->sprite);
     }
-    if(p->tam){
-      for(int y = 0 ; y < p->leny ; ++y){
-        for(int x = 0 ; x < p->lenx ; ++x){
-          free(p->tam[y * p->lenx + x].auxvector);
-          p->tam[y * p->lenx + x].auxvector = NULL;
-        }
-      }
-    }
-    free(p->tam);
+    destroy_tam(p);
     egcpool_dump(&p->pool);
     free(p->name);
     free(p->fb);
@@ -380,7 +376,9 @@ void free_plane(ncplane* p){
   }
 }
 
-// create a new ncpile. only call with pilelock held.
+// create a new ncpile. only call with pilelock held. the return value
+// was assigned to n->pile.
+__attribute__((malloc))
 static ncpile*
 make_ncpile(notcurses* nc, ncplane* n){
   ncpile* ret = malloc(sizeof(*ret));
@@ -399,7 +397,6 @@ make_ncpile(notcurses* nc, ncplane* n){
       ret->prev = ret;
       ret->next = ret;
     }
-    n->pile = ret;
     n->above = NULL;
     n->below = NULL;
     ret->dimy = 0;
@@ -409,6 +406,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->sprixelcache = NULL;
     ret->scrolls = 0;
   }
+  n->pile = ret;
   return ret;
 }
 
@@ -427,22 +425,22 @@ make_ncpile(notcurses* nc, ncplane* n){
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
   if(nopts->flags >= (NCPLANE_OPTION_FIXED << 1u)){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", nopts->flags);
+    logwarn("provided unsupported flags %016" PRIx64 "\n", nopts->flags);
   }
   if(nopts->flags & NCPLANE_OPTION_HORALIGNED || nopts->flags & NCPLANE_OPTION_VERALIGNED){
     if(n == NULL){
-      logerror("Alignment requires a parent plane\n");
+      logerror("alignment requires a parent plane\n");
       return NULL;
     }
   }
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     if(nopts->rows != 0 || nopts->cols != 0){
-      logerror("Geometry specified with margins (r=%d, c=%d)\n",
+      logerror("geometry specified with margins (r=%d, c=%d)\n",
                nopts->rows, nopts->cols);
       return NULL;
     }
   }else if(nopts->rows <= 0 || nopts->cols <= 0){
-    logerror("Won't create denormalized plane (r=%d, c=%d)\n",
+    logerror("won't create denormalized plane (r=%d, c=%d)\n",
              nopts->rows, nopts->cols);
     return NULL;
   }
@@ -473,7 +471,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   size_t fbsize = sizeof(*p->fb) * (p->leny * p->lenx);
   if((p->fb = malloc(fbsize)) == NULL){
-    logerror("Error allocating cellmatrix (r=%d, c=%d)\n",
+    logerror("error allocating cellmatrix (r=%d, c=%d)\n",
              p->leny, p->lenx);
     free(p);
     return NULL;
@@ -546,7 +544,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
       pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
-  loginfo("Created new %dx%d plane \"%s\" @ %dx%d\n",
+  loginfo("created new %dx%d plane \"%s\" @ %dx%d\n",
           p->leny, p->lenx, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
@@ -717,7 +715,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     logerror("Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
-  loginfo("%dx%d @ %d/%d → %d/%d @ %d/%d (want %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo("%dx%d @ %d/%d → %d/%d @ %d/%d (want %dx%d@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
       rows == ylen && cols == xlen){
     return 0;
@@ -848,6 +846,7 @@ int ncplane_destroy(ncplane* ncp){
       ncp->bnext->bprev = ncp->bprev;
     }
   }else if(ncp->bnext){
+    //assert(ncp->boundto->blist == ncp);
     ncp->bnext->bprev = NULL;
   }
   // recursively reparent our children to the plane to which we are bound.
@@ -988,6 +987,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.f.used = 0;
   ret->rstate.f.size = 0;
   ret->loglevel = opts->loglevel;
+  set_loglevel_from_env(&ret->loglevel);
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
   }
@@ -1021,7 +1021,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->lfdimy = 0;
   ret->lfdimx = 0;
   egcpool_init(&ret->pool);
-  if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < NCLOGLEVEL_SILENT){
+  if(ret->loglevel > NCLOGLEVEL_TRACE || ret->loglevel < NCLOGLEVEL_SILENT){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
     free(ret);
     return NULL;
@@ -1055,7 +1055,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   // don't set loglevel until we've acquired the signal handler, lest we
   // change the loglevel out from under a running instance
-  loglevel = opts->loglevel;
+  loglevel = ret->loglevel;
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
@@ -1083,7 +1083,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
-    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx)){
+    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx, NULL)){
       goto err;
     }
   }
@@ -1217,7 +1217,7 @@ int notcurses_stop(notcurses* nc){
         fbuf_putc(&nc->rstate.f, '\n');
         --targy;
       }
-      goto_location(nc, &nc->rstate.f, targy, 0);
+      goto_location(nc, &nc->rstate.f, targy, 0, NULL);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
     if(nc->stdplane){
@@ -2138,6 +2138,7 @@ void ncplane_erase(ncplane* n){
   loginfo("erasing plane\n");
   if(n->sprite){
     sprixel_hide(n->sprite);
+    destroy_tam(n);
   }
   // we must preserve the background, but a pure nccell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
@@ -2428,8 +2429,13 @@ int ncplane_resize_marginalized(ncplane* n){
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > maxy ? maxy : oldy;
   int keeplenx = oldx > maxx ? maxx : oldx;
-  // FIXME place it according to top/left
-  return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx);
+  if(ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx)){
+    return -1;
+  }
+  int targy = maxy - n->margin_b;
+  int targx = maxx - n->margin_b;
+  loginfo("marg %d/%d, pdim %d/%d, move %d/%d\n", n->margin_b, n->margin_r, maxy, maxx, targy, targx);
+  return ncplane_move_yx(n, targy, targx);
 }
 
 int ncplane_resize_maximize(ncplane* n){
@@ -2586,7 +2592,10 @@ splice_zaxis_recursive(ncplane* n, ncpile* p){
 }
 
 ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane){
+  // ncplane_notcurses() goes through ncplane_pile(). since we're possibly
+  // destroying piles below, get the notcurses reference early on.
+  notcurses* nc = ncplane_notcurses(n);
+  if(n == nc->stdplane){
     return NULL; // can't reparent standard plane
   }
   if(ncplane_descendant_p(newparent, n)){
@@ -2605,9 +2614,6 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   n->bprev = NULL;
   n->bnext = NULL;
-  // ncplane_notcurses() goes through ncplane_pile(). since we're possibly
-  // destroying piles below, get the notcurses reference early on.
-  notcurses* nc = ncplane_notcurses(n);
   // if leaving a pile, extract n from the old zaxis, and also any sprixel
   sprixel* s = NULL;
   if(n == newparent || ncplane_pile(n) != ncplane_pile(newparent)){
@@ -2624,9 +2630,11 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
       ncpile_destroy(ncplane_pile(n));
     }
-    make_ncpile(ncplane_notcurses(n), n);
+    make_ncpile(nc, n);
     pthread_mutex_unlock(&nc->pilelock);
-    splice_zaxis_recursive(n, ncplane_pile(n));
+    if(ncplane_pile(n)){ // FIXME otherwise, we've got a problem...!
+      splice_zaxis_recursive(n, ncplane_pile(n));
+    }
   }else{ // establish ourselves as a sibling of new parent's children
     if( (n->bnext = newparent->blist) ){
       n->bnext->bprev = &n->bnext;

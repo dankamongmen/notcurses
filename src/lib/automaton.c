@@ -51,7 +51,8 @@ uint32_t esctrie_id(const esctrie* e){
   return e->ni.id;
 }
 
-// returns the idx of the new node, or 0 on failure (idx is 1-biased)
+// returns the idx of the new node, or 0 on failure (idx is 1-biased).
+// *invalidates any existing escnode pointers!*
 static inline unsigned
 create_esctrie_node(automaton* a, int special){
   if(a->poolused == a->poolsize){
@@ -173,20 +174,25 @@ esctrie_make_string(automaton* a, esctrie* e){
 
 static esctrie*
 link_kleene(automaton* a, esctrie* e, unsigned follow){
+  unsigned eidx = esctrie_idx(a, e);
   if(e->kleene){
     return a->nodepool + e->kleene;
   }
-  esctrie* term = esctrie_from_idx(a, create_esctrie_node(a, 0));
-  if(term == NULL){
+  // invalidates e
+  unsigned termidx = create_esctrie_node(a, 0);
+  unsigned targidx = create_esctrie_node(a, 0);
+  esctrie* term = esctrie_from_idx(a, termidx);
+  esctrie* targ = esctrie_from_idx(a, targidx);
+  if(targ == NULL){
     return NULL;
   }
-  esctrie* targ = NULL;
-  if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
+  if(term == NULL){
     return NULL;
   }
   if(esctrie_make_kleene(a, targ, follow, term)){
     return NULL;
   }
+  e = esctrie_from_idx(a, eidx);
   // fill in all NULL numeric links with the new target
   for(unsigned int i = 0 ; i < 0x80 ; ++i){
     if(i == follow){
@@ -205,7 +211,7 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
 
 // phase 1 of the numeric algorithm; find a φ node on e. not sure what
 // to do if we have non-φ links at every digit...punt for now FIXME.
-static inline esctrie*
+static inline unsigned
 get_phi_node(automaton* a, esctrie* e){
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
   int nonphis = 0;
@@ -226,10 +232,10 @@ get_phi_node(automaton* a, esctrie* e){
   if(targ == NULL){
     if(nonphis == 10){
       logerror("ten non-phi links from %u\n", esctrie_idx(a, e));
-      return NULL;
+      return 0;
     }
     if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
-      return NULL;
+      return 0;
     }
     targ->ntype = NODE_NUMERIC;
     for(int i = '0' ; i <= '9' ; ++i){
@@ -237,20 +243,24 @@ get_phi_node(automaton* a, esctrie* e){
     }
   }
   assert(NODE_NUMERIC == targ->ntype);
-  return targ;
+  return esctrie_idx(a, targ);
 }
 
 // phase 2 of the numeric algorithm; find a ή node for |successor| on |phi|.
-static inline esctrie*
+static inline unsigned
 get_eta_node(automaton* a, esctrie* phi, unsigned successor){
-  esctrie* eta = esctrie_from_idx(a, phi->trie[successor]);
+  unsigned phiidx = esctrie_idx(a, phi);
+  unsigned etaidx = phi->trie[successor];
+  esctrie* eta = esctrie_from_idx(a, etaidx);
   if(eta == NULL){
+    // invalidates phi
     if((eta = esctrie_from_idx(a, create_esctrie_node(a, 0))) == NULL){
-      return NULL;
+      return 0;
     }
+    phi = esctrie_from_idx(a, phiidx);
     phi->trie[successor] = esctrie_idx(a, eta);
   }
-  return eta;
+  return esctrie_idx(a, eta);
 }
 
 // |e| is a known-standard node reached by our prefix; go ahead and prep both
@@ -358,15 +368,19 @@ static esctrie*
 link_numeric(automaton* a, const char* prefix, int pfxlen,
              esctrie* e, unsigned char follow){
   logdebug("adding numeric with follow %c following %*.*s\n", follow, pfxlen, pfxlen, prefix);
-  esctrie* phi = get_phi_node(a, e);
-  if(phi == NULL){
+  unsigned phiidx = get_phi_node(a, e);
+  if(phiidx == 0){
     return NULL;
   }
+  esctrie* phi = esctrie_from_idx(a, phiidx);
+  // invalidates phi
+  unsigned etaidx = get_eta_node(a, phi, follow);
+  if(etaidx == 0){
+    return NULL;
+  }
+  phi = esctrie_from_idx(a, phiidx);
+  esctrie* eta = esctrie_from_idx(a, etaidx);
   logtrace("phi node: %u->%u\n", esctrie_idx(a, e), esctrie_idx(a, phi));
-  esctrie* eta = get_eta_node(a, phi, follow);
-  if(eta == NULL){
-    return NULL;
-  }
   logtrace("eta node: %u philink[%c]: %u\n", esctrie_idx(a, eta), follow, phi->trie[follow]);
   // eta is now bound to phi, and phi links something at all digits, but no
   // other links are guaranteed. walk the automaton, finding all possible
@@ -429,26 +443,30 @@ insert_path(automaton* a, const char* seq){
       }
       inescape = false;
     }else{ // fixed character
-      if(eptr->trie[c] == 0){
-        if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
+      unsigned eidx = esctrie_idx(a, eptr);
+      // invalidates eptr
+      if(eptr->trie[c] == 0 || eptr->trie[c] == eptr->kleene){
+        unsigned tidx = create_esctrie_node(a, 0);
+        if(tidx == 0){
           return NULL;
         }
-      }else if(eptr->trie[c] == eptr->kleene){
-        if((eptr->trie[c] = create_esctrie_node(a, 0)) == 0){
-          return NULL;
-        }
+        eptr = esctrie_from_idx(a, eidx);
+        eptr->trie[c] = tidx;
       }else if(esctrie_from_idx(a, eptr->trie[c])->ntype == NODE_NUMERIC){
         // punch a hole through the numeric loop. create a new one, and fill
         // it in with the existing target.
         struct esctrie* newe;
+        // invalidates eptr
         if((newe = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
           return NULL;
         }
+        eptr = esctrie_from_idx(a, eidx);
         for(int i = 0 ; i < 0x80 ; ++i){
           newe->trie[i] = esctrie_from_idx(a, eptr->trie[c])->trie[i];
         }
         eptr->trie[c] = esctrie_idx(a, newe);
       }
+      eptr = esctrie_from_idx(a, eidx);
       eptr = esctrie_from_idx(a, eptr->trie[c]);
       logtrace("added fixed %c %u as %u\n", c, c, esctrie_idx(a, eptr));
     }
@@ -524,6 +542,9 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
     }
     e = esctrie_from_idx(a, a->state);
     if(e->ntype == NODE_FUNCTION){ // for the 0x07s of the world
+      if(e->fxn == NULL){
+        return 2;
+      }
       return e->fxn(ictx);
     }
     return 0;

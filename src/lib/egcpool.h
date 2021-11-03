@@ -9,8 +9,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unigbrk.h>
 #include <stdbool.h>
+#include <unigbrk.h>
+#include <unictype.h>
 #include "notcurses/notcurses.h"
 #include "compat/compat.h"
 #include "logging.h"
@@ -103,26 +104,39 @@ utf8_egc_len(const char* gcluster, int* colcount){
     r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
-      logerror("Invalid UTF8: %s\n", gcluster);
+      logerror("invalid UTF8: %s\n", gcluster);
       return -1;
     }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
-    int cols = wcwidth(wc);
-    if(cols < 0){
-      if(iswspace(wc)){ // newline or tab
-        return ret + 1;
+    int cols;
+    if(uc_is_property_variation_selector(wc)){ // ends EGC
+      ret += r;
+      break;
+    }else if(wc == L'\u200d' || injoin){ // ZWJ is iswcntrl, so check it first
+      injoin = true;
+      cols = 0;
+    }else{
+      cols = wcwidth(wc);
+      if(cols < 0){
+        injoin = false;
+        if(iswspace(wc)){ // newline or tab
+          return ret + 1;
+        }
+        cols = 1;
+        if(iswcntrl(wc)){
+          logerror("prohibited or invalid Unicode: 0x%x\n", wc);
+          return -1;
+        }
       }
-      logerror("Prohibited or invalid Unicode: 0x%x\n", wc);
-      return -1;
     }
-    injoin = (wc == L'\u200d');
     *colcount += cols;
     ret += r;
     gcluster += r;
     prevw = wc;
   }while(r);
+  // FIXME what if injoin is set? incomplete EGC!
   return ret;
 }
 
@@ -304,15 +318,17 @@ egcpool_extended_gcluster(const egcpool* pool, const nccell* c) {
 // contents in 'dst'.
 static inline int
 egcpool_dup(egcpool* dst, const egcpool* src){
-  char* tmp;
-  if((tmp = (char*)realloc(dst->pool, src->poolsize)) == NULL){
-    return -1;
+  if(src->pool){
+    char* tmp;
+    if((tmp = (char*)realloc(dst->pool, src->poolsize)) == NULL){
+      return -1;
+    }
+    dst->pool = tmp;
+    memcpy(dst->pool, src->pool, src->poolsize);
   }
-  dst->pool = tmp;
   dst->poolsize = src->poolsize;
   dst->poolused = src->poolused;
   dst->poolwrite = src->poolwrite;
-  memcpy(dst->pool, src->pool, src->poolsize);
   return 0;
 }
 

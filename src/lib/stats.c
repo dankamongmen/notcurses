@@ -152,6 +152,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
     stash->appsync_updates += nc->stats.s.appsync_updates;
     stash->input_errors += nc->stats.s.input_errors;
     stash->input_events += nc->stats.s.input_events;
+    stash->hpa_gratuitous += nc->stats.s.hpa_gratuitous;
 
     stash->fbbytes = nc->stats.s.fbbytes;
     stash->planes = nc->stats.s.planes;
@@ -203,17 +204,20 @@ void summarize_stats(notcurses* nc){
             1, minbuf, 1),
     bprefix(stats->renders ? stats->raster_bytes / stats->renders : 0, 1, avgbuf, 1);
     bprefix(stats->raster_max_bytes, 1, maxbuf, 1),
-    fprintf(stderr, "%s%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s" NL,
+    fprintf(stderr, "%s%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s Ghpa: %"PRIu64 NL,
             clreol, totalbuf, minbuf, avgbuf, maxbuf,
             stats->input_events,
-            stats->input_events == 1 ? "" : "s");
+            stats->input_events == 1 ? "" : "s",
+            stats->hpa_gratuitous);
   }
-  fprintf(stderr, "%s%"PRIu64" failed render%s, %"PRIu64" failed raster%s, %"PRIu64" refresh%s, %"PRIu64" input error%s" NL,
+  fprintf(stderr, "%s%"PRIu64" failed render%s, %"PRIu64" failed raster%s, %"
+                  PRIu64" refresh%s, %"PRIu64" input error%s" NL,
           clreol, stats->failed_renders, stats->failed_renders == 1 ? "" : "s",
           stats->failed_writeouts, stats->failed_writeouts == 1 ? "" : "s",
           stats->refreshes, stats->refreshes == 1 ? "" : "es",
           stats->input_errors, stats->input_errors == 1 ? "" : "s");
-  fprintf(stderr, "%sRGB emits:elides: def %"PRIu64":%"PRIu64" fg %"PRIu64":%"PRIu64" bg %"PRIu64":%"PRIu64"" NL,
+  fprintf(stderr, "%sRGB emits:elides: def %"PRIu64":%"PRIu64" fg %"PRIu64":%"
+                  PRIu64" bg %"PRIu64":%"PRIu64 NL,
           clreol, stats->defaultemissions,
           stats->defaultelisions,
           stats->fgemissions,

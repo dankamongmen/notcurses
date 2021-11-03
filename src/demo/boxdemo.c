@@ -146,8 +146,8 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
       while(s--){
         ncplane_destroy(ships[s].n);
         ncvisual_destroy(wmv);
-        return -1;
       }
+      return -1;
     }
     ncplane_move_below(ships[s].n, notcurses_stdplane(nc));
     if((ships[s].vely = rand() % 6 - 3) == 0){

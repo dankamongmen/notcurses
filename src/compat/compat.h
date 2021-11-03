@@ -7,6 +7,7 @@ extern "C" {
 
 #include <time.h>
 #include <stdint.h>
+#include <pthread.h>
 #include <sys/types.h>
 
 #define NANOSECS_IN_SEC 1000000000ul
@@ -65,6 +66,12 @@ struct winsize {
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #endif
+
+// initializes a pthread_cond_t to use CLOCK_MONOTONIC (as opposed to the
+// default CLOCK_REALTIME) if possible. if not possible, initializes a
+// regular ol' CLOCK_REALTIME condvar. this eliminates the need for
+// pthread_cond_clockwait(), which is highly nonportable.
+int pthread_condmonotonic_init(pthread_cond_t* cond);
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate);

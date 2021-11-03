@@ -26,7 +26,7 @@ const char face_smiling[] =
   "\U0001F609"
   "\U0001F60A"
   "\U0001F607"
-  "\U0001fae0"
+  "\U0001fae0" // 14.0
   ;
 const char face_affection[] =
   "\U0001F970"
@@ -50,9 +50,9 @@ const char face_hand[] =
   "\U0001F92D"
   "\U0001F92B"
   "\U0001F914"
-  "\U0001fae2" // 14.0-base
-  "\U0001fae3" // 14.0-base
-  "\U0001fae1" // 14.0-base
+  "\U0001fae2" // 14.0
+  "\U0001fae3" // 14.0
+  "\U0001fae1" // 14.0
   ;
 const char face_neutral_skeptical[] =
   "\U0001F910"
@@ -67,7 +67,7 @@ const char face_neutral_skeptical[] =
   "\U0001F62C"
   "\U0001F62E\u200D\U0001F4A8"
   "\U0001F925"
-  "\U0001Fae5" // 14.0-beta
+  "\U0001Fae5" // 14.0
   ;
 const char face_sleepy[] =
   "\U0001F60C"
@@ -121,8 +121,8 @@ const char face_concerned[] =
   "\U0001F629"
   "\U0001F62B"
   "\U0001F971"
-  "\U0001fae4" // 14.0-beta
-  "\U0001f979" // 14.0-beta
+  "\U0001fae4" // 14.0
+  "\U0001f979" // 14.0
   ;
 const char face_negative[] =
   "\U0001F624"
@@ -200,10 +200,10 @@ const char hand_fingers_open[] =
   "\U0001F590"
   "\u270B"
   "\U0001F596"
-  "\U0001faf1" // 14.0-beta
-  "\U0001faf2" // 14.0-beta
-  "\U0001faf3" // 14.0-beta
-  "\U0001faf4" // 14.0-beta
+  "\U0001faf1" // 14.0
+  "\U0001faf2" // 14.0
+  "\U0001faf3" // 14.0
+  "\U0001faf4" // 14.0
   ;
 const char hand_fingers_partial[] =
   "\U0001F44C"
@@ -214,7 +214,7 @@ const char hand_fingers_partial[] =
   "\U0001F918"
   "\U0001F919"
   "\U0001F90C"
-  "\U0001faf0" // 14.0-beta
+  "\U0001faf0" // 14.0
   ;
 const char hand_single_finger[] =
   "\U0001F448"
@@ -223,7 +223,7 @@ const char hand_single_finger[] =
   "\U0001F595"
   "\U0001F447"
   "\u261D"
-  "\U0001faf5" // 14.0-beta
+  "\U0001faf5" // 14.0
   ;
 const char hand_fingers_closed[] =
   "\U0001F44D"
@@ -239,9 +239,9 @@ const char hands[] =
   "\U0001F932"
   "\U0001F91D"
   "\U0001F64F"
-  "\U0001faf6" // 14.0-beta
-  "\U0001f91d" // 14.0-beta
-  "\U0001faf1\u200d\U0001faf2" // 14.0-beta
+  "\U0001faf6" // 14.0
+  "\U0001f91d" // 14.0
+  "\U0001faf1\u200d\U0001faf2" // 14.0
   ;
 const char hand_prop[] =
   "\u270D"
@@ -265,7 +265,7 @@ const char body_parts[] =
   "\U0001F444"
   "\U0001FAC0"
   "\U0001FAC1"
-  "\U0001fae6"
+  "\U0001fae6" // 14.0
   ;
 const char person[] =
   "\U0001F476"
@@ -2232,7 +2232,7 @@ const char person_gesture[] =
   "\U0001F9B2";
 
 const char person_fantasy[] =
- "\U0001f9cc" // 14.0-beta
+ "\U0001f9cc" // 14.0
  ;
 
 const char animal_mammal[] =
@@ -2339,7 +2339,7 @@ const char animal_marine[] =
   "\U0001F988"
   "\U0001F419"
   "\U0001F41A"
-  "\U0001fab8" // 14.0-beta
+  "\U0001fab8" // 14.0
   ;
 const char animal_bug[] =
   "\U0001F40C"
@@ -2369,7 +2369,7 @@ const char plant_flower[] =
   "\U0001F33B"
   "\U0001F33C"
   "\U0001F337"
-  "\U0001fab7" // 14.0-beta
+  "\U0001fab7" // 14.0
   ;
 const char plant_other[] =
   "\U0001F331"
@@ -2385,8 +2385,8 @@ const char plant_other[] =
   "\U0001F341"
   "\U0001F342"
   "\U0001F343"
-  "\U0001fab9" // 14.0-beta
-  "\U0001faba" // 14.0-beta
+  "\U0001fab9" // 14.0
+  "\U0001faba" // 14.0
   ;
 const char food_fruit[] =
   "\U0001F347"
@@ -2424,7 +2424,7 @@ const char food_vegetable[] =
   "\U0001F344"
   "\U0001F95C"
   "\U0001F330"
-  "\U0001fad8" // 14.0-beta
+  "\U0001fad8" // 14.0
   ;
 const char food_prepared[] =
   "\U0001F35E"
@@ -2520,7 +2520,7 @@ const char drink[] =
   "\U0001F9C3"
   "\U0001F9C9"
   "\U0001F9CA"
-  "\U0001fad7" // 14.0-beta
+  "\U0001fad7" // 14.0
   ;
 const char dishware[] =
   "\U0001F962"
@@ -2529,7 +2529,7 @@ const char dishware[] =
   "\U0001F944"
   "\U0001F52A"
   "\U0001F3FA"
-  "\U0001fad9" // 14.0-beta
+  "\U0001fad9" // 14.0
   ;
 const char place_map[] =
   "\U0001F30D"
@@ -2601,7 +2601,7 @@ const char place_other[] =
   "\U0001F3A2"
   "\U0001F488"
   "\U0001F3AA"
-  "\U0001f6dd" // 14.0-beta
+  "\U0001f6dd" // 14.0
   ;
 const char transport_ground[] =
   "\U0001F682"
@@ -2653,7 +2653,7 @@ const char transport_ground[] =
   "\U0001F6A6"
   "\U0001F6D1"
   "\U0001F6A7"
-  "\U0001f6de" // 14.0-beta
+  "\U0001f6de" // 14.0
   ;
 const char transport_water[] =
   "\u2693"
@@ -2664,7 +2664,7 @@ const char transport_water[] =
   "\u26F4"
   "\U0001F6E5"
   "\U0001F6A2"
-  "\U0001f6df" // 14.0-beta
+  "\U0001f6df" // 14.0
   ;
 const char transport_air[] =
   "\u2708"
@@ -2844,8 +2844,8 @@ const char game[] =
   "\u2666"
   "\u2663"
   "\u265F"
-  "\U0001faac" // 14.0-beta
-  "\U0001faa9" // 14.0-beta
+  "\U0001faac" // 14.0
+  "\U0001faa9" // 14.0
   ;
 const char arts_crafts[] =
   "\U0001F3AD"
@@ -2952,7 +2952,7 @@ const char computer[] =
   "\U0001F4BF"
   "\U0001F4C0"
   "\U0001F9EE"
-  "\U0001faab" // 14.0-beta
+  "\U0001faab" // 14.0
   ;
 const char light_video[] =
   "\U0001F3A5"
@@ -3093,8 +3093,8 @@ const char medical[] =
   "\U0001F48A"
   "\U0001FA79"
   "\U0001FA7A"
-  "\U0001fa7c" // 14.0-beta
-  "\U0001fa7b" // 14.0-beta
+  "\U0001fa7c" // 14.0
+  "\U0001fa7b" // 14.0
   ;
 const char household[] =
   "\U0001F6AA"
@@ -3121,7 +3121,7 @@ const char household[] =
   "\U0001FAA3"
   "\U0001FAA4"
   "\U0001FAA5"
-  "\U0001Fae7" // 14.0-beta
+  "\U0001Fae7" // 14.0
   ;
 const char other_object[] =
   "\U0001F6AC"
@@ -3130,7 +3130,7 @@ const char other_object[] =
   "\u26B1"
   "\U0001F5FF"
   "\U0001FAA7"
-  "\U0001faaa" // 14.0-beta
+  "\U0001faaa" // 14.0
   ;
 const char transport_sign[] =
   "\U0001F3E7"
@@ -3244,7 +3244,7 @@ const char math[] =
   "\u2796"
   "\u2797"
   "\u267E"
-  "\U0001f7f0" // 14.0-beta
+  "\U0001f7f0" // 14.0
   ;
 const char punctuation[] =
   "\u203C"
@@ -3509,15 +3509,40 @@ unicode1emoji1(struct ncplane* title, int y){
 
 static struct ncplane*
 unicode52(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 5.2 (2009), Emoji 1.0 (2015), 24 codepoints]";
-  const int ROWS = 4;
+  const char SUMMARY[] = "[Unicode 5.2 (2009), Emoji 1.0 (2015), 27 codepoints]";
+  const int ROWS = 3;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\u26ea\u26f2\u26fa\u2668\u26fd\u2693\u26f5\u2600"
-                             "\u26c5\u2614\u26a1\u26c4\u26be\u26d4\u2b06\u2b07");
-  ncplane_putstr_yx(n, 2, 1, "\u2b05\u26ce\u203c\u2049\xf0\x9f\x85\xbf\xf0\x9f\x88\xaf\xf0\x9f\x88\x9a\u3299");
+  ncplane_putstr_yx(n, 1, 1, "\u26f7\ufe0f" // skier
+                             "\u26f9\ufe0f" // person bouncing ball
+                             "\u26f0\ufe0f" // mountain
+                             "\u26ea" // church
+                             "\u26e9\ufe0f" // shinto shrine
+                             "\u26f2" // fountain
+                             "\u26fa" // tent
+                             "\u26fd" // fuel pump
+                             "\u26f5" // sailboat
+                             "\u26f4\ufe0f" // ferry
+                             "\u26c5" // sun behind cloud
+                             "\u2c68\ufe0f" // cloud with lightning and rain
+                             "\u26f1\ufe0f" // umbrella on ground
+                             "\u26c4" // snowman without snow
+                             "\u26bd" // soccer ball
+                             "\u26be" // baseball
+                             "\u26f3" // flag in hole
+                             "\u26f8\ufe0f" // ice skate
+                             "\u26d1\ufe0f" // rescue worker helmet
+                             "\u26cf\ufe0f" // pick
+                             "\u26d3\ufe0f" // chains
+                             "\u26d4" // no entry
+                             "\u2757" // exclamation mark
+                             "\u2b55" // hollow red circle
+                             "\U0001f17f\ufe0f" // p-button
+                             "\U0001f22f" // reserved button
+                             "\U0001f21a" // free of charge button
+                             );
   return n;
 }
 
@@ -3556,6 +3581,7 @@ unicode60(struct ncplane* title, int y){
   return n;
 }
 
+// FIXME lol there were like 250 added in 7.0
 static struct ncplane*
 unicode7emoji2(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 7.0 (2014) / Emoji 2.0 (2015), 1 codepoint]";
@@ -3570,7 +3596,7 @@ unicode7emoji2(struct ncplane* title, int y){
 
 static struct ncplane*
 unicode14(struct ncplane* title, int y){
-  const char SUMMARY[] = "[Unicode 14.0β (2021), 37 codepoints]";
+  const char SUMMARY[] = "[Unicode 14.0 (2021), 39 codepoints]";
   const int ROWS = 5;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){

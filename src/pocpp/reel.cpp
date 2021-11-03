@@ -41,7 +41,7 @@ class TabletCtx {
 };
 
 int tabletfxn(struct nctablet* _t, bool cliptop __attribute__ ((unused))){
-  NcTablet *t = NcTablet::map_tablet (_t);
+  NcTablet *t = NcTablet::map_tablet(_t);
   Plane* p = t->get_plane();
   auto tctx = t->get_userptr<TabletCtx>();
   p->erase();
@@ -121,6 +121,9 @@ int runreels(struct notcurses* nc, struct ncreel* nr){
   char32_t key;
   ncinput ni;
   while((key = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+    if(ni.evtype == EvType::Release){
+      continue;
+    }
     switch(key){
       case 'q':
         return 0;

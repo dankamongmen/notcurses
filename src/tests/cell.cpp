@@ -73,7 +73,7 @@ TEST_CASE("Cell") {
     CHECK(2 == ncstrwidth("\U0001F471"));
 #ifndef __APPLE__ // FIXME
     CHECK(2 == ncstrwidth("\U0001F471\u200D"));
-    CHECK(3 == ncstrwidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
+    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640"));
 #endif
   }
 

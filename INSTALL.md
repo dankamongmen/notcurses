@@ -95,6 +95,7 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `DFSG_BUILD`: leave out all content considered non-free under the Debian Free
                 Software Guidelines
 * `BUILD_TESTING`: build test targets
+* `USE_ASAN`: build with AddressSanitizer
 * `USE_CPP`: build C++ code (requires a C++ compiler)
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 * `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`

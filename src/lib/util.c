@@ -1,12 +1,36 @@
 #ifndef __MINGW64__
 #include <pwd.h>
 #include <unistd.h>
+#if defined(__linux__) || defined(__gnu_hurd__)
+#include <sys/utsname.h>
+#include <sys/sysinfo.h>
+#elif !defined(__MINGW64__)
+#include <sys/sysctl.h>
+#include <sys/utsname.h>
+#endif
 #else
 #include <winsock2.h>
 #define SECURITY_WIN32
 #include <secext.h>
+#include <sysinfoapi.h>
 #endif
 #include "internal.h"
+
+int set_loglevel_from_env(ncloglevel_e* llptr){
+  const char* ll = getenv("NOTCURSES_LOGLEVEL");
+  if(ll == NULL){
+    return 0;
+  }
+  char* endl;
+  long l = strtol(ll, &endl, 10);
+  if(l < NCLOGLEVEL_PANIC || l > NCLOGLEVEL_TRACE){
+    logpanic("Illegal NOTCURSES_LOGLEVEL: %s\n", ll);
+    return -1;
+  }
+  *llptr = l;
+  loginfo("Got loglevel from environment: %ld\n", l);
+  return 0;
+}
 
 char* notcurses_accountname(void){
 #ifndef __MINGW64__
@@ -53,4 +77,37 @@ char* notcurses_hostname(void){
   }
 #endif
   return NULL;
+}
+
+char* notcurses_osversion(void){
+#ifdef __MINGW64__
+  // FIXME get version
+  return strdup("Microsoft Windows");
+#else
+#ifdef __APPLE__
+#define PREFIX "macOS "
+  char osver[30] = PREFIX; // shrug
+  size_t oldlenp = sizeof(osver) - strlen(PREFIX);
+  if(sysctlbyname("kern.osproductversion", osver + strlen(PREFIX),
+                  &oldlenp, NULL, 0) == 0){
+    return strdup(osver);
+  }
+  return strdup("macOS");
+#else
+  struct utsname uts;
+  if(uname(&uts)){
+    logerror("failure invoking uname (%s)\n", strerror(errno));
+    return NULL;
+  }
+  const size_t nlen = strlen(uts.sysname);
+  const size_t rlen = strlen(uts.release);
+  size_t tlen = nlen + rlen + 2;
+  char* ret = malloc(tlen);
+  memcpy(ret, uts.sysname, nlen);
+  ret[nlen] = ' ';
+  strcpy(ret + nlen + 1, uts.release);
+  return ret;
+#endif
+#undef PREFIX
+#endif
 }

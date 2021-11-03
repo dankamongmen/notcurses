@@ -128,6 +128,8 @@ typedef struct rasterstate {
   // modified by: output, cursor moves, clearing the screen (during refresh).
   int y, x;
 
+  const ncplane* lastsrcp; // last source plane (we emit hpa on plane changes)
+
   unsigned lastr;   // foreground rgb, overloaded for palindexed fg
   unsigned lastg;
   unsigned lastb;
@@ -386,12 +388,6 @@ struct blitset {
 
 #include "blitset.h"
 
-int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
-                          const struct ncvisual* n,
-                          const struct ncvisual_options* vopts,
-                          int* y, int* x, int* scaley, int* scalex,
-                          int* leny, int* lenx, const struct blitset** blitter);
-
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);
 
@@ -649,12 +645,6 @@ void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
 
-// create an auxiliary vector suitable for a sprixcell, and zero it out. there
-// are two bytes per pixel in the cell. kitty uses only one (for an alpha
-// value). sixel uses both (for palette index, and transparency). FIXME fold
-// the transparency vector up into 1/8th as many bytes.
-uint8_t* sprixel_auxiliary_vector(const sprixel* s);
-
 // update any necessary cells underneath the sprixel pursuant to its removal.
 // for sixel, this *achieves* the removal, and is performed on every cell.
 // returns 1 if the graphic can be immediately freed (which is equivalent to
@@ -717,6 +707,25 @@ sprite_commit(tinfo* ti, fbuf* f, sprixel* s, unsigned forcescroll){
   return 0;
 }
 
+static inline void
+cleanup_tam(tament* tam, int ydim, int xdim){
+  for(int y = 0 ; y < ydim ; ++y){
+    for(int x = 0 ; x < xdim ; ++x){
+      free(tam[y * xdim + x].auxvector);
+      tam[y * xdim + x].auxvector = NULL;
+    }
+  }
+}
+
+static inline void
+destroy_tam(ncplane* p){
+  if(p->tam){
+    cleanup_tam(p->tam, p->leny, p->lenx);
+    free(p->tam);
+    p->tam = NULL;
+  }
+}
+
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   logdebug("rebuilding %d %d/%d\n", s->id, ycell, xcell);
@@ -727,7 +736,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
     s->n->tam[idx].state = SPRIXCELL_TRANSPARENT;
   }else if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
-    uint8_t* auxvec = s->n->tam[idx].auxvector;
+    uint8_t* auxvec = (uint8_t*)s->n->tam[idx].auxvector;
     assert(auxvec);
     // sets the new state itself
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
@@ -1135,13 +1144,14 @@ mouse_disable(tinfo* ti, fbuf* f){
 // sync the drawing position to the specified location with as little overhead
 // as possible (with nothing, if already at the right location). we prefer
 // absolute horizontal moves (hpa) to relative ones, in the rare event that
-// our understanding of our horizontal location is faulty.
+// our understanding of our horizontal location is faulty. if we're moving from
+// one plane to another, we emit an hpa no matter what.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
 // if hardcursorpos is non-zero, we always perform a cup. this is done when we
 // don't know where the cursor currently is =].
 static inline int
-goto_location(notcurses* nc, fbuf* f, int y, int x){
+goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, nc->rstate.hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
@@ -1149,8 +1159,11 @@ goto_location(notcurses* nc, fbuf* f, int y, int x){
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
   const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
   if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
-    if(nc->rstate.x == x){ // needn't move shit
-      return 0;
+    if(nc->rstate.x == x){
+      if(nc->rstate.lastsrcp == srcp || !nc->tcache.gratuitous_hpa){
+        return 0; // needn't move shit
+      }
+      ++nc->stats.s.hpa_gratuitous;
     }
     if(fbuf_emit(f, tiparm(hpa, x))){
       return -1;
@@ -1169,6 +1182,7 @@ goto_location(notcurses* nc, fbuf* f, int y, int x){
   nc->rstate.x = x;
   nc->rstate.y = y;
   nc->rstate.hardcursorpos = 0;
+  nc->rstate.lastsrcp = srcp;
   return ret;
 }
 
@@ -1304,33 +1318,6 @@ cell_blend_bchannel(nccell* cl, unsigned channel, unsigned* blends){
   return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 }
 
-// examine the UTF-8 EGC in the first |*bytes| bytes of |egc|. if the EGC is
-// right-to-left, we make a copy, appending an U+200E to force left-to-right.
-// only the first unicode char of the EGC is currently checked FIXME. if the
-// EGC is not RTL, we return NULL.
-ALLOC static inline char*
-egc_rtl(const char* egc, int* bytes){
-  wchar_t w;
-  mbstate_t mbstate = { };
-  size_t r = mbrtowc(&w, egc, *bytes, &mbstate);
-  if(r == (size_t)-1 || r == (size_t)-2){
-    return NULL;
-  }
-  const int bidic = uc_bidi_category(w);
-//fprintf(stderr, "BIDI CAT (%lc): %d\n", w, bidic);
-  if(bidic != UC_BIDI_R && bidic != UC_BIDI_AL && bidic != UC_BIDI_RLE && bidic != UC_BIDI_RLO){
-    return NULL;
-  }
-  // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction
-  // after emitting a potentially RTL EGC.
-  const char LTRMARK[] = "\xe2\x80\x8e";
-  char* s = (char*)malloc(*bytes + sizeof(LTRMARK)); // cast for C++ callers
-  memcpy(s, egc, *bytes);
-  memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
-  *bytes += strlen(LTRMARK);
-  return s;
-}
-
 // a sprixel occupies the entirety of its associated plane, usually an entirely
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
 static inline int
@@ -1343,7 +1330,7 @@ plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
   if(n){
 //fprintf(stderr, "TAM WAS: %p NOW: %p\n", n->tam, tam);
     if(n->tam != tam){
-      free(n->tam);
+      destroy_tam(n);
     }
     n->tam = tam;
     n->sprite = spx;
@@ -1398,21 +1385,12 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
   return bytes;
 }
 
-// Do an RTL-check, reset the quadrant occupancy bits, and pass the cell down to
+// Reset the quadrant occupancy bits, and pass the cell down to
 // pool_blit_direct(). Returns the number of bytes loaded.
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
-  char* rtl = NULL;
   c->channels &= ~NC_NOBACKGROUND_MASK;
-  if(bytes >= 0){
-    rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
-  }
-  if(rtl){
-    gcluster = rtl;
-  }
-  int r = pool_blit_direct(pool, c, gcluster, bytes, cols);
-  free(rtl);
-  return r;
+  return pool_blit_direct(pool, c, gcluster, bytes, cols);
 }
 
 static inline int
@@ -1576,6 +1554,12 @@ rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
                    int leny, int lenx, const blitterargs* bargs){
   return bset->blit(nc, linesize, data, leny, lenx, bargs);
 }
+
+int ncvisual_geom_inner(const tinfo* ti, const struct ncvisual* n,
+                        const struct ncvisual_options* vopts, ncvgeom* geom,
+                        const struct blitset** bset,
+                        int* disppxy, int* disppxx, int* outy, int* outx,
+                        int* placey, int* placex);
 
 static inline const struct blitset*
 rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
@@ -1745,6 +1729,10 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 
 // replace or populate the TERM environment variable with 'termname'
 int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
+
+// check environment for NOTCURSES_LOGLEVEL, and use it if defined.
+int set_loglevel_from_env(ncloglevel_e* loglevel)
+  __attribute__ ((nonnull (1)));
 
 #undef API
 #undef ALLOC

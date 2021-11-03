@@ -3,6 +3,28 @@
 #include <vector>
 #include <cmath>
 
+// verify results for extrinsic geometries with NULL or default vopts
+void default_visual_extrinsics(const notcurses* nc, const ncvgeom& g) {
+  CHECK(0 == g.pixy);
+  CHECK(0 == g.pixx);
+  if(notcurses_canpixel(nc)){
+    CHECK(1 <= g.cdimy);
+    CHECK(1 <= g.cdimx);
+  }else{
+    CHECK(0 == g.cdimy);
+    CHECK(0 == g.cdimx);
+  }
+  CHECK(1 <= g.scaley);
+  CHECK(1 <= g.scalex);
+  CHECK(0 == g.rpixy);
+  CHECK(0 == g.rpixx);
+  CHECK(0 <= g.maxpixely);
+  CHECK(0 <= g.maxpixelx);
+  // we never use pixel by default, and must not revolve to default
+  CHECK(NCBLIT_PIXEL != g.blitter);
+  CHECK(NCBLIT_DEFAULT != g.blitter);
+}
+
 TEST_CASE("Visual") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
@@ -27,6 +49,142 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
+  }
+
+  // ncvisual_geom() with a NULL nc
+  SUBCASE("VisualIntrinsicGeometry") {
+    std::vector<uint32_t> v(20, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 2, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    ncvgeom g{};
+    CHECK(0 == ncvisual_geom(nullptr, ncv, nullptr, &g));
+    ncvisual_destroy(ncv);
+    CHECK(2 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(0 == g.cdimy);
+    CHECK(0 == g.cdimx);
+    CHECK(0 == g.rpixy);
+    CHECK(0 == g.rpixx);
+    CHECK(0 == g.scaley);
+    CHECK(0 == g.scalex);
+    CHECK(0 == g.maxpixely);
+    CHECK(0 == g.maxpixelx);
+    CHECK(NCBLIT_DEFAULT == g.blitter);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and NULL visual_options
+  SUBCASE("VisualExtrinsicGeometryNULL") {
+    ncvgeom g{};
+    CHECK(0 == ncvisual_geom(nc_, nullptr, nullptr, &g));
+    default_visual_extrinsics(nc_, g);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and default visual_options
+  SUBCASE("VisualExtrinsicGeometryDefault") {
+    ncvgeom g{};
+    struct ncvisual_options vopts{};
+    CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
+    default_visual_extrinsics(nc_, g);
+  }
+
+  // ncvisual_geom() with a NULL ncvisual and NCBLIT_PIXEL requested
+  SUBCASE("VisualExtrinsicGeometryPixel") {
+    ncvgeom g{};
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
+    CHECK(0 == g.pixy);
+    CHECK(0 == g.pixx);
+    if(notcurses_canpixel(nc_)){
+      CHECK(1 <= g.cdimy);
+      CHECK(1 <= g.cdimx);
+      CHECK(g.cdimy == g.scaley);
+      CHECK(g.cdimx == g.scalex);
+    }else{
+      CHECK(0 == g.cdimy);
+      CHECK(0 == g.cdimx);
+      CHECK(1 <= g.scaley);
+      CHECK(1 <= g.scalex);
+    }
+    CHECK(0 == g.rpixy);
+    CHECK(0 == g.rpixx);
+    CHECK(0 <= g.maxpixely);
+    CHECK(0 <= g.maxpixelx);
+    CHECK(NCBLIT_DEFAULT != g.blitter); // we must not revolve to default
+  }
+
+  // build a simple ncvisual and check the calculated geometries for 1x1
+  // cell blitting in the absence of scaling
+  SUBCASE("VisualCellGeometryNoScaling") {
+    std::vector<uint32_t> v(80, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 8, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    ncvgeom g{};
+    vopts.blitter = NCBLIT_1x1;
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
+    ncvisual_destroy(ncv);
+    CHECK(8 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(1 == g.scaley);
+    CHECK(1 == g.scalex);
+    CHECK(8 == g.rpixy);
+    CHECK(10 == g.rpixx);
+    CHECK(8 == g.rcelly);
+    CHECK(10 == g.rcellx);
+    CHECK(NCBLIT_1x1 == g.blitter);
+  }
+
+  // build a square ncvisual and check the calculated geometries for 1x1
+  // cell blitting with scaling
+  SUBCASE("VisualCellGeometryScaling") {
+    std::vector<uint32_t> v(100, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    ncvgeom g{};
+    vopts.blitter = NCBLIT_1x1;
+    vopts.scaling = NCSCALE_SCALE;
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
+    ncvisual_destroy(ncv);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    int mindim = dimy < dimx ? dimy : dimx;
+    CHECK(10 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(1 == g.scaley);
+    CHECK(1 == g.scalex);
+    CHECK(mindim == g.rpixy);
+    CHECK(mindim == g.rpixx);
+    CHECK(mindim == g.rcelly);
+    CHECK(mindim == g.rcellx);
+    CHECK(NCBLIT_1x1 == g.blitter);
+  }
+
+  // build a square ncvisual and check the calculated geometries for 1x1
+  // cell blitting with stretching
+  SUBCASE("VisualCellGeometryStretching") {
+    std::vector<uint32_t> v(100, 0xfffffffflu);
+    auto ncv = ncvisual_from_rgba(v.data(), 10, 10 * sizeof(decltype(v)::value_type), 10);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts{};
+    ncvgeom g{};
+    vopts.blitter = NCBLIT_1x1;
+    vopts.scaling = NCSCALE_STRETCH;
+    CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
+    ncvisual_destroy(ncv);
+    int dimy, dimx;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    CHECK(10 == g.pixy);
+    CHECK(10 == g.pixx);
+    CHECK(1 == g.scaley);
+    CHECK(1 == g.scalex);
+    CHECK(dimy == g.rpixy);
+    CHECK(dimx == g.rpixx);
+    CHECK(dimy == g.rcelly);
+    CHECK(dimx == g.rcellx);
+    CHECK(NCBLIT_1x1 == g.blitter);
   }
 
   // check that we properly populate RGB + A -> RGBA from 35x4 (see #1806)
@@ -45,6 +203,7 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
   }
 
   // check that we properly populate RGBx + A -> RGBA
@@ -63,6 +222,7 @@ TEST_CASE("Visual") {
         CHECK(ncpixel_a(p) == alpha);
       }
     }
+    ncvisual_destroy(ncv);
   }
 
   // resize followed by rotate, see #1800
@@ -149,22 +309,16 @@ TEST_CASE("Visual") {
   // ensure that NCSCALE_STRETCH gives us a full plane, and that we write
   // everywhere within that plane
   SUBCASE("Stretch") {
-    std::vector<uint32_t> v(1, htole(0xe61c28ff));
+    std::vector<uint32_t> v(1, htole(0xff1c28ff));
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_rgba(v.data(), 1, sizeof(decltype(v)::value_type), 1);
     REQUIRE(nullptr != ncv);
-    struct ncvisual_options vopts = {
-      .n = n_,
-      .scaling = NCSCALE_STRETCH,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
-      .transcolor = 0,
-      .pxoffy = 0, .pxoffx = 0,
-    };
+    struct ncvisual_options vopts{};
+    vopts.n = n_;
+    vopts.scaling = NCSCALE_STRETCH;
+    vopts.blitter = NCBLIT_1x1;
+    vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     REQUIRE(nullptr != n);
@@ -351,6 +505,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 
@@ -391,6 +546,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 
@@ -465,6 +621,7 @@ TEST_CASE("Visual") {
         }
       }
       delete[] rgba;
+      ncvisual_destroy(ncv);
     }
   }
 

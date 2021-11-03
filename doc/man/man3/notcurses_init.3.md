@@ -1,6 +1,6 @@
 % notcurses_init(3)
 % nick black <nickblack@linux.com>
-% v2.4.5
+% v2.4.8
 
 # NAME
 
@@ -127,9 +127,9 @@ zero. The following flags are defined:
     installed.
 
 * **NCOPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
-    for **SIGABRT**, **SIGFPE**, **SIGILL**, **SIGINT**, **SIGQUIT**,
-    **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such exceptions.
-    With this flag, the handler will not be installed.
+    for **SIGABRT**, **SIGBUS**, **SIGFPE**, **SIGILL**, **SIGINT**,
+    **SIGQUIT**, **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such
+    exceptions. With this flag, the handler will not be installed.
 
 * **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
     information printed on startup, and the performance summary on exit.
@@ -224,6 +224,16 @@ rendered mode to be used as a normal scrolling shell application.
 
 **notcurses_cursor_disable** returns -1 if the cursor is already invisible.
 
+# ENVIRONMENT VARIABLES
+
+The **NOTCURSES_LOGLEVEL** environment variable, if defined, ought be an
+integer between -1 and 7. These values correspond to **NCLOGLEVEL_SILENT**
+through **NCLOGLEVEL_TRACE**, and override the **loglevel** field of
+**notcurses_options**.
+
+The **TERM** environment variable will be used by **setupterm(3ncurses)** to
+select an appropriate terminfo database.
+
 # NOTES
 
 Several command-line options and keybindings are recommended for Notcurses
@@ -246,5 +256,6 @@ rendered-mode programs:
 **notcurses_refresh(3)**,
 **notcurses_render(3)**,
 **notcurses_stop(3)**,
+**setupterm(3ncurses)**,
 **terminfo(5)**,
 **signal(7)**

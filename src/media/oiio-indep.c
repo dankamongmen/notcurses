@@ -27,7 +27,14 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
   do{
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
-    ncvisual_blitter_geom(nc, ncv, &activevopts, NULL, NULL, NULL, NULL, &activevopts.blitter);
+    ncvgeom geom;
+    if(ncvisual_geom(nc, ncv, &activevopts, &geom)){
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
+      }
+      return -1;
+    }
+    activevopts.blitter = geom.blitter;
     if((newn = ncvisual_blit(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);

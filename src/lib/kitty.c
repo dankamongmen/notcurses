@@ -347,8 +347,8 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
         }
       }
     }
+    ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   }
-  ((uint8_t*)a)[slen - 1] = 0; // reset blitsource ownership
   return a;
 }
 
@@ -404,10 +404,10 @@ kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
 // cell id with which we can delete it in O(1) for a rebuild. this
 // way, we needn't delete and redraw the entire sprixel.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
-  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   fbuf* f = &s->glyph;
   if(kitty_blit_wipe_selfref(s, f, ycell, xcell) < 0){
     return -1;
@@ -445,9 +445,21 @@ sprixel* kitty_recycle(ncplane* n){
   return sprixel_alloc(&ncplane_notcurses_const(n)->tcache, n, dimy, dimx);
 }
 
+// for pre-animation kitty (NCPIXEL_KITTY_STATIC), we need a byte per pixel,
+// in which we stash the alpha.
+static inline uint8_t*
+kitty_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
+  return ret;
+}
+
 int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = kitty_auxiliary_vector(s);
   if(auxvec == NULL){
     return -1;
   }
@@ -535,7 +547,7 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   loginfo("Committing Kitty graphic id %u\n", s->id);
   int i;
   if(s->pxoffx || s->pxoffy){
-    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s\e\\", s->id,
+    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s,q=2\e\\", s->id,
                     s->pxoffx, s->pxoffy, noscroll ? ",C=1" : "");
   }else{
     i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
@@ -545,15 +557,6 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   }
   s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
-}
-
-static void
-cleanup_tam(tament* tam, int ydim, int xdim){
-  for(int y = 0 ; y < ydim ; ++y){
-    for(int x = 0 ; x < xdim ; ++x){
-      free(tam[y * xdim + x].auxvector);
-    }
-  }
 }
 
 static inline void*
@@ -848,12 +851,12 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             // out, to present a glyph "atop" it). we will continue to mark it
             // transparent, but we need to update the auxiliary vector.
             const int vyx = (y % cdimy) * cdimx + (x % cdimx);
-            tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+            ((uint8_t*)tam[tyx].auxvector)[vyx] =  ncpixel_a(source[e]);
             wipe[e] = 1;
           }else if(level == NCPIXEL_KITTY_SELFREF){
             selfref_annihilated = true;
           }else{
-            tam[tyx].auxvector[s->cellpxx * s->cellpxy * 4] = 1;
+            ((uint8_t*)tam[tyx].auxvector)[s->cellpxx * s->cellpxy * 4] = 1;
             wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
@@ -861,16 +864,16 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
               if(level == NCPIXEL_KITTY_SELFREF){
-                *tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
+                *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_TRANSPARENT;
               }
             }else if(level == NCPIXEL_KITTY_SELFREF && tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
-                *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
+                *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
           }else{
             if(x % cdimx == 0 && y % cdimy == 0 && level == NCPIXEL_KITTY_SELFREF){
-              *tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
-            }else if(level == NCPIXEL_KITTY_SELFREF && *tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
-              *tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
+              *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_OPAQUE_KITTY;
+            }else if(level == NCPIXEL_KITTY_SELFREF && *(sprixcell_e*)tam[tyx].auxvector == SPRIXCELL_TRANSPARENT){
+              *(sprixcell_e*)tam[tyx].auxvector = SPRIXCELL_MIXED_KITTY;
             }
             tam[tyx].state = SPRIXCELL_ANNIHILATED;
           }
@@ -928,6 +931,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   return 0;
 
 err:
+  logerror("failed blitting kitty graphics\n");
   cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
   destroy_deflator(animated, &zctx, leny, lenx);
   return -1;
@@ -956,11 +960,11 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  logdebug("rebuilding sprixel %u %d at %d/%d\n", s->id, s->invalidated, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
   fbuf* f = &s->glyph;
-  logdebug("rebuilding sprixel %u %d at %d/%d\n", s->id, s->invalidated, ycell, xcell);
   const int ystart = ycell * s->cellpxy;
   const int xstart = xcell * s->cellpxx;
   const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
@@ -1088,6 +1092,7 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
   return 1;
 
 error:
+  cleanup_tam(n->tam, bargs->u.pixel.spx->dimy, bargs->u.pixel.spx->dimx);
   fbuf_free(&s->glyph);
   return -1;
 }
@@ -1124,6 +1129,7 @@ int kitty_scrub(const ncpile* p, sprixel* s){
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       const int ridx = yy * p->dimx + xx;
+      assert(0 <= ridx);
       struct crender *r = &p->crender[ridx];
       if(!r->sprixel){
         if(s->n){
@@ -1178,7 +1184,7 @@ int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
   const int targx = s->n->absx;
   logdebug("moving %u to %d %d\n", s->id, targy, targx);
   int ret = 0;
-  if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff)){
+  if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff, s->n)){
     ret = -1;
   }else if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
                        noscroll ? ",C=1" : "") < 0){

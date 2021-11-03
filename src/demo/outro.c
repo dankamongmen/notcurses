@@ -87,6 +87,7 @@ videothread(void* vnc){
     .y = 1,
     .rows = 1,
     .cols = cols,
+    .name = "apia",
   };
   struct ncplane* apiap = ncplane_create(ncp, &nopts);
   if(apiap == NULL){
@@ -126,6 +127,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     .y = ystart,
     .x = NCALIGN_CENTER,
     .flags = NCPLANE_OPTION_HORALIGNED,
+    .name = "atl",
   };
   struct ncplane* non = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(non == NULL){
@@ -204,6 +206,7 @@ int outro(struct notcurses* nc){
       ncvisual_destroy(chncv);
       return -1;
     }
+    ncplane_set_name(vopts.n, "bnnr");
   }
   xstart = cols;
   int ystart = rows;

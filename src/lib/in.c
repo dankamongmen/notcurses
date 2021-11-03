@@ -108,6 +108,7 @@ typedef struct inputctx {
   ipipe readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
+  bool failed;          // error initializing input automaton, abort
 } inputctx;
 
 static inline void
@@ -1034,6 +1035,8 @@ da2_cb(inputctx* ictx){
   if(pv == 0){
     return 2;
   }
+  // modern XTerm replies to XTVERSION, but older versions require extracting
+  // the version from secondary DA
   if(ictx->initdata->qterm == TERMINAL_XTERM){
     if(ictx->initdata->version == NULL){
       char ver[8];
@@ -1216,11 +1219,14 @@ tcap_cb(inputctx* ictx){
   // 'TN' (Terminal Name)
   if(strncasecmp(str, "544e=", 5) == 0){
     const char* tn = str + 5;
+    // FIXME clean this crap up
     if(strcasecmp(tn, "6D6C7465726D") == 0){
       ictx->initdata->qterm = TERMINAL_MLTERM;
+    }else if(strcasecmp(tn, "787465726d") == 0){
+      ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
     }else if(strcasecmp(tn, "787465726d2d6b69747479") == 0){
-      ictx->initdata->qterm = TERMINAL_KITTY;
-    }else if(strcasecmp(tn, "787465726D2D323536636F6C6F72") == 0){
+      ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
+    }else if(strcasecmp(tn, "787465726d2d323536636f6c6f72") == 0){
       ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
     }else{
       logdebug("unknown terminal name %s\n", tn);
@@ -1265,7 +1271,6 @@ build_cflow_automaton(inputctx* ictx){
     // CSI (\e[)
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
-    { "[\\N;\\NR", cursor_location_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
@@ -1287,6 +1292,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
     { "[?2026;\\N$y", decrpm_asu_cb, },
+    { "[\\N;\\NR", cursor_location_cb, },
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
@@ -1395,9 +1401,9 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
       i->isize = BUFSIZ;
       if( (i->inputs = malloc(sizeof(*i->inputs) * i->isize)) ){
         if(pthread_mutex_init(&i->ilock, NULL) == 0){
-          if(pthread_cond_init(&i->icond, NULL) == 0){
+          if(pthread_condmonotonic_init(&i->icond) == 0){
             if(pthread_mutex_init(&i->clock, NULL) == 0){
-              if(pthread_cond_init(&i->ccond, NULL) == 0){
+              if(pthread_condmonotonic_init(&i->ccond) == 0){
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
@@ -1406,7 +1412,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                         if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                           i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                           memset(i->initdata, 0, sizeof(*i->initdata));
-			  i->initdata->qterm = ti->qterm;
+                          i->initdata->qterm = ti->qterm;
                           i->iread = i->iwrite = i->ivalid = 0;
                           i->cread = i->cwrite = i->cvalid = 0;
                           i->initdata_complete = NULL;
@@ -1425,6 +1431,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                           i->rmargin = rmargin;
                           i->bmargin = bmargin;
                           i->drain = drain;
+                          i->failed = false;
                           logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
                           return i;
                         }
@@ -2000,11 +2007,9 @@ read_inputs_nblock(inputctx* ictx){
 static void*
 input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
-  if(prep_all_keys(ictx)){
-    abort(); // FIXME?
-  }
-  if(build_cflow_automaton(ictx)){
-    abort(); // FIXME?
+  if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
+    ictx->failed = true;
+    handoff_initial_responses(ictx);
   }
   for(;;){
     read_inputs_nblock(ictx);
@@ -2119,15 +2124,17 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   return id;
 }
 
-static void
+// FIXME kill off for API3, and expect an absolute deadline directly
+static inline void
 delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
   if(ts){
     // incoming ts is a delay bound, but we want an absolute deadline for
-    // pthread_cond_timedwait(). convert it.
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    absdl->tv_sec = ts->tv_sec + tv.tv_sec;
-    absdl->tv_nsec = ts->tv_nsec + tv.tv_usec * 1000;
+    // pthread_cond_timedwait(). convert it, using CLOCK_MONOTONIC (we
+    // initialized the condvar with pthread_condmonotonic_init()).
+    struct timespec tspec;
+    clock_gettime(CLOCK_MONOTONIC, &tspec);
+    absdl->tv_sec = ts->tv_sec + tspec.tv_sec;
+    absdl->tv_nsec = ts->tv_nsec + tspec.tv_nsec;
     if(absdl->tv_nsec > 1000000000){
       ++absdl->tv_sec;
       absdl->tv_nsec -= 1000000000;
@@ -2287,5 +2294,10 @@ struct initial_responses* inputlayer_get_responses(inputctx* ictx){
   iresp = ictx->initdata_complete;
   ictx->initdata_complete = NULL;
   pthread_mutex_unlock(&ictx->ilock);
+  if(ictx->failed){
+    logpanic("aborting after automaton construction failure\n");
+    free(iresp);
+    return NULL;
+  }
   return iresp;
 }

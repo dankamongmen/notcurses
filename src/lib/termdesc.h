@@ -16,8 +16,13 @@ extern "C" {
 #include "fbuf.h"
 #include "in.h"
 
+// kitty keyboard protocol pop, used at end when kitty is verified.
 #define KKEYBOARD_POP  "\x1b[<u"
-#define KKEYBOARD_PUSH "\x1b[>u"
+
+// disable key modifier options; this corresponds to a resource value of
+// "-1", which cannot be set with the [>m sequence. supposedly, "[>m" by
+// itself ought reset all of them, but this doesn't seem to work FIXME.
+#define XTMODKEYSUNDO "\x1b[>2n\x1b[>4n"
 
 struct ncpile;
 struct sprixel;
@@ -167,6 +172,8 @@ typedef struct tinfo {
   struct termios *tpreserved;// terminal state upon entry
   struct inputctx* ictx;     // new input layer
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
+  // ought we issue gratuitous HPAs to work around ambiguous widths?
+  unsigned gratuitous_hpa;
 
   // if we get a reply to our initial \e[18t cell geometry query, it will
   // replace these values. note that LINES/COLUMNS cannot be used to limit

@@ -115,6 +115,9 @@ API ALLOC char* notcurses_accountname(void);
 // Returns a heap-allocated copy of the local host name.
 API ALLOC char* notcurses_hostname(void);
 
+// Returns a heap-allocated copy of human-readable OS name and version.
+API ALLOC char* notcurses_osversion(void);
+
 // input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 // a series of uint32_t to utf8. result must be at least 4 bytes per input
 // uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
@@ -775,7 +778,8 @@ nccell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-API __attribute__ ((returns_nonnull)) const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+API __attribute__ ((returns_nonnull)) const char*
+nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // return the number of columns occupied by 'c'. see ncstrwidth() for an
 // equivalent for multiple EGCs.
@@ -1130,7 +1134,7 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // timespec to bound blocking. Returns a single Unicode code point, or
 // (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
 // return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
-// a delay bound against gettimeofday() (see pthread_cond_timedwait(3)).
+// a delay bound against CLOCK_MONOTONIC (see clock_gettime(2)).
 API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                            ncinput* ni)
   __attribute__ ((nonnull (1)));
@@ -1417,6 +1421,32 @@ API unsigned notcurses_palette_size(const struct notcurses* nc)
 ALLOC API char* notcurses_detected_terminal(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
+// pixel blitting implementations. informative only; don't special-case
+// based off any of this information!
+typedef enum {
+  NCPIXEL_NONE = 0,
+  NCPIXEL_SIXEL,           // sixel
+  NCPIXEL_LINUXFB,         // linux framebuffer
+  NCPIXEL_ITERM2,          // iTerm2
+  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
+  // time as animation. prior to this, graphics had to be entirely redrawn
+  // on any change, and it wasn't possible to use the bottom line.
+  NCPIXEL_KITTY_STATIC,
+  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
+  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
+  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
+  // the auxvec on the fly.
+  NCPIXEL_KITTY_ANIMATED,
+  // with 0.22.0, we only ever write transparent cells after writing the
+  // original image (which we now deflate, since we needn't unpack it later).
+  // the only data we need keep is the auxvecs.
+  NCPIXEL_KITTY_SELFREF,
+} ncpixelimpl_e;
+
+// Can we blit pixel-accurate bitmaps?
+API ncpixelimpl_e notcurses_check_pixel_support(const struct notcurses* nc)
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
+
 // Can we directly specify RGB values per cell, or only use palettes?
 API bool notcurses_cantruecolor(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
@@ -1471,31 +1501,12 @@ API bool notcurses_cansextant(const struct notcurses* nc)
 API bool notcurses_canbraille(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
-// pixel blitting implementations. informative only; don't special-case
-// based off any of this information!
-typedef enum {
-  NCPIXEL_NONE = 0,
-  NCPIXEL_SIXEL,           // sixel
-  NCPIXEL_LINUXFB,         // linux framebuffer
-  NCPIXEL_ITERM2,          // iTerm2
-  // C=1 (disabling scrolling) was only introduced in 0.20.0, at the same
-  // time as animation. prior to this, graphics had to be entirely redrawn
-  // on any change, and it wasn't possible to use the bottom line.
-  NCPIXEL_KITTY_STATIC,
-  // until 0.22.0's introduction of 'a=c' for self-referential composition, we
-  // had to keep a complete copy of the RGBA data, in case a wiped cell needed
-  // to be rebuilt. we'd otherwise have to unpack the glyph and store it into
-  // the auxvec on the fly.
-  NCPIXEL_KITTY_ANIMATED,
-  // with 0.22.0, we only ever write transparent cells after writing the
-  // original image (which we now deflate, since we needn't unpack it later).
-  // the only data we need keep is the auxvecs.
-  NCPIXEL_KITTY_SELFREF,
-} ncpixelimpl_e;
-
 // Can we blit pixel-accurate bitmaps?
-API ncpixelimpl_e notcurses_check_pixel_support(const struct notcurses* nc)
-  __attribute__ ((nonnull (1))) __attribute__ ((pure));
+__attribute__ ((nonnull (1))) __attribute__ ((pure))
+static inline bool
+notcurses_canpixel(const struct notcurses* nc){
+  return notcurses_check_pixel_support(nc) != NCPIXEL_NONE;
+}
 
 // whenever a new field is added here, ensure we add the proper rule to
 // notcurses_stats_reset(), so that values are preserved in the stash stats.
@@ -1532,6 +1543,7 @@ typedef struct ncstats {
   uint64_t appsync_updates;  // how many application-synchronized updates?
   uint64_t input_errors;     // errors processing control sequences/utf8
   uint64_t input_events;     // characters returned to userspace
+  uint64_t hpa_gratuitous;   // unnecessary hpas issued
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
@@ -1778,6 +1790,17 @@ API void* ncplane_userptr(struct ncplane* n);
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
 
+// Create an RGBA flat array from the selected region of the ncplane 'nc'.
+// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
+// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
+                                    int begy, int begx, int leny, int lenx,
+                                    int* pxdimy, int* pxdimx)
+  __attribute__ ((nonnull (1)));
+
 // Return the offset into 'availu' at which 'u' ought be output given the
 // requirements of 'align'. Return -INT_MAX on invalid 'align'. Undefined
 // behavior on negative 'availu' or 'u'.
@@ -2021,7 +2044,9 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 // On success, returns the number of columns written. On failure, returns -1.
 static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  char utf8c[MB_CUR_MAX + 1];
+  // we use MB_LEN_MAX (and potentially "waste" a few stack bytes to avoid
+  // the greater sin of a VLA (and to be locale-independent).
+  char utf8c[MB_LEN_MAX + 1];
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
   size_t s = wcrtomb(utf8c, w, &ps);
@@ -2866,28 +2891,43 @@ struct ncvisual_options {
   unsigned pxoffy, pxoffx;
 };
 
-// Create an RGBA flat array from the selected region of the ncplane 'nc'.
-// Start at the plane's 'begy'x'begx' coordinate (which must lie on the
-// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
-// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
-API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                                    int begy, int begx, int leny, int lenx,
-                                    int* pxdimy, int* pxdimx)
-  __attribute__ ((nonnull (1)));
+// describes all geometries of an ncvisual: those which are inherent, and those
+// dependent upon a given rendering regime. pixy and pixx are the true internal
+// pixel geometry, taken directly from the load (and updated by
+// ncvisual_resize()). cdimy/cdimx are the cell-pixel geometry *at the time
+// of this call* (it can change with a font change, in which case all values
+// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
+// handed to the blitter, following any scaling. scaley/scalex are the number
+// of input pixels drawn to a single cell; when using NCBLIT_PIXEL, they are
+// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
+// the blitter, following any padding (there is padding whenever rpix{y, x} is
+// not evenly divided by scale{y, x}, and also sometimes for Sixel).
+// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
+// the largest bitmap that the terminal is willing to accept. blitter is the
+// blitter which will be used, a function of the requested blitter and the
+// blitters actually supported by this environment. if no ncvisual was
+// supplied, only cdimy/cdimx are filled in.
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  int rcelly, rcellx; // rendered cell geometry (per visual_options)
+  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  int begy, begx;     // upper-left corner of used section
+  int leny, lenx;     // geometry of used section
+  ncblitter_e blitter;// blitter that will be used
+} ncvgeom;
 
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
-// The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
-//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
-// Returns non-zero for an invalid 'vopts'. The blitter that will be used
-// is returned in '*blitter'.
-API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                              const struct ncvisual_options* vopts, int* y, int* x,
-                              int* scaley, int* scalex, ncblitter_e* blitter)
-  __attribute__ ((nonnull (1)));
+// all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
+// non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
+// pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter,
+// scaley/scalex, and maxpixely/maxpixelx are filled in; this is the same as
+// calling with a NULL 'n' and a default 'vopts'. cdimy/cdimx and
+// maxpixely/maxpixelx are only ever filled in if we know them.
+API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+                      const struct ncvisual_options* vopts, ncvgeom* geom)
+  __attribute__ ((nonnull (4)));
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2933,12 +2973,12 @@ API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
   __attribute__ ((nonnull (1)));
 
 // Render the decoded frame according to the provided options (which may be
-// NULL). The plane used for rendering depends on vopts->n and vopts->flags.
-// If NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the
-// plane will always be created as a child of vopts->n. If this flag is not
-// set, and vopts->n is NULL, a new plane is created as root of a new pile.
-// If the flag is not set and vopts->n is not NULL, we render to vopts->n.
-// A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
+// NULL). The plane used for rendering depends on vopts->n and vopts->flags. If
+// NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the plane
+// will always be created as a child of vopts->n. If this flag is not set, and
+// vopts->n is NULL, a new plane is created as a child of the standard plane.
+// If the flag is not set and vopts->n is not NULL, we render to vopts->n. A
+// subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
 // 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
 // specify any region beyond the boundaries of the frame. Returns the (possibly
 // newly-created) plane to which we drew. Pixels may not be blitted to the
@@ -2954,7 +2994,7 @@ API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
 // set, and vopts->n is NULL, a new plane is created as root of a new pile.
 // If the flag is not set and vopts->n is not NULL, we render to vopts->n.
 // A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
-// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// 'leny'. Negative values for any of these are an error. It is an error to
 // specify any region beyond the boundaries of the frame. Returns the (possibly
 // newly-created) plane to which we drew. Pixels may not be blitted to the
 // standard plane.

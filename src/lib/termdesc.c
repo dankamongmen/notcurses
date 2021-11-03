@@ -38,7 +38,7 @@ static void
 get_default_geometry(tinfo* ti){
   ti->default_rows = get_default_dimension("LINES", "lines", 24);
   ti->default_cols = get_default_dimension("COLUMNS", "cols", 80);
-  loginfo("Default geometry: %d row%s, %d column%s\n",
+  loginfo("default geometry: %d row%s, %d column%s\n",
           ti->default_rows, ti->default_rows != 1 ? "s" : "",
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
   ti->dimy = ti->default_rows;
@@ -179,11 +179,11 @@ compare_versions(const char* restrict v1, const char* restrict v2){
   if(v1 == NULL){
     return -1;
   }
-  char* v1e;
-  char* v2e;
+  const char* v1e = v1;
+  const char* v2e = v2;
   while(*v1 && *v2){
-    long v1v = strtol(v1, &v1e, 10);
-    long v2v = strtol(v2, &v2e, 10);
+    long v1v = strtol(v1, (char **)&v1e, 10);
+    long v2v = strtol(v2, (char **)&v2e, 10);
     if(v1e == v1 && v2e == v2){ // both are done
       return 0;
     }else if(v1e == v1){ // first is done
@@ -208,12 +208,21 @@ compare_versions(const char* restrict v1, const char* restrict v2){
     v1 = v1e + 1;
     v2 = v2e + 1;
   }
+  if(*v1e == *v2e){
+    return 0;
+  }
   // can only get out here if at least one was not a period
   if(*v1e == '.'){
     return 1;
   }
   if(*v2e == '.'){
     return -1;
+  }
+  if(!*v1e){
+    return -1;
+  }
+  if(!*v2e){
+    return 1;
   }
   return 0;
 }
@@ -320,12 +329,12 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 
 // request kitty keyboard protocol features 1, 2, and 8, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
-#define KBDSUPPORT "\x1b[=11u"
+#define KKBDSUPPORT "\x1b[=11u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this
 // because the "keyboard pop" control code is mishandled by kitty < 0.20.0.
-#define KBDQUERY "\x1b[?u"
+#define KKBDQUERY "\x1b[?u"
 
 // set modifyFunctionKeys (2) if supported, allowing us to disambiguate
 // function keys when used with modifiers. set modifyOtherKeys (4) if
@@ -371,7 +380,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define GEOMCELL "\x1b[18t"
 
 #define DIRECTIVES CSI_BGQ \
-                   KBDQUERY \
+                   KKBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    KITTYQUERY \
@@ -381,16 +390,18 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    GEOMCELL \
                    PRIDEVATTR
 
+// kitty keyboard push, used at start
+#define KKEYBOARD_PUSH "\x1b[>u"
+
 // written whenever we switch between standard and alternate screen, or upon
 // startup (that's an entry into a screen! presumably the standard one).
-#define KBDENTER KKEYBOARD_PUSH XTMODKEYS KBDSUPPORT
-#define KBDLEAVE KKEYBOARD_POP // FIXME undo XTMODKEYS!
+#define KKBDENTER KKEYBOARD_PUSH KKBDSUPPORT
 
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
-#define SMCUP "\x1b[?1049h" KBDENTER
-#define RMCUP KBDLEAVE "\x1b[?1049l"
+#define SMCUP "\x1b[?1049h"
+#define RMCUP "\x1b[?1049l"
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
@@ -402,19 +413,19 @@ send_initial_queries(int fd, bool minimal, bool noaltscreen){
   const char *queries;
   if(noaltscreen){
     if(minimal){
-      queries = KBDENTER DSRCPR DIRECTIVES;
+      queries = KKBDENTER DSRCPR DIRECTIVES;
     }else{
-      queries = KBDENTER DSRCPR IDQUERIES DIRECTIVES;
+      queries = KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
     }
   }else{
     if(minimal){
-      queries = SMCUP DSRCPR DIRECTIVES;
+      queries = SMCUP KKBDENTER DSRCPR DIRECTIVES;
     }else{
-      queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
+      queries = SMCUP KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
     }
   }
   size_t len = strlen(queries);
-  loginfo("sending %lluB queries\n", (unsigned long long)len);
+  loginfo("sending %lluB\n", (unsigned long long)len);
   if(blocking_write(fd, queries, len)){
     return -1;
   }
@@ -430,8 +441,17 @@ int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
     logerror("alternate screen is unavailable");
     return -1;
   }
-  if(term_emit(smcup, fp, false) || term_emit(KBDENTER, fp, flush)){
+  if(term_emit(smcup, fp, false) < 0){
     return -1;
+  }
+  if(ti->kbdlevel){
+    if(term_emit(KKBDENTER, fp, flush)){
+      return -1;
+    }
+  }else{
+    if(term_emit(XTMODKEYS, fp, flush)){
+      return -1;
+    }
   }
   ti->in_alt_screen = true;
   return 0;
@@ -446,10 +466,18 @@ int leave_alternate_screen(FILE* fp, tinfo* ti){
     logerror("can't leave alternate screen");
     return -1;
   }
-  if(term_emit(KBDLEAVE, fp, false) ||
-     term_emit(rmcup, fp, false) ||
-     term_emit(KBDENTER, fp, true)){
-    return -1;
+  if(ti->kbdlevel){
+    if(term_emit(KKEYBOARD_POP, fp, false) ||
+      term_emit(rmcup, fp, false) ||
+      term_emit(KKBDENTER, fp, true)){
+      return -1;
+    }
+  }else{
+    if(term_emit(XTMODKEYSUNDO, fp, false) ||
+      term_emit(rmcup, fp, false) ||
+      term_emit(XTMODKEYS, fp, true)){
+      return -1;
+    }
   }
   ti->in_alt_screen = false;
   return 0;
@@ -576,6 +604,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     // kitty SUM doesn't want long sequences, which is exactly where we use
     // it. remove support (we pick it up from queries).
     kill_appsync_escapes(ti);
+    ti->gratuitous_hpa = true;
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
     ti->caps.quadrants = true;
@@ -672,10 +701,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       ti->termversion = strdup(un.release);
     }
     if(is_linux_framebuffer(ti)){
-      termname = "Linux framebuffer";
+      termname = "FBcon";
       setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
     }else{
-      termname = "Linux console";
+      termname = "VT";
     }
     ti->caps.halfblocks = false;
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
@@ -989,20 +1018,24 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
       goto err;
     }
+    ti->termversion = iresp->version; // takes ownership
     if(iresp->appsync_supported){
       if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-        free(iresp->version);
         free(iresp);
         goto err;
       }
     }
-    ti->kbdlevel = iresp->kbdlevel;
+    if((ti->kbdlevel = iresp->kbdlevel) == 0){
+      if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
+        free(iresp);
+        goto err;
+      }
+    }
     if(iresp->qterm != TERMINAL_UNKNOWN){
       ti->qterm = iresp->qterm;
     }
     *cursor_y = iresp->cursory;
     *cursor_x = iresp->cursorx;
-    ti->termversion = iresp->version;
     if(iresp->dimy && iresp->dimx){
       // FIXME probably oughtn't be setting the defaults, as this is just some
       // random transient measurement?
@@ -1066,7 +1099,12 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
 
 err:
   if(ti->ttyfd >= 0){
-    tty_emit(KKEYBOARD_POP, ti->ttyfd);
+    // if we haven't yet received a reply confirming lack of kitty keyboard
+    // support, it'll be UINT_MAX, and we ought try to pop (in case we died
+    // following the keyboard set, but before confirming support).
+    if(ti->kbdlevel){
+      tty_emit(KKEYBOARD_POP, ti->ttyfd);
+    }
     tty_emit(RMCUP, ti->ttyfd);
   }
   if(ti->tpreserved){
@@ -1201,7 +1239,7 @@ int putenv_term(const char* termname){
   }else{
     loginfo("provided %s value %s\n", ENVVAR, termname);
   }
-  if(strcmp(oldterm, termname) == 0){
+  if(oldterm && strcmp(oldterm, termname) == 0){
     return 0;
   }
   char* buf = malloc(strlen(termname) + strlen(ENVVAR) + 1);

@@ -198,6 +198,7 @@ notcurses_debug(nc_, stderr);
       // ought yield space with white background FIXME currently just yields
       // an upper half block
       CHECK(0 == strcmp("\u259a", egc)); // quadrant upper left and lower right
+      free(egc);
       CHECK(0xffffff == ncchannels_fg_rgb(channels));
       CHECK(0xffffff == ncchannels_bg_rgb(channels));
       CHECK(0 == ncplane_destroy(top));

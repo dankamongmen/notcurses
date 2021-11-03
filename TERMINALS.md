@@ -67,20 +67,21 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
 | [Alacritty](https://github.com/alacritty/alacritty)       | ✅         |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
-| [Contour](https://github.com/christianparpart/contour)    | ❌         |  ✅   |?       |`TERM=contour-latest` ?            | Claims Sixel support             |
+| [Contour](https://github.com/christianparpart/contour)    | ✅         |  ✅   |✅       |`TERM=contour`             | Sixel support.             |
 | [ETerm](https://github.com/mej/Eterm) | | | | `TERM=Eterm` | Doesn't reply to Send Device Attributes |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)  | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
-| [ITerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=xterm-256color`  ||
+| [iTerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=iterm2`  | |
 | [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅    |`TERM=xterm-kitty`                 | See below. |
 | [kmscon](https://github.com/dvdhrm/kmscon)        | | ❌    | ❌      |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. No actual `ccc` implementation. Sets `COLORTERM=kmscon`.|
 | [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
-| [mintty](https://github.com/mintty/mintty) | ? | ? | ? | ? | ? |
+| [mintty](https://github.com/mintty/mintty) | ✅ | ✅ | ? | `TERM=mintty-direct` | Windows, both old-skool and ConPTY |
 | [mlterm](https://github.com/arakiken/mlterm)          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
+| [refterm](https://github.com/cmuratori/refterm.git) | ? | ? | ? | ? | Windows, ConPTY only |
 | rxvt            | ✅                 |  ?    |?       |                                 | Seems unmaintained; many forks exist. |
 | [Sakura](https://github.com/dabisu/sakura)          | ✅                 |  ✅   |?       |`TERM=vte-256color` `COLORTERM=24bit` | VTE-derived, no terminfo entry. |
 | [GNU Screen](https://www.gnu.org/software/screen/)      | ✅                 |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
@@ -107,22 +108,27 @@ Kitty has some interesting, atypical behaviors. Foremost among these is that
 an RGB background color equivalent to the configured default background color
 will be rendered as the default background. This means, for instance, that if
 the configured default background color is RGB(0, 0, 0), and is translucent,
-a background of RGB(0, 0, 0) will be translucent. To work around this, when
-`TERM` begins with "kitty", we detect the default background color, and when
-we would write this as RGB, we alter one of the colors by 1. See
-https://github.com/kovidgoyal/kitty/issues/3185 and
+a background of RGB(0, 0, 0) will be translucent. To work around this, we
+detect the default background color if possible, and when we have done so *and*
+verified that the terminal is Kitty *and* we would write this as RGB, we alter
+one of the colors by 1. See https://github.com/kovidgoyal/kitty/issues/3185 and
 https://github.com/dankamongmen/notcurses/issues/1117.
 
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
-Color Erase) capability, but Notcurses never relies on `bce` behavior.
+Color Erase) capability, but Notcurses never relies on `bce` behavior, and
+goes to some lengths to avoid triggering it.
 
 Kitty has introduced an unambiguous [keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 Notcurses supports this protocol when it is detected.
 
+The Kitty [graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
+is superior in just about every way (save breadth of support) to Sixel.
+
 ### WezTerm
 
 WezTerm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
-interesting underline options, and both the Sixel and Kitty graphic protocols.
+interesting underline options, and both the Sixel and Kitty graphic protocols
+(I think it even handles iTerm2).
 
 ### GNU screen
 
@@ -145,6 +151,21 @@ Where `EXTERNALTERM` is your `TERM` variable at the time of attachment, e.g.:
 `set -ga terminal-overrides ",vte-256color:Tc"`
 
 You'll then need `COLORTERM=24bit` defined within your tmux environment.
+
+### iTerm2
+
+You're recommented to change "Report terminal type" to `iterm2`.
+
+You're recommended to enable "Use Unicode version 9+ widths" under
+`Profiles/Text`.
+
+You're recommended to enable the following "Experimental Features":
+* REP (Repeat previous character)
+* Support variation selector 16 making emoji fullwidth
+
+### mintty
+
+You're recommended to change the default `TERM` to `mintty-direct`.
 
 ### The Linux console
 
@@ -249,15 +270,20 @@ are best avoided until the problems are better understood:
 ## Notes for terminal authors
 
 The `notcurses-info` tool built as part of Notcurses can be used to inspect
-how well your terminal supports Notcurses. It is generally desirable that:
+how well your terminal supports Notcurses. It is generally desirable that your
+terminal:
 
-* Your terminal draw Unicode's Line- and Box-Drawing characters itself,
-  rather than relying on the font.
-* Your terminal support some graphics protocol, ideally Kitty's. If you
-  support Sixel instead, implement `XTSMGRAPHICS`.
-* Implement a keyboard disambiguation protocol, ideally Kitty's.
-* Implement `hpa`, for absolute horizontal positioning.
-* Size EGCs according to the largest `wcwidth()` result returned for any
-  of the component characters.
-* Honor Unicode rules for segmentation, including Zero-Width Joiners. Emit
-  either zero or one glyph per EGC.
+* implements `XTVERSION` (no matter your personal philosophical stance).
+* implements `XTGETTCAP` (especially for the `rgb` capability).
+* uses the communication channel to perform flow control. don't read data more quickly than you can actually display it; you'll end up dropping frames or effecting bufferbloat latency. this wastes work, and moves the drop decision away from the client code.
+* draws Unicode's Line- and Box-Drawing characters itself, rather than relying on the font.
+* supports some graphics protocol, ideally Kitty's. if you support Sixel instead, please implement `XTSMGRAPHICS`.
+* implement a keyboard disambiguation protocol, ideally Kitty's.
+* implement `hpa` for cheap absolute horizontal positioning.
+* size EGCs according to the largest `wcwidth()` result returned for any of the component characters. draw them all the same size otherwise.
+* honor Unicode rules for segmentation, including Zero-Width Joiners. emit either zero or one glyph per EGC.
+
+Without a properly-bracketed Primary Device Attributes reply to my DA1 query,
+Notcurses is not going to work on your terminal emulator.
+
+BiDi's gonna be a mess no matter what. Don't stress too much about it.

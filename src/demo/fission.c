@@ -17,7 +17,10 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   int ranges = 0;
   int rangee = 0;
   const int FALLINGMAX = arrcount < 10 ? 1 : arrcount / 10;
-  int speeds[FALLINGMAX];
+  int* speeds = malloc(sizeof(*speeds) * FALLINGMAX);
+  if(speeds == NULL){
+    return -1;
+  }
   while(ranges < arrcount){
     // if we don't have a full set active, and there is another available, go
     // ahead and get it kicked off
@@ -76,6 +79,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       }
     }while(rangee - ranges + 1 >= FALLINGMAX);
   }
+  free(speeds);
   return 0;
 }
 
@@ -99,6 +103,7 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 
 // you played yourself https://genius.com/De-la-soul-fallin-lyrics
 int fission_demo(struct notcurses* nc){
+  struct ncplane* npl = NULL;
   int dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
@@ -197,32 +202,35 @@ int fission_demo(struct notcurses* nc){
   ncplane_erase(stdn);
 #ifndef DFSG_BUILD
   if(notcurses_canopen_images(nc)){
-  char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncvisual_from_file(path);
-  free(path);
-  if(ncv == NULL){
-    goto err;
-  }
-  struct ncvisual_options vopts = {
-    .n = stdn,
-    .scaling = NCSCALE_STRETCH,
-    .flags = NCVISUAL_OPTION_CHILDPLANE,
-  };
-  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    char* path = find_data("lamepatents.jpg");
+    struct ncvisual* ncv = ncvisual_from_file(path);
+    free(path);
+    if(ncv == NULL){
+      goto err;
+    }
+    struct ncvisual_options vopts = {
+      .n = stdn,
+      .scaling = NCSCALE_STRETCH,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+    };
+    if((npl = ncvisual_blit(nc, ncv, &vopts)) == NULL){
+      ncvisual_destroy(ncv);
+      goto err;
+    }
+    assert(ncvisual_decode(ncv) == 1);
     ncvisual_destroy(ncv);
-    goto err;
-  }
-  assert(ncvisual_decode(ncv) == 1);
-  ncvisual_destroy(ncv);
+    ncplane_move_above(npl, stdn);
   }
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   free(arr);
   free(usemap);
+  ncplane_destroy(npl);
   return ret;
 
 err:
   free(usemap);
   free(arr);
+  ncplane_destroy(npl);
   return -1;
 }

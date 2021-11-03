@@ -1,6 +1,6 @@
 % notcurses_input(3)
 % nick black <nickblack@linux.com>
-% v2.4.5
+% v2.4.8
 
 # NAME
 
@@ -71,10 +71,10 @@ to fill whenever it reads.
 
 **notcurses_get** allows a **struct timespec** to be specified as a timeout.
 If **ts** is **NULL**, **notcurses_get** will block until it reads input, or
-is interrupted by a signal. If its values are zeroes, there will be no blocking.
-Otherwise, **ts** specifies an absolute deadline (using the same source and
-timezone as **gettimeofday(2)**). On timeout, 0 is returned. Event
-details will be reported in **ni**, unless **ni** is NULL.
+is interrupted by a signal. If its values are zeroes, there will be no
+blocking. Otherwise, **ts** specifies an absolute deadline (taken against
+**CLOCK_MONOTONIC**; see **clock_gettime(2)**). On timeout, 0 is returned.
+Event details will be reported in **ni**, unless **ni** is NULL.
 
 **notcurses_inputready_fd** provides a file descriptor suitable for use with
 I/O multiplexors such as **poll(2)**. This file descriptor might or might not
@@ -195,9 +195,12 @@ Mouse events in the top and left margins will never be delivered to the
 application (as is intended), but mouse events in the bottom and right margins
 sometimes can be if the event occurs prior to a window resize.
 
+On some operating systems, **CLOCK_REALTIME** is used as the basis for
+timeouts instead of **CLOCK_MONOTONIC**. This ought be fixed.
+
 # SEE ALSO
 
-**gettimeofday(2)**,
+**clock_gettime(2)**,
 **poll(2)**,
 **notcurses(3)**,
 **notcurses_refresh(3)**,

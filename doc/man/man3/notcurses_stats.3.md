@@ -1,6 +1,6 @@
 % notcurses_stats(3)
 % nick black <nickblack@linux.com>
-% v2.4.5
+% v2.4.8
 
 # NAME
 
@@ -44,6 +44,7 @@ typedef struct ncstats {
   uint64_t appsync_updates;  // application-synchronized updates
   uint64_t input_events;     // inputs received or synthesized
   uint64_t input_errors;     // errors processing input
+  uint64_t hpa_gratuitous;   // gratuitous HPAs issued
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers
@@ -117,6 +118,15 @@ include move/delete operations, nor glyphs used to erase sprixels.
 **input_errors** is the number of errors while processing input, e.g.
 malformed control sequences or invalid UTF-8 (see **utf8(7)**).
 
+**hpa_gratuitous** is the number of **hpa** (horizontal position absolute,
+see **terminfo(5)**) control sequences issued where not strictly necessary.
+This is done to cope with fundamental ambiguities regarding glyph
+width. It is not generally possible to know how wide a glyph will be rendered
+on a given combination of font, font rendering engine, and terminal. Indeed, it
+is not even generally possible to know how many glyphs will result from a
+sequence of EGCs. As a result, Notcurses sometimes issues "gratuitous" **hpa**
+controls.
+
 # NOTES
 
 Unsuccessful render operations do not contribute to the render timing stats.
@@ -138,4 +148,5 @@ object on success, or **NULL** on failure.
 **mmap(2)**,
 **notcurses(3)**,
 **notcurses_render(3)**,
+**terminfo(5)**,
 **utf8(7)**

@@ -83,12 +83,14 @@ int main(int argc, char** argv){
   struct nctab* t_; // stupid unused result warnings
   (void) t_;
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, NCCHANNELS_INITIALIZER(255, 255, 255, 15, 60, 15));
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
+  if(nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL) == NULL
+     || nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL) == NULL
+     || nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL) == NULL
+     || nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL) == NULL
+     || nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL) == NULL
+     || nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL) == NULL){
+    goto ded;
+  }
   ncplane_puttext(stdp, 1, NCALIGN_CENTER,
                   "Use left/right arrow keys for navigation, "
                   "'[' and ']' to rotate tabs, "
@@ -127,7 +129,9 @@ int main(int argc, char** argv){
         nctab_move_right(nct, nctabbed_selected(nct));
         break;
       case 'a':
-        t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, tabnames[tabnameind++], NULL);
+        if(nctabbed_add(nct, NULL, NULL, tabcbfn, tabnames[tabnameind++], NULL) == NULL){
+          goto ded;
+        }
         tabnameind %= sizeof(tabnames) / sizeof(tabnames[0]);
         break;
       case 'r':

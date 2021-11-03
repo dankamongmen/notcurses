@@ -1,17 +1,22 @@
 #include "demo.h"
 
+static bool truefxn(const struct notcurses* nc){ (void)nc; return true; }
+
 // show it with each blitter, with a legend
 static int
 visualize(struct notcurses* nc, struct ncvisual* ncv){
   struct timespec kdelay;
   timespec_div(&demodelay, 2, &kdelay);
-  ncblitter_e bs[] = {
-    NCBLIT_BRAILLE,
-    NCBLIT_1x1,
-    NCBLIT_2x1,
-    NCBLIT_2x2,
-    NCBLIT_3x2,
-    NCBLIT_PIXEL,
+  const struct {
+    ncblitter_e b;
+    bool (*f)(const struct notcurses*);
+  } bs[] = {
+    { NCBLIT_BRAILLE, notcurses_canbraille, },
+    { NCBLIT_1x1, truefxn, }, // everyone can do spaces
+    { NCBLIT_2x1, notcurses_canhalfblock, },
+    { NCBLIT_2x2, notcurses_canquadrant, },
+    { NCBLIT_3x2, notcurses_cansextant, },
+    { NCBLIT_PIXEL, notcurses_canpixel, },
   };
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_fg_rgb(stdn, 0xffffff);
@@ -24,34 +29,37 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
       .n = notcurses_stdplane(nc),
-      .scaling = NCSCALE_SCALE,
-      .blitter = bs[i],
+      .scaling = NCSCALE_SCALE_HIRES,
+      .blitter = bs[i].b,
       .flags = NCVISUAL_OPTION_NODEGRADE
                 | NCVISUAL_OPTION_HORALIGNED
                 | NCVISUAL_OPTION_VERALIGNED
                 | NCVISUAL_OPTION_CHILDPLANE,
     };
-    int scalex, scaley, truey, truex;
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
     ncplane_erase(stdn); // to clear out old text
     struct ncplane* n = NULL;
-    if(ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL) == 0){
+    ncvgeom geom;
+    if(ncvisual_geom(nc, ncv, &vopts, &geom) == 0){
       if( (n = ncvisual_blit(nc, ncv, &vopts)) ){
         ncplane_move_below(n, stdn);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
-                              "%03dx%03d", truex, truey);
+                              "%03dx%03d", geom.pixx, geom.pixy);
         ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
-                              "%d:%d pixels -> cell", scalex, scaley);
+                              "%d:%d pixels -> cell", geom.scalex, geom.scaley);
       }
     }
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
     if(!n){
+      if(bs[i].f(nc)){
+        return -1;
+      }
       ncplane_on_styles(stdn, NCSTYLE_ITALIC);
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
       ncplane_off_styles(stdn, NCSTYLE_ITALIC);
     }
-    const char* name = notcurses_str_blitter(bs[i]);
+    const char* name = notcurses_str_blitter(bs[i].b);
     ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, "%sblitter", name);
     int ret = demo_render(nc);
     if(ret){

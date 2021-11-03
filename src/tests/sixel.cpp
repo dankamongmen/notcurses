@@ -165,8 +165,9 @@ TEST_CASE("Sixels") {
     vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.scaling = NCSCALE_STRETCH;
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
-    CHECK(newn);
+    REQUIRE(nullptr != newn);
     CHECK(0 == notcurses_render(nc_));
     auto rgb = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
                             newn->sprite->pixy, newn->sprite->pixx);
@@ -189,7 +190,7 @@ TEST_CASE("Sixels") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
-    CHECK(newn);
+    REQUIRE(nullptr != newn);
     auto rgbold = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
                                newn->sprite->pixy, newn->sprite->pixx);
 //print_bmap(rgbold, newn->sprite->pixy, newn->sprite->pixx);

@@ -123,7 +123,7 @@ typedef enum {
 // reconstruction of annihilated cells, valid only for SPRIXCELL_ANNIHILATED.
 typedef struct tament {
   sprixcell_e state;
-  uint8_t* auxvector; // palette entries for sixel, alphas for kitty
+  void* auxvector; // palette entries for sixel, alphas for kitty
 } tament;
 
 // a sprixel represents a bitmap, using whatever local protocol is available.

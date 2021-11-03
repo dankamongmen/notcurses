@@ -457,12 +457,12 @@ int get_tty_fd(FILE* ttyfp){
   int fd = -1;
   if(ttyfp){
     if((fd = fileno(ttyfp)) < 0){
-      logwarn("No file descriptor was available in outfp %p\n", ttyfp);
+      logwarn("no file descriptor was available in outfp %p\n", ttyfp);
     }else{
       if(tty_check(fd)){
         fd = dup(fd);
       }else{
-        loginfo("fd %d not a TTY\n", fd);
+        loginfo("fd %d is not a TTY\n", fd);
         fd = -1;
       }
     }
@@ -470,15 +470,17 @@ int get_tty_fd(FILE* ttyfp){
   if(fd < 0){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC | O_NOCTTY);
     if(fd < 0){
-      loginfo("Error opening /dev/tty (%s)\n", strerror(errno));
+      loginfo("couldn't open /dev/tty (%s)\n", strerror(errno));
     }else{
       if(!tty_check(fd)){
-        loginfo("File descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
+        loginfo("file descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
         close(fd);
         fd = -1;
       }
     }
   }
-  loginfo("Returning TTY fd %d\n", fd);
+  if(fd >= 0){
+    loginfo("returning TTY fd %d\n", fd);
+  }
   return fd;
 }

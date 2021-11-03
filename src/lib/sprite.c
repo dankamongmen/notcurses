@@ -157,11 +157,11 @@ int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
   if(spx->cellpxy > 0){ // don't explode on ncdirect case
-    if((pixy + spx->cellpxy - 1) / spx->cellpxy != spx->dimy){
+    if((pixy + spx->cellpxy - 1) / spx->cellpxy > spx->dimy){
       logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->cellpxy, spx->dimy);
       return -1;
     }
-    if((pixx + spx->cellpxx - 1) / spx->cellpxx != spx->dimx){
+    if((pixx + spx->cellpxx - 1) / spx->cellpxx > spx->dimx){
       logerror("bad pixx %d (cellpxx %d dimx %d)\n", pixx, spx->cellpxx, spx->dimx);
       return -1;
     }
@@ -186,9 +186,11 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     // update said auxvec, but needn't actually change the glyph. auxvec will
     // be entirely 0s coming from pixel_trans_auxvec().
     if(s->n->tam[idx].auxvector == NULL){
-      s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
-      if(s->n->tam[idx].auxvector == NULL){
-        return -1;
+      if(nc->tcache.pixel_trans_auxvec){
+        s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
+        if(s->n->tam[idx].auxvector == NULL){
+          return -1;
+        }
       }
     }
     // no need to update to INVALIDATED; no redraw is necessary
@@ -223,15 +225,4 @@ int sprite_init(const tinfo* t, int fd){
     return 0;
   }
   return t->pixel_init(fd);
-}
-
-uint8_t* sprixel_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
-  // for now we just do two bytes per pixel. we ought squeeze the transparency
-  // vector down to a bit per pixel, rather than a byte FIXME.
-  uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
-  if(ret){
-    memset(ret, 0, sizeof(*ret) * pixels);
-  }
-  return ret;
 }

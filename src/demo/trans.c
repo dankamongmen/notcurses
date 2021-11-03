@@ -241,6 +241,33 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   }
   ncplane_destroy(l);
 
+  char* logop = find_data("notcurses.png");
+  struct ncvisual* ncv = ncvisual_from_file(logop);
+  if(ncv == NULL){
+    ncplane_destroy(n);
+    return err;
+  }
+  free(logop);
+  struct ncvisual_options vopts = {
+    .n = n,
+    .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_PIXEL,
+  };
+  if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(n);
+    return err;
+  }
+  ncvisual_destroy(ncv);
+  clock_gettime(CLOCK_MONOTONIC, &cur);
+  l = legend(nc, "partially-transparent image");
+  deadlinens = timespec_to_ns(&cur) + 2 * timespec_to_ns(&demodelay);
+  if( (err = slideitslideit(nc, n, deadlinens, &vely, &velx)) ){
+    ncplane_destroy(n);
+    ncplane_destroy(l);
+    return err;
+  }
+  ncplane_destroy(l);
+
   return ncplane_destroy(n);
 }
 

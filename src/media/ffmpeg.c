@@ -498,9 +498,11 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
       ncplane_erase(activevopts.n); // new frame could be partially transparent
     }
     // decay the blitter explicitly, so that the callback knows the blitter it
-    // was actually rendered with
-    ncvisual_blitter_geom(nc, ncv, &activevopts, NULL, NULL, NULL, NULL,
-                          &activevopts.blitter);
+    // was actually rendered with. basically just need rgba_blitter(), but
+    // that's not exported.
+    ncvgeom geom;
+    ncvisual_geom(nc, ncv, &activevopts, &geom);
+    activevopts.blitter = geom.blitter;
     if((newn = ncvisual_blit(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);
@@ -637,10 +639,9 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   if(data == NULL){
     return -1;
   }
-//fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d targ: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx, rows, cols);
+//fprintf(stderr, "WHN NCV: bargslen: %d/%d targ: %d/%d\n", bargs->leny, bargs->lenx, rows, cols);
   int ret = 0;
   if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
-//fprintf(stderr, "rgba dispatch failed!\n");
     ret = -1;
   }
   if(data != ncv->data){

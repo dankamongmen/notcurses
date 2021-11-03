@@ -17,8 +17,8 @@ static int input_pipefds[2] = {-1, -1};
 static pthread_t tid;
 static nciqueue* queue;
 static nciqueue** enqueue = &queue;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond; // use pthread_condmonotonic_init()
 
 static int
 handle_mouse(const ncinput* ni){
@@ -47,10 +47,8 @@ handle_mouse(const ncinput* ni){
 // absolute deadline, so convert it up.
 uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni){
   struct timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
+  clock_gettime(CLOCK_MONOTONIC, &now);
   uint64_t ns;
-  // yes, i'd like CLOCK_MONOTONIC too, but pthread_cond_timedwait() is based off
-  // of crappy CLOCK_REALTIME :/
   // abstime shouldn't be further out than our maximum sleep time -- this can
   // lead to 0 frames output during the wait
   if(ts){
@@ -68,7 +66,7 @@ uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
   do{
     pthread_mutex_lock(&lock);
     while(!queue){
-      clock_gettime(CLOCK_REALTIME, &now);
+      clock_gettime(CLOCK_MONOTONIC, &now);
       if(timespec_to_ns(&now) > timespec_to_ns(&abstime)){
         pthread_mutex_unlock(&lock);
         return 0;
@@ -119,7 +117,7 @@ pass_along(const ncinput* ni){
   pthread_mutex_unlock(&lock);
   const uint64_t eventcount = 1;
   int ret = 0;
-  if(write(input_pipefds[0], &eventcount, sizeof(eventcount)) < 0){
+  if(write(input_pipefds[1], &eventcount, sizeof(eventcount)) < 0){
     ret = -1;
   }
   pthread_cond_signal(&cond);
@@ -155,6 +153,10 @@ int input_dispatcher(struct notcurses* nc){
   if(input_pipefds[0] >= 0){
     return -1;
   }
+  if(pthread_condmonotonic_init(&cond)){
+    fprintf(stderr, "error creating monotonic condvar\n");
+    return -1;
+  }
   // freebsd doesn't have eventfd :/ and apple doesn't even have pipe2() =[ =[
   // omg windows doesn't have pipe() fml FIXME
 #ifndef __MINGW64__
@@ -184,6 +186,7 @@ int stop_input(void){
     ret |= close(input_pipefds[0]);
     ret |= close(input_pipefds[1]);
     input_pipefds[0] = input_pipefds[1] = -1;
+    ret |= pthread_cond_destroy(&cond);
   }
   return ret;
 }
