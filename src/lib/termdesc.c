@@ -329,12 +329,12 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 
 // request kitty keyboard protocol features 1, 2, and 8, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
-#define KBDSUPPORT "\x1b[=11u"
+#define KKBDSUPPORT "\x1b[=11u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this
 // because the "keyboard pop" control code is mishandled by kitty < 0.20.0.
-#define KBDQUERY "\x1b[?u"
+#define KKBDQUERY "\x1b[?u"
 
 // set modifyFunctionKeys (2) if supported, allowing us to disambiguate
 // function keys when used with modifiers. set modifyOtherKeys (4) if
@@ -380,7 +380,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define GEOMCELL "\x1b[18t"
 
 #define DIRECTIVES CSI_BGQ \
-                   KBDQUERY \
+                   KKBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    KITTYQUERY \
@@ -395,13 +395,13 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 
 // written whenever we switch between standard and alternate screen, or upon
 // startup (that's an entry into a screen! presumably the standard one).
-#define KBDENTER KKEYBOARD_PUSH XTMODKEYS KBDSUPPORT
+#define KKBDENTER KKEYBOARD_PUSH KKBDSUPPORT
 
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
-#define SMCUP "\x1b[?1049h" KBDENTER
-#define RMCUP KBDLEAVE "\x1b[?1049l"
+#define SMCUP "\x1b[?1049h"
+#define RMCUP "\x1b[?1049l"
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
@@ -413,15 +413,15 @@ send_initial_queries(int fd, bool minimal, bool noaltscreen){
   const char *queries;
   if(noaltscreen){
     if(minimal){
-      queries = KBDENTER DSRCPR DIRECTIVES;
+      queries = KKBDENTER DSRCPR DIRECTIVES;
     }else{
-      queries = KBDENTER DSRCPR IDQUERIES DIRECTIVES;
+      queries = KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
     }
   }else{
     if(minimal){
-      queries = SMCUP DSRCPR DIRECTIVES;
+      queries = SMCUP KKBDENTER DSRCPR DIRECTIVES;
     }else{
-      queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
+      queries = SMCUP KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
     }
   }
   size_t len = strlen(queries);
@@ -441,8 +441,17 @@ int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
     logerror("alternate screen is unavailable");
     return -1;
   }
-  if(term_emit(smcup, fp, false) || term_emit(KBDENTER, fp, flush)){
+  if(term_emit(smcup, fp, false) < 0){
     return -1;
+  }
+  if(ti->kbdlevel){
+    if(term_emit(KKBDENTER, fp, flush)){
+      return -1;
+    }
+  }else{
+    if(term_emit(XTMODKEYS, fp, flush)){
+      return -1;
+    }
   }
   ti->in_alt_screen = true;
   return 0;
@@ -457,10 +466,18 @@ int leave_alternate_screen(FILE* fp, tinfo* ti){
     logerror("can't leave alternate screen");
     return -1;
   }
-  if(term_emit(KBDLEAVE, fp, false) ||
-     term_emit(rmcup, fp, false) ||
-     term_emit(KBDENTER, fp, true)){
-    return -1;
+  if(ti->kbdlevel){
+    if(term_emit(KKEYBOARD_POP, fp, false) ||
+      term_emit(rmcup, fp, false) ||
+      term_emit(KKBDENTER, fp, true)){
+      return -1;
+    }
+  }else{
+    if(term_emit(XTMODKEYSUNDO, fp, false) ||
+      term_emit(rmcup, fp, false) ||
+      term_emit(XTMODKEYS, fp, true)){
+      return -1;
+    }
   }
   ti->in_alt_screen = false;
   return 0;
@@ -1008,7 +1025,12 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
         goto err;
       }
     }
-    ti->kbdlevel = iresp->kbdlevel;
+    if((ti->kbdlevel = iresp->kbdlevel) == 0){
+      if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
+        free(iresp);
+        goto err;
+      }
+    }
     if(iresp->qterm != TERMINAL_UNKNOWN){
       ti->qterm = iresp->qterm;
     }
@@ -1078,7 +1100,12 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
 
 err:
   if(ti->ttyfd >= 0){
-    tty_emit(KKEYBOARD_POP, ti->ttyfd);
+    // if we haven't yet received a reply confirming lack of kitty keyboard
+    // support, it'll be UINT_MAX, and we ought try to pop (in case we died
+    // following the keyboard set, but before confirming support).
+    if(ti->kbdlevel){
+      tty_emit(KKEYBOARD_POP, ti->ttyfd);
+    }
     tty_emit(RMCUP, ti->ttyfd);
   }
   if(ti->tpreserved){
