@@ -701,10 +701,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       ti->termversion = strdup(un.release);
     }
     if(is_linux_framebuffer(ti)){
-      termname = "Linux framebuffer";
+      termname = "FBcon";
       setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
     }else{
-      termname = "Linux console";
+      termname = "VT";
     }
     ti->caps.halfblocks = false;
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
@@ -1018,9 +1018,9 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
       goto err;
     }
+    ti->termversion = iresp->version; // takes ownership
     if(iresp->appsync_supported){
       if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-        free(iresp->version);
         free(iresp);
         goto err;
       }
@@ -1036,7 +1036,6 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     }
     *cursor_y = iresp->cursory;
     *cursor_x = iresp->cursorx;
-    ti->termversion = iresp->version;
     if(iresp->dimy && iresp->dimx){
       // FIXME probably oughtn't be setting the defaults, as this is just some
       // random transient measurement?
