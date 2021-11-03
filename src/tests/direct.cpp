@@ -139,6 +139,7 @@ TEST_CASE("Direct") {
       int y, x;
       int dimy = ncdirect_dim_y(nc_);
       int dimx = ncdirect_dim_x(nc_);
+      // FIXME fails if u6 is reversed (on e.g. kmscon)
       CHECK(0 == ncdirect_cursor_yx(nc_, &y, &x));
       CHECK(0 <= y);
       CHECK(dimy > y);
