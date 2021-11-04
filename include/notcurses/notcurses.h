@@ -1219,7 +1219,8 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRI
 // or NULL on error. This EGC must be free()d by the caller. The stylemask and
 // channels are written to 'stylemask' and 'channels', respectively.
 API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
-                          uint16_t* stylemask, uint64_t* channels);
+                          uint16_t* stylemask, uint64_t* channels)
+  __attribute__ ((nonnull (1)));
 
 // Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
@@ -1574,20 +1575,19 @@ API void notcurses_stats_reset(struct notcurses* nc, ncstats* stats)
 //
 // Essentially, the kept material does not move. It serves to anchor the
 // resized plane. If there is no kept material, the plane can move freely.
-API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+API int ncplane_resize(struct ncplane* n, int keepy, int keepx,
+                       unsigned keepleny, unsigned keeplenx,
+                       int yoff, int xoff,
+                       unsigned ylen, unsigned xlen);
 
 // Resize the plane, retaining what data we can (everything, unless we're
 // shrinking in some dimension). Keep the origin where it is.
 static inline int
-ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
-  if(ylen < 0 || xlen < 0){
-    return -1;
-  }
+ncplane_resize_simple(struct ncplane* n, unsigned ylen, unsigned xlen){
   int oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-  int keepleny = oldy > ylen ? ylen : oldy;
-  int keeplenx = oldx > xlen ? xlen : oldx;
+  unsigned keepleny = (unsigned)oldy > ylen ? ylen : (unsigned)oldy;
+  unsigned keeplenx = (unsigned)oldx > xlen ? xlen : (unsigned)oldx;
   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
 }
 
@@ -2206,16 +2206,17 @@ ncplane_vline(struct ncplane* n, const nccell* c, unsigned len){
 // are never drawn (since at most 2 edges can touch a box's corner).
 API int ncplane_box(struct ncplane* n, const nccell* ul, const nccell* ur,
                     const nccell* ll, const nccell* lr, const nccell* hline,
-                    const nccell* vline, int ystop, int xstop,
+                    const nccell* vline, unsigned ystop, unsigned xstop,
                     unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
-// minimum box size is 2x2, and it cannot be drawn off-screen.
+// minimum box size is 2x2, and it cannot be drawn off-plane.
 static inline int
 ncplane_box_sized(struct ncplane* n, const nccell* ul, const nccell* ur,
                   const nccell* ll, const nccell* lr, const nccell* hline,
-                  const nccell* vline, int ylen, int xlen, unsigned ctlword){
+                  const nccell* vline, unsigned ylen, unsigned xlen,
+                  unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,

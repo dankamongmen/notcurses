@@ -692,12 +692,10 @@ int resize_callbacks_children(ncplane* n){
 }
 
 // can be used on stdplane, unlike ncplane_resize() which prohibits it.
-int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
-                            int keeplenx, int yoff, int xoff, int ylen, int xlen){
-  if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
-    logerror("Can't retain negative size %dx%d\n", keepleny, keeplenx);
-    return -1;
-  }
+int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
+                            unsigned keepleny, unsigned keeplenx,
+                            int yoff, int xoff,
+                            unsigned ylen, unsigned xlen){
   if(keepy < 0 || keepx < 0){ // can't start at negative origin
     logerror("Can't retain negative offset %dx%d\n", keepy, keepx);
     return -1;
@@ -708,30 +706,30 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   // can't be smaller than keep length
   if(ylen < keepleny){
-    logerror("Can't map in y dimension: %d < %d\n", ylen, keepleny);
+    logerror("Can't map in y dimension: %u < %d\n", ylen, keepleny);
     return -1;
   }
   if(xlen < keeplenx){
-    logerror("Can't map in x dimension: %d < %d\n", xlen, keeplenx);
+    logerror("Can't map in x dimension: %u < %d\n", xlen, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror("Can't achieve meaningless size %dx%d\n", ylen, xlen);
+    logerror("Can't achieve meaningless size %ux%u\n", ylen, xlen);
     return -1;
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-  if(keepleny + keepy > rows){
+  if(keepleny + keepy > (unsigned)rows){
     logerror("Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
     return -1;
   }
-  if(keeplenx + keepx > cols){
+  if(keeplenx + keepx > (unsigned)cols){
     logerror("Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
-  loginfo("%dx%d @ %d/%d → %d/%d @ %d/%d (want %dx%d@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
-      rows == ylen && cols == xlen){
+      (unsigned)rows == ylen && (unsigned)cols == xlen){
     return 0;
   }
   notcurses* nc = ncplane_notcurses(n);
@@ -765,10 +763,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     }
   }
   // update the cursor, if it would otherwise be off-plane
-  if(n->y >= ylen){
+  if((unsigned)n->y >= ylen){
     n->y = ylen - 1;
   }
-  if(n->x >= xlen){
+  if((unsigned)n->x >= xlen){
     n->x = xlen - 1;
   }
   nccell* preserved = n->fb;
@@ -798,18 +796,18 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1.
   // anything else is zerod out. itery is the row we're writing *to*, and we
   // must write to each (and every cell in each).
-  for(int itery = 0 ; itery < ylen ; ++itery){
+  for(unsigned itery = 0 ; itery < ylen ; ++itery){
     int truey = itery + n->absy;
     int sourceoffy = truey - oldabsy;
 //fprintf(stderr, "sourceoffy: %d keepy: %d ylen: %d\n", sourceoffy, keepy, ylen);
     // if we have nothing copied to this line, zero it out in one go
-    if(sourceoffy < keepy || sourceoffy >= keepy + keepleny){
+    if(sourceoffy < keepy || sourceoffy >= keepy + (int)keepleny){
 //fprintf(stderr, "writing 0s to line %d of %d\n", itery, ylen);
       memset(fb + (itery * xlen), 0, sizeof(*fb) * xlen);
     }else{
       int copyoff = itery * xlen; // our target at any given time
       // we do have something to copy, and zero, one, or two regions to zero out
-      int copied = 0;
+      unsigned copied = 0;
       if(xoff < 0){
         memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
         copyoff += -xoff;
@@ -831,8 +829,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   return resize_callbacks_children(n);
 }
 
-int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
-                   int keeplenx, int yoff, int xoff, int ylen, int xlen){
+int ncplane_resize(ncplane* n, int keepy, int keepx,
+                   unsigned keepleny, unsigned keeplenx,
+                   int yoff, int xoff,
+                   unsigned ylen, unsigned xlen){
   if(n == ncplane_notcurses(n)->stdplane){
 //fprintf(stderr, "Can't resize standard plane\n");
     return -1;
@@ -1996,23 +1996,23 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
 
 int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
                 const nccell* ll, const nccell* lr, const nccell* hl,
-                const nccell* vl, int ystop, int xstop,
+                const nccell* vl, unsigned ystop, unsigned xstop,
                 unsigned ctlword){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
-  if(ystop < yoff + 1){
-    logerror("ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
+  if(ystop < (unsigned)yoff + 1){
+    logerror("ystop (%u) insufficient for yoff (%d)\n", ystop, yoff);
     return -1;
   }
-  if(xstop < xoff + 1){
-    logerror("xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
+  if(xstop < (unsigned)xoff + 1){
+    logerror("xstop (%u) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
-  if(xstop >= xmax || ystop >= ymax){
-    logerror("Boundary (%dx%d) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
+  if(xstop >= (unsigned)xmax || ystop >= (unsigned)ymax){
+    logerror("Boundary (%ux%u) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
     return -1;
   }
   unsigned edges;
@@ -2049,7 +2049,7 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
   }
   ++yoff;
   // middle rows (vertical lines)
-  if(yoff < ystop){
+  if((unsigned)yoff < ystop){
     if(!(ctlword & NCBOXMASK_LEFT)){
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
