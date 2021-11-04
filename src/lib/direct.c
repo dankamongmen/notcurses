@@ -66,6 +66,7 @@ int ncdirect_putegc(ncdirect* nc, uint64_t channels, const char* utf8,
 
 int ncdirect_cursor_up(ncdirect* nc, int num){
   if(num < 0){
+    logerror("requested negative move %d\n", num);
     return -1;
   }
   if(num == 0){
@@ -80,6 +81,7 @@ int ncdirect_cursor_up(ncdirect* nc, int num){
 
 int ncdirect_cursor_left(ncdirect* nc, int num){
   if(num < 0){
+    logerror("requested negative move %d\n", num);
     return -1;
   }
   if(num == 0){
@@ -94,6 +96,7 @@ int ncdirect_cursor_left(ncdirect* nc, int num){
 
 int ncdirect_cursor_right(ncdirect* nc, int num){
   if(num < 0){
+    logerror("requested negative move %d\n", num);
     return -1;
   }
   if(num == 0){
@@ -112,6 +115,7 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
 // necessary but performing no carriage return -- a pure line feed.
 int ncdirect_cursor_down(ncdirect* nc, int num){
   if(num < 0){
+    logerror("requested negative move %d\n", num);
     return -1;
   }
   if(num == 0){
