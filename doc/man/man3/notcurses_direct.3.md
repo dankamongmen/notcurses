@@ -232,8 +232,11 @@ space as is necessary". It is an error to pass a negative number for either.
 points to a valid **struct ncdirect**, which can be used until it is provided
 to **ncdirect_stop**.
 
-**ncdirect_putstr** and **ncdirect_printf_aligned** return the number of bytes
-written on success. On failure, they return some negative number.
+**ncdirect_printf_aligned** returns the number of bytes written on success. On
+failure, it returns some negative number.
+
+**ncdirect_putstr** returns a nonnegative number on success, and **EOF**
+on failure.
 
 **ncdirect_putegc** returns the number of columns consumed on success, or -1
 on failure. If ***sbytes*** is not **NULL**, the number of bytes consumed
