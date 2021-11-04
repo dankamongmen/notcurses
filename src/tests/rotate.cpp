@@ -175,9 +175,9 @@ TEST_CASE("Rotate") {
     opts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto rendered = ncvisual_blit(nc_, ncv, &opts);
     REQUIRE(rendered);
-    int pxdimy, pxdimx;
+    unsigned pxdimy, pxdimx;
     uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
-                                        0, 0, -1, -1, &pxdimy, &pxdimx);
+                                        0, 0, 0, 0, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
     if(height % 2){
       ++height;
@@ -237,9 +237,9 @@ TEST_CASE("Rotate") {
     opts.flags = NCVISUAL_OPTION_CHILDPLANE;
     auto rendered = ncvisual_blit(nc_, ncv, &opts);
     REQUIRE(rendered);
-    int pxdimy, pxdimx;
+    unsigned pxdimy, pxdimx;
     uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
-                                        0, 0, -1, -1, &pxdimy, &pxdimx);
+                                        0, 0, 0, 0, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
     if(height % 2){
       ++height;

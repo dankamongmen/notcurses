@@ -77,7 +77,7 @@ typedef struct ncvgeom {
 
 **struct ncvisual* ncvisual_from_palidx(const void* ***data***, int ***rows***, int ***rowstride***, int ***cols***, int ***palsize***, int ***pstride***, const uint32_t* ***palette***);**
 
-**struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
+**struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, unsigned ***begy***, unsigned ***begx***, unsigned ***leny***, unsigned ***lenx***);**
 
 **int ncvisual_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, ncvgeom* ***geom***);**
 

@@ -2837,44 +2837,36 @@ is_bg_p(int idx, int py, int px, int width){
 
 static inline uint32_t*
 ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
-                         int begy, int begx, int leny, int lenx,
-                         int* pxdimy, int* pxdimx){
+                         unsigned begy, unsigned begx, unsigned leny,
+                         unsigned lenx, unsigned* pxdimy, unsigned* pxdimx){
   const notcurses* ncur = ncplane_notcurses_const(nc);
-  if(begy < 0 || begx < 0){
-    logerror("Nil offset (%d,%d)\n", begy, begx);
+  if(begx >= (unsigned)nc->lenx || begy >= (unsigned)nc->leny){
+    logerror("invalid origin (%u,%u)\n", begy, begx);
     return NULL;
   }
-  if(begx >= nc->lenx || begy >= nc->leny){
-    logerror("Invalid offset (%d,%d)\n", begy, begx);
-    return NULL;
-  }
-  if(lenx == -1){ // -1 means "to the end"; use all space available
+  if(lenx == 0){ // -1 means "to the end"; use all space available
     lenx = nc->lenx - begx;
   }
-  if(leny == -1){
+  if(leny == 0){
     leny = nc->leny - begy;
   }
-  if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
-    logerror("Nil geometry (%dx%d)\n", leny, lenx);
-    return NULL;
-  }
 //fprintf(stderr, "sum: %d/%d avail: %d/%d\n", begy + leny, begx + lenx, nc->leny, nc->lenx);
-  if(begx + lenx > nc->lenx || begy + leny > nc->leny){
-    logerror("Invalid specs %d + %d > %d or %d + %d > %d\n",
+  if(nc->lenx - begx < lenx || nc->leny - begy < leny){
+    logerror("invalid specs %u + %u > %d or %u + %u > %d\n",
              begx, lenx, nc->lenx, begy, leny, nc->leny);
     return NULL;
   }
   if(blit == NCBLIT_PIXEL){ // FIXME extend this to support sprixels
-    logerror("Pixel blitter %d not yet supported\n", blit);
+    logerror("pixel blitter %d not yet supported\n", blit);
     return NULL;
   }
   if(blit == NCBLIT_DEFAULT){
-    logerror("Must specify exact blitter, not NCBLIT_DEFAULT\n");
+    logerror("must specify exact blitter, not NCBLIT_DEFAULT\n");
     return NULL;
   }
   const struct blitset* bset = lookup_blitset(&ncur->tcache, blit, false);
   if(bset == NULL){
-    logerror("Blitter %d invalid in current environment\n", blit);
+    logerror("blitter %d invalid in current environment\n", blit);
     return NULL;
   }
 //fprintf(stderr, "ALLOCATING %u %d %d %p\n", 4u * lenx * leny * 2, leny, lenx, bset);
@@ -2887,8 +2879,8 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
   uint32_t* ret = malloc(sizeof(*ret) * lenx * bset->width * leny * bset->height);
 //fprintf(stderr, "GEOM: %d/%d %d/%d ret: %p\n", bset->height, bset->width, *pxdimy, *pxdimx, ret);
   if(ret){
-    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
-      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
+    for(unsigned y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
+      for(unsigned x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
         uint16_t stylemask;
         uint64_t channels;
         char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
@@ -2941,9 +2933,9 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
 }
 
 uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
-                          int begy, int begx, int leny, int lenx,
-                          int* pxdimy, int* pxdimx){
-  int px, py;
+                          unsigned begy, unsigned begx, unsigned leny,
+                          unsigned lenx, unsigned* pxdimy, unsigned* pxdimx){
+  unsigned px, py;
   if(!pxdimy){
     pxdimy = &py;
   }
@@ -2954,36 +2946,28 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 }
 
 // return a heap-allocated copy of the contents
-char* ncplane_contents(ncplane* nc, int begy, int begx, int leny, int lenx){
-  if(begy < 0 || begx < 0){
-    logerror("Beginning coordinates (%d/%d) below 0\n", begy, begx);
-    return NULL;
-  }
-  if(begx >= nc->lenx || begy >= nc->leny){
-    logerror("Beginning coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+char* ncplane_contents(ncplane* nc, unsigned begy, unsigned begx, unsigned leny, unsigned lenx){
+  if(begx >= (unsigned)nc->lenx || begy >= (unsigned)nc->leny){
+    logerror("beginning coordinates (%u/%u) exceeded area (%d/%d)\n",
              begy, begx, nc->leny, nc->lenx);
     return NULL;
   }
-  if(lenx == -1){ // -1 means "to the end"; use all space available
+  if(lenx == 0){ // 0 means "to the end"; use all space available
     lenx = nc->lenx - begx;
   }
-  if(leny == -1){
+  if(leny == 0){
     leny = nc->leny - begy;
   }
-  if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
-    logerror("Lengths (%d/%d) below 0\n", leny, lenx);
-    return NULL;
-  }
-  if(begx + lenx > nc->lenx || begy + leny > nc->leny){
-    logerror("Ending coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+  if(nc->lenx - begx < lenx || nc->leny - begy < leny){
+    logerror("ending coordinates (%u/%u) exceeded lengths (%d/%d)\n",
              begy + leny, begx + lenx, nc->leny, nc->lenx);
     return NULL;
   }
   size_t retlen = 1;
   char* ret = malloc(retlen);
   if(ret){
-    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
-      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
+    for(unsigned y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
+      for(unsigned x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
         nccell ncl = CELL_TRIVIAL_INITIALIZER;
         // we need ncplane_at_yx_cell() here instead of ncplane_at_yx(),
         // because we should only have one copy of each wide EGC.

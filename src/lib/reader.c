@@ -381,7 +381,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
 }
 
 char* ncreader_contents(const ncreader* n){
-  return ncplane_contents(n->ncp, 0, 0, -1, -1);
+  return ncplane_contents(n->ncp, 0, 0, 0, 0);
 }
 
 void ncreader_destroy(ncreader* n, char** contents){

@@ -1763,9 +1763,9 @@ API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // Create a flat string from the EGCs of the selected region of the ncplane
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
-API char* ncplane_contents(struct ncplane* n, int begy, int begx,
-                           int leny, int lenx);
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
+API char* ncplane_contents(struct ncplane* n, unsigned begy, unsigned begx,
+                           unsigned leny, unsigned lenx);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -1783,12 +1783,13 @@ API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
 // Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
-// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+// 'pxdimx' are non-NULL, they will be filled in with the total pixel geometry.
 API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                                    int begy, int begx, int leny, int lenx,
-                                    int* pxdimy, int* pxdimx)
+                                    unsigned begy, unsigned begx,
+                                    unsigned leny, unsigned lenx,
+                                    unsigned* pxdimy, unsigned* pxdimx)
   __attribute__ ((nonnull (1)));
 
 // Return the offset into 'availu' at which 'u' ought be output given the
@@ -2832,10 +2833,12 @@ API ALLOC struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
 // glyph will result in a NULL being returned. This function exists so that
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
+// Lengths of 0 are interpreted to mean "all available remaining area".
 API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                ncblitter_e blit,
-                                               int begy, int begx,
-                                               int leny, int lenx);
+                                               unsigned begy, unsigned begx,
+                                               unsigned leny, unsigned lenx)
+  __attribute__ ((nonnull (1)));
 
 #define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND         0x0002ull // use NCALPHA_BLEND with visual

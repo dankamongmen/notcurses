@@ -166,8 +166,8 @@ TEST_CASE("Blit") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_dim_y(p));
     CHECK(2 == ncplane_dim_x(p));
-    int pxdimy, pxdimx;
-    auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
+    unsigned pxdimy, pxdimx;
+    auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, 0, 0, &pxdimy, &pxdimx);
     REQUIRE(nullptr != edata);
     CHECK(0 == memcmp(data, edata, sizeof(data)));
     free(edata);
@@ -193,8 +193,8 @@ TEST_CASE("Blit") {
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
       CHECK(4 == ncplane_dim_x(p));
-      int pxdimy, pxdimx;
-      auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
+      unsigned pxdimy, pxdimx;
+      auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, 0, 0, &pxdimy, &pxdimx);
       REQUIRE(nullptr != edata);
       for(size_t i = 0 ; i < sizeof(data) / sizeof(*data) ; ++i){
         CHECK(edata[i] == data[i]);
@@ -238,8 +238,8 @@ TEST_CASE("Blit") {
       REQUIRE(nullptr != p);
       CHECK(1 == ncplane_dim_y(p));
       CHECK(16 == ncplane_dim_x(p));
-      int pxdimy, pxdimx;
-      auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
+      unsigned pxdimy, pxdimx;
+      auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, 0, 0, &pxdimy, &pxdimx);
       REQUIRE(nullptr != edata);
       for(size_t i = 0 ; i < sizeof(data) / sizeof(*data) ; ++i){
         CHECK(edata[i] == data[i]);
