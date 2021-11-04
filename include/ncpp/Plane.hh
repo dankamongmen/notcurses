@@ -452,17 +452,17 @@ namespace ncpp
 			return move_above (*above);
 		}
 
-		bool mergedown (Plane &dst, int begsrcy, int begsrcx, int leny, int lenx, int dsty, int dstx) const
+		bool mergedown (Plane &dst, unsigned begsrcy, unsigned begsrcx, unsigned leny, unsigned lenx, unsigned dsty, unsigned dstx) const
 		{
 			return mergedown (&dst, begsrcy, begsrcx, leny, lenx, dsty, dstx);
 		}
 
-		bool mergedown (Plane *dst, int begsrcy, int begsrcx, int leny, int lenx, int dsty, int dstx) const
+		bool mergedown (Plane *dst, unsigned begsrcy, unsigned begsrcx, unsigned leny, unsigned lenx, unsigned dsty, unsigned dstx) const
 		{
-			if (dst != nullptr && plane == dst->plane)
+			if (plane == dst->plane)
 				throw invalid_argument ("'dst' must refer to a different plane than the one this method is called on");
 
-			return error_guard (ncplane_mergedown (plane, dst != nullptr ? dst->plane : nullptr, begsrcy, begsrcx, leny, lenx, dsty, dstx), -1);
+			return error_guard (ncplane_mergedown (plane, dst->plane, begsrcy, begsrcx, leny, lenx, dsty, dstx), -1);
 		}
 
 		bool mergedown_simple (Plane &dst) const
@@ -472,7 +472,7 @@ namespace ncpp
 
 		bool mergedown_simple (Plane *dst) const
 		{
-			if (dst == nullptr || plane == dst->plane)
+			if (plane == dst->plane)
 				throw invalid_argument ("'dst' must refer to a different plane than the one this method is called on");
 
 			return error_guard (ncplane_mergedown_simple (plane, dst->plane), -1);

@@ -18,7 +18,8 @@ rearrangements of Notcurses.
     `ncplane_as_rgba()`, `ncplane_contents()`, and `ncvisual_from_plane()`,
     which all used -1. A length of zero passed to line-drawing functions is
     now an error. Several line-drawing functions now reliably return errors
-    as opposed to short successes.
+    as opposed to short successes. Dimensions of 0 to `ncplane_mergedown()`
+    now mean "everything".
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

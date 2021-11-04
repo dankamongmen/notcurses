@@ -918,12 +918,18 @@ struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
 // defined as "write to 'dst' the frame that would be rendered were the entire
-// stack made up only of 'src' and, below it, 'dst', and 'dst' was the entire
-// rendering region." Merging is independent of the position of 'src' viz 'dst'
-// on the z-axis. If 'src' does not intersect with 'dst', 'dst' will not be
-// changed, but it is not an error. The source plane still exists following
-// this operation. Do not supply the same plane for both 'src' and 'dst'.
-int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
+// stack made up only of the specified subregion of 'src' and, below it, the
+// subregion of 'dst' having the specified origin. Merging is independent of
+// the position of 'src' viz 'dst' on the z-axis. It is an error to define a
+// subregion that is not entirely contained within 'src'. It is an error to
+// define a target origin such that the projected subregion is not entirely
+// contained within 'dst'.  Behavior is undefined if 'src' and 'dst' are
+// equivalent. 'dst' is modified, but 'src' remains unchanged. Neither 'src'
+// nor 'dst' may have sprixels. Lengths of 0 mean "everything left".
+int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst,
+                      unsigned begsrcy, unsigned begsrcx,
+                      unsigned leny, unsigned lenx,
+                      unsigned dsty, unsigned dstx);
 
 // Merge the entirety of 'src' down onto the ncplane 'dst'. If 'src' does not
 // intersect with 'dst', 'dst' will not be changed, but it is not an error.
