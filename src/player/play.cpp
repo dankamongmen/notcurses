@@ -422,9 +422,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               }else if(ni.id == 'q'){
                 return 0;
               }else if(ni.id == 'L'){
-                --i;
                 nc.refresh(nullptr, nullptr);
-                break;
               }else if(ni.id >= '0' && ni.id <= '6'){
                 blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
                 --i; // rerun same input with the new blitter

@@ -1363,6 +1363,9 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(clear_and_home(nc, &nc->tcache, &nc->rstate.f)){
     return -1;
   }
+  if(fbuf_flush(&nc->rstate.f, nc->ttyfp)){
+    return -1;
+  }
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
