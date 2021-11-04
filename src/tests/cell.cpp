@@ -22,18 +22,10 @@ TEST_CASE("Cell") {
     CHECK(1 == nccell_cols(&c));
     CHECK(4 == nccell_load(n_, &c, " ி"));
     cols = nccell_cols(&c);
-#if defined(__APPLE__)
-    CHECK(2 == cols);
-#else
     CHECK(1 == cols);
-#endif
     CHECK(4 == nccell_load(n_, &c, " ि"));
     cols = nccell_cols(&c);
-#if defined(__APPLE__)
-    CHECK(2 == cols);
-#else
     CHECK(1 == cols);
-#endif
     // musl+s390x (alpine) is reporting these EGCs to be 0 columns wide (they
     // ought be 1). not sure whether i've got a bug (s390x is big-endian), or
     // whether it does. just relaxed the tests for now FIXME.
