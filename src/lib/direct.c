@@ -1297,6 +1297,7 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, unsigned len,
       ncdirect_set_bg_rgb8(n, br, bg, bb);
     }
     if(fprintf(n->ttyfp, "%s", egc) < 0){
+      logerror("error emitting egc [%s]\n", egc);
       return -1;
     }
   }
@@ -1378,11 +1379,13 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   char vl[MB_LEN_MAX + 1];
   unsigned edges;
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
+  // FIXME rewrite all fprintfs as ncdirect_putstr()!
   if(edges >= box_corner_needs(ctlword)){
     if(activate_channels(n, ul)){
       return -1;
     }
     if(fprintf(n->ttyfp, "%lc", wchars[0]) < 0){
+      logerror("error emitting %lc\n", wchars[0]);
       return -1;
     }
   }else{
@@ -1391,11 +1394,13 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   mbstate_t ps = {};
   size_t bytes;
   if((bytes = wcrtomb(hl, wchars[4], &ps)) == (size_t)-1){
+    logerror("error converting %lc\n", wchars[4]);
     return -1;
   }
   hl[bytes] = '\0';
   memset(&ps, 0, sizeof(ps));
   if((bytes = wcrtomb(vl, wchars[5], &ps)) == (size_t)-1){
+    logerror("error converting %lc\n", wchars[5]);
     return -1;
   }
   vl[bytes] = '\0';
