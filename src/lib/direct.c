@@ -1263,8 +1263,11 @@ int ncdirect_set_bg_default(ncdirect* nc){
   return 0;
 }
 
-int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
+int ncdirect_hline_interp(ncdirect* n, const char* egc, unsigned len,
                           uint64_t c1, uint64_t c2){
+  if(len == 0){
+    return -1;
+  }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
@@ -1282,7 +1285,7 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
   int deltbr = br2 - br1;
   int deltbg = bg2 - bg1;
   int deltbb = bb2 - bb1;
-  int ret;
+  unsigned ret;
   bool fgdef = false, bgdef = false;
   if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     if(ncdirect_set_fg_default(n)){
@@ -1297,12 +1300,12 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
-    int r = (deltr * ret) / len + r1;
-    int g = (deltg * ret) / len + g1;
-    int b = (deltb * ret) / len + b1;
-    int br = (deltbr * ret) / len + br1;
-    int bg = (deltbg * ret) / len + bg1;
-    int bb = (deltbb * ret) / len + bb1;
+    int r = (deltr * (int)ret) / (int)len + r1;
+    int g = (deltg * (int)ret) / (int)len + g1;
+    int b = (deltb * (int)ret) / (int)len + b1;
+    int br = (deltbr * (int)ret) / (int)len + br1;
+    int bg = (deltbg * (int)ret) / (int)len + bg1;
+    int bb = (deltbb * (int)ret) / (int)len + bb1;
     if(!fgdef){
       ncdirect_set_fg_rgb8(n, r, g, b);
     }
@@ -1310,14 +1313,17 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
       ncdirect_set_bg_rgb8(n, br, bg, bb);
     }
     if(fprintf(n->ttyfp, "%s", egc) < 0){
-      break;
+      return -1;
     }
   }
   return ret;
 }
 
-int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
+int ncdirect_vline_interp(ncdirect* n, const char* egc, unsigned len,
                           uint64_t c1, uint64_t c2){
+  if(len == 0){
+    return -1;
+  }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
@@ -1329,13 +1335,13 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
   br1 = ur; bg1 = ug; bb1 = ub;
   ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
-  int deltr = (r2 - r1) / (len + 1);
-  int deltg = (g2 - g1) / (len + 1);
-  int deltb = (b2 - b1) / (len + 1);
-  int deltbr = (br2 - br1) / (len + 1);
-  int deltbg = (bg2 - bg1) / (len + 1);
-  int deltbb = (bb2 - bb1) / (len + 1);
-  int ret;
+  int deltr = (r2 - r1) / ((int)len + 1);
+  int deltg = (g2 - g1) / ((int)len + 1);
+  int deltb = (b2 - b1) / ((int)len + 1);
+  int deltbr = (br2 - br1) / ((int)len + 1);
+  int deltbg = (bg2 - bg1) / ((int)len + 1);
+  int deltbb = (bb2 - bb1) / ((int)len + 1);
+  unsigned ret;
   bool fgdef = false, bgdef = false;
   if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     if(ncdirect_set_fg_default(n)){
@@ -1364,11 +1370,11 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
       ncchannels_set_bg_rgb8(&channels, br1, bg1, bb1);
     }
     if(ncdirect_putstr(n, channels, egc) <= 0){
-      break;
+      return -1;
     }
     if(len - ret > 1){
       if(ncdirect_cursor_down(n, 1) || ncdirect_cursor_left(n, 1)){
-        break;
+        return -1;
       }
     }
   }

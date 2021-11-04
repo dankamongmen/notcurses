@@ -526,10 +526,11 @@ int ncdirect_putegc(struct ncdirect* nc, uint64_t channels,
 // horizontal line, |len| cannot exceed the screen width minus the cursor's
 // offset. For a vertical line, it may be as long as you'd like; the screen
 // will scroll as necessary. All lines start at the current cursor position.
-int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
-                          uint64_t h1, uint64_t h2);
-int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
-                          uint64_t h1, uint64_t h2);
+// A length of 0 is an error, resulting in a return of -1.
+int ncdirect_hline_interp(struct ncdirect* n, const char* egc,
+                          unsigned len, uint64_t h1, uint64_t h2);
+int ncdirect_vline_interp(struct ncdirect* n, const char* egc,
+                          unsigned len, uint64_t h1, uint64_t h2);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions |ylen|x|xlen|. See ncplane_box() for more information. The
@@ -1499,21 +1500,20 @@ on both sides. Boxes allow fairly detailed specification of how they're drawn.
 // current cursor position. The cursor will end at the cell following the last
 // cell output (even, perhaps counter-intuitively, when drawing vertical
 // lines), just as if ncplane_putc() was called at that spot. Return the
-// number of cells drawn on success. On error, return the negative number of
-// cells drawn.
-int ncplane_hline_interp(struct ncplane* n, const nccell* c, int len,
-                         uint64_t c1, uint64_t c2);
+// number of cells drawn on success. A length of 0 is an error.
+int ncplane_hline_interp(struct ncplane* n, const nccell* c,
+                         unsigned len, uint64_t c1, uint64_t c2);
 
 static inline int
-ncplane_hline(struct ncplane* n, const nccell* c, int len){
+ncplane_hline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_hline_interp(n, c, len, c->channels, c->channels);
 }
 
-int ncplane_vline_interp(struct ncplane* n, const nccell* c, int len,
-                         uint64_t c1, uint64_t c2);
+int ncplane_vline_interp(struct ncplane* n, const nccell* c,
+                         unsigned len, uint64_t c1, uint64_t c2);
 
 static inline int
-ncplane_vline(struct ncplane* n, const nccell* c, int len){
+ncplane_vline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 }
 

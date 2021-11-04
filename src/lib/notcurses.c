@@ -1877,8 +1877,12 @@ int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap){
   return ret;
 }
 
-int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
+int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
                          uint64_t c1, uint64_t c2){
+  if(len <= 0){
+    logerror("passed invalid length %u\n", len);
+    return -1;
+  }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
@@ -1896,7 +1900,7 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
   int deltbr = br2 - br1;
   int deltbg = bg2 - bg1;
   int deltbb = bb2 - bb1;
-  int ret;
+  unsigned ret;
   nccell dupc = CELL_TRIVIAL_INITIALIZER;
   if(nccell_duplicate(n, &dupc, c) < 0){
     return -1;
@@ -1909,12 +1913,12 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
-    int r = (deltr * ret) / len + r1;
-    int g = (deltg * ret) / len + g1;
-    int b = (deltb * ret) / len + b1;
-    int br = (deltbr * ret) / len + br1;
-    int bg = (deltbg * ret) / len + bg1;
-    int bb = (deltbb * ret) / len + bb1;
+    int r = (deltr * (int)ret) / (int)len + r1;
+    int g = (deltg * (int)ret) / (int)len + g1;
+    int b = (deltb * (int)ret) / (int)len + b1;
+    int br = (deltbr * (int)ret) / (int)len + br1;
+    int bg = (deltbg * (int)ret) / (int)len + bg1;
+    int bb = (deltbb * (int)ret) / (int)len + bb1;
     if(!fgdef){
       nccell_set_fg_rgb8(&dupc, r, g, b);
     }
@@ -1922,15 +1926,19 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
       nccell_set_bg_rgb8(&dupc, br, bg, bb);
     }
     if(ncplane_putc(n, &dupc) <= 0){
-      break;
+      return -1;
     }
   }
   nccell_release(n, &dupc);
   return ret;
 }
 
-int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
+int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
                          uint64_t c1, uint64_t c2){
+  if(len <= 0){
+    logerror("passed invalid length %u\n", len);
+    return -1;
+  }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
@@ -1942,13 +1950,14 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
   br1 = ur; bg1 = ug; bb1 = ub;
   ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
-  int deltr = (r2 - r1) / (len + 1);
-  int deltg = (g2 - g1) / (len + 1);
-  int deltb = (b2 - b1) / (len + 1);
-  int deltbr = (br2 - br1) / (len + 1);
-  int deltbg = (bg2 - bg1) / (len + 1);
-  int deltbb = (bb2 - bb1) / (len + 1);
-  int ret, ypos, xpos;
+  int deltr = (r2 - r1) / ((int)len + 1);
+  int deltg = (g2 - g1) / ((int)len + 1);
+  int deltb = (b2 - b1) / ((int)len + 1);
+  int deltbr = (br2 - br1) / ((int)len + 1);
+  int deltbg = (bg2 - bg1) / ((int)len + 1);
+  int deltbb = (bb2 - bb1) / ((int)len + 1);
+  int ypos, xpos;
+  unsigned ret;
   ncplane_cursor_yx(n, &ypos, &xpos);
   nccell dupc = CELL_TRIVIAL_INITIALIZER;
   if(nccell_duplicate(n, &dupc, c) < 0){
@@ -1978,7 +1987,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
       nccell_set_bg_rgb8(&dupc, br1, bg1, bb1);
     }
     if(ncplane_putc(n, &dupc) <= 0){
-      break;
+      return -1;
     }
   }
   nccell_release(n, &dupc);
