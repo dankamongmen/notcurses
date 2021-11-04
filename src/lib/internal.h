@@ -865,8 +865,9 @@ cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nc
 }
 
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
-                            int keepleny, int keeplenx, int yoff, int xoff,
-                            int ylen, int xlen);
+                            unsigned keepleny, unsigned keeplenx,
+                            int yoff, int xoff,
+                            unsigned ylen, unsigned xlen);
 
 int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b);
 

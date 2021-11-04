@@ -277,40 +277,40 @@ API int ncdirect_vline_interp(struct ncdirect* n, const char* egc,
 // array of 6 wide characters: UL, UR, LL, LR, HL, VL.
 API int ncdirect_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                      uint64_t ll, uint64_t lr, const wchar_t* wchars,
-                     int ylen, int xlen, unsigned ctlword)
+                     unsigned ylen, unsigned xlen, unsigned ctlword)
   __attribute__ ((nonnull (1, 6)));
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_light_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXLIGHTW, ylen, xlen, ctlword);
 }
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_heavy_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXHEAVYW, ylen, xlen, ctlword);
 }
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_ascii_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXASCIIW, ylen, xlen, ctlword);
 }
 
 // ncdirect_box() with the rounded box-drawing characters
 API int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                              uint64_t ll, uint64_t lr,
-                             int ylen, int xlen, unsigned ctlword)
+                             unsigned ylen, unsigned xlen, unsigned ctlword)
   __attribute__ ((nonnull (1)));
 
 // ncdirect_box() with the double box-drawing characters
 API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             uint64_t ll, uint64_t lr,
-                            int ylen, int xlen, unsigned ctlword)
+                            unsigned ylen, unsigned xlen, unsigned ctlword)
   __attribute__ ((nonnull (1)));
 
 // Provide a NULL 'ts' to block at length, a 'ts' of 0 for non-blocking

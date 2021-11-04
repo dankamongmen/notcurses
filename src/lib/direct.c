@@ -1371,7 +1371,7 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, unsigned len,
 //  they cannot be complex EGCs, but only a single wchar_t, alas.
 int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
                  uint64_t ll, uint64_t lr, const wchar_t* wchars,
-                 int ylen, int xlen, unsigned ctlword){
+                 unsigned ylen, unsigned xlen, unsigned ctlword){
   if(xlen < 2 || ylen < 2){
     return -1;
   }
@@ -1482,13 +1482,13 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
 
 int ncdirect_rounded_box(ncdirect* n, uint64_t ul, uint64_t ur,
                          uint64_t ll, uint64_t lr,
-                         int ylen, int xlen, unsigned ctlword){
+                         unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXROUNDW, ylen, xlen, ctlword);
 }
 
 int ncdirect_double_box(ncdirect* n, uint64_t ul, uint64_t ur,
-                         uint64_t ll, uint64_t lr,
-                         int ylen, int xlen, unsigned ctlword){
+                        uint64_t ll, uint64_t lr,
+                        unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXDOUBLEW, ylen, xlen, ctlword);
 }
 
