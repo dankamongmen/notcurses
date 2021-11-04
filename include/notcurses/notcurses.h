@@ -2156,20 +2156,22 @@ API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
 // cell output (even, perhaps counter-intuitively, when drawing vertical
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
-// cells drawn.
-API int ncplane_hline_interp(struct ncplane* n, const nccell* c, int len,
-                             uint64_t c1, uint64_t c2);
+// cells drawn. A length of 0 is an error, resulting in a return of -1.
+API int ncplane_hline_interp(struct ncplane* n, const nccell* c,
+                             unsigned len, uint64_t c1, uint64_t c2)
+  __attribute__ ((nonnull (1, 2)));
 
-static inline int
-ncplane_hline(struct ncplane* n, const nccell* c, int len){
+__attribute__ ((nonnull (1, 2))) static inline int
+ncplane_hline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_hline_interp(n, c, len, c->channels, c->channels);
 }
 
-API int ncplane_vline_interp(struct ncplane* n, const nccell* c, int len,
-                             uint64_t c1, uint64_t c2);
+API int ncplane_vline_interp(struct ncplane* n, const nccell* c,
+                             unsigned len, uint64_t c1, uint64_t c2)
+  __attribute__ ((nonnull (1, 2)));
 
-static inline int
-ncplane_vline(struct ncplane* n, const nccell* c, int len){
+__attribute__ ((nonnull (1, 2))) static inline int
+ncplane_vline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 }
 

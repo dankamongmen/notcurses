@@ -10,13 +10,13 @@ notcurses_lines - operations on lines and boxes
 
 **#include <notcurses/notcurses.h>**
 
-**int ncplane_hline_interp(struct ncplane* ***n***, const nccell* ***c***, int ***len***, uint64_t ***c1***, uint64_t ***c2***);**
+**int ncplane_hline_interp(struct ncplane* ***n***, const nccell* ***c***, unsigned ***len***, uint64_t ***c1***, uint64_t ***c2***);**
 
-**static inline int ncplane_hline(struct ncplane* ***n***, const nccell* ***c***, int ***len***);**
+**static inline int ncplane_hline(struct ncplane* ***n***, const nccell* ***c***, unsigned ***len***);**
 
-**int ncplane_vline_interp(struct ncplane* ***n***, const nccell* ***c***, int ***len***, uint64_t ***c1***, uint64_t ***c2***);**
+**int ncplane_vline_interp(struct ncplane* ***n***, const nccell* ***c***, unsigned ***len***, uint64_t ***c1***, uint64_t ***c2***);**
 
-**static inline int ncplane_vline(struct ncplane* ***n***, const nccell* ***c***, int ***len***);**
+**static inline int ncplane_vline(struct ncplane* ***n***, const nccell* ***c***, unsigned ***len***);**
 
 ```c
 #define NCBOXMASK_TOP    0x0001
@@ -77,6 +77,10 @@ Box- and line-drawing is unaffected by a plane's scrolling status.
 
 **ncplane_format** returns -1 if either **ystop** or **xstop** is less than the
 current equivalent position, otherwise 0.
+
+**ncplane_hline_interp**, **ncplane_hline**, **ncplane_vline_interp**, and
+**ncplane_vline** all return the number of glyphs drawn on success, or -1
+on failure. Passing a length of 0 is an error.
 
 # SEE ALSO
 
