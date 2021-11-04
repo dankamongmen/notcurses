@@ -1466,8 +1466,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
     }else{
       ncdirect_cursor_left(n, xlen - 1);
     }
+    ncdirect_cursor_down(n, 1);
   }
-  ncdirect_cursor_down(n, 1);
   // bottom line
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
