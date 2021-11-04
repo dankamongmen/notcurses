@@ -131,7 +131,9 @@ utf8_egc_len(const char* gcluster, int* colcount){
         }
       }
     }
-    *colcount += cols;
+    if(*colcount == 0){
+      *colcount += cols;
+    }
     ret += r;
     gcluster += r;
     prevw = wc;
