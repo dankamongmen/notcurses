@@ -199,7 +199,10 @@ NcPlane_set_scrolling(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
-    int keepy = 0, keepx = 0, keepleny = 0, keeplenx = 0, yoff = 0, xoff = 0, ylen = 0, xlen = 0;
+    int keepy = 0, keepx = 0;
+    unsigned keepleny = 0, keeplenx = 0;
+    int yoff = 0, xoff = 0;
+    unsigned ylen = 0, xlen = 0;
 
     char *keywords[] = {"keepy", "keepx",
                         "keepleny", "keeplenx",
@@ -207,7 +210,7 @@ NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ylen", "xlen",
                         NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiiiiiii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiIIiiII", keywords,
                                                   &keepy, &keepx,
                                                   &keepleny, &keeplenx,
                                                   &yoff, &xoff,
@@ -221,9 +224,9 @@ NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 NcPlane_resize_simple(NcPlaneObject *self, PyObject *args)
 {
-    int ylen = 0, xlen = 0;
+    unsigned ylen = 0, xlen = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &ylen, &xlen));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "II", &ylen, &xlen));
 
     CHECK_NOTCURSES(ncplane_resize_simple(self->ncplane_ptr, ylen, xlen));
 
@@ -474,11 +477,11 @@ NcPlane_at_yx_cell(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_contents(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
-    int beg_y = 0, beg_x = 0, len_y = -1, len_x = -1;
+    unsigned beg_y = 0, beg_x = 0, len_y = 0, len_x = 0;
 
     char *keywords[] = {"begy", "begx", "leny", "lenx", NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "ii|ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "II|II", keywords,
                                                   &beg_y, &beg_x,
                                                   &len_y, &len_x));
 
@@ -960,14 +963,7 @@ NcPlane_mergedown_simple(NcPlaneObject *self, PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "|O!", &NcPlane_Type, &dst_obj));
 
-    if (NULL != dst_obj)
-    {
-        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, dst_obj->ncplane_ptr));
-    }
-    else
-    {
-        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, NULL));
-    }
+    CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, dst_obj->ncplane_ptr));
 
     Py_RETURN_NONE;
 }
@@ -976,14 +972,14 @@ static PyObject *
 NcPlane_mergedown(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     NcPlaneObject *dst_obj = NULL;
-    int begsrcy = 0, begsrcx = 0, leny = 0, lenx = 0;
-    int dsty = 0, dstx = 0;
+    unsigned begsrcy = 0, begsrcx = 0, leny = 0, lenx = 0;
+    unsigned dsty = 0, dstx = 0;
 
     char *keywords[] = {"dst",
                         "begsrcy", "begsrcx", "leny", "lenx",
                         "dsty", "dstx",
                         NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!iiiiii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!IIIIII", keywords,
                                                   &NcPlane_Type, &dst_obj,
                                                   &begsrcy, &begsrcx, &leny, &lenx,
                                                   &dsty, &dstx));
