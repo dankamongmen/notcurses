@@ -526,31 +526,44 @@ postpaint(const tinfo* ti, nccell* lastframe, int dimy, int dimx,
 // merging one plane down onto another is basically just performing a render
 // using only these two planes, with the result written to the lower plane.
 int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
-                      int begsrcy, int begsrcx, int leny, int lenx,
-                      int dsty, int dstx){
+                      unsigned begsrcy, unsigned begsrcx,
+                      unsigned leny, unsigned lenx,
+                      unsigned dsty, unsigned dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
-  if(dsty >= dst->leny || dstx >= dst->lenx){
-    logerror("Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+  if(dsty >= (unsigned)dst->leny || dstx >= (unsigned)dst->lenx){
+    logerror("dest origin %u/%u ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
   if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
-    logerror("Dest len %d/%d ≥ dest dimensions %d/%d\n",
+    logerror("dest len %u/%u ≥ dest dimensions %d/%d\n",
              leny, lenx, dst->leny, dst->lenx);
     return -1;
   }
-  if(begsrcy >= src->leny || begsrcx >= src->lenx){
-    logerror("Source origin %d/%d ≥ source dimensions %d/%d\n",
+  if(begsrcy >= (unsigned)src->leny || begsrcx >= (unsigned)src->lenx){
+    logerror("source origin %u/%u ≥ source dimensions %d/%d\n",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
+  if(leny == 0){
+    if((leny = src->leny - begsrcy) == 0){
+      logerror("source area was zero height\n");
+      return -1;
+    }
+  }
+  if(lenx == 0){
+    if((lenx = src->lenx - begsrcx) == 0){
+      logerror("source area was zero width\n");
+      return -1;
+    }
+  }
   if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
-    logerror("Source len %d/%d ≥ source dimensions %d/%d\n",
+    logerror("source len %u/%u ≥ source dimensions %d/%d\n",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
   if(src->sprite || dst->sprite){
-    logerror("Can't merge sprixel planes\n");
+    logerror("can't merge sprixel planes\n");
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
@@ -558,7 +571,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror("Error allocating render state for %dx%d\n", leny, lenx);
+    logerror("error allocating render state for %ux%u\n", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -580,14 +593,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
 }
 
 int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
-  // have to check dst, since we used to accept a NULL dst to mean the
-  // standard plane (this was unsafe, since src might be in another pile).
-  if(dst == NULL){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(dst, &dimy, &dimx);
-  return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src), ncplane_dim_x(src), 0, 0);
+  return ncplane_mergedown(src, dst, 0, 0, 0, 0, 0, 0);
 }
 
 // write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.

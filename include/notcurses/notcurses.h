@@ -2302,28 +2302,32 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 // Merge the entirety of 'src' down onto the ncplane 'dst'. If 'src' does not
 // intersect with 'dst', 'dst' will not be changed, but it is not an error.
 API int ncplane_mergedown_simple(struct ncplane* RESTRICT src,
-                                 struct ncplane* RESTRICT dst);
+                                 struct ncplane* RESTRICT dst)
+  __attribute__ ((nonnull (1, 2)));
 
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
 // defined as "write to 'dst' the frame that would be rendered were the entire
 // stack made up only of the specified subregion of 'src' and, below it, the
 // subregion of 'dst' having the specified origin. Merging is independent of
 // the position of 'src' viz 'dst' on the z-axis. It is an error to define a
-// subregion of zero area, or that is not entirely contained within 'src'. It
-// is an error to define a target origin such that the projected subregion is
-// not entirely contained within 'dst'.  Behavior is undefined if 'src' and
-// 'dst' are equivalent. 'dst' is modified, but 'src' remains unchanged.
-// neither 'src' nor 'dst' may have sprixels.
+// subregion that is not entirely contained within 'src'. It is an error to
+// define a target origin such that the projected subregion is not entirely
+// contained within 'dst'.  Behavior is undefined if 'src' and 'dst' are
+// equivalent. 'dst' is modified, but 'src' remains unchanged. Neither 'src'
+// nor 'dst' may have sprixels. Lengths of 0 mean "everything left".
 API int ncplane_mergedown(struct ncplane* RESTRICT src,
                           struct ncplane* RESTRICT dst,
-                          int begsrcy, int begsrcx, int leny, int lenx,
-                          int dsty, int dstx);
+                          unsigned begsrcy, unsigned begsrcx,
+                          unsigned leny, unsigned lenx,
+                          unsigned dsty, unsigned dstx)
+  __attribute__ ((nonnull (1, 2)));
 
 // Erase every cell in the ncplane (each cell is initialized to the null glyph
 // and the default channels/styles). All cells associated with this ncplane are
 // invalidated, and must not be used after the call, *excluding* the base cell.
 // The cursor is homed. The plane's active attributes are unaffected.
-API void ncplane_erase(struct ncplane* n);
+API void ncplane_erase(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Erase every cell in the region starting at {ystart, xstart} and having size
 // {|ylen|x|xlen|} for non-zero lengths. If ystart and/or xstart are -1, the current
