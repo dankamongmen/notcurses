@@ -116,7 +116,7 @@ API unsigned ncdirect_palette_size(const struct ncdirect* nc)
 
 // Output the string |utf8| according to the channels |channels|. Note that
 // ncdirect_putstr() does not explicitly flush output buffers, so it will not
-// necessarily be immediately visible.
+// necessarily be immediately visible. Returns EOF on error.
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8)
   __attribute__ ((nonnull (1, 3)));
 
