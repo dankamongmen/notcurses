@@ -177,12 +177,12 @@ namespace ncpp
 
 		// TODO: ncdirect_printf_aligned (will need a version which takes vargs)
 
-		int hline_interp (const char* egc, int len, uint64_t h1, uint64_t h2) const noexcept
+		int hline_interp (const char* egc, unsigned len, uint64_t h1, uint64_t h2) const noexcept
 		{
 			return ncdirect_hline_interp (direct, egc, len, h1, h2);
 		}
 
-		int vline_interp (const char* egc, int len, uint64_t h1, uint64_t h2) const noexcept
+		int vline_interp (const char* egc, unsigned len, uint64_t h1, uint64_t h2) const noexcept
 		{
 			return ncdirect_vline_interp (direct, egc, len, h1, h2);
 		}

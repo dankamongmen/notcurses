@@ -699,22 +699,22 @@ namespace ncpp
 			return error_guard<int> (ncplane_vprintf_aligned (plane, y, static_cast<ncalign_e>(align), format, ap), -1);
 		}
 
-		int hline (const Cell &c, int len) const NOEXCEPT_MAYBE
+		int hline (const Cell &c, unsigned len) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_hline (plane, c, len), -1);
 		}
 
-		int hline (const Cell &c, int len, uint64_t c1, uint64_t c2) const NOEXCEPT_MAYBE
+		int hline (const Cell &c, unsigned len, uint64_t c1, uint64_t c2) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_hline_interp (plane, c, len, c1, c2), -1);
 		}
 
-		int vline (const Cell &c, int len) const NOEXCEPT_MAYBE
+		int vline (const Cell &c, unsigned len) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_vline (plane, c, len), -1);
 		}
 
-		int vline (const Cell &c, int len, uint64_t c1, uint64_t c2) const NOEXCEPT_MAYBE
+		int vline (const Cell &c, unsigned len, uint64_t c1, uint64_t c2) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_vline_interp (plane, c, len, c1, c2), -1);
 		}
@@ -803,12 +803,12 @@ namespace ncpp
 			return error_guard<int> (ncplane_polyfill_yx (plane, y, x, c), -1);
 		}
 
-		uint32_t* rgba(ncblitter_e blit, int begy, int begx, int leny, int lenx) const noexcept
+		uint32_t* rgba(ncblitter_e blit, unsigned begy, unsigned begx, unsigned leny, unsigned lenx) const noexcept
 		{
 			return ncplane_as_rgba (plane, blit, begy, begx, leny, lenx, nullptr, nullptr);
 		}
 
-		char* content(int begy, int begx, int leny, int lenx) const noexcept
+		char* content(unsigned begy, unsigned begx, unsigned leny, unsigned lenx) const noexcept
 		{
 			return ncplane_contents (plane, begy, begx, leny, lenx);
 		}
