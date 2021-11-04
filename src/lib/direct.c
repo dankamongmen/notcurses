@@ -1376,7 +1376,7 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, unsigned len,
     if(!bgdef){
       ncchannels_set_bg_rgb8(&channels, br1, bg1, bb1);
     }
-    if(ncdirect_putstr(n, channels, egc) <= 0){
+    if(ncdirect_putstr(n, channels, egc) == EOF){
       return -1;
     }
     if(len - ret > 1){
