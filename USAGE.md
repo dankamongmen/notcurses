@@ -1214,16 +1214,19 @@ int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
 // Only glyphs from the specified blitset may be present. If 'pxdimy' and/or
 // 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
 uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                          int begy, int begx, int leny, int lenx,
-                          int* pxdimy, int* pxdimx);
+                          unsigned begy, unsigned begx, unsigned leny,
+                          unsigned lenx, unsigned* pxdimy, unsigned* pxdimx);
 
-// return a nul-terminated, heap copy of the current (UTF-8) contents.
-char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
-                           int leny, int lenx);
+// Create a flat string from the EGCs of the selected region of the ncplane
+// 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
+// plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
+char* ncplane_contents(const struct ncplane* nc, unsigned begy, unsigned begx,
+                       unsigned leny, unsigned lenx);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -3291,8 +3294,11 @@ struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
 // glyph will result in a NULL being returned. This function exists so that
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
-struct ncvisual* ncvisual_from_plane(const struct ncplane* n, ncblitter_e blit,
-                                     int begy, int begx, int leny, int lenx);
+// Lengths of 0 are interpreted to mean "all available remaining area".
+struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
+                                     ncblitter_e blit,
+                                     unsigned begy, unsigned begx,
+                                     unsigned leny, unsigned lenx);
 ```
 
 Various transformations can be applied to an `ncvisual`, regardless of how

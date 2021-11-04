@@ -37,7 +37,8 @@ TEST_CASE("Selectors") {
 
   SUBCASE("TitledSelector") {
     struct ncselector_options opts{};
-    opts.title = strdup("hey hey whaddya say");
+    auto title = strdup("hey hey whaddya say");
+    opts.title = title;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -57,11 +58,13 @@ TEST_CASE("Selectors") {
     CHECK(6 == dimy);
     CHECK(strlen(opts.title) + 4 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(title);
   }
 
   SUBCASE("SecondarySelector") {
     struct ncselector_options opts{};
-    opts.secondary = strdup("this is not a title, but it's not *not* a title");
+    auto secondary = strdup("this is not a title, but it's not *not* a title");
+    opts.secondary = secondary;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -81,11 +84,13 @@ TEST_CASE("Selectors") {
     CHECK(4 == dimy);
     CHECK(strlen(opts.secondary) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(secondary);
   }
 
   SUBCASE("FooterSelector") {
     struct ncselector_options opts{};
-    opts.footer = strdup("i am a lone footer, little old footer");
+    auto foot = strdup("i am a lone footer, little old footer");
+    opts.footer = foot;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -105,6 +110,7 @@ TEST_CASE("Selectors") {
     CHECK(4 == dimy);
     CHECK(strlen(opts.footer) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(foot);
   }
 
   SUBCASE("PopulatedSelector") {

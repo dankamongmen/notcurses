@@ -12,6 +12,11 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.9 (not yet released)
+  * The handling of geometry and distance has been normalized across all
+    functions. Lengths are now `unsigned` as opposed to `int`. Where -1 was
+    being used to indicate "everything", 0 is now required. This affects
+    `ncplane_as_rgba()`, `ncplane_contents()`, and `ncvisual_from_plane()`,
+    which all used -1.
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

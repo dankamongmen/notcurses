@@ -94,7 +94,7 @@ TEST_CASE("Ncpp"
       REQUIRE(n);
       // FIXME load it into visual, erase plane, render visual, check for equivalence...
       {
-        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, -1, -1);
+        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, 0, 0);
       }
     }
     CHECK(nc.stop());
