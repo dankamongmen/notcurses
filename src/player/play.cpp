@@ -50,6 +50,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   NotCurses &nc = NotCurses::get_instance();
   auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
+    // FIXME how do we get this free()d at the end?
     start = static_cast<struct timespec*>(malloc(sizeof(struct timespec)));
     clock_gettime(CLOCK_MONOTONIC, start);
     ncplane_set_userptr(vopts->n, start);
@@ -370,11 +371,11 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   nopts.name = "play";
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
+  ncplane* n = nullptr;
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
-    auto n = ncplane_create(*stdn, &nopts);
-    if(!n){
+    if((n = ncplane_create(*stdn, &nopts)) == nullptr){
       return -1;
     }
     ncplane_move_bottom(n);
@@ -409,8 +410,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
           if(displaytime < 0){
             stdn->printf(0, NCAlign::Center, "press space to advance");
             if(!nc.render()){
-              ncplane_destroy(n);
-              return -1;
+              goto err;
             }
             ncinput ni;
             do{
@@ -435,8 +435,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               }else if(ni.id == NCKey::Resize){
                 --i; // rerun with the new size
                 if(!nc.refresh(&dimy, &dimx)){
-                  ncplane_destroy(n);
-                  return -1;
+                  goto err;
                 }
                 break;
               }
@@ -455,13 +454,17 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     }while(loop && r == 0);
     if(r < 0){ // positive is intentional abort
       std::cerr << "Error while playing " << argv[i] << std::endl;
-      ncplane_destroy(n);
-      return -1;
+      goto err;
     }
     free(ncplane_userptr(n));
     ncplane_destroy(n);
   }
   return 0;
+
+err:
+  free(ncplane_userptr(n));
+  ncplane_destroy(n);
+  return -1;
 }
 
 int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
