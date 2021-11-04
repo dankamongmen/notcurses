@@ -22,14 +22,14 @@ TEST_CASE("Cell") {
     CHECK(1 == nccell_cols(&c));
     CHECK(4 == nccell_load(n_, &c, " ி"));
     cols = nccell_cols(&c);
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__APPLE__)
     CHECK(2 == cols);
 #else
     CHECK(1 == cols);
 #endif
     CHECK(4 == nccell_load(n_, &c, " ि"));
     cols = nccell_cols(&c);
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__APPLE__)
     CHECK(2 == cols);
 #else
     CHECK(1 == cols);
