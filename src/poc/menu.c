@@ -62,17 +62,12 @@ err:
 }
 
 int main(void){
-  if(!setlocale(LC_ALL, "")){
-    return EXIT_FAILURE;
-  }
-  notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
-  };
+  notcurses_options opts = { };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT);
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
     { .desc = "Disabled", .shortcut = { .id = 'd', .ctrl = false, }, },

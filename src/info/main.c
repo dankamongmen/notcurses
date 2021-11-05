@@ -478,7 +478,7 @@ int main(int argc, const char** argv){
     return EXIT_FAILURE;
   }
   // so that we know whether we're talking to gpm
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
   const char indent[] = "";
   int dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);

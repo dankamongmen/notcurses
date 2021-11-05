@@ -1106,41 +1106,30 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
   return ret;
 }
 
-#define SET_BTN_EVENT_MOUSE   "1002"
-#define SET_FOCUS_EVENT_MOUSE "1004"
-#define SET_SGR_MODE_MOUSE    "1006"
+// DEC private mode set (DECSET) parameters (and corresponding XTerm resources)
+#define SET_X10_MOUSE_PROT       "9" // outdated, do not use, use x11
+// we can combine 1000--1004, and then use 1005/1006/1015 for extended coordinates
+#define SET_X11_MOUSE_PROT    "1000" // for button events
+#define SET_HILITE_MOUSE_PROT "1001" // for highlight tracking
+#define SET_BTN_EVENT_MOUSE   "1002" // for motion events with buttons
+#define SET_ALL_EVENT_MOUSE   "1003" // for motion events without buttons
+#define SET_FOCUS_EVENT_MOUSE "1004" // for focus events
+#define SET_UTF8_MOUSE_PROT   "1005" // utf8-style extended coordinates
+#define SET_SGR_MOUSE_PROT    "1006" // sgr-style extended coordinates
+#define SET_ALTERNATE_SCROLL  "1007" // scroll in alternate screen (alternateScroll)
+#define SET_TTYOUTPUT_SCROLL  "1010" // scroll on tty output (scrollTtyOutput)
+#define SET_KEYPRESS_SCROLL   "1011" // scroll on keypress (scrollKey)
+#define SET_URXVT_MOUSE_PROT  "1015" // urxvt-style extended coordinates
+#define SET_PIXEL_MOUSE_PROT  "1016" // sgr-style, using pixles rather than cells
+#define SET_ENABLE_ALTSCREEN  "1046" // enable alternate screen (*sets* titeInhibit)
+#define SET_ALTERNATE_SCREEN  "1047" // replaces 47 (conflict w/DECGRPM) (titeInhibit)
+#define SET_SAVE_CURSOR       "1048" // save cursor ala DECSC (titeInhibit)
+#define SET_SMCUP             "1049" // 1047+1048 (titeInhibit)
+// DECSET/DECRSTs can be chained with semicolons; can we generalize this? FIXME
+#define DECSET(p) "\x1b[" p "h"
+#define DECRST(p) "\x1b[" p "l"
 
-static inline int
-mouse_enable(tinfo* ti, FILE* out){
-  if(ti->qterm == TERMINAL_LINUX){
-    if(ti->gpmfd < 0){
-      if((ti->gpmfd = gpm_connect(ti)) < 0){
-        return -1;
-      }
-    }
-    return 0;
-  }
-// Sets the shift-escape option, allowing shift+mouse to override the standard
-// mouse protocol (mainly so copy-and-paste can still be performed).
-#define XTSHIFTESCAPE "\x1b[>1s"
-  return term_emit(XTSHIFTESCAPE "\x1b[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                   out, true);
-#undef XTSHIFTESCAPE
-}
-
-static inline int
-mouse_disable(tinfo* ti, fbuf* f){
-  if(ti->qterm == TERMINAL_LINUX){
-    if(ti->gpmfd < 0){
-      return 0;
-    }
-    ti->gpmfd = -1;
-    return gpm_close(ti);
-  }
-  return fbuf_emit(f, "\x1b[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l");
-}
+int mouse_setup(tinfo* ti, unsigned eventmask);
 
 // sync the drawing position to the specified location with as little overhead
 // as possible (with nothing, if already at the right location). we prefer

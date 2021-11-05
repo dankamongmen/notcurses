@@ -527,7 +527,7 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT | NCMICE_DRAG_EVENT);
   const bool canimage = notcurses_canopen_images(nc);
   const bool canvideo = notcurses_canopen_videos(nc);
   int dimx, dimy;

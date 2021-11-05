@@ -1540,9 +1540,7 @@ int notcurses_render(notcurses* nc){
   return i;
 }
 
-// for now, we just run the top half of notcurses_render(), and copy out the
-// memstream from within rstate. we want to allocate our own here, and return
-// it, to avoid the copy, but we need feed the params through to do so FIXME.
+// run the top half of notcurses_render(), and steal the buffer from rstate.
 int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(ncpile_render(p)){
     return -1;
@@ -1557,11 +1555,9 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(bytes < 0){
     return -1;
   }
-  *buf = memdup(nc->rstate.f.buf, nc->rstate.f.used);
-  if(buf == NULL){
-    return -1;
-  }
+  *buf = nc->rstate.f.buf;
   *buflen = nc->rstate.f.used;
+  fbuf_reset(&nc->rstate.f);
   return 0;
 }
 

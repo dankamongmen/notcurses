@@ -308,8 +308,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // XTVERSION. Replies with DCS > | ... ST
 #define XTVERSION "\x1b[>0q"
 
-// XTGETTCAP['TN'] (Terminal Name)
-#define XTGETTCAPTN "\x1bP+q544e\x1b\\"
+// XTGETTCAP['TN', 'RGB'] (Terminal Name, RGB)
+#define XTGETTCAP  "\x1bP+q544e;524742\x1b\\"
 
 // Secondary Device Attributes, necessary to get Alacritty's version. Since
 // this doesn't uniquely identify a terminal, we ask it last, so that if any
@@ -346,14 +346,14 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // to, there's no point in sending them.
 #define IDQUERIES TRIDEVATTR \
                   XTVERSION \
-                  XTGETTCAPTN \
+                  XTGETTCAP \
                   SECDEVATTR
 
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
-// GNU screen passes this on to the underlying terminal rather than answering
-// itself, unlike most other queries, so send this first since it will take
-// longer to be answered.
-#define CSI_BGQ "\x1b]11;?\e\\"
+// GNU screen passes this on to the underlying terminal rather than answering itself,
+// unlike most other queries, so send this first since it will take longer to be
+// answered. note the "\x1b]"; this is an Operating System Command, not CSI.
+#define DEFBGQ "\x1b]11;?\e\\"
 
 // FIXME ought be using the u7 terminfo string here, if it exists. the great
 // thing is, if we get a response to this, we know we can use it for u7!
@@ -379,7 +379,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // request the cell geometry of the textual area
 #define GEOMCELL "\x1b[18t"
 
-#define DIRECTIVES CSI_BGQ \
+#define DIRECTIVES DEFBGQ \
                    KKBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
@@ -400,8 +400,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
-#define SMCUP "\x1b[?1049h"
-#define RMCUP "\x1b[?1049l"
+#define SMCUP DECSET(SET_SMCUP)
+#define RMCUP DECRST(SET_SMCUP)
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
