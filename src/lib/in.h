@@ -62,6 +62,7 @@ struct initial_responses {
   unsigned kitty_graphics;     // kitty graphics supported
   uint32_t bg;                 // default background
   bool got_bg;                 // have we read default background?
+  bool rgb;                    // was RGB DirectColor advertised?
   int pixx;                    // screen geometry in pixels
   int pixy;                    // screen geometry in pixels
   int dimx;                    // screen geometry in cells

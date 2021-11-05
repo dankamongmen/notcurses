@@ -95,8 +95,8 @@ notcurses_stop_minimal(void* vnc){
     ret = -1;
   }
   fbuf_reset(f);
-  ret |= mouse_setup(&nc->tcache, NCMICE_NO_EVENTS);
   if(nc->tcache.ttyfd >= 0){
+    ret |= notcurses_mice_disable(nc);
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
