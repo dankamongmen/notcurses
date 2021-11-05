@@ -80,7 +80,6 @@ notcurses_stop_minimal(void* vnc){
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
-  ret |= mouse_disable(&nc->tcache, f);
   if((esc = get_escape(&nc->tcache, ESCAPE_RESTORECOLORS)) && fbuf_emit(f, esc)){
     ret = -1;
   }
@@ -96,6 +95,7 @@ notcurses_stop_minimal(void* vnc){
     ret = -1;
   }
   fbuf_reset(f);
+  ret |= mouse_setup(&nc->tcache, NCMICE_NO_EVENTS);
   if(nc->tcache.ttyfd >= 0){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
@@ -2276,28 +2276,24 @@ ncplane* ncplane_above(ncplane* n){
   return n->above;
 }
 
-int notcurses_mouse_enable(notcurses* n){
-  if(mouse_enable(&n->tcache, n->ttyfp)){
+int notcurses_mice_enable(notcurses* n, unsigned eventmask){
+  if(mouse_setup(&n->tcache, eventmask)){
     return -1;
   }
   return 0;
 }
 
-// this seems to work (note difference in suffix, 'l' vs 'h'), but what about
-// the sequences 1000 etc?
-int notcurses_mouse_disable(notcurses* n){
-  fbuf f = {};
-  if(fbuf_init_small(&f)){
-    return -1;
-  }
-  if(mouse_disable(&n->tcache, &f)){
-    fbuf_free(&f);
-    return -1;
-  }
-  if(fbuf_finalize(&f, n->ttyfp) < 0){
+// FIXME begone in abi3
+int notcurses_mouse_enable(notcurses* n){
+  if(notcurses_mice_enable(n, NCMICE_BUTTON_EVENT)){
     return -1;
   }
   return 0;
+}
+
+// FIXME begone in abi3
+int notcurses_mouse_disable(notcurses* n){
+  return notcurses_mice_disable(n);
 }
 
 bool notcurses_canutf8(const notcurses* nc){

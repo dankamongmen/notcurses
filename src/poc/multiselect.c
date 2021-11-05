@@ -62,18 +62,14 @@ run_mselect(struct notcurses* nc, struct ncmultiselector* ns){
 }
 
 int main(void){
-  if(!setlocale(LC_ALL, "")){
-    return EXIT_FAILURE;
-  }
   notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
     .loglevel = NCLOGLEVEL_ERROR,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT);
   ncmultiselector_options sopts;
   memset(&sopts, 0, sizeof(sopts));
   sopts.maxdisplay = 10;

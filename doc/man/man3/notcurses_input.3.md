@@ -27,7 +27,14 @@ typedef struct ncinput {
     EVTYPE_REPEAT,
     EVTYPE_RELEASE,
   } evtype;
+  int ypx, xpx;    // pixel offsets within cell, -1 for undefined
 } ncinput;
+
+#define NCMICE_NO_EVENTS     0
+#define NCMICE_MOVE_EVENT    0x1
+#define NCMICE_BUTTON_EVENT  0x2
+#define NCMICE_DRAG_EVENT    0x4
+#define NCMICE_ALL_EVENTS    0x7
 ```
 
 **bool nckey_mouse_p(uint32_t ***r***);**
@@ -42,9 +49,9 @@ typedef struct ncinput {
 
 **uint32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**int notcurses_mouse_enable(struct notcurses* ***n***);**
+**int notcurses_mice_enable(struct notcurses* ***n***, unsigned ***eventmask***);**
 
-**int notcurses_mouse_disable(struct notcurses* ***n***);**
+**int notcurses_mice_disable(struct notcurses* ***n***);**
 
 **int notcurses_inputready_fd(struct notcurses* ***n***);**
 
@@ -92,13 +99,14 @@ action, but signals in the interim are permanently lost.
 
 ## Mice
 
-For mouse events, the additional fields **y** and **x** are set. These
-fields are not meaningful for keypress events. Mouse events can be
-distinguished using the **nckey_mouse_p** predicate. Once enabled, mouse
-button presses and releases are detected, as are mouse motions made while a
-button is held down. If no button is depressed, mouse movement _does not
-result in events_. This is known as "button-event tracking" mode in the
-nomenclature of [Xterm Control Sequences](https://www.xfree86.org/current/ctlseqs.html).
+For mouse events, the additional fields ***y***, ***x***, ***ypx***, and
+***xpx*** are set. These fields are not meaningful for keypress events.
+Mouse events can be distinguished using the **nckey_mouse_p** predicate.
+**NCMICE_MOVE_EVENT** requests events whenever the mouse moves when no
+buttons are held down. **NCMICE_DRAG_EVENT** requests events when the mouse
+is moving with buttons held down. **NCMICE_BUTTON_EVENT** requests events
+then the button state changes. **NCMICE_ALL_EVENTS** is provided for
+convenience and future-proofing against API (though not ABI) changes.
 
 ## Synthesized keypresses
 
@@ -144,8 +152,9 @@ If an error is encountered before **notcurses_getvec** has read any input,
 it will return -1. If it times out before reading any input, it will return
 0. Otherwise, it returns the number of **ncinput** objects written back.
 
-**notcurses_mouse_enable** returns 0 on success, and non-zero on failure, as
-does **notcurses_mouse_disable**.
+**notcurses_mice_enable** returns 0 on success, and non-zero on failure, as
+does **notcurses_mice_disable**. Success does not necessarily mean that a
+mouse is available nor that all requested events will be generated.
 
 **ncinput_equal_p** returns **true** if the two **ncinput** structs represent
 the same input (though not necessarily the same input event), and
@@ -172,34 +181,36 @@ requested. This eliminates most of the **BUGS** mentioned below.
 
 # BUGS
 
-Failed escape sequences are not yet played back in their entirety; only an
-ESC (ASCII 0x1b) will be seen by the application.
-
-The Shift key is only indicated in conjunction with mouse button presses. If
-e.g. Shift is used to generate a capital letter 'A', **id** will equal 'A',
-and **shift** will be **false**. This should be fixed in the future.
-
-When Ctrl is pressed along with a letter, the letter will currently always be
-reported in its uppercase form. E.g., if Shift, Ctrl, and 'a' are all pressed,
-this is indistinguishable from Ctrl and 'a' without Shift. This should be fixed
-in the future.
+The Shift key is not indicated in conjunction with typical Unicode text.
+If e.g. Shift is used to generate a capital letter 'A', ***id*** will equal 'A',
+and ***shift*** will be **false**. Similarly, when Ctrl is pressed along with a
+letter, the letter will currently always be reported in its uppercase form.
+E.g., if Shift, Ctrl, and 'a' are all pressed, this is indistinguishable from
+Ctrl and 'A'.
 
 Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not,
 currently registers as **NCKEY_ENTER**. This will likely change in the
 future.
 
 When the Kitty keyboard disambiguation protocol is used, most of these
-issues are resolved.
+issues are resolved. You can determine whether the protocol is in use
+by examining the output of **notcurses-info(1)**. If the **kbd** property
+is indicated, you're using the Kitty protocol.
 
 Mouse events in the top and left margins will never be delivered to the
 application (as is intended), but mouse events in the bottom and right margins
 sometimes can be if the event occurs prior to a window resize.
+
+The ***ypx*** and ***xpx*** fields are never currently valid (i.e. they are
+always -1). This ought be fixed in the future using the SGR PixelMode mouse
+protocol.
 
 On some operating systems, **CLOCK_REALTIME** is used as the basis for
 timeouts instead of **CLOCK_MONOTONIC**. This ought be fixed.
 
 # SEE ALSO
 
+**notcurses-info(1)**,
 **clock_gettime(2)**,
 **poll(2)**,
 **notcurses(3)**,

@@ -982,41 +982,51 @@ API int notcurses_leave_alternate_screen(struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
 // Return the topmost plane of the pile containing 'n'.
-API struct ncplane* ncpile_top(struct ncplane* n);
+API struct ncplane* ncpile_top(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the bottommost plane of the pile containing 'n'.
-API struct ncplane* ncpile_bottom(struct ncplane* n);
+API struct ncplane* ncpile_bottom(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Renders the pile of which 'n' is a part. Rendering this pile again will blow
 // away the render. To actually write out the render, call ncpile_rasterize().
-API int ncpile_render(struct ncplane* n);
+API int ncpile_render(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Make the physical screen match the last rendered frame from the pile of
 // which 'n' is a part. This is a blocking call. Don't call this before the
 // pile has been rendered (doing so will likely result in a blank screen).
-API int ncpile_rasterize(struct ncplane* n);
+API int ncpile_rasterize(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Renders and rasterizes the standard pile in one shot. Blocking call.
-API int notcurses_render(struct notcurses* nc);
+API int notcurses_render(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Perform the rendering and rasterization portion of ncpile_render() and
 // ncpile_rasterize(), but do not write the resulting buffer out to the
 // terminal. Using this function, the user can control the writeout process.
 // The returned buffer must be freed by the caller.
-API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
+API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen)
+  __attribute__ ((nonnull (1, 2, 3)));
 
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
-API int ncpile_render_to_file(struct ncplane* p, FILE* fp);
+API int ncpile_render_to_file(struct ncplane* p, FILE* fp)
+  __attribute__ ((nonnull (1, 2)));
 
 // Return the topmost ncplane of the standard pile.
-API struct ncplane* notcurses_top(struct notcurses* n);
+API struct ncplane* notcurses_top(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the bottommost ncplane of the standard pile.
-API struct ncplane* notcurses_bottom(struct notcurses* n);
+API struct ncplane* notcurses_bottom(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Destroy all ncplanes other than the stdplane.
-API void notcurses_drop_planes(struct notcurses* nc);
+API void notcurses_drop_planes(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // All input is taken from stdin. We attempt to read a single UTF8-encoded
 // Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
@@ -1042,7 +1052,7 @@ nckey_supppuab_p(uint32_t w){
 // Is the event a synthesized mouse event?
 static inline bool
 nckey_mouse_p(uint32_t r){
-  return r >= NCKEY_BUTTON1 && r <= NCKEY_BUTTON11;
+  return r >= NCKEY_MOTION && r <= NCKEY_BUTTON11;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse
@@ -1050,8 +1060,7 @@ nckey_mouse_p(uint32_t r){
 // ncinput. We encompass single Unicode codepoints, not complete EGCs.
 typedef struct ncinput {
   uint32_t id;       // Unicode codepoint or synthesized NCKEY event
-  int y;             // y cell coordinate of event, -1 for undefined
-  int x;             // x cell coordinate of event, -1 for undefined
+  int y, x;          // y/x cell coordinate of event, -1 for undefined
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
@@ -1062,6 +1071,7 @@ typedef struct ncinput {
     NCTYPE_REPEAT,
     NCTYPE_RELEASE,
   } evtype;
+  int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
 
 // compare two ncinput structs for data equality.
@@ -1106,7 +1116,7 @@ API int notcurses_inputready_fd(struct notcurses* n)
   __attribute__ ((nonnull (1)));
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
-// is ready, returns 0.
+// is immediately ready, returns 0.
 static inline uint32_t
 notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
@@ -1114,26 +1124,35 @@ notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
 }
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
-// until an event is processed or a signal is received.
+// until an event is processed or a signal is received (including resize events).
 static inline uint32_t
 notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   return notcurses_get(n, NULL, ni);
 }
 
+// Was 'ni' free of modifiers?
 static inline bool
 ncinput_nomod_p(const ncinput* ni){
-  return !ni->alt && !ni->ctrl && !ni->shift;
+  return !(ni->alt | ni->ctrl | ni->shift);
 }
 
-// Enable the mouse in "button-event tracking" mode with focus detection and
-// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_get().
-API int notcurses_mouse_enable(struct notcurses* n)
+#define NCMICE_NO_EVENTS     0
+#define NCMICE_MOVE_EVENT    0x1
+#define NCMICE_BUTTON_EVENT  0x2
+#define NCMICE_DRAG_EVENT    0x4
+#define NCMICE_ALL_EVENTS    0x7
+
+// Enable mice events according to 'eventmask'; an eventmask of 0 will disable
+// all mice tracking. On failure, -1 is returned. On success, 0 is returned, and
+// mouse events will be published to notcurses_get().
+API int notcurses_mice_enable(struct notcurses* n, unsigned eventmask)
   __attribute__ ((nonnull (1)));
 
 // Disable mouse events. Any events in the input queue can still be delivered.
-API int notcurses_mouse_disable(struct notcurses* n)
-  __attribute__ ((nonnull (1)));
+__attribute__ ((nonnull (1))) static inline int
+notcurses_mice_disable(struct notcurses* n){
+  return notcurses_mice_enable(n, NCMICE_NO_EVENTS);
+}
 
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
@@ -4222,6 +4241,11 @@ API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
 API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
                               const struct ncvisual_options* vopts, int* y, int* x,
                               int* scaley, int* scalex, ncblitter_e* blitter)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+
+API int notcurses_mouse_enable(struct notcurses* n)
+  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
+API int notcurses_mouse_disable(struct notcurses* n)
   __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
 
 #undef API

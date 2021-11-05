@@ -157,6 +157,7 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_RSUPER: return "right super";
     case NCKEY_RHYPER: return "right hyper";
     case NCKEY_RMETA: return "right meta";
+    case NCKEY_MOTION: return "mouse (no buttons pressed)";
     case NCKEY_BUTTON1: return "mouse (button 1)";
     case NCKEY_BUTTON2: return "mouse (button 2)";
     case NCKEY_BUTTON3: return "mouse (button 3)";
@@ -417,7 +418,7 @@ int main(int argc, char** argv){
   }
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
-  nc.mouse_enable(); // might fail if no mouse is available
+  nc.mouse_enable(NCMICE_ALL_EVENTS);
   int ret = input_demo(&nc);
   if(!nc.stop() || ret){
     return EXIT_FAILURE;

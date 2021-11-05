@@ -515,13 +515,11 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
     .alt = mods & 0x08,
     .shift = mods & 0x04,
   };
-  if(mods < 64){
-    tni.id = NCKEY_BUTTON1 + (mods % 4);
-  }else if(mods >= 64 && mods < 128){
-    tni.id = NCKEY_BUTTON4 + (mods % 4);
-  }else if(mods >= 128 && mods < 192){
-    tni.id = NCKEY_BUTTON8 + (mods % 4);
-  }
+  // SGR mouse reporting: lower two bits signify base button + {0, 1, 2} press
+  // and no button pressed/release/{3}. bit 5 indicates motion. bits 6 and 7
+  // select device groups: 64 is buttons 4--7, 128 is 8--11. a pure motion
+  // report (no button) is 35 (32 + 3 (no button pressed)) with (oddly enough)
+  // 'M' (i.e. release == true).
   if(release){
     tni.evtype = NCTYPE_RELEASE;
   }else{
@@ -529,6 +527,18 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   }
   tni.x = x;
   tni.y = y;
+  if(mods % 4 == 3){
+    tni.id = NCKEY_MOTION;
+    tni.evtype = NCTYPE_RELEASE;
+  }else{
+    if(mods < 64){
+      tni.id = NCKEY_BUTTON1 + (mods % 4);
+    }else if(mods >= 64 && mods < 128){
+      tni.id = NCKEY_BUTTON4 + (mods % 4);
+    }else if(mods >= 128 && mods < 192){
+      tni.id = NCKEY_BUTTON8 + (mods % 4);
+    }
+  }
   load_ncinput(ictx, &tni, 0);
 }
 
@@ -1205,6 +1215,7 @@ xtversion_cb(inputctx* ictx){
   return 2;
 }
 
+// XTGETTCAP responses are delimited by semicolons
 static int
 tcap_cb(inputctx* ictx){
   char* str = amata_next_string(&ictx->amata, "\x1bP1+r");
@@ -1216,25 +1227,32 @@ tcap_cb(inputctx* ictx){
     free(str);
     return 2;
   }
-  // 'TN' (Terminal Name)
-  if(strncasecmp(str, "544e=", 5) == 0){
-    if(ictx->initdata->qterm != TERMINAL_UNKNOWN){
-      const char* tn = str + 5;
-      // FIXME clean this crap up
-      if(strcasecmp(tn, "6D6C7465726D") == 0){
-        ictx->initdata->qterm = TERMINAL_MLTERM;
-      }else if(strcasecmp(tn, "787465726d") == 0){
-        ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
-      }else if(strcasecmp(tn, "787465726d2d6b69747479") == 0){
-        ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
-      }else if(strcasecmp(tn, "787465726d2d323536636f6c6f72") == 0){
-        ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
-      }else{
-        logdebug("unknown terminal name %s\n", tn);
+  const char* s = str;
+  while(*s){
+    // FIXME clean this crap up
+    if(strncasecmp(s, "544e=", 5) == 0){
+      if(ictx->initdata->qterm != TERMINAL_UNKNOWN){
+        const char* tn = s + 5;
+        if(strcasecmp(tn, "6D6C7465726D;") == 0){
+          ictx->initdata->qterm = TERMINAL_MLTERM;
+        }else if(strcasecmp(tn, "787465726d;") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
+        }else if(strcasecmp(tn, "787465726d2d6b69747479;") == 0){
+          ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
+        }else if(strcasecmp(tn, "787465726d2d323536636f6c6f72;") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
+        }else{
+          logdebug("unknown terminal name %s\n", tn);
+        }
       }
+    }else if(strncasecmp(s, "524742=", 7) == 0){
+    }else{
+      logdebug("unknown capability=val %s\n", str);
     }
-  }else{
-    logdebug("unknown capability=val %s\n", str);
+    if((s = strchr(s, ';')) == NULL){
+      break;
+    }
+    ++s;
   }
   free(str);
   return 2;

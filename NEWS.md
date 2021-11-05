@@ -12,6 +12,15 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.9 (not yet released)
+  * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
+    `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which
+    have been deprecated, and will be removed in ABI3.
+    `notcurses_mice_enable()` takes an additional `unsigned eventmask`
+    parameter, a bitmask union over `NCMICE_*_EVENT` (`NCMICE_ALL_EVENTS`
+    is provided for convenience and future-proofing).
+    `notcurses_mice_disable()` is now a `static inline` wrapper around the
+    former, passing 0 as the event mask. This can be used to get mouse
+    movement buttons and focus events, which were previously unavailable.
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

@@ -133,9 +133,9 @@ extern "C" {
 #define NCKEY_RSUPER       suppuabize(180)
 #define NCKEY_RHYPER       suppuabize(181)
 #define NCKEY_RMETA        suppuabize(182)
-// mouse events. We try to encode some details into the char32_t (i.e. which
-// button was pressed), but some is embedded in the ncinput event. the release
-// event is generic across buttons; callers must maintain state, if they care.
+// mouse events. We encode which button was pressed into the char32_t,
+// but position information is embedded in the larger ncinput event.
+#define NCKEY_MOTION    suppuabize(200) // no buttons pressed
 #define NCKEY_BUTTON1   suppuabize(201)
 #define NCKEY_BUTTON2   suppuabize(202)
 #define NCKEY_BUTTON3   suppuabize(203)
