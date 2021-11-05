@@ -1246,6 +1246,8 @@ tcap_cb(inputctx* ictx){
         }
       }
     }else if(strncasecmp(s, "524742=", 7) == 0){
+      loginfo("got rgb (%s)\n", s);
+      ictx->initdata->rgb = true;
     }else{
       logdebug("unknown capability=val %s\n", str);
     }

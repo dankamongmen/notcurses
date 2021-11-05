@@ -1044,6 +1044,9 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->dimy = iresp->dimy;
       ti->dimx = iresp->dimx;
     }
+    if(iresp->rgb){
+      ti->caps.rgb = true;
+    }
     if(iresp->pixy && iresp->pixx){
       ti->pixy = iresp->pixy;
       ti->pixx = iresp->pixx;
