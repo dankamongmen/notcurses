@@ -75,7 +75,7 @@ struct marsh {
 // make a plane on a new pile suitable for rendering a frame of the video
 static int
 make_plane(struct notcurses* nc, struct ncplane** t){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   notcurses_stddim_yx(nc, &dimy, &dimx);
   // FIXME want a resizecb
   struct ncplane_options opts = {
@@ -167,7 +167,7 @@ int xray_demo(struct notcurses* nc){
   if(!notcurses_canopen_videos(nc)){
     return 0;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_erase(notcurses_stdplane(nc));
   char* path = find_data("notcursesIII.mkv");

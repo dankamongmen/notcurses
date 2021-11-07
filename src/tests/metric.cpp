@@ -328,7 +328,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 9027854993;
     uintmax_t decimal = GIG;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -338,7 +338,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t decimal = GIG;
     uintmax_t val = decimal;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -348,7 +348,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 1000000001;
     uintmax_t decimal = GIG;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -358,7 +358,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 999999999;
     uintmax_t decimal = GIG;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -368,7 +368,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 27854993;
     uintmax_t decimal = GIG;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -378,7 +378,7 @@ TEST_CASE("Metric") {
     char buf[PREFIXSTRLEN + 1];
     uintmax_t val = 7854993;
     uintmax_t decimal = GIG;
-    REQUIRE(qprefix(val, decimal, buf, 0));
+    REQUIRE(ncqprefix(val, decimal, buf, 0));
     CHECK(!strcmp(buf, gold));
   }
 
@@ -437,7 +437,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      REQUIRE(qprefix(val, 1000000000000000ull, buf, '\0'));
+      REQUIRE(ncqprefix(val, 1000000000000000ull, buf, '\0'));
       const int sidx = i / 3 + 3;
       snprintf(gold, sizeof(gold), "%ju%s00%lc", goldval, decisep, smallsuffixes[sidx]);
       CHECK(!strcmp(gold, buf));

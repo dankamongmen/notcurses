@@ -25,11 +25,11 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 
 **const char* ncmetric(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***, unsigned ***mult***, int ***uprefix***);**
 
-**static inline const char* qprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
+**static inline const char* ncqprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
 
-**static inline const char* iprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
+**static inline const char* nciprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
 
-**static inline const char* bprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
+**static inline const char* ncbprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
 
 # DESCRIPTION
 
@@ -58,19 +58,19 @@ Three helper functions are provided to simplify these common cases:
 ```
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
 static inline const char*
-qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
 static inline const char*
-iprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
 static inline const char*
-bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 ```

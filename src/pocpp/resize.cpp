@@ -53,7 +53,7 @@ int main(int argc, char** argv){
     if(notcurses_render(nc)){
       goto err;
     }
-    if(top > bot){
+    if(top >= bot){
       break;
     }
     // one from bottom

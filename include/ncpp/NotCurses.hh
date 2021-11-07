@@ -71,17 +71,17 @@ namespace ncpp
 
 		static const char* qprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::qprefix (val, decimal, buf, omitdec);
+			return ::ncqprefix (val, decimal, buf, omitdec);
 		}
 
 		static const char* iprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::iprefix (val, decimal, buf, omitdec);
+			return ::nciprefix (val, decimal, buf, omitdec);
 		}
 
 		static const char* bprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::bprefix (val, decimal, buf, omitdec);
+			return ::ncbprefix (val, decimal, buf, omitdec);
 		}
 
 		static const char* version () noexcept

@@ -431,8 +431,8 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   struct sysinfo sinfo;
   sysinfo(&sinfo);
   char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
-  bprefix(sinfo.totalram, 1, totalmet, 1);
-  bprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
+  ncbprefix(sinfo.totalram, 1, totalmet, 1);
+  ncbprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
 #elif defined(BSD)

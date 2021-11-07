@@ -410,14 +410,14 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
-    qprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
-    bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
+    ncqprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
+    ncbprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     uint64_t divisor = results[i].stats.render_ns + results[i].stats.writeout_ns + results[i].stats.raster_ns;
     if(divisor){
-      qprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 / divisor,
+      ncqprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 / divisor,
               1000, tfpsbuf, 0);
     }else{
-      qprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
+      ncqprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
     }
     uint32_t rescolor;
     if(results[i].result < 0){
@@ -459,8 +459,8 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     totalrenderns += results[i].stats.render_ns;
     totalwriteoutns += results[i].stats.writeout_ns;
   }
-  qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
-  bprefix(totalbytes, 1, totalbuf, 0);
+  ncqprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
+  ncbprefix(totalbytes, 1, totalbuf, 0);
   table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
   ncplane_putstr(n, "            ");
   table_printf(n, "│", "%*ss", PREFIXFMT(timebuf));
