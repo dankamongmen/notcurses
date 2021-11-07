@@ -253,7 +253,7 @@ TEST_CASE("Media") {
   }
 
   // do a pixel video, reusing the same plane over and over
-  SUBCASE("LoadVideoPixelScaleOnePlane") {
+  SUBCASE("LoadVideoPixelStretchOnePlane") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         int dimy, dimx;
@@ -268,7 +268,7 @@ TEST_CASE("Media") {
           }
           CHECK(0 == ret);
           struct ncvisual_options opts{};
-          opts.scaling = NCSCALE_SCALE;
+          opts.scaling = NCSCALE_STRETCH;
           opts.blitter = NCBLIT_PIXEL;
           opts.n = n;
           n = ncvisual_blit(nc_, ncv, &opts);
