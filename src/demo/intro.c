@@ -5,7 +5,7 @@ static int centercols;
 static int
 animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int* flipmode = curry;
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
   const bool smallscreen = rows < 26;
   const int row1 = rows - 10 + smallscreen;

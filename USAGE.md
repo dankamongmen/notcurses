@@ -1084,7 +1084,8 @@ ncplane_dim_x(const struct ncplane* n){
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
 // 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
 // be 0. Any of the geometry arguments may be NULL.
-void ncplane_pixelgeom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
+void ncplane_pixelgeom(struct ncplane* n,
+                       unsigned* restrict pxy, unsigned* restrict pxx,
                        unsigned* restrict celldimy, unsigned* restrict celldimx,
                        unsigned* restrict maxbmapy, unsigned* restrict maxbmapx);
 

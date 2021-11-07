@@ -107,7 +107,7 @@ fill_chunk(struct ncplane* n, int idx){
   ncchannel_set_rgb8(&ur, g, b, r);
   ncchannel_set_rgb8(&ll, b, r, g);
   int ret = 0;
-  if(ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx) <= 0){
+  if(ncplane_gradient2x1(n, -1, -1, 0, 0, ul, ur, ll, lr) <= 0){
     ret = -1;
   }
   ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
@@ -134,7 +134,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
 // make a bunch of boxes with gradients and use them to play a sliding puzzle.
 int sliding_puzzle_demo(struct notcurses* nc){
   int ret = -1, z;
-  int maxx, maxy;
+  unsigned maxx, maxy;
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   int chunky, chunkx;
   // want at least 2x2 for each sliding chunk

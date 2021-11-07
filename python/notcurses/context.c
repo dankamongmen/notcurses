@@ -239,10 +239,10 @@ Notcurses_linesigs_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 Notcurses_refresh(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int rows = 0, collumns = 0;
-    CHECK_NOTCURSES(notcurses_refresh(self->notcurses_ptr, &rows, &collumns));
+    unsigned rows = 0, columns = 0;
+    CHECK_NOTCURSES(notcurses_refresh(self->notcurses_ptr, &rows, &columns));
 
-    return Py_BuildValue("ii", rows, collumns);
+    return Py_BuildValue("II", rows, columns);
 }
 
 static PyObject *
@@ -259,22 +259,22 @@ Notcurses_stdplane(NotcursesObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 Notcurses_stddim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int y = 0, x = 0;
+    unsigned y = 0, x = 0;
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stddim_yx(self->notcurses_ptr, &y, &x));
 
     Py_INCREF(new_object);
-    return Py_BuildValue("Oii", new_object, y, x);
+    return Py_BuildValue("OII", new_object, y, x);
 }
 
 static PyObject *
 Notcurses_term_dim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int rows = 0, collumns = 0;
-    notcurses_term_dim_yx(self->notcurses_ptr, &rows, &collumns);
+    unsigned rows = 0, columns = 0;
+    notcurses_term_dim_yx(self->notcurses_ptr, &rows, &columns);
 
-    return Py_BuildValue("ii", rows, collumns);
+    return Py_BuildValue("II", rows, columns);
 }
 
 static PyObject *
@@ -288,7 +288,7 @@ static PyObject *
 Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
 {
     int y = 0, x = 0;
-    int rows = 0, cols = 0;
+    unsigned rows = 0, cols = 0;
     const char *name = NULL;
     // TODO reseize callback
     unsigned long long flags = 0;
@@ -300,7 +300,7 @@ Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
                         "flags",
                         "margin_b", "margin_r", NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiiisKii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiIIsKii", keywords,
                                                   &y, &x,
                                                   &rows, &cols,
                                                   &name,

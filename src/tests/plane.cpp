@@ -30,7 +30,7 @@ TEST_CASE("Plane") {
 
   // Starting position ought be 0, 0 (the origin)
   SUBCASE("StdPlanePosition") {
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == x);
     CHECK(0 == y);
@@ -51,7 +51,7 @@ TEST_CASE("Plane") {
     unsigned cols, rows;
     notcurses_term_dim_yx(nc_, &rows, &cols);
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(y == 0);
     CHECK(x == 0);
@@ -108,7 +108,7 @@ TEST_CASE("Plane") {
     nccell c = CELL_CHAR_INITIALIZER('a');
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     CHECK(0 == strcmp("a", ncplane_at_yx(n_, 0, 0, nullptr, nullptr)));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
@@ -128,7 +128,7 @@ TEST_CASE("Plane") {
     nccell c{};
     CHECK(strlen(cchar) == nccell_load(n_, &c, cchar));
     CHECK(0 < ncplane_putc(n_, &c));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
@@ -140,7 +140,7 @@ TEST_CASE("Plane") {
     const wchar_t* w = L"✔";
     int sbytes = 0;
     CHECK(0 < ncplane_putwegc(n_, w, &sbytes));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
@@ -157,7 +157,7 @@ TEST_CASE("Plane") {
       int wrote = ncplane_putstr(n_, *s);
       CHECK(ncstrwidth(*s) == wrote);
     }
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(2 == y);
     CHECK(10 <= x);
@@ -174,7 +174,7 @@ TEST_CASE("Plane") {
       int wrote = ncplane_putwstr(n_, *s);
       CHECK(0 < wrote);
     }
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(2 == y);
     CHECK(10 <= x);
@@ -190,7 +190,7 @@ TEST_CASE("Plane") {
     CHECK(!ncplane_set_scrolling(n_, true));
     int wrote = ncplane_putwstr(n_, e);
     CHECK(0 < wrote);
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK_LE(0, y);
     CHECK(1 <= x); // FIXME tighten in on this
@@ -207,7 +207,7 @@ TEST_CASE("Plane") {
     for(unsigned yidx = 0 ; yidx < y ; ++yidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, yidx, 1));
       CHECK(x - 2 == ncplane_hline(n_, &c, x - 2));
-      int posx, posy;
+      unsigned posx, posy;
       ncplane_cursor_yx(n_, &posy, &posx);
       CHECK(yidx == posy);
       CHECK(x - 1 == posx);
@@ -226,7 +226,7 @@ TEST_CASE("Plane") {
     for(unsigned xidx = 1 ; xidx < x - 1 ; ++xidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, 1, xidx));
       CHECK(y - 2 == ncplane_vline(n_, &c, y - 2));
-      int posx, posy;
+      unsigned posx, posy;
       ncplane_cursor_yx(n_, &posy, &posx);
       CHECK(y - 2 == posy);
       CHECK(xidx == posx - 1);
@@ -592,7 +592,7 @@ TEST_CASE("Plane") {
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
     REQUIRE(0 < ncplane_putstr(n_, STR2));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(1 == y);
     REQUIRE(dimx == x);
@@ -630,7 +630,7 @@ TEST_CASE("Plane") {
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));
     REQUIRE(0 < ncplane_putstr(n_, STR2));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     REQUIRE(1 == y);
     REQUIRE(dimx == x);
@@ -657,7 +657,7 @@ TEST_CASE("Plane") {
     const char STR3[] = "da chronic lives";
     ncplane_set_styles(n_, NCSTYLE_BOLD);
     REQUIRE(0 < ncplane_putstr_yx(n_, 0, 0, STR1));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
     ncplane_on_styles(n_, NCSTYLE_ITALIC);
@@ -667,7 +667,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < ncplane_putstr(n_, STR3));
     ncplane_off_styles(n_, NCSTYLE_ITALIC);
     CHECK(0 == notcurses_render(nc_));
-    int newx;
+    unsigned newx;
     ncplane_cursor_yx(n_, &y, &newx);
     CHECK(newx == x);
     nccell testcell = CELL_TRIVIAL_INITIALIZER;
@@ -1084,7 +1084,7 @@ TEST_CASE("Plane") {
     REQUIRE(nullptr != n);
     CHECK(false == ncplane_set_scrolling(n, true));
     uint64_t channels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
-    int y, x;
+    unsigned y, x;
     CHECK(1 == ncplane_set_base(n, " ", 0, channels));
     CHECK(0 == notcurses_render(nc_));
     for(unsigned i = 0 ; i < ncplane_dim_y(n) ; ++i){

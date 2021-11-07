@@ -16,7 +16,7 @@ class TabletCtx {
       lines(rand() % 5 + 3),
       rgb(rand() % 0x1000000),
       idx(++class_idx) {}
-    int getLines() const {
+    unsigned getLines() const {
       return lines;
     }
     void addLine() {
@@ -51,7 +51,7 @@ int tabletfxn(struct nctablet* _t, bool cliptop __attribute__ ((unused))){
   p->release(c);
   p->set_bg_rgb(0xffffff);
   p->set_fg_rgb(0x000000);
-  int ret = tctx->getLines();
+  unsigned ret = tctx->getLines();
   if(ret > p->get_dim_y()){
     ret = p->get_dim_y();
   }

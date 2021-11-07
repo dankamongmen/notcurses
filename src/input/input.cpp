@@ -349,9 +349,9 @@ int input_demo(ncpp::NotCurses* nc) {
         n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
       }
     }
-    int x;
+    unsigned x;
     n->get_cursor_yx(nullptr, &x);
-    for(int i = x ; i < n->get_dim_x() ; ++i){
+    for(unsigned i = x ; i < n->get_dim_x() ; ++i){
       n->putc(' ');
     }
     if(!dim_rows(n)){

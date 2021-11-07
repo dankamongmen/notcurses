@@ -92,7 +92,7 @@ braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
 
 static void
 finish_line(struct ncplane* n){
-  int x;
+  unsigned x;
   ncplane_cursor_yx(n, NULL, &x);
   while(x++ < 80){
     ncplane_putchar(n, ' ');
@@ -147,7 +147,7 @@ emoji_viz(struct ncplane* n){
       }
     }
   }
-  int x;
+  unsigned x;
   ncplane_cursor_yx(n, NULL, &x);
   while(x++ < 80){
     ncplane_putchar(n, ' ');
@@ -312,7 +312,7 @@ unicodedumper(struct ncplane* n, const char* indent){
       ncplane_putchar(n, '\n');
     }
     emoji_viz(n);
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xd8, 0x8E);
     uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
@@ -340,7 +340,7 @@ display_logo(struct ncplane* n, const char* path){
     ncvisual_destroy(ncv);
     return -1;
   }
-  int y;
+  unsigned y;
   ncplane_cursor_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,

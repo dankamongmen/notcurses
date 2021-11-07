@@ -103,8 +103,8 @@ class Ncplane:
         return ret
 
     def getDimensions(self):
-        y = ffi.new("int *")
-        x = ffi.new("int *")
+        y = ffi.new("unsigned int *")
+        x = ffi.new("unsigned int *")
         lib.ncplane_dim_yx(self.n, y, x)
         return (y[0], x[0])
 

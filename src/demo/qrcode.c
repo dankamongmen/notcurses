@@ -6,7 +6,7 @@ int qrcode_demo(struct notcurses* nc){
   }
 #ifdef USE_QRCODEGEN
   char data[128];
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane *stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_erase(stdn);
   struct ncplane* n = ncplane_dup(stdn, NULL);

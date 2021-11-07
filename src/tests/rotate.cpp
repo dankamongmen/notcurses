@@ -35,8 +35,10 @@ TEST_CASE("Rotate") {
     CHECK(0 == notcurses_stop(nc_));
     return;
   }
-  unsigned dimy, dimx;
-  struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
+  unsigned udimy, udimx;
+  struct ncplane* n_ = notcurses_stddim_yx(nc_, &udimy, &udimx);
+  int dimy = udimy;
+  int dimx = udimx;
   REQUIRE(n_);
 
   uint64_t ul, ur, ll, lr;

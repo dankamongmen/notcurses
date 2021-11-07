@@ -12,7 +12,8 @@ bool InvalidMove() { // a bit wasteful, but pieces are tiny
       curpiece_->release(c);
       int transy = dy, transx = x; // need game area coordinates via translation
       curpiece_->translate(*board_, &transy, &transx);
-      if(transy < 0 || transy >= board_->get_dim_y() || transx < 0 || transx >= board_->get_dim_x()){
+      if(transy < 0 || (unsigned)transy >= board_->get_dim_y()
+          || transx < 0 || (unsigned)transx >= board_->get_dim_x()){
         return true;
       }
       board_->get_at(transy, transx, &b);

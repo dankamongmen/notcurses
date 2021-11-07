@@ -1223,7 +1223,8 @@ ncplane_dim_x(const struct ncplane* n){
 // 'maxbmapx'). If bitmaps are not supported, or if there is no artificial
 // limit on bitmap size, 'maxbmapy' and 'maxbmapx' will be 0. Any of the
 // geometry arguments may be NULL.
-API void ncplane_pixelgeom(const struct ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+API void ncplane_pixelgeom(const struct ncplane* n,
+                           unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
                            unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
                            unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx)
   __attribute__ ((nonnull (1)));
@@ -1862,7 +1863,7 @@ API void ncplane_home(struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+API void ncplane_cursor_yx(const struct ncplane* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
   __attribute__ ((nonnull (1)));
 
 // Get the current channels or attribute word for ncplane 'n'.
@@ -2235,12 +2236,12 @@ API int ncplane_box(struct ncplane* n, const nccell* ul, const nccell* ur,
 static inline int
 ncplane_box_sized(struct ncplane* n, const nccell* ul, const nccell* ur,
                   const nccell* ll, const nccell* lr, const nccell* hline,
-                  const nccell* vline, unsigned ylen, unsigned xlen,
+                  const nccell* vline, unsigned ystop, unsigned xstop,
                   unsigned ctlword){
-  int y, x;
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
-                     x + xlen - 1, ctlword);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ystop - 1,
+                     x + xstop - 1, ctlword);
 }
 
 static inline int
@@ -2716,7 +2717,7 @@ nccells_heavy_box(struct ncplane* n, uint16_t attr, uint64_t channels,
 
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                    int ystop, int xstop, unsigned ctlword){
+                    unsigned ystop, unsigned xstop, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -2756,8 +2757,8 @@ ncplane_perimeter_rounded(struct ncplane* n, uint16_t stylemask,
 
 static inline int
 ncplane_rounded_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
-                          int ylen, int xlen, unsigned ctlword){
-  int y, x;
+                          unsigned ylen, unsigned xlen, unsigned ctlword){
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_rounded_box(n, styles, channels, y + ylen - 1,
                              x + xlen - 1, ctlword);
@@ -2769,13 +2770,13 @@ API int nccells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                   int ystop, int xstop, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if((ret = nccells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
-    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ylen, xlen, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
   nccell_release(n, &ll); nccell_release(n, &lr);
@@ -2809,8 +2810,8 @@ ncplane_perimeter_double(struct ncplane* n, uint16_t stylemask,
 
 static inline int
 ncplane_double_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
-                         int ylen, int xlen, unsigned ctlword){
-  int y, x;
+                         unsigned ylen, unsigned xlen, unsigned ctlword){
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_double_box(n, styles, channels, y + ylen - 1,
                             x + xlen - 1, ctlword);

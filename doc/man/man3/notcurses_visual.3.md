@@ -101,7 +101,7 @@ typedef struct ncvgeom {
 
 **int ncvisual_resize_noninterpolative(struct ncvisual* ***n***, int ***rows***, int ***cols***);**
 
-**int ncvisual_polyfill_yx(struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t ***rgba***);**
+**int ncvisual_polyfill_yx(struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***rgba***);**
 
 **int ncvisual_at_yx(const struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t* ***pixel***);**
 

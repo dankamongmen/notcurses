@@ -3811,11 +3811,12 @@ int mojibake_demo(struct notcurses* nc){
   do{
     unsigned u = topmost;
     do{
-      int y, x, leny, lenx;
+      int y, x;
       ncplane_yx(planes[u], &y, &x);
-      if(y >= dimy){
+      if(y >= (int)dimy){
         break;
       }
+      unsigned leny, lenx;
       ncplane_dim_yx(planes[u], &leny, &lenx);
       if(y == 2){
         if(leny > 1){

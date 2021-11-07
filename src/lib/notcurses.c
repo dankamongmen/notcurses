@@ -1548,7 +1548,7 @@ int ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
   return 0;
 }
 
-void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
+void ncplane_cursor_yx(const ncplane* n, unsigned* y, unsigned* x){
   if(y){
     *y = n->y;
   }
@@ -1983,7 +1983,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
   int deltbr = (br2 - br1) / ((int)len + 1);
   int deltbg = (bg2 - bg1) / ((int)len + 1);
   int deltbb = (bb2 - bb1) / ((int)len + 1);
-  int ypos, xpos;
+  unsigned ypos, xpos;
   unsigned ret;
   ncplane_cursor_yx(n, &ypos, &xpos);
   nccell dupc = CELL_TRIVIAL_INITIALIZER;
@@ -2026,21 +2026,21 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
                 const nccell* ll, const nccell* lr, const nccell* hl,
                 const nccell* vl, unsigned ystop, unsigned xstop,
                 unsigned ctlword){
-  int yoff, xoff;
+  unsigned yoff, xoff;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
-  if(ystop < (unsigned)yoff + 1){
+  if(ystop < yoff + 1){
     logerror("ystop (%u) insufficient for yoff (%d)\n", ystop, yoff);
     return -1;
   }
-  if(xstop < (unsigned)xoff + 1){
+  if(xstop < xoff + 1){
     logerror("xstop (%u) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
   unsigned ymax, xmax;
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
-  if(xstop >= (unsigned)xmax || ystop >= (unsigned)ymax){
+  if(xstop >= xmax || ystop >= ymax){
     logerror("Boundary (%ux%u) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
     return -1;
   }
@@ -3179,7 +3179,7 @@ int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
   return *validwidth;
 }
 
-void ncplane_pixelgeom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+void ncplane_pixelgeom(const ncplane* n, unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
                        unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
                        unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx){
   notcurses* nc = ncplane_notcurses(n);

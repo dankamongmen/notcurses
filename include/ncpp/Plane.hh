@@ -323,12 +323,12 @@ namespace ncpp
 			get_dim (&rows, &cols);
 		}
 
-		int get_dim_x () const noexcept
+		unsigned get_dim_x () const noexcept
 		{
 			return ncplane_dim_x (plane);
 		}
 
-		int get_dim_y () const noexcept
+		unsigned get_dim_y () const noexcept
 		{
 			return ncplane_dim_y (plane);
 		}
@@ -473,12 +473,12 @@ namespace ncpp
 			return error_guard (ncplane_cursor_move_yx (plane, y, x), -1);
 		}
 
-		void get_cursor_yx (int *y, int *x) const noexcept
+		void get_cursor_yx (unsigned *y, unsigned *x) const noexcept
 		{
 			ncplane_cursor_yx (plane, y, x);
 		}
 
-		void get_cursor_yx (int &y, int &x) const noexcept
+		void get_cursor_yx (unsigned &y, unsigned &x) const noexcept
 		{
 			get_cursor_yx (&y, &x);
 		}

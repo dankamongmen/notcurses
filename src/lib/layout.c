@@ -47,7 +47,7 @@ puttext_advance_line(ncplane* n){
 //      * C < dimx: ++y, x = 0
 static int
 puttext_line(ncplane* n, ncalign_e align, const char* text, size_t* bytes){
-  int cursx; // current cursor location
+  unsigned cursx; // current cursor location
   ncplane_cursor_yx(n, NULL, &cursx);
   const int dimx = ncplane_dim_x(n);
   const int avail = dimx - cursx - 1;

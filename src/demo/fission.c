@@ -28,7 +28,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       if(rangee < arrcount){
         int y;
         ncplane_yx(arr[ranges], &y, NULL);
-        speeds[rangee - ranges] = y < stdy / 2 ? 1 : -1;
+        speeds[rangee - ranges] = y < (int)stdy / 2 ? 1 : -1;
         ++rangee;
       }
     }
@@ -43,7 +43,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
         int x, y;
         ncplane_yx(ncp, &y, &x);
         if(felloff){
-          if(y + speeds[i] >= stdy || y + speeds[i] + ncplane_dim_y(ncp) < 0){
+          if(y + speeds[i] >= (int)stdy || y + speeds[i] + (int)ncplane_dim_y(ncp) < 0){
             ncplane_destroy(ncp);
             arr[ranges + i] = NULL;
             if(ranges + i + 1 == rangee){
@@ -153,8 +153,8 @@ int fission_demo(struct notcurses* nc){
         goto err;
       }
       // copy the old content into this new ncplane
-      for(int usey = y ; usey < y + newy ; ++usey){
-        for(int usex = x ; usex < x + newx ; ++usex){
+      for(unsigned usey = y ; usey < y + newy ; ++usey){
+        for(unsigned usex = x ; usex < x + newx ; ++usex){
           if(usemap[usey * dimx + usex]){
             newx = usex - x;
             ncplane_resize_simple(n, newy, newx);

@@ -77,6 +77,9 @@ const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
       sprintfed = snprintf(buf, s, "%.2f%lc", (double)val / dv,
                           (wint_t)prefixes[consumed - 1]);
     }
+    if(sprintfed < 0){
+      return NULL;
+    }
     if(uprefix){
       if((size_t)sprintfed < s){
         buf[sprintfed] = uprefix;
@@ -102,6 +105,9 @@ const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
       sprintfed = snprintf(buf, s, "%.2f", (double)val / decimal);
     }
   }
+  if(sprintfed < 0){
+    return NULL;
+  }
   if(consumed && uprefix){
     if((size_t)sprintfed < s){
       buf[sprintfed] = uprefix;
@@ -113,5 +119,5 @@ const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 
 const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
                      uintmax_t mult, int uprefix){
-  return ncnmetric(val, SIZE_MAX, decimal, buf, omitdec, mult, uprefix);
+  return ncnmetric(val, INT_MAX, decimal, buf, omitdec, mult, uprefix);
 }
