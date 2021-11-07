@@ -43,9 +43,9 @@ int main(int argc, char** argv){
   }
   setlocale(LC_ALL, "");
   notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE
-              | NCOPTION_SUPPRESS_BANNERS
-              | NCOPTION_DRAIN_INPUT,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN
+              | NCOPTION_INHIBIT_SETLOCALE
+              | NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(nc == NULL){
@@ -73,7 +73,10 @@ int main(int argc, char** argv){
   ncplane_set_fg_rgb(std, 0x00bcaa);
   ncplane_printf_aligned(std, -1, NCALIGN_CENTER, "press any key to continue (%s)", *argv);
   notcurses_render(nc);
-  notcurses_get(nc, NULL, NULL);
+  ncinput ni;
+  do{
+    notcurses_getc_blocking(nc, &ni);
+  }while(ni.evtype == NCTYPE_RELEASE);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }

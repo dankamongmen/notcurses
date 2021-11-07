@@ -697,34 +697,34 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int yoff, int xoff,
                             unsigned ylen, unsigned xlen){
   if(keepy < 0 || keepx < 0){ // can't start at negative origin
-    logerror("Can't retain negative offset %dx%d\n", keepy, keepx);
+    logerror("can't retain negative offset %dx%d\n", keepy, keepx);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    logerror("Can't retain null dimension %dx%d\n", keepleny, keeplenx);
+    logerror("can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   // can't be smaller than keep length
   if(ylen < keepleny){
-    logerror("Can't map in y dimension: %u < %d\n", ylen, keepleny);
+    logerror("can't map in y dimension: %u < %d\n", ylen, keepleny);
     return -1;
   }
   if(xlen < keeplenx){
-    logerror("Can't map in x dimension: %u < %d\n", xlen, keeplenx);
+    logerror("can't map in x dimension: %u < %d\n", xlen, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror("Can't achieve meaningless size %ux%u\n", ylen, xlen);
+    logerror("can't achieve meaningless size %ux%u\n", ylen, xlen);
     return -1;
   }
   unsigned rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   if(keepleny + keepy > (unsigned)rows){
-    logerror("Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
+    logerror("can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
     return -1;
   }
   if(keeplenx + keepx > (unsigned)cols){
-    logerror("Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
+    logerror("can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
   loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
