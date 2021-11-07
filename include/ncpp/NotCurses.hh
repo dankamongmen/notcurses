@@ -200,22 +200,22 @@ namespace ncpp
 			return error_guard (notcurses_render (nc), -1);
 		}
 
-		void get_term_dim (int *rows, int *cols) const noexcept
+		void get_term_dim (unsigned *rows, unsigned *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);
 		}
 
-		void get_term_dim (int &rows, int &cols) const noexcept
+		void get_term_dim (unsigned &rows, unsigned &cols) const noexcept
 		{
 			get_term_dim (&rows, &cols);
 		}
 
-		bool refresh (int* rows, int* cols) const NOEXCEPT_MAYBE
+		bool refresh (unsigned* rows, unsigned* cols) const NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_refresh (nc, rows, cols), -1);
 		}
 
-		bool refresh (int& rows, int& cols) const NOEXCEPT_MAYBE
+		bool refresh (unsigned& rows, unsigned& cols) const NOEXCEPT_MAYBE
 		{
 			return refresh (&rows, &cols);
 		}
@@ -308,7 +308,7 @@ namespace ncpp
 			return new Plane (notcurses_stdplane (nc), true);
 		}
 
-		Plane* get_stdplane (int *y, int *x)
+		Plane* get_stdplane (unsigned *y, unsigned *x)
 		{
 			if (y == nullptr)
 				throw invalid_argument ("'y' must be a valid pointer");
@@ -318,7 +318,7 @@ namespace ncpp
 			return get_stdplane (*y, *x);
 		}
 
-		Plane* get_stdplane (int &y, int &x) noexcept
+		Plane* get_stdplane (unsigned &y, unsigned &x) noexcept
 		{
 			return new Plane (notcurses_stddim_yx (nc, &y, &x));
 		}

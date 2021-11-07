@@ -141,7 +141,7 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
   uint64_t channels = 0;
   ncchannels_set_fg_alpha(&channels, NCALPHA_HIGHCONTRAST);
   ncchannels_set_fg_rgb8(&channels, 0x88, 0x88, 0x88);
-  ncplane_stain(n, -1, -1, channels, channels, channels, channels);
+  ncplane_stain(n, -1, -1, 0, 0, channels, channels, channels, channels);
   ncchannels_set_fg_default(&channels);
   ncplane_puttext(n, 0, NCALIGN_LEFT, text, NULL);
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);

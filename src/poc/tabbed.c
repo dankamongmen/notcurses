@@ -63,7 +63,7 @@ int main(int argc, char** argv){
   if(!nc){
     return EXIT_FAILURE;
   }
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* stdp = notcurses_stddim_yx(nc, &rows, &cols);
   struct ncplane_options popts = {
     .y = 3,

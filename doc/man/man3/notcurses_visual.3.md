@@ -53,15 +53,15 @@ struct ncvisual_options {
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 typedef struct ncvgeom {
-  int pixy, pixx;     // true pixel geometry of ncvisual data
-  int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
-  int rcelly, rcellx; // rendered cell geometry (per visual_options)
-  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
-  int begy, begx;     // upper-left corner of used section
-  int leny, lenx;     // geometry of used section
-  ncblitter_e blitter;// blitter that will be used
+  unsigned pixy, pixx;     // true pixel geometry of ncvisual data
+  unsigned cdimy, cdimx;   // terminal cell geometry when this was calculated
+  unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
+  unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  unsigned begy, begx;     // upper-left corner of used section
+  unsigned leny, lenx;     // geometry of used section
+  unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;i    // blitter that will be used
 } ncvgeom;
 ```
 
@@ -101,11 +101,11 @@ typedef struct ncvgeom {
 
 **int ncvisual_resize_noninterpolative(struct ncvisual* ***n***, int ***rows***, int ***cols***);**
 
-**int ncvisual_polyfill_yx(struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***rgba***);**
+**int ncvisual_polyfill_yx(struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t ***rgba***);**
 
-**int ncvisual_at_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t* ***pixel***);**
+**int ncvisual_at_yx(const struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t* ***pixel***);**
 
-**int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
+**int ncvisual_set_yx(const struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t ***pixel***);**
 
 **struct ncplane* ncvisual_subtitle_plane(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
 

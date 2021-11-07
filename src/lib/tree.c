@@ -261,7 +261,7 @@ void* nctree_next(nctree* n){
   if(tmp != n->curitem){
     n->curitem = tmp;
     n->activerow += rows;
-    if(n->activerow >= ncplane_dim_y(n->items.ncp)){
+    if(n->activerow >= (int)ncplane_dim_y(n->items.ncp)){
       n->activerow = ncplane_dim_y(n->items.ncp) - 1;
     }
   }
@@ -315,7 +315,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
   }else{
     // FIXME possibly enlarge nii->ncp?
   }
-  if(ncplane_y(nii->ncp) <= *frontiert || *frontierb >= ncplane_dim_y(n->items.ncp)){
+  if(ncplane_y(nii->ncp) <= *frontiert || *frontierb >= (int)ncplane_dim_y(n->items.ncp)){
     ncplane_move_yx(nii->ncp, *frontiert, ncplane_x(nii->ncp));
   }else{
     ncplane_move_yx(nii->ncp, *frontierb, ncplane_x(nii->ncp));
@@ -329,7 +329,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
   if(ncplane_y(nii->ncp) <= *frontiert){
     *frontiert = ncplane_y(nii->ncp) - 1;
   }
-  if(ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp) > *frontierb){
+  if(ncplane_y(nii->ncp) + (int)ncplane_dim_y(nii->ncp) > *frontierb){
     *frontierb = ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp);
   }
   return 0;
@@ -408,7 +408,7 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   nii = n->curitem;
   // draw items below the current one FIXME
   memcpy(tmppath, n->currentpath, sizeof(*tmppath) * (n->maxdepth + 1));
-  while(frontierb < ncplane_dim_y(n->items.ncp)){
+  while(frontierb < (int)ncplane_dim_y(n->items.ncp)){
     if((tmpnii = nctree_next_internal(n, tmppath)) == nii){
       break;
     }

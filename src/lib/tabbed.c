@@ -22,8 +22,8 @@ typedef struct nctabbed {
 
 void nctabbed_redraw(nctabbed* nt){
   nctab* t;
-  int drawn_cols = 0;
-  int rows, cols;
+  unsigned drawn_cols = 0;
+  unsigned rows, cols;
   if(nt->tabcount == 0){
     // no tabs = nothing to draw
     ncplane_erase(nt->hp);
@@ -148,7 +148,7 @@ nctab* nctab_prev(nctab* t){
 nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   nctabbed_options zeroed = {};
   ncplane_options nopts = {};
-  int nrows, ncols;
+  unsigned nrows, ncols;
   nctabbed* nt;
   if(!topts){
     topts = &zeroed;

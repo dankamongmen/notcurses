@@ -121,7 +121,8 @@ ncvisual* ncvisual_create(void){
 }
 
 static inline void
-ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* restrict begx){
+ncvisual_origin(const struct ncvisual_options* vopts, unsigned* restrict begy,
+                unsigned* restrict begx){
   *begy = vopts ? vopts->begy : 0;
   *begx = vopts ? vopts->begx : 0;
 }
@@ -133,7 +134,8 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
                           ncblitter_e* blitter){
   ncvgeom geom;
   const struct blitset* bset;
-  int disppxy, disppxx, outy, outx, placey, placex;
+  unsigned disppxy, disppxx, outy, outx;
+  int placey, placex;
   if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset,
                          &disppxy, &disppxx, &outy, &outx,
                          &placey, &placex)){
@@ -168,8 +170,8 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
 // accounts for sixels being a multiple of six pixels tall.
 static void
 shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
-                    ncscale_e scaling, int* disppixy, int* disppixx,
-                    uint64_t flags, int* outy, int* outx,
+                    ncscale_e scaling, unsigned* disppixy, unsigned* disppixx,
+                    uint64_t flags, unsigned* outy, unsigned* outx,
                     int* placey, int* placex, int pxoffy, int pxoffx){
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
     // disppixy/disppix are treated initially as cells
@@ -219,8 +221,8 @@ shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
 int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
                         const struct blitset** bset,
-                        int* disppixy, int* disppixx,
-                        int* outy, int* outx,
+                        unsigned* disppixy, unsigned* disppixx,
+                        unsigned* outy, unsigned* outx,
                         int* placey, int* placex){
   if(ti == NULL && n == NULL){
     logerror("got NULL for both sources\n");
@@ -286,17 +288,13 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   geom->leny = vopts->leny;
   *placey = vopts->y;
   *placex = vopts->x;
-  logdebug("vis %dx%d+%dx%d %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
-  if(geom->begy < 0 || geom->begx < 0){
-    logerror("invalid geometry for visual %d %d %d %d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
-    return -1;
-  }
+  logdebug("vis %ux%u+%ux%u %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
   if(n->data == NULL){
     logerror("no data in visual\n");
     return -1;
   }
   if(geom->begx >= n->pixx || geom->begy >= n->pixy){
-    logerror("visual too large %d > %d or %d > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
+    logerror("visual too large %u > %d or %u > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
     return -1;
   }
   if(geom->lenx == 0){ // 0 means "to the end"; use all available source material
@@ -340,13 +338,13 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       }
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         // FIXME clamp to sprixel limits
-        int rows = ((geom->leny + ti->cellpixy - 1) / ti->cellpixy) + !!vopts->pxoffy;
+        unsigned rows = ((geom->leny + ti->cellpixy - 1) / ti->cellpixy) + !!vopts->pxoffy;
         if(rows > ncplane_dim_y(vopts->n)){
           logerror("sprixel too tall %d for plane %d\n", geom->leny + vopts->pxoffy,
                    ncplane_dim_y(vopts->n) * ti->cellpixy);
           return -1;
         }
-        int cols = ((geom->lenx + ti->cellpixx - 1) / ti->cellpixx) + !!vopts->pxoffx;
+        unsigned cols = ((geom->lenx + ti->cellpixx - 1) / ti->cellpixx) + !!vopts->pxoffx;
         if(cols > ncplane_dim_x(vopts->n)){
           logerror("sprixel too wide %d for plane %d\n", geom->lenx + vopts->pxoffx,
                    ncplane_dim_x(vopts->n) * ti->cellpixx);
@@ -405,7 +403,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       logerror("pixel offsets cannot be used with cell blitting\n");
       return -1;
     }
-    int dispcols, disprows;
+    unsigned dispcols, disprows;
     if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
 //fprintf(stderr, "CPATH1, create beg %dx%d len %dx%d\n", geom->begy, geom->begx, geom->leny, geom->lenx);
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
@@ -463,7 +461,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
 int ncvisual_geom(const notcurses* nc, const ncvisual* n,
                   const struct ncvisual_options* vopts, ncvgeom* geom){
   const struct blitset* bset;
-  int disppxy, disppxx, outy, outx, placey, placex;
+  unsigned disppxy, disppxx, outy, outx;
+  int placey, placex;
   return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom, &bset,
                              &disppxy, &disppxx, &outy, &outx, &placey, &placex);
 }
@@ -543,7 +542,9 @@ void* bgra_to_rgba(const void* data, int rows, int* rowstride, int cols, int alp
 // pixels. Returns the area of the box (0 if there are no pixels).
 int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
                           int* offy, int* offx){
-  int trow, lcol = -1, rcol = INT_MAX; // FIXME shouldn't need lcol init
+  unsigned lcol = 0;
+  unsigned rcol = UINT_MAX;
+  unsigned trow;
   // first, find the topmost row with a real pixel. if there is no such row,
   // there are no such pixels. if we find one, we needn't look in this region
   // for other extrema, so long as we keep the leftmost and rightmost through
@@ -551,13 +552,12 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   // and rightmost pixel of whichever row has the topmost valid pixel. unlike
   // the topmost, they'll need be further verified.
   for(trow = 0 ; trow < ncv->pixy ; ++trow){
-    int x;
-    for(x = 0 ; x < ncv->pixx ; ++x){
+    for(unsigned x = 0 ; x < ncv->pixx ; ++x){
       uint32_t rgba = ncv->data[trow * ncv->rowstride / 4 + x];
       if(rgba){
         lcol = x; // leftmost pixel of topmost row
         // now find rightmost pixel of topmost row
-        int xr;
+        unsigned xr;
         for(xr = ncv->pixx - 1 ; xr > x ; --xr){
           rgba = ncv->data[trow * ncv->rowstride / 4 + xr];
           if(rgba){ // rightmost pixel of topmost row
@@ -578,20 +578,19 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
     *offy = 0;
     *offx = 0;
   }else{
-    assert(lcol >= 0);
     assert(rcol < ncv->pixx);
     // we now know topmost row, and left/rightmost through said row. now we must
     // find the bottommost row, checking left/rightmost throughout.
-    int brow;
+    unsigned brow;
     for(brow = ncv->pixy - 1 ; brow > trow ; --brow){
-      int x;
+      unsigned x;
       for(x = 0 ; x < ncv->pixx ; ++x){
         uint32_t rgba = ncv->data[brow * ncv->rowstride / 4 + x];
         if(rgba){
           if(x < lcol){
             lcol = x;
           }
-          int xr;
+          unsigned xr;
           for(xr = ncv->pixx - 1 ; xr > x && xr > rcol ; --xr){
             rgba = ncv->data[brow * ncv->rowstride / 4 + xr];
             if(rgba){ // rightmost pixel of bottommost row
@@ -610,15 +609,15 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
     }
     // we now know topmost and bottommost row, and left/rightmost within those
     // two sections. now check the rest for left and rightmost.
-    for(int y = trow + 1 ; y < brow ; ++y){
-      for(int x = 0 ; x < lcol ; ++x){
+    for(unsigned y = trow + 1 ; y < brow ; ++y){
+      for(unsigned x = 0 ; x < lcol ; ++x){
         uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
         if(rgba){
           lcol = x;
           break;
         }
       }
-      for(int x = ncv->pixx - 1 ; x > rcol ; --x){
+      for(unsigned x = ncv->pixx - 1 ; x > rcol ; --x){
         uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
         if(rgba){
           rcol = x;
@@ -746,14 +745,16 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   }
   memset(data, 0, bbarea * 4);
 //fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d bbcenty: %d bbcentx: %d\n", bbarea, bby, bbx, centy, centx, bbcenty, bbcentx);
-  for(int y = 0 ; y < ncv->pixy ; ++y){
-      for(int x = 0 ; x < ncv->pixx ; ++x){
+  for(unsigned y = 0 ; y < ncv->pixy ; ++y){
+      for(unsigned x = 0 ; x < ncv->pixx ; ++x){
       int targx = x, targy = y;
       rotate_point(&targy, &targx, stheta, ctheta, centy, centx);
-      const int deconvx = targx - bboffx;
-      const int deconvy = targy - bboffy;
-      if(deconvy >= 0 && deconvx >= 0 && deconvy < bby && deconvx < bbx){
-        data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+      if(targx > bboffx && targy > bboffy){
+        const int deconvx = targx - bboffx;
+        const int deconvy = targy - bboffy;
+        if(deconvy < bby && deconvx < bbx){
+          data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+        }
       }
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->pixy + targx], targy * ncv->pixy + targx, (targy * ncv->pixy + targx) * 4);
@@ -1113,7 +1114,8 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
           vopts->leny, vopts->lenx, vopts->begy, vopts->begx, vopts->n);
   ncvgeom geom;
   const struct blitset* bset;
-  int disppxy, disppxx, outy, outx, placey, placex;
+  unsigned disppxy, disppxx, outy, outx;
+  int placey, placex;
   if(ncvisual_geom_inner(&nc->tcache, ncv, vopts, &geom, &bset,
                          &disppxy, &disppxx, &outy, &outx,
                          &placey, &placex)){
@@ -1199,7 +1201,7 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit,
   if(rgba == NULL){
     return NULL;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   ncvisual* ncv = ncvisual_from_rgba(rgba, py, px * 4, px);
   free(rgba);
@@ -1241,22 +1243,26 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   return ret;
 }
 
-int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel){
-  if(y >= n->pixy || y < 0){
+int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x, uint32_t pixel){
+  if(y >= n->pixy){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
-  if(x >= n->pixx || x < 0){
+  if(x >= n->pixx){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
   n->data[y * (n->rowstride / 4) + x] = pixel;
   return 0;
 }
 
-int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
-  if(y >= n->pixy || y < 0){
+int ncvisual_at_yx(const ncvisual* n, unsigned y, unsigned x, uint32_t* pixel){
+  if(y >= n->pixy){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
-  if(x >= n->pixx || x < 0){
+  if(x >= n->pixx){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
   *pixel = n->data[y * (n->rowstride / 4) + x];
@@ -1287,7 +1293,7 @@ create_polyfill_op(int y, int x, struct topolyfill** stack){
 // exploding once i multithreaded the [yield] demo. hence the clumsy stack
 // and hand-rolled iteration. alas, poor yorick!
 static int
-ncvisual_polyfill_core(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
+ncvisual_polyfill_core(ncvisual* n, unsigned y, unsigned x, uint32_t rgba, uint32_t match){
   struct topolyfill* stack = malloc(sizeof(*stack));
   if(stack == NULL){
     return -1;
@@ -1332,11 +1338,13 @@ ncvisual_polyfill_core(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match)
   return ret;
 }
 
-int ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba){
-  if(y >= n->pixy || y < 0){
+int ncvisual_polyfill_yx(ncvisual* n, unsigned y, unsigned x, uint32_t rgba){
+  if(y >= n->pixy){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
-  if(x >= n->pixx || x < 0){
+  if(x >= n->pixx){
+    logerror("invalid coordinates %u/%u\n", y, x);
     return -1;
   }
   uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];

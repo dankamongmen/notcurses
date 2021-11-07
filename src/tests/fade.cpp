@@ -38,14 +38,14 @@ TEST_CASE("Fade") {
     return;
   }
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n_, &dimy, &dimx);
   nccell c = CELL_CHAR_INITIALIZER('*');
   nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;
   CHECK(!ncplane_set_scrolling(n_, true));
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
+  for(unsigned y = 0 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       rgb -= 32;
       if(rgb < 32){
         rgb = 0xffffffu;

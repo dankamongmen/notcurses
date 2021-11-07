@@ -319,7 +319,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 15, 0);
-    ncplane_stain(n, y - 1, 79, ul, ur, ll, lr);
+    ncplane_stain(n, -1, -1, y - 1, 79, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 12, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
@@ -330,7 +330,7 @@ unicodedumper(struct ncplane* n, const char* indent){
 
 static int
 display_logo(struct ncplane* n, const char* path){
-  int cpixy, cpixx;
+  unsigned cpixy, cpixx;
   ncplane_pixelgeom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
@@ -480,7 +480,7 @@ int main(int argc, const char** argv){
   // so that we know whether we're talking to gpm
   notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
   const char indent[] = "";
-  int dimx;
+  unsigned dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);
   if(dimx < 80){
     ncplane_set_fg_rgb(stdn, 0xff5349);

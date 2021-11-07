@@ -3687,7 +3687,7 @@ int mojibake_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int dimy;
+  unsigned dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   ncplane_greyscale(std);
   struct ncplane* title = maketitle(std);
@@ -3714,7 +3714,7 @@ int mojibake_demo(struct notcurses* nc){
     makegroup(title, dimy + 1, face_costume, "face-costume"),
     makegroup(title, dimy + 1, cat_face, "cat-face"),
     makegroup(title, dimy + 1, monkey_face, "monkey-face"),
-    makegroup(title, dimy + 1, emotion, "emotion"),
+    //makegroup(title, dimy + 1, emotion, "emotion"),
     makegroup(title, dimy + 1, hand_fingers_open, "hand-fingers-open"),
     makegroup(title, dimy + 1, hand_fingers_partial, "hand-fingers-partial"),
     makegroup(title, dimy + 1, hand_single_finger, "hand-single-finger"),

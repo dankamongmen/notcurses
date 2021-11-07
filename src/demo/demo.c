@@ -21,7 +21,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixetunchmdbkywgarvlsfjqzo";
+static const char DEFAULT_DEMO[] = "ixetunchmdbkywjgarvlsfqzo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -388,6 +388,7 @@ static int
 summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvideo){
   notcurses_leave_alternate_screen(nc);
   struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_bg_default(n);
   ncplane_set_scrolling(n, true);
   bool failed = false;
   uint64_t totalbytes = 0;
@@ -530,7 +531,7 @@ int main(int argc, char** argv){
   notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT | NCMICE_DRAG_EVENT);
   const bool canimage = notcurses_canopen_images(nc);
   const bool canvideo = notcurses_canopen_videos(nc);
-  int dimx, dimy;
+  unsigned dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   if(input_dispatcher(nc)){
     goto err;

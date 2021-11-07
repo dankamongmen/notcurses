@@ -241,7 +241,7 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
   return -1;
 }
 
-void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
+void ncplane_dim_yx(const ncplane* n, unsigned* rows, unsigned* cols){
   if(rows){
     *rows = n->leny;
   }
@@ -252,7 +252,7 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
-int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
+int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b){
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(tcache->ttyfd < 0){
     if(rows){
@@ -267,7 +267,7 @@ int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b){
     }
     return 0;
   }
-  int rowsafe, colsafe;
+  unsigned rowsafe, colsafe;
   if(rows == NULL){
     rows = &rowsafe;
   }
@@ -601,25 +601,25 @@ void ncplane_home(ncplane* n){
 }
 
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
-  if(x >= n->lenx){
-    logerror("Target x %d >= length %d\n", x, n->lenx);
-    return -1;
-  }else if(x < 0){
+  if(x < 0){
     if(x < -1){
       logerror("Negative target x %d\n", x);
       return -1;
     }
+  }else if((unsigned)x >= n->lenx){
+    logerror("Target x %d >= length %u\n", x, n->lenx);
+    return -1;
   }else{
     n->x = x;
   }
-  if(y >= n->leny){
-    logerror("Target y %d >= height %d\n", y, n->leny);
-    return -1;
-  }else if(y < 0){
+  if(y < 0){
     if(y < -1){
       logerror("Negative target y %d\n", y);
       return -1;
     }
+  }else if(y >= n->leny){
+    logerror("Target y %d >= height %u\n", y, n->leny);
+    return -1;
   }else{
     n->y = y;
   }
@@ -717,7 +717,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     logerror("Can't achieve meaningless size %ux%u\n", ylen, xlen);
     return -1;
   }
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   if(keepleny + keepy > (unsigned)rows){
     logerror("Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
@@ -1101,7 +1101,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       goto err;
     }
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   if(update_term_dimensions(&dimy, &dimx, &ret->tcache, ret->margin_b)){
     goto err;
   }
@@ -1225,7 +1225,7 @@ int notcurses_stop(notcurses* nc){
     // wrote. move it to the bottom left of the screen, *unless*
     // PRESERVE_CURSOR was used, which is a bit more complex.
     if((nc->flags & NCOPTION_PRESERVE_CURSOR) || !get_escape(&nc->tcache, ESCAPE_SMCUP)){
-      int targy = nc->rstate.logendy;
+      unsigned targy = nc->rstate.logendy;
       fbuf_reset(&nc->rstate.f);
       if(++targy >= nc->lfdimy){
         fbuf_putc(&nc->rstate.f, '\n');
@@ -1547,7 +1547,7 @@ void scroll_down(ncplane* n){
     }
     n->logrow = (n->logrow + 1) % n->leny;
     nccell* row = n->fb + nfbcellidx(n, n->y, 0);
-    for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
+    for(unsigned clearx = 0 ; clearx < n->lenx ; ++clearx){
       nccell_release(n, &row[clearx]);
     }
     memset(row, 0, sizeof(*row) * n->lenx);
@@ -1998,7 +1998,7 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
                 const nccell* ll, const nccell* lr, const nccell* hl,
                 const nccell* vl, unsigned ystop, unsigned xstop,
                 unsigned ctlword){
-  int yoff, xoff, ymax, xmax;
+  int yoff, xoff;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < (unsigned)yoff + 1){
@@ -2009,6 +2009,7 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
     logerror("xstop (%u) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
+  unsigned ymax, xmax;
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
   if(xstop >= (unsigned)xmax || ystop >= (unsigned)ymax){
@@ -2211,7 +2212,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
     return -1;
   }
-  if(ystart >= ncplane_dim_y(n) || xstart >= ncplane_dim_x(n)){
+  if(ystart >= (int)ncplane_dim_y(n) || xstart >= (int)ncplane_dim_x(n)){
     logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
     return -1;
   }
@@ -2225,7 +2226,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     xstart = 0;
     xlen = ncplane_dim_x(n);
   }
-  if(xlen > ncplane_dim_x(n) || xstart + xlen > ncplane_dim_x(n)){
+  if(xlen > (int)ncplane_dim_x(n) || xstart + xlen > (int)ncplane_dim_x(n)){
     xlen = ncplane_dim_x(n) - xstart;
   }
   if(ylen < 0){
@@ -2238,12 +2239,12 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     ystart = 0;
     ylen = ncplane_dim_y(n);
   }
-  if(ylen > ncplane_dim_y(n) || ystart + ylen > ncplane_dim_y(n)){
+  if(ylen > (int)ncplane_dim_y(n) || ystart + ylen > (int)ncplane_dim_y(n)){
     ylen = ncplane_dim_y(n) - ystart;
   }
   // special-case the full plane erasure, as it's powerfully optimized (O(1))
   if(ystart == 0 && xstart == 0 &&
-      ylen == ncplane_dim_y(n) && xlen == ncplane_dim_x(n)){
+      ylen == (int)ncplane_dim_y(n) && xlen == (int)ncplane_dim_x(n)){
     int tmpy = n->y; // preserve cursor location
     int tmpx = n->x;
     ncplane_erase(n);
@@ -2378,7 +2379,8 @@ bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
     if(*y < 0){
       return false;
     }
-    if(*y >= n->leny){
+    unsigned yval = *y;
+    if(yval >= n->leny){
       return false;
     }
   }
@@ -2386,7 +2388,8 @@ bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
     if(*x < 0){
       return false;
     }
-    if(*x >= n->lenx){
+    unsigned xval = *x;
+    if(xval >= n->lenx){
       return false;
     }
   }
@@ -2464,7 +2467,7 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
 int ncplane_resize_marginalized(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
   // a marginalized plane cannot be larger than its oppressor plane =]
-  int maxy, maxx;
+  unsigned maxy, maxx;
   if(parent == n){ // root plane, need to use pile size
     ncpile* p = ncplane_pile(n);
     maxy = p->dimy;
@@ -2478,7 +2481,7 @@ int ncplane_resize_marginalized(ncplane* n){
   if((maxx -= (n->margin_r + (n->absx - n->boundto->absx))) < 1){
     maxx = 1;
   }
-  int oldy, oldx;
+  unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > maxy ? maxy : oldy;
   int keeplenx = oldx > maxx ? maxx : oldx;
@@ -2495,7 +2498,7 @@ int ncplane_resize_maximize(ncplane* n){
   const ncpile* pile = ncplane_pile(n); // FIXME should be taken against parent
   const int rows = pile->dimy;
   const int cols = pile->dimx;
-  int oldy, oldx;
+  unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > rows ? rows : oldy;
   int keeplenx = oldx > cols ? cols : oldx;
@@ -2951,9 +2954,21 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 }
 
 // return a heap-allocated copy of the contents
-char* ncplane_contents(ncplane* nc, unsigned begy, unsigned begx, unsigned leny, unsigned lenx){
-  if(begx >= (unsigned)nc->lenx || begy >= (unsigned)nc->leny){
-    logerror("beginning coordinates (%u/%u) exceeded area (%d/%d)\n",
+char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned lenx){
+  if(begy < 0){
+    if(begy != -1){
+      logerror("invalid y coordinate: %d\n", begy);
+    }
+    begy = nc->y;
+  }
+  if(begx < 0){
+    if(begx != -1){
+      logerror("invalid x coordinate: %d\n", begx);
+    }
+    begx = nc->x;
+  }
+  if((unsigned)begx >= nc->lenx || (unsigned)begy >= nc->leny){
+    logerror("beginning coordinates (%d/%d) exceeded area (%u/%u)\n",
              begy, begx, nc->leny, nc->lenx);
     return NULL;
   }
@@ -2964,7 +2979,7 @@ char* ncplane_contents(ncplane* nc, unsigned begy, unsigned begx, unsigned leny,
     leny = nc->leny - begy;
   }
   if(nc->lenx - begx < lenx || nc->leny - begy < leny){
-    logerror("ending coordinates (%u/%u) exceeded lengths (%d/%d)\n",
+    logerror("ending coordinates (%u/%u) exceeded lengths (%u/%u)\n",
              begy + leny, begx + lenx, nc->leny, nc->lenx);
     return NULL;
   }
@@ -3173,8 +3188,8 @@ int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
 }
 
 void ncplane_pixelgeom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
-                       int* RESTRICT celldimy, int* RESTRICT celldimx,
-                       int* RESTRICT maxbmapy, int* RESTRICT maxbmapx){
+                       unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
+                       unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx){
   notcurses* nc = ncplane_notcurses(n);
   if(celldimy){
     *celldimy = nc->tcache.cellpixy;

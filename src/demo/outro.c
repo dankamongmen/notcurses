@@ -58,7 +58,6 @@ videothread(void* vnc){
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
     .y = 1,
-    .flags = NCVISUAL_OPTION_ADDALPHA,
   };
   int three = 3;
   if(ncvisual_blit(nc, ncv, &ovopts) == NULL){
@@ -186,7 +185,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
   struct ncvisual* chncv = NULL;

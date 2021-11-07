@@ -256,7 +256,7 @@ int grid_demo(struct notcurses* nc){
 
   int ret = 0;
   for(int i = 0 ; i < 256 ; ++i){
-    int maxx, maxy;
+    unsigned maxx, maxy;
     notcurses_term_dim_yx(nc, &maxy, &maxx);
     int rs = 255 / maxx;
     int gs = 255 / (maxx + maxy);

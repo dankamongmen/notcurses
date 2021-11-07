@@ -48,7 +48,7 @@ static int
 progbar_redraw(ncprogbar* n){
   struct ncplane* ncp = ncprogbar_plane(n);
   // get current dimensions; they might have changed
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(ncp, &dimy, &dimx);
   const bool horizontal = dimx > dimy;
   int range, delt, pos;
@@ -83,11 +83,11 @@ progbar_redraw(ncprogbar* n){
   }
   ncplane_home(ncp);
   if(notcurses_canutf8(ncplane_notcurses(ncp))){
-    if(ncplane_highgradient(ncp, ul, ur, bl, br, dimy - 1, dimx - 1) <= 0){
+    if(ncplane_gradient2x1(ncp, -1, -1, 0, 0, ul, ur, bl, br) <= 0){
       return -1;
     }
   }else{
-    if(ncplane_gradient(ncp, " ", 0, ul, ur, bl, br, dimy - 1, dimx - 1) <= 0){
+    if(ncplane_gradient(ncp, -1, -1, 0, 0, " ", 0, ul, ur, bl, br) <= 0){
       return -1;
     }
   }
@@ -117,7 +117,7 @@ progbar_redraw(ncprogbar* n){
   const int egcidx = (int)(chunk / (eachcell / 8));
   const char* egc = egcs + egcidx * 5;
   if(horizontal){
-    for(int freepos = 0 ; freepos < dimy ; ++freepos){
+    for(unsigned freepos = 0 ; freepos < dimy ; ++freepos){
       if(notcurses_canutf8(ncplane_notcurses(ncp))){
         nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
         if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
@@ -131,7 +131,7 @@ progbar_redraw(ncprogbar* n){
       }
     }
   }else{
-    for(int freepos = 0 ; freepos < dimx ; ++freepos){
+    for(unsigned freepos = 0 ; freepos < dimx ; ++freepos){
       if(notcurses_canutf8(ncplane_notcurses(ncp))){
         nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
         if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
@@ -149,13 +149,13 @@ progbar_redraw(ncprogbar* n){
   pos += delt;
   while(pos >= 0 && pos < range){
     if(horizontal){
-      for(int freepos = 0 ; freepos < dimy ; ++freepos){
+      for(unsigned freepos = 0 ; freepos < dimy ; ++freepos){
         nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
         nccell_release(ncp, c);
         nccell_init(c);
       }
     }else{
-      for(int freepos = 0 ; freepos < dimx ; ++freepos){
+      for(unsigned freepos = 0 ; freepos < dimx ; ++freepos){
         nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
         nccell_release(ncp, c);
         nccell_init(c);

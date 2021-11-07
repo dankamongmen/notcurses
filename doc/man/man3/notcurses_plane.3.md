@@ -125,17 +125,17 @@ typedef struct ncplane_options {
 
 **uint32_t* ncplane_as_rgba(const struct ncplane* ***nc***, ncblitter_e ***blit***, unsigned ***begy***, unsigned ***begx***, unsigned ***leny***, unsigned ***lenx***, unsigned* ***pxdimy***, unsigned* ***pxdimx***);**
 
-**char* ncplane_contents(const struct ncplane* ***nc***, unsigned ***begy***, unsigned ***begx***, unsigned ***leny***, unsigned ***lenx***);**
+**char* ncplane_contents(const struct ncplane* ***nc***, int ***begy***, int ***begx***, unsigned ***leny***, unsigned ***lenx***);**
 
 **void* ncplane_set_userptr(struct ncplane* ***n***, void* ***opaque***);**
 
 **void* ncplane_userptr(struct ncplane* ***n***);**
 
-**void ncplane_dim_yx(const struct ncplane* ***n***, int* restrict ***rows***, int* restrict ***cols***);**
+**void ncplane_dim_yx(const struct ncplane* ***n***, unsigned* restrict ***rows***, unsigned* restrict ***cols***);**
 
-**static inline int ncplane_dim_y(const struct ncplane* ***n***);**
+**static inline unsigned ncplane_dim_y(const struct ncplane* ***n***);**
 
-**static inline int ncplane_dim_x(const struct ncplane* ***n***);**
+**static inline unsigned ncplane_dim_x(const struct ncplane* ***n***);**
 
 **void ncplane_cursor_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 
@@ -205,7 +205,7 @@ typedef struct ncplane_options {
 
 **void notcurses_drop_planes(struct notcurses* ***nc***);**
 
-**int ncplane_mergedown(struct ncplane* ***src***, struct ncplane* ***dst***, unsigned ***begsrcy***, unsigned ***begsrcx***, unsigned ***leny***, unsigned ***lenx***, unsigned ***dsty***, unsigned ***dstx***);**
+**int ncplane_mergedown(struct ncplane* ***src***, struct ncplane* ***dst***, int ***begsrcy***, int ***begsrcx***, unsigned ***leny***, unsigned ***lenx***, int ***dsty***, int ***dstx***);**
 
 **int ncplane_mergedown_simple(struct ncplane* restrict ***src***, struct ncplane* restrict ***dst***);**
 
@@ -225,7 +225,7 @@ typedef struct ncplane_options {
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
-**void ncplane_pixelgeom(struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, int* restrict ***celldimy***, int* restrict ***celldimx***, int* restrict ***maxbmapy***, int* restrict ***maxbmapx***);**
+**void ncplane_pixelgeom(const struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, unsigned* restrict ***celldimy***, unsigned* restrict ***celldimx***, unsigned* restrict ***maxbmapy***, unsigned* restrict ***maxbmapx***);**
 
 **int ncplane_set_name(struct ncplane* ***n***, const char* ***name***);**
 

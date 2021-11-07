@@ -29,7 +29,7 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&opts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dimy, &dimx), NULL);
   if(!n){
     notcurses_stop(nc);

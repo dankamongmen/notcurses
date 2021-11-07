@@ -130,7 +130,7 @@ int main(int argc, char **argv){
       putchar('\n');
     }
     if(realcols > 20){
-      for(int z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
+      for(unsigned z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
         if(z % 10){
           putchar(' ');
         }else{

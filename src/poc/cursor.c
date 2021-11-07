@@ -35,13 +35,13 @@ int main(void){
   if(n == NULL){
     return EXIT_FAILURE;
   }
-  int y, x;
+  unsigned y, x;
   if(ncdirect_cursor_yx(n, &y, &x)){
     goto err;
   }
-  int dimx = ncdirect_dim_x(n);
-  int dimy = ncdirect_dim_y(n);
-  printf("Cursor: column %d/%d row %d/%d\n", x, dimx, y, dimy);
+  unsigned dimx = ncdirect_dim_x(n);
+  unsigned dimy = ncdirect_dim_y(n);
+  printf("Cursor: column %u/%u row %u/%u\n", x, dimx, y, dimy);
   ncdirect_stop(n);
   return EXIT_SUCCESS;
 

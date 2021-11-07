@@ -30,7 +30,7 @@ int main(int argc, const char** argv){
              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   while(*++argv){
     if(render_qrcode(std, dimy, dimx, *argv)){

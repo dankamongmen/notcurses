@@ -6,7 +6,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   if(arrcount == 0 || arr == NULL){
     return -1;
   }
-  int stdy, stdx;
+  unsigned stdy, stdx;
   notcurses_term_dim_yx(nc, &stdy, &stdx);
   // an erase+render cycle ought not change the screen, as we duplicated it
   struct timespec iterdelay;
@@ -104,7 +104,7 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 // you played yourself https://genius.com/De-la-soul-fallin-lyrics
 int fission_demo(struct notcurses* nc){
   struct ncplane* npl = NULL;
-  int dimx, dimy;
+  unsigned dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
   bool* usemap = malloc(usesize);
@@ -126,8 +126,8 @@ int fission_demo(struct notcurses* nc){
   //  * newy/newx: actual geometry of current brick
   //  * usey/usex: 
   ncplane_greyscale(stdn);
-  for(int y = 1 ; y < dimy ; ++y){
-    int x = 0;
+  for(unsigned y = 1 ; y < dimy ; ++y){
+    unsigned x = 0;
     while(x < dimx){
       if(usemap[y * dimx + x]){ // skip if we've already been copied
         ++x;

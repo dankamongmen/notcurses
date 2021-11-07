@@ -86,7 +86,7 @@ debug_toggle(struct notcurses* nc){
     debug = NULL;
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   fbuf f;
   if(fbuf_init_small(&f)){
@@ -123,7 +123,7 @@ debug_toggle(struct notcurses* nc){
     return;
   }
   fbuf_free(&f);
-  for(int y = 0 ; y < ncplane_dim_y(n) ; ++y){
+  for(unsigned y = 0 ; y < ncplane_dim_y(n) ; ++y){
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
     nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
@@ -144,7 +144,7 @@ about_toggle(struct notcurses* nc){
   }
   const int ABOUT_ROWS = 9;
   const int ABOUT_COLS = 40;
-  int dimy;
+  unsigned dimy;
   notcurses_term_dim_yx(nc, &dimy, NULL);
   ncplane_options nopts = {
     .y = 3,
@@ -410,7 +410,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   if(hud){
     return NULL;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     // FPS graph is 6 rows tall; we want one row above it
@@ -632,7 +632,7 @@ int demo_render(struct notcurses* nc){
 
 int fpsgraph_init(struct notcurses* nc){
   const int PLOTHEIGHT = 6;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_options nopts = {
     .y = NCALIGN_BOTTOM,

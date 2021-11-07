@@ -81,7 +81,7 @@ typedef struct ncplane {
   int absx, absy;        // origin of the plane relative to the pile's origin
                          //  also used as left and top margin on resize by
                          //  ncplane_resize_marginalized()
-  int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
+  unsigned lenx, leny;   // size of the plane, [0..len{x,y}) is addressable
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
 
@@ -294,7 +294,7 @@ typedef struct ncpile {
   struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
   size_t crenderlen;          // size of crender vector
-  int dimy, dimx;             // rows and cols at time of render
+  unsigned dimy, dimx;        // rows and cols at time of last render
   int scrolls;                // how many real lines need be scrolled at raster
   sprixel* sprixelcache;      // list of sprixels
 } ncpile;
@@ -317,8 +317,8 @@ typedef struct notcurses {
   ncpile* last_pile;
   egcpool pool;   // egcpool for lastframe
 
-  int lfdimx;     // dimensions of lastframe, unchanged by screen resize
-  int lfdimy;     // lfdimx/lfdimy are 0 until first rasterization
+  unsigned lfdimx; // dimensions of lastframe, unchanged by screen resize
+  unsigned lfdimy; // lfdimx/lfdimy are 0 until first rasterization
 
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
@@ -555,7 +555,7 @@ pool_extended_gcluster(const egcpool* pool, const nccell* c){
 }
 
 static inline nccell*
-ncplane_cell_ref_yx(const ncplane* n, int y, int x){
+ncplane_cell_ref_yx(const ncplane* n, unsigned y, unsigned x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
@@ -568,12 +568,12 @@ cell_debug(const egcpool* p, const nccell* c){
 
 static inline void
 plane_debug(const ncplane* n, bool details){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   fprintf(stderr, "p: %p dim: %d/%d poolsize: %d\n", n, dimy, dimx, n->pool.poolsize);
   if(details){
-    for(int y = 0 ; y < 1 ; ++y){
-      for(int x = 0 ; x < 10 ; ++x){
+    for(unsigned y = 0 ; y < 1 ; ++y){
+      for(unsigned x = 0 ; x < 10 ; ++x){
         const nccell* c = &n->fb[fbcellidx(y, dimx, x)];
         fprintf(stderr, "[%03d/%03d] ", y, x);
         cell_debug(&n->pool, c);
@@ -764,7 +764,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
 // happy fact: common reported values for maximum sixel height are 256, 1024,
 // and 4096...not a single goddamn one of which is divisible by six. augh.
 static inline void
-clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy, ncscale_e scaling){
+clamp_to_sixelmax(const tinfo* t, unsigned* y, unsigned* x, unsigned* outy, ncscale_e scaling){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
   }
@@ -869,7 +869,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int yoff, int xoff,
                             unsigned ylen, unsigned xlen);
 
-int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b);
+int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b);
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){
@@ -935,7 +935,7 @@ int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
 //  steps / 2 is to work around truncate-towards-zero).
 static int
 calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
-                        int y, int x, int ylen, int xlen){
+                        unsigned y, unsigned x, unsigned ylen, unsigned xlen){
   const int avm = (ylen - 1) - y;
   const int ahm = (xlen - 1) - x;
   if(xlen < 2){
@@ -958,7 +958,7 @@ calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
 // calculate one of the channels of a gradient at a particular point.
 static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
-                      int y, int x, int ylen, int xlen){
+                      unsigned y, unsigned x, unsigned ylen, unsigned xlen){
   uint32_t chan = 0;
   ncchannel_set_rgb8_clipped(&chan,
                            calc_gradient_component(ncchannel_r(ul), ncchannel_r(ur),
@@ -978,8 +978,8 @@ calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
 // into `channels'. x and y ought be the location within the gradient.
 static inline void
 calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
-                       uint64_t ll, uint64_t lr, int y, int x,
-                       int ylen, int xlen){
+                       uint64_t ll, uint64_t lr, unsigned y, unsigned x,
+                       unsigned ylen, unsigned xlen){
   if(!ncchannels_fg_default_p(ul)){
     ncchannels_set_fchannel(channels,
                             calc_gradient_channel(ncchannels_fchannel(ul),
@@ -1548,7 +1548,8 @@ rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
 int ncvisual_geom_inner(const tinfo* ti, const struct ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
                         const struct blitset** bset,
-                        int* disppxy, int* disppxx, int* outy, int* outx,
+                        unsigned* disppxy, unsigned* disppxx,
+                        unsigned* outy, unsigned* outx,
                         int* placey, int* placex);
 
 static inline const struct blitset*

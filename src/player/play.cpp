@@ -88,7 +88,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(!nc.render()){
     return -1;
   }
-  int dimx, dimy, oldx, oldy;
+  unsigned dimx, dimy, oldx, oldy;
   nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(vopts->n, &oldy, &oldx);
   uint64_t absnow = timespec_to_ns(abstime);
@@ -346,7 +346,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     if(dm.streamfile(argv[i], perframe_direct, &vopts, NULL)){
       failed = true;
     }
-    int y, x;
+    unsigned y, x;
     dm.get_cursor_yx(&y, &x);
     if(x){
       std::cout << std::endl;
@@ -361,7 +361,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                bool quiet, bool loop,
                                double timescale, double displaytime,
                                bool noninterp, uint32_t transcolor){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   uint64_t transchan = 0;
   ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);

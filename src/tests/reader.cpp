@@ -7,7 +7,7 @@ TEST_CASE("Readers") {
   if(!nc_){
     return;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));

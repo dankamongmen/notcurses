@@ -17,7 +17,7 @@ TEST_CASE("NotcursesBase") {
   }
 
   SUBCASE("TermDimensions") {
-    int x, y;
+    unsigned x, y;
     notcurses_term_dim_yx(nc_, &y, &x);
     auto stry = getenv("LINES");
     if(stry){
@@ -32,9 +32,9 @@ TEST_CASE("NotcursesBase") {
   }
 
   SUBCASE("RefreshSameSize") {
-    int x, y;
+    unsigned x, y;
     notcurses_term_dim_yx(nc_, &y, &x);
-    int newx, newy;
+    unsigned newx, newy;
     CHECK(0 == notcurses_refresh(nc_, &newy, &newx));
     CHECK(newx == x);
     CHECK(newy == y);
@@ -56,17 +56,17 @@ TEST_CASE("NotcursesBase") {
 
   // create planes partitioning the entirety of the screen, one at each coordinate
   SUBCASE("TileScreenWithPlanes") {
-    int maxx, maxy;
+    unsigned maxx, maxy;
     notcurses_term_dim_yx(nc_, &maxy, &maxx);
     auto total = maxx * maxy;
     auto planes = new struct ncplane*[total];
     int* planesecrets = new int[total];
-    for(int y = 0 ; y < maxy ; ++y){
-      for(int x = 0 ; x < maxx ; ++x){
+    for(unsigned y = 0 ; y < maxy ; ++y){
+      for(unsigned x = 0 ; x < maxx ; ++x){
         const auto idx = y * maxx + x;
         struct ncplane_options nopts = {
-          .y = y,
-          .x = x,
+          .y = static_cast<int>(y),
+          .x = static_cast<int>(x),
           .rows = 1,
           .cols = 1,
           .userptr = &planesecrets[idx],
@@ -80,8 +80,8 @@ TEST_CASE("NotcursesBase") {
       }
     }
     REQUIRE(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < maxy ; ++y){
-      for(int x = 0 ; x < maxx ; ++x){
+    for(unsigned y = 0 ; y < maxy ; ++y){
+      for(unsigned x = 0 ; x < maxx ; ++x){
         const auto idx = y * maxx + x;
         auto userptr = ncplane_userptr(planes[idx]);
         REQUIRE(userptr);

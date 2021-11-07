@@ -26601,7 +26601,7 @@ int jungle_demo(struct notcurses* nc){
   if(out < ORIGWIDTH * ORIGHEIGHT){ // uh-oh
     return -1;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   // FIXME rewrite all of this using modern ncvisual, sheesh
   dimy *= 2; // use half blocks

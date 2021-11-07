@@ -6,13 +6,13 @@
 // gradient of 'A's changing color and background changing in reverse
 static int
 gradientA(struct notcurses* nc){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   uint64_t ul = NCCHANNELS_INITIALIZER(0, 0, 0, 0xff, 0xff, 0xff);
   uint64_t ur = NCCHANNELS_INITIALIZER(0, 0xff, 0xff, 0xff, 0, 0);
   uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0, 0, 0, 0xff, 0xff);
   uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-  if(ncplane_gradient(stdn, "A", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  if(ncplane_gradient(stdn, 0, 0, 0, 0, "A", NCSTYLE_NONE, ul, ur, ll, lr) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){
@@ -24,20 +24,20 @@ gradientA(struct notcurses* nc){
 
 static int
 gradStriations(struct notcurses* nc){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   uint64_t ul = NCCHANNELS_INITIALIZER(0, 0, 0, 0xff, 0xff, 0xff);
   uint64_t ur = NCCHANNELS_INITIALIZER(0, 0xff, 0xff, 0xff, 0, 0);
   uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0, 0, 0, 0xff, 0xff);
   uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-  if(ncplane_gradient(stdn, "▄", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  if(ncplane_gradient(stdn, 0, 0, 0, 0, "▄", NCSTYLE_NONE, ul, ur, ll, lr) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){
     return -1;
   }
   sleep(1);
-  if(ncplane_gradient(stdn, "▀", NCSTYLE_NONE, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  if(ncplane_gradient(stdn, 0, 0, 0, 0, "▀", NCSTYLE_NONE, ul, ur, ll, lr) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){
@@ -49,13 +49,13 @@ gradStriations(struct notcurses* nc){
 
 static int
 gradHigh(struct notcurses* nc){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   uint64_t ul = NCCHANNEL_INITIALIZER(0, 0, 0);
   uint64_t ur = NCCHANNEL_INITIALIZER(0, 0xff, 0xff);
   uint64_t ll = NCCHANNEL_INITIALIZER(0xff, 0, 0);
   uint64_t lr = NCCHANNEL_INITIALIZER(0xff, 0xff, 0xff);
-  if(ncplane_highgradient(stdn, ul, ur, ll, lr, dimy - 1, dimx - 1) <= 0){
+  if(ncplane_gradient2x1(stdn, 0, 0, 0, 0, ul, ur, ll, lr) <= 0){
     return -1;
   }
   if(notcurses_render(nc)){

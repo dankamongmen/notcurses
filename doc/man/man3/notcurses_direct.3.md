@@ -38,9 +38,9 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_set_bg_palindex(struct ncdirect* ***nc***, int ***pidx***);**
 
-**int ncdirect_dim_x(const struct ncdirect* ***nc***);**
+**unsigned ncdirect_dim_x(const struct ncdirect* ***nc***);**
 
-**int ncdirect_dim_y(const struct ncdirect* ***nc***);**
+**unsigned ncdirect_dim_y(const struct ncdirect* ***nc***);**
 
 **unsigned ncdirect_supported_styles(const struct ncdirect* ***nc***);**
 
@@ -57,6 +57,8 @@ notcurses_direct - minimal notcurses instances for styling text
 **int ncdirect_stop(struct ncdirect* ***nc***);**
 
 **int ncdirect_cursor_move_yx(struct ncdirect* ***n***, int ***y***, int ***x***);**
+
+**int ncdirect_cursor_yx(struct ncdirect* ***n***, unsigned* ***y***, unsigned* ***x***);**
 
 **int ncdirect_cursor_enable(struct ncdirect* ***nc***);**
 

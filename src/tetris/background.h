@@ -14,7 +14,7 @@ void DrawBoard() { // draw all fixed components of the game
   }catch(...){
     stdplane_->printf(1, 1, "couldn't load %s", BackgroundFile.c_str());
   }
-  int y, x;
+  unsigned y, x;
   stdplane_->get_dim(&y, &x);
   board_top_y_ = y - (BOARD_HEIGHT + 2);
   board_ = std::make_unique<ncpp::Plane>(BOARD_HEIGHT, BOARD_WIDTH * 2,

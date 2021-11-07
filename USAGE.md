@@ -230,7 +230,7 @@ int ncpile_render_to_file(struct ncplane* p, FILE* fp);
 // Retrieve the contents of the specified cell as last rendered. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
 // styles and channels are written to 'attrword' and 'channels', respectively.
-char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
+char* notcurses_at_yx(struct notcurses* nc, unsigned yoff, unsigned xoff,
                       uint16_t* styles, uint64_t* channels);
 ```
 
@@ -248,14 +248,14 @@ const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
 // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 static inline struct ncplane*
-notcurses_stddim_yx(struct notcurses* nc, int* restrict y, int* restrict x){
+notcurses_stddim_yx(struct notcurses* nc, unsigned* restrict y, unsigned* restrict x){
   struct ncplane* s = notcurses_stdplane(nc); // can't fail
   ncplane_dim_yx(s, y, x); // accepts NULL
   return s;
 }
 
 static inline const struct ncplane*
-notcurses_stddim_yx_const(const struct notcurses* nc, int* restrict y, int* restrict x){
+notcurses_stddim_yx_const(const struct notcurses* nc, unsigned* restrict y, unsigned* restrict x){
   const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
   ncplane_dim_yx(s, y, x); // accepts NULL
   return s;
@@ -279,8 +279,8 @@ struct ncplane* notcurses_bottom(struct notcurses* n);
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
-                      int* restrict cols){
+notcurses_term_dim_yx(const struct notcurses* n, unsigned* restrict rows,
+                      unsigned* restrict cols){
   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
@@ -289,7 +289,7 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 // primarily useful if the screen is externally corrupted, or if an
 // NCKEY_RESIZE event has been read and you're not yet ready to render. The
 // current screen geometry is returned in 'y' and 'x', if they are not NULL.
-int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
+int notcurses_refresh(struct notcurses* n, unsigned* restrict y, unsigned* restrict x);
 
 // Enable or disable the terminal's cursor, if supported, placing it at
 // 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
@@ -498,7 +498,7 @@ int ncdirect_cursor_down(struct ncdirect* nc, int num);
 // Get the cursor position, when supported. This requires writing to the
 // terminal, and then reading from it. If the terminal doesn't reply, or
 // doesn't reply in a way we understand, the results might be deleterious.
-int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
+int ncdirect_cursor_yx(struct ncdirect* n, unsigned* y, unsigned* x);
 
 // Push or pop the cursor location to the terminal's stack. The depth of this
 // stack, and indeed its existence, is terminal-dependent.
@@ -919,17 +919,17 @@ struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
 // defined as "write to 'dst' the frame that would be rendered were the entire
 // stack made up only of the specified subregion of 'src' and, below it, the
-// subregion of 'dst' having the specified origin. Merging is independent of
+// subregion of 'dst' having the specified origin. Supply -1 to indicate the
+// current cursor position in the relevant dimension. Merging is independent of
 // the position of 'src' viz 'dst' on the z-axis. It is an error to define a
 // subregion that is not entirely contained within 'src'. It is an error to
 // define a target origin such that the projected subregion is not entirely
 // contained within 'dst'.  Behavior is undefined if 'src' and 'dst' are
 // equivalent. 'dst' is modified, but 'src' remains unchanged. Neither 'src'
 // nor 'dst' may have sprixels. Lengths of 0 mean "everything left".
-int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst,
-                      unsigned begsrcy, unsigned begsrcx,
-                      unsigned leny, unsigned lenx,
-                      unsigned dsty, unsigned dstx);
+int ncplane_mergedown(struct ncplane* RESTRICT src, struct ncplane* RESTRICT dst,
+                      int begsrcy, int begsrcx, unsigned leny, unsigned lenx,
+                      int dsty, int dstx);
 
 // Merge the entirety of 'src' down onto the ncplane 'dst'. If 'src' does not
 // intersect with 'dst', 'dst' will not be changed, but it is not an error.
@@ -1064,16 +1064,16 @@ int ncplane_abs_y(const struct ncplane* n);
 int ncplane_abs_x(const struct ncplane* n);
 
 // Return the dimensions of this ncplane.
-void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);
+void ncplane_dim_yx(struct ncplane* n, unsigned* restrict rows, unsigned* restrict cols);
 
-static inline int
+static inline unsigned
 ncplane_dim_y(const struct ncplane* n){
   int dimy;
   ncplane_dim_yx(n, &dimy, NULL);
   return dimy;
 }
 
-static inline int
+static inline unsigned
 ncplane_dim_x(const struct ncplane* n){
   int dimx;
   ncplane_dim_yx(n, NULL, &dimx);
@@ -1085,8 +1085,8 @@ ncplane_dim_x(const struct ncplane* n){
 // 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
 // be 0. Any of the geometry arguments may be NULL.
 void ncplane_pixelgeom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
-                       int* restrict celldimy, int* restrict celldimx,
-                       int* restrict maxbmapy, int* restrict maxbmapx);
+                       unsigned* restrict celldimy, unsigned* restrict celldimx,
+                       unsigned* restrict maxbmapy, unsigned* restrict maxbmapx);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
@@ -1232,7 +1232,8 @@ uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as 0 to go through the boundary of the plane.
-char* ncplane_contents(const struct ncplane* nc, unsigned begy, unsigned begx,
+// -1 can be specified for 'begx'/'begy' to use the current cursor location.
+char* ncplane_contents(const struct ncplane* nc, int begy, int begx,
                        unsigned leny, unsigned lenx);
 
 // Manipulate the opaque user pointer associated with this plane.
@@ -1641,10 +1642,12 @@ Similarly, areas can be filled with a cell.
 // target. We do the same to all cardinally-connected cells having this same
 // fill target. Returns the number of cells polyfilled. An invalid initial y, x
 // is an error. Returns the number of cells filled, or -1 on error.
-int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
+int ncplane_polyfill_yx(struct ncplane* n, unsigned y, unsigned x, const nccell* c);
 
-// Draw a gradient with its upper-left corner at the current cursor position,
-// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'styles' is
+// Draw a gradient with its upper-left corner at the position specified by 'y'/'x',
+// where -1 means the current cursor position in that dimension. The area is
+// specified by 'ylen'/'xlen', where 0 means "everything remaining below or
+// to the right, respectively." The glyph composed of 'egc' and 'styles' is
 // used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
@@ -1652,40 +1655,38 @@ int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
 // color everything the same, all four channels should be equivalent. The
 // resulting alpha values are equal to incoming alpha values. Returns the
 // number of cells filled on success, or -1 on failure.
-int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t styles,
-                     uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                     int ystop, int xstop);
-
-// Draw a gradient with its upper-left corner at the current cursor position,
-// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-static inline int
-ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t styles,
-                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                       int ylen, int xlen){
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_gradient(n, egc, styles, ul, ur, ll, lr, y + ylen - 1, x + xlen - 1);
-}
+int ncplane_gradient(struct ncplane* n, int y, int x, unsigned ylen,
+                     unsigned xlen, const char* egc, uint16_t styles,
+                     uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
 
 // Do a high-resolution gradient using upper blocks and synced backgrounds.
 // This doubles the number of vertical gradations, but restricts you to
 // half blocks (appearing to be full blocks). Returns the number of cells
 // filled on success, or -1 on error.
-int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
-                         uint32_t ll, uint32_t lr, int ystop, int xstop);
-
-// ncplane_gradent_sized() meets ncplane_highgradient().
-int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
-                               uint32_t ll, uint32_t lr, int ylen, int xlen);
+int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
+                        unsigned xlen, uint32_t ul, uint32_t ur,
+                        uint32_t ll, uint32_t lr);
 
 // Set the given style throughout the specified region, keeping content and
-// channels unchanged. Returns the number of cells set, or -1 on failure.
-int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t styles);
+// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// specified to indicate the cursor's position in that dimension. The area
+// is specified by 'xlen', 'ylen', and 0 may be specified to indicate everything
+// remaining to the right and below, respectively. It is an error for any
+// coordinate to be outside the plane. Returns the number of cells set,
+// or -1 on failure.
+API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
+                       unsigned xlen, uint16_t stylemask);
 
 // Set the given channels throughout the specified region, keeping content and
-// attributes unchanged. Returns the number of cells set, or -1 on failure.
-int ncplane_stain(struct ncplane* n, int ystop, int xstop,
-                  uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr);
+// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// specified to indicate the cursor's position in that dimension. The area
+// is specified by 'xlen', 'ylen', and 0 may be specified to indicate everything
+// remaining to the right and below, respectively. It is an error for any
+// coordinate to be outside the plane. Returns the number of cells set,
+// or -1 on failure.
+API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ylen,
+                      unsigned xlen, uint64_t ul, uint64_t ur,
+                      uint64_t ll, uint64_t lr);
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette
@@ -3328,15 +3329,15 @@ it was built up:
 // blitters actually supported by this environment. if no ncvisual was
 // supplied, only cdimy/cdimx are filled in.
 typedef struct ncvgeom {
-  int pixy, pixx;     // true pixel geometry of ncvisual data
-  int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
-  int rcelly, rcellx; // rendered cell geometry (per visual_options)
-  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
-  int begy, begx;     // upper-left corner of used section
-  int leny, lenx;     // geometry of used section
-  ncblitter_e blitter;// blitter that will be used
+  unsigned pixy, pixx;     // true pixel geometry of ncvisual data
+  unsigned cdimy, cdimx;   // terminal cell geometry when this was calculated
+  unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
+  unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  unsigned begy, begx;     // upper-left corner of used section
+  unsigned leny, lenx;     // geometry of used section
+  unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;     // blitter that will be used
 } ncvgeom;
 
 // all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
@@ -3360,13 +3361,15 @@ int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 int ncvisual_resize_noninterpolative(struct ncvisual* n, int rows, int cols);
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
-int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
+int ncvisual_polyfill_yx(struct ncvisual* n, unsigned y, unsigned x, uint32_t rgba);
 
 // Get the specified pixel from the specified ncvisual.
-int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
+int ncvisual_at_yx(const struct ncvisual* n, unsigned y, unsigned x,
+                   uint32_t* pixel);
 
 // Set the specified pixel in the specified ncvisual.
-int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
+int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x,
+                    uint32_t pixel);
 
 // If a subtitle ought be displayed at this time, return a new plane (bound
 // to 'parent' containing the subtitle, which might be text or graphics

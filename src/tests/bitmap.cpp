@@ -52,7 +52,7 @@ TEST_CASE("Bitmaps") {
     vopts.n = nn;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
-    int maxy, maxx;
+    unsigned maxy, maxx;
     ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
     auto n = ncvisual_blit(nc_, ncv, &vopts);
@@ -539,7 +539,7 @@ TEST_CASE("Bitmaps") {
     CHECK(s->dimy == dimy);
     CHECK(s->dimx == dimx);
     const auto tam = n->tam;
-    for(int i = 0 ; i < s->dimy * s->dimx ; ++i){
+    for(unsigned i = 0 ; i < s->dimy * s->dimx ; ++i){
       int py = (i / dimx) * nc_->tcache.cellpixy;
       int px = (i % dimx) * nc_->tcache.cellpixx;
       // cells with a transparent pixel ought be SPRIXCELL_MIXED;
@@ -595,10 +595,10 @@ TEST_CASE("Bitmaps") {
     CHECK(newn);
     ncplane_move_bottom(newn);
     CHECK(0 == notcurses_render(nc_));
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    for(int y = 0 ; y < dimy ; ++y){
-      for(int x = 0 ; x < dimx ; ++x){
+    for(unsigned y = 0 ; y < dimy ; ++y){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         CHECK(1 == ncplane_putchar_yx(n_, y, x, 'x'));
         // FIXME generates too much output, OOMing ctest
         // CHECK(0 == notcurses_render(nc_));
@@ -624,7 +624,7 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    for(int i = 0 ; i <= ncplane_dim_x(n_) ; ++i){
+    for(unsigned i = 0 ; i <= ncplane_dim_x(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
       CHECK(0 == notcurses_render(nc_));
     }
@@ -646,7 +646,7 @@ TEST_CASE("Bitmaps") {
     vopts.x = ncplane_dim_x(n_) - 3;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    for(int i = ncplane_dim_x(n_) - 3 ; i >= 0 ; --i){
+    for(int i = static_cast<int>(ncplane_dim_x(n_)) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, 0, i));
       CHECK(0 == notcurses_render(nc_));
     }
@@ -667,7 +667,7 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    for(int i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
+    for(unsigned i = 0 ; i <= ncplane_dim_y(n_) ; ++i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
       CHECK(0 == notcurses_render(nc_));
     }
@@ -689,7 +689,7 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    for(int i = ncplane_dim_y(n_) - 3 ; i >= 0 ; --i){
+    for(int i = static_cast<int>(ncplane_dim_y(n_)) - 3 ; i >= 0 ; --i){
       CHECK(0 == ncplane_move_yx(n, i, 0));
       CHECK(0 == notcurses_render(nc_));
     }

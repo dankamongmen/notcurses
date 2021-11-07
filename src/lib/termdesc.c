@@ -1144,7 +1144,7 @@ char* termdesc_longterm(const tinfo* ti){
 // send a u7 request, and wait until we have a cursor report. if input's ttyfd
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
-int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
+int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x){
 #ifdef __MINGW64__
   if(ti->outhandle){
     CONSOLE_SCREEN_BUFFER_INFO conbuf;

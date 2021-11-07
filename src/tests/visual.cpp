@@ -148,9 +148,9 @@ TEST_CASE("Visual") {
     vopts.scaling = NCSCALE_SCALE;
     CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
     ncvisual_destroy(ncv);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    int mindim = dimy < dimx ? dimy : dimx;
+    unsigned mindim = dimy < dimx ? dimy : dimx;
     CHECK(10 == g.pixy);
     CHECK(10 == g.pixx);
     CHECK(1 == g.scaley);
@@ -174,7 +174,7 @@ TEST_CASE("Visual") {
     vopts.scaling = NCSCALE_STRETCH;
     CHECK(0 == ncvisual_geom(nc_, ncv, &vopts, &g));
     ncvisual_destroy(ncv);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     CHECK(10 == g.pixy);
     CHECK(10 == g.pixx);
@@ -310,7 +310,7 @@ TEST_CASE("Visual") {
   // everywhere within that plane
   SUBCASE("Stretch") {
     std::vector<uint32_t> v(1, htole(0xff1c28ff));
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_rgba(v.data(), 1, sizeof(decltype(v)::value_type), 1);
     REQUIRE(nullptr != ncv);
@@ -325,8 +325,8 @@ TEST_CASE("Visual") {
     CHECK(dimy == ncplane_dim_y(n));
     CHECK(dimx == ncplane_dim_x(n));
     ncvisual_destroy(ncv);
-    for(int y = 0 ; y < dimy ; ++y){
-      for(int x = 0 ; x < dimx ; ++x){
+    for(unsigned y = 0 ; y < dimy ; ++y){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         uint16_t stylemask;
         uint64_t channels;
         auto c = ncplane_at_yx(n, y, x, &stylemask, &channels);
@@ -403,7 +403,7 @@ TEST_CASE("Visual") {
     }
     REQUIRE(newn);
     auto enewn = ncvisual_blit(nc_, ncv, &vopts);
-    int newy, newx;
+    unsigned newy, newx;
     ncplane_dim_yx(enewn, &newy, &newx);
     CHECK(6 == newy);
     CHECK(6 == newx);
@@ -414,7 +414,7 @@ TEST_CASE("Visual") {
   }
 
   SUBCASE("LoadRGBAFromMemory") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     // alpha, then b, g, r
     std::vector<uint32_t> rgba(dimx * dimy * 2, htole(0xff88bbccull));
@@ -425,8 +425,8 @@ TEST_CASE("Visual") {
     opts.n = ncp_;
     CHECK(ncp_ == ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < dimy ; ++y){
-      for(int x = 0 ; x < dimx ; ++x){
+    for(unsigned y = 0 ; y < dimy ; ++y){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         uint16_t stylemask;
         uint64_t channels;
         auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
@@ -441,7 +441,7 @@ TEST_CASE("Visual") {
   }
 
   SUBCASE("LoadBGRAFromMemory") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     // A should be at the highest memory address, which would be the most
     // significant byte on little-endian. then r, g, b.
@@ -453,8 +453,8 @@ TEST_CASE("Visual") {
     opts.n = ncp_;
     CHECK(nullptr != ncvisual_blit(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < dimy ; ++y){
-      for(int x = 0 ; x < dimx ; ++x){
+    for(unsigned y = 0 ; y < dimy ; ++y){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         uint16_t stylemask;
         uint64_t channels;
         auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
@@ -647,7 +647,7 @@ TEST_CASE("Visual") {
       };
       auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
       REQUIRE(nullptr != ncvp);
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncvp, &dimy, &dimx);
       CHECK(1 == dimy);
       CHECK(1 == dimx);
@@ -692,7 +692,7 @@ TEST_CASE("Visual") {
         };
         auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
         CHECK(1 == dimy);
         CHECK(1 == dimx);
@@ -740,7 +740,7 @@ TEST_CASE("Visual") {
         };
         auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
         CHECK(1 == dimy);
         CHECK(1 == dimx);
@@ -793,7 +793,7 @@ TEST_CASE("Visual") {
         };
         auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
         CHECK(1 == dimy);
         CHECK(1 == dimx);
@@ -845,7 +845,7 @@ TEST_CASE("Visual") {
         };
         auto ncvp = ncvisual_blit(nc_, ncv, &vopts);
         REQUIRE(nullptr != ncvp);
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncvp, &dimy, &dimx);
         CHECK(1 == dimy);
         CHECK(1 == dimx);

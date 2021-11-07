@@ -114,8 +114,7 @@ typedef enum {
 
 static int
 draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction){
-  int lenx, leny;
-  int ret = 0;
+  unsigned lenx, leny;
   ncplane_dim_yx(n, &leny, &lenx);
   int maxx = lenx - 1;
   int maxy = leny - 1;
@@ -142,6 +141,7 @@ draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction)
   // we're left following the previous stanza, end based on maxhorizy.
   const bool candrawbottom = y <= maxy || direction == DIRECTION_UP || (mask & NCBOXMASK_TOP);
   const int maxhorizy = maxy - (candrawbottom && !(mask & NCBOXMASK_BOTTOM));
+  int ret = 0;
   while(y <= maxhorizy){
     if(!(mask & NCBOXMASK_LEFT)){
       ret |= ncplane_cursor_move_yx(n, y, 0);
@@ -412,7 +412,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   }
 //fprintf(stderr, "trimming: top %p bottom %p\n", top->p, bottom->p);
   ncplane_yx(top->p, &y, NULL);
-  int ylen, xlen;
+  unsigned ylen, xlen;
   ncplane_dim_yx(top->p, &ylen, &xlen);
   const int miny = !(r->ropts.bordermask & NCBOXMASK_TOP);
   int boty = y + ylen - 1;
@@ -559,7 +559,7 @@ tighten_reel(ncreel* r){
         return -1;
       }
     }
-    int ylen;
+    unsigned ylen;
     ncplane_dim_yx(cur->p, &ylen, NULL);
     expected += ylen + 1;
 //fprintf(stderr, "bottom (%p) gets %p\n", bottom, cur);
@@ -572,7 +572,8 @@ tighten_reel(ncreel* r){
   cur = r->tablets;
   if(cur){
     const ncplane* n = cur->p;
-    int yoff, ylen, rylen;
+    int yoff;
+    unsigned ylen, rylen;
     ncplane_dim_yx(r->p, &rylen, NULL);
     ncplane_yx(n, &yoff, NULL);
     ncplane_dim_yx(n, &ylen, NULL);
