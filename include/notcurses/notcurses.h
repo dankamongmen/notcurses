@@ -684,7 +684,7 @@ API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
 // nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
-             uint32_t stylemask, uint64_t channels){
+             uint16_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
   int ret = nccell_load(n, c, gcluster);
@@ -1626,7 +1626,7 @@ API int ncplane_set_base_cell(struct ncplane* n, const nccell* c);
 // affected by ncplane_erase(). 'egc' must be an extended grapheme cluster.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure.
 API int ncplane_set_base(struct ncplane* n, const char* egc,
-                         uint32_t stylemask, uint64_t channels);
+                         uint16_t stylemask, uint64_t channels);
 
 // Extract the ncplane's base nccell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -2686,18 +2686,18 @@ nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+API int nccells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                             nccell* ul, nccell* ur, nccell* ll,
                             nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
-nccells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_ascii_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXASCII);
 }
 
 static inline int
-nccells_light_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_light_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXLIGHT);
@@ -2706,7 +2706,7 @@ nccells_light_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_heavy_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXHEAVY);
@@ -2715,7 +2715,7 @@ nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+ncplane_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
@@ -2731,7 +2731,7 @@ ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
+ncplane_perimeter_rounded(struct ncplane* n, uint16_t stylemask,
                           uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
@@ -2755,7 +2755,7 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
 }
 
 static inline int
-ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
+ncplane_rounded_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
                           int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
@@ -2763,12 +2763,12 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                              x + xlen - 1, ctlword);
 }
 
-API int nccells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+API int nccells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                            nccell* ul, nccell* ur, nccell* ll,
                            nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
-ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                    int ystop, int xstop, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
@@ -2784,7 +2784,7 @@ ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
+ncplane_perimeter_double(struct ncplane* n, uint16_t stylemask,
                          uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
@@ -2808,7 +2808,7 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
 }
 
 static inline int
-ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
+ncplane_double_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
                          int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
@@ -4134,7 +4134,7 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
 // properly-scaled values are written back to '*ymax' and '*xmax').
-API int ncplane_qrcode(struct ncplane* n, int* ymax, int* xmax,
+API int ncplane_qrcode(struct ncplane* n, unsigned* ymax, unsigned* xmax,
                        const void* data, size_t len)
   __attribute__ ((nonnull (1, 4)));
 
@@ -4222,12 +4222,12 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
   __attribute__ ((deprecated));
 
 __attribute__ ((deprecated)) API int
-cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+cells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll,
                   nccell* lr, nccell* hl, nccell* vl);
 
 __attribute__ ((deprecated)) API int
-cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+cells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                  nccell* ul, nccell* ur, nccell* ll,
                  nccell* lr, nccell* hl, nccell* vl);
 

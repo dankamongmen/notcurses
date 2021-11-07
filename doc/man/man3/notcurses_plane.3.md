@@ -91,7 +91,7 @@ typedef struct ncplane_options {
 
 **int ncplane_set_base_cell(struct ncplane* ***ncp***, const nccell* ***c***);**
 
-**int ncplane_set_base(struct ncplane* ***ncp***, const char* ***egc***, uint32_t ***stylemask***, uint64_t ***channels***);**
+**int ncplane_set_base(struct ncplane* ***ncp***, const char* ***egc***, uint16_t ***stylemask***, uint64_t ***channels***);**
 
 **int ncplane_base(struct ncplane* ***ncp***, nccell* ***c***);**
 

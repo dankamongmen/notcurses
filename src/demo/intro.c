@@ -104,7 +104,8 @@ orcashow(struct notcurses* nc, unsigned dimy, unsigned dimx){
 
 static int
 orcaride(struct notcurses* nc, struct ncplane* on, int iterations){
-  int odimy, odimx, oy, ox, dimx;
+  unsigned odimy, odimx, dimx;
+  int oy, ox;
   ncplane_dim_yx(notcurses_stdplane(nc), NULL, &dimx);
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);

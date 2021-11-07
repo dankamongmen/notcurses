@@ -74,7 +74,7 @@ struct ncvisual_details;
 typedef struct ncplane {
   nccell* fb;            // "framebuffer" of character cells
   int logrow;            // logical top row, starts at 0, add one for each scroll
-  int x, y;              // current cursor location within this plane
+  unsigned x, y;         // current cursor location within this plane
   // ncplane_yx() etc. use coordinates relative to the plane to which this
   // plane is bound, but absx/absy are always relative to the terminal origin.
   // they must thus be translated by any function which moves a parent plane.

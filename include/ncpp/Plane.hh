@@ -1215,7 +1215,7 @@ namespace ncpp
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
-		int qrcode (int* ymax, int* xmax, const void *data, size_t len) const NOEXCEPT_MAYBE
+		int qrcode (unsigned* ymax, unsigned* xmax, const void *data, size_t len) const NOEXCEPT_MAYBE
 		{
 			int ret = ncplane_qrcode (plane, ymax, xmax, data, len);
 			return error_guard_cond<int> (ret, ret < 0);

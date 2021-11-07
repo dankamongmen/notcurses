@@ -21,7 +21,7 @@ int qrcode_demo(struct notcurses* nc){
       done += sizeof(r);
     }
     ncplane_home(n);
-    int y = dimy, x = dimx;
+    unsigned y = dimy, x = dimx;
     ncplane_home(n);
     int qlen = ncplane_qrcode(n, &y, &x, data, len);
     if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case

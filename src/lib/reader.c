@@ -190,7 +190,7 @@ int ncreader_write_egc(ncreader* n, const char* egc){
     logerror("Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
-  if(n->textarea->x >= (int)n->textarea->lenx - cols){
+  if(n->textarea->x >= n->textarea->lenx - cols){
     if(n->horscroll){
       if(ncplane_resize_simple(n->textarea, n->textarea->leny, n->textarea->lenx + cols)){
         return -1;
@@ -207,12 +207,12 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   if(ncplane_putegc(n->ncp, egc, NULL) < 0){
     return -1;
   }
-  if(n->textarea->x >= (int)n->textarea->lenx - cols){
+  if(n->textarea->x >= n->textarea->lenx - cols){
     if(!n->horscroll){
       n->textarea->x = n->textarea->lenx - cols;
     }
   }
-  if(n->ncp->x >= (int)n->ncp->lenx - cols){
+  if(n->ncp->x >= n->ncp->lenx - cols){
     n->ncp->x = n->ncp->lenx - cols;
   }
   ncreader_redraw(n);
@@ -275,7 +275,7 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
       }
       break;
     case 'E': // cursor to end of line
-      while(n->textarea->x < (int)ncplane_dim_x(n->textarea) - 1){
+      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
         if(ncreader_move_right(n)){
           break;
         }
@@ -320,7 +320,7 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
       }
       break;
     case 'f': // forward one word (past end cell)
-      while(n->textarea->x < (int)ncplane_dim_x(n->textarea) - 1){
+      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
         if(ncreader_move_right(n)){
           break;
         }

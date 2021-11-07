@@ -972,11 +972,11 @@ int sixel_scrub(const ncpile* p, sprixel* s){
         continue;
       }
       sprixel* trues = r->sprixel ? r->sprixel : s;
-      if(yy >= trues->n->leny || yy - trues->n->absy < 0){
+      if(yy >= (int)trues->n->leny || yy - trues->n->absy < 0){
         r->s.damaged = 1;
         continue;
       }
-      if(xx >= trues->n->lenx || xx - trues->n->absx < 0){
+      if(xx >= (int)trues->n->lenx || xx - trues->n->absx < 0){
         r->s.damaged = 1;
         continue;
       }
