@@ -24,7 +24,7 @@ typedef struct ncvisual {
   uint32_t* data; // (scaled) RGBA image data, rowstride bytes per row
   unsigned pixx, pixy; // pixel geometry, *not* cell geometry
   // lines are sometimes padded. this many true bytes per row in data.
-  int rowstride;
+  unsigned rowstride;
   bool owndata; // we own data iff owndata == true
 } ncvisual;
 
