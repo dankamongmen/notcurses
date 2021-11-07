@@ -49,7 +49,7 @@ dragonmayer(struct ncvisual* ncv, const char* str, int iters){
 
 int dragon_demo(struct notcurses* nc){
   done = false;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   --dimy; // don't disturb the menu bar
   // we use a Lindenmayer string rewriting system. the classic dragon curve

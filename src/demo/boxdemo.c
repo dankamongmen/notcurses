@@ -4,7 +4,7 @@
 
 static int
 reload_corners(struct ncplane* n, nccell* ul, nccell* ur, nccell* ll, nccell* lr){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   char* egc;
   if( (egc = ncplane_at_yx(n, 1, dimx - 2, NULL, &ur->channels)) == NULL){
@@ -94,24 +94,25 @@ move_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     if(ships[s].n == NULL){
       continue;
     }
-    int yoff, xoff, ny, nx;
+    int yoff, xoff;
+    unsigned ny, nx;
     ncplane_yx(ships[s].n, &yoff, &xoff);
     ncplane_dim_yx(ships[s].n, &ny, &nx);
-    int dimy = ncplane_dim_y(stdn);
-    int dimx = ncplane_dim_x(stdn);
+    unsigned dimy = ncplane_dim_y(stdn);
+    unsigned dimx = ncplane_dim_x(stdn);
     yoff += ships[s].vely;
     xoff += ships[s].velx;
     if(xoff <= 0){
       xoff = 0;
       ships[s].velx = -ships[s].velx;
-    }else if(xoff >= dimx - nx){
+    }else if((unsigned)xoff >= dimx - nx){
       xoff = dimx - nx - 1;
       ships[s].velx = -ships[s].velx;
     }
     if(yoff <= 1){
       yoff = 2;
       ships[s].vely = -ships[s].vely;
-    }else if(yoff >= dimy - ny){
+    }else if((unsigned)yoff >= dimy - ny){
       yoff = dimy - ny - 1;
       ships[s].vely = -ships[s].vely;
     }
@@ -128,7 +129,7 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
   if(wmv == NULL){
     return -1;
   }
-  int cdimy, cdimx;
+  unsigned cdimy, cdimx;
   ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
   if(ncvisual_resize(wmv, cdimy * SHIPHEIGHT, cdimx * SHIPWIDTH)){
     ncvisual_destroy(wmv);
@@ -162,7 +163,7 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
 }
 
 int box_demo(struct notcurses* nc){
-  int ylen, xlen;
+  unsigned ylen, xlen;
   struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);
   uint64_t transchan = 0;

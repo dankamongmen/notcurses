@@ -196,7 +196,7 @@ TEST_CASE("Sixels") {
 //print_bmap(rgbold, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
-      .y = ncplane_dim_y(newn) * 3 / 4,
+      .y = (int)ncplane_dim_y(newn) * 3 / 4,
       .x = 0,
       .rows = ncplane_dim_y(newn) / 4,
       .cols = ncplane_dim_x(newn) / 2,

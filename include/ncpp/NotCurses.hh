@@ -69,17 +69,17 @@ namespace ncpp
 			return ::ncmetric (val, decimal, buf, omitdec, mult, uprefix);
 		}
 
-		static const char* qprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* ncqprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::ncqprefix (val, decimal, buf, omitdec);
 		}
 
-		static const char* iprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* nciprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::nciprefix (val, decimal, buf, omitdec);
 		}
 
-		static const char* bprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* ncbprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
 			return ::ncbprefix (val, decimal, buf, omitdec);
 		}

@@ -137,7 +137,7 @@ typedef struct ncplane_options {
 
 **static inline unsigned ncplane_dim_x(const struct ncplane* ***n***);**
 
-**void ncplane_cursor_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
+**void ncplane_cursor_yx(const struct ncplane* ***n***, unsigned* restrict ***y***, unsigned* restrict ***x***);**
 
 **void ncplane_translate(const struct ncplane* ***src***, const struct ncplane* ***dst***, int* restrict ***y***, int* restrict ***x***);**
 
@@ -225,7 +225,7 @@ typedef struct ncplane_options {
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
-**void ncplane_pixelgeom(const struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, unsigned* restrict ***celldimy***, unsigned* restrict ***celldimx***, unsigned* restrict ***maxbmapy***, unsigned* restrict ***maxbmapx***);**
+**void ncplane_pixelgeom(const struct notcurses* ***n***, unsigned* restrict ***pxy***, unsigned* restrict ***pxx***, unsigned* restrict ***celldimy***, unsigned* restrict ***celldimx***, unsigned* restrict ***maxbmapy***, unsigned* restrict ***maxbmapx***);**
 
 **int ncplane_set_name(struct ncplane* ***n***, const char* ***name***);**
 

@@ -404,7 +404,7 @@ static int
 infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
   const int planewidth = 72;
   unsigned dimy;
-  int y;
+  unsigned y;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   ncplane_cursor_yx(std, &y, NULL);
   struct ncplane_options nopts = {
@@ -589,7 +589,7 @@ display_thread(void* vmarshal){
       ncv = ncvisual_from_file(m->dinfo->logofile);
     }
     if(ncv){
-      int y;
+      unsigned y;
       ncplane_cursor_yx(notcurses_stdplane_const(m->nc), &y, NULL);
       bool pixeling = false;
       if(notcurses_check_pixel_support(m->nc) >= 1){

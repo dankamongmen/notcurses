@@ -468,7 +468,7 @@ int witherworm_demo(struct notcurses* nc){
       const int start = starts[i];
       int step = steps[i];
       nccell_init(&c);
-      int y, x;
+      unsigned y, x;
       unsigned maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx); // might resize
       int rgb = start;
@@ -489,11 +489,11 @@ int witherworm_demo(struct notcurses* nc){
           if(ncplane_set_fg_rgb8(n, ncchannel_r(rgb), ncchannel_g(rgb), ncchannel_b(rgb))){
             return -1;
           }
-          if(x >= (int)maxx){
+          if(x >= maxx){
             x = 0;
             ++y;
           }
-          if(y >= (int)maxy){
+          if(y >= maxy){
             break;
           }
           wchar_t wcs;
@@ -509,7 +509,7 @@ int witherworm_demo(struct notcurses* nc){
           }
           int ulen = 0;
           int r;
-          if(wcwidth(wcs) <= (int)maxx - x){
+          if(wcwidth(wcs) <= (int)(maxx - x)){
             if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
               if(ulen < 0){
                 return -1;
@@ -529,7 +529,7 @@ int witherworm_demo(struct notcurses* nc){
           ++egcs_out;
         }
         rgb += step;
-      }while(y < (int)maxy);
+      }while(y < maxy);
       struct ncplane* math = mathplane(nc);
       if(math == NULL){
         return -1;

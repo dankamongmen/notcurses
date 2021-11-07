@@ -12,7 +12,7 @@ static int
 chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
   chunli chuns[CHUNS];
   char file[20];
-  int dimx, dimy;
+  unsigned dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane_const(nc), &dimy, &dimx);
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
@@ -31,7 +31,7 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
       return -1;
     }
     ncplane_set_base_cell(chuns[i].n, b);
-    int thisx, thisy;
+    unsigned thisx, thisy;
     ncplane_dim_yx(chuns[i].n, &thisy, &thisx);
     if(ncplane_move_yx(chuns[i].n, (dimy - thisy) / 2, (dimx - thisx) / 2)){
       return -1;
@@ -53,7 +53,8 @@ int chunli_demo(struct notcurses* nc){
   }
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
-  int ret, dimx, dimy;
+  int ret;
+  unsigned dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane_const(nc), &dimy, &dimx);
   nccell b = CELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&b, NCALPHA_TRANSPARENT);
@@ -80,7 +81,7 @@ int chunli_demo(struct notcurses* nc){
       return -1;
     }
     ncplane_set_base_cell(ncp, &b);
-    int thisx, thisy;
+    unsigned thisx, thisy;
     ncplane_dim_yx(ncp, &thisy, &thisx);
     if(ncplane_move_yx(ncp, (dimy - thisy) / 2, (dimx - thisx) / 2)){
       return -1;

@@ -282,7 +282,7 @@ TEST_CASE("Media") {
   }
 
   // do a pixel video with a different plane for each frame
-  SUBCASE("LoadVideoPixelScaleDifferentPlanes") {
+  SUBCASE("LoadVideoPixelStretchDifferentPlanes") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         unsigned dimy, dimx;
@@ -296,10 +296,12 @@ TEST_CASE("Media") {
           }
           CHECK(0 == ret);
           struct ncvisual_options opts{};
-          opts.scaling = NCSCALE_SCALE;
+          opts.scaling = NCSCALE_STRETCH;
           opts.blitter = NCBLIT_PIXEL;
-          REQUIRE(ncvisual_blit(nc_, ncv, &opts));
+          auto n = ncvisual_blit(nc_, ncv, &opts);
+          REQUIRE(nullptr != n);
           CHECK(0 == notcurses_render(nc_));
+          CHECK(0 == ncplane_destroy(n));
         }
         ncvisual_destroy(ncv);
       }

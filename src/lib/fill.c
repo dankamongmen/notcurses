@@ -636,7 +636,7 @@ int ncplane_qrcode(ncplane* n, unsigned* ymax, unsigned* xmax, const void* data,
   return -1;
 }
 #else
-int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, unsigned* ymax, unsigned* xmax, const void* data, size_t len){
   (void)n;
   (void)ymax;
   (void)xmax;

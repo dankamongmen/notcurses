@@ -32,7 +32,7 @@ TEST_CASE("Scrolling") {
     CHECK(!ncplane_set_scrolling(n, false));
     // try to write 40 EGCs; it ought fail after 20
     CHECK(-20 == ncplane_putstr(n, "0123456789012345678901234567890123456789"));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     CHECK(0 == y);
     CHECK(20 == x);
@@ -81,7 +81,7 @@ TEST_CASE("Scrolling") {
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     CHECK(20 == ncplane_putstr(n, "01234567890123456789"));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     CHECK(0 == y);
     CHECK(20 == x);
@@ -119,7 +119,7 @@ TEST_CASE("Scrolling") {
         CHECK(0 > ret);
       }
     }
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     CHECK(0 == y);
     CHECK(20 == x);
@@ -177,7 +177,7 @@ TEST_CASE("Scrolling") {
     CHECK(!ncplane_set_scrolling(n, true));
     CHECK(40 == ncplane_putstr(n, out)); // fill up the plane w/ numbers
     CHECK(0 == notcurses_render(nc_));
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     CHECK(1 == y);
     CHECK(20 == x);

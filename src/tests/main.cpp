@@ -147,7 +147,7 @@ auto lang_and_term() -> void {
   }
   unsigned dimy, dimx;
   notcurses_stddim_yx(nc, &dimy, &dimx);
-  std::cout << "Detected geometry: " << dimx << 'x' << dimy << std::endl;
+  std::cout << "Detected cell geometry: " << dimx << 'x' << dimy << std::endl;
   notcurses_stop(nc);
   if(dimx < 50 || dimy < 24){ // minimum assumed geometry
     std::cerr << "Terminal was too small for tests (minimum 50x24)" << std::endl;

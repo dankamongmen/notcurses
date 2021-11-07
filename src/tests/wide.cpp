@@ -21,7 +21,7 @@ TEST_CASE("Wide") {
     const char* w = "\u5168";
     int sbytes = 0;
     CHECK(0 < ncplane_putegc(n_, w, &sbytes));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(2 == x);
@@ -35,7 +35,7 @@ TEST_CASE("Wide") {
     unsigned dimx;
     ncplane_dim_yx(n_, nullptr, &dimx);
     CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, &sbytes));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
@@ -57,7 +57,7 @@ TEST_CASE("Wide") {
     // now it ought be rejected
     CHECK(0 > ncplane_putegc_yx(n_, 0, dimx - 1, w, &sbytes));
     // cursor ought remain where it was
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
@@ -116,7 +116,7 @@ TEST_CASE("Wide") {
     int sbytes = 0;
     CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, &sbytes));
     CHECK(0 < ncplane_putchar_yx(n_, 1, 1, bashed));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(1 == y);
     CHECK(2 == x);
@@ -148,7 +148,7 @@ TEST_CASE("Wide") {
     CHECK(0 < cols1);
     int cols2 = ncplane_putegc_yx(n_, 0, 1, w, &sbytes);
     CHECK(0 < cols2);
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 + cols2 == x);
@@ -175,7 +175,7 @@ TEST_CASE("Wide") {
     CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 1, *cc));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(3 == x);
@@ -205,7 +205,7 @@ TEST_CASE("Wide") {
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
     CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
-    int x, y;
+    unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(3 == x);
@@ -301,11 +301,12 @@ TEST_CASE("Wide") {
     char* egc;
 
     // print two wide glyphs on the standard plane
-    int y, x;
-    ncplane_yx(n_, &y, &x);
-    CHECK(0 == y);
-    CHECK(0 == x);
+    int py, px;
+    ncplane_yx(n_, &py, &px);
+    CHECK(0 == py);
+    CHECK(0 == px);
     CHECK(2 == ncplane_putstr(n_, "\xe5\x85\xa8")); // \u5168 (全)
+    unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(2 == x);
