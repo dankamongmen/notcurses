@@ -102,7 +102,7 @@ int main(void){
   ncchannels_set_bg_rgb(&mopts.headerchannels, 0x440000);
   ncchannels_set_fg_rgb(&mopts.sectionchannels, 0xb0d700);
   ncchannels_set_bg_rgb(&mopts.sectionchannels, 0x002000);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncmenu* top = ncmenu_create(n, &mopts);
   if(top == NULL){

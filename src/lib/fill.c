@@ -536,17 +536,17 @@ int ncplane_rotate_ccw(ncplane* n){
 #define QR_BASE_SIZE 17
 #define PER_QR_VERSION 4
 
-static inline int
-qrcode_rows(int version){
+static inline unsigned
+qrcode_rows(unsigned version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
-static inline int
-qrcode_cols(int version){
+static inline unsigned
+qrcode_cols(unsigned version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
-int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, unsigned* ymax, unsigned* xmax, const void* data, size_t len){
   const ncblitter_e blitfxn = NCBLIT_2x1;
   const int MAX_QR_VERSION = 40; // QR library only supports up to 40
   if(*ymax <= 0 || *xmax <= 0){

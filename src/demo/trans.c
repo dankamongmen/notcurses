@@ -26,7 +26,7 @@ grow_rgb8(uint32_t* rgb){
 
 static struct ncplane*
 legend(struct notcurses* nc, const char* msg){
-  int dimx, dimy;
+  unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_options nopts = {
     .rows = 3,
@@ -62,10 +62,10 @@ legend(struct notcurses* nc, const char* msg){
 static int
 slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
                int* vely, int* velx){
-  int dimy, dimx;
   int yoff, xoff;
-  int ny, nx;
+  unsigned dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
+  unsigned ny, nx;
   ncplane_dim_yx(n, &ny, &nx);
   ncplane_yx(n, &yoff, &xoff);
   struct timespec iterdelay;
@@ -78,14 +78,14 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
     if(xoff <= 1){
       xoff = 1;
       *velx = -*velx;
-    }else if(xoff >= dimx - nx){
+    }else if((unsigned)xoff >= dimx - nx){
       xoff = dimx - nx - 1;
       *velx = -*velx;
     }
     if(yoff <= 2){
       yoff = 2;
       *vely = -*vely;
-    }else if(yoff >= dimy - ny){
+    }else if((unsigned)yoff >= dimy - ny){
       yoff = dimy - ny - 1;
       *vely = -*vely;
     }
@@ -99,7 +99,7 @@ slideitslideit(struct notcurses* nc, struct ncplane* n, uint64_t deadline,
 // run panels atop the display in an exploration of transparency
 static int
 slidepanel(struct notcurses* nc, struct ncplane* stdn){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int ny = dimy / 4;
   int nx = dimx / 3;
@@ -276,13 +276,13 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
 // have a great many colors, that they progress reasonably through the space,
 // and that we can write to every coordinate.
 int trans_demo(struct notcurses* nc){
-  int maxx, maxy;
+  unsigned maxx, maxy;
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   ncplane_set_fg_rgb8(n, 255, 255, 255);
   uint64_t channels = 0;
   ncchannels_set_fg_rgb8(&channels, 0, 128, 128);
   ncchannels_set_bg_rgb8(&channels, 90, 0, 90);
-  int y = 1, x = 0;
+  unsigned y = 1, x = 0;
   ncplane_cursor_move_yx(n, y, x);
   if(ncplane_rounded_box_sized(n, 0, channels, maxy - 1, maxx, 0)){
     return -1;

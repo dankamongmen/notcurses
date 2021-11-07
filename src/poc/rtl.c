@@ -28,8 +28,8 @@ int main(void){
   }
   const char* brew = "םבעברஸீரோகிரிﻧﺎﻠﻘﺻﺮﻴﻧﻖﺻﺭﺎoshitﻠﺷﻮﻗﺎﻠﺴﻛﺮﻳﺓ";
   const char *b = brew;
-  for(int y = dimy / 2 + 2 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
+  for(unsigned y = dimy / 2 + 2 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       int bytes;
       if(ncplane_putegc_yx(n, y, x, b, &bytes) <= 0){
         break;

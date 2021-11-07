@@ -119,7 +119,7 @@ typedef struct ncvgeom {
 
 **ncblitter_e ncvisual_media_defblitter(const struct notcurses ***nc***, ncscale_e ***scaling***);**
 
-**int ncplane_qrcode(struct ncplane* ***n***, int* ***ymax***, int* ***xmax***, const void* ***data***, size_t ***len***)**
+**int ncplane_qrcode(struct ncplane* ***n***, unsigned* ***ymax***, unsigned* ***xmax***, const void* ***data***, size_t ***len***)**
 
 # DESCRIPTION
 

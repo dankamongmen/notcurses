@@ -68,7 +68,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     return -1;
   }
   ncplane_destroy(n);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int ROTATIONS = 32;
   timespec_div(&demodelay, ROTATIONS / 2, &scaled);
@@ -178,7 +178,7 @@ int normal_demo(struct notcurses* nc){
   for(int off = 0 ; off < dy * dx ; ++off){
     rgba[off] = 0xff000000;
   }
-  int y;
+  unsigned y;
   if(dy / geom.scaley % 2){
     y = dy / geom.scaley + 1;
     for(int x = 0 ; x < dx ; ++x){

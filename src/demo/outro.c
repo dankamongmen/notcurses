@@ -52,7 +52,7 @@ videothread(void* vnc){
   if(ncv == NULL){
     return NULL;
   }
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   struct ncvisual_options ovopts = {
     .scaling = NCSCALE_STRETCH,

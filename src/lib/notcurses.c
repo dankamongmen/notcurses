@@ -184,9 +184,6 @@ cursor_invalid_p(const ncplane* n){
   if(n->y >= n->leny || n->x >= n->lenx){
     return true;
   }
-  if(n->y < 0 || n->x < 0){
-    return true;
-  }
   return false;
 }
 
@@ -195,33 +192,46 @@ char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
 }
 
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
-  if(y < n->leny && x < n->lenx){
-    if(y >= 0 && x >= 0){
-      const nccell* yx = &n->fb[nfbcellidx(n, y, x)];
-      // if we're the right side of a wide glyph, we return the main glyph
-      if(nccell_wide_right_p(yx)){
-        return ncplane_at_yx(n, y, x - 1, stylemask, channels);
-      }
-      char* ret = nccell_extract(n, yx, stylemask, channels);
-      if(ret == NULL){
-        return NULL;
-      }
+  if(y < 0){
+    if(y != -1){
+      logerror("invalid y: %d\n", y);
+      return NULL;
+    }
+    y = n->y;
+  }
+  if(x < 0){
+    if(x != -1){
+      logerror("invalid x: %d\n", x);
+      return NULL;
+    }
+    x = n->x;
+  }
+  if((unsigned)y >= n->leny || (unsigned)x >= n->lenx){
+    logerror("invalid coordinates: %d/%d\n", y, x);
+    return NULL;
+  }
+  const nccell* yx = &n->fb[nfbcellidx(n, y, x)];
+  // if we're the right side of a wide glyph, we return the main glyph
+  if(nccell_wide_right_p(yx)){
+    return ncplane_at_yx(n, y, x - 1, stylemask, channels);
+  }
+  char* ret = nccell_extract(n, yx, stylemask, channels);
+  if(ret == NULL){
+    return NULL;
+  }
 //fprintf(stderr, "GOT [%s]\n", ret);
-      if(strcmp(ret, "") == 0){
-        free(ret);
-        ret = nccell_strdup(n, &n->basecell);
-        if(ret == NULL){
-          return NULL;
-        }
-        if(stylemask){
-          *stylemask = n->basecell.stylemask;
-        }
-      }
-      // FIXME load basecell channels if appropriate
-      return ret;
+  if(strcmp(ret, "") == 0){
+    free(ret);
+    ret = nccell_strdup(n, &n->basecell);
+    if(ret == NULL){
+      return NULL;
+    }
+    if(stylemask){
+      *stylemask = n->basecell.stylemask;
     }
   }
-  return NULL;
+  // FIXME load basecell channels if appropriate
+  return ret;
 }
 
 int ncplane_at_cursor_cell(ncplane* n, nccell* c){
@@ -229,16 +239,30 @@ int ncplane_at_cursor_cell(ncplane* n, nccell* c){
 }
 
 int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
-  if(y < n->leny && x < n->lenx){
-    if(y >= 0 && x >= 0){
-      nccell* targ = ncplane_cell_ref_yx(n, y, x);
-      if(nccell_duplicate(n, c, targ) == 0){
-        // FIXME take base cell into account where necessary!
-        return strlen(nccell_extended_gcluster(n, targ));
-      }
+  if(y < 0){
+    if(y != -1){
+      logerror("invalid y: %d\n", y);
+      return -1;
     }
+    y = n->y;
   }
-  return -1;
+  if(x < 0){
+    if(x != -1){
+      logerror("invalid x: %d\n", x);
+      return -1;
+    }
+    x = n->x;
+  }
+  if((unsigned)y >= n->leny || (unsigned)x >= n->lenx){
+    logerror("invalid coordinates: %d/%d\n", y, x);
+    return -1;
+  }
+  nccell* targ = ncplane_cell_ref_yx(n, y, x);
+  if(nccell_duplicate(n, c, targ)){
+    return -1;
+  }
+  // FIXME take base cell into account where necessary!
+  return strlen(nccell_extended_gcluster(n, targ));
 }
 
 void ncplane_dim_yx(const ncplane* n, unsigned* rows, unsigned* cols){
@@ -607,7 +631,7 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
       return -1;
     }
   }else if((unsigned)x >= n->lenx){
-    logerror("Target x %d >= length %u\n", x, n->lenx);
+    logerror("target x %d >= width %u\n", x, n->lenx);
     return -1;
   }else{
     n->x = x;
@@ -617,25 +641,25 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
       logerror("Negative target y %d\n", y);
       return -1;
     }
-  }else if(y >= n->leny){
-    logerror("Target y %d >= height %u\n", y, n->leny);
+  }else if((unsigned)y >= n->leny){
+    logerror("target y %d >= height %u\n", y, n->leny);
     return -1;
   }else{
     n->y = y;
   }
   if(cursor_invalid_p(n)){
-    logerror("Invalid cursor following move (%d/%d)\n", n->y, n->x);
+    logerror("invalid cursor following move (%d/%d)\n", n->y, n->x);
     return -1;
   }
   return 0;
 }
 
 int ncplane_cursor_move_rel(ncplane* n, int y, int x){
-  if (n->y + y == -1){
-    logerror("Invalid target y -1\n");
+  if((int)n->y + y == -1){
+    logerror("invalid target y -1\n");
     return -1;
-  }else if (n->x + x == -1){
-    logerror("Invalid target x -1\n");
+  }else if((int)n->x + x == -1){
+    logerror("invalid target x -1\n");
     return -1;
   }else return ncplane_cursor_move_yx(n, n->y + y, n->x + x);
 }
@@ -1131,10 +1155,13 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   if(ret->rstate.logendy >= 0){ // if either is set, both are
     if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
-      if(locate_cursor(&ret->tcache, &ret->rstate.logendy, &ret->rstate.logendx)){
+      unsigned uendy, uendx;
+      if(locate_cursor(&ret->tcache, &uendy, &uendx)){
         free_plane(ret->stdplane);
         goto err;
       }
+      ret->rstate.logendy = uendy;
+      ret->rstate.logendx = uendx;
     }
     if(opts->flags & NCOPTION_PRESERVE_CURSOR){
       ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
@@ -1335,7 +1362,7 @@ int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
   return nccell_duplicate(ncp, &ncp->basecell, c);
 }
 
-int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels){
+int ncplane_set_base(ncplane* ncp, const char* egc, uint16_t stylemask, uint64_t channels){
   return nccell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
@@ -1641,7 +1668,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // line. if scrolling is enabled, move to the next line if so. if x or y are
   // specified, we must always try to print at exactly that location.
   if(x != -1){
-    if(x + cols > n->lenx){
+    if((unsigned)x + cols > n->lenx){
       logerror("Target x %d + %d cols [%.*s] > length %d\n", x, cols, bytes, egc, n->lenx);
       ncplane_cursor_move_yx(n, y, x); // update cursor, though
       return -1;
@@ -1725,7 +1752,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
 
 int ncplane_putchar_stained(ncplane* n, char c){
   uint64_t channels = n->channels;
-  uint32_t stylemask = n->stylemask;
+  uint16_t stylemask = n->stylemask;
   const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
@@ -1737,7 +1764,7 @@ int ncplane_putchar_stained(ncplane* n, char c){
 
 int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
   uint64_t channels = n->channels;
-  uint32_t stylemask = n->stylemask;
+  uint16_t stylemask = n->stylemask;
   const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
@@ -1749,7 +1776,7 @@ int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
 
 int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
   uint64_t channels = n->channels;
-  uint32_t stylemask = n->stylemask;
+  uint16_t stylemask = n->stylemask;
   const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
@@ -2484,8 +2511,8 @@ int ncplane_resize_marginalized(ncplane* n){
   }
   unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-  int keepleny = oldy > maxy ? maxy : oldy;
-  int keeplenx = oldx > maxx ? maxx : oldx;
+  unsigned keepleny = oldy > maxy ? maxy : oldy;
+  unsigned keeplenx = oldx > maxx ? maxx : oldx;
   if(ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx)){
     return -1;
   }
@@ -2497,12 +2524,12 @@ int ncplane_resize_marginalized(ncplane* n){
 
 int ncplane_resize_maximize(ncplane* n){
   const ncpile* pile = ncplane_pile(n); // FIXME should be taken against parent
-  const int rows = pile->dimy;
-  const int cols = pile->dimx;
+  const unsigned rows = pile->dimy;
+  const unsigned cols = pile->dimx;
   unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-  int keepleny = oldy > rows ? rows : oldy;
-  int keeplenx = oldx > cols ? cols : oldx;
+  unsigned keepleny = oldy > rows ? rows : oldy;
+  unsigned keeplenx = oldx > cols ? cols : oldx;
   return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, rows, cols);
 }
 
@@ -2979,7 +3006,7 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned 
   return ret;
 }
 
-int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+int nccells_double_box(ncplane* n, uint16_t attr, uint64_t channels,
                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
@@ -2987,12 +3014,12 @@ int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
-int cells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+int cells_double_box(ncplane* n, uint16_t attr, uint64_t channels,
                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_double_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
-int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+int nccells_rounded_box(ncplane* n, uint16_t attr, uint64_t channels,
                         nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
@@ -3000,7 +3027,7 @@ int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
-int cells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+int cells_rounded_box(ncplane* n, uint16_t attr, uint64_t channels,
                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_rounded_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }

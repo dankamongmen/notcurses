@@ -37,25 +37,25 @@ notcurses_lines - operations on lines and boxes
 
 **static inline int ncplane_perimeter(struct ncplane* ***n***, const nccell* ***ul***, const nccell* ***ur***, const nccell* ***ll***, const nccell* ***lr***, const nccell* ***hline***, const nccell* ***vline***, unsigned ***ctlword***)**
 
-**static inline int nccells_load_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***, const char* ***gclusters***);**
+**static inline int nccells_load_box(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***, const char* ***gclusters***);**
 
-**static inline int nccells_rounded_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
+**static inline int nccells_rounded_box(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
 
-**static inline int ncplane_rounded_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
+**static inline int ncplane_rounded_box(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
 
-**static inline int ncplane_rounded_box_sized(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
+**static inline int ncplane_rounded_box_sized(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**static inline int nccells_double_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
+**static inline int nccells_double_box(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
 
-**static inline int ncplane_double_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
+**static inline int ncplane_double_box(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
 
-**static inline int ncplane_double_box_sized(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
+**static inline int ncplane_double_box_sized(struct ncplane* ***n***, uint16_t ***styles***, uint64_t ***channels***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
 **int ncplane_polyfill_yx(struct ncplane* ***n***, unsigned ***y***, unsigned ***x***, const nccell* ***c***);**
 
 **int ncplane_gradient(struct ncplane* ***n***, int ***y***, int ***x***, unsigned ***ylen***, unsigned ***xlen***, const char* ***egc***, uint16_t ***stylemask***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***);**
 
-**int ncplane_highgradient2x1(struct ncplane* ***n***, int ***y***, int ***x***, unsigned ***ylen***, unsigned ***xlen***, uint16_t ***ul***, uint32_t ***ur***, uint32_t ***ll***, uint32_t ***lr***);**
+**int ncplane_highgradient2x1(struct ncplane* ***n***, int ***y***, int ***x***, unsigned ***ylen***, unsigned ***xlen***, uint32_t ***ul***, uint32_t ***ur***, uint32_t ***ll***, uint32_t ***lr***);**
 
 **int ncplane_format(struct ncplane* ***n***, int ***y***, int ***x***, unsigned ***ylen***, unsigned ***xlen***, uint16_t ***stylemask***);**
 

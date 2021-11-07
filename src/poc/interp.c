@@ -104,7 +104,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
-  int cellpixy, cellpixx;
+  unsigned cellpixy, cellpixx;
   ncplane_pixelgeom(stdn, NULL, NULL, &cellpixy, &cellpixx, NULL, NULL);
   if(interp(nc, cellpixy, cellpixx)){
     goto err;

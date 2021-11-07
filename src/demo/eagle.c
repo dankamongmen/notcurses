@@ -159,7 +159,7 @@ draw_eagle(struct ncplane* n, const char* sprite){
 static int
 eagles(struct notcurses* nc, struct ncplane* n){
   int ret = 0;
-  int truex, truey; // dimensions of true display
+  unsigned truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
   struct timespec flapiter;
   timespec_div(&demodelay, truex / 2, &flapiter);
