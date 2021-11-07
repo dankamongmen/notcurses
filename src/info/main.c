@@ -319,7 +319,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 15, 0);
-    ncplane_stain(n, -1, -1, y - 1, 79, ul, ur, ll, lr);
+    ncplane_stain(n, -1, -1, 15, 80, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 12, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");

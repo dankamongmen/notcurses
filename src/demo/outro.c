@@ -3,7 +3,7 @@
 
 static int y;
 static int targy;
-static int xstart;
+static unsigned xstart;
 static struct ncplane* on;
 struct ncvisual_options vopts;
 
@@ -114,7 +114,7 @@ videothread(void* vnc){
 }
 
 static struct ncplane*
-outro_message(struct notcurses* nc, int* rows, int* cols){
+outro_message(struct notcurses* nc, unsigned* rows, unsigned* cols){
   const char str0[] = " ATL, baby! ATL! ";
   const char str1[] = " throw your hands in the air ";
   const char* str2 = notcurses_canutf8(nc) ? " hack on! —dank❤ " : " hack on! --dank ";
@@ -207,7 +207,7 @@ int outro(struct notcurses* nc){
     ncplane_set_name(vopts.n, "bnnr");
   }
   xstart = cols;
-  int ystart = rows;
+  unsigned ystart = rows;
   on = outro_message(nc, &ystart, &xstart);
   if(on == NULL){
     return -1;

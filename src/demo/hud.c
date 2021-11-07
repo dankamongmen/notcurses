@@ -392,9 +392,13 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%"PRIu64".%03"PRIu64"s",
-                           e->totalns / NANOSECS_IN_SEC,
-                           (e->totalns % NANOSECS_IN_SEC) / 1000000) < 0){
+      char buf[PREFIXCOLUMNS];
+      ncmetric(e->totalns, NANOSECS_IN_SEC, buf, 0, 1000, '\0');
+      for(size_t x = 6 ; x < 14 - strlen(buf) ; ++x){
+        nccell ci = CELL_TRIVIAL_INITIALIZER;
+        ncplane_putc_yx(hud, 1, x, &ci);
+      }
+      if(ncplane_printf_yx(hud, line, 14 - strlen(buf), "%ss", buf) < 0){
         return -1;
       }
       if(ncplane_putstr_yx(hud, line, 16, e->name) < 0){
@@ -608,8 +612,13 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, 1, 7, "%"PRIu64".%03"PRIu64"s", ns / NANOSECS_IN_SEC,
-                         (ns % NANOSECS_IN_SEC) / 1000000) < 0){
+    char buf[PREFIXCOLUMNS];
+    ncmetric(ns, NANOSECS_IN_SEC, buf, 0, 1000, '\0');
+    for(size_t x = 6 ; x < 14 - strlen(buf) ; ++x){
+      nccell ci = CELL_TRIVIAL_INITIALIZER;
+      ncplane_putc_yx(hud, 1, x, &ci);
+    }
+    if(ncplane_printf_yx(hud, 1, 14 - strlen(buf), "%ss", buf) < 0){
       return -1;
     }
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){

@@ -25,7 +25,7 @@ fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subd
 // negative row will result in vertical pbar on the left side
 static struct ncprogbar*
 pbar_make(struct notcurses* nc, int row){
-  int dimx, dimy;
+  unsigned dimx, dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     .y = row < 0 ? 4 : row,
@@ -42,8 +42,9 @@ pbar_make(struct notcurses* nc, int row){
   uint64_t channels = 0;
   ncchannels_set_bg_rgb(&channels, 0);
   ncplane_set_base(pbar, "", 0, channels);
-  int posy, posx, pdimy, pdimx;
+  int posy, posx;
   ncplane_yx(pbar, &posy, &posx);
+  unsigned pdimy, pdimx;
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   channels = 0;
@@ -66,7 +67,7 @@ pbar_make(struct notcurses* nc, int row){
 
 static int
 draw_block(struct ncplane* nn, uint32_t blockstart){
-  int dimx, dimy;
+  unsigned dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -207,7 +208,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     return 0;
   }
   ncplane_greyscale(notcurses_stdplane(nc));
-  int pbarrow = 4 + BLOCKSIZE / CHUNKSIZE + 4;
+  unsigned pbarrow = 4 + BLOCKSIZE / CHUNKSIZE + 4;
   if(pbarrow > maxy - 2){
     pbarrow = -1;
   }
