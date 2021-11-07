@@ -145,7 +145,7 @@ auto lang_and_term() -> void {
     std::cerr << "Couldn't create notcurses testing framework" << std::endl;
     exit(EXIT_FAILURE);
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   notcurses_stddim_yx(nc, &dimy, &dimx);
   std::cout << "Detected geometry: " << dimx << 'x' << dimy << std::endl;
   notcurses_stop(nc);

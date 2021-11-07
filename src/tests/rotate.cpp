@@ -35,7 +35,7 @@ TEST_CASE("Rotate") {
     CHECK(0 == notcurses_stop(nc_));
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(n_);
 
@@ -98,7 +98,7 @@ TEST_CASE("Rotate") {
       .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
-    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, 8, 16, " ", 0, ul, ur, ll, lr));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -117,7 +117,7 @@ TEST_CASE("Rotate") {
       .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
-    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, 8, 32, " ", 0, ul, ur, ll, lr));
     RotateCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -136,7 +136,7 @@ TEST_CASE("Rotate") {
       .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
-    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, 8, 16, " ", 0, ul, ur, ll, lr));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }
@@ -155,7 +155,7 @@ TEST_CASE("Rotate") {
       .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
-    REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, 8, 32, " ", 0, ul, ur, ll, lr));
     RotateCCW(nc_, testn);
     CHECK(0 == ncplane_destroy(testn));
   }

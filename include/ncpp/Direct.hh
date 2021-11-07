@@ -75,14 +75,14 @@ namespace ncpp
 			return error_guard (ncdirect_set_bg_palindex (direct, pidx), -1);
 		}
 
-		int get_dim_x () const NOEXCEPT_MAYBE
+		unsigned get_dim_x () const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncdirect_dim_x (direct), -1);
+			return ncdirect_dim_x (direct);
 		}
 
-		int get_dim_y () const NOEXCEPT_MAYBE
+		unsigned get_dim_y () const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncdirect_dim_y (direct), -1);
+			return ncdirect_dim_y (direct);
 		}
 
 		unsigned get_palette_size () const noexcept
@@ -140,12 +140,12 @@ namespace ncpp
 			return error_guard (ncdirect_cursor_disable (direct), -1);
 		}
 
-		void get_cursor_yx (int *y, int *x) const noexcept
+		void get_cursor_yx (unsigned *y, unsigned *x) const noexcept
 		{
 			ncdirect_cursor_yx (direct, y, x);
 		}
 
-		void get_cursor_yx (int &y, int &x) const noexcept
+		void get_cursor_yx (unsigned &y, unsigned &x) const noexcept
 		{
 			get_cursor_yx (&y, &x);
 		}

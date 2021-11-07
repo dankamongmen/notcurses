@@ -2212,7 +2212,7 @@ uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
   return ncdirect_get(nc, ts, ni);
 }
 
-int get_cursor_location(inputctx* ictx, const char* u7, int* y, int* x){
+int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){
   pthread_mutex_lock(&ictx->clock);
   while(ictx->cvalid == 0){
     if(tty_emit(u7, ictx->ti->ttyfd)){

@@ -46,7 +46,7 @@ typedef struct ncmultiselector {
   struct ncmselector_int* items;  // items, descriptions, and statuses, heap-copied
   unsigned itemcount;             // number of pairs in 'items'
   char* title;                    // can be NULL, in which case there's no riser
-  int titlecols;                  // columns occupied by title
+  unsigned titlecols;             // columns occupied by title
   char* secondary;                // can be NULL
   int secondarycols;              // columns occupied by secondary
   char* footer;                   // can be NULL
@@ -94,21 +94,25 @@ ncselector_draw(ncselector* n){
     size_t riserwidth = n->titlecols + 4;
     int offx = ncplane_halign(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, 0);
-    ncplane_hline(n->ncp, &transchar, offx);
+    if(offx){
+      ncplane_hline(n->ncp, &transchar, offx);
+    }
     ncplane_cursor_move_yx(n->ncp, 0, offx);
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
     n->ncp->channels = n->titlechannels;
     ncplane_printf_yx(n->ncp, 1, offx + 1, " %s ", n->title);
     yoff += 2;
     ncplane_cursor_move_yx(n->ncp, 1, 0);
-    ncplane_hline(n->ncp, &transchar, offx);
+    if(offx){
+      ncplane_hline(n->ncp, &transchar, offx);
+    }
   }
-  int bodywidth = ncselector_body_width(n);
-  int dimy, dimx;
+  unsigned bodywidth = ncselector_body_width(n);
+  unsigned dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   int xoff = ncplane_halign(n->ncp, NCALIGN_RIGHT, bodywidth);
   if(xoff){
-    for(int y = yoff + 1 ; y < dimy ; ++y){
+    for(unsigned y = yoff + 1 ; y < dimy ; ++y){
       ncplane_cursor_move_yx(n->ncp, y, 0);
       ncplane_hline(n->ncp, &transchar, xoff);
     }
@@ -223,8 +227,8 @@ ncselector_draw(ncselector* n){
 static void
 ncselector_dim_yx(const ncselector* n, int* ncdimy, int* ncdimx){
   int rows = 0, cols = 0; // desired dimensions
-  int dimy, dimx; // dimensions of containing screen
   const ncplane* parent = ncplane_parent(n->ncp);
+  unsigned dimy, dimx; // dimensions of containing plane
   ncplane_dim_yx(parent, &dimy, &dimx);
   if(n->title){ // header adds two rows for riser
     rows += 2;
@@ -590,20 +594,24 @@ ncmultiselector_draw(ncmultiselector* n){
     size_t riserwidth = n->titlecols + 4;
     int offx = ncplane_halign(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, 0);
-    ncplane_hline(n->ncp, &transchar, offx);
+    if(offx){
+      ncplane_hline(n->ncp, &transchar, offx);
+    }
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
     n->ncp->channels = n->titlechannels;
     ncplane_printf_yx(n->ncp, 1, offx + 1, " %s ", n->title);
     yoff += 2;
     ncplane_cursor_move_yx(n->ncp, 1, 0);
-    ncplane_hline(n->ncp, &transchar, offx);
+    if(offx){
+      ncplane_hline(n->ncp, &transchar, offx);
+    }
   }
-  int bodywidth = ncmultiselector_body_width(n);
-  int dimy, dimx;
+  unsigned bodywidth = ncmultiselector_body_width(n);
+  unsigned dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   int xoff = ncplane_halign(n->ncp, NCALIGN_RIGHT, bodywidth);
   if(xoff){
-    for(int y = yoff + 1 ; y < dimy ; ++y){
+    for(unsigned y = yoff + 1 ; y < dimy ; ++y){
       ncplane_cursor_move_yx(n->ncp, y, 0);
       ncplane_hline(n->ncp, &transchar, xoff);
     }
@@ -816,9 +824,9 @@ bool ncmultiselector_offer_input(ncmultiselector* n, const ncinput* nc){
 // calculate the necessary dimensions based off properties of the selector and
 // the containing plane
 static int
-ncmultiselector_dim_yx(const ncmultiselector* n, int* ncdimy, int* ncdimx){
-  int rows = 0, cols = 0; // desired dimensions
-  int dimy, dimx; // dimensions of containing screen
+ncmultiselector_dim_yx(const ncmultiselector* n, unsigned* ncdimy, unsigned* ncdimx){
+  unsigned rows = 0, cols = 0; // desired dimensions
+  unsigned dimy, dimx; // dimensions of containing screen
   ncplane_dim_yx(ncplane_parent(n->ncp), &dimy, &dimx);
   if(n->title){ // header adds two rows for riser
     rows += 2;
@@ -908,7 +916,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
       goto freeitems;
     }
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ns->ncp = n;
   if(ncmultiselector_dim_yx(ns, &dimy, &dimx)){
     goto freeitems;

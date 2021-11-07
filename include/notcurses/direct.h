@@ -194,14 +194,15 @@ ncdirect_bg_default(struct ncdirect* nc){
 }
 
 // Get the current number of columns/rows.
-API int ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
-API int ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
+API unsigned ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
+API unsigned ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
-API unsigned ncdirect_supported_styles(const struct ncdirect* nc);
+API unsigned ncdirect_supported_styles(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 // ncplane_styles_*() analogues
 API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits)
@@ -240,7 +241,7 @@ API int ncdirect_cursor_down(struct ncdirect* nc, int num)
 // Get the cursor position, when supported. This requires writing to the
 // terminal, and then reading from it. If the terminal doesn't reply, or
 // doesn't reply in a way we understand, the results might be deleterious.
-API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x)
+API int ncdirect_cursor_yx(struct ncdirect* n, unsigned* y, unsigned* x)
   __attribute__ ((nonnull (1)));
 
 // Push or pop the cursor location to the terminal's stack. The depth of this

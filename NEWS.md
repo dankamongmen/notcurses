@@ -28,7 +28,13 @@ rearrangements of Notcurses.
     which all used -1. A length of zero passed to line-drawing functions is
     now an error. Several line-drawing functions now reliably return errors
     as opposed to short successes. Dimensions of 0 to `ncplane_mergedown()`
-    now mean "everything".
+    now mean "everything". Almost all coordinates now accept -1 to indicate the
+    current cursor position in that dimension. `ncplane_highgradient()` has
+    been deprecated in favor of the new `ncplane_gradient2x1()`, which takes
+    origin coordinates. `ncplane_format()` and `ncplane_stain()` now take
+    origin coordinates. All now interpret their `unsigned` argument as
+    lengths rather than closing coordinates, observing the same semantics as
+    outlined above.
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

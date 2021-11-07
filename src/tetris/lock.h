@@ -1,6 +1,6 @@
 bool LockPiece(){ // returns true if game has ended by reaching level 16
   curpiece_->mergedown_simple(*board_);
-  int bdimy, bdimx;
+  unsigned bdimy, bdimx;
   board_->get_dim(&bdimy, &bdimx);
   int cleared; // how many contiguous lines were cleared
   do{
@@ -16,7 +16,7 @@ bool LockPiece(){ // returns true if game has ended by reaching level 16
     }
     if(cleared){ // topmost verified clear is y + 1, bottommost is y + cleared
       for(int dy = y ; dy >= 0 ; --dy){
-        for(int x = 1 ; x < bdimx - 1 ; ++x){
+        for(unsigned x = 1 ; x < bdimx - 1 ; ++x){
           ncpp::Cell c;
           board_->get_at(dy, x, &c);
           board_->putc(dy + cleared, x, &c);

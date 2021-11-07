@@ -10,7 +10,7 @@ TEST_CASE("Geometry") {
 
   SUBCASE("Center") {
     const struct test {
-      int leny, lenx;       // geometries
+      unsigned leny, lenx;  // geometries
       int centy, centx;     // pre-calculated centers
     } tests[] = {
       { 1, 1, 0, 0, },
@@ -52,7 +52,7 @@ TEST_CASE("Geometry") {
 
   SUBCASE("CenterAbs") {
     const struct test {
-      int leny, lenx;       // geometries
+      unsigned leny, lenx;  // geometries
       int absy, absx;       // location of the origin
       int centy, centx;     // pre-calculated centers
     } tests[] = {

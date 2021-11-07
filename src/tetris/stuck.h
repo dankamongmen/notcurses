@@ -1,5 +1,5 @@
 bool InvalidMove() { // a bit wasteful, but pieces are tiny
-  int dy, dx;
+  unsigned dy, dx;
   curpiece_->get_dim(&dy, &dx);
   while(dy--){
     int x = dx;

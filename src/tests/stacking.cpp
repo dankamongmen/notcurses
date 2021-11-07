@@ -22,7 +22,7 @@ TEST_CASE("Stacking") {
     CHECK(0 == notcurses_stop(nc_));
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 

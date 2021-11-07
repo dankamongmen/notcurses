@@ -11,16 +11,16 @@ void sprixel_debug(const sprixel* s, FILE* out){
           s->invalidated);
   if(s->n){
     int idx = 0;
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
+    for(unsigned y = 0 ; y < s->dimy ; ++y){
+      for(unsigned x = 0 ; x < s->dimx ; ++x){
         fprintf(out, "%d", s->n->tam[idx].state);
         ++idx;
       }
       fprintf(out, "\n");
     }
     idx = 0;
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
+    for(unsigned y = 0 ; y < s->dimy ; ++y){
+      for(unsigned x = 0 ; x < s->dimx ; ++x){
         if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
           if(s->n->tam[idx].auxvector){
             fprintf(out, "%03d] %p\n", idx, s->n->tam[idx].auxvector);
@@ -153,7 +153,7 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
 // |pixy| and |pixx| are the output pixel geometry (i.e. |pixy| must be a
 // multiple of 6 for sixel). output coverage ought already have been loaded.
 // takes ownership of 's' on success. frees any existing glyph.
-int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
+int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
   if(spx->cellpxy > 0){ // don't explode on ncdirect case

@@ -231,7 +231,7 @@ int normal_demo(struct notcurses* nc){
   ncchannels_set_fg_rgb8(&bl, 0xff, 0, 0xff);
   ncchannels_set_fg_rgb8(&br, 0, 0, 0);
   ncplane_dim_yx(n, &dy, &dx);
-  if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
+  if(ncplane_stain(n, -1, -1, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
   }
   DEMO_RENDER(nc);

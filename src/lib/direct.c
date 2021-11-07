@@ -144,8 +144,8 @@ int ncdirect_clear(ncdirect* nc){
   return -1;
 }
 
-int ncdirect_dim_x(ncdirect* nc){
-  int x;
+unsigned ncdirect_dim_x(ncdirect* nc){
+  unsigned x;
   if(nc->tcache.ttyfd >= 0){
     if(update_term_dimensions(NULL, &x, &nc->tcache, 0) == 0){
       return x;
@@ -153,11 +153,11 @@ int ncdirect_dim_x(ncdirect* nc){
   }else{
     return 80; // lol
   }
-  return -1;
+  return 0;
 }
 
-int ncdirect_dim_y(ncdirect* nc){
-  int y;
+unsigned ncdirect_dim_y(ncdirect* nc){
+  unsigned y;
   if(nc->tcache.ttyfd >= 0){
     if(update_term_dimensions(&y, NULL, &nc->tcache, 0) == 0){
       return y;
@@ -165,7 +165,7 @@ int ncdirect_dim_y(ncdirect* nc){
   }else{
     return 24; // lol
   }
-  return -1;
+  return 0;
 }
 
 int ncdirect_cursor_enable(ncdirect* nc){
@@ -185,12 +185,12 @@ int ncdirect_cursor_disable(ncdirect* nc){
 }
 
 static int
-cursor_yx_get(ncdirect* n, const char* u7, int* y, int* x){
+cursor_yx_get(ncdirect* n, const char* u7, unsigned* y, unsigned* x){
   struct inputctx* ictx = n->tcache.ictx;
   if(ncdirect_flush(n)){
     return -1;
   }
-  int fakey, fakex;
+  unsigned fakey, fakex;
   if(y == NULL){
     y = &fakey;
   }
@@ -198,7 +198,7 @@ cursor_yx_get(ncdirect* n, const char* u7, int* y, int* x){
     x = &fakex;
   }
   get_cursor_location(ictx, u7, y, x);
-  loginfo("cursor at y=%d x=%d\n", *y, *x);
+  loginfo("cursor at y=%u x=%u\n", *y, *x);
   return 0;
 }
 
@@ -215,9 +215,11 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n, u7, &y, NULL)){
+      unsigned yprime;
+      if(cursor_yx_get(n, u7, &yprime, NULL)){
         return -1;
       }
+      y = yprime;
     }else{
       y = 0;
     }
@@ -225,9 +227,11 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->tcache.ttyfd >= 0 && u7){
-      if(cursor_yx_get(n, u7, NULL, &x)){
+      unsigned xprime;
+      if(cursor_yx_get(n, u7, NULL, &xprime)){
         return -1;
       }
+      x = xprime;
     }else{
       x = 0;
     }
@@ -362,7 +366,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
 
 // no terminfo capability for this. dangerous--it involves writing controls to
 // the terminal, and then reading a response.
-int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
+int ncdirect_cursor_yx(ncdirect* n, unsigned* y, unsigned* x){
   // this is only meaningful for real terminals
   if(n->tcache.ttyfd < 0){
     return -1;
@@ -372,7 +376,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     fprintf(stderr, "Terminal doesn't support cursor reporting\n");
     return -1;
   }
-  int yval, xval;
+  unsigned yval, xval;
   if(!y){
     y = &yval;
   }
@@ -417,10 +421,10 @@ ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
 
 // y is an out-only param, indicating the location where drawing started
 static int
-ncdirect_dump_sprixel(ncdirect* n, const ncplane* np, int xoff, int* y, fbuf* f){
-  int dimy, dimx;
+ncdirect_dump_sprixel(ncdirect* n, const ncplane* np, int xoff, unsigned* y, fbuf* f){
+  unsigned dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
-  const int toty = ncdirect_dim_y(n);
+  const unsigned toty = ncdirect_dim_y(n);
   // flush our FILE*, as we're about to use UNIX I/O (since we can't rely on
   // stdio to transfer large amounts at once).
   if(ncdirect_flush(n)){
@@ -431,9 +435,10 @@ ncdirect_dump_sprixel(ncdirect* n, const ncplane* np, int xoff, int* y, fbuf* f)
   }
   if(toty - dimy < *y){
     int scrolls = *y - 1;
-    *y = toty - dimy;
-    if(*y < 0){
+    if(toty <= dimy){
       *y = 0;
+    }else{
+      *y = toty - dimy;
     }
     scrolls -= *y;
     // perform our scrolling outside of the fbuf framework, as we need it
@@ -504,16 +509,16 @@ ncdirect_set_fg_default_f(ncdirect* nc, fbuf* f){
 
 static int
 ncdirect_dump_cellplane(ncdirect* n, const ncplane* np, fbuf* f, int xoff){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
-  const int toty = ncdirect_dim_y(n);
+  const unsigned toty = ncdirect_dim_y(n);
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);
   const bool bgdefault = ncdirect_bg_default_p(n);
   const uint32_t fgrgb = ncchannels_fg_rgb(n->channels);
   const uint32_t bgrgb = ncchannels_bg_rgb(n->channels);
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
+  for(unsigned y = 0 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       uint16_t stylemask;
       uint64_t channels;
       char* egc = ncplane_at_yx(np, y, x, &stylemask, &channels);
@@ -580,7 +585,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     return -1;
   }
   if(np->sprite){
-    int y;
+    unsigned y;
     if(ncdirect_dump_sprixel(n, np, xoff, &y, &f)){
       fbuf_free(&f);
       return -1;
@@ -628,10 +633,6 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   if(!vopts){
     vopts = &defvopts;
   }
-  if(vopts->leny < 0 || vopts->lenx < 0){
-    fprintf(stderr, "Invalid render geometry %d/%d\n", vopts->leny, vopts->lenx);
-    return NULL;
-  }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax, xmax);
 //fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, vopts->scaling);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, vopts->scaling,
@@ -640,11 +641,11 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   if(!bset){
     return NULL;
   }
-  int ymax = vopts->leny / bset->height;
-  int xmax = vopts->lenx / bset->width;
+  unsigned ymax = vopts->leny / bset->height;
+  unsigned xmax = vopts->lenx / bset->width;
   unsigned dimy = vopts->leny > 0 ? ymax : ncdirect_dim_y(n);
   unsigned dimx = vopts->lenx > 0 ? xmax : ncdirect_dim_x(n);
-  int disprows, dispcols, outy;
+  unsigned disprows, dispcols, outy;
   if(vopts->scaling != NCSCALE_NONE && vopts->scaling != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
       dispcols = dimx * encoding_x_scale(&n->tcache, bset);
@@ -964,12 +965,12 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   }
   int dimx = ncdirect_dim_x(n);
   // FIXME what if we're reading from redirected input, not a terminal?
-  int y, xstart;
+  unsigned y, xstart;
   if(cursor_yx_get(n, u7, &y, &xstart)){
     return NULL;
   }
   int tline = y;
-  int bline = y;
+  unsigned bline = y;
   wchar_t* str;
   int wspace = BUFSIZ / sizeof(*str);
   if((str = malloc(wspace * sizeof(*str))) == NULL){
@@ -980,7 +981,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   str[wused++] = L'\0';
   ncinput ni;
   uint32_t id;
-  int oldx = xstart;
+  unsigned oldx = xstart;
   while((id = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
@@ -1040,7 +1041,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
         str[wused - 1] = L'\0';
       }
       // FIXME check modifiers
-      int x;
+      unsigned x;
       if(cursor_yx_get(n, u7, &y, &x)){
         break;
       }
@@ -1521,7 +1522,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
   }
   // starting position *after displaying one frame* so as to effect any
   // necessary scrolling.
-  int y = -1, x = -1;
+  unsigned y = 0, x = 0;
   int lastid = -1;
   int thisid = -1;
   do{
@@ -1587,7 +1588,8 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, const struct ncvisual
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    const struct ncvisual_options* vopts, ncvgeom* geom){
   const struct blitset* bset;
-  int disppxy, disppxx, outy, outx, placey, placex;
+  unsigned disppxy, disppxx, outy, outx;
+  int placey, placex;
   return ncvisual_geom_inner(&n->tcache, frame, vopts, geom, &bset,
                              &disppxy, &disppxx, &outy, &outx,
                              &placey, &placex);

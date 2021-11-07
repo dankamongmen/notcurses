@@ -22,7 +22,7 @@ auto ncreel_validate(const ncreel* n) -> bool {
       }else if(y == cury){
         return false;
       }
-      int ylen, xlen;
+      unsigned ylen, xlen;
       ncplane_dim_yx(np, &ylen, &xlen);
       cury = y + ylen - 1;
     }
@@ -32,11 +32,12 @@ auto ncreel_validate(const ncreel* n) -> bool {
   do{
     const ncplane* np = t->p;
     if(np){
-      int y, x, ylen, xlen;
+      int y, x;
+      unsigned ylen, xlen;
       ncplane_yx(np, &y, &x);
       ncplane_dim_yx(np, &ylen, &xlen);
 //fprintf(stderr, "backwards: %p (%p) @ %d\n", t, np, y);
-      if(y + ylen - 1 > cury - 1){
+      if(y + static_cast<int>(ylen) - 1 > cury - 1){
         if(wentaround){
           return false;
         }
@@ -69,9 +70,9 @@ int check_allborders(nctablet* t, bool drawfromtop) {
   (void)drawfromtop;
   auto ncp = nctablet_plane(t);
   REQUIRE(ncp);
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
-  int srows, scols;
+  unsigned srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
   CHECK(srows >= rows + 3);
   CHECK(scols == cols + 4);
@@ -82,9 +83,9 @@ int check_noborders(nctablet* t, bool drawfromtop) {
   (void)drawfromtop;
   auto ncp = nctablet_plane(t);
   REQUIRE(ncp);
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
-  int srows, scols;
+  unsigned srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
   CHECK(srows == rows);
   CHECK(scols == cols);
@@ -95,9 +96,9 @@ int check_notborders(nctablet* t, bool drawfromtop) {
   (void)drawfromtop;
   auto ncp = nctablet_plane(t);
   REQUIRE(ncp);
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
-  int srows, scols;
+  unsigned srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
   CHECK(srows == rows + 2); // we get maximum possible size to try out
   CHECK(scols == cols + 2);
@@ -108,9 +109,9 @@ int check_norborders(nctablet* t, bool drawfromtop) {
   (void)drawfromtop;
   auto ncp = nctablet_plane(t);
   REQUIRE(ncp);
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
-  int srows, scols;
+  unsigned srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
   CHECK(srows >= rows + 1);
   CHECK(scols == cols + 2);
@@ -286,7 +287,7 @@ TEST_CASE("Reels") {
 
   SUBCASE("TransparentBackground") {
     ncreel_options r{};
-    int dimy, dimx;
+    unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     uint64_t channels = 0;
     ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);

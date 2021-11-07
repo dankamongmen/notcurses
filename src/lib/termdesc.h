@@ -112,7 +112,7 @@ typedef struct tinfo {
   // be acquired on all terminals with pixel support.
   unsigned cellpixy;               // cell pixel height, might be 0
   unsigned cellpixx;               // cell pixel width, might be 0
-  int dimy, dimx;                  // most recent cell geometry
+  unsigned dimy, dimx;             // most recent cell geometry
 
   unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv
 
@@ -155,16 +155,16 @@ typedef struct tinfo {
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and
   // query the details of the implementation.
   int color_registers; // sixel color registers (post pixel_query_done)
-  int sixel_maxx;      // maximum theoretical sixel width
+  unsigned sixel_maxx; // maximum theoretical sixel width
   // in sixel, we can't render to the bottom row, lest we force a one-line
   // scroll. we thus clamp sixel_maxy_pristine to the minimum of
   // sixel_maxy_pristine (the reported sixel_maxy), and the number of rows
   // less one times the cell height. sixel_maxy is thus recomputed whenever
   // we get a resize event. it is only defined if we have sixel_maxy_pristine,
   // so kitty graphics (which don't force a scroll) never deal with this.
-  int sixel_maxy;            // maximum working sixel height
-  int sixel_maxy_pristine;   // maximum theoretical sixel height, as queried
-  int sprixel_scale_height;  // sprixel must be a multiple of this many rows
+  unsigned sixel_maxy;          // maximum working sixel height
+  unsigned sixel_maxy_pristine; // maximum theoretical sixel height, as queried
+  unsigned sprixel_scale_height;// sprixel must be a multiple of this many rows
   const char* termname;      // terminal name from environment variables/init
   char* termversion;         // terminal version (freeform) from query responses
   queried_terminals_e qterm; // detected terminal class
@@ -242,7 +242,7 @@ void free_terminfo_cache(tinfo* ti);
 // return a heap-allocated copy of termname + termversion
 char* termdesc_longterm(const tinfo* ti);
 
-int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x);
+int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x);
 
 // tlen -- size of escape table. tused -- used bytes in same.
 // returns -1 if the starting location is >= 65535. otherwise,

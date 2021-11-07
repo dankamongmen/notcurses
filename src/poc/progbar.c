@@ -31,7 +31,7 @@ pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
 
 static struct ncprogbar*
 hbar_make(struct notcurses* nc, uint64_t flags){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     .y = 1,
@@ -45,8 +45,9 @@ hbar_make(struct notcurses* nc, uint64_t flags){
   if(pbar == NULL){
     return NULL;
   }
-  int posy, posx, pdimy, pdimx;
+  int posy, posx;
   ncplane_yx(pbar, &posy, &posx);
+  unsigned pdimy, pdimx;
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   uint64_t channels = 0;
@@ -71,7 +72,7 @@ hbar_make(struct notcurses* nc, uint64_t flags){
 
 static struct ncprogbar*
 pbar_make(struct notcurses* nc, uint64_t flags){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     .y = dimy / 2,
@@ -85,8 +86,9 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   if(pbar == NULL){
     return NULL;
   }
-  int posy, posx, pdimy, pdimx;
+  int posy, posx;
   ncplane_yx(pbar, &posy, &posx);
+  unsigned pdimy, pdimx;
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   uint64_t channels = 0;

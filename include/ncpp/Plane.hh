@@ -80,7 +80,7 @@ namespace ncpp
 			plane = create_plane (n, rows, cols, yoff, xoff, opaque);
 		}
 
-		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr, NotCurses *ncinst = nullptr)
+		explicit Plane (unsigned rows, unsigned cols, int yoff, int xoff, void *opaque = nullptr, NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
 			ncplane_options nopts = {
@@ -213,24 +213,14 @@ namespace ncpp
 			return error_guard (ncplane_pulse (plane, ts, fader, curry), -1);
 		}
 
-		int gradient (const char* egc, uint16_t stylemask, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ystop, int xstop) const NOEXCEPT_MAYBE
+		int gradient (int y, int x, unsigned ylen, unsigned xlen, const char* egc, uint16_t stylemask, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_gradient (plane, egc, stylemask, ul, ur, ll, lr, ystop, xstop), -1);
+			return error_guard<int> (ncplane_gradient (plane, y, x, ylen, xlen, egc, stylemask, ul, ur, ll, lr), -1);
 		}
 
-		int gradient_sized (const char* egc, uint16_t stylemask, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
+		int gradient2x1 (int y, int x, unsigned ylen, unsigned xlen, uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_gradient_sized (plane, egc, stylemask, ul, ur, ll, lr, ylen, xlen), -1);
-		}
-
-		int high_gradient (uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
-		{
-			return error_guard<int> (ncplane_highgradient (plane, ul, ur, ll, lr, ylen, xlen), -1);
-		}
-
-		int high_gradient_sized (uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr, int ylen, int xlen) const NOEXCEPT_MAYBE
-		{
-			return error_guard<int> (ncplane_highgradient_sized (plane, ul, ur, ll, lr, ylen, xlen), -1);
+			return error_guard<int> (ncplane_gradient2x1 (plane, y, x, ylen, xlen, ul, ur, ll, lr), -1);
 		}
 
 		void greyscale () const noexcept
@@ -323,12 +313,12 @@ namespace ncpp
 			return error_guard<int> (ncplane_valign (plane, static_cast<ncalign_e>(align), r), INT_MAX);
 		}
 
-		void get_dim (int *rows, int *cols) const noexcept
+		void get_dim (unsigned *rows, unsigned *cols) const noexcept
 		{
 			ncplane_dim_yx (plane, rows, cols);
 		}
 
-		void get_dim (int &rows, int &cols) const noexcept
+		void get_dim (unsigned &rows, unsigned &cols) const noexcept
 		{
 			get_dim (&rows, &cols);
 		}
@@ -457,7 +447,7 @@ namespace ncpp
 			return mergedown (&dst, begsrcy, begsrcx, leny, lenx, dsty, dstx);
 		}
 
-		bool mergedown (Plane *dst, unsigned begsrcy, unsigned begsrcx, unsigned leny, unsigned lenx, unsigned dsty, unsigned dstx) const
+		bool mergedown (Plane *dst, int begsrcy, int begsrcx, unsigned leny, unsigned lenx, int dsty, int dstx) const
 		{
 			if (plane == dst->plane)
 				throw invalid_argument ("'dst' must refer to a different plane than the one this method is called on");
@@ -958,14 +948,14 @@ namespace ncpp
 			ncplane_off_styles (plane, static_cast<unsigned>(styles));
 		}
 
-		int format (int ystop, int xstop, uint16_t stylemask) const NOEXCEPT_MAYBE
+		int format (int y, int x, unsigned ylen, unsigned xlen, uint16_t stylemask) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_format (plane, ystop, xstop, stylemask), -1);
+			return error_guard<int> (ncplane_format (plane, y, x, ylen, xlen, stylemask), -1);
 		}
 
-		int stain (int ystop, int xstop, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr) const NOEXCEPT_MAYBE
+		int stain (int y, int x, unsigned ylen, unsigned xlen, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_stain (plane, ystop, xstop, ul, ur, ll, lr), -1);
+			return error_guard<int> (ncplane_stain (plane, y, x, ylen, xlen, ul, ur, ll, lr), -1);
 		}
 
 		Plane* get_below () const noexcept
@@ -1301,7 +1291,7 @@ namespace ncpp
 		static void unmap_plane (Plane *p) noexcept;
 
 	private:
-		ncplane* create_plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque)
+		ncplane* create_plane (const Plane &n, unsigned rows, unsigned cols, int yoff, int xoff, void *opaque)
 		{
 			ncplane_options nopts = {
 				.y = yoff,
@@ -1318,7 +1308,7 @@ namespace ncpp
 			return create_plane (n, nopts);
 		}
 
-		ncplane* create_plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque)
+		ncplane* create_plane (Plane &n, unsigned rows, unsigned cols, int yoff, NCAlign align, void *opaque)
 		{
 			ncplane_options nopts = {
 				yoff,

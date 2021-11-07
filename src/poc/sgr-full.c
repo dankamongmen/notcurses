@@ -13,7 +13,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_set_scrolling(n, true);
   // FIXME do full permutations?

@@ -718,10 +718,10 @@ destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
 static int
 finalize_multiframe_selfref(sprixel* s, fbuf* f){
   int prewiped = 0;
-  for(int y = 0 ; y < s->dimy ; ++y){
-    for(int x = 0 ; x < s->dimx ; ++x){
-      int tyxidx = y * s->dimx + x;
-      int state = s->n->tam[tyxidx].state;
+  for(unsigned y = 0 ; y < s->dimy ; ++y){
+    for(unsigned x = 0 ; x < s->dimx ; ++x){
+      unsigned tyxidx = y * s->dimx + x;
+      unsigned state = s->n->tam[tyxidx].state;
       if(state >= SPRIXCELL_ANNIHILATED){
         if(kitty_blit_wipe_selfref(s, f, y, x)){
           return -1;
@@ -730,7 +730,7 @@ finalize_multiframe_selfref(sprixel* s, fbuf* f){
       }
     }
   }
-  loginfo("transitively wiped %d/%d\n", prewiped, s->dimy * s->dimx);
+  loginfo("transitively wiped %d/%u\n", prewiped, s->dimy * s->dimx);
   return 0;
 }
 
@@ -1126,8 +1126,8 @@ int kitty_remove(int id, fbuf* f){
 // damages cells underneath the graphic which were OPAQUE
 int kitty_scrub(const ncpile* p, sprixel* s){
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
-  for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
-    for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
+  for(unsigned yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
+    for(unsigned xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       const int ridx = yy * p->dimx + xx;
       assert(0 <= ridx);
       struct crender *r = &p->crender[ridx];

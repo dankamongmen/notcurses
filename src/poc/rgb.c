@@ -17,7 +17,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  int y, x, dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_dim_yx(n, &dimy, &dimx);
   int r , g, b;
@@ -25,8 +25,8 @@ int main(void){
   g = 0x80;
   b = 0;
   ncplane_set_bg_rgb8(n, 0x40, 0x20, 0x40);
-  for(y = 0 ; y < dimy ; ++y){
-    for(x = 0 ; x < dimx ; ++x){
+  for(unsigned y = 0 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       if(ncplane_set_fg_rgb8(n, r, g, b)){
         goto err;
       }

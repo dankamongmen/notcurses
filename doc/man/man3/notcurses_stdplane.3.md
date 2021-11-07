@@ -14,9 +14,9 @@ notcurses_stdplane - acquire the standard ncplane
 
 **const struct ncplane* notcurses_stdplane_const(const struct notcurses* ***nc***);**
 
-**static inline struct ncplane* notcurses_stddim_yx(struct notcurses* ***nc***, int* restrict ***y***, int* restrict ***x***);**
+**static inline struct ncplane* notcurses_stddim_yx(struct notcurses* ***nc***, unsigned* restrict ***y***, unsigned* restrict ***x***);**
 
-**static inline const struct ncplane* notcurses_stddim_yx_const(const struct notcurses* ***nc***, int* restrict ***y***, int* restrict ***x***);**
+**static inline const struct ncplane* notcurses_stddim_yx_const(const struct notcurses* ***nc***, unsigned* restrict ***y***, unsigned* restrict ***x***);**
 
 **int notcurses_enter_alternate_screen(struct notcurses* ***nc***);**
 

@@ -11,9 +11,9 @@ emit(struct ncplane* n, const char* str){
 // draw a bitmap of 6x6 cells with a cell left out
 static int
 wipebitmap(struct notcurses* nc){
-  int cellpxy, cellpxx;
+  unsigned cellpxy, cellpxx;
   ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL,
-                     &cellpxy, &cellpxx, NULL, NULL);
+                    &cellpxy, &cellpxx, NULL, NULL);
   int pixy = cellpxy * 6;
   int pixx = cellpxx * 6;
   uint32_t* pixels = malloc(sizeof(*pixels) * pixx * pixy);
@@ -79,7 +79,7 @@ wipebitmap(struct notcurses* nc){
   sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
-  for(int i = cellpxy ; i < 5 * cellpxy ; ++i){
+  for(unsigned i = cellpxy ; i < 5 * cellpxy ; ++i){
     memset(pixels + (i * 6 * cellpxx + cellpxx), 0, cellpxx * 4 * sizeof(*pixels));
   }
   struct ncvisual* ncve = ncvisual_from_rgba(pixels, 6 * cellpxy, 6 * cellpxx * 4, 6 * cellpxx);

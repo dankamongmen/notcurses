@@ -189,7 +189,7 @@ int runreels(struct notcurses* nc, struct ncreel* nr){
 static int
 resize_reel(struct ncplane* n){
   const struct ncplane* p = ncplane_parent_const(n);
-  int py, px;
+  unsigned py, px;
   ncplane_dim_yx(p, &py, &px);
   if(ncplane_resize(n, 0, 0, 0, 0, 0, 0, py - 1, px) < 0){
     return -1;
@@ -210,7 +210,7 @@ int main(int argc, char** argv){
   if(nc == nullptr){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane* n;
   if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){

@@ -191,7 +191,7 @@ drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
 
 static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   int headx = -1;
   int heady = -1;
@@ -254,10 +254,11 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
 
 static int
 make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** right){
-  int dimy, dimx, coly, colx, colposy, colposx;
+  unsigned dimy, dimx, coly, colx;
   struct notcurses* nc = ncplane_notcurses(column);
   notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_dim_yx(column, &coly, &colx);
+  int colposy, colposx;
   ncplane_yx(column, &colposy, &colposx);
   ncplane_options opts = {
     .x = colposx / 4 * -3,
@@ -297,7 +298,7 @@ int animate_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_erase(n);
   ncplane_home(n);
@@ -306,18 +307,18 @@ int animate_demo(struct notcurses* nc){
   ncchannel_set_rgb8(&tr, 0, 0xff, 0);
   ncchannel_set_rgb8(&bl, 0, 0, 0xff);
   ncchannel_set_rgb8(&br, 0, 0xff, 0xff);
-  if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
+  if(ncplane_gradient2x1(n, -1, -1, 0, 0, tl, tr, bl, br) < 0){
     return -1;
   }
   ncplane_set_fg_rgb(n, 0xf0f0a0);
   ncplane_set_bg_rgb(n, 0);
-  int width = 40;
+  unsigned width = 40;
   if(width > dimx - 8){
     if((width = dimx - 8) <= 0){
       return -1;
     }
   }
-  int height = 40;
+  unsigned height = 40;
   if(height >= dimy - 4){
     if((height = dimy - 5) <= 0){
       return -1;

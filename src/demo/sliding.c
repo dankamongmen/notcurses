@@ -94,7 +94,7 @@ static int
 fill_chunk(struct ncplane* n, int idx){
   const int hidx = idx % CHUNKS_HORZ;
   const int vidx = idx / CHUNKS_HORZ;
-  int maxy, maxx;
+  unsigned maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
   uint64_t channels = 0;
   int r = 64 + hidx * 10;

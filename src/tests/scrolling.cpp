@@ -273,7 +273,7 @@ TEST_CASE("Scrolling") {
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
     CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    for(int i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
+    for(unsigned i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
       CHECK(starty - i == ncplane_y(np));
       CHECK(0 == ncplane_putchar(n_, '\n'));
       CHECK(0 == notcurses_render(nc_));
@@ -301,7 +301,7 @@ TEST_CASE("Scrolling") {
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
     CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    for(int i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
+    for(unsigned i = 0 ; i < ncplane_dim_y(np) + starty ; ++i){
       CHECK(starty == ncplane_y(np));
       CHECK(0 == ncplane_putchar(n_, '\n'));
       CHECK(0 == notcurses_render(nc_));
