@@ -1125,8 +1125,8 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
 #define SET_SAVE_CURSOR       "1048" // save cursor ala DECSC (titeInhibit)
 #define SET_SMCUP             "1049" // 1047+1048 (titeInhibit)
 // DECSET/DECRSTs can be chained with semicolons; can we generalize this? FIXME
-#define DECSET(p) "\x1b[" p "h"
-#define DECRST(p) "\x1b[" p "l"
+#define DECSET(p) "\x1b[?" p "h"
+#define DECRST(p) "\x1b[?" p "l"
 
 int mouse_setup(tinfo* ti, unsigned eventmask);
 
