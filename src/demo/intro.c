@@ -124,7 +124,7 @@ int intro(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   uint32_t ccul, ccur, ccll, cclr;
   ccul = ccur = ccll = cclr = 0;

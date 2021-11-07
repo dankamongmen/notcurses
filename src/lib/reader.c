@@ -61,10 +61,10 @@ ncreader_redraw(ncreader* n){
   assert(n->xproject >= 0);
   assert(n->textarea->lenx >= n->ncp->lenx);
   assert(n->textarea->leny >= n->ncp->leny);
-  for(int y = 0 ; y < n->ncp->leny ; ++y){
-    const int texty = y;
-    for(int x = 0 ; x < n->ncp->lenx ; ++x){
-      const int textx = x + n->xproject;
+  for(unsigned y = 0 ; y < n->ncp->leny ; ++y){
+    const unsigned texty = y;
+    for(unsigned x = 0 ; x < n->ncp->lenx ; ++x){
+      const unsigned textx = x + n->xproject;
       const nccell* src = &n->textarea->fb[nfbcellidx(n->textarea, texty, textx)];
       nccell* dst = &n->ncp->fb[nfbcellidx(n->ncp, y, x)];
 //fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_extended_gcluster(n->textarea, src), y, x, cell_extended_gcluster(n->ncp, dst));
@@ -121,9 +121,9 @@ int ncreader_move_left(ncreader* n){
 // row. if on the right side of the viewarea, but not the right side of the
 // textarea, pans right. returns 0 if a move was made.
 int ncreader_move_right(ncreader* n){
-  int viewx = n->ncp->x;
-  int textx = n->textarea->x;
-  int y = n->ncp->y;
+  unsigned textx = n->textarea->x;
+  unsigned y = n->ncp->y;
+  unsigned viewx = n->ncp->x;
 //fprintf(stderr, "moving right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx >= n->textarea->lenx - 1){
     // are we on the last column of the textarea? if so, we must also be on
@@ -171,7 +171,7 @@ int ncreader_move_up(ncreader* n){
 // try to move down. does not move past the bottom of the textarea.
 // returns 0 if a move was made.
 int ncreader_move_down(ncreader* n){
-  int y = n->ncp->y;
+  unsigned y = n->ncp->y;
   if(y >= n->textarea->leny - 1){
     // are we on the last row of the textarea? if so, we can't move.
     return -1;
@@ -190,14 +190,14 @@ int ncreader_write_egc(ncreader* n, const char* egc){
     logerror("Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
-  if(n->textarea->x >= n->textarea->lenx - cols){
+  if(n->textarea->x >= (int)n->textarea->lenx - cols){
     if(n->horscroll){
       if(ncplane_resize_simple(n->textarea, n->textarea->leny, n->textarea->lenx + cols)){
         return -1;
       }
       ++n->xproject;
     }
-  }else if(n->ncp->x >= n->ncp->lenx){
+  }else if((unsigned)n->ncp->x >= n->ncp->lenx){
     ++n->xproject;
   }
   // use ncplane_putegc on both planes because it'll get cursor movement right
@@ -207,12 +207,12 @@ int ncreader_write_egc(ncreader* n, const char* egc){
   if(ncplane_putegc(n->ncp, egc, NULL) < 0){
     return -1;
   }
-  if(n->textarea->x >= n->textarea->lenx - cols){
+  if(n->textarea->x >= (int)n->textarea->lenx - cols){
     if(!n->horscroll){
       n->textarea->x = n->textarea->lenx - cols;
     }
   }
-  if(n->ncp->x >= n->ncp->lenx - cols){
+  if(n->ncp->x >= (int)n->ncp->lenx - cols){
     n->ncp->x = n->ncp->lenx - cols;
   }
   ncreader_redraw(n);
@@ -275,7 +275,7 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
       }
       break;
     case 'E': // cursor to end of line
-      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
+      while(n->textarea->x < (int)ncplane_dim_x(n->textarea) - 1){
         if(ncreader_move_right(n)){
           break;
         }
@@ -320,7 +320,7 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
       }
       break;
     case 'f': // forward one word (past end cell)
-      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
+      while(n->textarea->x < (int)ncplane_dim_x(n->textarea) - 1){
         if(ncreader_move_right(n)){
           break;
         }

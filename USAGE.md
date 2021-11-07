@@ -451,7 +451,7 @@ are available for direct mode:
 // Read a (heap-allocated) newline-delimited chunk of text. Returns NULL on
 // failure. The NCDIRECT_OPTION_INHIBIT_CBREAK flag ought not be used together
 // with this function, or the line-editing keybindings cannot be honored.
-API char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
+char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 
 int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
 int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
@@ -1674,8 +1674,8 @@ int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
-API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
-                       unsigned xlen, uint16_t stylemask);
+int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
+                   unsigned xlen, uint16_t stylemask);
 
 // Set the given channels throughout the specified region, keeping content and
 // channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
@@ -1684,9 +1684,9 @@ API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
-API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ylen,
-                      unsigned xlen, uint64_t ul, uint64_t ur,
-                      uint64_t ll, uint64_t lr);
+int ncplane_stain(struct ncplane* n, int y, int x, unsigned ylen,
+                  unsigned xlen, uint64_t ul, uint64_t ur,
+                  uint64_t ll, uint64_t lr);
 ```
 
 My 14 year-old self would never forgive me if we didn't have sweet palette

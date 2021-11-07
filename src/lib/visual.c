@@ -1193,7 +1193,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
 }
 
 ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit,
-                              unsigned begy, unsigned begx,
+                              int begy, int begx,
                               unsigned leny, unsigned lenx){
   unsigned py, px;
   uint32_t* rgba = ncplane_as_rgba(n, blit, begy, begx, leny, lenx, &py, &px);
@@ -1269,26 +1269,6 @@ int ncvisual_at_yx(const ncvisual* n, unsigned y, unsigned x, uint32_t* pixel){
   return 0;
 }
 
-// a neighbor on which to polyfill. by the time we get to it, it might or
-// might not have been filled in. if so, discard immediately. otherwise,
-// check self, and if valid, push all neighbors.
-struct topolyfill {
-  int y, x;
-  struct topolyfill* next;
-};
-
-static inline struct topolyfill*
-create_polyfill_op(int y, int x, struct topolyfill** stack){
-  struct topolyfill* n = malloc(sizeof(*n));
-  if(n){
-    n->y = y;
-    n->x = x;
-    n->next = *stack;
-    *stack = n;
-  }
-  return n;
-}
-
 // originally i wrote this recursively, at which point it promptly began
 // exploding once i multithreaded the [yield] demo. hence the clumsy stack
 // and hand-rolled iteration. alas, poor yorick!
@@ -1314,6 +1294,7 @@ ncvisual_polyfill_core(ncvisual* n, unsigned y, unsigned x, uint32_t rgba, uint3
       *pixel = rgba;
       if(y){
         if(create_polyfill_op(y - 1, x, &stack) == NULL){
+          // FIXME need free stack!
           return -1;
         }
       }

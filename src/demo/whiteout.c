@@ -509,14 +509,14 @@ int witherworm_demo(struct notcurses* nc){
           }
           int ulen = 0;
           int r;
-          //if(wcwidth(wcs) <= maxx - x){
+          if(wcwidth(wcs) <= (int)maxx - x){
             if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
               if(ulen < 0){
                 return -1;
               }else if(ulen == 0){
                 break; // FIXME work around missing unicode
               }
-            //}
+            }
           }else{
             if((r = ncplane_putchar(n, '#')) < 1){
               return -1;

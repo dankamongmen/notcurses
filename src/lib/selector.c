@@ -19,16 +19,16 @@ typedef struct ncselector {
   unsigned selected;             // index of selection
   unsigned startdisp;            // index of first option displayed
   unsigned maxdisplay;           // max number of items to display, 0 -> no limit
-  int longop;                    // columns occupied by longest option
-  int longdesc;                  // columns occupied by longest description
+  unsigned longop;               // columns occupied by longest option
+  unsigned longdesc;             // columns occupied by longest description
   struct ncselector_int* items;  // list of items and descriptions, heap-copied
   unsigned itemcount;            // number of pairs in 'items'
   char* title;                   // can be NULL, in which case there's no riser
-  int titlecols;                 // columns occupied by title
+  unsigned titlecols;            // columns occupied by title
   char* secondary;               // can be NULL
-  int secondarycols;             // columns occupied by secondary
+  unsigned secondarycols;        // columns occupied by secondary
   char* footer;                  // can be NULL
-  int footercols;                // columns occupied by footer
+  unsigned footercols;           // columns occupied by footer
   uint64_t opchannels;           // option channels
   uint64_t descchannels;         // description channels
   uint64_t titlechannels;        // title channels
@@ -42,15 +42,15 @@ typedef struct ncmultiselector {
   unsigned current;               // index of highlighted item
   unsigned startdisp;             // index of first option displayed
   unsigned maxdisplay;            // max number of items to display, 0 -> no limit
-  int longitem;                   // columns occupied by longest item
+  unsigned longitem;              // columns occupied by longest item
   struct ncmselector_int* items;  // items, descriptions, and statuses, heap-copied
   unsigned itemcount;             // number of pairs in 'items'
   char* title;                    // can be NULL, in which case there's no riser
   unsigned titlecols;             // columns occupied by title
   char* secondary;                // can be NULL
-  int secondarycols;              // columns occupied by secondary
+  unsigned secondarycols;         // columns occupied by secondary
   char* footer;                   // can be NULL
-  int footercols;                 // columns occupied by footer
+  unsigned footercols;            // columns occupied by footer
   uint64_t opchannels;            // option channels
   uint64_t descchannels;          // description channels
   uint64_t titlechannels;         // title channels
@@ -62,7 +62,7 @@ typedef struct ncmultiselector {
 // ideal body width given the ncselector's items and secondary/footer
 static int
 ncselector_body_width(const ncselector* n){
-  int cols = 0;
+  unsigned cols = 0;
   // the body is the maximum of
   //  * longop + longdesc + 5
   //  * secondary + 2
@@ -162,7 +162,7 @@ ncselector_draw(ncselector* n){
   // Top line of body (background and possibly up arrow)
   ++yoff;
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+  for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
     nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
@@ -181,12 +181,12 @@ ncselector_draw(ncselector* n){
   n->uarrowy = yoff;
   unsigned printidx = n->startdisp;
   unsigned printed = 0;
-  for(yoff += 1 ; yoff < dimy - 2 ; ++yoff){
+  for(yoff += 1 ; yoff < (int)dimy - 2 ; ++yoff){
     if(n->maxdisplay && printed == n->maxdisplay){
       break;
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-    for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    for(int i = xoff + 1 ; i < (int)dimx - 1 ; ++i){
       nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
       ncplane_putc(n->ncp, &transc);
     }
@@ -207,7 +207,7 @@ ncselector_draw(ncselector* n){
   }
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+  for(int i = xoff + 1 ; i < (int)dimx - 1 ; ++i){
     nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
@@ -225,8 +225,8 @@ ncselector_draw(ncselector* n){
 
 // calculate the necessary dimensions based off properties of the selector
 static void
-ncselector_dim_yx(const ncselector* n, int* ncdimy, int* ncdimx){
-  int rows = 0, cols = 0; // desired dimensions
+ncselector_dim_yx(const ncselector* n, unsigned* ncdimy, unsigned* ncdimx){
+  unsigned rows = 0, cols = 0; // desired dimensions
   const ncplane* parent = ncplane_parent(n->ncp);
   unsigned dimy, dimx; // dimensions of containing plane
   ncplane_dim_yx(parent, &dimy, &dimx);
@@ -305,13 +305,21 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncselector_item* src = &opts->items[ns->itemcount];
-    int cols = ncstrwidth(src->option);
+    int unsafe = ncstrwidth(src->option);
+    if(unsafe < 0){
+      goto freeitems;
+    }
+    unsigned cols = unsafe;
     ns->items[ns->itemcount].opcolumns = cols;
     if(cols > ns->longop){
       ns->longop = cols;
     }
     const char *desc = src->desc ? src->desc : "";
-    cols = ncstrwidth(desc);
+    unsafe = ncstrwidth(desc);
+    if(unsafe < 0){
+      goto freeitems;
+    }
+    cols = unsafe;
     ns->items[ns->itemcount].desccolumns = cols;
     if(cols > ns->longdesc){
       ns->longdesc = cols;
@@ -324,7 +332,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
       goto freeitems;
     }
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ns->ncp = n;
   ncselector_dim_yx(ns, &dimy, &dimx);
   if(ncplane_resize_simple(n, dimy, dimx)){
@@ -347,7 +355,7 @@ freeitems:
 }
 
 int ncselector_additem(ncselector* n, const struct ncselector_item* item){
-  int origdimy, origdimx;
+  unsigned origdimy, origdimx;
   ncselector_dim_yx(n, &origdimy, &origdimx);
   size_t newsize = sizeof(*n->items) * (n->itemcount + 1);
   struct ncselector_int* items = realloc(n->items, newsize);
@@ -358,7 +366,11 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   n->items[n->itemcount].option = strdup(item->option);
   const char *desc = item->desc ? item->desc : "";
   n->items[n->itemcount].desc = strdup(desc);
-  int cols = ncstrwidth(item->option);
+  int usafecols = ncstrwidth(item->option);
+  if(usafecols < 0){
+    return -1;
+  }
+  unsigned cols = usafecols;
   n->items[n->itemcount].opcolumns = cols;
   if(cols > n->longop){
     n->longop = cols;
@@ -369,7 +381,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
     n->longdesc = cols;
   }
   ++n->itemcount;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncselector_dim_yx(n, &dimy, &dimx);
   if(origdimx < dimx || origdimy < dimy){ // resize if too small
     ncplane_resize_simple(n->ncp, dimy, dimx);
@@ -378,7 +390,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
 }
 
 int ncselector_delitem(ncselector* n, const char* item){
-  int origdimy, origdimx;
+  unsigned origdimy, origdimx;
   ncselector_dim_yx(n, &origdimy, &origdimx);
   bool found = false;
   int maxop = 0, maxdesc = 0;
@@ -410,7 +422,7 @@ int ncselector_delitem(ncselector* n, const char* item){
   if(found){
     n->longop = maxop;
     n->longdesc = maxdesc;
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncselector_dim_yx(n, &dimy, &dimx);
     if(origdimx > dimx || origdimy > dimy){ // resize if too big
       ncplane_resize_simple(n->ncp, dimy, dimx);
@@ -560,9 +572,9 @@ ncplane* ncmultiselector_plane(ncmultiselector* n){
 }
 
 // ideal body width given the ncselector's items and secondary/footer
-static int
+static unsigned
 ncmultiselector_body_width(const ncmultiselector* n){
-  int cols = 0;
+  unsigned cols = 0;
   // the body is the maximum of
   //  * longop + longdesc + 5
   //  * secondary + 2
@@ -589,7 +601,7 @@ ncmultiselector_draw(ncmultiselector* n){
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.
-  int yoff = 0;
+  unsigned yoff = 0;
   if(n->title){
     size_t riserwidth = n->titlecols + 4;
     int offx = ncplane_halign(n->ncp, NCALIGN_RIGHT, riserwidth);
@@ -649,7 +661,7 @@ ncmultiselector_draw(ncmultiselector* n){
   // Top line of body (background and possibly up arrow)
   ++yoff;
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+  for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
     nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
@@ -670,7 +682,7 @@ ncmultiselector_draw(ncmultiselector* n){
       break;
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-    for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+    for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
       nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
       ncplane_putc(n->ncp, &transc);
     }
@@ -700,7 +712,7 @@ ncmultiselector_draw(ncmultiselector* n){
   }
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
-  for(int i = xoff + 1 ; i < dimx - 1 ; ++i){
+  for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
     nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
@@ -899,11 +911,19 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncmselector_item* src = &opts->items[ns->itemcount];
-    int cols = ncstrwidth(src->option);
+    int unsafe = ncstrwidth(src->option);
+    if(unsafe < 0){
+      goto freeitems;
+    }
+    unsigned cols = unsafe;
     if(cols > ns->longitem){
       ns->longitem = cols;
     }
-    int cols2 = ncstrwidth(src->desc);
+    unsafe = ncstrwidth(src->desc);
+    if(unsafe < 0){
+      goto freeitems;
+    }
+    unsigned cols2 = unsafe;
     if(cols + cols2 > ns->longitem){
       ns->longitem = cols + cols2;
     }

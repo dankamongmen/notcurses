@@ -22,8 +22,9 @@ detect_utf8(void){
   }
 }
 
-const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
-                     uintmax_t mult, int uprefix){
+const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
+                      char* buf, int omitdec, uintmax_t mult,
+                      int uprefix){
   // FIXME this is global to the process...ick :/
   fesetround(FE_TONEAREST);
   pthread_once(&utf8_detector, detect_utf8);
@@ -70,15 +71,17 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
     // 1,024). That can overflow with large 64-bit values, but we can first
     // divide both sides by mult, and then scale by 100.
     if(omitdec && (val % dv) == 0){
-      sprintfed = sprintf(buf, "%" PRIu64 "%lc", (uint64_t)(val / dv),
+      sprintfed = snprintf(buf, s, "%" PRIu64 "%lc", (uint64_t)(val / dv),
                           (wint_t)prefixes[consumed - 1]);
     }else{
-      sprintfed = sprintf(buf, "%.2f%lc", (double)val / dv,
+      sprintfed = snprintf(buf, s, "%.2f%lc", (double)val / dv,
                           (wint_t)prefixes[consumed - 1]);
     }
     if(uprefix){
-      buf[sprintfed] = uprefix;
-      buf[sprintfed + 1] = '\0';
+      if((size_t)sprintfed < s){
+        buf[sprintfed] = uprefix;
+        buf[++sprintfed] = '\0';
+      }
     }
     return buf;
   }
@@ -86,22 +89,29 @@ const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
   // val / decimal < dv (or we ran out of prefixes)
   if(omitdec && val % decimal == 0){
     if(consumed){
-      sprintfed = sprintf(buf, "%" PRIu64 "%lc", (uint64_t)(val / decimal),
+      sprintfed = snprintf(buf, s, "%" PRIu64 "%lc", (uint64_t)(val / decimal),
                           (wint_t)subprefixes[consumed - 1]);
     }else{
-      sprintfed = sprintf(buf, "%" PRIu64, (uint64_t)(val / decimal));
+      sprintfed = snprintf(buf, s, "%" PRIu64, (uint64_t)(val / decimal));
     }
   }else{
     if(consumed){
-      sprintfed = sprintf(buf, "%.2f%lc", (double)val / decimal,
+      sprintfed = snprintf(buf, s, "%.2f%lc", (double)val / decimal,
                           (wint_t)subprefixes[consumed - 1]);
     }else{
-      sprintfed = sprintf(buf, "%.2f", (double)val / decimal);
+      sprintfed = snprintf(buf, s, "%.2f", (double)val / decimal);
     }
   }
   if(consumed && uprefix){
-    buf[sprintfed] = uprefix;
-    buf[sprintfed + 1] = '\0';
+    if((size_t)sprintfed < s){
+      buf[sprintfed] = uprefix;
+      buf[++sprintfed] = '\0';
+    }
   }
   return buf;
+}
+
+const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
+                     uintmax_t mult, int uprefix){
+  return ncnmetric(val, SIZE_MAX, decimal, buf, omitdec, mult, uprefix);
 }
