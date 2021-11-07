@@ -1448,6 +1448,69 @@ int drop_signals(void* nc);
 int block_signals(sigset_t* old_blocked_signals);
 int unblock_signals(const sigset_t* old_blocked_signals);
 
+// takes a signed starting coordinate (where -1 indicates the cursor's
+// position), and an unsigned vector (where 0 indicates "everything
+// remaining", i.e. to the right and below). returns 0 iff everything
+// is valid and on the plane, filling in 'ystart'/'xstart' with the
+// (non-negative) starting coordinates and 'ylen'/'xlen with the
+// (positive) dimensions of the affected area.
+static inline int
+check_geometry_args(const ncplane* n, int y, int x,
+                    unsigned* ylen, unsigned* xlen,
+                    unsigned* ystart, unsigned* xstart){
+  // handle the special -1 case for y/x, and reject other negatives
+  if(y < 0){
+    if(y != -1){
+      logerror("invalid y: %d\n", y);
+      return -1;
+    }
+    y = n->y;
+  }
+  if(x < 0){
+    if(x != -1){
+      logerror("invalid x: %d\n", x);
+      return -1;
+    }
+    x = n->x;
+  }
+  // y and x are both now definitely positive, but might be off-plane.
+  // lock in y and x as ystart and xstart for unsigned comparisons.
+  *ystart = y;
+  *xstart = x;
+  unsigned ymax, xmax;
+  ncplane_dim_yx(n, &ymax, &xmax);
+  if(*ystart >= ymax || *xstart >= xmax){
+    logerror("invalid starting coordinates: %u/%u\n", *ystart, *xstart);
+    return -1;
+  }
+  // handle the special 0 case for ylen/xlen
+  if(*ylen == 0){
+    *ylen = ymax - *ystart;
+  }
+  if(*xlen == 0){
+    *xlen = xmax - *xstart;
+  }
+  // ensure ylen/xlen are on-plane
+  if(*ylen > ymax){
+    logerror("ylen > dimy %u > %u\n", *ylen, ymax);
+    return -1;
+  }
+  if(*xlen > xmax){
+    logerror("xlen > dimx %u > %u\n", *xlen, xmax);
+    return -1;
+  }
+  // ensure x + xlen and y + ylen are on-plane, without overflow
+  if(ymax - *ylen < *ystart){
+    logerror("y + ylen > ymax %u + %u > %u\n", *ystart, *ylen, ymax);
+    return -1;
+  }
+  if(xmax - *xlen < *xstart){
+    logerror("x + xlen > xmax %u + %u > %u\n", *xstart, *xlen, xmax);
+    return -1;
+  }
+  return 0;
+}
+
 void ncvisual_printbanner(fbuf* f);
 
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to
@@ -1613,6 +1676,27 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
     }
   }
   return ret;
+}
+
+// a neighbor on which to polyfill. by the time we get to it, it might or
+// might not have been filled in. if so, discard immediately. otherwise,
+// check self, and if valid, push all neighbors.
+struct topolyfill {
+  int y, x;
+  struct topolyfill* next;
+};
+
+static inline struct topolyfill*
+create_polyfill_op(int y, int x, struct topolyfill** stck){
+  // cast for the benefit of c++ callers
+  struct topolyfill* n = (struct topolyfill*)malloc(sizeof(*n));
+  if(n){
+    n->y = y;
+    n->x = x;
+    n->next = *stck;
+    *stck = n;
+  }
+  return n;
 }
 
 // implemented by a multimedia backend (ffmpeg or oiio), and installed

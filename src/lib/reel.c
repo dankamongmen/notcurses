@@ -186,7 +186,10 @@ tablet_geom(const ncreel* nr, nctablet* t, int* begx, int* begy,
 //fprintf(stderr, "jigsawing %p with %d/%d dir %d\n", t, frontiertop, frontierbottom, direction);
   *begy = 0;
   *begx = 0;
-  ncplane_dim_yx(nr->p, leny, lenx);
+  unsigned uleny, ulenx;
+  ncplane_dim_yx(nr->p, &uleny, &ulenx);
+  *leny = uleny;
+  *lenx = ulenx;
   if(frontiertop < 0){
     if(direction == DIRECTION_UP){
       return -1;
@@ -501,14 +504,15 @@ tighten_reel_down(ncreel* r, int ybot){
     if(cur->p == NULL){
       break;
     }
-    int cury, curx, ylen;
+    int cury, curx;
+    unsigned ylen;
     ncplane_yx(cur->p, &cury, &curx);
     ncplane_dim_yx(cur->p, &ylen, NULL);
-    if(cury <= ybot - ylen - 1){
+    if(cury <= ybot - (int)ylen - 1){
       break;
     }
 //fprintf(stderr, "tightening %p down to %d from %d\n", cur, ybot - ylen, cury);
-    cury = ybot - ylen;
+    cury = ybot - (int)ylen;
     ncplane_move_yx(cur->p, cury, curx);
     ybot = cury - 1;
     if((cur = cur->prev) == r->tablets){
@@ -580,7 +584,7 @@ tighten_reel(ncreel* r){
     const int ybot = rylen - 1 + !!(r->ropts.bordermask & NCBOXMASK_BOTTOM);
     // FIXME want to tighten down whenever we're at the bottom, and the reel
     // is full, not just in this case (this can leave a gap of more than 1 row)
-    if(yoff + ylen + 1 >= ybot){
+    if(yoff + (int)ylen + 1 >= ybot){
       if(tighten_reel_down(r, ybot)){
         return -1;
       }

@@ -1994,6 +1994,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
   return ret;
 }
 
+// we must have at least 2x2, or it's an error
 int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
                 const nccell* ll, const nccell* lr, const nccell* hl,
                 const nccell* vl, unsigned ystop, unsigned xstop,
@@ -2845,23 +2846,11 @@ is_bg_p(int idx, int py, int px, int width){
 
 static inline uint32_t*
 ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
-                         unsigned begy, unsigned begx, unsigned leny,
-                         unsigned lenx, unsigned* pxdimy, unsigned* pxdimx){
+                         int begy, int begx, unsigned leny, unsigned lenx,
+                         unsigned* pxdimy, unsigned* pxdimx){
   const notcurses* ncur = ncplane_notcurses_const(nc);
-  if(begx >= (unsigned)nc->lenx || begy >= (unsigned)nc->leny){
-    logerror("invalid origin (%u,%u)\n", begy, begx);
-    return NULL;
-  }
-  if(lenx == 0){ // -1 means "to the end"; use all space available
-    lenx = nc->lenx - begx;
-  }
-  if(leny == 0){
-    leny = nc->leny - begy;
-  }
-//fprintf(stderr, "sum: %d/%d avail: %d/%d\n", begy + leny, begx + lenx, nc->leny, nc->lenx);
-  if(nc->lenx - begx < lenx || nc->leny - begy < leny){
-    logerror("invalid specs %u + %u > %d or %u + %u > %d\n",
-             begx, lenx, nc->lenx, begy, leny, nc->leny);
+  unsigned ystart, xstart;
+  if(check_geometry_args(nc, begy, begx, &leny, &lenx, &ystart, &xstart)){
     return NULL;
   }
   if(blit == NCBLIT_PIXEL){ // FIXME extend this to support sprixels
@@ -2887,8 +2876,8 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
   uint32_t* ret = malloc(sizeof(*ret) * lenx * bset->width * leny * bset->height);
 //fprintf(stderr, "GEOM: %d/%d %d/%d ret: %p\n", bset->height, bset->width, *pxdimy, *pxdimx, ret);
   if(ret){
-    for(unsigned y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
-      for(unsigned x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
+    for(unsigned y = ystart, targy = 0 ; y < ystart + leny ; ++y, targy += bset->height){
+      for(unsigned x = xstart, targx = 0 ; x < xstart + lenx ; ++x, targx += bset->width){
         uint16_t stylemask;
         uint64_t channels;
         char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
@@ -2941,7 +2930,7 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
 }
 
 uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
-                          unsigned begy, unsigned begx, unsigned leny,
+                          int begy, int begx, unsigned leny,
                           unsigned lenx, unsigned* pxdimy, unsigned* pxdimx){
   unsigned px, py;
   if(!pxdimy){
@@ -2955,39 +2944,15 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 
 // return a heap-allocated copy of the contents
 char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned lenx){
-  if(begy < 0){
-    if(begy != -1){
-      logerror("invalid y coordinate: %d\n", begy);
-    }
-    begy = nc->y;
-  }
-  if(begx < 0){
-    if(begx != -1){
-      logerror("invalid x coordinate: %d\n", begx);
-    }
-    begx = nc->x;
-  }
-  if((unsigned)begx >= nc->lenx || (unsigned)begy >= nc->leny){
-    logerror("beginning coordinates (%d/%d) exceeded area (%u/%u)\n",
-             begy, begx, nc->leny, nc->lenx);
-    return NULL;
-  }
-  if(lenx == 0){ // 0 means "to the end"; use all space available
-    lenx = nc->lenx - begx;
-  }
-  if(leny == 0){
-    leny = nc->leny - begy;
-  }
-  if(nc->lenx - begx < lenx || nc->leny - begy < leny){
-    logerror("ending coordinates (%u/%u) exceeded lengths (%u/%u)\n",
-             begy + leny, begx + lenx, nc->leny, nc->lenx);
+  unsigned ystart, xstart;
+  if(check_geometry_args(nc, begy, begx, &leny, &lenx, &ystart, &xstart)){
     return NULL;
   }
   size_t retlen = 1;
   char* ret = malloc(retlen);
   if(ret){
-    for(unsigned y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
-      for(unsigned x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
+    for(unsigned y = ystart, targy = 0 ; y < ystart + leny ; ++y, targy += 2){
+      for(unsigned x = xstart, targx = 0 ; x < xstart + lenx ; ++x, ++targx){
         nccell ncl = CELL_TRIVIAL_INITIALIZER;
         // we need ncplane_at_yx_cell() here instead of ncplane_at_yx(),
         // because we should only have one copy of each wide EGC.

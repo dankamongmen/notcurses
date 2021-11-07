@@ -20,50 +20,58 @@ void ncplane_greyscale(ncplane *n){
 // success. so a return of 0 means there's no work to be done here, and N means
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
-ncplane_polyfill_recurse(ncplane* n, unsigned y, unsigned x, const nccell* c, const char* filltarg){
-  if(y >= (unsigned)n->leny || x >= (unsigned)n->lenx){
-    return 0; // not fillable
+ncplane_polyfill_inner(ncplane* n, unsigned y, unsigned x, const nccell* c, const char* filltarg){
+  struct topolyfill* stack = NULL;
+  if(create_polyfill_op(y, x, &stack) == NULL){
+    return -1;
   }
-  nccell* cur = &n->fb[nfbcellidx(n, y, x)];
-  const char* glust = nccell_extended_gcluster(n, cur);
+  int ret = 0;
+  do{
+    struct topolyfill* s = stack;
+    stack = stack->next;
+    y = s->y;
+    x = s->x;
+    nccell* cur = &n->fb[nfbcellidx(n, y, x)];
+    const char* glust = nccell_extended_gcluster(n, cur);
 //fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, filltarg);
-  if(strcmp(glust, filltarg)){
-    return 0;
-  }
-  if(nccell_duplicate(n, cur, c) < 0){
-    return -1;
-  }
-  int r, ret = 1;
+    if(strcmp(glust, filltarg) == 0){
+      ++ret;
+      if(nccell_duplicate(n, cur, c) < 0){
+        // FIXME need free stack!
+        return -1;
+      }
 //fprintf(stderr, "blooming from %d/%d ret: %d\n", y, x, ret);
-  if(y){
-    if((r = ncplane_polyfill_recurse(n, y - 1, x, c, filltarg)) < 0){
-      return -1;
+      if(y){
+        if(create_polyfill_op(y - 1, x, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(y + 1 < n->leny){
+        if(create_polyfill_op(y + 1, x, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(x){
+        if(create_polyfill_op(y, x - 1, &stack) == NULL){
+          return -1;
+        }
+      }
+      if(x + 1 < n->lenx){
+        if(create_polyfill_op(y, x + 1, &stack) == NULL){
+          return -1;
+        }
+      }
     }
-    ret += r;
-  }
-  if((r = ncplane_polyfill_recurse(n, y + 1, x, c, filltarg)) < 0){
-    return -1;
-  }
-  ret += r;
-  if(x){
-    if((r = ncplane_polyfill_recurse(n, y, x - 1, c, filltarg)) < 0){
-      return -1;
-    }
-    ret += r;
-  }
-  if((r = ncplane_polyfill_recurse(n, y, x + 1, c, filltarg)) < 0){
-    return -1;
-  }
-  ret += r;
+    free(s);
+  }while(stack);
   return ret;
 }
 
 // at the initial step only, invalid ystart, xstart is an error, so explicitly check.
 int ncplane_polyfill_yx(ncplane* n, int ystart, int xstart, const nccell* c){
-  int ret = -1;
   if(ystart < 0){
     if(ystart != -1){
-      logerror("invalid ystart: %d\n", ystart);
+      logerror("invalid y: %d\n", ystart);
       return -1;
     }
     ystart = n->y;
@@ -71,7 +79,7 @@ int ncplane_polyfill_yx(ncplane* n, int ystart, int xstart, const nccell* c){
   unsigned y = ystart;
   if(xstart < 0){
     if(xstart != -1){
-      logerror("invalid xstart: %d\n", xstart);
+      logerror("invalid x: %d\n", xstart);
       return -1;
     }
     xstart = n->x;
@@ -88,11 +96,12 @@ int ncplane_polyfill_yx(ncplane* n, int ystart, int xstart, const nccell* c){
   if(strcmp(fillegc, targ) == 0){
     return 0;
   }
+  int ret = -1;
   // we need an external copy of this, since we'll be writing to it on
-  // the first call into ncplane_polyfill_recurse()
+  // the first call into ncplane_polyfill_inner()
   char* targcopy = strdup(targ);
   if(targcopy){
-    ret = ncplane_polyfill_recurse(n, y, x, c, targcopy);
+    ret = ncplane_polyfill_inner(n, y, x, c, targcopy);
     free(targcopy);
   }
   return ret;
@@ -141,69 +150,6 @@ bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
   return false;
 }
 
-// takes a signed starting coordinate (where -1 indicates the cursor's
-// position), and an unsigned vector (where 0 indicates "everything
-// remaining", i.e. to the right and below). returns 0 iff everything
-// is valid and on the plane, filling in 'ystart'/'xstart' with the
-// (non-negative) starting coordinates and 'ylen'/'xlen with the
-// (positive) dimensions of the affected area.
-static int
-check_geometry_args(const ncplane* n, int y, int x,
-                    unsigned* ylen, unsigned* xlen,
-                    unsigned* ystart, unsigned* xstart){
-  // handle the special -1 case for y/x, and reject other negatives
-  if(y < 0){
-    if(y != -1){
-      logerror("invalid y: %d\n", y);
-      return -1;
-    }
-    y = n->y;
-  }
-  if(x < 0){
-    if(x != -1){
-      logerror("invalid x: %d\n", x);
-      return -1;
-    }
-    x = n->x;
-  }
-  // y and x are both now definitely positive, but might be off-plane.
-  // lock in y and x as ystart and xstart for unsigned comparisons.
-  *ystart = y;
-  *xstart = x;
-  unsigned ymax, xmax;
-  ncplane_dim_yx(n, &ymax, &xmax);
-  if(*ystart >= ymax || *xstart >= xmax){
-    logerror("invalid starting coordinates: %u/%u\n", *ystart, *xstart);
-    return -1;
-  }
-  // handle the special 0 case for ylen/xlen
-  if(*ylen == 0){
-    *ylen = ymax - *ystart;
-  }
-  if(*xlen == 0){
-    *xlen = xmax - *xstart;
-  }
-  // ensure ylen/xlen are on-plane
-  if(*ylen > ymax){
-    logerror("ylen > dimy %u > %u\n", *ylen, ymax);
-    return -1;
-  }
-  if(*xlen > xmax){
-    logerror("xlen > dimx %u > %u\n", *xlen, xmax);
-    return -1;
-  }
-  // ensure x + xlen and y + ylen are on-plane, without overflow
-  if(ymax - *ylen < *ystart){
-    logerror("y + ylen > ymax %u + %u > %u\n", *ystart, *ylen, ymax);
-    return -1;
-  }
-  if(xmax - *xlen < *xstart){
-    logerror("x + xlen > xmax %u + %u > %u\n", *xstart, *xlen, xmax);
-    return -1;
-  }
-  return 0;
-}
-
 // calculate both channels of a gradient at a particular point, knowing that
 // we're using double halfblocks, into `c`->channels.
 static inline void
@@ -248,7 +194,7 @@ int ncplane_gradient2x1(ncplane* n, int y, int x, unsigned ylen, unsigned xlen,
       if(pool_blit_direct(&n->pool, targc, "▀", strlen("▀"), 1) <= 0){
         return -1;
       }
-      calc_highgradient(targc, ul, ur, ll, lr, yy - ystart, xx - xstart, ylen, xlen);
+      calc_highgradient(targc, ul, ur, ll, lr, yy - ystart, xx - xstart, ylen * 2, xlen);
       ++total;
     }
   }

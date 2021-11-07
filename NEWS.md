@@ -12,8 +12,11 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.9 (not yet released)
+  * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`
+    was reimplemented as a trivial wrapper around `ncnmetric()`.
   * `qprefix()`, `bprefix()`, and `iprefix()` have been renamed
     `ncqprefix()`, `ncbprefix()`, and `nciprefix()`, respectively.
+    The former forms have been deprecated, and will be removed in abi3.
   * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
     `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which
     have been deprecated, and will be removed in ABI3.

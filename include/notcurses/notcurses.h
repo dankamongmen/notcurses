@@ -1807,7 +1807,7 @@ API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
 // Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
 // 'pxdimx' are non-NULL, they will be filled in with the total pixel geometry.
 API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                                    unsigned begy, unsigned begx,
+                                    int begy, int begx,
                                     unsigned leny, unsigned lenx,
                                     unsigned* pxdimy, unsigned* pxdimx)
   __attribute__ ((nonnull (1)));
@@ -2869,7 +2869,7 @@ API ALLOC struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
 // Lengths of 0 are interpreted to mean "all available remaining area".
 API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                ncblitter_e blit,
-                                               unsigned begy, unsigned begx,
+                                               int begy, int begx,
                                                unsigned leny, unsigned lenx)
   __attribute__ ((nonnull (1)));
 
@@ -3366,6 +3366,12 @@ API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
                          int omitdec, uintmax_t mult, int uprefix)
   __attribute__ ((nonnull (3)));
 
+// uses snprintf() internally with the argument 's' as its bound
+API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
+                          char* buf, int omitdec, uintmax_t mult,
+                          int uprefix)
+  __attribute__ ((nonnull (4)));
+
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
@@ -3672,17 +3678,17 @@ API ALLOC struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* 
 API int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 
 // Roll up any unrolled menu section, and hide the menu if using hiding.
-API int ncmenu_rollup(struct ncmenu* n);
+API int ncmenu_rollup(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Unroll the previous/next section (relative to current unrolled). If no
 // section is unrolled, the first section will be unrolled.
-API int ncmenu_nextsection(struct ncmenu* n);
-API int ncmenu_prevsection(struct ncmenu* n);
+API int ncmenu_nextsection(struct ncmenu* n) __attribute__ ((nonnull (1)));
+API int ncmenu_prevsection(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Move to the previous/next item within the currently unrolled section. If no
 // section is unrolled, the first section will be unrolled.
-API int ncmenu_nextitem(struct ncmenu* n);
-API int ncmenu_previtem(struct ncmenu* n);
+API int ncmenu_nextitem(struct ncmenu* n) __attribute__ ((nonnull (1)));
+API int ncmenu_previtem(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Disable or enable a menu item. Returns 0 if the item was found.
 API int ncmenu_item_set_status(struct ncmenu* n, const char* section,
@@ -4285,6 +4291,23 @@ API int notcurses_mouse_disable(struct notcurses* n)
 API int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
                                    uint32_t ll, uint32_t lr, int ylen, int xlen)
   __attribute__ ((deprecated));
+
+__attribute__ ((deprecated)) static inline const char*
+qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
+}
+
+// Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
+__attribute__ ((deprecated)) static inline const char*
+iprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
+}
+
+// Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
+__attribute__ ((deprecated)) static inline const char*
+bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
+}
 
 #undef API
 #undef ALLOC

@@ -146,7 +146,7 @@ int luigi_demo(struct notcurses* nc){
   if(!notcurses_canopen_images(nc)){
     return 0;
   }
-  int rows, cols;
+  unsigned rows, cols;
   char* map = find_data("megaman2.bmp");
   struct ncvisual* nv = ncvisual_from_file(map);
   free(map);
@@ -166,7 +166,7 @@ int luigi_demo(struct notcurses* nc){
   const int height = 32;
   int yoff = rows * 4 / 5 - height + 1; // tuned
   struct ncplane* lns[3];
-  int i;
+  unsigned i;
   struct ncplane* lastseen = NULL;
   for(i = 0 ; i < 3 ; ++i){
     struct ncplane_options nopts = {
