@@ -92,7 +92,7 @@ braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
 
 static void
 finish_line(struct ncplane* n){
-  int x;
+  unsigned x;
   ncplane_cursor_yx(n, NULL, &x);
   while(x++ < 80){
     ncplane_putchar(n, ' ');
@@ -147,7 +147,7 @@ emoji_viz(struct ncplane* n){
       }
     }
   }
-  int x;
+  unsigned x;
   ncplane_cursor_yx(n, NULL, &x);
   while(x++ < 80){
     ncplane_putchar(n, ' ');
@@ -312,14 +312,14 @@ unicodedumper(struct ncplane* n, const char* indent){
       ncplane_putchar(n, '\n');
     }
     emoji_viz(n);
-    int y, x;
+    unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xd8, 0x8E);
     uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_cursor_move_yx(n, y - 15, 0);
-    ncplane_stain(n, y - 1, 79, ul, ur, ll, lr);
+    ncplane_stain(n, -1, -1, 15, 80, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 12, 54);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
@@ -330,7 +330,7 @@ unicodedumper(struct ncplane* n, const char* indent){
 
 static int
 display_logo(struct ncplane* n, const char* path){
-  int cpixy, cpixx;
+  unsigned cpixy, cpixx;
   ncplane_pixel_geom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
@@ -340,7 +340,7 @@ display_logo(struct ncplane* n, const char* path){
     ncvisual_destroy(ncv);
     return -1;
   }
-  int y;
+  unsigned y;
   ncplane_cursor_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
@@ -478,9 +478,9 @@ int main(int argc, const char** argv){
     return EXIT_FAILURE;
   }
   // so that we know whether we're talking to gpm
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
   const char indent[] = "";
-  int dimx;
+  unsigned dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, NULL, &dimx);
   if(dimx < 80){
     ncplane_set_fg_rgb(stdn, 0xff5349);

@@ -3,8 +3,8 @@
 #include "internal.h"
 
 typedef struct ncfadectx {
-  int rows;                     // number of rows when allocated
-  int cols;                     // number of columns when allocated
+  unsigned rows;                // number of rows when allocated
+  unsigned cols;                // number of columns when allocated
   int maxsteps;                 // maximum number of iterations
   unsigned maxr, maxg, maxb;    // maxima across foreground channels
   unsigned maxbr, maxbg, maxbb; // maxima across background channels
@@ -32,9 +32,9 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
   pp->maxbr = pp->maxbg = pp->maxbb = 0;
   unsigned r, g, b, br, bg, bb;
   uint64_t channels;
-  int y, x;
+  unsigned y;
   for(y = 0 ; y < pp->rows ; ++y){
-    for(x = 0 ; x < pp->cols ; ++x){
+    for(unsigned x = 0 ; x < pp->cols ; ++x){
       channels = n->fb[nfbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
       ncchannels_fg_rgb8(channels, &r, &g, &b);
@@ -108,13 +108,13 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
 
 int ncplane_fadein_iteration(ncplane* n, ncfadectx* nctx, int iter,
                              fadecb fader, void* curry){
-  int y, x;
   // each time through, we need look each cell back up, due to the
   // possibility of a resize event :/
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  unsigned y;
   for(y = 0 ; y < nctx->rows && y < dimy ; ++y){
-    for(x = 0 ; x < nctx->cols && x < dimx; ++x){
+    for(unsigned x = 0 ; x < nctx->cols && x < dimx; ++x){
       unsigned r, g, b;
       ncchannels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);
       unsigned br, bg, bb;
@@ -175,13 +175,13 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
                               fadecb fader, void* curry){
   unsigned br, bg, bb;
   unsigned r, g, b;
-  int y, x;
   // each time through, we need look each cell back up, due to the
   // possibility of a resize event :/
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
+  unsigned y;
   for(y = 0 ; y < nctx->rows && y < dimy ; ++y){
-    for(x = 0 ; x < nctx->cols && x < dimx; ++x){
+    for(unsigned x = 0 ; x < nctx->cols && x < dimx; ++x){
       nccell* c = &n->fb[dimx * y + x];
       if(!nccell_fg_default_p(c)){
         ncchannels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);

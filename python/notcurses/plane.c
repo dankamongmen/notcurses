@@ -28,7 +28,7 @@ static PyObject *
 Ncplane_create(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     int y = 0, x = 0;
-    int rows = 0, cols = 0;
+    unsigned rows = 0, cols = 0;
     const char *name = NULL;
     // TODO reseize callback
     unsigned long long flags = 0;
@@ -91,31 +91,31 @@ NcPlane_notcurses(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_dim_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
-    int y = 0, x = 0;
+    unsigned y = 0, x = 0;
     ncplane_dim_yx(self->ncplane_ptr, &y, &x);
 
-    return Py_BuildValue("ii", y, x);
+    return Py_BuildValue("II", y, x);
 }
 
 static PyObject *
 NcPlane_dim_x(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
-    return Py_BuildValue("i", ncplane_dim_x(self->ncplane_ptr));
+    return Py_BuildValue("I", ncplane_dim_x(self->ncplane_ptr));
 }
 
 static PyObject *
 NcPlane_dim_y(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
-    return Py_BuildValue("i", ncplane_dim_y(self->ncplane_ptr));
+    return Py_BuildValue("I", ncplane_dim_y(self->ncplane_ptr));
 }
 
 static PyObject *
 NcPlane_pixel_geom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
-    int pxy = 0, pxx = 0, celldimy = 0, celldimx = 0, maxbmapy = 0, maxbmapx = 0;
+    unsigned pxy = 0, pxx = 0, celldimy = 0, celldimx = 0, maxbmapy = 0, maxbmapx = 0;
     ncplane_pixel_geom(self->ncplane_ptr, &pxy, &pxx, &celldimy, &celldimx, &maxbmapy, &maxbmapx);
 
-    return Py_BuildValue("ii ii ii", pxy, pxx, celldimy, celldimx, maxbmapy, maxbmapx);
+    return Py_BuildValue("II II II", pxy, pxx, celldimy, celldimx, maxbmapy, maxbmapx);
 }
 
 static PyObject *
@@ -199,7 +199,10 @@ NcPlane_set_scrolling(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
-    int keepy = 0, keepx = 0, keepleny = 0, keeplenx = 0, yoff = 0, xoff = 0, ylen = 0, xlen = 0;
+    int keepy = 0, keepx = 0;
+    unsigned keepleny = 0, keeplenx = 0;
+    int yoff = 0, xoff = 0;
+    unsigned ylen = 0, xlen = 0;
 
     char *keywords[] = {"keepy", "keepx",
                         "keepleny", "keeplenx",
@@ -207,7 +210,7 @@ NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ylen", "xlen",
                         NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiiiiiii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiIIiiII", keywords,
                                                   &keepy, &keepx,
                                                   &keepleny, &keeplenx,
                                                   &yoff, &xoff,
@@ -221,9 +224,9 @@ NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 NcPlane_resize_simple(NcPlaneObject *self, PyObject *args)
 {
-    int ylen = 0, xlen = 0;
+    unsigned ylen = 0, xlen = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &ylen, &xlen));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "II", &ylen, &xlen));
 
     CHECK_NOTCURSES(ncplane_resize_simple(self->ncplane_ptr, ylen, xlen));
 
@@ -474,11 +477,12 @@ NcPlane_at_yx_cell(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_contents(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
-    int beg_y = 0, beg_x = 0, len_y = -1, len_x = -1;
+    int beg_y = 0, beg_x = 0;
+    unsigned len_y = 0, len_x = 0;
 
     char *keywords[] = {"begy", "begx", "leny", "lenx", NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "ii|ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "ii|II", keywords,
                                                   &beg_y, &beg_x,
                                                   &len_y, &len_x));
 
@@ -543,11 +547,11 @@ NcPlane_home(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_cursor_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 {
-    int y = 0, x = 0;
+    unsigned y = 0, x = 0;
 
     ncplane_cursor_yx(self->ncplane_ptr, &y, &x);
 
-    return Py_BuildValue("ii", y, x);
+    return Py_BuildValue("II", y, x);
 }
 
 static PyObject *
@@ -815,101 +819,47 @@ NcPlane_polyfill_yx(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), P
 static PyObject *
 NcPlane_gradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
+    int y = -1, x = -1;
+    unsigned ylen = 0, xlen = 0;
     const char *egc = NULL;
     unsigned long stylemask = 0;
     unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
-    int ystop = 0, xstop = 0;
 
-    char *keywords[] = {"egc",
+    char *keywords[] = {"y", "x", "ylen", "xlen", "egc",
                         "stylemask",
                         "ul", "ur", "ll", "lr",
-                        "ystop", "xstop",
                         NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "skKKKKii", keywords,
-                                                  &egc,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "siiIIkKKKK", keywords,
+                                                  &y, &x, &ylen, &xlen, &egc,
                                                   &stylemask,
-                                                  &ul, &ur, &ll, &lr,
-                                                  &ystop, &xstop));
+                                                  &ul, &ur, &ll, &lr));
 
     int cells_filled = CHECK_NOTCURSES(
         ncplane_gradient(
-            self->ncplane_ptr, egc,
-            (uint32_t)stylemask,
-            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr,
-            ystop, xstop));
+            self->ncplane_ptr, y, x, ylen, xlen, egc,
+            (uint16_t)stylemask,
+            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr));
 
     return Py_BuildValue("i", cells_filled);
 }
 
 static PyObject *
-NcPlane_highgradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+NcPlane_gradient2x1(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     unsigned long ul = 0, ur = 0, ll = 0, lr = 0;
-    int ystop = 0, xstop = 0;
+    int y = -1, x = -1;
+    unsigned ylen = 0, xlen = 0;
 
-    char *keywords[] = {"ul", "ur", "ll", "lr",
-                        "ystop", "xstop",
+    char *keywords[] = {"y", "x", "ylen", "xlen", "ul", "ur", "ll", "lr",
                         NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "kkkkii", keywords,
-                                                  &ul, &ur, &ll, &lr,
-                                                  &ystop, &xstop));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiIIkkkk", keywords,
+                                                  &y, &x, &ylen, &xlen,
+                                                  &ul, &ur, &ll, &lr));
 
     int cells_filled = CHECK_NOTCURSES(
-        ncplane_highgradient(
-            self->ncplane_ptr,
-            (uint32_t)ul, (uint32_t)ur, (uint32_t)ll, (uint32_t)lr,
-            ystop, xstop));
-
-    return Py_BuildValue("i", cells_filled);
-}
-
-static PyObject *
-NcPlane_gradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
-{
-    const char *egc = NULL;
-    unsigned long stylemask = 0;
-    unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
-    int ylen = 0, xlen = 0;
-
-    char *keywords[] = {"egc",
-                        "stylemask",
-                        "ul", "ur", "ll", "lr",
-                        "ylen", "xlen",
-                        NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "skKKKKii", keywords,
-                                                  &egc,
-                                                  &stylemask,
-                                                  &ul, &ur, &ll, &lr,
-                                                  &ylen, &xlen));
-
-    int cells_filled = CHECK_NOTCURSES(
-        ncplane_gradient_sized(
-            self->ncplane_ptr, egc,
-            (uint32_t)stylemask,
-            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr,
-            ylen, xlen));
-
-    return Py_BuildValue("i", cells_filled);
-}
-
-static PyObject *
-NcPlane_highgradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
-{
-    unsigned long ul = 0, ur = 0, ll = 0, lr = 0;
-    int ylen = 0, xlen = 0;
-
-    char *keywords[] = {"ul", "ur", "ll", "lr",
-                        "ylen", "xlen",
-                        NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "kkkkii", keywords,
-                                                  &ul, &ur, &ll, &lr,
-                                                  &ylen, &xlen));
-
-    int cells_filled = CHECK_NOTCURSES(
-        ncplane_highgradient_sized(
-            self->ncplane_ptr,
-            (uint32_t)ul, (uint32_t)ur, (uint32_t)ll, (uint32_t)lr,
-            ylen, xlen));
+        ncplane_gradient2x1(
+            self->ncplane_ptr, y, x, ylen, xlen,
+            (uint32_t)ul, (uint32_t)ur, (uint32_t)ll, (uint32_t)lr));
 
     return Py_BuildValue("i", cells_filled);
 }
@@ -917,14 +867,17 @@ NcPlane_highgradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 NcPlane_format(NcPlaneObject *self, PyObject *args)
 {
-    int ystop = 0, xstop = 0;
+    int y = -1, x = -1;
+    unsigned ylen = 0, xlen = 0;
     unsigned long stylemark = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iik",
-                                       &ystop, &xstop,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iiIIk",
+                                       &y, &x, &ylen, &xlen,
                                        &stylemark));
 
-    int cells_set = CHECK_NOTCURSES(ncplane_format(self->ncplane_ptr, ystop, xstop, (uint32_t)stylemark));
+    int cells_set = CHECK_NOTCURSES(ncplane_format(self->ncplane_ptr,
+                                                   y, x, ylen, xlen,
+                                                   (uint16_t)stylemark));
 
     return Py_BuildValue("i", cells_set);
 }
@@ -932,7 +885,8 @@ NcPlane_format(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_stain(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
-    int ystop = 0, xstop = 0;
+    int x = -1, y = -1;
+    unsigned ylen = 0, xlen = 0;
     unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
 
     char *keywords[] = {
@@ -940,14 +894,14 @@ NcPlane_stain(NcPlaneObject *self, PyObject *args, PyObject *kwds)
         "ul", "ur", "ll", "lr",
         NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiKKKK", keywords,
-                                                  &ystop, &xstop,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiIIKKKK", keywords,
+                                                  &y, &x, &ylen, &xlen,
                                                   &ul, &ur, &ll, &lr));
 
     int cells_set = CHECK_NOTCURSES(
         ncplane_stain(
             self->ncplane_ptr,
-            ystop, xstop,
+            y, x, ylen, xlen,
             (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr));
 
     return Py_BuildValue("i", cells_set);
@@ -960,14 +914,7 @@ NcPlane_mergedown_simple(NcPlaneObject *self, PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "|O!", &NcPlane_Type, &dst_obj));
 
-    if (NULL != dst_obj)
-    {
-        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, dst_obj->ncplane_ptr));
-    }
-    else
-    {
-        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, NULL));
-    }
+    CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, dst_obj->ncplane_ptr));
 
     Py_RETURN_NONE;
 }
@@ -976,14 +923,15 @@ static PyObject *
 NcPlane_mergedown(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     NcPlaneObject *dst_obj = NULL;
-    int begsrcy = 0, begsrcx = 0, leny = 0, lenx = 0;
+    int begsrcy = 0, begsrcx = 0;
+    unsigned leny = 0, lenx = 0;
     int dsty = 0, dstx = 0;
 
     char *keywords[] = {"dst",
                         "begsrcy", "begsrcx", "leny", "lenx",
                         "dsty", "dstx",
                         NULL};
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!iiiiii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!iiIIii", keywords,
                                                   &NcPlane_Type, &dst_obj,
                                                   &begsrcy, &begsrcx, &leny, &lenx,
                                                   &dsty, &dstx));
@@ -1341,7 +1289,7 @@ NcPlane_perimeter_rounded(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                                                   &channels,
                                                   &ctlword));
 
-    CHECK_NOTCURSES(ncplane_perimeter_rounded(self->ncplane_ptr, (uint32_t)stylemask, (uint64_t)channels, ctlword));
+    CHECK_NOTCURSES(ncplane_perimeter_rounded(self->ncplane_ptr, (uint16_t)stylemask, (uint64_t)channels, ctlword));
 
     Py_RETURN_NONE;
 }
@@ -1351,7 +1299,7 @@ NcPlane_rounded_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     unsigned long styles = 0;
     unsigned long long channels = 0;
-    int ylen = 0, xlen = 0;
+    unsigned ylen = 0, xlen = 0;
     unsigned int ctlword = 0;
 
     char *keywords[] = {"styles",
@@ -1362,14 +1310,14 @@ NcPlane_rounded_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kKiiI", keywords,
+            args, kwds, "kKIII", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
 
     CHECK_NOTCURSES(ncplane_rounded_box_sized(
         self->ncplane_ptr,
-        (uint32_t)styles,
+        (uint16_t)styles,
         (uint64_t)channels,
         ylen, xlen,
         ctlword));
@@ -1390,7 +1338,7 @@ NcPlane_double_box(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 {
     unsigned long styles = 0;
     unsigned long long channels = 0;
-    int ylen = 0, xlen = 0;
+    unsigned ylen = 0, xlen = 0;
     unsigned int ctlword = 0;
 
     char *keywords[] = {"styles",
@@ -1401,14 +1349,14 @@ NcPlane_double_box(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kKiiI", keywords,
+            args, kwds, "kKIII", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
 
     CHECK_NOTCURSES(ncplane_double_box(
         self->ncplane_ptr,
-        (uint32_t)styles,
+        (uint16_t)styles,
         (uint64_t)channels,
         ylen, xlen,
         ctlword));
@@ -1436,7 +1384,7 @@ NcPlane_perimeter_double(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     CHECK_NOTCURSES(ncplane_perimeter_double(
         self->ncplane_ptr,
-        (uint32_t)styles,
+        (uint16_t)styles,
         (uint64_t)channels,
         ctlword));
 
@@ -1449,7 +1397,7 @@ NcPlane_double_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     unsigned long styles = 0;
     unsigned long long channels = 0;
-    int ylen = 0, xlen = 0;
+    unsigned ylen = 0, xlen = 0;
     unsigned int ctlword = 0;
 
     char *keywords[] = {"styles",
@@ -1460,14 +1408,14 @@ NcPlane_double_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kKiiI", keywords,
+            args, kwds, "kKIII", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
 
     CHECK_NOTCURSES(ncplane_double_box_sized(
         self->ncplane_ptr,
-        (uint32_t)styles,
+        (uint16_t)styles,
         (uint64_t)channels,
         ylen, xlen,
         ctlword));
@@ -1610,11 +1558,11 @@ NcPlane_qrcode(NcPlaneObject *self, PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s#", &data, &len));
 
-    int ymax = 0, xmax = 0;
+    unsigned ymax = 0, xmax = 0;
 
     CHECK_NOTCURSES(ncplane_qrcode(self->ncplane_ptr, &ymax, &xmax, (void *)data, (size_t)len));
 
-    return Py_BuildValue("ii", &ymax, &xmax);
+    return Py_BuildValue("II", &ymax, &xmax);
 }
 
 static PyObject *
@@ -1802,9 +1750,7 @@ static PyMethodDef NcPlane_methods[] = {
     {"polyfill_yx", (void *)NcPlane_polyfill_yx, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Starting at the specified coordinate, if its glyph is different from that of is copied into it, and the original glyph is considered the fill target.")},
 
     {"gradient", (void *)NcPlane_gradient, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a gradient with its upper-left corner at the current cursor position.")},
-    {"highgradient", (void *)NcPlane_highgradient, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Do a high-resolution gradient using upper blocks and synced backgrounds.")},
-    {"gradient_sized", (void *)NcPlane_gradient_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a gradient with its upper-left corner at the current cursor position.")},
-    {"highgradient_sized", (void *)NcPlane_highgradient_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("NcPlane.gradent_sized() meets NcPlane.highgradient().")},
+    {"gradient2x1", (void *)NcPlane_gradient2x1, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("NcPlane.gradent_sized() meets NcPlane.highgradient().")},
 
     {"format", (PyCFunction)NcPlane_format, METH_VARARGS, PyDoc_STR("Set the given style throughout the specified region, keeping content and attributes unchanged. Returns the number of cells set.")},
     {"stain", (void *)NcPlane_stain, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Set the given style throughout the specified region, keeping content and attributes unchanged. Returns the number of cells set.")},

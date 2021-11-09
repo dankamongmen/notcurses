@@ -210,15 +210,15 @@ Notcurses_getc_blocking(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(ar
 }
 
 static PyObject *
-Notcurses_mouse_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+Notcurses_mice_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    CHECK_NOTCURSES(notcurses_mouse_enable(self->notcurses_ptr));
+    CHECK_NOTCURSES(notcurses_mice_enable(self->notcurses_ptr, NCMICE_BUTTON_EVENT));
     Py_RETURN_NONE;
 }
 static PyObject *
-Notcurses_mouse_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+Notcurses_mice_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    CHECK_NOTCURSES(notcurses_mouse_disable(self->notcurses_ptr));
+    CHECK_NOTCURSES(notcurses_mice_disable(self->notcurses_ptr));
     Py_RETURN_NONE;
 }
 
@@ -239,10 +239,10 @@ Notcurses_linesigs_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 Notcurses_refresh(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int rows = 0, collumns = 0;
-    CHECK_NOTCURSES(notcurses_refresh(self->notcurses_ptr, &rows, &collumns));
+    unsigned rows = 0, columns = 0;
+    CHECK_NOTCURSES(notcurses_refresh(self->notcurses_ptr, &rows, &columns));
 
-    return Py_BuildValue("ii", rows, collumns);
+    return Py_BuildValue("II", rows, columns);
 }
 
 static PyObject *
@@ -259,22 +259,22 @@ Notcurses_stdplane(NotcursesObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 Notcurses_stddim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int y = 0, x = 0;
+    unsigned y = 0, x = 0;
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stddim_yx(self->notcurses_ptr, &y, &x));
 
     Py_INCREF(new_object);
-    return Py_BuildValue("Oii", new_object, y, x);
+    return Py_BuildValue("OII", new_object, y, x);
 }
 
 static PyObject *
 Notcurses_term_dim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    int rows = 0, collumns = 0;
-    notcurses_term_dim_yx(self->notcurses_ptr, &rows, &collumns);
+    unsigned rows = 0, columns = 0;
+    notcurses_term_dim_yx(self->notcurses_ptr, &rows, &columns);
 
-    return Py_BuildValue("ii", rows, collumns);
+    return Py_BuildValue("II", rows, columns);
 }
 
 static PyObject *
@@ -288,7 +288,7 @@ static PyObject *
 Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
 {
     int y = 0, x = 0;
-    int rows = 0, cols = 0;
+    unsigned rows = 0, cols = 0;
     const char *name = NULL;
     // TODO reseize callback
     unsigned long long flags = 0;
@@ -300,7 +300,7 @@ Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
                         "flags",
                         "margin_b", "margin_r", NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiiisKii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiIIsKii", keywords,
                                                   &y, &x,
                                                   &rows, &cols,
                                                   &name,
@@ -444,8 +444,8 @@ static PyMethodDef Notcurses_methods[] = {
     {"getc_nblock", (PyCFunction)Notcurses_getc_nblock, METH_NOARGS, "Get input event without blocking. If no event is ready, returns None."},
     {"getc_blocking", (PyCFunction)Notcurses_getc_blocking, METH_NOARGS, "Get input event completely blocking until and event or signal received."},
 
-    {"mouse_enable", (PyCFunction)Notcurses_mouse_enable, METH_NOARGS, "Enable the mouse in \"button-event tracking\" mode with focus detection and UTF8-style extended coordinates. On success mouse events will be published to getc()"},
-    {"mouse_disable", (PyCFunction)Notcurses_mouse_disable, METH_NOARGS, "Disable mouse events. Any events in the input queue can still be delivered."},
+    {"mice_enable", (PyCFunction)Notcurses_mice_enable, METH_NOARGS, "Enable the mouse in \"button-event tracking\" mode with focus detection and UTF8-style extended coordinates. On success mouse events will be published to getc()"},
+    {"mice_disable", (PyCFunction)Notcurses_mice_disable, METH_NOARGS, "Disable mouse events. Any events in the input queue can still be delivered."},
     {"linesigs_disable", (PyCFunction)Notcurses_linesigs_disable, METH_NOARGS, "Disable signals originating from the terminal's line discipline, i.e. SIGINT (^C), SIGQUIT (^\\), and SIGTSTP (^Z). They are enabled by default."},
     {"linesigs_enable", (PyCFunction)Notcurses_linesigs_enable, METH_NOARGS, "Restore signals originating from the terminal's line discipline, i.e. SIGINT (^C), SIGQUIT (^\\), and SIGTSTP (^Z), if disabled."},
 

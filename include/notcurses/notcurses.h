@@ -534,7 +534,7 @@ static inline uint64_t
 ncchannels_set_fg_default(uint64_t* channels){
   uint32_t channel = ncchannels_fchannel(*channels);
   ncchannel_set_default(&channel);
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  ncchannels_set_fchannel(channels, channel);
   return *channels;
 }
 
@@ -686,7 +686,7 @@ API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
 // nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
-             uint32_t stylemask, uint64_t channels){
+             uint16_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
   int ret = nccell_load(n, c, gcluster);
@@ -783,7 +783,7 @@ nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // return the number of columns occupied by 'c'. see ncstrwidth() for an
 // equivalent for multiple EGCs.
-static inline int
+static inline unsigned
 nccell_cols(const nccell* c){
   return c->width ? c->width : 1;
 }
@@ -1022,21 +1022,26 @@ notcurses_stddim_yx_const(const struct notcurses* nc, int* RESTRICT y, int* REST
 }
 
 // Return the topmost plane of the pile containing 'n'.
-API struct ncplane* ncpile_top(struct ncplane* n);
+API struct ncplane* ncpile_top(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the bottommost plane of the pile containing 'n'.
-API struct ncplane* ncpile_bottom(struct ncplane* n);
+API struct ncplane* ncpile_bottom(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Renders the pile of which 'n' is a part. Rendering this pile again will blow
 // away the render. To actually write out the render, call ncpile_rasterize().
-API int ncpile_render(struct ncplane* n);
+API int ncpile_render(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Make the physical screen match the last rendered frame from the pile of
 // which 'n' is a part. This is a blocking call. Don't call this before the
 // pile has been rendered (doing so will likely result in a blank screen).
-API int ncpile_rasterize(struct ncplane* n);
+API int ncpile_rasterize(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Renders and rasterizes the standard pile in one shot. Blocking call.
+<<<<<<< HEAD
 static inline int
 notcurses_render(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
@@ -1045,25 +1050,40 @@ notcurses_render(struct notcurses* nc){
   }
   return ncpile_rasterize(stdn);
 }
+=======
+API int notcurses_render(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
+>>>>>>> master
 
 // Perform the rendering and rasterization portion of ncpile_render() and
 // ncpile_rasterize(), but do not write the resulting buffer out to the
 // terminal. Using this function, the user can control the writeout process.
 // The returned buffer must be freed by the caller.
-API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
+API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen)
+  __attribute__ ((nonnull (1, 2, 3)));
 
+<<<<<<< HEAD
 // Write the last rendered frame, in its entirety, to 'fp'. If a frame has
 // not yet been rendered, nothing will be written.
 API int ncpile_render_to_file(struct ncplane* p, FILE* fp);
+=======
+// Write the last rendered frame, in its entirety, to 'fp'. If
+// notcurses_render() has not yet been called, nothing will be written.
+API int ncpile_render_to_file(struct ncplane* p, FILE* fp)
+  __attribute__ ((nonnull (1, 2)));
+>>>>>>> master
 
 // Return the topmost ncplane of the standard pile.
-API struct ncplane* notcurses_top(struct notcurses* n);
+API struct ncplane* notcurses_top(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the bottommost ncplane of the standard pile.
-API struct ncplane* notcurses_bottom(struct notcurses* n);
+API struct ncplane* notcurses_bottom(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // Destroy all ncplanes other than the stdplane.
-API void notcurses_drop_planes(struct notcurses* nc);
+API void notcurses_drop_planes(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // All input is taken from stdin. We attempt to read a single UTF8-encoded
 // Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
@@ -1089,7 +1109,7 @@ nckey_supppuab_p(uint32_t w){
 // Is the event a synthesized mouse event?
 static inline bool
 nckey_mouse_p(uint32_t r){
-  return r >= NCKEY_BUTTON1 && r <= NCKEY_BUTTON11;
+  return r >= NCKEY_MOTION && r <= NCKEY_BUTTON11;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse
@@ -1097,8 +1117,7 @@ nckey_mouse_p(uint32_t r){
 // ncinput. We encompass single Unicode codepoints, not complete EGCs.
 typedef struct ncinput {
   uint32_t id;       // Unicode codepoint or synthesized NCKEY event
-  int y;             // y cell coordinate of event, -1 for undefined
-  int x;             // x cell coordinate of event, -1 for undefined
+  int y, x;          // y/x cell coordinate of event, -1 for undefined
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
@@ -1109,6 +1128,7 @@ typedef struct ncinput {
     NCTYPE_REPEAT,
     NCTYPE_RELEASE,
   } evtype;
+  int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
 
 // compare two ncinput structs for data equality.
@@ -1153,7 +1173,7 @@ API int notcurses_inputready_fd(struct notcurses* n)
   __attribute__ ((nonnull (1)));
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
-// is ready, returns 0.
+// is immediately ready, returns 0.
 static inline uint32_t
 notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
@@ -1161,26 +1181,35 @@ notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
 }
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
-// until an event is processed or a signal is received.
+// until an event is processed or a signal is received (including resize events).
 static inline uint32_t
 notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   return notcurses_get(n, NULL, ni);
 }
 
+// Was 'ni' free of modifiers?
 static inline bool
 ncinput_nomod_p(const ncinput* ni){
-  return !ni->alt && !ni->ctrl && !ni->shift;
+  return !(ni->alt | ni->ctrl | ni->shift);
 }
 
-// Enable the mouse in "button-event tracking" mode with focus detection and
-// UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
-// is returned, and mouse events will be published to notcurses_get().
-API int notcurses_mouse_enable(struct notcurses* n)
+#define NCMICE_NO_EVENTS     0
+#define NCMICE_MOVE_EVENT    0x1
+#define NCMICE_BUTTON_EVENT  0x2
+#define NCMICE_DRAG_EVENT    0x4
+#define NCMICE_ALL_EVENTS    0x7
+
+// Enable mice events according to 'eventmask'; an eventmask of 0 will disable
+// all mice tracking. On failure, -1 is returned. On success, 0 is returned, and
+// mouse events will be published to notcurses_get().
+API int notcurses_mice_enable(struct notcurses* n, unsigned eventmask)
   __attribute__ ((nonnull (1)));
 
 // Disable mouse events. Any events in the input queue can still be delivered.
-API int notcurses_mouse_disable(struct notcurses* n)
-  __attribute__ ((nonnull (1)));
+__attribute__ ((nonnull (1))) static inline int
+notcurses_mice_disable(struct notcurses* n){
+  return notcurses_mice_enable(n, NCMICE_NO_EVENTS);
+}
 
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
@@ -1197,7 +1226,7 @@ API int notcurses_linesigs_enable(struct notcurses* n)
 // primarily useful if the screen is externally corrupted, or if an
 // NCKEY_RESIZE event has been read and you're not yet ready to render. The
 // current screen geometry is returned in 'y' and 'x', if they are not NULL.
-API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x)
+API int notcurses_refresh(struct notcurses* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
   __attribute__ ((nonnull (1)));
 
 // Extract the Notcurses context to which this plane is attached.
@@ -1207,27 +1236,68 @@ API struct notcurses* ncplane_notcurses(const struct ncplane* n)
 API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
+// Return the dimensions of this ncplane. y or x may be NULL.
+API void ncplane_dim_yx(const struct ncplane* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the terminal.
+API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+
+// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+static inline struct ncplane*
+notcurses_stddim_yx(struct notcurses* nc, unsigned* RESTRICT y, unsigned* RESTRICT x){
+  struct ncplane* s = notcurses_stdplane(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
+static inline const struct ncplane*
+notcurses_stddim_yx_const(const struct notcurses* nc, unsigned* RESTRICT y, unsigned* RESTRICT x){
+  const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
+  ncplane_dim_yx(s, y, x); // accepts NULL
+  return s;
+}
+
+static inline unsigned
+ncplane_dim_y(const struct ncplane* n){
+  unsigned dimy;
+  ncplane_dim_yx(n, &dimy, NULL);
+  return dimy;
+}
+
+static inline unsigned
+ncplane_dim_x(const struct ncplane* n){
+  unsigned dimx;
+  ncplane_dim_yx(n, NULL, &dimx);
+  return dimx;
+}
+
 // Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
-// 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
-// be 0. Any of the geometry arguments may be NULL. These results are
-// invalidated by a terminal resize.
-API void ncplane_pixel_geom(const struct ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
-                            int* RESTRICT celldimy, int* RESTRICT celldimx,
-                            int* RESTRICT maxbmapy, int* RESTRICT maxbmapx)
+// 'maxbmapx'). If bitmaps are not supported, or if there is no artificial
+// limit on bitmap size, 'maxbmapy' and 'maxbmapx' will be 0. Any of the
+// geometry arguments may be NULL.
+API void ncplane_pixel_geom(const struct ncplane* n,
+                           unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
+                           unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
+                           unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx)
   __attribute__ ((nonnull (1)));
 
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
-notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
+notcurses_term_dim_yx(const struct notcurses* n, unsigned* RESTRICT rows, unsigned* RESTRICT cols){
   ncplane_dim_yx(notcurses_stdplane_const(n), rows, cols);
 }
 
 // Retrieve the contents of the specified cell as last rendered. Returns the EGC
 // or NULL on error. This EGC must be free()d by the caller. The stylemask and
 // channels are written to 'stylemask' and 'channels', respectively.
-API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
-                          uint16_t* stylemask, uint64_t* channels);
+API char* notcurses_at_yx(struct notcurses* nc, unsigned yoff, unsigned xoff,
+                          uint16_t* stylemask, uint64_t* channels)
+  __attribute__ ((nonnull (1)));
 
 // Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
@@ -1248,8 +1318,8 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
   int x;            // horizontal placement relative to parent plane
-  int rows;         // rows, must be positive (unless NCPLANE_OPTION_MARGINALIZED)
-  int cols;         // columns, must be positive (unless NCPLANE_OPTION_MARGINALIZED)
+  unsigned rows;    // rows, must be >0 unless NCPLANE_OPTION_MARGINALIZED
+  unsigned cols;    // columns, must be >0 unless NCPLANE_OPTION_MARGINALIZED
   void* userptr;    // user curry, may be NULL
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // callback when parent is resized
@@ -1579,20 +1649,19 @@ API void notcurses_stats_reset(struct notcurses* nc, ncstats* stats)
 //
 // Essentially, the kept material does not move. It serves to anchor the
 // resized plane. If there is no kept material, the plane can move freely.
-API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
-                       int keeplenx, int yoff, int xoff, int ylen, int xlen);
+API int ncplane_resize(struct ncplane* n, int keepy, int keepx,
+                       unsigned keepleny, unsigned keeplenx,
+                       int yoff, int xoff,
+                       unsigned ylen, unsigned xlen);
 
 // Resize the plane, retaining what data we can (everything, unless we're
 // shrinking in some dimension). Keep the origin where it is.
 static inline int
-ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
-  if(ylen < 0 || xlen < 0){
-    return -1;
-  }
-  int oldy, oldx;
+ncplane_resize_simple(struct ncplane* n, unsigned ylen, unsigned xlen){
+  unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-  int keepleny = oldy > ylen ? ylen : oldy;
-  int keeplenx = oldx > xlen ? xlen : oldx;
+  unsigned keepleny = oldy > ylen ? ylen : oldy;
+  unsigned keeplenx = oldx > xlen ? xlen : oldx;
   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
 }
 
@@ -1612,7 +1681,7 @@ API int ncplane_set_base_cell(struct ncplane* n, const nccell* c);
 // affected by ncplane_erase(). 'egc' must be an extended grapheme cluster.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure.
 API int ncplane_set_base(struct ncplane* n, const char* egc,
-                         uint32_t stylemask, uint64_t channels);
+                         uint16_t stylemask, uint64_t channels);
 
 // Extract the ncplane's base nccell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
@@ -1773,9 +1842,10 @@ API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // Create a flat string from the EGCs of the selected region of the ncplane
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
+// -1 can be specified for 'begx'/'begy' to use the current cursor location.
 API char* ncplane_contents(struct ncplane* n, int begy, int begx,
-                           int leny, int lenx);
+                           unsigned leny, unsigned lenx);
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
@@ -1793,12 +1863,13 @@ API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
-// 'lenx' can be specified as -1 to go through the boundary of the plane.
+// 'lenx' can be specified as 0 to go through the boundary of the plane.
 // Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
-// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+// 'pxdimx' are non-NULL, they will be filled in with the total pixel geometry.
 API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
-                                    int begy, int begx, int leny, int lenx,
-                                    int* pxdimy, int* pxdimx)
+                                    int begy, int begx,
+                                    unsigned leny, unsigned lenx,
+                                    unsigned* pxdimy, unsigned* pxdimx)
   __attribute__ ((nonnull (1)));
 
 // Return the offset into 'availu' at which 'u' ought be output given the
@@ -1851,7 +1922,7 @@ API void ncplane_home(struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+API void ncplane_cursor_yx(const struct ncplane* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
   __attribute__ ((nonnull (1)));
 
 // Get the current channels or attribute word for ncplane 'n'.
@@ -2165,20 +2236,22 @@ API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
 // cell output (even, perhaps counter-intuitively, when drawing vertical
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
-// cells drawn.
-API int ncplane_hline_interp(struct ncplane* n, const nccell* c, int len,
-                             uint64_t c1, uint64_t c2);
+// cells drawn. A length of 0 is an error, resulting in a return of -1.
+API int ncplane_hline_interp(struct ncplane* n, const nccell* c,
+                             unsigned len, uint64_t c1, uint64_t c2)
+  __attribute__ ((nonnull (1, 2)));
 
-static inline int
-ncplane_hline(struct ncplane* n, const nccell* c, int len){
+__attribute__ ((nonnull (1, 2))) static inline int
+ncplane_hline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_hline_interp(n, c, len, c->channels, c->channels);
 }
 
-API int ncplane_vline_interp(struct ncplane* n, const nccell* c, int len,
-                             uint64_t c1, uint64_t c2);
+API int ncplane_vline_interp(struct ncplane* n, const nccell* c,
+                             unsigned len, uint64_t c1, uint64_t c2)
+  __attribute__ ((nonnull (1, 2)));
 
-static inline int
-ncplane_vline(struct ncplane* n, const nccell* c, int len){
+__attribute__ ((nonnull (1, 2))) static inline int
+ncplane_vline(struct ncplane* n, const nccell* c, unsigned len){
   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 }
 
@@ -2213,20 +2286,21 @@ ncplane_vline(struct ncplane* n, const nccell* c, int len){
 // are never drawn (since at most 2 edges can touch a box's corner).
 API int ncplane_box(struct ncplane* n, const nccell* ul, const nccell* ur,
                     const nccell* ll, const nccell* lr, const nccell* hline,
-                    const nccell* vline, int ystop, int xstop,
+                    const nccell* vline, unsigned ystop, unsigned xstop,
                     unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
-// minimum box size is 2x2, and it cannot be drawn off-screen.
+// minimum box size is 2x2, and it cannot be drawn off-plane.
 static inline int
 ncplane_box_sized(struct ncplane* n, const nccell* ul, const nccell* ur,
                   const nccell* ll, const nccell* lr, const nccell* hline,
-                  const nccell* vline, int ylen, int xlen, unsigned ctlword){
-  int y, x;
+                  const nccell* vline, unsigned ystop, unsigned xstop,
+                  unsigned ctlword){
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
-  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
-                     x + xlen - 1, ctlword);
+  return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ystop - 1,
+                     x + xstop - 1, ctlword);
 }
 
 static inline int
@@ -2236,7 +2310,7 @@ ncplane_perimeter(struct ncplane* n, const nccell* ul, const nccell* ur,
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   return ncplane_box_sized(n, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword);
 }
@@ -2246,10 +2320,13 @@ ncplane_perimeter(struct ncplane* n, const nccell* ul, const nccell* ur,
 // target. We do the same to all cardinally-connected cells having this same
 // fill target. Returns the number of cells polyfilled. An invalid initial y, x
 // is an error. Returns the number of cells filled, or -1 on error.
-API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
+API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c)
+  __attribute__ ((nonnull (1, 4)));
 
-// Draw a gradient with its upper-left corner at the current cursor position,
-// stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'stylemask' is
+// Draw a gradient with its upper-left corner at the position specified by 'y'/'x',
+// where -1 means the current cursor position in that dimension. The area is
+// specified by 'ylen'/'xlen', where 0 means "everything remaining below or
+// to the right, respectively." The glyph composed of 'egc' and 'styles' is
 // used for all cells. The channels specified by 'ul', 'ur', 'll', and 'lr'
 // are composed into foreground and background gradients. To do a vertical
 // gradient, 'ul' ought equal 'ur' and 'll' ought equal 'lr'. To do a
@@ -2257,7 +2334,6 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
 // color everything the same, all four channels should be equivalent. The
 // resulting alpha values are equal to incoming alpha values. Returns the
 // number of cells filled on success, or -1 on failure.
-//
 // Palette-indexed color is not supported.
 //
 // Preconditions for gradient operations (error otherwise):
@@ -2267,70 +2343,71 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
 //  1x1: all four colors must be the same
 //  1xN: both top and both bottom colors must be the same (vertical gradient)
 //  Nx1: both left and both right colors must be the same (horizontal gradient)
-API int ncplane_gradient(struct ncplane* n, const char* egc, uint32_t stylemask,
-                         uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                         int ystop, int xstop);
+API int ncplane_gradient(struct ncplane* n, int y, int x, unsigned ylen,
+                         unsigned xlen, const char* egc, uint16_t styles,
+                         uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr)
+  __attribute__ ((nonnull (1, 6)));
 
 // Do a high-resolution gradient using upper blocks and synced backgrounds.
 // This doubles the number of vertical gradations, but restricts you to
 // half blocks (appearing to be full blocks). Returns the number of cells
 // filled on success, or -1 on error.
-API int ncplane_highgradient(struct ncplane* n, uint32_t ul, uint32_t ur,
-                             uint32_t ll, uint32_t lr, int ystop, int xstop);
-
-// Draw a gradient with its upper-left corner at the current cursor position,
-// having dimensions 'ylen'x'xlen'. See ncplane_gradient for more information.
-static inline int
-ncplane_gradient_sized(struct ncplane* n, const char* egc, uint32_t stylemask,
-                       uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr,
-                       int ylen, int xlen){
-  if(ylen < 1 || xlen < 1){
-    return -1;
-  }
-  int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  return ncplane_gradient(n, egc, stylemask, ul, ur, ll, lr,
-                          y + ylen - 1, x + xlen - 1);
-}
-
-// ncplane_gradent_sized() meets ncplane_highgradient().
-API int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
-                                   uint32_t ll, uint32_t lr, int ylen, int xlen);
+API int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
+                            unsigned xlen, uint32_t ul, uint32_t ur,
+                            uint32_t ll, uint32_t lr)
+  __attribute__ ((nonnull (1)));
 
 // Set the given style throughout the specified region, keeping content and
-// channels unchanged. Returns the number of cells set, or -1 on failure.
-API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylemask);
+// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// specified to indicate the cursor's position in that dimension. The lower
+// right corner is specified by 'xstop', 'ystop'. It is an error for any
+// coordinate to be outside the plane. Returns the number of cells set,
+// or -1 on failure.
+API int ncplane_format(struct ncplane* n, int y, int x, unsigned ystop,
+                       unsigned xstop, uint16_t stylemask)
+  __attribute__ ((nonnull (1)));
 
 // Set the given channels throughout the specified region, keeping content and
-// attributes unchanged. Returns the number of cells set, or -1 on failure.
-API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
-                      uint64_t ur, uint64_t ll, uint64_t lr);
+// attributes unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// specified to indicate the cursor's position in that dimension. The lower
+// right corner is specified by 'xstop', 'ystop'. It is an error for any
+// coordinate to be outside the plane. Returns the number of cells set,
+// or -1 on failure.
+API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ystop,
+                      unsigned xstop, uint64_t ul, uint64_t ur,
+                      uint64_t ll, uint64_t lr)
+  __attribute__ ((nonnull (1)));
 
 // Merge the entirety of 'src' down onto the ncplane 'dst'. If 'src' does not
 // intersect with 'dst', 'dst' will not be changed, but it is not an error.
 API int ncplane_mergedown_simple(struct ncplane* RESTRICT src,
-                                 struct ncplane* RESTRICT dst);
+                                 struct ncplane* RESTRICT dst)
+  __attribute__ ((nonnull (1, 2)));
 
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
 // defined as "write to 'dst' the frame that would be rendered were the entire
 // stack made up only of the specified subregion of 'src' and, below it, the
-// subregion of 'dst' having the specified origin. Merging is independent of
+// subregion of 'dst' having the specified origin. Supply -1 to indicate the
+// current cursor position in the relevant dimension. Merging is independent of
 // the position of 'src' viz 'dst' on the z-axis. It is an error to define a
-// subregion of zero area, or that is not entirely contained within 'src'. It
-// is an error to define a target origin such that the projected subregion is
-// not entirely contained within 'dst'.  Behavior is undefined if 'src' and
-// 'dst' are equivalent. 'dst' is modified, but 'src' remains unchanged.
-// neither 'src' nor 'dst' may have sprixels.
+// subregion that is not entirely contained within 'src'. It is an error to
+// define a target origin such that the projected subregion is not entirely
+// contained within 'dst'.  Behavior is undefined if 'src' and 'dst' are
+// equivalent. 'dst' is modified, but 'src' remains unchanged. Neither 'src'
+// nor 'dst' may have sprixels. Lengths of 0 mean "everything left".
 API int ncplane_mergedown(struct ncplane* RESTRICT src,
                           struct ncplane* RESTRICT dst,
-                          int begsrcy, int begsrcx, int leny, int lenx,
-                          int dsty, int dstx);
+                          int begsrcy, int begsrcx,
+                          unsigned leny, unsigned lenx,
+                          int dsty, int dstx)
+  __attribute__ ((nonnull (1, 2)));
 
 // Erase every cell in the ncplane (each cell is initialized to the null glyph
 // and the default channels/styles). All cells associated with this ncplane are
 // invalidated, and must not be used after the call, *excluding* the base cell.
 // The cursor is homed. The plane's active attributes are unaffected.
-API void ncplane_erase(struct ncplane* n);
+API void ncplane_erase(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Erase every cell in the region starting at {ystart, xstart} and having size
 // {|ylen|x|xlen|} for non-zero lengths. If ystart and/or xstart are -1, the current
@@ -2597,37 +2674,44 @@ typedef int (*fadecb)(struct notcurses* nc, struct ncplane* n,
 // modification (if the terminal uses a palette, our ability to fade planes is
 // limited, and affected by the complexity of the rest of the screen).
 API int ncplane_fadeout(struct ncplane* n, const struct timespec* ts,
-                        fadecb fader, void* curry);
+                        fadecb fader, void* curry)
+  __attribute__ ((nonnull (1)));
 
 // Fade the ncplane in over the specified time. Load the ncplane with the
 // target cells without rendering, then call this function. When it's done, the
 // ncplane will have reached the target levels, starting from zeroes.
 API int ncplane_fadein(struct ncplane* n, const struct timespec* ts,
-                       fadecb fader, void* curry);
+                       fadecb fader, void* curry)
+  __attribute__ ((nonnull (1)));
 
 // Rather than the simple ncplane_fade{in/out}(), ncfadectx_setup() can be
 // paired with a loop over ncplane_fade{in/out}_iteration() + ncfadectx_free().
-API struct ncfadectx* ncfadectx_setup(struct ncplane* n);
+API ALLOC struct ncfadectx* ncfadectx_setup(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the number of iterations through which 'nctx' will fade.
-API int ncfadectx_iterations(const struct ncfadectx* nctx);
+API int ncfadectx_iterations(const struct ncfadectx* nctx)
+  __attribute__ ((nonnull (1)));
 
 // Fade out through 'iter' iterations, where
 // 'iter' < 'ncfadectx_iterations(nctx)'.
 API int ncplane_fadeout_iteration(struct ncplane* n, struct ncfadectx* nctx,
-                                  int iter, fadecb fader, void* curry);
+                                  int iter, fadecb fader, void* curry)
+  __attribute__ ((nonnull (1, 2)));
 
 // Fade in through 'iter' iterations, where
 // 'iter' < 'ncfadectx_iterations(nctx)'.
 API int ncplane_fadein_iteration(struct ncplane* n, struct ncfadectx* nctx,
-                                  int iter, fadecb fader, void* curry);
+                                  int iter, fadecb fader, void* curry)
+  __attribute__ ((nonnull (1, 2)));
 
 // Pulse the plane in and out until the callback returns non-zero, relying on
 // the callback 'fader' to initiate rendering. 'ts' defines the half-period
 // (i.e. the transition from black to full brightness, or back again). Proper
 // use involves preparing (but not rendering) an ncplane, then calling
 // ncplane_pulse(), which will fade in from black to the specified colors.
-API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);
+API int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry)
+  __attribute__ ((nonnull (1)));
 
 // Release the resources associated with 'nctx'.
 API void ncfadectx_free(struct ncfadectx* nctx);
@@ -2662,18 +2746,18 @@ nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+API int nccells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                             nccell* ul, nccell* ur, nccell* ll,
                             nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
-nccells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_ascii_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXASCII);
 }
 
 static inline int
-nccells_light_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_light_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXLIGHT);
@@ -2682,7 +2766,7 @@ nccells_light_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+nccells_heavy_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXHEAVY);
@@ -2691,8 +2775,8 @@ nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                    int ystop, int xstop, unsigned ctlword){
+ncplane_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
+                    unsigned ystop, unsigned xstop, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -2707,12 +2791,12 @@ ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
+ncplane_perimeter_rounded(struct ncplane* n, uint16_t stylemask,
                           uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   nccell ul = CELL_TRIVIAL_INITIALIZER;
   nccell ur = CELL_TRIVIAL_INITIALIZER;
@@ -2731,27 +2815,27 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
 }
 
 static inline int
-ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
-                          int ylen, int xlen, unsigned ctlword){
-  int y, x;
+ncplane_rounded_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
+                          unsigned ylen, unsigned xlen, unsigned ctlword){
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_rounded_box(n, styles, channels, y + ylen - 1,
                              x + xlen - 1, ctlword);
 }
 
-API int nccells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+API int nccells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                            nccell* ul, nccell* ur, nccell* ll,
                            nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
-ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                   int ystop, int xstop, unsigned ctlword){
+ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   int ret = 0;
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if((ret = nccells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
-    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ylen, xlen, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
   nccell_release(n, &ll); nccell_release(n, &lr);
@@ -2760,12 +2844,12 @@ ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
 }
 
 static inline int
-ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
+ncplane_perimeter_double(struct ncplane* n, uint16_t stylemask,
                          uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   nccell ul = CELL_TRIVIAL_INITIALIZER;
   nccell ur = CELL_TRIVIAL_INITIALIZER;
@@ -2784,9 +2868,9 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
 }
 
 static inline int
-ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
-                         int ylen, int xlen, unsigned ctlword){
-  int y, x;
+ncplane_double_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
+                         unsigned ylen, unsigned xlen, unsigned ctlword){
+  unsigned y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_double_box(n, styles, channels, y + ylen - 1,
                             x + xlen - 1, ctlword);
@@ -2842,10 +2926,12 @@ API ALLOC struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
 // glyph will result in a NULL being returned. This function exists so that
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
+// Lengths of 0 are interpreted to mean "all available remaining area".
 API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                ncblitter_e blit,
                                                int begy, int begx,
-                                               int leny, int lenx);
+                                               unsigned leny, unsigned lenx)
+  __attribute__ ((nonnull (1)));
 
 #define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND         0x0002ull // use NCALPHA_BLEND with visual
@@ -2875,8 +2961,8 @@ struct ncvisual_options {
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
   // these numbers are all in terms of ncvisual pixels. negative values are
   // prohibited.
-  int begy, begx; // origin of rendered section
-  int leny, lenx; // size of rendered section
+  unsigned begy, begx; // origin of rendered section
+  unsigned leny, lenx; // size of rendered section
   // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
   // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
   // chosen for NCBLIT_DEFAULT.
@@ -2908,22 +2994,21 @@ struct ncvisual_options {
 // blitters actually supported by this environment. if no ncvisual was
 // supplied, only cdimy/cdimx are filled in.
 typedef struct ncvgeom {
-  int pixy, pixx;     // true pixel geometry of ncvisual data
-  int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
-  int rcelly, rcellx; // rendered cell geometry (per visual_options)
-  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
-  int begy, begx;     // upper-left corner of used section
-  int leny, lenx;     // geometry of used section
-  ncblitter_e blitter;// blitter that will be used
+  unsigned pixy, pixx;     // true pixel geometry of ncvisual data
+  unsigned cdimy, cdimx;   // terminal cell geometry when this was calculated
+  unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
+  unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  unsigned begy, begx;     // upper-left corner of used section
+  unsigned leny, lenx;     // geometry of used section
+  unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;     // blitter that will be used
 } ncvgeom;
 
 // all-purpose ncvisual geometry solver. one or both of 'nc' and 'n' must be
 // non-NULL. if 'nc' is NULL, only pixy/pixx will be filled in, with the true
 // pixel geometry of 'n'. if 'n' is NULL, only cdimy/cdimx, blitter,
-// scaley/scalex, and maxpixely/maxpixelx are filled in; this is the same as
-// calling with a NULL 'n' and a default 'vopts'. cdimy/cdimx and
+// scaley/scalex, and maxpixely/maxpixelx are filled in. cdimy/cdimx and
 // maxpixely/maxpixelx are only ever filled in if we know them.
 API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
                       const struct ncvisual_options* vopts, ncvgeom* geom)
@@ -2961,15 +3046,17 @@ API int ncvisual_resize_noninterpolative(struct ncvisual* n, int rows, int cols)
   __attribute__ ((nonnull (1)));
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
-API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba)
+API int ncvisual_polyfill_yx(struct ncvisual* n, unsigned y, unsigned x, uint32_t rgba)
   __attribute__ ((nonnull (1)));
 
 // Get the specified pixel from the specified ncvisual.
-API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel)
+API int ncvisual_at_yx(const struct ncvisual* n, unsigned y, unsigned x,
+                       uint32_t* pixel)
   __attribute__ ((nonnull (1, 4)));
 
 // Set the specified pixel in the specified ncvisual.
-API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
+API int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x,
+                        uint32_t pixel)
   __attribute__ ((nonnull (1)));
 
 // Render the decoded frame according to the provided options (which may be
@@ -3050,7 +3137,8 @@ API ALLOC struct ncplane* ncvisual_subtitle_plane(struct ncplane* parent,
 //  - otherwise NCBLIT_3x2
 // NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
 // NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
-API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale);
+API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale)
+  __attribute__ ((nonnull (1)));
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
@@ -3062,7 +3150,8 @@ typedef int (*ncstreamcb)(struct ncvisual*, struct ncvisual_options*,
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
 // curry is NULL, subtitles will not be displayed.
 API int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
-                                 const struct timespec* tspec, void* curry);
+                                 const struct timespec* tspec, void* curry)
+  __attribute__ ((nonnull (1)));
 
 // Stream the entirety of the media, according to its own timing. Blocking,
 // obviously. streamer may be NULL; it is otherwise called for each frame, and
@@ -3075,7 +3164,8 @@ API int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* 
 // supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
                         float timescale, ncstreamcb streamer,
-                        const struct ncvisual_options* vopts, void* curry);
+                        const struct ncvisual_options* vopts, void* curry)
+  __attribute__ ((nonnull (1, 2)));
 
 // Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'vopts->n',
 // which mustn't be NULL. the blit begins at 'vopts->y' and 'vopts->x' relative
@@ -3085,20 +3175,24 @@ API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
 // 'leny'x'lenx' fields from 'vopts'. Returns the number of pixels blitted, or
 // -1 on error.
 API int ncblit_rgba(const void* data, int linesize,
-                    const struct ncvisual_options* vopts);
+                    const struct ncvisual_options* vopts)
+  __attribute__ ((nonnull (1)));
 
 // Same as ncblit_rgba(), but for BGRx.
 API int ncblit_bgrx(const void* data, int linesize,
-                    const struct ncvisual_options* vopts);
+                    const struct ncvisual_options* vopts)
+  __attribute__ ((nonnull (1)));
 
 // Supply an alpha value [0..255] to be applied throughout.
 API int ncblit_rgb_packed(const void* data, int linesize,
-                          const struct ncvisual_options* vopts, int alpha);
+                          const struct ncvisual_options* vopts, int alpha)
+  __attribute__ ((nonnull (1)));
 
 // Supply an alpha value [0..255] to be applied throughout. linesize must be
 // a multiple of 4 for this RGBx data.
 API int ncblit_rgb_loose(const void* data, int linesize,
-                         const struct ncvisual_options* vopts, int alpha);
+                         const struct ncvisual_options* vopts, int alpha)
+  __attribute__ ((nonnull (1)));
 
 // The ncpixel API facilitates direct management of the pixels within an
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
@@ -3332,42 +3426,48 @@ API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
                          int omitdec, uintmax_t mult, int uprefix)
   __attribute__ ((nonnull (3)));
 
+// uses snprintf() internally with the argument 's' as its bound
+API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
+                          char* buf, int omitdec, uintmax_t mult,
+                          int uprefix)
+  __attribute__ ((nonnull (4)));
+
 // The number of columns is one fewer, as the STRLEN expressions must leave
-// an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
+// an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. NCPREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
-// ncmetric() call. IPREFIXCOLUMNS is the maximum number of columns used by a
-// mult == 1024 (digital information) ncmetric(). BPREFIXSTRLEN is the maximum
+// ncmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
+// mult == 1024 (digital information) ncmetric(). NCBPREFIXSTRLEN is the maximum
 // number of columns used by a mult == 1024 call making use of the 'i' suffix.
 // This is the true number of columns; to set up a printf()-style maximum
-// field width, you should use [IB]PREFIXFMT (see below).
-#define PREFIXCOLUMNS 7
-#define IPREFIXCOLUMNS 8
-#define BPREFIXCOLUMNS 9
-#define PREFIXSTRLEN (PREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
-#define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
-#define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
+// field width, you should use NC[IB]PREFIXFMT (see below).
+#define NCPREFIXCOLUMNS 7
+#define NCIPREFIXCOLUMNS 8
+#define NCBPREFIXCOLUMNS 9
+#define NCPREFIXSTRLEN (NCPREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
+#define NCIPREFIXSTRLEN (NCIPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
+#define NCBPREFIXSTRLEN (NCBPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
 // Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
 // We need this convoluted grotesquery to properly handle 'µ'.
 #define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
-#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
-#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
-#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
+#define NCPREFIXFMT(x) NCMETRICFWIDTH((x), NCPREFIXCOLUMNS), (x)
+#define NCIPREFIXFMT(x) NCMETRIXFWIDTH((x), NCIPREFIXCOLUMNS), (x)
+#define NCBPREFIXFMT(x) NCMETRICFWIDTH((x), NCBPREFIXCOLUMNS), (x)
 
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
 static inline const char*
-qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
 static inline const char*
-iprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
 static inline const char*
-bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
+ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 
@@ -3375,17 +3475,21 @@ bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
 // 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
 // It is an error if 'y', 'x' lies outside the standard plane. Can be
 // called while already visible to move the cursor.
-API int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
+API int notcurses_cursor_enable(struct notcurses* nc, int y, int x)
+  __attribute__ ((nonnull (1)));
 
 // Get the current location of the terminal's cursor, whether visible or not.
-API int notcurses_cursor_yx(struct notcurses* nc, int* y, int* x);
+API int notcurses_cursor_yx(struct notcurses* nc, int* y, int* x)
+  __attribute__ ((nonnull (1)));
 
 // Disable the hardware cursor. It is an error to call this while the
 // cursor is already disabled.
-API int notcurses_cursor_disable(struct notcurses* nc);
+API int notcurses_cursor_disable(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Convert the plane's content to greyscale.
-API void ncplane_greyscale(struct ncplane* n);
+API void ncplane_greyscale(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 //                                 ╭──────────────────────────╮
 //                                 │This is the primary header│
@@ -3437,15 +3541,19 @@ API int ncselector_additem(struct ncselector* n, const struct ncselector_item* i
 API int ncselector_delitem(struct ncselector* n, const char* item);
 
 // Return reference to the selected option, or NULL if there are no items.
-API const char* ncselector_selected(const struct ncselector* n);
+API const char* ncselector_selected(const struct ncselector* n)
+  __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncselector's underlying ncplane.
-API struct ncplane* ncselector_plane(struct ncselector* n);
+API struct ncplane* ncselector_plane(struct ncselector* n)
+  __attribute__ ((nonnull (1)));
 
 // Move up or down in the list. A reference to the newly-selected item is
 // returned, or NULL if there are no items in the list.
-API const char* ncselector_previtem(struct ncselector* n);
-API const char* ncselector_nextitem(struct ncselector* n);
+API const char* ncselector_previtem(struct ncselector* n)
+  __attribute__ ((nonnull (1)));
+API const char* ncselector_nextitem(struct ncselector* n)
+  __attribute__ ((nonnull (1)));
 
 // Offer the input to the ncselector. If it's relevant, this function returns
 // true, and the input ought not be processed further. If it's irrelevant to
@@ -3630,17 +3738,17 @@ API ALLOC struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* 
 API int ncmenu_unroll(struct ncmenu* n, int sectionidx);
 
 // Roll up any unrolled menu section, and hide the menu if using hiding.
-API int ncmenu_rollup(struct ncmenu* n);
+API int ncmenu_rollup(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Unroll the previous/next section (relative to current unrolled). If no
 // section is unrolled, the first section will be unrolled.
-API int ncmenu_nextsection(struct ncmenu* n);
-API int ncmenu_prevsection(struct ncmenu* n);
+API int ncmenu_nextsection(struct ncmenu* n) __attribute__ ((nonnull (1)));
+API int ncmenu_prevsection(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Move to the previous/next item within the currently unrolled section. If no
 // section is unrolled, the first section will be unrolled.
-API int ncmenu_nextitem(struct ncmenu* n);
-API int ncmenu_previtem(struct ncmenu* n);
+API int ncmenu_nextitem(struct ncmenu* n) __attribute__ ((nonnull (1)));
+API int ncmenu_previtem(struct ncmenu* n) __attribute__ ((nonnull (1)));
 
 // Disable or enable a menu item. Returns 0 if the item was found.
 API int ncmenu_item_set_status(struct ncmenu* n, const char* section,
@@ -4086,7 +4194,7 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
 // properly-scaled values are written back to '*ymax' and '*xmax').
-API int ncplane_qrcode(struct ncplane* n, int* ymax, int* xmax,
+API int ncplane_qrcode(struct ncplane* n, unsigned* ymax, unsigned* xmax,
                        const void* data, size_t len)
   __attribute__ ((nonnull (1, 4)));
 

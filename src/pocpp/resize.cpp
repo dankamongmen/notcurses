@@ -23,7 +23,7 @@ int main(int argc, char** argv){
   }
   struct ncvisual_options vopts{};
   bool failed = false;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   int top = 0;
   int bot;
   auto ncv = ncvisual_from_file(file);
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
     if(notcurses_render(nc)){
       goto err;
     }
-    if(top > bot){
+    if(top >= bot){
       break;
     }
     // one from bottom

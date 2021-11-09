@@ -8,10 +8,10 @@ handle(struct notcurses* nc, const char *fn){
   if(ncv == NULL){
     return -1;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  for(int y = 0 ; y < dimy ; y += 15){
-    for(int x = 0 ; x < dimx ; x += 15){
+  for(unsigned y = 0 ; y < dimy ; y += 15){
+    for(unsigned x = 0 ; x < dimx ; x += 15){
       uint64_t channels = NCCHANNELS_INITIALIZER(rand() % 256, rand() % 256, 100, rand() % 256, 100, 140);
       ncplane_set_base(stdn, "a", 0, channels);
       struct ncvisual_options vopts = {

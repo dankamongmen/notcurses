@@ -12,7 +12,7 @@ typedef struct ncmenu_int_item {
 
 typedef struct ncmenu_int_section {
   char* name;             // utf-8 c string
-  int itemcount;
+  unsigned itemcount;
   ncmenu_int_item* items; // items, NULL iff itemcount == 0
   ncinput shortcut;       // shortcut, will be underlined if present in name
   int xoff;               // column offset from beginning of menu bar
@@ -62,7 +62,7 @@ mbstr_find_codepoint(const char* s, uint32_t cp, int* col){
 
 static void
 free_menu_section(ncmenu_int_section* ms){
-  for(int i = 0 ; i < ms->itemcount ; ++i){
+  for(unsigned i = 0 ; i < ms->itemcount ; ++i){
     free(ms->items[i].desc);
     free(ms->items[i].shortdesc);
   }
@@ -188,7 +188,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
 
 // Duplicates all menu sections in opts, adding their length to '*totalwidth'.
 static int
-dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int* totalheight){
+dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, unsigned* totalwidth, unsigned* totalheight){
   if(opts->sectioncount == 0){
     return -1;
   }
@@ -197,9 +197,9 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
     return -1;
   }
   bool rightaligned = false; // can only right-align once. twice is error.
-  int maxheight = 0;
-  int maxwidth = *totalwidth;
-  int xoff = 2;
+  unsigned maxheight = 0;
+  unsigned maxwidth = *totalwidth;
+  unsigned xoff = 2;
   int i;
   for(i = 0 ; i < opts->sectioncount ; ++i){
     if(opts->sections[i].name){
@@ -294,9 +294,9 @@ section_x(const ncmenu* ncm, int x){
 static int
 write_header(ncmenu* ncm){
   ncplane_set_channels(ncm->ncp, ncm->headerchannels);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(ncm->ncp, &dimy, &dimx);
-  int xoff = 0; // 2-column margin on left
+  unsigned xoff = 0; // 2-column margin on left
   int ypos = ncm->bottom ? dimy - 1 : 0;
   if(ncplane_cursor_move_yx(ncm->ncp, ypos, 0)){
     return -1;
@@ -385,12 +385,12 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   if(opts->flags >= (NCMENU_OPTION_HIDING << 1u)){
     logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
   }
-  int totalheight = 1;
-  int totalwidth = 2; // start with two-character margin on the left
+  unsigned totalheight = 1;
+  unsigned totalwidth = 2; // start with two-character margin on the left
   ncmenu* ret = malloc(sizeof(*ret));
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   if(ret){
     ret->bottom = !!(opts->flags & NCMENU_OPTION_BOTTOM);
@@ -461,13 +461,13 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   n->unrolledsection = sectionidx;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
   const int height = section_height(n, sectionidx);
   const int width = section_width(n, sectionidx);
   int xpos = n->sections[sectionidx].xoff < 0 ?
-    dimx + (n->sections[sectionidx].xoff - 2) : n->sections[sectionidx].xoff;
-  if(xpos + width >= dimx){
+    (int)dimx + (n->sections[sectionidx].xoff - 2) : n->sections[sectionidx].xoff;
+  if(xpos + width >= (int)dimx){
     xpos = dimx - (width + 2);
   }
   int ypos = n->bottom ? dimy - height - 1 : 1;
@@ -478,7 +478,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   const ncmenu_int_section* sec = &n->sections[sectionidx];
-  for(int i = 0 ; i < sec->itemcount ; ++i){
+  for(unsigned i = 0 ; i < sec->itemcount ; ++i){
     ++ypos;
     if(sec->items[i].desc){
       // FIXME the user ought be able to configure the disabled channel
@@ -487,8 +487,10 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
       }else{
         ncplane_set_channels(n->ncp, n->disablechannels);
       }
-      if(i == sec->itemselected){
-        ncplane_set_channels(n->ncp, ncchannels_reverse(ncplane_channels(n->ncp)));
+      if(sec->itemselected >= 0){
+        if(i == (unsigned)sec->itemselected){
+          ncplane_set_channels(n->ncp, ncchannels_reverse(ncplane_channels(n->ncp)));
+        }
       }
       ncplane_set_styles(n->ncp, 0);
       int cols = ncplane_putstr_yx(n->ncp, ypos, xpos + 1, sec->items[i].desc);
@@ -585,7 +587,7 @@ int ncmenu_nextitem(ncmenu* n){
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
   // FIXME probably best to detect cycles
   do{
-    if(++sec->itemselected == sec->itemcount){
+    if((unsigned)++sec->itemselected == sec->itemcount){
       sec->itemselected = 0;
     }
   }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
@@ -628,10 +630,10 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
   if(click->evtype != NCTYPE_RELEASE){
     return NULL;
   }
-  int y, x, dimy, dimx;
   struct ncplane* nc = n->ncp;
-  y = click->y;
-  x = click->x;
+  int y = click->y;
+  int x = click->x;
+  unsigned dimy, dimx;
   ncplane_dim_yx(nc, &dimy, &dimx);
   if(!ncplane_translate_abs(nc, &y, &x)){
     return NULL;
@@ -645,7 +647,7 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
     return NULL;
   }
   const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
-  if(y < 2 || y - 2 >= sec->itemcount){
+  if(y < 2 || (unsigned)y - 2 >= sec->itemcount){
     return NULL;
   }
   const int itemidx = y - 2;
@@ -659,14 +661,14 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
   // we can't actually select menu items in this function, since we need to
   // invoke an arbitrary function as a result.
   if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
-    int y, x, dimy, dimx;
-    y = nc->y;
-    x = nc->x;
+    int y = nc->y;
+    int x = nc->x;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n->ncp, &dimy, &dimx);
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;
     }
-    if(y != (n->bottom ? dimy - 1 : 0)){
+    if(y != (n->bottom ? (int)dimy - 1 : 0)){
       return false;
     }
     int i = section_x(n, x);
@@ -726,7 +728,7 @@ int ncmenu_item_set_status(ncmenu* n, const char* section, const char* item,
   for(int si = 0 ; si < n->sectioncount ; ++si){
     struct ncmenu_int_section* sec = &n->sections[si];
     if(strcmp(sec->name, section) == 0){
-      for(int ii = 0 ; ii < sec->itemcount ; ++ii){
+      for(unsigned ii = 0 ; ii < sec->itemcount ; ++ii){
         struct ncmenu_int_item* i = &sec->items[ii];
         if(strcmp(i->desc, item) == 0){
           const bool changed = i->disabled == enabled;

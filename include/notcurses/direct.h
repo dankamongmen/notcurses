@@ -116,7 +116,7 @@ API unsigned ncdirect_palette_size(const struct ncdirect* nc)
 
 // Output the string |utf8| according to the channels |channels|. Note that
 // ncdirect_putstr() does not explicitly flush output buffers, so it will not
-// necessarily be immediately visible.
+// necessarily be immediately visible. Returns EOF on error.
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8)
   __attribute__ ((nonnull (1, 3)));
 
@@ -194,14 +194,15 @@ ncdirect_bg_default(struct ncdirect* nc){
 }
 
 // Get the current number of columns/rows.
-API int ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
-API int ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
+API unsigned ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
+API unsigned ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
 API uint16_t ncdirect_supported_styles(const struct ncdirect* nc);
+  __attribute__ ((nonnull (1)));
 
 // ncplane_styles_*() analogues
 API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits)
@@ -240,7 +241,7 @@ API int ncdirect_cursor_down(struct ncdirect* nc, int num)
 // Get the cursor position, when supported. This requires writing to the
 // terminal, and then reading from it. If the terminal doesn't reply, or
 // doesn't reply in a way we understand, the results might be deleterious.
-API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x)
+API int ncdirect_cursor_yx(struct ncdirect* n, unsigned* y, unsigned* x)
   __attribute__ ((nonnull (1)));
 
 // Push or pop the cursor location to the terminal's stack. The depth of this
@@ -263,13 +264,13 @@ API const nccapabilities* ncdirect_capabilities(const struct ncdirect* n)
 // horizontal line, |len| cannot exceed the screen width minus the cursor's
 // offset. For a vertical line, it may be as long as you'd like; the screen
 // will scroll as necessary. All lines start at the current cursor position.
-API int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
-                              uint64_t h1, uint64_t h2)
-  __attribute__ ((nonnull (1)));
+API int ncdirect_hline_interp(struct ncdirect* n, const char* egc,
+                              unsigned len, uint64_t h1, uint64_t h2)
+  __attribute__ ((nonnull (1, 2)));
 
-API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
-                              uint64_t h1, uint64_t h2)
-  __attribute__ ((nonnull (1)));
+API int ncdirect_vline_interp(struct ncdirect* n, const char* egc,
+                              unsigned len, uint64_t h1, uint64_t h2)
+  __attribute__ ((nonnull (1, 2)));
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions |ylen|x|xlen|. See ncplane_box() for more information. The
@@ -277,40 +278,40 @@ API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
 // array of 6 wide characters: UL, UR, LL, LR, HL, VL.
 API int ncdirect_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                      uint64_t ll, uint64_t lr, const wchar_t* wchars,
-                     int ylen, int xlen, unsigned ctlword)
-  __attribute__ ((nonnull (1)));
+                     unsigned ylen, unsigned xlen, unsigned ctlword)
+  __attribute__ ((nonnull (1, 6)));
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_light_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXLIGHTW, ylen, xlen, ctlword);
 }
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_heavy_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXHEAVYW, ylen, xlen, ctlword);
 }
 
 __attribute__ ((nonnull (1))) static inline int
 ncdirect_ascii_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                    uint64_t ll, uint64_t lr,
-                   int ylen, int xlen, unsigned ctlword){
+                   unsigned ylen, unsigned xlen, unsigned ctlword){
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXASCIIW, ylen, xlen, ctlword);
 }
 
 // ncdirect_box() with the rounded box-drawing characters
 API int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                              uint64_t ll, uint64_t lr,
-                             int ylen, int xlen, unsigned ctlword)
+                             unsigned ylen, unsigned xlen, unsigned ctlword)
   __attribute__ ((nonnull (1)));
 
 // ncdirect_box() with the double box-drawing characters
 API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             uint64_t ll, uint64_t lr,
-                            int ylen, int xlen, unsigned ctlword)
+                            unsigned ylen, unsigned xlen, unsigned ctlword)
   __attribute__ ((nonnull (1)));
 
 // Provide a NULL 'ts' to block at length, a 'ts' of 0 for non-blocking

@@ -3,7 +3,7 @@
 
 static int y;
 static int targy;
-static int xstart;
+static unsigned xstart;
 static struct ncplane* on;
 struct ncvisual_options vopts;
 
@@ -52,14 +52,12 @@ videothread(void* vnc){
   if(ncv == NULL){
     return NULL;
   }
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   struct ncvisual_options ovopts = {
     .scaling = NCSCALE_STRETCH,
     .n = ncp,
     .y = 1,
-    .flags = NCVISUAL_OPTION_ADDALPHA,
-    .blitter = NCBLIT_PIXEL,
   };
   int three = 3;
   if(ncvisual_blit(nc, ncv, &ovopts) == NULL){
@@ -116,7 +114,7 @@ videothread(void* vnc){
 }
 
 static struct ncplane*
-outro_message(struct notcurses* nc, int* rows, int* cols){
+outro_message(struct notcurses* nc, unsigned* rows, unsigned* cols){
   const char str0[] = " ATL, baby! ATL! ";
   const char str1[] = " throw your hands in the air ";
   const char* str2 = notcurses_canutf8(nc) ? " hack on! —dank❤ " : " hack on! --dank ";
@@ -187,7 +185,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
 }
 
 int outro(struct notcurses* nc){
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
   struct ncvisual* chncv = NULL;
@@ -209,7 +207,7 @@ int outro(struct notcurses* nc){
     ncplane_set_name(vopts.n, "bnnr");
   }
   xstart = cols;
-  int ystart = rows;
+  unsigned ystart = rows;
   on = outro_message(nc, &ystart, &xstart);
   if(on == NULL){
     return -1;

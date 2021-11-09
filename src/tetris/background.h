@@ -14,11 +14,11 @@ void DrawBoard() { // draw all fixed components of the game
   }catch(...){
     stdplane_->printf(1, 1, "couldn't load %s", BackgroundFile.c_str());
   }
-  int y, x;
+  unsigned y, x;
   stdplane_->get_dim(&y, &x);
   board_top_y_ = y - (BOARD_HEIGHT + 2);
   board_ = std::make_unique<ncpp::Plane>(BOARD_HEIGHT, BOARD_WIDTH * 2,
-                                          board_top_y_, x / 2 - (BOARD_WIDTH + 1));
+                                         board_top_y_, x / 2 - (BOARD_WIDTH + 1));
   uint64_t channels = 0;
   ncchannels_set_fg_rgb(&channels, 0x00b040);
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);

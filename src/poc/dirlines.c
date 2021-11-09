@@ -8,8 +8,7 @@ int main(void){
   }
   uint64_t flags = NCDIRECT_OPTION_DRAIN_INPUT;
   struct ncdirect* n = ncdirect_core_init(NULL, stdout, flags);
-  putchar('\n');
-  for(int i = 0 ; i < 15 ; ++i){
+  for(int i = 1 ; i < 15 ; ++i){
     uint64_t c1 = 0, c2 = 0;
     ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
     ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
@@ -21,7 +20,7 @@ int main(void){
     ncdirect_set_bg_default(n);
     putchar('\n');
   }
-  for(int i = 0 ; i < 15 ; ++i){
+  for(int i = 1 ; i < 15 ; ++i){
     uint64_t c1 = 0, c2 = 0;
     ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
     ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);

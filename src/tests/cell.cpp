@@ -22,18 +22,10 @@ TEST_CASE("Cell") {
     CHECK(1 == nccell_cols(&c));
     CHECK(4 == nccell_load(n_, &c, " ி"));
     cols = nccell_cols(&c);
-#if defined(__linux__) || defined(__APPLE__)
-    CHECK(2 == cols);
-#else
     CHECK(1 == cols);
-#endif
     CHECK(4 == nccell_load(n_, &c, " ि"));
     cols = nccell_cols(&c);
-#if defined(__linux__) || defined(__APPLE__)
-    CHECK(2 == cols);
-#else
     CHECK(1 == cols);
-#endif
     // musl+s390x (alpine) is reporting these EGCs to be 0 columns wide (they
     // ought be 1). not sure whether i've got a bug (s390x is big-endian), or
     // whether it does. just relaxed the tests for now FIXME.
@@ -79,7 +71,7 @@ TEST_CASE("Cell") {
 
   SUBCASE("SetItalic") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    int dimy, dimx;
+    unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_ITALIC);
     CHECK(1 == nccell_load(n_, &c, "i"));
@@ -92,7 +84,7 @@ TEST_CASE("Cell") {
 
   SUBCASE("SetBold") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    int dimy, dimx;
+    unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_BOLD);
     CHECK(1 == nccell_load(n_, &c, "b"));
@@ -105,7 +97,7 @@ TEST_CASE("Cell") {
 
   SUBCASE("SetUnderline") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    int dimy, dimx;
+    unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_UNDERLINE);
     CHECK(1 == nccell_load(n_, &c, "u"));

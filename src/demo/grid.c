@@ -115,13 +115,13 @@ gridinv_demo(struct notcurses* nc, struct ncplane *n){
   nccell ul, ll, cl, cr, lc, lr, ur, uc, cc;
   prep_cells2(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   for(int i = 0 ; i < 256 ; ++i){
-    int maxx, maxy;
+    unsigned maxx, maxy;
     notcurses_term_dim_yx(nc, &maxy, &maxx);
     int rs = 255 / maxx;
     int gs = 255 / (maxx + maxy);
     int bs = 255 / maxy;
-    int x = 0;
-    int y = 1;
+    unsigned x = 0;
+    unsigned y = 1;
     // top line
     cnccell_set_fg_rgb8(&ul, i / 2, i, i / 2);
     cnccell_set_bg_rgb8(&ul, 255 - rs * x, 255 - gs * (x + y), 255 - bs * y);
@@ -175,7 +175,7 @@ static int
 gridswitch_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
   int ret = 0;
-  int maxx, maxy;
+  unsigned maxx, maxy;
   nccell ul, ll, cl, cr, lc, lr, ur, uc, cc;
   prep_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   for(int i = 0 ; i < 256 ; ++i){
@@ -183,8 +183,8 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
     int rs = 256 / maxx;
     int gs = 256 / (maxx + maxy);
     int bs = 256 / maxy;
-    int x = 0;
-    int y = 1;
+    unsigned x = 0;
+    unsigned y = 1;
     int bgr = i;
     int bgg = 0x80;
     int bgb = i;
@@ -246,7 +246,7 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
 
 // red across, blue down, green from UL to LR
 int grid_demo(struct notcurses* nc){
-  int y, x;
+  unsigned y, x;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
   nccell ul, uc, ur;
@@ -256,7 +256,7 @@ int grid_demo(struct notcurses* nc){
 
   int ret = 0;
   for(int i = 0 ; i < 256 ; ++i){
-    int maxx, maxy;
+    unsigned maxx, maxy;
     notcurses_term_dim_yx(nc, &maxy, &maxx);
     int rs = 255 / maxx;
     int gs = 255 / (maxx + maxy);

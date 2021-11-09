@@ -91,7 +91,9 @@ TEST_CASE("Palette256") {
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     nccell r = CELL_TRIVIAL_INITIALIZER;
-    CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels));
+    auto egc = notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels);
+    CHECK(nullptr != egc);
+    free(egc);
     CHECK(nccell_fg_palindex_p(&r));
     CHECK(nccell_bg_palindex_p(&r));
     CHECK(NCALPHA_OPAQUE == nccell_fg_alpha(&r));

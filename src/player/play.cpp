@@ -50,6 +50,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   NotCurses &nc = NotCurses::get_instance();
   auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
   if(!start){
+    // FIXME how do we get this free()d at the end?
     start = static_cast<struct timespec*>(malloc(sizeof(struct timespec)));
     clock_gettime(CLOCK_MONOTONIC, start);
     ncplane_set_userptr(vopts->n, start);
@@ -87,7 +88,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(!nc.render()){
     return -1;
   }
-  int dimx, dimy, oldx, oldy;
+  unsigned dimx, dimy, oldx, oldy;
   nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(vopts->n, &oldy, &oldx);
   uint64_t absnow = timespec_to_ns(abstime);
@@ -345,7 +346,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     if(dm.streamfile(argv[i], perframe_direct, &vopts, NULL)){
       failed = true;
     }
-    int y, x;
+    unsigned y, x;
     dm.get_cursor_yx(&y, &x);
     if(x){
       std::cout << std::endl;
@@ -360,7 +361,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                bool quiet, bool loop,
                                double timescale, double displaytime,
                                bool noninterp, uint32_t transcolor){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   uint64_t transchan = 0;
   ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);
@@ -370,11 +371,11 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   nopts.name = "play";
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
+  ncplane* n = nullptr;
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
-    auto n = ncplane_create(*stdn, &nopts);
-    if(!n){
+    if((n = ncplane_create(*stdn, &nopts)) == nullptr){
       return -1;
     }
     ncplane_move_bottom(n);
@@ -409,8 +410,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
           if(displaytime < 0){
             stdn->printf(0, NCAlign::Center, "press space to advance");
             if(!nc.render()){
-              ncplane_destroy(n);
-              return -1;
+              goto err;
             }
             ncinput ni;
             do{
@@ -422,9 +422,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               }else if(ni.id == 'q'){
                 return 0;
               }else if(ni.id == 'L'){
-                --i;
                 nc.refresh(nullptr, nullptr);
-                break;
               }else if(ni.id >= '0' && ni.id <= '6'){
                 blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
                 --i; // rerun same input with the new blitter
@@ -435,8 +433,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               }else if(ni.id == NCKey::Resize){
                 --i; // rerun with the new size
                 if(!nc.refresh(&dimy, &dimx)){
-                  ncplane_destroy(n);
-                  return -1;
+                  goto err;
                 }
                 break;
               }
@@ -455,13 +452,17 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     }while(loop && r == 0);
     if(r < 0){ // positive is intentional abort
       std::cerr << "Error while playing " << argv[i] << std::endl;
-      ncplane_destroy(n);
-      return -1;
+      goto err;
     }
     free(ncplane_userptr(n));
     ncplane_destroy(n);
   }
   return 0;
+
+err:
+  free(ncplane_userptr(n));
+  ncplane_destroy(n);
+  return -1;
 }
 
 int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,

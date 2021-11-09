@@ -277,9 +277,9 @@ scrub_color_table(sprixel* s){
   if(s->n && s->n->tam){
     // we use the sprixel cell geometry rather than the plane's because this
     // is called during our initial blit, before we've resized the plane.
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
-        int txyidx = y * s->dimx + x;
+    for(unsigned y = 0 ; y < s->dimy ; ++y){
+      for(unsigned x = 0 ; x < s->dimx ; ++x){
+        unsigned txyidx = y * s->dimx + x;
         sprixcell_e state = s->n->tam[txyidx].state;
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "POSTEXRACT WIPE %d/%d\n", y, x);
@@ -382,14 +382,14 @@ void sixel_refresh(const ncpile* p, sprixel* s){
   }
   int absy, absx;
   ncplane_abs_yx(s->n, &absy, &absx);
-  for(int y = 0 ; y < s->dimy ; ++y){
-    const int yy = absy + y;
-    for(int x = 0 ; x < s->dimx ; ++x){
-      int idx = y * s->dimx + x;
+  for(unsigned y = 0 ; y < s->dimy ; ++y){
+    const unsigned yy = absy + y;
+    for(unsigned x = 0 ; x < s->dimx ; ++x){
+      unsigned idx = y * s->dimx + x;
       if(s->needs_refresh[idx]){
-        const int xx = absx + x;
+        const unsigned xx = absx + x;
         if(xx < p->dimx && yy < p->dimy){
-          int ridx = yy * p->dimx + xx;
+          unsigned ridx = yy * p->dimx + xx;
           struct crender *r = &p->crender[ridx];
           r->s.damaged = 1;
         }
@@ -962,8 +962,8 @@ int sixel_scrub(const ncpile* p, sprixel* s){
   loginfo("%d state %d at %d/%d (%d/%d)\n", s->id, s->invalidated, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
   int starty = s->movedfromy;
   int startx = s->movedfromx;
-  for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){
-    for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
+  for(int yy = starty ; yy < starty + (int)s->dimy && yy < (int)p->dimy ; ++yy){
+    for(int xx = startx ; xx < startx + (int)s->dimx && xx < (int)p->dimx ; ++xx){
       int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
       if(!s->n){
@@ -972,11 +972,11 @@ int sixel_scrub(const ncpile* p, sprixel* s){
         continue;
       }
       sprixel* trues = r->sprixel ? r->sprixel : s;
-      if(yy >= trues->n->leny || yy - trues->n->absy < 0){
+      if(yy >= (int)trues->n->leny || yy - trues->n->absy < 0){
         r->s.damaged = 1;
         continue;
       }
-      if(xx >= trues->n->lenx || xx - trues->n->absx < 0){
+      if(xx >= (int)trues->n->lenx || xx - trues->n->absx < 0){
         r->s.damaged = 1;
         continue;
       }
@@ -1014,11 +1014,11 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){
-      for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
+      for(int yy = s->movedfromy ; yy < s->movedfromy + (int)s->dimy && yy < (int)p->dimy ; ++yy){
         if(yy < 0){
           continue;
         }
-        for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
+        for(int xx = s->movedfromx ; xx < s->movedfromx + (int)s->dimx && xx < (int)p->dimx ; ++xx){
           if(xx < 0){
             continue;
           }

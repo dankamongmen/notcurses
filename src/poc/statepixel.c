@@ -7,7 +7,7 @@
 static int
 across_row(struct notcurses* nc, int y, struct ncplane* n, struct ncplane* t,
            const struct timespec* ds){
-  for(int x = 0 ; x < ncplane_dim_x(n) ; ++x){
+  for(unsigned x = 0 ; x < ncplane_dim_x(n) ; ++x){
     if(ncplane_move_yx(t, y, x)){
       return -1;
     }
@@ -21,7 +21,7 @@ across_row(struct notcurses* nc, int y, struct ncplane* n, struct ncplane* t,
 
 static int
 across_bmap(struct notcurses* nc, struct ncplane* n, struct ncplane* t, const struct timespec* ds){
-  for(int y = 0 ; y < ncplane_dim_y(n) - 1 ; ++y){
+  for(unsigned y = 0 ; y < ncplane_dim_y(n) - 1 ; ++y){
     if(across_row(nc, y, n, t, ds)){
       return -1;
     }

@@ -16,7 +16,7 @@ TEST_CASE("Fills") {
 
   // can't polyfill with a null glyph
   SUBCASE("PolyfillNullGlyph") {
-    int dimx, dimy;
+    unsigned dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 > ncplane_polyfill_yx(n_, dimy, dimx, &c));
@@ -24,13 +24,13 @@ TEST_CASE("Fills") {
 
   // trying to polyfill an invalid cell ought be an error
   SUBCASE("PolyfillOffplane") {
-    int dimx, dimy;
+    unsigned dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
     nccell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 > ncplane_polyfill_yx(n_, dimy, 0, &c));
     CHECK(0 > ncplane_polyfill_yx(n_, 0, dimx, &c));
-    CHECK(0 > ncplane_polyfill_yx(n_, 0, -1, &c));
-    CHECK(0 > ncplane_polyfill_yx(n_, -1, 0, &c));
+    CHECK(0 > ncplane_polyfill_yx(n_, 0, -2, &c));
+    CHECK(0 > ncplane_polyfill_yx(n_, -2, 0, &c));
   }
 
   SUBCASE("PolyfillOnGlyph") {
@@ -116,16 +116,16 @@ TEST_CASE("Fills") {
     uint64_t c = 0;
     ncchannels_set_fg_rgb(&c, 0x40f040);
     ncchannels_set_bg_rgb(&c, 0x40f040);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_gradient_sized(n_, "M", 0, c, c, c, c, dimy, dimx));
+    REQUIRE(0 < ncplane_gradient(n_, -1, -1, dimy, dimx, "M", 0, c, c, c, c));
     nccell cl = CELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
     ncchannels_set_fg_rgb(&channels, 0x40f040);
     ncchannels_set_bg_rgb(&channels, 0x40f040);
     // check all squares 
-    for(int y = 0 ; y < dimy ; ++y){
-      for(int x = 0 ; x < dimx ; ++x){
+    for(unsigned y = 0 ; y < dimy ; ++y){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &cl));
         CHECK(htole('M') == cl.gcluster);
         CHECK(0 == cl.stylemask);
@@ -146,9 +146,9 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&ur, 0x40f040);
     ncchannels_set_fg_rgb(&lr, 0xf040f0);
     ncchannels_set_bg_rgb(&lr, 0xf040f0);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_gradient_sized(n_, "V", 0, ul, ur, ll, lr, dimy, dimx));
+    REQUIRE(0 < ncplane_gradient(n_, 0, 0, dimy, dimx, "V", 0, ul, ur, ll, lr));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
     ncchannels_set_fg_rgb(&channels, 0x40f040);
@@ -157,9 +157,9 @@ TEST_CASE("Fills") {
     // the components ought be going in the correct direction.
     uint64_t lastyrgb, lastxrgb;
     lastyrgb = -1;
-    for(int y = 0 ; y < dimy ; ++y){
+    for(unsigned y = 0 ; y < dimy ; ++y){
       lastxrgb = -1;
-      for(int x = 0 ; x < dimx ; ++x){
+      for(unsigned x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &c));
         CHECK(htole('V') == c.gcluster);
         CHECK(0 == c.stylemask);
@@ -197,9 +197,9 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&ll, 0x40f040);
     ncchannels_set_fg_rgb(&lr, 0xf040f0);
     ncchannels_set_bg_rgb(&lr, 0xf040f0);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_gradient_sized(n_, "H", 0, ul, ur, ll, lr, dimy, dimx));
+    REQUIRE(0 < ncplane_gradient(n_, 0, 0, dimy, dimx, "H", 0, ul, ur, ll, lr));
     // check corners FIXME
     CHECK(0 == notcurses_render(nc_));
   }
@@ -215,9 +215,9 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&ur, 0xf040f0);
     ncchannels_set_fg_rgb(&lr, 0xffffff);
     ncchannels_set_bg_rgb(&lr, 0x000000);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_gradient_sized(n_, "X", 0, ul, ur, ll, lr, dimy, dimx));
+    REQUIRE(0 < ncplane_gradient(n_, 0, 0, dimy, dimx, "X", 0, ul, ur, ll, lr));
     // check corners FIXME
     CHECK(0 == notcurses_render(nc_));
   }
@@ -233,14 +233,14 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&ll, 0xff0000);
     ncchannels_set_fg_rgb(&ur, 0xff00ff);
     ncchannels_set_bg_rgb(&ur, 0x00ff00);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_gradient_sized(n_, "S", 0, ul, ur, ll, lr, dimy, dimx));
+    REQUIRE(0 < ncplane_gradient(n_, 0, 0, dimy, dimx, "S", 0, ul, ur, ll, lr));
     // check corners FIXME
     CHECK(0 == notcurses_render(nc_));
   }
 
-  SUBCASE("Ncplane_Format") {
+  SUBCASE("Format") {
     int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
     CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
@@ -251,32 +251,31 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_on_styles(&c, NCSTYLE_BOLD);
-    CHECK(0 < ncplane_format(n_, 0, 0, c.stylemask));
+    CHECK(0 < ncplane_format(n_, 0, 0, 0, 0, c.stylemask));
     nccell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(d.stylemask == c.stylemask);
     CHECK(0x444444 == nccell_fg_rgb(&d));
   }
 
-  SUBCASE("Ncplane_Stain") {
+  SUBCASE("Stain") {
     int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
-    for(int y = 0 ; y < 8 ; ++y){
-      for(int x = 0 ; x < 8 ; ++x){
+    for(unsigned y = 0 ; y < 8 ; ++y){
+      for(unsigned x = 0 ; x < 8 ; ++x){
         CHECK(1 == ncplane_putegc_yx(n_, y, x, "A", &sbytes));
       }
     }
     CHECK(0 == notcurses_render(nc_));
     // EGC/color should change, but nothing else
-    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
     ncchannels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
     ncchannels_set_bg_rgb(&channels, 0);
-    REQUIRE(0 < ncplane_stain(n_, 7, 7, channels, channels, channels, channels));
+    REQUIRE(0 < ncplane_stain(n_, 0, 0, 7, 7, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
-    for(int y = 0 ; y < 8 ; ++y){
-      for(int x = 0 ; x < 8 ; ++x){
+    for(unsigned y = 0 ; y < 7 ; ++y){
+      for(unsigned x = 0 ; x < 7 ; ++x){
         CHECK(1 == ncplane_at_yx_cell(n_, y, x, &d));
         CHECK(channels == d.channels);
         REQUIRE(cell_simple_p(&d));
@@ -291,11 +290,10 @@ TEST_CASE("Fills") {
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
     CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", &sbytes));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
     ncchannels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
     ncchannels_set_bg_rgb(&channels, 0);
-    REQUIRE(0 < ncplane_gradient(n_, "A", 0, channels, channels, channels, channels, 0, 0));
+    REQUIRE(0 < ncplane_gradient(n_, 0, 0, 0, 0, "A", 0, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
@@ -316,23 +314,22 @@ TEST_CASE("Fills") {
     ncchannels_set_fg_rgb8(&chan2, 0x77, 0x99, 0x88);
     ncchannels_set_bg_rgb(&chan1, 0);
     ncchannels_set_bg_rgb(&chan2, 0);
-    REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan1, chan2, chan1, chan2, 0, 3));
+    CHECK(0 < ncplane_gradient(n_, 0, 0, 0, 3, "A", 0, chan1, chan2, chan1, chan2));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(chan1 == d.channels);
-    REQUIRE(cell_simple_p(&d));
+    CHECK(cell_simple_p(&d));
     CHECK(htole('A') == d.gcluster);
-    CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan2, chan1, chan2, chan1, 0, 3));
+    CHECK(0 < ncplane_gradient(n_, 0, 0, 0, 3, "A", 0, chan2, chan1, chan2, chan1));
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
-    REQUIRE(cell_simple_p(&d));
+    CHECK(cell_simple_p(&d));
     CHECK(htole('A') == d.gcluster);
     CHECK(chan2 == d.channels);
   }
 
   // Unlike a typical gradient, a high gradient ought be able to do a vertical
-  // change in a single row.
+  // change in a single row (though not a single column).
   SUBCASE("HighGradient2Colors1Row") {
     uint32_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
@@ -340,9 +337,8 @@ TEST_CASE("Fills") {
     ncchannel_set(&lr, 0x000000);
     ncchannel_set(&ll, 0x00ffff);
     ncchannel_set(&ur, 0xff00ff);
-    int dimy, dimx;
-    ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));
+    CHECK(0 > ncplane_gradient2x1(n_, 0, 0, 1, 1, ul, ur, ll, lr));
+    CHECK(0 < ncplane_gradient2x1(n_, 0, 0, 1, 2, ul, ur, ll, lr));
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -353,9 +349,7 @@ TEST_CASE("Fills") {
     ncchannel_set(&lr, 0x000000);
     ncchannel_set(&ll, 0x00ffff);
     ncchannel_set(&ur, 0xff00ff);
-    int dimy, dimx;
-    ncplane_dim_yx(n_, &dimy, &dimx);
-    REQUIRE(0 < ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));
+    CHECK(0 < ncplane_gradient2x1(n_, 0, 0, 0, 0, ul, ur, ll, lr));
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -499,8 +493,8 @@ TEST_CASE("Fills") {
     CHECK(0 < ncplane_polyfill_yx(p2, 0, 0, &c2));
     CHECK(0 == ncplane_mergedown_simple(p2, p1));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < DIMY ; ++y){
-      for(int x = 0 ; x < DIMX ; ++x){
+    for(unsigned y = 0 ; y < DIMY ; ++y){
+      for(unsigned x = 0 ; x < DIMX ; ++x){
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
           auto cstr = nccell_strdup(p1, &c1);
@@ -539,7 +533,7 @@ TEST_CASE("Fills") {
     ncchannels_set_fg_rgb(&ur, 0xff0000);
     ncchannels_set_fg_rgb(&bl, 0x00ff00);
     ncchannels_set_fg_rgb(&br, 0x0000ff);
-    ncplane_highgradient_sized(p1, ul, ur, bl, br, DIMY, DIMX);
+    ncplane_gradient2x1(p1, 0, 0, DIMY, DIMX, ul, ur, bl, br);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options n2opts = {
       .y = 3,
@@ -554,11 +548,11 @@ TEST_CASE("Fills") {
     };
     auto p2 = ncplane_create(n_, &n2opts);
     REQUIRE(p2);
-    ncplane_highgradient_sized(p2, br, bl, ur, ul, DIMY / 2, DIMX / 2);
+    ncplane_gradient2x1(p2, 0, 0, DIMY / 2, DIMX / 2, br, bl, ur, ul);
     CHECK(0 == ncplane_mergedown_simple(p2, p1));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < DIMY ; ++y){
-      for(int x = 0 ; x < DIMX ; ++x){
+    for(unsigned y = 0 ; y < DIMY ; ++y){
+      for(unsigned x = 0 ; x < DIMX ; ++x){
         nccell c1 = CELL_TRIVIAL_INITIALIZER;
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
@@ -581,9 +575,11 @@ TEST_CASE("Fills") {
 #ifdef USE_QRCODEGEN
   SUBCASE("QRCodes") {
     const char* qr = "a very simple qr code";
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    CHECK(0 < ncplane_qrcode(n_, &dimy, &dimx, qr, strlen(qr)));
+    unsigned sdimy = dimy;
+    unsigned sdimx = dimx;
+    CHECK(0 < ncplane_qrcode(n_, &sdimy, &sdimx, qr, strlen(qr)));
     CHECK(0 == notcurses_render(nc_));
   }
 #endif

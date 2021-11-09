@@ -25,13 +25,13 @@ typedef struct ncplot {
      to span the horizontal area. if there are more slots than there are
      columns, we prefer showing more recent slots to less recent. if there are
      fewer slots than there are columns, they prefer the left side. */
-  int rangex;
+  unsigned rangex;
   /* domain minimum and maximum. if detectdomain is true, these are
      progressively enlarged/shrunk to fit the sample set. if not, samples
      outside these bounds are counted, but the displayed range covers only this. */
-  int slotcount;
+  unsigned slotcount;
   int slotstart; /* index of most recently-written slot */
-  bool labelaxisd; /* label dependent axis (consumes PREFIXCOLUMNS columns) */
+  bool labelaxisd; /* label dependent axis (consumes NCPREFIXCOLUMNS columns) */
   bool exponentiali; /* exponential independent axis */
   bool detectdomain; /* is domain detection in effect (stretch the domain)? */
   bool detectonlymax; /* domain detection applies only to max, not min */
@@ -95,9 +95,9 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   } \
   const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
   ncplane_erase(ncp->plot.ncp); \
-  int dimy, dimx; \
+  unsigned dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
-  const int scaleddim = dimx * scale; \
+  const unsigned scaleddim = dimx * scale; \
   /* each transition is worth this much change in value */ \
   const size_t states = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
@@ -114,17 +114,17 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   }else{ \
     interval = ncp->maxy < ncp->miny ? 0 : (ncp->maxy - ncp->miny) / ((double)dimy * states); \
   } \
-  const int startx = ncp->plot.labelaxisd ? PREFIXCOLUMNS : 0; /* plot cols begin here */ \
+  const int startx = ncp->plot.labelaxisd ? NCPREFIXCOLUMNS : 0; /* plot cols begin here */ \
   /* if we want fewer slots than there are available columns, our final column \
      will be other than the plane's final column. most recent x goes here. */ \
-  const int finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
-                     startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
+  const unsigned finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
+                          startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
   ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
   if(ncp->plot.labelaxisd){ \
     /* show the *top* of each interval range */ \
-    for(int y = 0 ; y < dimy ; ++y){ \
+    for(unsigned y = 0 ; y < dimy ; ++y){ \
       ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[y * states]); \
-      char buf[PREFIXSTRLEN + 1]; \
+      char buf[NCPREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
           ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
@@ -136,18 +136,18 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
       } \
       if(y == dimy - 1 && strlen(ncp->plot.title)){ \
         ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s %s", \
-                          PREFIXSTRLEN, PREFIXSTRLEN, buf, ncp->plot.title); \
+                          NCPREFIXSTRLEN, NCPREFIXSTRLEN, buf, ncp->plot.title); \
       }else{ \
         ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s", \
-                          PREFIXSTRLEN, PREFIXSTRLEN, buf); \
+                          NCPREFIXSTRLEN, NCPREFIXSTRLEN, buf); \
       } \
     } \
   }else if(strlen(ncp->plot.title)){ \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[(dimy - 1) * states]); \
-    ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
+    ncplane_printf_yx(ncp->plot.ncp, 0, NCPREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
   } \
   ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
-  if(finalx < startx){ /* exit on pathologically narrow planes */ \
+  if((int)finalx < startx){ /* exit on pathologically narrow planes */ \
     return 0; \
   } \
   if(!interval){ \
@@ -188,7 +188,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
        given cell. */ \
     T intervalbase = ncp->miny; \
     bool done = !ncp->plot.bset->fill; \
-    for(int y = 0 ; y < dimy ; ++y){ \
+    for(unsigned y = 0 ; y < dimy ; ++y){ \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
         we're going to print *something* */ \
@@ -264,10 +264,10 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     return -1; \
   } \
   ncplane_erase(ncp->plot.ncp); \
-  const int scale = ncp->plot.bset->width; \
-  int dimy, dimx; \
+  const unsigned scale = ncp->plot.bset->width; \
+  unsigned dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
-  const int scaleddim = dimx * scale; \
+  const unsigned scaleddim = dimx * scale; \
   /* each transition is worth this much change in value */ \
   const size_t states = ncp->plot.bset->height + 1; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
@@ -284,17 +284,17 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   }else{ \
     interval = ncp->maxy < ncp->miny ? 0 : (ncp->maxy - ncp->miny) / ((double)dimy * states); \
   } \
-  const int startx = ncp->plot.labelaxisd ? PREFIXCOLUMNS : 0; /* plot cols begin here */ \
+  const int startx = ncp->plot.labelaxisd ? NCPREFIXCOLUMNS : 0; /* plot cols begin here */ \
   /* if we want fewer slots than there are available columns, our final column \
      will be other than the plane's final column. most recent x goes here. */ \
-  const int finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
-                     startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
+  const unsigned finalx = (ncp->plot.slotcount < scaleddim - 1 - (startx * scale) ? \
+                          startx + (ncp->plot.slotcount / scale) - 1 : dimx - 1); \
   ncplane_set_styles(ncp->plot.ncp, ncp->plot.legendstyle); \
   if(ncp->plot.labelaxisd){ \
     /* show the *top* of each interval range */ \
-    for(int y = 0 ; y < dimy ; ++y){ \
+    for(unsigned y = 0 ; y < dimy ; ++y){ \
       ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[y]); \
-      char buf[PREFIXSTRLEN + 1]; \
+      char buf[NCPREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
           ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
@@ -305,17 +305,17 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
         ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
       } \
       if(y == dimy - 1 && strlen(ncp->plot.title)){ \
-        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s %s", buf, ncp->plot.title); \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, NCPREFIXCOLUMNS - strlen(buf), "%s %s", buf, ncp->plot.title); \
       }else{ \
-        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, PREFIXCOLUMNS - strlen(buf), "%s", buf); \
+        ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, NCPREFIXCOLUMNS - strlen(buf), "%s", buf); \
       } \
     } \
   }else if(strlen(ncp->plot.title)){ \
     ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[dimy - 1]); \
-    ncplane_printf_yx(ncp->plot.ncp, 0, PREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
+    ncplane_printf_yx(ncp->plot.ncp, 0, NCPREFIXCOLUMNS - strlen(ncp->plot.title), "%s", ncp->plot.title); \
   } \
   ncplane_set_styles(ncp->plot.ncp, NCSTYLE_NONE); \
-  if(finalx < startx){ /* exit on pathologically narrow planes */ \
+  if((int)finalx < startx){ /* exit on pathologically narrow planes */ \
     return 0; \
   } \
   if(!interval){ \
@@ -346,13 +346,13 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
     T intervalbase = ncp->miny; \
     const wchar_t* egc = ncp->plot.bset->plotegcs; \
     bool done = !ncp->plot.bset->fill; \
-    for(int y = 0 ; y < dimy ; ++y){ \
+    for(unsigned y = 0 ; y < dimy ; ++y){ \
       ncplane_set_channels(ncp->plot.ncp, ncp->plot.channels[y]); \
       size_t egcidx = 0, sumidx = 0; \
       /* if we've got at least one interval's worth on the number of positions \
         times the number of intervals per position plus the starting offset, \
         we're going to print *something* */ \
-      for(int i = 0 ; i < scale ; ++i){ \
+      for(unsigned i = 0 ; i < scale ; ++i){ \
         sumidx *= states; \
         if(intervalbase < gvals[i]){ \
           if(ncp->plot.exponentiali){ \
@@ -470,19 +470,19 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     ncplane_destroy(n); \
     return NULL; \
   } \
-  int sdimy, sdimx; \
+  unsigned sdimy, sdimx; \
   ncplane_dim_yx(n, &sdimy, &sdimx); \
   if(sdimx <= 0){ \
     ncplane_destroy(n); \
     return NULL; \
   } \
-  int dimx = sdimx; \
+  unsigned dimx = sdimx; \
   ncpp->plot.title = strdup(opts->title ? opts->title : ""); \
   ncpp->plot.rangex = opts->rangex; \
   /* if we're sizing the plot based off the plane dimensions, scale it by the \
      plot geometry's width for all calculations */ \
   const unsigned scaleddim = dimx * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
-  const unsigned scaledprefixlen = PREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
+  const unsigned scaledprefixlen = NCPREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
   if((ncpp->plot.slotcount = ncpp->plot.rangex) == 0){ \
     ncpp->plot.slotcount = scaleddim; \
   } \

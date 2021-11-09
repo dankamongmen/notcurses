@@ -192,7 +192,7 @@ ncreel_demo_core(struct notcurses* nc){
   tabletctx* tctxs = NULL;
   bool aborted = false;
   int x = 8, y = 4;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     .y = y,

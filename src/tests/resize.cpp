@@ -5,7 +5,7 @@ TEST_CASE("Resize") {
   if(!nc_){
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(n_);
   uint64_t ul, ur, ll, lr;
@@ -21,8 +21,8 @@ TEST_CASE("Resize") {
 
   // start at full size, and shrink to a nothing
   SUBCASE("ResizeShrink") {
-    int y = dimy;
-    int x = dimx;
+    unsigned y = dimy;
+    unsigned x = dimx;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -33,7 +33,7 @@ TEST_CASE("Resize") {
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
-    REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, y, x, "V", 0, ul, ur, ll, lr));
     CHECK(0 == notcurses_render(nc_));
     while(y > 1 || x > 1){
       y = y > 1 ? y - 1 : y;
@@ -46,8 +46,8 @@ TEST_CASE("Resize") {
 
   // start at 1x1, and enlarge to fill the screen
   SUBCASE("ResizeEnlarge") {
-    int y = 2;
-    int x = 2;
+    unsigned y = 2;
+    unsigned x = 2;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -58,13 +58,13 @@ TEST_CASE("Resize") {
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
-    REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+    REQUIRE(0 < ncplane_gradient(testn, -1, -1, y, x, "V", 0, ul, ur, ll, lr));
     CHECK(0 == notcurses_render(nc_));
     while(y < dimy || x < dimx){
       y = y < dimy ? y + 1 : y;
       x = x < dimx ? x + 1 : x;
       CHECK(0 == ncplane_resize(testn, 0, 0, 0, 0, 0, 0, y, x));
-      REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
+      REQUIRE(0 < ncplane_gradient(testn, -1, -1, y, x, "V", 0, ul, ur, ll, lr));
       CHECK(0 == notcurses_render(nc_));
     }
     CHECK(0 == ncplane_destroy(testn));

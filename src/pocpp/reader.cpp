@@ -31,7 +31,7 @@ auto main(int argc, const char** argv) -> int {
   notcurses_options ncopts{};
   ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(ncopts);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   auto n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
@@ -55,12 +55,12 @@ auto main(int argc, const char** argv) -> int {
     return EXIT_FAILURE;
   }
   ncinput ni;
-  int tgeomy, tgeomx, vgeomy, vgeomx;
+  unsigned tgeomy, tgeomx, vgeomy, vgeomx;
   struct ncplane* ncp = ncreader_plane(nr);
   struct ncplane* tplane = ncplane_above(ncp);
   ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
   ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
-  (*n)->printf(0, 0, "Scroll: %c Cursor: 000/000 Viewgeom: %03d/%03d Textgeom: %03d/%03d",
+  (*n)->printf(0, 0, "Scroll: %c Cursor: 000/000 Viewgeom: %03u/%03u Textgeom: %03u/%03u",
                horscroll ? '+' : '-', vgeomy, vgeomx, tgeomy, tgeomx);
   nc.render();
   while(nc.get(true, &ni) != (char32_t)-1){
@@ -72,11 +72,11 @@ auto main(int argc, const char** argv) -> int {
     }else if((ni.ctrl && ni.id == 'D') || ni.id == NCKEY_ENTER){
       break;
     }else if(ncreader_offer_input(nr, &ni)){
-      int ncpy, ncpx;
+      unsigned ncpy, ncpx;
       ncplane_cursor_yx(ncp, &ncpy, &ncpx);
       ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
       ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
-      (*n)->printf(0, 0, "Scroll: %c Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
+      (*n)->printf(0, 0, "Scroll: %c Cursor: %03u/%03u Viewgeom: %03u/%03u Textgeom: %03u/%03u",
                    horscroll ? '+' : '-', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
       nc.render();
     }

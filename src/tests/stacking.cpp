@@ -22,7 +22,7 @@ TEST_CASE("Stacking") {
     CHECK(0 == notcurses_stop(nc_));
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 
@@ -63,7 +63,6 @@ TEST_CASE("Stacking") {
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
-notcurses_debug(nc_, stderr);
     // ought yield space with white background FIXME currently just yields
     // a lower half block
     CHECK(0 == strcmp("\u2584", egc));

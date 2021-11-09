@@ -42,7 +42,7 @@ TEST_CASE("Ncpp"
     NotCurses nc{ nopts };
     auto std1 = nc.get_stdplane();
     CHECK(nullptr != std1);
-    int y, x;
+    unsigned y, x;
     auto std2 = nc.get_stdplane(&y, &x);
     CHECK(nullptr != std2);
     CHECK(0 < x);
@@ -94,7 +94,7 @@ TEST_CASE("Ncpp"
       REQUIRE(n);
       // FIXME load it into visual, erase plane, render visual, check for equivalence...
       {
-        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, -1, -1);
+        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, 0, 0);
       }
     }
     CHECK(nc.stop());

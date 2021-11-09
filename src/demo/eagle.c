@@ -55,7 +55,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   int xscale = geom.scalex;
 //fprintf(stderr, "VHEIGHT: %d VWIDTH: %d scale: %d/%d\n", vheight, vwidth, yscale, xscale);
   // we start at the lower left corner of the outzoomed map
-  int placey, placex; // dimensions of true display
+  unsigned placey, placex; // dimensions of true display
   notcurses_term_dim_yx(nc, &placey, &placex);
   float delty = 2 + yscale;
   float deltx = 2 + xscale;
@@ -159,14 +159,15 @@ draw_eagle(struct ncplane* n, const char* sprite){
 static int
 eagles(struct notcurses* nc, struct ncplane* n){
   int ret = 0;
-  int truex, truey; // dimensions of true display
+  unsigned truex, truey; // dimensions of true display
   notcurses_term_dim_yx(nc, &truey, &truex);
   struct timespec flapiter;
   timespec_div(&demodelay, truex / 2, &flapiter);
   const int height = 16;
   const int width = 16;
   struct eagle {
-    int yoff, xoff;
+    int yoff;
+    unsigned xoff;
     struct ncplane* n;
   } e[3];
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
@@ -199,7 +200,7 @@ eagles(struct notcurses* nc, struct ncplane* n){
       e[i].yoff += rand() % (2 + i) - 1;
       if(e[i].yoff < 0){
         e[i].yoff = 0;
-      }else if(e[i].yoff + height >= truey){
+      }else if(e[i].yoff + height >= (int)truey){
         e[i].yoff = truey - height - 1;
       }
       int scale = truex >= 80 ? truex / 80 : 1;

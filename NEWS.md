@@ -12,6 +12,36 @@ rearrangements of Notcurses.
     deprecated functionality, ABI3 ought require small changes, if any.
 
 * 2.4.9 (not yet released)
+  * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`
+    was reimplemented as a trivial wrapper around `ncnmetric()`.
+  * `qprefix()`, `bprefix()`, and `iprefix()` have been renamed
+    `ncqprefix()`, `ncbprefix()`, and `nciprefix()`, respectively.
+    All related constants have been prefixed with `NC`, and the old
+    definitions will be removed for abi3.
+    The former forms have been deprecated, and will be removed in abi3.
+  * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
+    `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which
+    have been deprecated, and will be removed in ABI3.
+    `notcurses_mice_enable()` takes an additional `unsigned eventmask`
+    parameter, a bitmask union over `NCMICE_*_EVENT` (`NCMICE_ALL_EVENTS`
+    is provided for convenience and future-proofing).
+    `notcurses_mice_disable()` is now a `static inline` wrapper around the
+    former, passing 0 as the event mask. This can be used to get mouse
+    movement buttons and focus events, which were previously unavailable.
+  * The handling of geometry and distance has been normalized across all
+    functions. Lengths are now `unsigned` as opposed to `int`. Where -1 was
+    being used to indicate "everything", 0 is now required. This affects
+    `ncplane_as_rgba()`, `ncplane_contents()`, and `ncvisual_from_plane()`,
+    which all used -1. A length of zero passed to line-drawing functions is
+    now an error. Several line-drawing functions now reliably return errors
+    as opposed to short successes. Dimensions of 0 to `ncplane_mergedown()`
+    now mean "everything". Almost all coordinates now accept -1 to indicate the
+    current cursor position in that dimension. `ncplane_highgradient()` has
+    been deprecated in favor of the new `ncplane_gradient2x1()`, which takes
+    origin coordinates. `ncplane_format()` and `ncplane_stain()` now take
+    origin coordinates. All now interpret their `unsigned` argument as
+    lengths rather than closing coordinates, observing the same semantics as
+    outlined above.
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

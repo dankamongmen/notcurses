@@ -174,7 +174,7 @@ int view_demo(struct notcurses* nc){
     return 0;
   }
   memset(&marsh, 0, sizeof(marsh));
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
   int ret = view_images(nc, nstd, dimy, dimx);
   if(ret){

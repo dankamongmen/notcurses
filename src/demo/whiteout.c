@@ -14,7 +14,7 @@
 static struct ncplane*
 mathplane(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
-  int dimx, dimy;
+  unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   const int HEIGHT = 9;
   const int WIDTH = dimx;
@@ -468,7 +468,8 @@ int witherworm_demo(struct notcurses* nc){
       const int start = starts[i];
       int step = steps[i];
       nccell_init(&c);
-      int y, x, maxy, maxx;
+      unsigned y, x;
+      unsigned maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx); // might resize
       int rgb = start;
       int bytes_out = 0;
@@ -508,7 +509,7 @@ int witherworm_demo(struct notcurses* nc){
           }
           int ulen = 0;
           int r;
-          if(wcwidth(wcs) <= maxx - x){
+          if(wcwidth(wcs) <= (int)(maxx - x)){
             if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
               if(ulen < 0){
                 return -1;

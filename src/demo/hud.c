@@ -86,7 +86,7 @@ debug_toggle(struct notcurses* nc){
     debug = NULL;
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   fbuf f;
   if(fbuf_init_small(&f)){
@@ -123,7 +123,7 @@ debug_toggle(struct notcurses* nc){
     return;
   }
   fbuf_free(&f);
-  for(int y = 0 ; y < ncplane_dim_y(n) ; ++y){
+  for(unsigned y = 0 ; y < ncplane_dim_y(n) ; ++y){
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
     nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
@@ -144,7 +144,7 @@ about_toggle(struct notcurses* nc){
   }
   const int ABOUT_ROWS = 9;
   const int ABOUT_COLS = 40;
-  int dimy;
+  unsigned dimy;
   notcurses_term_dim_yx(nc, &dimy, NULL);
   ncplane_options nopts = {
     .y = 3,
@@ -392,9 +392,13 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%"PRIu64".%03"PRIu64"s",
-                           e->totalns / NANOSECS_IN_SEC,
-                           (e->totalns % NANOSECS_IN_SEC) / 1000000) < 0){
+      char buf[NCPREFIXCOLUMNS + 2];
+      ncnmetric(e->totalns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
+      for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
+        nccell ci = CELL_TRIVIAL_INITIALIZER;
+        ncplane_putc_yx(hud, 1, x, &ci);
+      }
+      if(ncplane_printf_yx(hud, line, 14 - ncstrwidth(buf), "%ss", buf) < 0){
         return -1;
       }
       if(ncplane_putstr_yx(hud, line, 16, e->name) < 0){
@@ -410,7 +414,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   if(hud){
     return NULL;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
     // FPS graph is 6 rows tall; we want one row above it
@@ -608,8 +612,14 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, 1, 7, "%"PRIu64".%03"PRIu64"s", ns / NANOSECS_IN_SEC,
-                         (ns % NANOSECS_IN_SEC) / 1000000) < 0){
+    char buf[NCPREFIXCOLUMNS + 2];
+    ncnmetric(ns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
+    for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
+      nccell ci = CELL_TRIVIAL_INITIALIZER;
+      ncplane_putc_yx(hud, 1, x, &ci);
+    }
+//fprintf(stderr, "[%s] %zu %d\n", buf, strlen(buf), ncstrwidth(buf));
+    if(ncplane_printf_yx(hud, 1, 14 - ncstrwidth(buf), "%ss", buf) < 0){
       return -1;
     }
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){
@@ -632,7 +642,7 @@ int demo_render(struct notcurses* nc){
 
 int fpsgraph_init(struct notcurses* nc){
   const int PLOTHEIGHT = 6;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_options nopts = {
     .y = NCALIGN_BOTTOM,

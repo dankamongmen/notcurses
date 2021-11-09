@@ -63,7 +63,7 @@ generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
 int highcontrast_demo(struct notcurses* nc){
   const int STEP = 16;
   int ret = -1;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   int totcells = (dimy - 1) * dimx;
   if(totcells <= 1){

@@ -4,7 +4,7 @@
 
 static int
 render_qrcode(struct ncplane* n, int dimy, int dimx, const char* text){
-  int y = dimy, x = dimx;
+  unsigned y = dimy, x = dimx;
   ncplane_home(n);
   int ver = ncplane_qrcode(n, &y, &x, text, strlen(text));
   if(ver < 0){
@@ -30,7 +30,7 @@ int main(int argc, const char** argv){
              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   while(*++argv){
     if(render_qrcode(std, dimy, dimx, *argv)){

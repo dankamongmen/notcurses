@@ -52,7 +52,7 @@ TEST_CASE("Media") {
   }
 
   SUBCASE("LoadImageCreatePlane") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
@@ -72,7 +72,7 @@ TEST_CASE("Media") {
   }
 
   SUBCASE("LoadImage") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
@@ -88,7 +88,7 @@ TEST_CASE("Media") {
   }
 
   SUBCASE("InflateImage") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
@@ -112,7 +112,7 @@ TEST_CASE("Media") {
   }
 
   SUBCASE("PlaneDuplicate") {
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
@@ -124,7 +124,7 @@ TEST_CASE("Media") {
     REQUIRE(nullptr != needle);
     struct ncplane* newn = ncplane_dup(ncp_, needle);
     free(needle);
-    int ndimx, ndimy;
+    unsigned ndimx, ndimy;
     REQUIRE(nullptr != newn);
     ncvisual_destroy(ncv);
     ncplane_erase(ncp_);
@@ -137,7 +137,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoadVideoASCIIScale") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -161,7 +161,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoadVideoHalfScale") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -185,7 +185,7 @@ TEST_CASE("Media") {
   // quadblitter is default for NCSCALE_SCALE_HIRES
   SUBCASE("LoadVideoQuadScale") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -208,7 +208,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoadVideoSexScale") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -231,7 +231,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoadVideoBrailleScale") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -253,10 +253,10 @@ TEST_CASE("Media") {
   }
 
   // do a pixel video, reusing the same plane over and over
-  SUBCASE("LoadVideoPixelScaleOnePlane") {
+  SUBCASE("LoadVideoPixelStretchOnePlane") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncp_, &dimy, &dimx);
         auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
         REQUIRE(ncv);
@@ -268,7 +268,7 @@ TEST_CASE("Media") {
           }
           CHECK(0 == ret);
           struct ncvisual_options opts{};
-          opts.scaling = NCSCALE_SCALE;
+          opts.scaling = NCSCALE_STRETCH;
           opts.blitter = NCBLIT_PIXEL;
           opts.n = n;
           n = ncvisual_blit(nc_, ncv, &opts);
@@ -282,10 +282,10 @@ TEST_CASE("Media") {
   }
 
   // do a pixel video with a different plane for each frame
-  SUBCASE("LoadVideoPixelScaleDifferentPlanes") {
+  SUBCASE("LoadVideoPixelStretchDifferentPlanes") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
-        int dimy, dimx;
+        unsigned dimy, dimx;
         ncplane_dim_yx(ncp_, &dimy, &dimx);
         auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
         REQUIRE(ncv);
@@ -296,10 +296,12 @@ TEST_CASE("Media") {
           }
           CHECK(0 == ret);
           struct ncvisual_options opts{};
-          opts.scaling = NCSCALE_SCALE;
+          opts.scaling = NCSCALE_STRETCH;
           opts.blitter = NCBLIT_PIXEL;
-          REQUIRE(ncvisual_blit(nc_, ncv, &opts));
+          auto n = ncvisual_blit(nc_, ncv, &opts);
+          REQUIRE(nullptr != n);
           CHECK(0 == notcurses_render(nc_));
+          CHECK(0 == ncplane_destroy(n));
         }
         ncvisual_destroy(ncv);
       }
@@ -308,7 +310,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoopVideo") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
@@ -335,7 +337,7 @@ TEST_CASE("Media") {
 
   SUBCASE("LoadVideoCreatePlane") {
     if(notcurses_canopen_videos(nc_)){
-      int dimy, dimx;
+      unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);

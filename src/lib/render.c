@@ -9,7 +9,7 @@
 // two. new areas are initialized to empty, just like a new plane. lost areas
 // have their egcpool entries purged.
 static nccell*
-restripe_lastframe(notcurses* nc, int rows, int cols){
+restripe_lastframe(notcurses* nc, unsigned rows, unsigned cols){
   assert(rows);
   assert(cols);
   const size_t size = sizeof(*nc->lastframe) * (rows * cols);
@@ -21,7 +21,7 @@ restripe_lastframe(notcurses* nc, int rows, int cols){
   size_t maxlinecopy = sizeof(nccell) * copycols;
   size_t minlineset = sizeof(nccell) * cols - maxlinecopy;
   unsigned zorch = nc->lfdimx > cols ? nc->lfdimx - cols : 0;
-  for(int y = 0 ; y < rows ; ++y){
+  for(unsigned y = 0 ; y < rows ; ++y){
     if(y < nc->lfdimy){
       if(maxlinecopy){
         memcpy(&tmp[cols * y], &nc->lastframe[nc->lfdimx * y], maxlinecopy);
@@ -40,8 +40,8 @@ restripe_lastframe(notcurses* nc, int rows, int cols){
     }
   }
   // excise any egcpool entries from below the new plane area
-  for(int y = rows ; y < nc->lfdimy ; ++y){
-    for(int x = 0 ; x < nc->lfdimx ; ++x){
+  for(unsigned y = rows ; y < nc->lfdimy ; ++y){
+    for(unsigned x = 0 ; x < nc->lfdimx ; ++x){
       pool_release(&nc->pool, &nc->lastframe[fbcellidx(y, nc->lfdimx, x)]);
     }
   }
@@ -57,9 +57,9 @@ restripe_lastframe(notcurses* nc, int rows, int cols){
 // at the same origin. Initiates a resize cascade for the pile containing |pp|.
 // The current terminal geometry, changed or not, is written to |rows|/|cols|.
 static int
-notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
+notcurses_resize_internal(ncplane* pp, unsigned* restrict rows, unsigned* restrict cols){
   notcurses* n = ncplane_notcurses(pp);
-  int r, c;
+  unsigned r, c;
   if(rows == NULL){
     rows = &r;
   }
@@ -67,8 +67,8 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
     cols = &c;
   }
   ncpile* pile = ncplane_pile(pp);
-  int oldrows = pile->dimy;
-  int oldcols = pile->dimx;
+  unsigned oldrows = pile->dimy;
+  unsigned oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
   if(update_term_dimensions(rows, cols, &n->tcache, n->margin_b)){
@@ -111,7 +111,7 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
 
 // Check for a window resize on the standard pile.
 static int
-notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+notcurses_resize(notcurses* n, unsigned* restrict rows, unsigned* restrict cols){
   pthread_mutex_lock(&n->pilelock);
   int ret = notcurses_resize_internal(notcurses_stdplane(n), rows, cols);
   pthread_mutex_unlock(&n->pilelock);
@@ -229,13 +229,14 @@ __attribute__ ((nonnull (1, 2, 7)))
 static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx, sprixel** sprixelstack){
-  int y, x, dimy, dimx, offy, offx;
+  unsigned y, x, dimy, dimx;
+  int offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
   offx = p->absx - dstabsx;
 //fprintf(stderr, "PLANE %p %d %d %d %d %d %d %p\n", p, dimy, dimx, offy, offx, dstleny, dstlenx, p->sprite);
   // skip content above or to the left of the physical screen
-  int starty, startx;
+  unsigned starty, startx;
   if(offy < 0){
     starty = -offy;
   }else{
@@ -516,31 +517,71 @@ postpaint(const tinfo* ti, nccell* lastframe, int dimy, int dimx,
 // merging one plane down onto another is basically just performing a render
 // using only these two planes, with the result written to the lower plane.
 int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
-                      int begsrcy, int begsrcx, int leny, int lenx,
+                      int begsrcy, int begsrcx, unsigned leny, unsigned lenx,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
-  if(dsty >= dst->leny || dstx >= dst->lenx){
-    logerror("Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+  if(dsty < 0){
+    if(dsty != -1){
+      logerror("invalid dsty %d\n", dsty);
+      return -1;
+    }
+    dsty = dst->y;
+  }
+  if(dstx < 0){
+    if(dstx != -1){
+      logerror("invalid dstx %d\n", dstx);
+      return -1;
+    }
+    dstx = dst->x;
+  }
+  if((unsigned)dsty >= dst->leny || (unsigned)dstx >= dst->lenx){
+    logerror("dest origin %u/%u ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
-  if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
-    logerror("Dest len %d/%d ≥ dest dimensions %d/%d\n",
-             leny, lenx, dst->leny, dst->lenx);
-    return -1;
+  if(begsrcy < 0){
+    if(begsrcy != -1){
+      logerror("invalid begsrcy %d\n", begsrcy);
+      return -1;
+    }
+    begsrcy = src->y;
   }
-  if(begsrcy >= src->leny || begsrcx >= src->lenx){
-    logerror("Source origin %d/%d ≥ source dimensions %d/%d\n",
+  if(begsrcx < 0){
+    if(begsrcx != -1){
+      logerror("invalid begsrcx %d\n", begsrcx);
+      return -1;
+    }
+    begsrcx = src->x;
+  }
+  if((unsigned)begsrcy >= src->leny || (unsigned)begsrcx >= src->lenx){
+    logerror("source origin %u/%u ≥ source dimensions %d/%d\n",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
-  if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
-    logerror("Source len %d/%d ≥ source dimensions %d/%d\n",
+  if(leny == 0){
+    if((leny = src->leny - begsrcy) == 0){
+      logerror("source area was zero height\n");
+      return -1;
+    }
+  }
+  if(lenx == 0){
+    if((lenx = src->lenx - begsrcx) == 0){
+      logerror("source area was zero width\n");
+      return -1;
+    }
+  }
+  if(dst->leny - leny < (unsigned)dsty || dst->lenx - lenx < (unsigned)dstx){
+    logerror("dest len %u/%u ≥ dest dimensions %d/%d\n",
+             leny, lenx, dst->leny, dst->lenx);
+    return -1;
+  }
+  if(src->leny - leny < (unsigned)begsrcy || src->lenx - lenx < (unsigned)begsrcx){
+    logerror("source len %u/%u ≥ source dimensions %d/%d\n",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
   if(src->sprite || dst->sprite){
-    logerror("Can't merge sprixel planes\n");
+    logerror("can't merge sprixel planes\n");
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
@@ -548,7 +589,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror("Error allocating render state for %dx%d\n", leny, lenx);
+    logerror("error allocating render state for %ux%u\n", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -570,14 +611,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
 }
 
 int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
-  // have to check dst, since we used to accept a NULL dst to mean the
-  // standard plane (this was unsafe, since src might be in another pile).
-  if(dst == NULL){
-    return -1;
-  }
-  int dimy, dimx;
-  ncplane_dim_yx(dst, &dimy, &dimx);
-  return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src), ncplane_dim_x(src), 0, 0);
+  return ncplane_mergedown(src, dst, 0, 0, 0, 0, 0, 0);
 }
 
 // write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
@@ -915,14 +949,14 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
 
 // scroll the lastframe data |rows| up, to reflect scrolling reality
 static void
-scroll_lastframe(notcurses* nc, int rows){
+scroll_lastframe(notcurses* nc, unsigned rows){
   // the top |rows| rows need be released (though not more than the actual
   // number of rows!)
   if(rows > nc->lfdimy){
     rows = nc->lfdimy;
   }
-  for(int targy = 0 ; targy < rows ; ++targy){
-    for(int targx = 0 ; targx < nc->lfdimx ; ++targx){
+  for(unsigned targy = 0 ; targy < rows ; ++targy){
+    for(unsigned targx = 0 ; targx < nc->lfdimx ; ++targx){
       const size_t damageidx = targy * nc->lfdimx + targx;
       nccell* c = &nc->lastframe[damageidx];
       pool_release(&nc->pool, c);
@@ -931,7 +965,7 @@ scroll_lastframe(notcurses* nc, int rows){
   // now for all rows subsequent, up through lfdimy - rows, move them back.
   // if we scrolled all rows, we will not move anything (and we just
   // released everything).
-  for(int targy = 0 ; targy < nc->lfdimy - rows ; ++targy){
+  for(unsigned targy = 0 ; targy < nc->lfdimy - rows ; ++targy){
     const size_t dstidx = targy * nc->lfdimx;
     nccell* dst = &nc->lastframe[dstidx];
     const size_t srcidx = dstidx + rows * nc->lfdimx;
@@ -939,7 +973,7 @@ scroll_lastframe(notcurses* nc, int rows){
     memcpy(dst, src, sizeof(*dst) * nc->lfdimx);
   }
   // now for the last |rows| rows, initialize them to 0.
-  int targy = nc->lfdimy - rows;
+  unsigned targy = nc->lfdimy - rows;
   while(targy < nc->lfdimy){
     const size_t dstidx = targy * nc->lfdimx;
     nccell* dst = &nc->lastframe[dstidx];
@@ -1077,9 +1111,9 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
   struct crender* rvec = p->crender;
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
-  for(int y = nc->margin_t; y < p->dimy + nc->margin_t ; ++y){
+  for(unsigned y = nc->margin_t; y < p->dimy + nc->margin_t ; ++y){
     const int innery = y - nc->margin_t;
-    for(int x = nc->margin_l ; x < p->dimx + nc->margin_l ; ++x){
+    for(unsigned x = nc->margin_l ; x < p->dimx + nc->margin_l ; ++x){
       const int innerx = x - nc->margin_l;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb;
@@ -1345,12 +1379,15 @@ success:
 }
 
 // FIXME need to work with the most recently-rendered pile, no?
-int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
+int notcurses_refresh(notcurses* nc, unsigned* restrict dimy, unsigned* restrict dimx){
   if(notcurses_resize(nc, dimy, dimx)){
     return -1;
   }
   fbuf_reset(&nc->rstate.f);
   if(clear_and_home(nc, &nc->tcache, &nc->rstate.f)){
+    return -1;
+  }
+  if(fbuf_flush(&nc->rstate.f, nc->ttyfp)){
     return -1;
   }
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
@@ -1387,15 +1424,15 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
   if(fbuf_init(&f)){
     return -1;
   }
-  const int count = (nc->lfdimx > p->dimx ? nc->lfdimx : p->dimx) *
-                    (nc->lfdimy > p->dimy ? nc->lfdimy : p->dimy);
+  const unsigned count = (nc->lfdimx > p->dimx ? nc->lfdimx : p->dimx) *
+                         (nc->lfdimy > p->dimy ? nc->lfdimy : p->dimy);
   p->crender = malloc(count * sizeof(*p->crender));
   if(p->crender == NULL){
     fbuf_free(&f);
     return -1;
   }
   init_rvec(p->crender, count);
-  for(int i = 0 ; i < count ; ++i){
+  for(unsigned i = 0 ; i < count ; ++i){
     p->crender[i].s.damaged = 1;
   }
   int ret = raster_and_write(nc, p, &f);
@@ -1505,9 +1542,19 @@ int ncpile_render(ncplane* n){
   return 0;
 }
 
-// for now, we just run the top half of notcurses_render(), and copy out the
-// memstream from within rstate. we want to allocate our own here, and return
-// it, to avoid the copy, but we need feed the params through to do so FIXME.
+int notcurses_render(notcurses* nc){
+//fprintf(stderr, "--------------- BEGIN RENDER\n");
+//notcurses_debug(nc, stderr);
+  ncplane* stdn = notcurses_stdplane(nc);
+  if(ncpile_render(stdn)){
+    return -1;
+  }
+  int i = ncpile_rasterize(stdn);
+//fprintf(stderr, "----------------- END RENDER\n");
+  return i;
+}
+
+// run the top half of notcurses_render(), and steal the buffer from rstate.
 int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(ncpile_render(p)){
     return -1;
@@ -1522,11 +1569,9 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(bytes < 0){
     return -1;
   }
-  *buf = memdup(nc->rstate.f.buf, nc->rstate.f.used);
-  if(buf == NULL){
-    return -1;
-  }
+  *buf = nc->rstate.f.buf;
   *buflen = nc->rstate.f.used;
+  fbuf_reset(&nc->rstate.f);
   return 0;
 }
 
@@ -1540,27 +1585,31 @@ pool_egc_copy(const egcpool* e, const nccell* c){
   return strdup(egcpool_extended_gcluster(e, c));
 }
 
-char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, uint64_t* channels){
-  char* egc = NULL;
-  if(nc->lastframe){
-    if(yoff >= 0 && yoff < nc->lfdimy){
-      if(xoff >= 0 || xoff < nc->lfdimx){
-        const nccell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
-        if(nccell_wide_right_p(srccell)){
-          return notcurses_at_yx(nc, yoff, xoff - 1, stylemask, channels);
-        }
-        if(stylemask){
-          *stylemask = srccell->stylemask;
-        }
-        if(channels){
-          *channels = srccell->channels;
-        }
-//fprintf(stderr, "COPYING: %d from %p\n", srccell->gcluster, &nc->pool);
-        egc = pool_egc_copy(&nc->pool, srccell);
-      }
-    }
+char* notcurses_at_yx(notcurses* nc, unsigned yoff, unsigned xoff, uint16_t* stylemask, uint64_t* channels){
+  if(nc->lastframe == NULL){
+    logerror("haven't yet rendered\n");
+    return NULL;
   }
-  return egc;
+  if(yoff >= nc->lfdimy){
+    logerror("invalid coordinates: %u/%u\n", yoff, xoff);
+    return NULL;
+  }
+  if(xoff >= nc->lfdimx){
+    logerror("invalid coordinates: %u/%u\n", yoff, xoff);
+    return NULL;
+  }
+  const nccell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
+  if(nccell_wide_right_p(srccell)){
+    return notcurses_at_yx(nc, yoff, xoff - 1, stylemask, channels);
+  }
+  if(stylemask){
+    *stylemask = srccell->stylemask;
+  }
+  if(channels){
+    *channels = srccell->channels;
+  }
+//fprintf(stderr, "COPYING: %d from %p\n", srccell->gcluster, &nc->pool);
+  return pool_egc_copy(&nc->pool, srccell);
 }
 
 int ncdirect_set_bg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f){

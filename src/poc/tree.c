@@ -413,8 +413,7 @@ ncdup_paint(struct ncplane* n){
   uint32_t tr = NCCHANNEL_INITIALIZER(0x88, 0x88, 0x88);
   uint32_t bl = NCCHANNEL_INITIALIZER(0x88, 0x88, 0x88);
   uint32_t br = NCCHANNEL_INITIALIZER(0xff, 0xff, 0xff);
-  return ncplane_highgradient_sized(n, tl, tr, bl, br,
-                                    ncplane_dim_y(n), ncplane_dim_x(n));
+  return ncplane_gradient2x1(n, -1, -1, 0, 0, tl, tr, bl, br);
 }
 
 static int

@@ -234,7 +234,8 @@ selector_run(struct notcurses* nc, struct ncplane* p, struct ncselector* selecto
     "NCSelector allows a single option to be selected from a list.\n"
     "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output.\n";
   int titers = get_word_count(text);
-  int ret = 0, dimy, dimx;
+  int ret = 0;
+  unsigned dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(p)) / 2;
   int ry, rx, sy, sx;
@@ -308,7 +309,8 @@ mselector_run(struct notcurses* nc, struct ncplane* p, struct ncmultiselector* m
     "Widgets can be controlled with the keyboard and/or mouse. "
     "They are implemented atop ncplanes, and these planes can be manipulated like all others.";
   const int titers = get_word_count(text);
-  int ret = 0, dimy, dimx;
+  int ret = 0;
+  unsigned dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   const int centery = (dimy - ncplane_dim_y(p)) / 2;
   int ry, rx, sy, sx;
@@ -377,7 +379,7 @@ mselector_run(struct notcurses* nc, struct ncplane* p, struct ncmultiselector* m
 static int
 reader_demo(struct notcurses* nc){
   int ret = -1;
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int READER_COLS = 64;
   const int READER_ROWS = 8;

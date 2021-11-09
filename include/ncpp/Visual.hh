@@ -32,7 +32,7 @@ namespace ncpp
 				throw init_error ("Notcurses failed to create a new visual");
 		}
 
-		explicit Visual (const Plane& p, ncblitter_e blit, int begy, int begx, int leny, int lenx)
+		explicit Visual (const Plane& p, ncblitter_e blit, unsigned begy, unsigned begx, unsigned leny, unsigned lenx)
 			: Root (NotCurses::get_instance ())
 		{
 			visual = ncvisual_from_plane (p, blit, begy, begx, leny, lenx);

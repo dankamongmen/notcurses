@@ -14,5 +14,5 @@ void StainBoard(int dimy, int dimx){
   uint64_t tr = NCCHANNELS_INITIALIZER(c2, green, c1, c2, green, c1);
   uint64_t bl = NCCHANNELS_INITIALIZER(c2, green, c1, c2, green, c1);
   uint64_t br = NCCHANNELS_INITIALIZER(c1, green, c2, c1, green, c2);
-  board_->stain(dimy - 2, dimx - 2, tl, tr, bl, br);
+  board_->stain(0, 1, dimy - 1, dimx - 2, tl, tr, bl, br);
 }

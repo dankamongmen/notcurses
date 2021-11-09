@@ -6,7 +6,7 @@ int qrcode_demo(struct notcurses* nc){
   }
 #ifdef USE_QRCODEGEN
   char data[128];
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane *stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_erase(stdn);
   struct ncplane* n = ncplane_dup(stdn, NULL);
@@ -21,7 +21,7 @@ int qrcode_demo(struct notcurses* nc){
       done += sizeof(r);
     }
     ncplane_home(n);
-    int y = dimy, x = dimx;
+    unsigned y = dimy, x = dimx;
     ncplane_home(n);
     int qlen = ncplane_qrcode(n, &y, &x, data, len);
     if(qlen > 0){ // FIXME can fail due to being too large for display; distinguish this case

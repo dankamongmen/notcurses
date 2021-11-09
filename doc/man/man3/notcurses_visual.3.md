@@ -53,15 +53,15 @@ struct ncvisual_options {
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 typedef struct ncvgeom {
-  int pixy, pixx;     // true pixel geometry of ncvisual data
-  int cdimy, cdimx;   // terminal cell geometry when this was calculated
-  int rpixy, rpixx;   // rendered pixel geometry (per visual_options)
-  int rcelly, rcellx; // rendered cell geometry (per visual_options)
-  int scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  int maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
-  int begy, begx;     // upper-left corner of used section
-  int leny, lenx;     // geometry of used section
-  ncblitter_e blitter;// blitter that will be used
+  unsigned pixy, pixx;     // true pixel geometry of ncvisual data
+  unsigned cdimy, cdimx;   // terminal cell geometry when this was calculated
+  unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
+  unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
+  unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  unsigned begy, begx;     // upper-left corner of used section
+  unsigned leny, lenx;     // geometry of used section
+  unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
+  ncblitter_e blitter;i    // blitter that will be used
 } ncvgeom;
 ```
 
@@ -77,7 +77,7 @@ typedef struct ncvgeom {
 
 **struct ncvisual* ncvisual_from_palidx(const void* ***data***, int ***rows***, int ***rowstride***, int ***cols***, int ***palsize***, int ***pstride***, const uint32_t* ***palette***);**
 
-**struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
+**struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, unsigned ***begy***, unsigned ***begx***, unsigned ***leny***, unsigned ***lenx***);**
 
 **int ncvisual_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, ncvgeom* ***geom***);**
 
@@ -103,9 +103,9 @@ typedef struct ncvgeom {
 
 **int ncvisual_polyfill_yx(struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***rgba***);**
 
-**int ncvisual_at_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t* ***pixel***);**
+**int ncvisual_at_yx(const struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t* ***pixel***);**
 
-**int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
+**int ncvisual_set_yx(const struct ncvisual* ***n***, unsigned ***y***, unsigned ***x***, uint32_t ***pixel***);**
 
 **struct ncplane* ncvisual_subtitle_plane(struct ncplane* ***parent***, const struct ncvisual* ***ncv***);**
 
@@ -119,7 +119,7 @@ typedef struct ncvgeom {
 
 **ncblitter_e ncvisual_media_defblitter(const struct notcurses ***nc***, ncscale_e ***scaling***);**
 
-**int ncplane_qrcode(struct ncplane* ***n***, int* ***ymax***, int* ***xmax***, const void* ***data***, size_t ***len***)**
+**int ncplane_qrcode(struct ncplane* ***n***, unsigned* ***ymax***, unsigned* ***xmax***, const void* ***data***, size_t ***len***)**
 
 # DESCRIPTION
 

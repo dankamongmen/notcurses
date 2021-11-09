@@ -5,13 +5,13 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2021-08-19a
+  image: dankamongmen/unstable_builder:2021-11-06a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=xterm
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=on
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_GPM=on -DUSE_QRCODEGEN=on
     - make -j2
     - ./notcurses-info
     - ctest --output-on-failure
@@ -74,7 +74,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2021-08-05
+  image: dankamongmen/edge_builder:2021-11-08a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=vt100

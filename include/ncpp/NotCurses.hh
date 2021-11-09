@@ -69,19 +69,19 @@ namespace ncpp
 			return ::ncmetric (val, decimal, buf, omitdec, mult, uprefix);
 		}
 
-		static const char* qprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* ncqprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::qprefix (val, decimal, buf, omitdec);
+			return ::ncqprefix (val, decimal, buf, omitdec);
 		}
 
-		static const char* iprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* nciprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::iprefix (val, decimal, buf, omitdec);
+			return ::nciprefix (val, decimal, buf, omitdec);
 		}
 
-		static const char* bprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
+		static const char* ncbprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept
 		{
-			return ::bprefix (val, decimal, buf, omitdec);
+			return ::ncbprefix (val, decimal, buf, omitdec);
 		}
 
 		static const char* version () noexcept
@@ -200,22 +200,22 @@ namespace ncpp
 			return error_guard (notcurses_render (nc), -1);
 		}
 
-		void get_term_dim (int *rows, int *cols) const noexcept
+		void get_term_dim (unsigned *rows, unsigned *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);
 		}
 
-		void get_term_dim (int &rows, int &cols) const noexcept
+		void get_term_dim (unsigned &rows, unsigned &cols) const noexcept
 		{
 			get_term_dim (&rows, &cols);
 		}
 
-		bool refresh (int* rows, int* cols) const NOEXCEPT_MAYBE
+		bool refresh (unsigned* rows, unsigned* cols) const NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_refresh (nc, rows, cols), -1);
 		}
 
-		bool refresh (int& rows, int& cols) const NOEXCEPT_MAYBE
+		bool refresh (unsigned& rows, unsigned& cols) const NOEXCEPT_MAYBE
 		{
 			return refresh (&rows, &cols);
 		}
@@ -225,14 +225,14 @@ namespace ncpp
 			return notcurses_palette_size (static_cast<const notcurses*> (nc));
 		}
 
-		bool mouse_enable () const NOEXCEPT_MAYBE
+		bool mouse_enable (unsigned eventmask) const NOEXCEPT_MAYBE
 		{
-			return error_guard (notcurses_mouse_enable (nc), -1);
+			return error_guard (notcurses_mice_enable (nc, eventmask), -1);
 		}
 
 		bool mouse_disable () const NOEXCEPT_MAYBE
 		{
-			return error_guard (notcurses_mouse_disable (nc), -1);
+			return error_guard (notcurses_mice_disable (nc), -1);
 		}
 
 		CellStyle get_supported_styles () const noexcept
@@ -308,7 +308,7 @@ namespace ncpp
 			return new Plane (notcurses_stdplane (nc), true);
 		}
 
-		Plane* get_stdplane (int *y, int *x)
+		Plane* get_stdplane (unsigned *y, unsigned *x)
 		{
 			if (y == nullptr)
 				throw invalid_argument ("'y' must be a valid pointer");
@@ -318,7 +318,7 @@ namespace ncpp
 			return get_stdplane (*y, *x);
 		}
 
-		Plane* get_stdplane (int &y, int &x) noexcept
+		Plane* get_stdplane (unsigned &y, unsigned &x) noexcept
 		{
 			return new Plane (notcurses_stddim_yx (nc, &y, &x));
 		}

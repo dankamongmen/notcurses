@@ -21,7 +21,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixetunchmdbkywgarvlsfjqzo";
+static const char DEFAULT_DEMO[] = "ixetunchmdbkywjgarvlsfqzo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
@@ -388,6 +388,7 @@ static int
 summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvideo){
   notcurses_leave_alternate_screen(nc);
   struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_bg_default(n);
   ncplane_set_scrolling(n, true);
   bool failed = false;
   uint64_t totalbytes = 0;
@@ -403,20 +404,20 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   table_segment(n, "%a", "│");
   table_segment(n, "%w", "│");
   table_segment(n, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
-  char timebuf[PREFIXSTRLEN + 1];
-  char tfpsbuf[PREFIXSTRLEN + 1];
-  char totalbuf[BPREFIXSTRLEN + 1];
+  char timebuf[NCPREFIXSTRLEN + 1];
+  char tfpsbuf[NCPREFIXSTRLEN + 1];
+  char totalbuf[NCBPREFIXSTRLEN + 1];
   uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
-    qprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
-    bprefix(results[i].stats.raster_bytes, 1, totalbuf, 0);
+    ncqprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
+    ncbprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     uint64_t divisor = results[i].stats.render_ns + results[i].stats.writeout_ns + results[i].stats.raster_ns;
     if(divisor){
-      qprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 / divisor,
+      ncqprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 / divisor,
               1000, tfpsbuf, 0);
     }else{
-      qprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
+      ncqprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
     }
     uint32_t rescolor;
     if(results[i].result < 0){
@@ -436,7 +437,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
     ncplane_set_fg_rgb8(n, 178, 102, 255);
     ncplane_printf(n, "│%*ss│%7" PRIu64 "│%*s│%7.1f│%2" PRId64 "│%2" PRId64 "│%2" PRId64 "│%*s║",
-           PREFIXFMT(timebuf), results[i].stats.renders, BPREFIXFMT(totalbuf),
+           NCPREFIXFMT(timebuf), results[i].stats.renders, NCBPREFIXFMT(totalbuf),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
            (results[i].timens ?
@@ -445,7 +446,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
             results[i].stats.raster_ns * 100 / results[i].timens : 0),
            (results[i].timens ?
             results[i].stats.writeout_ns * 100 / results[i].timens : 0),
-           PREFIXFMT(tfpsbuf));
+           NCPREFIXFMT(tfpsbuf));
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%s\n", results[i].result < 0 ? "FAILED" :
                    results[i].result > 0 ? "ABORTED" :
@@ -458,13 +459,13 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     totalrenderns += results[i].stats.render_ns;
     totalwriteoutns += results[i].stats.writeout_ns;
   }
-  qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
-  bprefix(totalbytes, 1, totalbuf, 0);
+  ncqprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
+  ncbprefix(totalbytes, 1, totalbuf, 0);
   table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
   ncplane_putstr(n, "            ");
-  table_printf(n, "│", "%*ss", PREFIXFMT(timebuf));
+  table_printf(n, "│", "%*ss", NCPREFIXFMT(timebuf));
   table_printf(n, "│", "%7lu", totalframes);
-  table_printf(n, "│", "%*s", BPREFIXFMT(totalbuf));
+  table_printf(n, "│", "%*s", NCBPREFIXFMT(totalbuf));
   //table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   ncplane_putchar(n, '\n');
   ncplane_set_fg_rgb8(n, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
@@ -527,10 +528,10 @@ int main(int argc, char** argv){
   if((nc = notcurses_init(&nopts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT | NCMICE_DRAG_EVENT);
   const bool canimage = notcurses_canopen_images(nc);
   const bool canvideo = notcurses_canopen_videos(nc);
-  int dimx, dimy;
+  unsigned dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   if(input_dispatcher(nc)){
     goto err;

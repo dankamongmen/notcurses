@@ -68,7 +68,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     return -1;
   }
   ncplane_destroy(n);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int ROTATIONS = 32;
   timespec_div(&demodelay, ROTATIONS / 2, &scaled);
@@ -154,7 +154,7 @@ int normal_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int dy, dx;
+  unsigned dy, dx;
   int r = -1;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
@@ -175,13 +175,13 @@ int normal_demo(struct notcurses* nc){
   if(!rgba){
     goto err;
   }
-  for(int off = 0 ; off < dy * dx ; ++off){
+  for(unsigned off = 0 ; off < dy * dx ; ++off){
     rgba[off] = 0xff000000;
   }
-  int y;
+  unsigned y;
   if(dy / geom.scaley % 2){
     y = dy / geom.scaley + 1;
-    for(int x = 0 ; x < dx ; ++x){
+    for(unsigned x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, y, x, dx), y, x, dy / geom.scaley, dx)){
         goto err;
       }
@@ -190,7 +190,7 @@ int normal_demo(struct notcurses* nc){
   struct timespec scaled;
   timespec_div(&demodelay, dy, &scaled);
   for(y = 0 ; y <= dy / 2 ; ++y){
-    for(int x = 0 ; x < dx ; ++x){
+    for(unsigned x = 0 ; x < dx ; ++x){
       if(mcell(offset(rgba, dy / 2 - y, x, dx), dy / 2 - y, x, dy, dx)){
         goto err;
       }
@@ -231,7 +231,7 @@ int normal_demo(struct notcurses* nc){
   ncchannels_set_fg_rgb8(&bl, 0xff, 0, 0xff);
   ncchannels_set_fg_rgb8(&br, 0, 0, 0);
   ncplane_dim_yx(n, &dy, &dx);
-  if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
+  if(ncplane_stain(n, -1, -1, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;
   }
   DEMO_RENDER(nc);

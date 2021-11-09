@@ -26601,7 +26601,7 @@ int jungle_demo(struct notcurses* nc){
   if(out < ORIGWIDTH * ORIGHEIGHT){ // uh-oh
     return -1;
   }
-  int dimx, dimy;
+  unsigned dimx, dimy;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   // FIXME rewrite all of this using modern ncvisual, sheesh
   dimy *= 2; // use half blocks
@@ -26613,7 +26613,7 @@ int jungle_demo(struct notcurses* nc){
   nccell c = CELL_TRIVIAL_INITIALIZER;
   nccell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
-    int targy = yoff + y / (yiter * 2);
+    unsigned targy = yoff + y / (yiter * 2);
     if(targy < dimy / 2){
       if(ncplane_cursor_move_yx(n, targy, xoff)){
         return -1;

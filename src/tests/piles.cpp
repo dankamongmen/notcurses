@@ -5,7 +5,7 @@ TEST_CASE("Piles") {
   if(!nc_){
     return;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 

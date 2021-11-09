@@ -68,7 +68,10 @@ TEST_CASE("Direct") {
     ncchannels_set_bg_default(&chans);
     ncdirect_set_bg_rgb8(nc_, 0x88, 0x88, 0x88);
     printf("test background\n");
-    CHECK(0 == ncdirect_ascii_box(nc_, chans, chans, chans, chans, 8, 8, 0));
+    for(unsigned r = 2 ; r < 8 ; ++r){
+      CHECK(0 == ncdirect_ascii_box(nc_, chans, chans, chans, chans, r, r, 0));
+      printf("\n");
+    }
   }
 
 #ifndef NOTCURSES_USE_MULTIMEDIA
@@ -136,13 +139,12 @@ TEST_CASE("Direct") {
       CHECK(nullptr != ncdv);
       CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
       ncdirectf_free(dirf);
-      int y, x;
-      int dimy = ncdirect_dim_y(nc_);
-      int dimx = ncdirect_dim_x(nc_);
+      unsigned y, x;
+      // FIXME fails if u6 is reversed (on e.g. kmscon)
       CHECK(0 == ncdirect_cursor_yx(nc_, &y, &x));
-      CHECK(0 <= y);
+      auto dimy = ncdirect_dim_y(nc_);
+      auto dimx = ncdirect_dim_x(nc_);
       CHECK(dimy > y);
-      CHECK(0 <= x);
       CHECK(dimx > x);
     }
   }
@@ -159,13 +161,11 @@ TEST_CASE("Direct") {
         CHECK(nullptr != ncdv);
         CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
         ncdirectf_free(dirf);
-        int y, x;
-        int dimy = ncdirect_dim_y(nc_);
-        int dimx = ncdirect_dim_x(nc_);
+        unsigned y, x;
         CHECK(0 == ncdirect_cursor_yx(nc_, &y, &x));
-        CHECK(0 <= y);
+        auto dimy = ncdirect_dim_y(nc_);
+        auto dimx = ncdirect_dim_x(nc_);
         CHECK(dimy > y);
-        CHECK(0 <= x);
         CHECK(dimx > x);
       }
     }

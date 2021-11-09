@@ -365,7 +365,7 @@ drawpalette(struct notcurses* nc){
   if(psize > 256){
     psize = 256;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   if(dimx < 64){
     return -1;
@@ -380,7 +380,7 @@ drawpalette(struct notcurses* nc){
     if(ncplane_cursor_move_yx(n, -1, (dimx - toshow) / 2)){
       return -1;
     }
-    for(int x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
+    for(unsigned x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
       const int truex = x - (dimx - 64) / 2;
       if(y * 64 + truex >= psize){
         break;
@@ -403,8 +403,8 @@ drawpalette(struct notcurses* nc){
 static int
 infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
   const int planewidth = 72;
-  int dimy;
-  int y;
+  unsigned dimy;
+  unsigned y;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   ncplane_cursor_yx(std, &y, NULL);
   struct ncplane_options nopts = {
@@ -430,16 +430,16 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 #if defined(__linux__)
   struct sysinfo sinfo;
   sysinfo(&sinfo);
-  char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
-  bprefix(sinfo.totalram, 1, totalmet, 1);
-  bprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
+  char totalmet[NCBPREFIXSTRLEN + 1], usedmet[NCBPREFIXSTRLEN + 1];
+  ncbprefix(sinfo.totalram, 1, totalmet, 1);
+  ncbprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
 #elif defined(BSD)
   uint64_t ram;
   size_t oldlenp = sizeof(ram);
   if(sysctlbyname("hw.memsize", &ram, &oldlenp, NULL, 0) == 0){
-    char tram[BPREFIXSTRLEN + 1];
+    char tram[NCBPREFIXSTRLEN + 1];
     bprefix(ram, 1, tram, 1);
     ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB", tram);
   }
@@ -552,7 +552,7 @@ neologo_present(struct notcurses* nc, const char* nlogo){
       maxlinelen = collen;
     }
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int leftpad = (dimx - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
@@ -589,7 +589,7 @@ display_thread(void* vmarshal){
       ncv = ncvisual_from_file(m->dinfo->logofile);
     }
     if(ncv){
-      int y;
+      unsigned y;
       ncplane_cursor_yx(notcurses_stdplane_const(m->nc), &y, NULL);
       bool pixeling = false;
       if(notcurses_check_pixel_support(m->nc) >= 1){

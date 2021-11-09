@@ -145,7 +145,7 @@ int yield_demo(struct notcurses* nc){
   if(!notcurses_canopen_images(nc)){
     return 0;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   // in sixel-based implementation, if we redraw each cycle, the underlying
   // material will be redrawn, taking time. erasing won't eliminate the

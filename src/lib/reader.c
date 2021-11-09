@@ -61,10 +61,10 @@ ncreader_redraw(ncreader* n){
   assert(n->xproject >= 0);
   assert(n->textarea->lenx >= n->ncp->lenx);
   assert(n->textarea->leny >= n->ncp->leny);
-  for(int y = 0 ; y < n->ncp->leny ; ++y){
-    const int texty = y;
-    for(int x = 0 ; x < n->ncp->lenx ; ++x){
-      const int textx = x + n->xproject;
+  for(unsigned y = 0 ; y < n->ncp->leny ; ++y){
+    const unsigned texty = y;
+    for(unsigned x = 0 ; x < n->ncp->lenx ; ++x){
+      const unsigned textx = x + n->xproject;
       const nccell* src = &n->textarea->fb[nfbcellidx(n->textarea, texty, textx)];
       nccell* dst = &n->ncp->fb[nfbcellidx(n->ncp, y, x)];
 //fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_extended_gcluster(n->textarea, src), y, x, cell_extended_gcluster(n->ncp, dst));
@@ -121,9 +121,9 @@ int ncreader_move_left(ncreader* n){
 // row. if on the right side of the viewarea, but not the right side of the
 // textarea, pans right. returns 0 if a move was made.
 int ncreader_move_right(ncreader* n){
-  int viewx = n->ncp->x;
-  int textx = n->textarea->x;
-  int y = n->ncp->y;
+  unsigned textx = n->textarea->x;
+  unsigned y = n->ncp->y;
+  unsigned viewx = n->ncp->x;
 //fprintf(stderr, "moving right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx >= n->textarea->lenx - 1){
     // are we on the last column of the textarea? if so, we must also be on
@@ -171,7 +171,7 @@ int ncreader_move_up(ncreader* n){
 // try to move down. does not move past the bottom of the textarea.
 // returns 0 if a move was made.
 int ncreader_move_down(ncreader* n){
-  int y = n->ncp->y;
+  unsigned y = n->ncp->y;
   if(y >= n->textarea->leny - 1){
     // are we on the last row of the textarea? if so, we can't move.
     return -1;
@@ -381,7 +381,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
 }
 
 char* ncreader_contents(const ncreader* n){
-  return ncplane_contents(n->ncp, 0, 0, -1, -1);
+  return ncplane_contents(n->ncp, 0, 0, 0, 0);
 }
 
 void ncreader_destroy(ncreader* n, char** contents){

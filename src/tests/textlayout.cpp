@@ -105,7 +105,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my nuclear arms"));
     free(line);
@@ -132,7 +132,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my grasping arms"));
     free(line);
@@ -159,7 +159,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "abcde")); // FIXME should have newlines
     free(line);
@@ -186,7 +186,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "abcdefgh"));
     free(line);
@@ -214,7 +214,7 @@ TEST_CASE("TextLayout") {
       CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
       CHECK(0 == notcurses_render(nc_));
       CHECK(bytes == strlen(boundstr));
-      char* line = ncplane_contents(sp, 0, 0, -1, -1);
+      char* line = ncplane_contents(sp, 0, 0, 0, 0);
       REQUIRE(line);
       CHECK(0 == strcmp(line, boundstr));
       free(line);
@@ -243,7 +243,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my thermonuclear arms"));
     free(line);
@@ -272,7 +272,7 @@ TEST_CASE("TextLayout") {
       CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
       CHECK(0 == notcurses_render(nc_));
       CHECK(bytes == strlen(boundstr));
-      char* line = ncplane_contents(sp, 0, 0, -1, -1);
+      char* line = ncplane_contents(sp, 0, 0, 0, 0);
       REQUIRE(line);
       CHECK(0 == strcmp(line, "1 我能吞下玻璃"));
       free(line);
@@ -299,7 +299,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "    my thermonuclear arms"));
     free(line);
@@ -326,7 +326,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quarkgluonfart "));
     free(line);
@@ -353,7 +353,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quark gluon fart "));
     free(line);
@@ -380,7 +380,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls"));
     free(line);
@@ -407,7 +407,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls scratchy no?! "));
     free(line);
@@ -434,7 +434,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "0123456789AB"));
     free(line);
@@ -462,7 +462,7 @@ TEST_CASE("TextLayout") {
       CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
       CHECK(0 == notcurses_render(nc_));
       CHECK(bytes == strlen(boundstr));
-      char* line = ncplane_contents(sp, 0, 0, -1, -1);
+      char* line = ncplane_contents(sp, 0, 0, 0, 0);
       REQUIRE(line);
       CHECK(0 == strcmp(line, "我能吞 下玻璃 "));
       free(line);
@@ -492,7 +492,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 > res);
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes < strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls scratchy no?! "));
     free(line);
@@ -519,7 +519,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "scratchy?! true! arrrrp"));
     free(line);
@@ -553,7 +553,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
     CHECK(bytes == strlen(text));
     CHECK(0 == notcurses_render(nc_));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare neque ac ipsum viverra, vestibulum hendrerit leo consequat. Integer velit, pharetra sed nisl quis, porttitor ornare purus. Cras ac sollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis."));
     free(line);
@@ -589,7 +589,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
     CHECK(bytes == strlen(text));
     CHECK(0 == notcurses_render(nc_));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);
@@ -626,7 +626,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
     CHECK(bytes == strlen(text));
     CHECK(0 == notcurses_render(nc_));
-    char* line = ncplane_contents(sp, 0, 0, -1, -1);
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "Notcurses provides several widgets to quickly build vivid TUIs.This NCReader widget facilitates free-form text entry complete with readline-style bindings. NCSelector allows a single option to be selected from a list. NCMultiselector allows 0..n options to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);

@@ -28,7 +28,7 @@ TEST_CASE("Selectors") {
     CHECK(nullptr == ncselector_selected(ncs));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(5 == dimx);
@@ -37,7 +37,8 @@ TEST_CASE("Selectors") {
 
   SUBCASE("TitledSelector") {
     struct ncselector_options opts{};
-    opts.title = strdup("hey hey whaddya say");
+    auto title = strdup("hey hey whaddya say");
+    opts.title = title;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -52,16 +53,18 @@ TEST_CASE("Selectors") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(6 == dimy);
     CHECK(strlen(opts.title) + 4 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(title);
   }
 
   SUBCASE("SecondarySelector") {
     struct ncselector_options opts{};
-    opts.secondary = strdup("this is not a title, but it's not *not* a title");
+    auto secondary = strdup("this is not a title, but it's not *not* a title");
+    opts.secondary = secondary;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -76,16 +79,18 @@ TEST_CASE("Selectors") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(strlen(opts.secondary) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(secondary);
   }
 
   SUBCASE("FooterSelector") {
     struct ncselector_options opts{};
-    opts.footer = strdup("i am a lone footer, little old footer");
+    auto foot = strdup("i am a lone footer, little old footer");
+    opts.footer = foot;
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -100,11 +105,12 @@ TEST_CASE("Selectors") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(strlen(opts.footer) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
+    free(foot);
   }
 
   SUBCASE("PopulatedSelector") {
@@ -130,7 +136,7 @@ TEST_CASE("Selectors") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(7 == dimy);
     CHECK(15 < dimx);
@@ -253,7 +259,7 @@ TEST_CASE("Selectors") {
     CHECK(0 == strcmp(sel, items[0].option));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(5 == dimy);
     ncselector_destroy(ncs, nullptr);
@@ -304,7 +310,7 @@ TEST_CASE("Selectors") {
     CHECK(0 == strcmp(sel, items[0].option));
     struct ncplane* ncsp = ncselector_plane(ncs);
     REQUIRE(nullptr != ncsp);
-    int dimy, dimx;
+    unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(6 == dimy);
     ncselector_destroy(ncs, nullptr);

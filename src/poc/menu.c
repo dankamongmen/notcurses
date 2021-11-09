@@ -62,17 +62,12 @@ err:
 }
 
 int main(void){
-  if(!setlocale(LC_ALL, "")){
-    return EXIT_FAILURE;
-  }
-  notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
-  };
+  notcurses_options opts = { };
   struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_mouse_enable(nc);
+  notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT);
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
     { .desc = "Disabled", .shortcut = { .id = 'd', .ctrl = false, }, },
@@ -107,7 +102,7 @@ int main(void){
   ncchannels_set_bg_rgb(&mopts.headerchannels, 0x440000);
   ncchannels_set_fg_rgb(&mopts.sectionchannels, 0xb0d700);
   ncchannels_set_bg_rgb(&mopts.sectionchannels, 0x002000);
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncmenu* top = ncmenu_create(n, &mopts);
   if(top == NULL){

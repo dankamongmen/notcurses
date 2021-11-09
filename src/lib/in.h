@@ -62,6 +62,7 @@ struct initial_responses {
   unsigned kitty_graphics;     // kitty graphics supported
   uint32_t bg;                 // default background
   bool got_bg;                 // have we read default background?
+  bool rgb;                    // was RGB DirectColor advertised?
   int pixx;                    // screen geometry in pixels
   int pixy;                    // screen geometry in pixels
   int dimx;                    // screen geometry in cells
@@ -81,7 +82,7 @@ struct initial_responses {
 struct initial_responses* inputlayer_get_responses(struct inputctx* ictx)
   __attribute__ ((nonnull (1)));
 
-int get_cursor_location(struct inputctx* ictx, const char* u7, int* y, int* x)
+int get_cursor_location(struct inputctx* ictx, const char* u7, unsigned* y, unsigned* x)
   __attribute__ ((nonnull (1, 2)));
 
 #ifdef __cplusplus

@@ -74,14 +74,14 @@ struct ncvisual_details;
 typedef struct ncplane {
   nccell* fb;            // "framebuffer" of character cells
   int logrow;            // logical top row, starts at 0, add one for each scroll
-  int x, y;              // current cursor location within this plane
+  unsigned x, y;         // current cursor location within this plane
   // ncplane_yx() etc. use coordinates relative to the plane to which this
   // plane is bound, but absx/absy are always relative to the terminal origin.
   // they must thus be translated by any function which moves a parent plane.
   int absx, absy;        // origin of the plane relative to the pile's origin
                          //  also used as left and top margin on resize by
                          //  ncplane_resize_marginalized()
-  int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
+  unsigned lenx, leny;   // size of the plane, [0..len{x,y}) is addressable
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
 
@@ -294,7 +294,7 @@ typedef struct ncpile {
   struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
   size_t crenderlen;          // size of crender vector
-  int dimy, dimx;             // rows and cols at time of render
+  unsigned dimy, dimx;        // rows and cols at time of last render
   int scrolls;                // how many real lines need be scrolled at raster
   sprixel* sprixelcache;      // list of sprixels
 } ncpile;
@@ -317,8 +317,8 @@ typedef struct notcurses {
   ncpile* last_pile;
   egcpool pool;   // egcpool for lastframe
 
-  int lfdimx;     // dimensions of lastframe, unchanged by screen resize
-  int lfdimy;     // lfdimx/lfdimy are 0 until first rasterization
+  unsigned lfdimx; // dimensions of lastframe, unchanged by screen resize
+  unsigned lfdimy; // lfdimx/lfdimy are 0 until first rasterization
 
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
@@ -555,7 +555,7 @@ pool_extended_gcluster(const egcpool* pool, const nccell* c){
 }
 
 static inline nccell*
-ncplane_cell_ref_yx(const ncplane* n, int y, int x){
+ncplane_cell_ref_yx(const ncplane* n, unsigned y, unsigned x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
@@ -568,12 +568,12 @@ cell_debug(const egcpool* p, const nccell* c){
 
 static inline void
 plane_debug(const ncplane* n, bool details){
-  int dimy, dimx;
+  unsigned dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   fprintf(stderr, "p: %p dim: %d/%d poolsize: %d\n", n, dimy, dimx, n->pool.poolsize);
   if(details){
-    for(int y = 0 ; y < 1 ; ++y){
-      for(int x = 0 ; x < 10 ; ++x){
+    for(unsigned y = 0 ; y < 1 ; ++y){
+      for(unsigned x = 0 ; x < 10 ; ++x){
         const nccell* c = &n->fb[fbcellidx(y, dimx, x)];
         fprintf(stderr, "[%03d/%03d] ", y, x);
         cell_debug(&n->pool, c);
@@ -764,7 +764,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
 // happy fact: common reported values for maximum sixel height are 256, 1024,
 // and 4096...not a single goddamn one of which is divisible by six. augh.
 static inline void
-clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy, ncscale_e scaling){
+clamp_to_sixelmax(const tinfo* t, unsigned* y, unsigned* x, unsigned* outy, ncscale_e scaling){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
   }
@@ -822,9 +822,9 @@ sprixel_state(const sprixel* s, int y, int x){
   int localx = x - (s->n->absx - stdn->absx);
 //fprintf(stderr, "TAM %d at %d/%d (%d/%d, %d/%d)\n", s->n->tam[localy * s->dimx + localx].state, localy, localx, y, x, s->dimy, s->dimx);
   assert(localy >= 0);
-  assert(localy < s->dimy);
+  assert(localy < (int)s->dimy);
   assert(localx >= 0);
-  assert(localx < s->dimx);
+  assert(localx < (int)s->dimx);
   return s->n->tam[localy * s->dimx + localx].state;
 }
 
@@ -865,10 +865,11 @@ cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nc
 }
 
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
-                            int keepleny, int keeplenx, int yoff, int xoff,
-                            int ylen, int xlen);
+                            unsigned keepleny, unsigned keeplenx,
+                            int yoff, int xoff,
+                            unsigned ylen, unsigned xlen);
 
-int update_term_dimensions(int* rows, int* cols, tinfo* tcache, int margin_b);
+int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b);
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){
@@ -934,7 +935,7 @@ int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
 //  steps / 2 is to work around truncate-towards-zero).
 static int
 calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
-                        int y, int x, int ylen, int xlen){
+                        unsigned y, unsigned x, unsigned ylen, unsigned xlen){
   const int avm = (ylen - 1) - y;
   const int ahm = (xlen - 1) - x;
   if(xlen < 2){
@@ -957,7 +958,7 @@ calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
 // calculate one of the channels of a gradient at a particular point.
 static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
-                      int y, int x, int ylen, int xlen){
+                      unsigned y, unsigned x, unsigned ylen, unsigned xlen){
   uint32_t chan = 0;
   ncchannel_set_rgb8_clipped(&chan,
                            calc_gradient_component(ncchannel_r(ul), ncchannel_r(ur),
@@ -977,8 +978,8 @@ calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
 // into `channels'. x and y ought be the location within the gradient.
 static inline void
 calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
-                       uint64_t ll, uint64_t lr, int y, int x,
-                       int ylen, int xlen){
+                       uint64_t ll, uint64_t lr, unsigned y, unsigned x,
+                       unsigned ylen, unsigned xlen){
   if(!ncchannels_fg_default_p(ul)){
     ncchannels_set_fchannel(channels,
                             calc_gradient_channel(ncchannels_fchannel(ul),
@@ -1105,41 +1106,30 @@ coerce_styles(fbuf* f, const tinfo* ti, uint16_t* curstyle,
   return ret;
 }
 
-#define SET_BTN_EVENT_MOUSE   "1002"
-#define SET_FOCUS_EVENT_MOUSE "1004"
-#define SET_SGR_MODE_MOUSE    "1006"
+// DEC private mode set (DECSET) parameters (and corresponding XTerm resources)
+#define SET_X10_MOUSE_PROT       "9" // outdated, do not use, use x11
+// we can combine 1000--1004, and then use 1005/1006/1015 for extended coordinates
+#define SET_X11_MOUSE_PROT    "1000" // for button events
+#define SET_HILITE_MOUSE_PROT "1001" // for highlight tracking
+#define SET_BTN_EVENT_MOUSE   "1002" // for motion events with buttons
+#define SET_ALL_EVENT_MOUSE   "1003" // for motion events without buttons
+#define SET_FOCUS_EVENT_MOUSE "1004" // for focus events
+#define SET_UTF8_MOUSE_PROT   "1005" // utf8-style extended coordinates
+#define SET_SGR_MOUSE_PROT    "1006" // sgr-style extended coordinates
+#define SET_ALTERNATE_SCROLL  "1007" // scroll in alternate screen (alternateScroll)
+#define SET_TTYOUTPUT_SCROLL  "1010" // scroll on tty output (scrollTtyOutput)
+#define SET_KEYPRESS_SCROLL   "1011" // scroll on keypress (scrollKey)
+#define SET_URXVT_MOUSE_PROT  "1015" // urxvt-style extended coordinates
+#define SET_PIXEL_MOUSE_PROT  "1016" // sgr-style, using pixles rather than cells
+#define SET_ENABLE_ALTSCREEN  "1046" // enable alternate screen (*sets* titeInhibit)
+#define SET_ALTERNATE_SCREEN  "1047" // replaces 47 (conflict w/DECGRPM) (titeInhibit)
+#define SET_SAVE_CURSOR       "1048" // save cursor ala DECSC (titeInhibit)
+#define SET_SMCUP             "1049" // 1047+1048 (titeInhibit)
+// DECSET/DECRSTs can be chained with semicolons; can we generalize this? FIXME
+#define DECSET(p) "\x1b[?" p "h"
+#define DECRST(p) "\x1b[?" p "l"
 
-static inline int
-mouse_enable(tinfo* ti, FILE* out){
-  if(ti->qterm == TERMINAL_LINUX){
-    if(ti->gpmfd < 0){
-      if((ti->gpmfd = gpm_connect(ti)) < 0){
-        return -1;
-      }
-    }
-    return 0;
-  }
-// Sets the shift-escape option, allowing shift+mouse to override the standard
-// mouse protocol (mainly so copy-and-paste can still be performed).
-#define XTSHIFTESCAPE "\x1b[>1s"
-  return term_emit(XTSHIFTESCAPE "\x1b[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                   out, true);
-#undef XTSHIFTESCAPE
-}
-
-static inline int
-mouse_disable(tinfo* ti, fbuf* f){
-  if(ti->qterm == TERMINAL_LINUX){
-    if(ti->gpmfd < 0){
-      return 0;
-    }
-    ti->gpmfd = -1;
-    return gpm_close(ti);
-  }
-  return fbuf_emit(f, "\x1b[?" SET_BTN_EVENT_MOUSE ";"
-                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l");
-}
+int mouse_setup(tinfo* ti, unsigned eventmask);
 
 // sync the drawing position to the specified location with as little overhead
 // as possible (with nothing, if already at the right location). we prefer
@@ -1458,6 +1448,69 @@ int drop_signals(void* nc);
 int block_signals(sigset_t* old_blocked_signals);
 int unblock_signals(const sigset_t* old_blocked_signals);
 
+// takes a signed starting coordinate (where -1 indicates the cursor's
+// position), and an unsigned vector (where 0 indicates "everything
+// remaining", i.e. to the right and below). returns 0 iff everything
+// is valid and on the plane, filling in 'ystart'/'xstart' with the
+// (non-negative) starting coordinates and 'ylen'/'xlen with the
+// (positive) dimensions of the affected area.
+static inline int
+check_geometry_args(const ncplane* n, int y, int x,
+                    unsigned* ylen, unsigned* xlen,
+                    unsigned* ystart, unsigned* xstart){
+  // handle the special -1 case for y/x, and reject other negatives
+  if(y < 0){
+    if(y != -1){
+      logerror("invalid y: %d\n", y);
+      return -1;
+    }
+    y = n->y;
+  }
+  if(x < 0){
+    if(x != -1){
+      logerror("invalid x: %d\n", x);
+      return -1;
+    }
+    x = n->x;
+  }
+  // y and x are both now definitely positive, but might be off-plane.
+  // lock in y and x as ystart and xstart for unsigned comparisons.
+  *ystart = y;
+  *xstart = x;
+  unsigned ymax, xmax;
+  ncplane_dim_yx(n, &ymax, &xmax);
+  if(*ystart >= ymax || *xstart >= xmax){
+    logerror("invalid starting coordinates: %u/%u\n", *ystart, *xstart);
+    return -1;
+  }
+  // handle the special 0 case for ylen/xlen
+  if(*ylen == 0){
+    *ylen = ymax - *ystart;
+  }
+  if(*xlen == 0){
+    *xlen = xmax - *xstart;
+  }
+  // ensure ylen/xlen are on-plane
+  if(*ylen > ymax){
+    logerror("ylen > dimy %u > %u\n", *ylen, ymax);
+    return -1;
+  }
+  if(*xlen > xmax){
+    logerror("xlen > dimx %u > %u\n", *xlen, xmax);
+    return -1;
+  }
+  // ensure x + xlen and y + ylen are on-plane, without overflow
+  if(ymax - *ylen < *ystart){
+    logerror("y + ylen > ymax %u + %u > %u\n", *ystart, *ylen, ymax);
+    return -1;
+  }
+  if(xmax - *xlen < *xstart){
+    logerror("x + xlen > xmax %u + %u > %u\n", *xstart, *xlen, xmax);
+    return -1;
+  }
+  return 0;
+}
+
 void ncvisual_printbanner(fbuf* f);
 
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to
@@ -1558,7 +1611,8 @@ rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
 int ncvisual_geom_inner(const tinfo* ti, const struct ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
                         const struct blitset** bset,
-                        int* disppxy, int* disppxx, int* outy, int* outx,
+                        unsigned* disppxy, unsigned* disppxx,
+                        unsigned* outy, unsigned* outx,
                         int* placey, int* placex);
 
 static inline const struct blitset*
@@ -1622,6 +1676,27 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
     }
   }
   return ret;
+}
+
+// a neighbor on which to polyfill. by the time we get to it, it might or
+// might not have been filled in. if so, discard immediately. otherwise,
+// check self, and if valid, push all neighbors.
+struct topolyfill {
+  int y, x;
+  struct topolyfill* next;
+};
+
+static inline struct topolyfill*
+create_polyfill_op(int y, int x, struct topolyfill** stck){
+  // cast for the benefit of c++ callers
+  struct topolyfill* n = (struct topolyfill*)malloc(sizeof(*n));
+  if(n){
+    n->y = y;
+    n->x = x;
+    n->next = *stck;
+    *stck = n;
+  }
+  return n;
 }
 
 // implemented by a multimedia backend (ffmpeg or oiio), and installed

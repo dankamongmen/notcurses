@@ -36,14 +36,14 @@ int main(void){
   ret |= ncdirect_cursor_right(n, dimx / 2);
   ret |= ncdirect_cursor_up(n, dimy / 2);
   printf(" erperperp! \n");
-  int y = -420, x = -420;
+  unsigned y, x;
   // FIXME try a push/pop
   if(ncdirect_cursor_yx(n, &y, &x) == 0){
     printf("\n\tRead cursor position: y: %d x: %d\n", y, x);
     y += 2; // we just went down two lines
     while(y > 3){
       ret = -1;
-      int newy;
+      unsigned newy;
       if(ncdirect_cursor_yx(n, &newy, NULL)){
         break;
       }

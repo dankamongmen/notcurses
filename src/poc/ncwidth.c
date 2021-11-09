@@ -74,13 +74,14 @@ int main(int argc, char **argv){
       totalb += conv;
       add_wchar(&wbuf, &bufsize, &used, w);
     }
-    int y, x, newy, newx;
     putchar('\n');
+    unsigned y, x;
     ncdirect_cursor_yx(n, &y, &x);
     printf("%s", *argv);
     fflush(stdout);
+    unsigned newy, newx;
     ncdirect_cursor_yx(n, &newy, &newx);
-    int realcols = (newx - x) + ncdirect_dim_x(n) * (newy - y);
+    unsigned realcols = (newx - x) + ncdirect_dim_x(n) * (newy - y);
     printf("\n iterated wcwidth: %d total bytes: %llu wcswidth: %d true width: %d\n\n",
            totalcols, (unsigned long long)totalb, wcswidth(wbuf, used), realcols);
     ncdirect_cursor_yx(n, &y, &x);
@@ -123,14 +124,14 @@ int main(int argc, char **argv){
     }
     ncdirect_set_fg_default(n);
     ncdirect_set_bg_default(n);
-    for(int z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
+    for(unsigned z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
       putchar('0' + z % 10);
     }
     if(realcols < ncdirect_dim_x(n)){
       putchar('\n');
     }
     if(realcols > 20){
-      for(int z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
+      for(unsigned z = 0 ; z < realcols && z < ncdirect_dim_x(n) ; ++z){
         if(z % 10){
           putchar(' ');
         }else{

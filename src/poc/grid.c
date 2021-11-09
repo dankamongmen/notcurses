@@ -2,8 +2,8 @@
 
 struct ncvisual*
 draw_grid(struct ncplane* stdn){
-  int maxby, maxbx;
-  int cellpxy, cellpxx;
+  unsigned maxby, maxbx;
+  unsigned cellpxy, cellpxx;
   ncplane_pixel_geom(stdn, NULL, NULL, &cellpxy, &cellpxx, &maxby, &maxbx);
   if(cellpxy <= 1 || cellpxx <= 1){
     fprintf(stderr, "cell-pixel geometry: %d %d\n", cellpxy, cellpxx);
@@ -15,20 +15,20 @@ draw_grid(struct ncplane* stdn){
   }
   // we want an inlay on each cell, so if they're 10 wide, we want pixels
   // at 0, 9, 10, 19, 20, 29, etc.
-  for(int y = 0 ; y < maxby ; ++y){
+  for(unsigned y = 0 ; y < maxby ; ++y){
     uint32_t* row = rgba + y * maxbx;
-    for(int x = 0 ; x < maxbx ; ++x){
+    for(unsigned x = 0 ; x < maxbx ; ++x){
       uint32_t* px = row + x;
       ncpixel_set_a(px, 255);
       ncpixel_set_r(px, 0x39);
       ncpixel_set_g(px, 0xff);
       ncpixel_set_b(px, 0xa0);
     }
-    for(int yi = 0 ; yi < cellpxy - 2 ; ++yi){
+    for(unsigned yi = 0 ; yi < cellpxy - 2 ; ++yi){
       ++y;
       if(y < maxby){
         row = rgba + y * maxbx;
-        for(int x = 0 ; x < maxbx ; ++x){
+        for(unsigned x = 0 ; x < maxbx ; ++x){
           uint32_t* px = row + x;
           ncpixel_set_a(px, 255);
           ncpixel_set_r(px, 0x39);
@@ -47,12 +47,12 @@ draw_grid(struct ncplane* stdn){
     ++y;
     row = rgba + y * maxbx;
     if(y < maxby){
-      for(int x = 0 ; x < maxbx ; ++x){
-	uint32_t* px = row + x;
-	ncpixel_set_a(px, 255);
-	ncpixel_set_r(px, 0x39);
-	ncpixel_set_g(px, 0xff);
-	ncpixel_set_b(px, 0xa0);
+      for(unsigned x = 0 ; x < maxbx ; ++x){
+        uint32_t* px = row + x;
+        ncpixel_set_a(px, 255);
+        ncpixel_set_r(px, 0x39);
+        ncpixel_set_g(px, 0xff);
+        ncpixel_set_b(px, 0xa0);
       }
     }
   }
@@ -74,7 +74,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
+  unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncvisual* ncv = draw_grid(stdn);
   if(ncv == NULL){

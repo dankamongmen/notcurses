@@ -16,7 +16,7 @@ notcurses_render - sync the physical display to a virtual pile
 
 **int notcurses_render(struct notcurses* ***nc***);**
 
-**char* notcurses_at_yx(struct notcurses* ***nc***, int ***yoff***, int ***xoff***, uint16_t* ***styles***, uint64_t* ***channels***);**
+**char* notcurses_at_yx(struct notcurses* ***nc***, unsigned ***yoff***, unsigned ***xoff***, uint16_t* ***styles***, uint64_t* ***channels***);**
 
 **int ncpile_render_to_file(struct ncplane* ***p***, FILE* ***fp***);**
 

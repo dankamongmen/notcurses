@@ -26,8 +26,8 @@ using namespace ncpp;
 
 std::mutex mtx;
 uint64_t start;
-static int dimy, dimx;
 std::atomic<bool> done;
+static unsigned dimy, dimx;
 static struct ncuplot* plot;
 
 // return the string version of a special composed key
@@ -157,6 +157,7 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_RSUPER: return "right super";
     case NCKEY_RHYPER: return "right hyper";
     case NCKEY_RMETA: return "right meta";
+    case NCKEY_MOTION: return "mouse (no buttons pressed)";
     case NCKEY_BUTTON1: return "mouse (button 1)";
     case NCKEY_BUTTON2: return "mouse (button 2)";
     case NCKEY_BUTTON3: return "mouse (button 3)";
@@ -184,10 +185,9 @@ char32_t printutf8(char32_t kp){
 // older text, and thus clearly indicate the current output.
 static bool
 dim_rows(const Plane* n){
-  int y, x;
   Cell c;
-  for(y = 0 ; y < dimy ; ++y){
-    for(x = 0 ; x < dimx ; ++x){
+  for(unsigned y = 0 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       if(n->get_at(y, x, &c) < 0){
         n->release(c);
         return false;
@@ -254,10 +254,10 @@ int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTWIDTH = 56;
   auto n = nc->get_stdplane(&dimy, &dimx);
   // FIXME no ncpp wrapper for Plane::pixelgeom?
-  int celldimx, maxbmapx;
+  unsigned celldimx, maxbmapx;
   ncplane_pixel_geom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
   struct ncplane_options nopts = {
-    .y = dimy - PLOTHEIGHT - 1,
+    .y = static_cast<int>(dimy) - PLOTHEIGHT - 1,
     .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
     .cols = PLOTWIDTH,
@@ -296,7 +296,7 @@ int input_demo(ncpp::NotCurses* nc) {
     ncuplot_destroy(plot);
     return -1;
   }
-  int y = 0;
+  unsigned y = 0;
   std::deque<wchar_t> cells;
   char32_t r;
   done = false;
@@ -349,9 +349,9 @@ int input_demo(ncpp::NotCurses* nc) {
         n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
       }
     }
-    int x;
+    unsigned x;
     n->get_cursor_yx(nullptr, &x);
-    for(int i = x ; i < n->get_dim_x() ; ++i){
+    for(unsigned i = x ; i < n->get_dim_x() ; ++i){
       n->putc(' ');
     }
     if(!dim_rows(n)){
@@ -417,7 +417,7 @@ int main(int argc, char** argv){
   }
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
-  nc.mouse_enable(); // might fail if no mouse is available
+  nc.mouse_enable(NCMICE_ALL_EVENTS);
   int ret = input_demo(&nc);
   if(!nc.stop() || ret){
     return EXIT_FAILURE;

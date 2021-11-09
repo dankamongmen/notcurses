@@ -38,9 +38,9 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_set_bg_palindex(struct ncdirect* ***nc***, int ***pidx***);**
 
-**int ncdirect_dim_x(const struct ncdirect* ***nc***);**
+**unsigned ncdirect_dim_x(const struct ncdirect* ***nc***);**
 
-**int ncdirect_dim_y(const struct ncdirect* ***nc***);**
+**unsigned ncdirect_dim_y(const struct ncdirect* ***nc***);**
 
 **unsigned ncdirect_supported_styles(const struct ncdirect* ***nc***);**
 
@@ -57,6 +57,8 @@ notcurses_direct - minimal notcurses instances for styling text
 **int ncdirect_stop(struct ncdirect* ***nc***);**
 
 **int ncdirect_cursor_move_yx(struct ncdirect* ***n***, int ***y***, int ***x***);**
+
+**int ncdirect_cursor_yx(struct ncdirect* ***n***, unsigned* ***y***, unsigned* ***x***);**
 
 **int ncdirect_cursor_enable(struct ncdirect* ***nc***);**
 
@@ -78,9 +80,9 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **const char* ncdirect_detected_terminal(const struct ncdirect* ***n***);**
 
-**int ncdirect_hline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
+**int ncdirect_hline_interp(struct ncdirect* ***n***, const char* ***egc***, unsigned ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
-**int ncdirect_vline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
+**int ncdirect_vline_interp(struct ncdirect* ***n***, const char* ***egc***, unsigned ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
 **int ncdirect_box(struct ncdirect* ***n***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***, const wchar_t* ***wchars***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
@@ -232,8 +234,11 @@ space as is necessary". It is an error to pass a negative number for either.
 points to a valid **struct ncdirect**, which can be used until it is provided
 to **ncdirect_stop**.
 
-**ncdirect_putstr** and **ncdirect_printf_aligned** return the number of bytes
-written on success. On failure, they return some negative number.
+**ncdirect_printf_aligned** returns the number of bytes written on success. On
+failure, it returns some negative number.
+
+**ncdirect_putstr** returns a nonnegative number on success, and **EOF**
+on failure.
 
 **ncdirect_putegc** returns the number of columns consumed on success, or -1
 on failure. If ***sbytes*** is not **NULL**, the number of bytes consumed

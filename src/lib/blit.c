@@ -67,24 +67,18 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
                 int leny, int lenx, const blitterargs* bargs){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
-  int dimy, dimx, x, y;
+  unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, ++visy){
-    if(y < 0){
-      continue;
-    }
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
-      if(x < 0){
-        continue;
-      }
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * 4);
 //fprintf(stderr, "[%04d/%04d] lsize: %d %02x %02x %02x %02x\n", y, x, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -122,24 +116,18 @@ tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   uint32_t transcolor = bargs->transcolor;
-  int dimy, dimx, x, y;
+  unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
-    if(y < 0){
-      continue;
-    }
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
-      if(x < 0){
-        continue;
-      }
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * 4);
       const unsigned char* rgbbase_down = zeroes;
       if(visy < bargs->begy + leny - 1){
@@ -453,7 +441,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
               const blitterargs* bargs){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
-  int dimy, dimx, x, y;
+  unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
 //fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
@@ -461,17 +449,11 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
-    if(y < 0){
-      continue;
-    }
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      if(x < 0){
-        continue;
-      }
       const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * 4);
       const unsigned char* rgbbase_tr = zeroes;
       const unsigned char* rgbbase_bl = zeroes;
@@ -674,24 +656,18 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
-  int dimy, dimx, x, y;
+  unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
 //fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 3){
-    if(y < 0){
-      continue;
-    }
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      if(x < 0){
-        continue;
-      }
       uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
       if(visx < bargs->begx + lenx - 1){
@@ -748,24 +724,18 @@ static inline int
 braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs){
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
-  int dimy, dimx, x, y;
+  unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 4){
-    if(y < 0){
-      continue;
-    }
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      if(x < 0){
-        continue;
-      }
       const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * 4));
       const uint32_t* rgbbase_r0 = &zeroes32;
       const uint32_t* rgbbase_l1 = &zeroes32;

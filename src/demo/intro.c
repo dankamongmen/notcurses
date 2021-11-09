@@ -5,7 +5,7 @@ static int centercols;
 static int
 animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int* flipmode = curry;
-  int rows, cols;
+  unsigned rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
   const bool smallscreen = rows < 26;
   const int row1 = rows - 10 + smallscreen;
@@ -64,7 +64,7 @@ greatscott(struct notcurses* nc, int dimx){
 }
 
 static struct ncplane*
-orcashow(struct notcurses* nc, int dimy, int dimx){
+orcashow(struct notcurses* nc, unsigned dimy, unsigned dimx){
   char* path = find_data("natasha-blur.png");
   if(path == NULL){
     return NULL;
@@ -104,7 +104,8 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
 
 static int
 orcaride(struct notcurses* nc, struct ncplane* on, int iterations){
-  int odimy, odimx, oy, ox, dimx;
+  unsigned odimy, odimx, dimx;
+  int oy, ox;
   ncplane_dim_yx(notcurses_stdplane(nc), NULL, &dimx);
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
@@ -124,7 +125,7 @@ int intro(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  int rows, cols;
+  unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   uint32_t ccul, ccur, ccll, cclr;
   ccul = ccur = ccll = cclr = 0;
@@ -134,7 +135,7 @@ int intro(struct notcurses* nc){
   ncchannel_set_rgb8(&cclr, 0, 0, 0xff);
   // we use full block rather+fg than space+bg to conflict less with the menu
   ncplane_cursor_move_yx(ncp, 2, 1);
-  if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows - 3, cols - 2) <= 0){
+  if(ncplane_gradient2x1(ncp, -1, -1, rows - 3, cols - 2, ccul, ccur, ccll, cclr) <= 0){
     return -1;
   }
   nccell c = CELL_TRIVIAL_INITIALIZER;
@@ -168,7 +169,9 @@ int intro(struct notcurses* nc){
   if(ncplane_cursor_move_yx(ncp, 5, (cols - centercols) / 2 + 1)){
     return -1;
   }
-  if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols / 2 + centercols / 2 - 1) <= 0){
+  if(ncplane_gradient(ncp, -1, -1, rows - 8 - 5,
+                      cols / 2 + centercols / 2 - 1 - ((cols - centercols) / 2 + 1),
+                      "Δ", 0, cul, cur, cll, clr) <= 0){
     return -1;
   }
   nccell_set_fg_rgb(&lr, 0xff0000); nccell_set_bg_rgb(&lr, 0x002000);

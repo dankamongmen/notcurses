@@ -141,7 +141,7 @@ typedef struct sprixel {
   sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
   struct sprixel* prev;
-  int dimy, dimx;       // cell geometry
+  unsigned dimy, dimx;  // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
   int cellpxy, cellpxx; // cell-pixel geometry at time of creation
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
@@ -214,8 +214,8 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
 void sixel_refresh(const struct ncpile* p, sprixel* s);
 
 // takes ownership of s on success.
-int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start,
-                 sprixel_e state);
+int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
+                 int parse_start, sprixel_e state);
 
 #ifdef __cplusplus
 }
