@@ -1754,7 +1754,7 @@ int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
 }
 
 int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
-  if(n->y == n->leny && n->x == n->lenx){
+  if(n->y >= n->leny || n->x >= n->lenx){
     return -1;
   }
   const nccell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
