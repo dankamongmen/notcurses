@@ -125,26 +125,6 @@ notcurses_stop_minimal(void* vnc){
   return ret;
 }
 
-// make a heap-allocated wchar_t expansion of the multibyte string at s
-static inline wchar_t*
-wchar_from_utf8(const char* s){
-  mbstate_t ps;
-  memset(&ps, 0, sizeof(ps));
-  // worst case is a wchar_t for every byte of input (all-ASCII case)
-  const size_t maxw = strlen(s) + 1;
-  wchar_t* dst = malloc(sizeof(*dst) * maxw);
-  size_t wcount = mbsrtowcs(dst, &s, maxw, &ps);
-  if(wcount == (size_t)-1){
-    free(dst);
-    return NULL;
-  }
-  if(s){
-    free(dst);
-    return NULL;
-  }
-  return dst;
-}
-
 static const char NOTCURSES_VERSION[] =
  NOTCURSES_VERSION_MAJOR "."
  NOTCURSES_VERSION_MINOR "."
