@@ -440,7 +440,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   size_t oldlenp = sizeof(ram);
   if(sysctlbyname("hw.memsize", &ram, &oldlenp, NULL, 0) == 0){
     char tram[NCBPREFIXSTRLEN + 1];
-    bprefix(ram, 1, tram, 1);
+    ncbprefix(ram, 1, tram, 1);
     ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB", tram);
   }
 #endif
