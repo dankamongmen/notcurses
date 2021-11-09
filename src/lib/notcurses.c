@@ -2989,14 +2989,16 @@ int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
 }
 
 int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
-  int cols = 0;  // number of columns consumed thus far
+  int cols;
   if(validwidth == NULL){
     validwidth = &cols;
   }
-  int bytes = 0; // number of bytes consumed thus far
+  *validwidth = 0;
+  int bytes;
   if(validbytes == NULL){
     validbytes = &bytes;
   }
+  *validbytes = 0;
   do{
     int thesecols, thesebytes;
     thesebytes = utf8_egc_len(egcs, &thesecols);
