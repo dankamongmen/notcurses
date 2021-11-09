@@ -1542,18 +1542,6 @@ int ncpile_render(ncplane* n){
   return 0;
 }
 
-int notcurses_render(notcurses* nc){
-//fprintf(stderr, "--------------- BEGIN RENDER\n");
-//notcurses_debug(nc, stderr);
-  ncplane* stdn = notcurses_stdplane(nc);
-  if(ncpile_render(stdn)){
-    return -1;
-  }
-  int i = ncpile_rasterize(stdn);
-//fprintf(stderr, "----------------- END RENDER\n");
-  return i;
-}
-
 // run the top half of notcurses_render(), and steal the buffer from rstate.
 int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(ncpile_render(p)){

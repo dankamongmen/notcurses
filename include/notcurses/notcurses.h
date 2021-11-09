@@ -988,39 +988,6 @@ API int notcurses_leave_alternate_screen(struct notcurses* nc)
 API struct ncplane* notcurses_stdplane(struct notcurses* nc);
 API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
 
-// Return the dimensions of this ncplane. y or x may be NULL.
-API void ncplane_dim_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
-  __attribute__ ((nonnull (1)));
-
-static inline int
-ncplane_dim_y(const struct ncplane* n){
-  int dimy;
-  ncplane_dim_yx(n, &dimy, NULL);
-  return dimy;
-}
-
-static inline int
-ncplane_dim_x(const struct ncplane* n){
-  int dimx;
-  ncplane_dim_yx(n, NULL, &dimx);
-  return dimx;
-}
-
-// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-static inline struct ncplane*
-notcurses_stddim_yx(struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-  struct ncplane* s = notcurses_stdplane(nc); // can't fail
-  ncplane_dim_yx(s, y, x); // accepts NULL
-  return s;
-}
-
-static inline const struct ncplane*
-notcurses_stddim_yx_const(const struct notcurses* nc, int* RESTRICT y, int* RESTRICT x){
-  const struct ncplane* s = notcurses_stdplane_const(nc); // can't fail
-  ncplane_dim_yx(s, y, x); // accepts NULL
-  return s;
-}
-
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n)
   __attribute__ ((nonnull (1)));
@@ -1041,7 +1008,6 @@ API int ncpile_rasterize(struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
 // Renders and rasterizes the standard pile in one shot. Blocking call.
-<<<<<<< HEAD
 static inline int
 notcurses_render(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
@@ -1050,10 +1016,6 @@ notcurses_render(struct notcurses* nc){
   }
   return ncpile_rasterize(stdn);
 }
-=======
-API int notcurses_render(struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
->>>>>>> master
 
 // Perform the rendering and rasterization portion of ncpile_render() and
 // ncpile_rasterize(), but do not write the resulting buffer out to the
@@ -1062,16 +1024,10 @@ API int notcurses_render(struct notcurses* nc)
 API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen)
   __attribute__ ((nonnull (1, 2, 3)));
 
-<<<<<<< HEAD
 // Write the last rendered frame, in its entirety, to 'fp'. If a frame has
 // not yet been rendered, nothing will be written.
-API int ncpile_render_to_file(struct ncplane* p, FILE* fp);
-=======
-// Write the last rendered frame, in its entirety, to 'fp'. If
-// notcurses_render() has not yet been called, nothing will be written.
 API int ncpile_render_to_file(struct ncplane* p, FILE* fp)
   __attribute__ ((nonnull (1, 2)));
->>>>>>> master
 
 // Return the topmost ncplane of the standard pile.
 API struct ncplane* notcurses_top(struct notcurses* n)
