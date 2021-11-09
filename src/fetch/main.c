@@ -65,29 +65,6 @@ fetch_env_vars(struct notcurses* nc, fetched_info* fi){
   return 0;
 }
 
-static distro_info distros[] = {
-  {
-    .name = "arch",
-    // from core/filesystem
-    .logofile = "/usr/share/pixmaps/archlinux.png",
-  }, {
-    .name = "artix",
-    // from system/filesystem
-    .logofile = "/usr/share/pixmaps/artixlinux-logo.png",
-  }, {
-    .name = "debian",
-    // from desktop-base package
-    .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
-  }, {
-    .name = "fedora",
-    // from redhat-lsb-core package
-    .logofile = "/usr/share/pixmaps/fedora-logo.png",
-  }, {
-    .name = NULL,
-    .logofile = NULL,
-  },
-};
-
 static int
 fetch_bsd_cpuinfo(fetched_info* fi){
 #if defined(__linux__) || defined(__gnu_hurd__) || defined(__MINGW64__)
@@ -106,6 +83,32 @@ fetch_bsd_cpuinfo(fetched_info* fi){
     fprintf(stderr, "Coudln't acquire CTL_HW+HW_MODEL sysctl (%s)\n", strerror(errno));
     return -1;
   }
+#endif
+  return 0;
+}
+
+static int
+fetch_windows_cpuinfo(fetched_info* fi){
+#ifdef __MINGW64__
+  LPSYSTEM_INFO info;
+  GetSystemInfo(info);
+  switch(info->wProcessorArchitecture){
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      fi->cpu_model = strdup("amd64"); break;
+    case PROCESSOR_ARCHITECTURE_ARM:
+      fi->cpu_model = strdup("ARM"); break;
+    case PROCESSOR_ARCHITECTURE_ARM64:
+      fi->cpu_model = strdup("AArch64"); break;
+    case PROCESSOR_ARCHITECTURE_IA64:
+      fi->cpu_model = strdup("Itanium"); break;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      fi->cpu_model = strdup("i386"); break;
+    default:
+      fi->cpu_model = strdup("Unknown processor"); break;
+  }
+  fi->core_count = info->dwNumberOfProcessors;
+#else
+  (void)fi;
 #endif
   return 0;
 }
@@ -197,6 +200,7 @@ fetch_x_props(fetched_info* fi){
   return 0;
 }
 
+#ifdef __linux__
 // Given a filename, check for its existence in the directories specified by
 // https://specifications.freedesktop.org/icon-theme-spec/latest/ar01s03.html.
 // Returns NULL if no such file can be found. Return value is heap-allocated.
@@ -217,10 +221,35 @@ get_xdg_logo(const char *spec){
   strcat(p, spec);
   return p;
 }
+#endif
 
 // FIXME deal more forgivingly with quotation marks
 static const distro_info*
 linux_ncneofetch(fetched_info* fi){
+  const distro_info* dinfo = NULL;
+#ifdef __linux__
+  static const distro_info distros[] = {
+    {
+      .name = "arch",
+      // from core/filesystem
+      .logofile = "/usr/share/pixmaps/archlinux.png",
+    }, {
+      .name = "artix",
+      // from system/filesystem
+      .logofile = "/usr/share/pixmaps/artixlinux-logo.png",
+    }, {
+      .name = "debian",
+      // from desktop-base package
+      .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
+    }, {
+      .name = "fedora",
+      // from redhat-lsb-core package
+      .logofile = "/usr/share/pixmaps/fedora-logo.png",
+    }, {
+      .name = NULL,
+      .logofile = NULL,
+    },
+  };
   FILE* osinfo = fopen("/etc/os-release", "re");
   if(osinfo == NULL){
     return NULL;
@@ -266,7 +295,6 @@ linux_ncneofetch(fetched_info* fi){
   if(distro == NULL){
     return NULL;
   }
-  const distro_info* dinfo = NULL;
   for(dinfo = distros ; dinfo->name ; ++dinfo){
     if(strcmp(dinfo->name, distro) == 0){
       break;
@@ -276,6 +304,9 @@ linux_ncneofetch(fetched_info* fi){
     fi->neologo = get_neofetch_art(distro);
   }
   free(distro);
+#else
+  (void)fi;
+#endif
   return dinfo;
 }
 
@@ -314,7 +345,7 @@ get_kernel(fetched_info* fi){
   osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
   GetVersionEx(&osvi);
   char ver[20]; // sure why not
-  snprintf(ver, sizeof(ver), "%d.%d", osvi.dwMajorVersion, osvi.dwMinorVersion);
+  snprintf(ver, sizeof(ver), "%lu.%lu", osvi.dwMajorVersion, osvi.dwMinorVersion);
   fi->kernver = strdup(ver);
   fi->kernel = strdup("Windows NT");
   return NCNEO_WINDOWS;
@@ -671,6 +702,8 @@ ncneofetch(struct notcurses* nc){
   }
   if(kern == NCNEO_LINUX){
     fetch_cpu_info(&fi);
+  }else if(kern == NCNEO_WINDOWS){
+    fetch_windows_cpuinfo(&fi);
   }else{
     fetch_bsd_cpuinfo(&fi);
   }

@@ -832,8 +832,10 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     logpanic("failed opening Windows ConPTY\n");
     return -1;
   }
-  if(cursor_y && cursor_x){
-    locate_cursor(ti, cursor_y, cursor_x);
+  unsigned ucy, ucx;
+  if(locate_cursor(ti, &ucy, &ucx) == 0){
+    *cursor_y = ucy;
+    *cursor_x = ucx;
   }
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;

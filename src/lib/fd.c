@@ -233,11 +233,11 @@ launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
 }
 #endif
 
+#ifndef __MINGW64__
 // nuke the just-spawned process, and reap it. called before the subprocess
 // reader thread is launched (which otherwise reaps the subprocess).
 static int
 kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
-#ifndef __MINGW64__
   int ret = -1;
   // on linux, we try pidfd_send_signal, if the pidfd has been defined.
   // otherwise, we fall back to regular old kill();
@@ -258,12 +258,6 @@ kill_and_wait_subproc(pid_t pid, int pidfd, int* status){
     return -1;
   }
   return 0;
-#else
-  (void)pid;
-  (void)pidfd;
-  (void)status;
-  return -1;
-#endif
 }
 
 // need a poll on both main fd and pidfd
@@ -335,6 +329,7 @@ ncsubproc_launch(ncplane* n, ncsubproc* ret, const ncsubproc_options* opts, int 
   }
   return ret->nfp;
 }
+#endif
 
 // use of env implies usepath
 static ncsubproc*
