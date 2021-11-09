@@ -122,38 +122,6 @@ ncvisual_origin(const struct ncvisual_options* vopts, unsigned* restrict begy,
   *begx = vopts ? vopts->begx : 0;
 }
 
-
-int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
-                          const struct ncvisual_options* vopts,
-                          int* y, int* x, int* scaley, int* scalex,
-                          ncblitter_e* blitter){
-  ncvgeom geom;
-  const struct blitset* bset;
-  unsigned disppxy, disppxx, outy, outx;
-  int placey, placex;
-  if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset,
-                         &disppxy, &disppxx, &outy, &outx,
-                         &placey, &placex)){
-    return -1;
-  }
-  if(y){
-    *y = geom.pixy;
-  }
-  if(x){
-    *x = geom.pixx;
-  }
-  if(scaley){
-    *scaley = geom.scaley;
-  }
-  if(scalex){
-    *scalex = geom.scalex;
-  }
-  if(blitter){
-    *blitter = bset->geom;
-  }
-  return 0;
-}
-
 // create a plane in which to blit the sprixel. |disppixx| and |disppixy| are
 // scaled pixel geometry on output, and unused on input. |placey| and |placex|
 // are used to position the new plane, and reset to 0 on output. |outy| and

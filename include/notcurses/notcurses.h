@@ -2055,13 +2055,8 @@ ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
   return ret;
 }
 
-static inline int
-ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
-  char* chopped = strndup(str, s);
-  int ret = ncplane_putstr_aligned(n, y, align, chopped);
-  free(chopped);
-  return ret;
-}
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str)
+  __attribute__ ((nonnull (1, 5)));
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition

@@ -309,7 +309,14 @@ get_kernel(fetched_info* fi){
   }
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
 #else
-  (void)fi;
+  OSVERSIONINFO osvi;
+  ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+  GetVersionEx(&osvi);
+  char ver[20]; // sure why not
+  snprintf(ver, sizeof(ver), "%d.%d", osvi.dwMajorVersion, osvi.dwMinorVersion);
+  fi->kernver = strdup(ver);
+  fi->kernel = strdup("Windows NT");
   return NCNEO_WINDOWS;
 #endif
   return NCNEO_UNKNOWN;

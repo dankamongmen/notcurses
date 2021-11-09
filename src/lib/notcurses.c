@@ -1859,6 +1859,13 @@ int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap){
   return ret;
 }
 
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
+  char* chopped = strndup(str, s);
+  int ret = ncplane_putstr_aligned(n, y, align, chopped);
+  free(chopped);
+  return ret;
+}
+
 int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
                          uint64_t c1, uint64_t c2){
   if(len <= 0){
