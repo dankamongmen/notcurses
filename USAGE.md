@@ -223,8 +223,10 @@ int notcurses_render(struct notcurses* nc);
 // must be freed by the caller.
 int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
 
-// Write the last rendered frame, in its entirety, to 'fp'. If
-// notcurses_render() has not yet been called, nothing will be written.
+// Write the last rendered frame, in its entirety, to 'fp'. If a frame has
+// not yet been rendered, nothing will be written.
+int ncpile_render_to_file(struct ncplane* p, FILE* fp);
+
 int ncpile_render_to_file(struct ncplane* p, FILE* fp);
 
 // Retrieve the contents of the specified cell as last rendered. The EGC is
@@ -1045,7 +1047,7 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Move this plane relative to its current location. Negative values move up
 // and left, respectively. Pass 0 to hold an axis constant.
 __attribute__ ((nonnull (1))) static inline int
-ncplane_moverel(struct ncplane* n, int y, int x){
+ncplane_move_rel(struct ncplane* n, int y, int x){
   int oy, ox;
   ncplane_yx(n, &oy, &ox);
   return ncplane_move_yx(n, oy + y, ox + x);
@@ -1084,10 +1086,10 @@ ncplane_dim_x(const struct ncplane* n){
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
 // 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
 // be 0. Any of the geometry arguments may be NULL.
-void ncplane_pixelgeom(struct ncplane* n,
-                       unsigned* restrict pxy, unsigned* restrict pxx,
-                       unsigned* restrict celldimy, unsigned* restrict celldimx,
-                       unsigned* restrict maxbmapy, unsigned* restrict maxbmapx);
+void ncplane_pixel_geom(struct ncplane* n,
+                        unsigned* restrict pxy, unsigned* restrict pxx,
+                        unsigned* restrict celldimy, unsigned* restrict celldimx,
+                        unsigned* restrict maxbmapy, unsigned* restrict maxbmapx);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
@@ -1144,8 +1146,17 @@ int ncplane_base(struct ncplane* ncp, nccell* c);
 
 ```c
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
-void ncplane_move_top(struct ncplane* n);
-void ncplane_move_bottom(struct ncplane* n);
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_top(struct ncplane* n){
+  ncplane_move_below(n, NULL);
+}
+
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_bottom(struct ncplane* n){
+  ncplane_move_above(n, NULL);
+}
 
 // Splice ncplane 'n' and its bound planes out of the z-buffer, and reinsert
 // them at the top or bottom. Relative order will be maintained between the
@@ -3602,12 +3613,12 @@ typedef struct ncstats {
   uint64_t writeouts;        // successful ncpile_rasterize() runs
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t failed_writeouts; // aborted writes
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t raster_bytes;     // bytes emitted to ttyfp
+  int64_t raster_max_bytes;  // max bytes emitted for a frame
+  int64_t raster_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent rendering
-  int64_t render_max_ns;     // max ns spent in render+raster for a frame
-  int64_t render_min_ns;     // min ns spent in render+raster for a frame
+  int64_t render_max_ns;     // max ns spent in render for a frame
+  int64_t render_min_ns;     // min ns spent in render for a frame
   uint64_t raster_ns;        // nanoseconds spent rasterizing
   int64_t raster_max_ns;     // max ns spent in raster for a frame
   int64_t raster_min_ns;     // min ns spent in raster for a frame
@@ -3626,8 +3637,9 @@ typedef struct ncstats {
   uint64_t sprixelemissions; // sprixel draw count
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
-  uint64_t appsync_updates;  // application-synchronized updates
+  uint64_t appsync_updates;  // how many application-synchronized updates?
   uint64_t input_errors;     // errors processing control sequences/utf8
+  uint64_t input_events;     // characters returned to userspace
   uint64_t hpa_gratuitous;   // unnecessary hpas issued
 
   // current state -- these can decrease

@@ -71,42 +71,10 @@ API int ncdirect_set_fg_rgb(struct ncdirect* nc, unsigned rgb)
 API int ncdirect_set_bg_rgb(struct ncdirect* nc, unsigned rgb)
   __attribute__ ((nonnull (1)));
 
-static inline int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb){
-  return ncdirect_set_fg_rgb(nc, rgb);
-}
-
-static inline int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb){
-  return ncdirect_set_bg_rgb(nc, rgb);
-}
-
 API int ncdirect_set_fg_palindex(struct ncdirect* nc, int pidx)
   __attribute__ ((nonnull (1)));
 API int ncdirect_set_bg_palindex(struct ncdirect* nc, int pidx)
   __attribute__ ((nonnull (1)));
-
-static inline int ncdirect_fg_palindex(struct ncdirect* nc, int pidx)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_fg_palindex(struct ncdirect* nc, int pidx){
-  return ncdirect_set_fg_palindex(nc, pidx);
-}
-
-static inline int ncdirect_bg_palindex(struct ncdirect* nc, int pidx)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_bg_palindex(struct ncdirect* nc, int pidx){
-  return ncdirect_set_bg_palindex(nc, pidx);
-}
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
@@ -154,44 +122,10 @@ ncdirect_set_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_set_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
-static inline int
-ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
-  return ncdirect_set_fg_rgb8(nc, r, g, b);
-}
-
-static inline int
-ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
-  return ncdirect_set_bg_rgb8(nc, r, g, b);
-}
-
 API int ncdirect_set_fg_default(struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
 API int ncdirect_set_bg_default(struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
-
-static inline int ncdirect_fg_default(struct ncdirect* nc)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_fg_default(struct ncdirect* nc){
-  return ncdirect_set_fg_default(nc);
-}
-
-static inline int ncdirect_bg_default(struct ncdirect* nc)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_bg_default(struct ncdirect* nc){
-  return ncdirect_set_bg_default(nc);
-}
 
 // Get the current number of columns/rows.
 API unsigned ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
@@ -201,7 +135,7 @@ API unsigned ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
-API unsigned ncdirect_supported_styles(const struct ncdirect* nc)
+API uint16_t ncdirect_supported_styles(const struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
 
 // ncplane_styles_*() analogues
@@ -211,16 +145,8 @@ API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
 API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
-API unsigned ncdirect_styles(const struct ncdirect* n)
+API uint16_t ncdirect_styles(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
-
-// Deprecated forms of above.
-API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits)
-  __attribute__ ((deprecated));
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.
 API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x)

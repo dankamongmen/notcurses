@@ -71,7 +71,7 @@ typedef struct ncplane_options {
 
 **int ncplane_move_yx(struct ncplane* ***n***, int ***y***, int ***x***);**
 
-**int ncplane_moverel(struct ncplane* ***n***, int ***y***, int ***x***);**
+**int ncplane_move_rel(struct ncplane* ***n***, int ***y***, int ***x***);**
 
 **void ncplane_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 
@@ -95,9 +95,9 @@ typedef struct ncplane_options {
 
 **int ncplane_base(struct ncplane* ***ncp***, nccell* ***c***);**
 
-**void ncplane_move_top(struct ncplane* ***n***);**
+**static inline void ncplane_move_top(struct ncplane* ***n***);**
 
-**void ncplane_move_bottom(struct ncplane* ***n***);**
+**static inline void ncplane_move_bottom(struct ncplane* ***n***);**
 
 **void ncplane_move_family_top(struct ncplane* ***n***);**
 
@@ -225,7 +225,7 @@ typedef struct ncplane_options {
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
-**void ncplane_pixelgeom(const struct notcurses* ***n***, unsigned* restrict ***pxy***, unsigned* restrict ***pxx***, unsigned* restrict ***celldimy***, unsigned* restrict ***celldimx***, unsigned* restrict ***maxbmapy***, unsigned* restrict ***maxbmapx***);**
+**void ncplane_pixel_geom(const struct notcurses* ***n***, unsigned* restrict ***pxy***, unsigned* restrict ***pxx***, unsigned* restrict ***celldimy***, unsigned* restrict ***celldimx***, unsigned* restrict ***maxbmapy***, unsigned* restrict ***maxbmapx***);**
 
 **int ncplane_set_name(struct ncplane* ***n***, const char* ***name***);**
 
@@ -433,7 +433,7 @@ they intersect the plane. This can be disabled with the
 
 ## Bitmaps
 
-**ncplane_pixelgeom** retrieves pixel geometry details. **pxy** and **pxx**
+**ncplane_pixel_geom** retrieves pixel geometry details. **pxy** and **pxx**
 return the size of the plane in pixels. **celldimy** and **celldimx** return
 the size of a cell in pixels (these ought be the same across planes).
 **maxbmapy** and **maxbmapx** describe the largest bitmap which can be
@@ -504,9 +504,6 @@ Functions returning **int** return 0 on success, and non-zero on error.
 All other functions cannot fail (and return **void**).
 
 # NOTES
-
-**ncplane_new** is defined as a deprecated wrapper around **ncplane_create**.
-It should not be used in new code.
 
 # BUGS
 

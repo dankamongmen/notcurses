@@ -66,7 +66,7 @@ namespace ncpp
 
 		static const char* ncmetric (uintmax_t val, uintmax_t decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
 		{
-			return ::ncmetric (val, decimal, buf, omitdec, mult, uprefix);
+			return ::ncnmetric (val, INT_MAX, decimal, buf, omitdec, mult, uprefix);
 		}
 
 		static const char* ncqprefix (uintmax_t val, uintmax_t decimal, char *buf, int omitdec) noexcept

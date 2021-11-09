@@ -255,7 +255,7 @@ int input_demo(ncpp::NotCurses* nc) {
   auto n = nc->get_stdplane(&dimy, &dimx);
   // FIXME no ncpp wrapper for Plane::pixelgeom?
   unsigned celldimx, maxbmapx;
-  ncplane_pixelgeom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
+  ncplane_pixel_geom(*n, nullptr, nullptr, nullptr, &celldimx, nullptr, &maxbmapx);
   struct ncplane_options nopts = {
     .y = static_cast<int>(dimy) - PLOTHEIGHT - 1,
     .x = NCALIGN_CENTER,

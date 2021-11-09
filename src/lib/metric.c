@@ -116,8 +116,3 @@ const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
   }
   return buf;
 }
-
-const char *ncmetric(uintmax_t val, uintmax_t decimal, char *buf, int omitdec,
-                     uintmax_t mult, int uprefix){
-  return ncnmetric(val, INT_MAX, decimal, buf, omitdec, mult, uprefix);
-}

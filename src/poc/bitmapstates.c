@@ -12,8 +12,8 @@ emit(struct ncplane* n, const char* str){
 static int
 wipebitmap(struct notcurses* nc){
   unsigned cellpxy, cellpxx;
-  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL,
-                    &cellpxy, &cellpxx, NULL, NULL);
+  ncplane_pixel_geom(notcurses_stdplane(nc), NULL, NULL,
+                     &cellpxy, &cellpxx, NULL, NULL);
   int pixy = cellpxy * 6;
   int pixx = cellpxx * 6;
   uint32_t* pixels = malloc(sizeof(*pixels) * pixx * pixy);

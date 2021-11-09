@@ -221,7 +221,7 @@ get_escape(const tinfo* tdesc, escape_e e){
   return NULL;
 }
 
-static inline int
+static inline uint16_t
 term_supported_styles(const tinfo* ti){
   return ti->supported_styles;
 }

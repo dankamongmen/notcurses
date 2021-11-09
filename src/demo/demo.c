@@ -377,7 +377,7 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
       continue;
     }
     ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%"PRIu64"\",\"frames\":\"%"PRIu64"\",\"ns\":\"%"PRIu64"\"}%s",
-                    demos[results[i].selector - 'a'].name, results[i].stats.render_bytes,
+                    demos[results[i].selector - 'a'].name, results[i].stats.raster_bytes,
                     results[i].stats.renders, results[i].timens, i < strlen(spec) - 1 ? "," : "") < 0);
   }
   ret |= (fprintf(f, "}}}\n") < 0);
@@ -411,7 +411,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
     ncqprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
-    ncbprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
+    ncbprefix(results[i].stats.raster_bytes, 1, totalbuf, 0);
     uint64_t divisor = results[i].stats.render_ns + results[i].stats.writeout_ns + results[i].stats.raster_ns;
     if(divisor){
       ncqprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 / divisor,
@@ -455,7 +455,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
       failed = true;
     }
     totalframes += results[i].stats.renders;
-    totalbytes += results[i].stats.render_bytes;
+    totalbytes += results[i].stats.raster_bytes;
     totalrenderns += results[i].stats.render_ns;
     totalwriteoutns += results[i].stats.writeout_ns;
   }

@@ -10,7 +10,7 @@ char* impericize_ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
   REQUIRE(1 ==  strlen(decisep));
-  REQUIRE(ncmetric(val, decimal, buf, omitdec, mult, uprefix));
+  REQUIRE(ncnmetric(val, INT_MAX, decimal, buf, omitdec, mult, uprefix));
   char* commie = buf;
   while( (commie = strstr(commie, decisep)) ){
     *commie = '.'; // https://dank.qemfd.net/images/16whcc.jpg
@@ -89,20 +89,20 @@ TEST_CASE("Metric") {
   SUBCASE("Maxints1024") {
     char buf[NCPREFIXSTRLEN + 1], gold[NCPREFIXSTRLEN + 1];
     // FIXME these will change based on the size of intmax_t and uintmax_t
-    REQUIRE(ncmetric(((double)(INTMAX_MAX - 1ull)), 1, buf, 0, 1024, 'i'));
+    REQUIRE(ncbprefix(((double)(INTMAX_MAX - 1ull)), 1, buf, 0));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
-    REQUIRE(ncmetric(((double)(INTMAX_MAX - (1ull << 53))), 1, buf, 0, 1024, 'i'));
+    REQUIRE(ncbprefix(((double)(INTMAX_MAX - (1ull << 53))), 1, buf, 0));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
-    REQUIRE(ncmetric(INTMAX_MAX + 1ull, 1, buf, 0, 1024, 'i'));
+    REQUIRE(ncbprefix(INTMAX_MAX + 1ull, 1, buf, 0));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     impericize_ncmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
     CHECK(!strcmp("16.00Ei", buf));
     impericize_ncmetric(UINTMAX_MAX, 1, buf, 0, 1024, 'i');
     CHECK(!strcmp("16.00Ei", buf));
-    ncmetric(UINTMAX_MAX - (1ull << 53), 1, buf, 0, 1024, 'i');
+    ncbprefix(UINTMAX_MAX - (1ull << 53), 1, buf, 0);
     sprintf(gold, "%.2fEi", ((double)UINTMAX_MAX - (1ull << 53)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
   }
@@ -116,7 +116,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 0, 1000, '\0');
+      ncqprefix(val, 1, buf, 0);
       const int sidx = i / 3;
       snprintf(gold, sizeof(gold), "%ju%s00%c", goldval, decisep, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -139,7 +139,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 1, 1000, '\0');
+      ncqprefix(val, 1, buf, 1);
       const int sidx = i / 3;
       snprintf(gold, sizeof(gold), "%ju%c", goldval, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -162,7 +162,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 0, 1024, 'i');
+      ncbprefix(val, 1, buf, 0);
       const int sidx = i / 10;
       snprintf(gold, sizeof(gold), "%ju%s00%ci", goldval, decisep, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -185,7 +185,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 1, 1024, 'i');
+      ncbprefix(val, 1, buf, 1);
       const int sidx = i / 10;
       snprintf(gold, sizeof(gold), "%ju%ci", goldval, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -208,7 +208,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 0, 1000, '\0');
+      ncqprefix(val, 1, buf, 0);
       const int sidx = i / 10;
       snprintf(gold, sizeof(gold), "%.2f%c", ((double)val) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -231,7 +231,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val, 1, buf, 0, 1024, 'i');
+      ncbprefix(val, 1, buf, 0);
       const int sidx = i ? (i - 1) / 3 : 0;
       snprintf(gold, sizeof(gold), "%.2f%ci", ((double)val) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -254,7 +254,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val - 1, 1, buf, 0, 1000, '\0');
+      ncqprefix(val - 1, 1, buf, 0);
       const int sidx = i ? (i - 1) / 3 : 0;
       snprintf(gold, sizeof(gold), "%.2f%c", ((double)(val - 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -277,7 +277,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val + 1, 1, buf, 0, 1000, '\0');
+      ncqprefix(val + 1, 1, buf, 0);
       const int sidx = i / 3;
       snprintf(gold, sizeof(gold), "%.2f%c", ((double)(val + 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));
@@ -300,7 +300,7 @@ TEST_CASE("Metric") {
     uintmax_t val = 1;
     size_t i = 0;
     do{
-      ncmetric(val - 1, 1, buf, 0, 1024, 'i');
+      ncbprefix(val - 1, 1, buf, 0);
       const int sidx = i ? (i - 1) / 3 : 0;
       snprintf(gold, sizeof(gold), "%.2f%ci", ((double)(val - 1)) / vfloor, suffixes[sidx]);
       CHECK(!strcmp(gold, buf));

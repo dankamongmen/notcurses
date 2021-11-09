@@ -22,16 +22,16 @@ void update_write_stats(const struct timespec* time1, const struct timespec* tim
 }
 
 // negative 'bytes' are ignored as failures. call only while holding statlock.
-// we don't increment failed_renders here because 'bytes' < 0 actually indicates
-// a rasterization failure -- we can't fail in rendering anymore.
-void update_render_bytes(ncstats* stats, int bytes){
+// we don't increment failed_rasters here because 'bytes' < 0 actually indicates
+// a rasterization failure -- we can't fail in rastering anymore.
+void update_raster_bytes(ncstats* stats, int bytes){
   if(bytes >= 0){
-    stats->render_bytes += bytes;
-    if(bytes > stats->render_max_bytes){
-      stats->render_max_bytes = bytes;
+    stats->raster_bytes += bytes;
+    if(bytes > stats->raster_max_bytes){
+      stats->raster_max_bytes = bytes;
     }
-    if(bytes < stats->render_min_bytes){
-      stats->render_min_bytes = bytes;
+    if(bytes < stats->raster_min_bytes){
+      stats->raster_min_bytes = bytes;
     }
   }
 }
@@ -76,7 +76,7 @@ void reset_stats(ncstats* stats){
   unsigned planes = stats->planes;
   memset(stats, 0, sizeof(*stats));
   stats->render_min_ns = 1ull << 62u;
-  stats->render_min_bytes = 1ull << 62u;
+  stats->raster_min_bytes = 1ull << 62u;
   stats->raster_min_ns = 1ull << 62u;
   stats->writeout_min_ns = 1ull << 62u;
   stats->fbbytes = fbbytes;
@@ -108,8 +108,8 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
     if(nc->stats.s.render_min_ns < stash->render_min_ns){
       stash->render_min_ns = nc->stats.s.render_min_ns;
     }
-    if(nc->stats.s.render_min_bytes < stash->render_min_bytes){
-      stash->render_min_bytes = nc->stats.s.render_min_bytes;
+    if(nc->stats.s.raster_min_bytes < stash->raster_min_bytes){
+      stash->raster_min_bytes = nc->stats.s.raster_min_bytes;
     }
     if(nc->stats.s.raster_min_ns < stash->raster_min_ns){
       stash->raster_min_ns = nc->stats.s.raster_min_ns;
@@ -120,8 +120,8 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
     if(nc->stats.s.render_max_ns > stash->render_max_ns){
       stash->render_max_ns = nc->stats.s.render_max_ns;
     }
-    if(nc->stats.s.render_max_bytes > stash->render_max_bytes){
-      stash->render_max_bytes = nc->stats.s.render_max_bytes;
+    if(nc->stats.s.raster_max_bytes > stash->raster_max_bytes){
+      stash->raster_max_bytes = nc->stats.s.raster_max_bytes;
     }
     if(nc->stats.s.raster_max_ns > stash->raster_max_ns){
       stash->raster_max_ns = nc->stats.s.raster_max_ns;
@@ -132,7 +132,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
     stash->writeout_ns += nc->stats.s.writeout_ns;
     stash->raster_ns += nc->stats.s.raster_ns;
     stash->render_ns += nc->stats.s.render_ns;
-    stash->render_bytes += nc->stats.s.render_bytes;
+    stash->raster_bytes += nc->stats.s.raster_bytes;
     stash->failed_renders += nc->stats.s.failed_renders;
     stash->failed_writeouts += nc->stats.s.failed_writeouts;
     stash->renders += nc->stats.s.renders;
@@ -199,11 +199,11 @@ void summarize_stats(notcurses* nc){
             totalbuf, minbuf, avgbuf, maxbuf);
   }
   if(stats->renders || stats->input_events){
-    ncbprefix(stats->render_bytes, 1, totalbuf, 1),
-    ncbprefix(stats->render_bytes ? stats->render_min_bytes : 0,
-            1, minbuf, 1),
-    ncbprefix(stats->renders ? stats->render_bytes / stats->renders : 0, 1, avgbuf, 1);
-    ncbprefix(stats->render_max_bytes, 1, maxbuf, 1),
+    ncbprefix(stats->raster_bytes, 1, totalbuf, 1),
+    ncbprefix(stats->raster_bytes ? stats->raster_min_bytes : 0,
+              1, minbuf, 1),
+    ncbprefix(stats->renders ? stats->raster_bytes / stats->renders : 0, 1, avgbuf, 1);
+    ncbprefix(stats->raster_max_bytes, 1, maxbuf, 1),
     fprintf(stderr, "%s%sB (%sB min, %sB avg, %sB max) %"PRIu64" input%s Ghpa: %"PRIu64 NL,
             clreol, totalbuf, minbuf, avgbuf, maxbuf,
             stats->input_events,
@@ -240,7 +240,7 @@ void summarize_stats(notcurses* nc){
           (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
           (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions),
           totalbuf,
-          stats->render_bytes ? (stats->sprixelbytes * 100.0) / stats->render_bytes : 0,
+          stats->raster_bytes ? (stats->sprixelbytes * 100.0) / stats->raster_bytes : 0,
           stats->appsync_updates,
           stats->writeouts ? stats->appsync_updates * 100.0 / stats->writeouts : 0);
 }

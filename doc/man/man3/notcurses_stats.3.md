@@ -17,9 +17,9 @@ typedef struct ncstats {
   uint64_t writeouts;        // successful ncpile_rasterize() runs
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t failed_writeouts; // aborted writes
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t raster_bytes;     // bytes emitted to ttyfp
+  int64_t raster_max_bytes;  // max bytes emitted for a frame
+  int64_t raster_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent rendering
   int64_t render_max_ns;     // max ns spent for a frame
   int64_t render_min_ns;     // min ns spent for a frame
@@ -76,7 +76,7 @@ renders are not expected to fail except under exceptional circumstances.
 should **notcurses_render(3)** fail while writing out a frame to the terminal,
 it counts as a failed render.
 
-**render_max_bytes** and **render_min_bytes** track the maximum and minimum
+**raster_max_bytes** and **raster_min_bytes** track the maximum and minimum
 number of bytes used rasterizing a frame. A given state of Notcurses does not
 correspond to a unique number of bytes; the size is also dependent on the
 existing terminal state. As a first approximation, the time a terminal takes to
@@ -135,7 +135,7 @@ Linux framebuffer bitmaps are not written through the terminal device, but
 instead directly into the memory-mapped framebuffer (see **mmap(2)**). Bytes
 used for framebuffer graphics are thus independent of bytes written to the
 terminal. This explains why **sprixelbytes** may be surprising given the
-value of **render_bytes**.
+value of **raster_bytes**.
 
 # RETURN VALUES
 

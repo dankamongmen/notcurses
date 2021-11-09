@@ -105,14 +105,14 @@ int main(void){
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
   unsigned cellpixy, cellpixx;
-  ncplane_pixelgeom(stdn, NULL, NULL, &cellpixy, &cellpixx, NULL, NULL);
+  ncplane_pixel_geom(stdn, NULL, NULL, &cellpixy, &cellpixx, NULL, NULL);
   if(interp(nc, cellpixy, cellpixx)){
     goto err;
   }
   ncinput ni;
   do{
     notcurses_getc_blocking(nc, &ni);
-  }while(ni.evtype == NCTYPE_RELEASE);
+  }while(ni.id != (uint32_t)-1 && ni.evtype != NCTYPE_RELEASE);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 

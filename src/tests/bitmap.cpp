@@ -53,7 +53,7 @@ TEST_CASE("Bitmaps") {
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     unsigned maxy, maxx;
-    ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
+    ncplane_pixel_geom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nn == n);
@@ -306,8 +306,8 @@ TEST_CASE("Bitmaps") {
     vopts.x = 5;
     vopts.scaling = NCSCALE_NONE;
     auto ninf = ncvisual_blit(nc_, ncv, &vopts);
-    ncplane_set_name(ninf, "ninf");
     REQUIRE(nullptr != ninf);
+    ncplane_set_name(ninf, "ninf");
     // y of scaled might not be exactly equal to y of inflated since one
     // is based around what can be fit into a specific space, whereas the
     // other is based on a multiple of the original image size, which might

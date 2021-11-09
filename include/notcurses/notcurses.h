@@ -95,17 +95,19 @@ typedef enum {
   NCSCALE_SCALE_HIRES,
 } ncscale_e;
 
-// Returns the number of columns occupied by a multibyte (UTF-8) string, or
-// -1 if a non-printable/illegal character is encountered.
-// FIXME becomes a static inline in ABI3.
-API int ncstrwidth(const char* mbs);
-
 // Returns the number of columns occupied by a the valid prefix of a multibyte
 // (UTF-8) string. If an invalid character is encountered, -1 will be returned,
 // and the number of valid bytes and columns will be written into *|validbytes|
 // and *|validwidth| (assuming them non-NULL). If the entire string is valid,
 // *|validbytes| and *|validwidth| reflect the entire string.
 API int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth);
+
+// Returns the number of columns occupied by a multibyte (UTF-8) string, or
+// -1 if a non-printable/illegal character is encountered.
+static inline int
+ncstrwidth(const char* mbs){
+  return ncstrwidth_valid(mbs, NULL, NULL);
+}
 
 // Returns a heap-allocated copy of the user name under which we are running.
 API ALLOC char* notcurses_accountname(void);
@@ -716,7 +718,7 @@ nccell_set_styles(nccell* c, unsigned stylebits){
 }
 
 // Extract the style bits from the nccell.
-static inline unsigned
+static inline uint16_t
 nccell_styles(const nccell* c){
   return c->stylemask;
 }
@@ -923,7 +925,6 @@ typedef struct notcurses_options {
   // the environment variable TERM is used. Failure to open the terminal
   // definition will result in failure to initialize notcurses.
   const char* termtype;
-  FILE* renderfp; // deprecated, must be NULL, will be removed for ABI3 FIXME
   // Progressively higher log levels result in more logging to stderr. By
   // default, nothing is printed to stderr once fullscreen service begins.
   ncloglevel_e loglevel;
@@ -981,6 +982,12 @@ API int notcurses_enter_alternate_screen(struct notcurses* nc)
 API int notcurses_leave_alternate_screen(struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
+// Get a reference to the standard plane (one matching our current idea of the
+// terminal size) for this terminal. The standard plane always exists, and its
+// origin is always at the uppermost, leftmost cell of the terminal.
+API struct ncplane* notcurses_stdplane(struct notcurses* nc);
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n)
   __attribute__ ((nonnull (1)));
@@ -1001,8 +1008,14 @@ API int ncpile_rasterize(struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
 // Renders and rasterizes the standard pile in one shot. Blocking call.
-API int notcurses_render(struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+static inline int
+notcurses_render(struct notcurses* nc){
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  if(ncpile_render(stdn)){
+    return -1;
+  }
+  return ncpile_rasterize(stdn);
+}
 
 // Perform the rendering and rasterization portion of ncpile_render() and
 // ncpile_rasterize(), but do not write the resulting buffer out to the
@@ -1011,8 +1024,8 @@ API int notcurses_render(struct notcurses* nc)
 API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen)
   __attribute__ ((nonnull (1, 2, 3)));
 
-// Write the last rendered frame, in its entirety, to 'fp'. If
-// notcurses_render() has not yet been called, nothing will be written.
+// Write the last rendered frame, in its entirety, to 'fp'. If a frame has
+// not yet been rendered, nothing will be written.
 API int ncpile_render_to_file(struct ncplane* p, FILE* fp)
   __attribute__ ((nonnull (1, 2)));
 
@@ -1223,7 +1236,7 @@ ncplane_dim_x(const struct ncplane* n){
 // 'maxbmapx'). If bitmaps are not supported, or if there is no artificial
 // limit on bitmap size, 'maxbmapy' and 'maxbmapx' will be 0. Any of the
 // geometry arguments may be NULL.
-API void ncplane_pixelgeom(const struct ncplane* n,
+API void ncplane_pixel_geom(const struct ncplane* n,
                            unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
                            unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
                            unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx)
@@ -1420,7 +1433,7 @@ typedef struct nccapabilities {
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
-API unsigned notcurses_supported_styles(const struct notcurses* nc)
+API uint16_t notcurses_supported_styles(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
@@ -1529,13 +1542,15 @@ typedef struct ncstats {
   uint64_t writeouts;        // successful ncpile_rasterize() runs
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t failed_writeouts; // aborted writes
-  // FIXME these next three all ought be "writeout" or "raster"
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
+  uint64_t raster_bytes;     // bytes emitted to ttyfp
+  int64_t raster_max_bytes;  // max bytes emitted for a frame
+  int64_t raster_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent rendering
   int64_t render_max_ns;     // max ns spent in render for a frame
   int64_t render_min_ns;     // min ns spent in render for a frame
+  uint64_t raster_ns;        // nanoseconds spent rasterizing
+  int64_t raster_max_ns;     // max ns spent in raster for a frame
+  int64_t raster_min_ns;     // min ns spent in raster for a frame
   uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame
@@ -1548,22 +1563,17 @@ typedef struct ncstats {
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
   uint64_t refreshes;        // refresh requests (non-optimized redraw)
+  uint64_t sprixelemissions; // sprixel draw count
+  uint64_t sprixelelisions;  // sprixel elision count
+  uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t appsync_updates;  // how many application-synchronized updates?
+  uint64_t input_errors;     // errors processing control sequences/utf8
+  uint64_t input_events;     // characters returned to userspace
+  uint64_t hpa_gratuitous;   // unnecessary hpas issued
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
   unsigned planes;           // number of planes currently in existence
-
-  // FIXME placed here for ABI compatibility; move up for ABI3
-  uint64_t raster_ns;        // nanoseconds spent rasterizing
-  int64_t raster_max_ns;     // max ns spent in raster for a frame
-  int64_t raster_min_ns;     // min ns spent in raster for a frame
-  uint64_t sprixelemissions; // sprixel draw count
-  uint64_t sprixelelisions;  // sprixel elision count
-  uint64_t sprixelbytes;     // sprixel bytes emitted
-  uint64_t input_errors;     // errors processing control sequences/utf8
-  uint64_t input_events;     // characters returned to userspace
-  uint64_t hpa_gratuitous;   // unnecessary hpas issued
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
@@ -1648,7 +1658,7 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Move this plane relative to its current location. Negative values move up
 // and left, respectively. Pass 0 to hold an axis constant.
 __attribute__ ((nonnull (1))) static inline int
-ncplane_moverel(struct ncplane* n, int y, int x){
+ncplane_move_rel(struct ncplane* n, int y, int x){
   int oy, ox;
   ncplane_yx(n, &oy, &ox);
   return ncplane_move_yx(n, oy + y, ox + x);
@@ -1694,13 +1704,18 @@ API int ncplane_move_below(struct ncplane* RESTRICT n,
                            struct ncplane* RESTRICT below)
   __attribute__ ((nonnull (1)));
 
-// Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or
-// bottom. FIXME these both become static inline wrappers around
-// ncplane_move_below() and ncplane_move_above() in ABI3.
-API void ncplane_move_top(struct ncplane* n)
-  __attribute__ ((nonnull (1)));
-API void ncplane_move_bottom(struct ncplane* n)
-  __attribute__ ((nonnull (1)));
+// Splice ncplane 'n' out of the z-buffer; reinsert it at the top or bottom.
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_top(struct ncplane* n){
+  ncplane_move_below(n, NULL);
+}
+
+__attribute__ ((nonnull (1)))
+static inline void
+ncplane_move_bottom(struct ncplane* n){
+  ncplane_move_above(n, NULL);
+}
 
 // Splice ncplane 'n' and its bound planes out of the z-buffer, and reinsert
 // them above or below 'targ'. Relative order will be maintained between the
@@ -1980,19 +1995,68 @@ API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* s
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
-API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
+static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
+  int ret = 0;
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+//fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    gclusters += wcs;
+    ret += cols;
+  }
+  return ret;
+}
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
   return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
 
-API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                               const char* s);
+static inline int
+ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s){
+  int validbytes, validwidth;
+  // we'll want to do the partial write if there's an error somewhere within
+  ncstrwidth_valid(s, &validbytes, &validwidth);
+  int xpos = ncplane_halign(n, align, validwidth);
+  if(xpos < 0){
+    return -1;
+  }
+  return ncplane_putstr_yx(n, y, xpos, s);
+}
 
 // Replace a string's worth of glyphs at the current cursor location, but
 // retain the styling. The current styling of the plane will not be changed.
-API int ncplane_putstr_stained(struct ncplane* n, const char* s);
+static inline int
+ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
+  int ret = 0;
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_stained(n, gclusters, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    gclusters += wcs;
+    ret += cols;
+  }
+  return ret;
+}
+
+API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str)
+  __attribute__ ((nonnull (1, 5)));
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -2000,15 +2064,34 @@ API int ncplane_putstr_stained(struct ncplane* n, const char* s);
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error. No more than 's' bytes will be written.
-API int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
+static inline int
+ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
+  int ret = 0;
+  int offset = 0;
+//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+  while((size_t)offset < s && gclusters[offset]){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    offset += wcs;
+    ret += cols;
+  }
+  return ret;
+}
 
 static inline int
 ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
   return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
 }
-
-API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                                size_t s, const char* gclustarr);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 // FIXME do this as a loop over ncplane_putegc_yx and save the big allocation+copy
@@ -2687,14 +2770,28 @@ nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int nccells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                            nccell* ul, nccell* ur, nccell* ll,
-                            nccell* lr, nccell* hl, nccell* vl);
-
 static inline int
 nccells_ascii_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXASCII);
+}
+
+static inline int
+nccells_double_box(struct ncplane* n, uint16_t attr, uint64_t channels,
+                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+static inline int
+nccells_rounded_box(struct ncplane* n, uint16_t attr, uint64_t channels,
+                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
 static inline int
@@ -2763,10 +2860,6 @@ ncplane_rounded_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
   return ncplane_rounded_box(n, styles, channels, y + ylen - 1,
                              x + xlen - 1, ctlword);
 }
-
-API int nccells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                           nccell* ul, nccell* ur, nccell* ll,
-                           nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
@@ -2999,21 +3092,6 @@ API int ncvisual_at_yx(const struct ncvisual* n, unsigned y, unsigned x,
 API int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x,
                         uint32_t pixel)
   __attribute__ ((nonnull (1)));
-
-// Render the decoded frame according to the provided options (which may be
-// NULL). The plane used for rendering depends on vopts->n and vopts->flags. If
-// NCVISUAL_OPTION_CHILDPLANE is set, vopts->n must not be NULL, and the plane
-// will always be created as a child of vopts->n. If this flag is not set, and
-// vopts->n is NULL, a new plane is created as a child of the standard plane.
-// If the flag is not set and vopts->n is not NULL, we render to vopts->n. A
-// subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
-// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
-// specify any region beyond the boundaries of the frame. Returns the (possibly
-// newly-created) plane to which we drew. Pixels may not be blitted to the
-// standard plane.
-API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
-                                    const struct ncvisual_options* vopts)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (2)));
 
 // Render the decoded frame according to the provided options (which may be
 // NULL). The plane used for rendering depends on vopts->n and vopts->flags.
@@ -3343,11 +3421,14 @@ API void* nctablet_userptr(struct nctablet* t);
 API struct ncplane* nctablet_plane(struct nctablet* t);
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
-// adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
-// buffer to generate up to |[IB]PREFIXCOLUMNS| columns' worth of EGCs. The
+// adding the necessary SI suffix. Usually, pass a |NC[IB]?PREFIXSTRLEN+1|-sized
+// buffer to generate up to |NC[IB]?PREFIXCOLUMNS| columns' worth of EGCs. The
 // characteristic can occupy up through |mult-1| characters (3 for 1000, 4 for
 // 1024). The mantissa can occupy either zero or two characters.
-
+//
+// snprintf(3) is used internally, with 's' as its size bound. If the output
+// requires more size than is available, NULL will be returned.
+//
 // Floating-point is never used, because an IEEE758 double can only losslessly
 // represent integers through 2^53-1.
 //
@@ -3355,6 +3436,7 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 // an 89-bit uintmax_t. Beyond Z(etta) and Y(otta) lie lands unspecified by SI.
 // 2^-63 is 0.000000000000000000108, 1.08a(tto).
 // val: value to print
+// s: maximum output size; see snprintf(3)
 // decimal: scaling. '1' if none has taken place.
 // buf: buffer in which string will be generated
 // omitdec: inhibit printing of all-0 decimal portions
@@ -3363,11 +3445,6 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 //   only printed if suffix is actually printed (input >= mult).
 //
 // You are encouraged to consult notcurses_metric(3).
-API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
-                         int omitdec, uintmax_t mult, int uprefix)
-  __attribute__ ((nonnull (3)));
-
-// uses snprintf() internally with the argument 's' as its bound
 API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
                           char* buf, int omitdec, uintmax_t mult,
                           int uprefix)
@@ -3376,7 +3453,7 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. NCPREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
-// ncmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
+// ncnmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
 // mult == 1024 (digital information) ncmetric(). NCBPREFIXSTRLEN is the maximum
 // number of columns used by a mult == 1024 call making use of the 'i' suffix.
 // This is the true number of columns; to set up a printf()-style maximum
@@ -3397,19 +3474,19 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
 static inline const char*
 ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
+  return ncnmetric(val, NCPREFIXSTRLEN + 1, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
 static inline const char*
 nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
+  return ncnmetric(val, NCIPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
 static inline const char*
 ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
+  return ncnmetric(val, NCBPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, 'i');
 }
 
 // Enable or disable the terminal's cursor, if supported, placing it at
@@ -4203,122 +4280,6 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 // planes, from all piles. No line has more than 80 columns' worth of output.
 API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
-
-// DEPRECATED MATERIAL, GOING AWAY IN ABI3
-
-__attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
-
-__attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
-
-// This function will be removed in ABI3 in favor of ncplane_create().
-// It persists in ABI2 only for backwards compatibility.
-API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
-  __attribute__ ((deprecated));
-
-API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) API int
-cells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                  nccell* ul, nccell* ur, nccell* ll,
-                  nccell* lr, nccell* hl, nccell* vl);
-
-__attribute__ ((deprecated)) API int
-cells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                 nccell* ul, nccell* ur, nccell* ll,
-                 nccell* lr, nccell* hl, nccell* vl);
-
-// Deprecated form of nctablet_plane().
-API struct ncplane* nctablet_ncplane(struct nctablet* t)
-  __attribute__ ((deprecated));
-
-API ALLOC ncpalette* palette256_new(struct notcurses* nc)
-  __attribute__ ((deprecated));
-
-API int palette256_use(struct notcurses* nc, const ncpalette* p)
-  __attribute__ ((deprecated));
-
-API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
-
-// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
-// if 'scale' is less than 1. The original color is retained.
-// Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
-API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
-  __attribute__ ((nonnull (1)));
-
-API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen)
-  __attribute__ ((deprecated));
-
-API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
-  __attribute__ ((deprecated));
-
-API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
-  __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
-
-__attribute__ ((deprecated)) API int nccell_width(const struct ncplane* n, const nccell* c);
-
-API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API uint32_t notcurses_getc(struct notcurses* nc, const struct timespec* ts,
-                            const void* unused, ncinput* ni)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API uint32_t ncdirect_getc(struct ncdirect* nc, const struct timespec *ts,
-                           const void* unused, ncinput* ni)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-// Get the size and ratio of ncvisual pixels to output cells along the y
-// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
-// The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
-//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
-// Returns non-zero for an invalid 'vopts'. The blitter that will be used
-// is returned in '*blitter'.
-API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                              const struct ncvisual_options* vopts, int* y, int* x,
-                              int* scaley, int* scalex, ncblitter_e* blitter)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API int notcurses_mouse_enable(struct notcurses* n)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-API int notcurses_mouse_disable(struct notcurses* n)
-  __attribute__ ((nonnull (1))) __attribute__ ((deprecated));
-
-API int ncplane_highgradient_sized(struct ncplane* n, uint32_t ul, uint32_t ur,
-                                   uint32_t ll, uint32_t lr, int ylen, int xlen)
-  __attribute__ ((deprecated));
-
-__attribute__ ((deprecated)) static inline const char*
-qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
-}
-
-// Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
-__attribute__ ((deprecated)) static inline const char*
-iprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
-}
-
-// Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
-__attribute__ ((deprecated)) static inline const char*
-bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
-}
-
-#define PREFIXCOLUMNS 7
-#define IPREFIXCOLUMNS 8
-#define BPREFIXCOLUMNS 9
-#define PREFIXSTRLEN (PREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
-#define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
-#define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
-#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
-#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
-#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
 
 #undef API
 #undef ALLOC

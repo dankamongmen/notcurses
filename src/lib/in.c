@@ -502,11 +502,11 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
     logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
-  if(x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
+  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
     logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
-  if(y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
+  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
     logwarn("dropping click in margins %ld/%ld\n", y, x);
     return;
   }
@@ -2198,18 +2198,6 @@ int notcurses_getvec(notcurses* n, const struct timespec* ts,
 
 uint32_t ncdirect_get(ncdirect* n, const struct timespec* ts, ncinput* ni){
   return internal_get(n->tcache.ictx, ts, ni);
-}
-
-uint32_t notcurses_getc(notcurses* nc, const struct timespec* ts,
-                        const void* unused, ncinput* ni){
-  (void)unused; // FIXME remove for abi3
-  return notcurses_get(nc, ts, ni);
-}
-
-uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
-                       const void* unused, ncinput* ni){
-  (void)unused; // FIXME remove for abi3
-  return ncdirect_get(nc, ts, ni);
 }
 
 int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){

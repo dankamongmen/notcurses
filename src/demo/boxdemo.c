@@ -130,7 +130,7 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     return -1;
   }
   unsigned cdimy, cdimx;
-  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
+  ncplane_pixel_geom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
   if(ncvisual_resize(wmv, cdimy * SHIPHEIGHT, cdimx * SHIPWIDTH)){
     ncvisual_destroy(wmv);
     return -1;

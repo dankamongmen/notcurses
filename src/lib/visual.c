@@ -70,11 +70,6 @@ ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
   return visual_implementation.visual_subtitle(parent, ncv);
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv){
-  (void)ncv; // FIXME remove for abi3
-  return NULL;
-}
-
 int ncvisual_blit_internal(ncvisual* ncv, int rows, int cols, ncplane* n,
                            const struct blitset* bset, const blitterargs* barg){
   if(!(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
@@ -125,38 +120,6 @@ ncvisual_origin(const struct ncvisual_options* vopts, unsigned* restrict begy,
                 unsigned* restrict begx){
   *begy = vopts ? vopts->begy : 0;
   *begx = vopts ? vopts->begx : 0;
-}
-
-
-int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
-                          const struct ncvisual_options* vopts,
-                          int* y, int* x, int* scaley, int* scalex,
-                          ncblitter_e* blitter){
-  ncvgeom geom;
-  const struct blitset* bset;
-  unsigned disppxy, disppxx, outy, outx;
-  int placey, placex;
-  if(ncvisual_geom_inner(&nc->tcache, n, vopts, &geom, &bset,
-                         &disppxy, &disppxx, &outy, &outx,
-                         &placey, &placex)){
-    return -1;
-  }
-  if(y){
-    *y = geom.pixy;
-  }
-  if(x){
-    *x = geom.pixx;
-  }
-  if(scaley){
-    *scaley = geom.scaley;
-  }
-  if(scalex){
-    *scalex = geom.scalex;
-  }
-  if(blitter){
-    *blitter = bset->geom;
-  }
-  return 0;
 }
 
 // create a plane in which to blit the sprixel. |disppixx| and |disppixy| are
@@ -1175,23 +1138,6 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
   return n;
 }
 
-// compatability wrapper around ncvisual_blit that provides the standard plane
-// plus NCVISUAL_OPTION_CHILDPLANE if vopts->n is NULL.
-ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-  struct ncvisual_options fakevopts;
-  if(vopts == NULL){
-    memset(&fakevopts, 0, sizeof(fakevopts));
-  }else{
-    memcpy(&fakevopts, vopts, sizeof(fakevopts));
-  }
-  vopts = &fakevopts;
-  if(vopts->n == NULL){
-    fakevopts.n = notcurses_stdplane(nc);
-    fakevopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
-  }
-  return ncvisual_blit(nc, ncv, vopts);
-}
-
 ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit,
                               int begy, int begx,
                               unsigned leny, unsigned lenx){
@@ -1344,11 +1290,4 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
     return false;
   }
   return visual_implementation.canopen_videos;
-}
-
-int ncvisual_inflate(ncvisual* n, int scale){
-  if(scale <= 0){
-    return -1;
-  }
-  return ncvisual_resize_noninterpolative(n, n->pixy * scale, n->pixx * scale);
 }

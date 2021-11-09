@@ -125,35 +125,6 @@ notcurses_stop_minimal(void* vnc){
   return ret;
 }
 
-// make a heap-allocated wchar_t expansion of the multibyte string at s
-wchar_t* wchar_from_utf8(const char* s){
-  mbstate_t ps;
-  memset(&ps, 0, sizeof(ps));
-  // worst case is a wchar_t for every byte of input (all-ASCII case)
-  const size_t maxw = strlen(s) + 1;
-  wchar_t* dst = malloc(sizeof(*dst) * maxw);
-  size_t wcount = mbsrtowcs(dst, &s, maxw, &ps);
-  if(wcount == (size_t)-1){
-    free(dst);
-    return NULL;
-  }
-  if(s){
-    free(dst);
-    return NULL;
-  }
-  return dst;
-}
-
-int ncplane_putstr_aligned(ncplane* n, int y, ncalign_e align, const char* s){
-  wchar_t* w = wchar_from_utf8(s);
-  if(w == NULL){
-    return -1;
-  }
-  int r = ncplane_putwstr_aligned(n, y, align, w);
-  free(w);
-  return r;
-}
-
 static const char NOTCURSES_VERSION[] =
  NOTCURSES_VERSION_MAJOR "."
  NOTCURSES_VERSION_MINOR "."
@@ -603,20 +574,6 @@ ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
 
 ncplane* ncpile_create(notcurses* nc, const struct ncplane_options* nopts){
   return ncplane_new_internal(nc, NULL, nopts);
-}
-
-struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
-  ncplane_options nopts = {
-    .y = y,
-    .x = x,
-    .rows = rows,
-    .cols = cols,
-    .userptr = opaque,
-    .name = name,
-    .resizecb = NULL,
-    .flags = 0,
-  };
-  return ncplane_create(n, &nopts);
 }
 
 void ncplane_home(ncplane* n){
@@ -1383,32 +1340,44 @@ const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c){
 
 // 'n' ends up above 'above'
 int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
-  if(n == above){
+  if(n == above){ // probably gets optimized out =/
     return -1;
   }
+  ncpile* p = ncplane_pile(n);
   if(above == NULL){
-    ncplane_move_bottom(n);
+    if(n->below){
+      if( (n->below->above = n->above) ){
+        n->above->below = n->below;
+      }else{
+        p->top = n->below;
+      }
+      n->below = NULL;
+      if( (n->above = p->bottom) ){
+        n->above->below = n;
+      }
+      p->bottom = n;
+    }
     return 0;
   }
-  if(ncplane_pile(n) != ncplane_pile(above)){ // can't move among piles
-    return -1;
-  }
   if(n->below != above){
+    if(p != ncplane_pile(above)){ // can't move among piles
+      return -1;
+    }
     // splice out 'n'
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_pile(n)->bottom = n->above;
+      p->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_pile(n)->top = n->below;
+      p->top = n->below;
     }
     if( (n->above = above->above) ){
       above->above->below = n;
     }else{
-      ncplane_pile(n)->top = n;
+      p->top = n;
     }
     above->above = n;
     n->below = above;
@@ -1416,68 +1385,50 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   return 0;
 }
 
-// 'n' ends up below 'below'
+// 'n' ends up below 'below', or on top if 'below' == NULL
 int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
-  if(n == below){
+  if(n == below){ // probably gets optimized out =/
     return -1;
   }
+  ncpile* p = ncplane_pile(n);
   if(below == NULL){
-    ncplane_move_top(n);
+    if(n->above){
+      if( (n->above->below = n->below) ){
+        n->below->above = n->above;
+      }else{
+        p->bottom = n->above;
+      }
+      n->above = NULL;
+      if( (n->below = p->top) ){
+        n->below->above = n;
+      }
+      p->top = n;
+    }
     return 0;
   }
-  if(ncplane_pile(n) != ncplane_pile(below)){ // can't move among piles
-    return -1;
-  }
   if(n->above != below){
+    if(p != ncplane_pile(below)){ // can't move among piles
+      return -1;
+    }
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_pile(n)->bottom = n->above;
+      p->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_pile(n)->top = n->below;
+      p->top = n->below;
     }
     if( (n->below = below->below) ){
       below->below->above = n;
     }else{
-      ncplane_pile(n)->bottom = n;
+      p->bottom = n;
     }
     below->below = n;
     n->above = below;
   }
   return 0;
-}
-
-void ncplane_move_top(ncplane* n){
-  if(n->above){
-    if( (n->above->below = n->below) ){
-      n->below->above = n->above;
-    }else{
-      ncplane_pile(n)->bottom = n->above;
-    }
-    n->above = NULL;
-    if( (n->below = ncplane_pile(n)->top) ){
-      n->below->above = n;
-    }
-    ncplane_pile(n)->top = n;
-  }
-}
-
-void ncplane_move_bottom(ncplane* n){
-  if(n->below){
-    if( (n->below->above = n->above) ){
-      n->above->below = n->below;
-    }else{
-      ncplane_pile(n)->top = n->below;
-    }
-    n->below = NULL;
-    if( (n->above = ncplane_pile(n)->bottom) ){
-      n->above->below = n;
-    }
-    ncplane_pile(n)->bottom = n;
-  }
 }
 
 // if above is NULL, we're moving to the bottom
@@ -1584,7 +1535,7 @@ void scroll_down(ncplane* n){
   for(struct ncplane* c = n->blist ; c ; c = c->bnext){
     if(!c->fixedbound){
       if(ncplanes_intersect_p(n, c)){
-        ncplane_moverel(c, -1, 0);
+        ncplane_move_rel(c, -1, 0);
       }
     }
   }
@@ -1625,10 +1576,6 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
   int r = chend - parend; // how many rows we need scroll parent
   int ret = ncplane_scrollup(n, r);
   return ret;
-}
-
-int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
-  return nccell_cols(c);
 }
 
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
@@ -1787,7 +1734,7 @@ int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
 }
 
 int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
-  if(n->y == n->leny && n->x == n->lenx){
+  if(n->y >= n->leny || n->x >= n->lenx){
     return -1;
   }
   const nccell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
@@ -1800,7 +1747,7 @@ int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
   return 0;
 }
 
-unsigned notcurses_supported_styles(const notcurses* nc){
+uint16_t notcurses_supported_styles(const notcurses* nc){
   return term_supported_styles(&nc->tcache);
 }
 
@@ -1821,26 +1768,14 @@ void ncplane_set_styles(ncplane* n, unsigned stylebits){
   n->stylemask = (stylebits & NCSTYLE_MASK);
 }
 
-void ncplane_styles_set(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_set_styles(n, stylebits);
-}
-
 // turn on any specified stylebits
 void ncplane_on_styles(ncplane* n, unsigned stylebits){
   n->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
-void ncplane_styles_on(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_on_styles(n, stylebits);
-}
-
 // turn off any specified stylebits
 void ncplane_off_styles(ncplane* n, unsigned stylebits){
   n->stylemask &= ~(stylebits & NCSTYLE_MASK);
-}
-
-void ncplane_styles_off(ncplane* n, unsigned stylebits){ // deprecated
-  ncplane_off_styles(n, stylebits);
 }
 
 // i hate the big allocation and two copies here, but eh what you gonna do?
@@ -1901,6 +1836,13 @@ int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap){
   }
   int ret = ncplane_putstr_stained(n, r);
   free(r);
+  return ret;
+}
+
+int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
+  char* chopped = strndup(str, s);
+  int ret = ncplane_putstr_aligned(n, y, align, chopped);
+  free(chopped);
   return ret;
 }
 
@@ -2370,10 +2312,6 @@ ncpalette* ncpalette_new(notcurses* nc){
   return p;
 }
 
-ncpalette* palette256_new(notcurses* nc){
-  return ncpalette_new(nc);
-}
-
 int ncpalette_use(notcurses* nc, const ncpalette* p){
   int ret = -1;
   if(!notcurses_canchangecolor(nc)){
@@ -2389,16 +2327,8 @@ int ncpalette_use(notcurses* nc, const ncpalette* p){
   return ret;
 }
 
-int palette256_use(notcurses* nc, const ncpalette* p){
-  return ncpalette_use(nc, p);
-}
-
 void ncpalette_free(ncpalette* p){
   free(p);
-}
-
-void palette256_free(ncpalette* p){
-  ncpalette_free(p);
 }
 
 bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){
@@ -3006,32 +2936,6 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned 
   return ret;
 }
 
-int nccells_double_box(ncplane* n, uint16_t attr, uint64_t channels,
-                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
-  }
-  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int cells_double_box(ncplane* n, uint16_t attr, uint64_t channels,
-                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_double_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int nccells_rounded_box(ncplane* n, uint16_t attr, uint64_t channels,
-                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
-  }
-  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int cells_rounded_box(ncplane* n, uint16_t attr, uint64_t channels,
-                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_rounded_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
 // find the center coordinate of a plane, preferring the top/left in the
 // case of an even number of rows/columns (in such a case, there will be one
 // more cell to the bottom/right of the center than the top/left). the
@@ -3051,45 +2955,6 @@ void nclog(const char* fmt, ...){
   va_start(va, fmt);
   vfprintf(stderr, fmt, va);
   va_end(va);
-}
-
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
-  int ret = 0;
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-//fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    gclusters += wcs;
-    ret += cols;
-  }
-  return ret;
-}
-
-int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
-  int ret = 0;
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_stained(n, gclusters, &wcs);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    gclusters += wcs;
-    ret += cols;
-  }
-  return ret;
 }
 
 int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
@@ -3115,36 +2980,6 @@ int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   return r;
 }
 
-int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
-  char* chopped = strndup(str, s);
-  int ret = ncplane_putstr_aligned(n, y, align, chopped);
-  free(chopped);
-  return ret;
-}
-
-int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
-  int ret = 0;
-  int offset = 0;
-//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
-  while((size_t)offset < s && gclusters[offset]){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    offset += wcs;
-    ret += cols;
-  }
-  return ret;
-}
-
 int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
                             unsigned char* resultbuf, size_t buflen){
   if(u32_to_u8(ucs32, ucs32count, resultbuf, &buflen) == NULL){
@@ -3153,19 +2988,17 @@ int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
   return buflen;
 }
 
-int ncstrwidth(const char* mbs){
-  return ncstrwidth_valid(mbs, NULL, NULL);
-}
-
 int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
-  int cols = 0;  // number of columns consumed thus far
+  int cols;
   if(validwidth == NULL){
     validwidth = &cols;
   }
-  int bytes = 0; // number of bytes consumed thus far
+  *validwidth = 0;
+  int bytes;
   if(validbytes == NULL){
     validbytes = &bytes;
   }
+  *validbytes = 0;
   do{
     int thesecols, thesebytes;
     thesebytes = utf8_egc_len(egcs, &thesecols);
@@ -3179,9 +3012,10 @@ int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
   return *validwidth;
 }
 
-void ncplane_pixelgeom(const ncplane* n, unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
-                       unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
-                       unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx){
+void ncplane_pixel_geom(const ncplane* n,
+                        unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
+                        unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
+                        unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx){
   notcurses* nc = ncplane_notcurses(n);
   if(celldimy){
     *celldimy = nc->tcache.cellpixy;

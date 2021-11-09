@@ -122,11 +122,6 @@ void nccell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
 
-// FIXME deprecated, goes away in abi3
-void cell_release(ncplane* n, nccell* c){
-  nccell_release(n, c);
-}
-
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
@@ -134,11 +129,6 @@ int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
     return -1;
   }
   return 0;
-}
-
-// deprecated, goes away in abi3
-int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
-  return nccell_duplicate(n, targ, c);
 }
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
@@ -1458,10 +1448,6 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
   return ret;
 }
 
-int notcurses_render_to_file(notcurses* nc, FILE* fp){
-  return ncpile_render_to_file(notcurses_stdplane(nc), fp);
-}
-
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
 // which cells were changed. We solve for each coordinate's cell by walking
@@ -1505,7 +1491,7 @@ int ncpile_rasterize(ncplane* n){
   // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats.s, bytes);
+    update_raster_bytes(&nc->stats.s, bytes);
     update_raster_stats(&rasterdone, &start, &nc->stats.s);
     update_write_stats(&writedone, &rasterdone, &nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
@@ -1556,18 +1542,6 @@ int ncpile_render(ncplane* n){
   return 0;
 }
 
-int notcurses_render(notcurses* nc){
-//fprintf(stderr, "--------------- BEGIN RENDER\n");
-//notcurses_debug(nc, stderr);
-  ncplane* stdn = notcurses_stdplane(nc);
-  if(ncpile_render(stdn)){
-    return -1;
-  }
-  int i = ncpile_rasterize(stdn);
-//fprintf(stderr, "----------------- END RENDER\n");
-  return i;
-}
-
 // run the top half of notcurses_render(), and steal the buffer from rstate.
 int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   if(ncpile_render(p)){
@@ -1578,7 +1552,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   fbuf_reset(&nc->rstate.f);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), &nc->rstate.f, &useasu);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats.s, bytes);
+    update_raster_bytes(&nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
@@ -1587,10 +1561,6 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   *buflen = nc->rstate.f.used;
   fbuf_reset(&nc->rstate.f);
   return 0;
-}
-
-int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
-  return ncpile_render_to_buffer(notcurses_stdplane(nc), buf, buflen);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the

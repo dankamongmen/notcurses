@@ -197,7 +197,7 @@ issues are resolved. You can determine whether the protocol is in use
 by examining the output of **notcurses-info(1)**. If the **kbd** property
 is indicated, you're using the Kitty protocol.
 
-Mouse events in the top and left margins will never be delivered to the
+Mouse events in the left margins will never be delivered to the
 application (as is intended), but mouse events in the bottom and right margins
 sometimes can be if the event occurs prior to a window resize.
 
