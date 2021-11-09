@@ -661,9 +661,8 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
   // we can't actually select menu items in this function, since we need to
   // invoke an arbitrary function as a result.
   if(nc->id == NCKEY_BUTTON1 && nc->evtype == NCTYPE_RELEASE){
-    int y, x;
-    y = nc->y;
-    x = nc->x;
+    int y = nc->y;
+    int x = nc->x;
     unsigned dimy, dimx;
     ncplane_dim_yx(n->ncp, &dimy, &dimx);
     if(!ncplane_translate_abs(n->ncp, &y, &x)){

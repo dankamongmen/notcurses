@@ -430,7 +430,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 #if defined(__linux__)
   struct sysinfo sinfo;
   sysinfo(&sinfo);
-  char totalmet[BPREFIXSTRLEN + 1], usedmet[BPREFIXSTRLEN + 1];
+  char totalmet[NCBPREFIXSTRLEN + 1], usedmet[NCBPREFIXSTRLEN + 1];
   ncbprefix(sinfo.totalram, 1, totalmet, 1);
   ncbprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
@@ -439,7 +439,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   uint64_t ram;
   size_t oldlenp = sizeof(ram);
   if(sysctlbyname("hw.memsize", &ram, &oldlenp, NULL, 0) == 0){
-    char tram[BPREFIXSTRLEN + 1];
+    char tram[NCBPREFIXSTRLEN + 1];
     bprefix(ram, 1, tram, 1);
     ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB", tram);
   }

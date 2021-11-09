@@ -16,6 +16,8 @@ rearrangements of Notcurses.
     was reimplemented as a trivial wrapper around `ncnmetric()`.
   * `qprefix()`, `bprefix()`, and `iprefix()` have been renamed
     `ncqprefix()`, `ncbprefix()`, and `nciprefix()`, respectively.
+    All related constants have been prefixed with `NC`, and the old
+    definitions will be removed for abi3.
     The former forms have been deprecated, and will be removed in abi3.
   * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
     `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which

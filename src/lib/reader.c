@@ -197,7 +197,7 @@ int ncreader_write_egc(ncreader* n, const char* egc){
       }
       ++n->xproject;
     }
-  }else if((unsigned)n->ncp->x >= n->ncp->lenx){
+  }else if(n->ncp->x >= n->ncp->lenx){
     ++n->xproject;
   }
   // use ncplane_putegc on both planes because it'll get cursor movement right
