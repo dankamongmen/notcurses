@@ -2009,21 +2009,48 @@ API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
 // retain the styling. The current styling of the plane will not be changed.
 API int ncplane_putstr_stained(struct ncplane* n, const char* s);
 
+static inline int
+ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
+  char* chopped = strndup(str, s);
+  int ret = ncplane_putstr_aligned(n, y, align, chopped);
+  free(chopped);
+  return ret;
+}
+
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of columns
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error. No more than 's' bytes will be written.
-API int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);
+static inline int
+ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
+  int ret = 0;
+  int offset = 0;
+//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+  while((size_t)offset < s && gclusters[offset]){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    offset += wcs;
+    ret += cols;
+  }
+  return ret;
+}
 
 static inline int
 ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
   return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
 }
-
-API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                                size_t s, const char* gclustarr);
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
 // FIXME do this as a loop over ncplane_putegc_yx and save the big allocation+copy
@@ -2702,14 +2729,28 @@ nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int nccells_rounded_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                            nccell* ul, nccell* ur, nccell* ll,
-                            nccell* lr, nccell* hl, nccell* vl);
-
 static inline int
 nccells_ascii_box(struct ncplane* n, uint16_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXASCII);
+}
+
+static inline int
+nccells_double_box(struct ncplane* n, uint16_t attr, uint64_t channels,
+                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+static inline int
+nccells_rounded_box(struct ncplane* n, uint16_t attr, uint64_t channels,
+                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
 static inline int
@@ -2778,10 +2819,6 @@ ncplane_rounded_box_sized(struct ncplane* n, uint16_t styles, uint64_t channels,
   return ncplane_rounded_box(n, styles, channels, y + ylen - 1,
                              x + xlen - 1, ctlword);
 }
-
-API int nccells_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
-                           nccell* ul, nccell* ur, nccell* ll,
-                           nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,

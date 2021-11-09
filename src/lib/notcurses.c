@@ -2958,22 +2958,6 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned 
   return ret;
 }
 
-int nccells_double_box(ncplane* n, uint16_t attr, uint64_t channels,
-                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
-  }
-  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int nccells_rounded_box(ncplane* n, uint16_t attr, uint64_t channels,
-                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
-  }
-  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
 // find the center coordinate of a plane, preferring the top/left in the
 // case of an even number of rows/columns (in such a case, there will be one
 // more cell to the bottom/right of the center than the top/left). the
@@ -3055,36 +3039,6 @@ int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   int r = ncplane_putstr_stained(n, mbstr);
   free(mbstr);
   return r;
-}
-
-int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
-  char* chopped = strndup(str, s);
-  int ret = ncplane_putstr_aligned(n, y, align, chopped);
-  free(chopped);
-  return ret;
-}
-
-int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
-  int ret = 0;
-  int offset = 0;
-//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
-  while((size_t)offset < s && gclusters[offset]){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    offset += wcs;
-    ret += cols;
-  }
-  return ret;
 }
 
 int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
