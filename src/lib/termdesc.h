@@ -181,8 +181,9 @@ typedef struct tinfo {
   int default_rows;          // LINES environment var / lines terminfo / 24
   int default_cols;          // COLUMNS environment var / cols terminfo / 80
 
-  int gpmfd;                 // connection to GPM daemon
   pthread_t gpmthread;       // thread handle for GPM watcher
+  int gpmfd;                 // connection to GPM daemon
+  char mouseproto;           // DECSET level (100x, '0', '2', '3')
 #ifdef __linux__
   int linux_fb_fd;           // linux framebuffer device fd
   char* linux_fb_dev;        // device corresponding to linux_fb_dev
