@@ -1008,14 +1008,14 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     }
   }else{
     n->sprite = sprixel_recycle(n);
-    if(n->sprite->dimy != geom->rcelly || n->sprite->dimx != geom->rcellx){
+    if(n->sprite->meta.dimy != geom->rcelly || n->sprite->meta.dimx != geom->rcellx){
       destroy_tam(n);
       if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
         return NULL;
       }
     }
-    n->sprite->dimx = geom->rcellx;
-    n->sprite->dimy = geom->rcelly;
+    n->sprite->meta.dimx = geom->rcellx;
+    n->sprite->meta.dimy = geom->rcelly;
   }
   bargs.u.pixel.spx = n->sprite;
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
@@ -1051,7 +1051,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   n->sprite = NULL;
 //fprintf(stderr, "ABOUT TO RESIZE: yoff/xoff: %d/%d\n",  placey, placex);
   // FIXME might need shrink down the TAM and kill unnecessary auxvecs
-  if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey, placex, s->dimy, s->dimx)){
+  if(ncplane_resize(n, 0, 0, s->meta.dimy, s->meta.dimx, placey, placex, s->meta.dimy, s->meta.dimx)){
     // if we blow up here, then we've got a TAM sized to the sprixel, rather
     // than the plane. running it through destroy_tam() via ncplane_destroy()
     // will use incorrect bounds for scrubbing said TAM. do it manually here.

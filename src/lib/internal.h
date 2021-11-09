@@ -652,7 +652,7 @@ void sixelmap_free(struct sixelmap *s);
 static inline int
 sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //sprixel_debug(s, stderr);
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->meta.id, s->invalidated);
   return n->tcache.pixel_scrub(p, s);
 }
 
@@ -665,7 +665,7 @@ sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     return 0;
   }
 //sprixel_debug(s, stderr);
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->meta.id, s->invalidated);
   return ti->pixel_draw(ti, p, s, f, yoff, xoff);
 }
 
@@ -675,7 +675,7 @@ static inline int
 sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x){
 //sprixel_debug(s, stderr);
   const tinfo* ti = &nc->tcache;
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d\n", s->meta.id, s->invalidated);
   if(s->invalidated == SPRIXEL_MOVED && ti->pixel_move){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
@@ -728,8 +728,8 @@ destroy_tam(ncplane* p){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  logdebug("rebuilding %d %d/%d\n", s->id, ycell, xcell);
-  const int idx = s->dimx * ycell + xcell;
+  logdebug("rebuilding %d %d/%d\n", s->meta.id, ycell, xcell);
+  const int idx = s->meta.dimx * ycell + xcell;
   int ret = 0;
   // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
   // done in O(1), since the actual glyph needn't change.
@@ -822,10 +822,10 @@ sprixel_state(const sprixel* s, int y, int x){
   int localx = x - (s->n->absx - stdn->absx);
 //fprintf(stderr, "TAM %d at %d/%d (%d/%d, %d/%d)\n", s->n->tam[localy * s->dimx + localx].state, localy, localx, y, x, s->dimy, s->dimx);
   assert(localy >= 0);
-  assert(localy < (int)s->dimy);
+  assert(localy < (int)s->meta.dimy);
   assert(localx >= 0);
-  assert(localx < (int)s->dimx);
-  return s->n->tam[localy * s->dimx + localx].state;
+  assert(localx < (int)s->meta.dimx);
+  return s->n->tam[localy * s->meta.dimx + localx].state;
 }
 
 static inline void

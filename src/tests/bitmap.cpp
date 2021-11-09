@@ -536,10 +536,10 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     const auto s = n->sprite;
     REQUIRE(s);
-    CHECK(s->dimy == dimy);
-    CHECK(s->dimx == dimx);
+    CHECK(s->meta.dimy == dimy);
+    CHECK(s->meta.dimx == dimx);
     const auto tam = n->tam;
-    for(unsigned i = 0 ; i < s->dimy * s->dimx ; ++i){
+    for(unsigned i = 0 ; i < s->meta.dimy * s->meta.dimx ; ++i){
       int py = (i / dimx) * nc_->tcache.cellpixy;
       int px = (i % dimx) * nc_->tcache.cellpixx;
       // cells with a transparent pixel ought be SPRIXCELL_MIXED;

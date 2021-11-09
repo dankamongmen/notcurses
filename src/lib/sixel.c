@@ -27,7 +27,7 @@ sixelcount(int dimy, int dimx){
 // bytes, saving 7/8 of the space FIXME).
 static inline uint8_t*
 sixel_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
+  int pixels = s->meta.cellpxy * s->meta.cellpxx;
   uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
   if(ret){
     memset(ret, 0, sizeof(*ret) * pixels);
@@ -229,17 +229,17 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(auxvec == NULL){
     return -1;
   }
-  memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
+  memset(auxvec + s->meta.cellpxx * s->meta.cellpxy, 0xff, s->meta.cellpxx * s->meta.cellpxy);
   sixelmap* smap = s->smap;
-  const int startx = xcell * s->cellpxx;
-  const int starty = ycell * s->cellpxy;
-  int endx = ((xcell + 1) * s->cellpxx) - 1;
-  if(endx >= s->pixx){
-    endx = s->pixx - 1;
+  const int startx = xcell * s->meta.cellpxx;
+  const int starty = ycell * s->meta.cellpxy;
+  int endx = ((xcell + 1) * s->meta.cellpxx) - 1;
+  if(endx >= s->meta.pixx){
+    endx = s->meta.pixx - 1;
   }
-  int endy = ((ycell + 1) * s->cellpxy) - 1;
-  if(endy >= s->pixy){
-    endy = s->pixy - 1;
+  int endy = ((ycell + 1) * s->meta.cellpxy) - 1;
+  if(endy >= s->meta.pixy){
+    endy = s->meta.pixy - 1;
   }
   const int startband = starty / 6;
   const int endband = endy / 6;
@@ -248,14 +248,14 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   int w = 0;
   for(int c = 0 ; c < smap->colors ; ++c){
     w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
-                    s->pixx, s->cellpxy, s->cellpxx, auxvec);
+                    s->meta.pixx, s->meta.cellpxy, s->meta.cellpxx, auxvec);
   }
   if(w){
     s->wipes_outstanding = true;
   }
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
-  assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
-  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  assert(NULL == s->n->tam[s->meta.dimx * ycell + xcell].auxvector);
+  s->n->tam[s->meta.dimx * ycell + xcell].auxvector = auxvec;
   // FIXME this invalidation ought not be necessary, since we're simply
   // wiping, and thus a glyph is going to be printed over whatever we've
   // just destroyed. in alacritty, however, this isn't sufficient to knock
@@ -277,9 +277,9 @@ scrub_color_table(sprixel* s){
   if(s->n && s->n->tam){
     // we use the sprixel cell geometry rather than the plane's because this
     // is called during our initial blit, before we've resized the plane.
-    for(unsigned y = 0 ; y < s->dimy ; ++y){
-      for(unsigned x = 0 ; x < s->dimx ; ++x){
-        unsigned txyidx = y * s->dimx + x;
+    for(unsigned y = 0 ; y < s->meta.dimy ; ++y){
+      for(unsigned x = 0 ; x < s->meta.dimx ; ++x){
+        unsigned txyidx = y * s->meta.dimx + x;
         sprixcell_e state = s->n->tam[txyidx].state;
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "POSTEXRACT WIPE %d/%d\n", y, x);
@@ -382,10 +382,10 @@ void sixel_refresh(const ncpile* p, sprixel* s){
   }
   int absy, absx;
   ncplane_abs_yx(s->n, &absy, &absx);
-  for(unsigned y = 0 ; y < s->dimy ; ++y){
+  for(unsigned y = 0 ; y < s->meta.dimy ; ++y){
     const unsigned yy = absy + y;
-    for(unsigned x = 0 ; x < s->dimx ; ++x){
-      unsigned idx = y * s->dimx + x;
+    for(unsigned x = 0 ; x < s->meta.dimx ; ++x){
+      unsigned idx = y * s->meta.dimx + x;
       if(s->needs_refresh[idx]){
         const unsigned xx = absx + x;
         if(xx < p->dimx && yy < p->dimy){
@@ -429,8 +429,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int begx = bargs->begx;
   const int begy = bargs->begy;
   sprixel* s = bargs->u.pixel.spx;
-  const int cdimy = s->cellpxy;
-  const int cdimx = s->cellpxx;
+  const int cdimy = s->meta.cellpxy;
+  const int cdimx = s->meta.cellpxx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
@@ -859,7 +859,7 @@ sixel_reblit(sprixel* s){
     fbuf_free(&f);
     return -1;
   }
-  if(write_sixel_payload(&f, s->pixx, s->smap) < 0){
+  if(write_sixel_payload(&f, s->meta.pixx, s->smap) < 0){
     fbuf_free(&f);
     return -1;
   }
@@ -892,7 +892,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
     fbuf_free(&f);
     return -1;
   }
-  scrub_tam_boundaries(tam, outy, lenx, s->cellpxy, s->cellpxx);
+  scrub_tam_boundaries(tam, outy, lenx, s->meta.cellpxy, s->meta.cellpxx);
   // take ownership of buf on success
   if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
     fbuf_free(&f);
@@ -926,8 +926,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   // stable.table doesn't need initializing; we start from the bottom
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
-  int cols = bargs->u.pixel.spx->dimx;
-  int rows = bargs->u.pixel.spx->dimy;
+  int cols = bargs->u.pixel.spx->meta.dimx;
+  int rows = bargs->u.pixel.spx->meta.dimy;
   typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
   rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
   if(rmatrix == NULL){
@@ -959,11 +959,12 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 // (though we'll still need to if the new sprixcell not opaque, and the
 // old and new sprixcell are different in any transparent pixel).
 int sixel_scrub(const ncpile* p, sprixel* s){
-  loginfo("%d state %d at %d/%d (%d/%d)\n", s->id, s->invalidated, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
-  int starty = s->movedfromy;
-  int startx = s->movedfromx;
-  for(int yy = starty ; yy < starty + (int)s->dimy && yy < (int)p->dimy ; ++yy){
-    for(int xx = startx ; xx < startx + (int)s->dimx && xx < (int)p->dimx ; ++xx){
+  loginfo("%u state %d at %u/%u (%u/%u)\n", s->meta.id, s->invalidated,
+          s->meta.movedfromy, s->meta.movedfromx, s->meta.dimy, s->meta.dimx);
+  int starty = s->meta.movedfromy;
+  int startx = s->meta.movedfromx;
+  for(int yy = starty ; yy < starty + (int)s->meta.dimy && yy < (int)p->dimy ; ++yy){
+    for(int xx = startx ; xx < startx + (int)s->meta.dimx && xx < (int)p->dimx ; ++xx){
       int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
       if(!s->n){
@@ -981,7 +982,7 @@ int sixel_scrub(const ncpile* p, sprixel* s){
         continue;
       }
       sprixcell_e state = sprixel_state(trues, yy, xx);
-//fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->movedfromy - s->n->absy, xx - s->movedfromx - s->n->absx, state, yy, xx);
+//fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->meta.movedfromy - s->n->absy, xx - s->meta.movedfromx - s->n->absx, state, yy, xx);
       if(state == SPRIXCELL_TRANSPARENT || state == SPRIXCELL_MIXED_SIXEL){
         r->s.damaged = 1;
       }else if(s->invalidated == SPRIXEL_MOVED){
@@ -1014,11 +1015,11 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){
-      for(int yy = s->movedfromy ; yy < s->movedfromy + (int)s->dimy && yy < (int)p->dimy ; ++yy){
+      for(int yy = s->meta.movedfromy ; yy < s->meta.movedfromy + (int)s->meta.dimy && yy < (int)p->dimy ; ++yy){
         if(yy < 0){
           continue;
         }
-        for(int xx = s->movedfromx ; xx < s->movedfromx + (int)s->dimx && xx < (int)p->dimx ; ++xx){
+        for(int xx = s->meta.movedfromx ; xx < s->meta.movedfromx + (int)s->meta.dimx && xx < (int)p->dimx ; ++xx){
           if(xx < 0){
             continue;
           }
@@ -1063,28 +1064,28 @@ int sixel_init_inverted(int fd){
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   s->wipes_outstanding = true;
   sixelmap* smap = s->smap;
-  const int startx = xcell * s->cellpxx;
-  const int starty = ycell * s->cellpxy;
-  int endx = ((xcell + 1) * s->cellpxx) - 1;
-  if(endx > s->pixx){
-    endx = s->pixx;
+  const int startx = xcell * s->meta.cellpxx;
+  const int starty = ycell * s->meta.cellpxy;
+  int endx = ((xcell + 1) * s->meta.cellpxx) - 1;
+  if(endx > s->meta.pixx){
+    endx = s->meta.pixx;
   }
-  int endy = ((ycell + 1) * s->cellpxy) - 1;
-  if(endy > s->pixy){
-    endy = s->pixy;
+  int endy = ((ycell + 1) * s->meta.cellpxy) - 1;
+  if(endy > s->meta.pixy){
+    endy = s->meta.pixy;
   }
   int transparent = 0;
 //fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
   for(int x = startx ; x <= endx ; ++x){
     for(int y = starty ; y <= endy ; ++y){
-      int auxvecidx = (y - starty) * s->cellpxx + (x - startx);
-      int trans = auxvec[s->cellpxx * s->cellpxy + auxvecidx];
+      int auxvecidx = (y - starty) * s->meta.cellpxx + (x - startx);
+      int trans = auxvec[s->meta.cellpxx * s->meta.cellpxy + auxvecidx];
       if(!trans){
         int color = auxvec[auxvecidx];
         int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
         int coff = smap->sixelcount * didx;
         int band = y / 6;
-        int boff = coff + band * s->pixx;
+        int boff = coff + band * s->meta.pixx;
         int xoff = boff + x;
 //fprintf(stderr, "DIDX: %d %d/%d band: %d coff: %d boff: %d rebuild %d/%d with color %d from %d %p xoff: %d\n", didx, ycell, xcell, band, coff, boff, y, x, color, auxvecidx, auxvec, xoff);
         s->smap->data[xoff] |= (1u << (y % 6));
@@ -1094,14 +1095,14 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     }
   }
   sprixcell_e newstate;
-  if(transparent == s->cellpxx * s->cellpxy){
+  if(transparent == s->meta.cellpxx * s->meta.cellpxy){
     newstate = SPRIXCELL_TRANSPARENT;
   }else if(transparent){
     newstate = SPRIXCELL_MIXED_SIXEL;
   }else{
     newstate = SPRIXCELL_OPAQUE_SIXEL;
   }
-  s->n->tam[s->dimx * ycell + xcell].state = newstate;
+  s->n->tam[s->meta.dimx * ycell + xcell].state = newstate;
   return 1;
 }
 

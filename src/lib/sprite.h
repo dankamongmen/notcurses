@@ -126,6 +126,18 @@ typedef struct tament {
   void* auxvector; // palette entries for sixel, alphas for kitty
 } tament;
 
+// metadata for a sprixel, used to track those we have displayed across
+// different piles we might render; they're also composed into sprixels.
+typedef struct sprixel_metadata {
+  uint32_t id;          // embedded into gcluster field of nccell, 24 bits
+  unsigned dimy, dimx;  // cell geometry
+  unsigned pixy, pixx;  // pixel geometry (might be smaller than cell geo)
+  unsigned cellpxy, cellpxx; // cell-pixel geometry at time of creation
+  unsigned movedfromy;  // for SPRIXEL_MOVED/SPRIXEL_HIDE, the last place we
+  unsigned movedfromx;  // were drawn (absolute coordinates), for damaging
+  struct sprixel* next; // metadata doesn't need a prev; it's sprixel-only
+} sprixel_metadata;
+
 // a sprixel represents a bitmap, using whatever local protocol is available.
 // there is a list of sprixels per ncpile. there ought never be very many
 // associated with a context (a dozen or so at max). with the kitty protocol,
@@ -133,24 +145,16 @@ typedef struct tament {
 // protocol, we just have to rewrite them. there's a doubly-linked list of
 // sprixels per ncpile, to which the pile keeps a head link.
 typedef struct sprixel {
+  sprixel_metadata meta;// metadata matched against rasterized set
   fbuf glyph;
-  uint32_t id;          // embedded into gcluster field of nccell, 24 bits
   // both the plane and visual can die before the sprixel does. they are
   // responsible in such a case for NULLing out this link themselves.
   struct ncplane* n;    // associated ncplane
   sprixel_e invalidated;// sprixel invalidation state
-  struct sprixel* next;
   struct sprixel* prev;
-  unsigned dimy, dimx;  // cell geometry
-  int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
-  int cellpxy, cellpxx; // cell-pixel geometry at time of creation
-  // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
-  // some transparency), 2 (annihilated, excised)
-  int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
-  int movedfromx;       // so that we can damage old cells when redrawn
+  int pxoffy, pxoffx;   // X and Y parameters to display command
   // only used for kitty-based sprixels
   int parse_start;      // where to start parsing for cell wipes
-  int pxoffy, pxoffx;   // X and Y parameters to display command
   // only used for sixel-based sprixels
   unsigned char* needs_refresh; // one per cell, whether new frame needs damage
   struct sixelmap* smap;  // copy of palette indices + transparency bits

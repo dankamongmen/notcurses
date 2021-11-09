@@ -5,22 +5,23 @@
 static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(const sprixel* s, FILE* out){
-  fprintf(out, "Sprixel %d (%p) %" PRIu64 "B %dx%d (%dx%d) @%d/%d state: %d\n",
-          s->id, s, s->glyph.used, s->dimy, s->dimx, s->pixy, s->pixx,
+  fprintf(out, "Sprixel %u (%p) %" PRIu64 "B %ux%u (%ux%u) @%d/%d state: %d\n",
+          s->meta.id, s, s->glyph.used, s->meta.dimy, s->meta.dimx,
+          s->meta.pixy, s->meta.pixx,
           s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
           s->invalidated);
   if(s->n){
     int idx = 0;
-    for(unsigned y = 0 ; y < s->dimy ; ++y){
-      for(unsigned x = 0 ; x < s->dimx ; ++x){
+    for(unsigned y = 0 ; y < s->meta.dimy ; ++y){
+      for(unsigned x = 0 ; x < s->meta.dimx ; ++x){
         fprintf(out, "%d", s->n->tam[idx].state);
         ++idx;
       }
       fprintf(out, "\n");
     }
     idx = 0;
-    for(unsigned y = 0 ; y < s->dimy ; ++y){
-      for(unsigned x = 0 ; x < s->dimx ; ++x){
+    for(unsigned y = 0 ; y < s->meta.dimy ; ++y){
+      for(unsigned x = 0 ; x < s->meta.dimx ; ++x){
         if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
           if(s->n->tam[idx].auxvector){
             fprintf(out, "%03d] %p\n", idx, s->n->tam[idx].auxvector);
@@ -37,7 +38,7 @@ void sprixel_debug(const sprixel* s, FILE* out){
 // doesn't splice us out of any lists, just frees
 void sprixel_free(sprixel* s){
   if(s){
-    loginfo("Destroying sprixel %u\n", s->id);
+    loginfo("Destroying sprixel %u\n", s->meta.id);
     if(s->n){
       s->n->sprite = NULL;
     }
@@ -53,8 +54,8 @@ sprixel* sprixel_recycle(ncplane* n){
   const notcurses* nc = ncplane_notcurses_const(n);
   if(nc->tcache.pixel_implementation >= NCPIXEL_KITTY_STATIC){
     sprixel* hides = n->sprite;
-    int dimy = hides->dimy;
-    int dimx = hides->dimx;
+    int dimy = hides->meta.dimy;
+    int dimx = hides->meta.dimx;
     sprixel_hide(hides);
     return sprixel_alloc(&nc->tcache, n, dimy, dimx);
   }
@@ -74,8 +75,8 @@ void sprixel_movefrom(sprixel* s, int y, int x){
     // best done by conditionally reblitting the sixel(?).
 //fprintf(stderr, "SETTING TO MOVE: %d/%d was: %d\n", y, x, s->invalidated);
       s->invalidated = SPRIXEL_MOVED;
-      s->movedfromy = y;
-      s->movedfromx = x;
+      s->meta.movedfromy = y;
+      s->meta.movedfromx = x;
     }
   }
 }
@@ -87,10 +88,10 @@ void sprixel_hide(sprixel* s){
   }
   // otherwise, it'll be killed in the next rendering cycle.
   if(s->invalidated != SPRIXEL_HIDE){
-    loginfo("Marking sprixel %u hidden\n", s->id);
+    loginfo("Marking sprixel %u hidden\n", s->meta.id);
     s->invalidated = SPRIXEL_HIDE;
-    s->movedfromy = ncplane_abs_y(s->n);
-    s->movedfromx = ncplane_abs_x(s->n);
+    s->meta.movedfromy = ncplane_abs_y(s->n);
+    s->meta.movedfromx = ncplane_abs_x(s->n);
     // guard; might have already been replaced
     if(s->n){
       s->n->sprite = NULL;
@@ -106,9 +107,9 @@ void sprixel_invalidate(sprixel* s, int y, int x){
     int localy = y - s->n->absy;
     int localx = x - s->n->absx;
 //fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tam[localy * s->dimx + localx].state);
-    if(s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_TRANSPARENT &&
-       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED &&
-       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED_TRANS){
+    if(s->n->tam[localy * s->meta.dimx + localx].state != SPRIXCELL_TRANSPARENT &&
+       s->n->tam[localy * s->meta.dimx + localx].state != SPRIXCELL_ANNIHILATED &&
+       s->n->tam[localy * s->meta.dimx + localx].state != SPRIXCELL_ANNIHILATED_TRANS){
       s->invalidated = SPRIXEL_INVALIDATED;
     }
   }
@@ -125,27 +126,27 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
     return NULL;
   }
   ret->n = n;
-  ret->dimy = dimy;
-  ret->dimx = dimx;
-  ret->id = ++sprixelid_nonce;
+  ret->meta.dimy = dimy;
+  ret->meta.dimx = dimx;
+  ret->meta.id = ++sprixelid_nonce;
   ret->needs_refresh = NULL;
-  if(ret->id >= 0x1000000){
-    ret->id = 1;
+  if(ret->meta.id >= 0x1000000){
+    ret->meta.id = 1;
     sprixelid_nonce = 1;
   }
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
-  ret->cellpxy = ti->cellpixy;
-  ret->cellpxx = ti->cellpixx;
+  ret->meta.cellpxy = ti->cellpixy;
+  ret->meta.cellpxx = ti->cellpixx;
   if(ncplane_pile(ret->n)){ // rendered mode
     ncpile* np = ncplane_pile(ret->n);
-    if( (ret->next = np->sprixelcache) ){
-      ret->next->prev = ret;
+    if( (ret->meta.next = np->sprixelcache) ){
+      ret->meta.next->prev = ret;
     }
     np->sprixelcache = ret;
     ret->prev = NULL;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
   }else{ // ncdirect case
-    ret->next = ret->prev = NULL;
+    ret->meta.next = ret->prev = NULL;
   }
   return ret;
 }
@@ -156,13 +157,13 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
 int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
-  if(spx->cellpxy > 0){ // don't explode on ncdirect case
-    if((pixy + spx->cellpxy - 1) / spx->cellpxy > spx->dimy){
-      logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->cellpxy, spx->dimy);
+  if(spx->meta.cellpxy > 0){ // don't explode on ncdirect case
+    if((pixy + spx->meta.cellpxy - 1) / spx->meta.cellpxy > spx->meta.dimy){
+      logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->meta.cellpxy, spx->meta.dimy);
       return -1;
     }
-    if((pixx + spx->cellpxx - 1) / spx->cellpxx > spx->dimx){
-      logerror("bad pixx %d (cellpxx %d dimx %d)\n", pixx, spx->cellpxx, spx->dimx);
+    if((pixx + spx->meta.cellpxx - 1) / spx->meta.cellpxx > spx->meta.dimx){
+      logerror("bad pixx %d (cellpxx %d dimx %d)\n", pixx, spx->meta.cellpxx, spx->meta.dimx);
       return -1;
     }
   }
@@ -171,8 +172,8 @@ int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
     memcpy(&spx->glyph, f, sizeof(*f));
   }
   spx->invalidated = state;
-  spx->pixx = pixx;
-  spx->pixy = pixy;
+  spx->meta.pixx = pixx;
+  spx->meta.pixy = pixy;
   spx->parse_start = parse_start;
   return 0;
 }
@@ -180,7 +181,7 @@ int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
 // returns 1 if already annihilated, 0 if we successfully annihilated the cell,
 // or -1 if we could not annihilate the cell (i.e. we're sixel).
 int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  int idx = s->dimx * ycell + xcell;
+  int idx = s->meta.dimx * ycell + xcell;
   if(s->n->tam[idx].state == SPRIXCELL_TRANSPARENT){
     // need to make a transparent auxvec, because a reload will force us to
     // update said auxvec, but needn't actually change the glyph. auxvec will

@@ -1525,7 +1525,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     }
     ncplane_dim_yx(v, &y, &x);
     if(v->sprite){
-      thisid = v->sprite->id;
+      thisid = v->sprite->meta.id;
     }
     if(ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0)){
       ncvisual_destroy(ncv);

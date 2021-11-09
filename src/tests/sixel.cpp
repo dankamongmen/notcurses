@@ -170,9 +170,9 @@ TEST_CASE("Sixels") {
     REQUIRE(nullptr != newn);
     CHECK(0 == notcurses_render(nc_));
     auto rgb = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
-                            newn->sprite->pixy, newn->sprite->pixx);
-    for(int y = 0 ; y < newn->sprite->pixy ; ++y){
-      for(int x = 0 ; x < newn->sprite->pixx ; ++x){
+                            newn->sprite->meta.pixy, newn->sprite->meta.pixx);
+    for(unsigned y = 0 ; y < newn->sprite->meta.pixy ; ++y){
+      for(unsigned x = 0 ; x < newn->sprite->meta.pixx ; ++x){
 //fprintf(stderr, "%03d/%03d NCV: %08x RGB: %08x\n", y, x, ncv->data[y * newn->sprite->pixx + x], rgb[y * newn->sprite->pixx + x]);
         // FIXME
         //CHECK(ncv->data[y * newn->sprite->pixx + x] == rgb[y * newn->sprite->pixx + x]);
@@ -192,7 +192,7 @@ TEST_CASE("Sixels") {
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != newn);
     auto rgbold = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
-                               newn->sprite->pixy, newn->sprite->pixx);
+                               newn->sprite->meta.pixy, newn->sprite->meta.pixx);
 //print_bmap(rgbold, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
@@ -215,7 +215,7 @@ TEST_CASE("Sixels") {
     // FIXME at this point currently, we get a degraded back of the orca
     // test via conversion back to image? unsure
     auto rgbnew = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
-                               newn->sprite->pixy, newn->sprite->pixx);
+                               newn->sprite->meta.pixy, newn->sprite->meta.pixx);
 //print_bmap(rgbnew, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == ncplane_destroy(blockerplane));

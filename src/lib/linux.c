@@ -1,11 +1,11 @@
 #include "linux.h"
 #include "internal.h"
 
-// auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
+// auxvecs for framebuffer are 1B each for s->meta.cellpxx * s->meta.cellpxy elements,
 // and store the original alpha value.
 static inline uint8_t*
 fbcon_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
+  int pixels = s->meta.cellpxy * s->meta.cellpxx;
   uint8_t* ret = malloc(sizeof(*ret) * pixels);
   if(ret){
     memset(ret, 0, sizeof(*ret) * pixels);
@@ -19,23 +19,23 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
     return -1;
   }
   char* glyph = s->glyph.buf;
-  for(int y = 0 ; y < s->cellpxy ; ++y){
-    if(ycell * s->cellpxy + y >= s->pixy){
+  for(int y = 0 ; y < s->meta.cellpxy ; ++y){
+    if(ycell * s->meta.cellpxy + y >= s->meta.pixy){
       break;
     }
     // number of pixels total above our pixel row
-    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
-    for(int x = 0 ; x < s->cellpxx ; ++x){
-      if(xcell * s->cellpxx + x >= s->pixx){
+    const size_t yoff = s->meta.pixx * (ycell * s->meta.cellpxy + y);
+    for(int x = 0 ; x < s->meta.cellpxx ; ++x){
+      if(xcell * s->meta.cellpxx + x >= s->meta.pixx){
         break;
       }
-      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
-      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
+      size_t offset = (yoff + xcell * s->meta.cellpxx + x) * 4;
+      const int vyx = (y % s->meta.cellpxy) * s->meta.cellpxx + x;
       auxvec[vyx] = glyph[offset + 3];
       glyph[offset + 3] = 0;
     }
   }
-  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  s->n->tam[s->meta.dimx * ycell + xcell].auxvector = auxvec;
   return 0;
 }
 
@@ -43,8 +43,8 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   uint32_t transcolor = bargs->transcolor;
   sprixel* s = bargs->u.pixel.spx;
-  int cdimx = s->cellpxx;
-  int cdimy = s->cellpxy;
+  int cdimx = s->meta.cellpxx;
+  int cdimy = s->meta.cellpxy;
   // FIXME this will need be a copy of the tinfo's fbuf map
   size_t flen = leny * lenx * 4;
   if(fbuf_reserve(&s->glyph, flen)){
@@ -58,7 +58,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     char* dst = (char *)s->glyph.buf + toffset;
     for(int c = 0 ; c < lenx ; ++c){
       int xcell = c / cdimx;
-      int tyx = xcell + ycell * bargs->u.pixel.spx->dimx;
+      int tyx = xcell + ycell * bargs->u.pixel.spx->meta.dimx;
       if(n->tam[tyx].state >= SPRIXCELL_ANNIHILATED){
         if(rgba_trans_p(*(uint32_t*)src, transcolor)){
           ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
@@ -125,17 +125,17 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   sprixcell_e state = SPRIXCELL_TRANSPARENT;
-  for(int y = 0 ; y < s->cellpxy ; ++y){
-    if(ycell * s->cellpxy + y >= s->pixy){
+  for(int y = 0 ; y < s->meta.cellpxy ; ++y){
+    if(ycell * s->meta.cellpxy + y >= s->meta.pixy){
       break;
     }
-    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
-    for(int x = 0 ; x < s->cellpxx ; ++x){
-      if(xcell * s->cellpxx + x >= s->pixx){
+    const size_t yoff = s->meta.pixx * (ycell * s->meta.cellpxy + y);
+    for(int x = 0 ; x < s->meta.cellpxx ; ++x){
+      if(xcell * s->meta.cellpxx + x >= s->meta.pixx){
         break;
       }
-      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
-      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
+      size_t offset = (yoff + xcell * s->meta.cellpxx + x) * 4;
+      const int vyx = (y % s->meta.cellpxy) * s->meta.cellpxx + x;
       if(x == 0 && y == 0){
         if(auxvec[vyx] == 0){
           state = SPRIXCELL_TRANSPARENT;
@@ -152,19 +152,19 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
       s->glyph.buf[offset + 3] = auxvec[vyx];
     }
   }
-  s->n->tam[s->dimx * ycell + xcell].state = state;
+  s->n->tam[s->meta.dimx * ycell + xcell].state = state;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
 
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   int wrote = 0;
-  for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
+  for(unsigned l = 0 ; l < (unsigned)s->meta.pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
-    const char* src = (char*)s->glyph.buf + (l * s->pixx * 4);
-    for(unsigned c = 0 ; c < (unsigned)s->pixx && c < ti->pixx ; ++c){
+    const char* src = (char*)s->glyph.buf + (l * s->meta.pixx * 4);
+    for(unsigned c = 0 ; c < (unsigned)s->meta.pixx && c < ti->pixx ; ++c){
       uint32_t pixel;
       memcpy(&pixel, src, 4);
       if(!rgba_trans_p(pixel, 0)){
