@@ -4,16 +4,11 @@
 #include <cmath>
 
 // verify results for extrinsic geometries with NULL or default vopts
-void default_visual_extrinsics(const notcurses* nc, const ncvgeom& g) {
+void default_visual_extrinsics(const ncvgeom& g) {
   CHECK(0 == g.pixy);
   CHECK(0 == g.pixx);
-  if(notcurses_canpixel(nc)){
-    CHECK(1 <= g.cdimy);
-    CHECK(1 <= g.cdimx);
-  }else{
-    CHECK(0 == g.cdimy);
-    CHECK(0 == g.cdimx);
-  }
+  CHECK(1 <= g.cdimy);
+  CHECK(1 <= g.cdimx);
   CHECK(1 <= g.scaley);
   CHECK(1 <= g.scalex);
   CHECK(0 == g.rpixy);
@@ -77,7 +72,7 @@ TEST_CASE("Visual") {
   SUBCASE("VisualExtrinsicGeometryNULL") {
     ncvgeom g{};
     CHECK(0 == ncvisual_geom(nc_, nullptr, nullptr, &g));
-    default_visual_extrinsics(nc_, g);
+    default_visual_extrinsics(g);
   }
 
   // ncvisual_geom() with a NULL ncvisual and default visual_options
@@ -85,7 +80,7 @@ TEST_CASE("Visual") {
     ncvgeom g{};
     struct ncvisual_options vopts{};
     CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
-    default_visual_extrinsics(nc_, g);
+    default_visual_extrinsics(g);
   }
 
   // ncvisual_geom() with a NULL ncvisual and NCBLIT_PIXEL requested
@@ -96,21 +91,21 @@ TEST_CASE("Visual") {
     CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
     CHECK(0 == g.pixy);
     CHECK(0 == g.pixx);
+    CHECK(1 <= g.cdimy);
+    CHECK(1 <= g.cdimx);
     if(notcurses_canpixel(nc_)){
-      CHECK(1 <= g.cdimy);
-      CHECK(1 <= g.cdimx);
       CHECK(g.cdimy == g.scaley);
       CHECK(g.cdimx == g.scalex);
+      CHECK(0 <= g.maxpixely);
+      CHECK(0 <= g.maxpixelx);
     }else{
-      CHECK(0 == g.cdimy);
-      CHECK(0 == g.cdimx);
       CHECK(1 <= g.scaley);
       CHECK(1 <= g.scalex);
+      CHECK(0 == g.maxpixely);
+      CHECK(0 == g.maxpixelx);
     }
     CHECK(0 == g.rpixy);
     CHECK(0 == g.rpixx);
-    CHECK(0 <= g.maxpixely);
-    CHECK(0 <= g.maxpixelx);
     CHECK(NCBLIT_DEFAULT != g.blitter); // we must not revolve to default
   }
 
