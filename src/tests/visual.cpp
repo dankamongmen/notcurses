@@ -91,8 +91,8 @@ TEST_CASE("Visual") {
     CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
     CHECK(0 == g.pixy);
     CHECK(0 == g.pixx);
-    CHECK(1 <= g.cdimy);
-    CHECK(1 <= g.cdimx);
+    CHECK(nc_->tcache.cellpixy == g.cdimy);
+    CHECK(nc_->tcache.cellpixx == g.cdimx);
     if(notcurses_canpixel(nc_)){
       CHECK(g.cdimy == g.scaley);
       CHECK(g.cdimx == g.scalex);
