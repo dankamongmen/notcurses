@@ -126,7 +126,8 @@ notcurses_stop_minimal(void* vnc){
 }
 
 // make a heap-allocated wchar_t expansion of the multibyte string at s
-wchar_t* wchar_from_utf8(const char* s){
+static inline wchar_t*
+wchar_from_utf8(const char* s){
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
   // worst case is a wchar_t for every byte of input (all-ASCII case)
@@ -142,16 +143,6 @@ wchar_t* wchar_from_utf8(const char* s){
     return NULL;
   }
   return dst;
-}
-
-int ncplane_putstr_aligned(ncplane* n, int y, ncalign_e align, const char* s){
-  wchar_t* w = wchar_from_utf8(s);
-  if(w == NULL){
-    return -1;
-  }
-  int r = ncplane_putwstr_aligned(n, y, align, w);
-  free(w);
-  return r;
 }
 
 static const char NOTCURSES_VERSION[] =
@@ -2977,45 +2968,6 @@ void nclog(const char* fmt, ...){
   va_start(va, fmt);
   vfprintf(stderr, fmt, va);
   va_end(va);
-}
-
-int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
-  int ret = 0;
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-//fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    // after the first iteration, just let the cursor code control where we
-    // print, so that scrolling is taken into account
-    y = -1;
-    x = -1;
-    gclusters += wcs;
-    ret += cols;
-  }
-  return ret;
-}
-
-int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
-  int ret = 0;
-  while(*gclusters){
-    int wcs;
-    int cols = ncplane_putegc_stained(n, gclusters, &wcs);
-    if(cols < 0){
-      return -ret;
-    }
-    if(wcs == 0){
-      break;
-    }
-    gclusters += wcs;
-    ret += cols;
-  }
-  return ret;
 }
 
 int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){

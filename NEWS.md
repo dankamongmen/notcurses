@@ -10,6 +10,20 @@ rearrangements of Notcurses.
     without an obvious replacement is the `renderfp` field of
     `notcurses_options`, for which I make no apology. If you've been avoiding
     deprecated functionality, ABI3 ought require small changes, if any.
+  * The handling of geometry and distance has been normalized across all
+    functions. Lengths are now `unsigned` as opposed to `int`. Where -1 was
+    being used to indicate "everything", 0 is now required. This affects
+    `ncplane_as_rgba()`, `ncplane_contents()`, and `ncvisual_from_plane()`,
+    which all used -1. A length of zero passed to line-drawing functions is
+    now an error. Several line-drawing functions now reliably return errors
+    as opposed to short successes. Dimensions of 0 to `ncplane_mergedown()`
+    now mean "everything". Almost all coordinates now accept -1 to indicate the
+    current cursor position in that dimension. `ncplane_highgradient()` has
+    been deprecated in favor of the new `ncplane_gradient2x1()`, which takes
+    origin coordinates. `ncplane_format()` and `ncplane_stain()` now take
+    origin coordinates. All now interpret their `unsigned` argument as
+    lengths rather than closing coordinates, observing the same semantics as
+    outlined above.
 
 * 2.4.9 (not yet released)
   * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`
@@ -28,20 +42,6 @@ rearrangements of Notcurses.
     `notcurses_mice_disable()` is now a `static inline` wrapper around the
     former, passing 0 as the event mask. This can be used to get mouse
     movement buttons and focus events, which were previously unavailable.
-  * The handling of geometry and distance has been normalized across all
-    functions. Lengths are now `unsigned` as opposed to `int`. Where -1 was
-    being used to indicate "everything", 0 is now required. This affects
-    `ncplane_as_rgba()`, `ncplane_contents()`, and `ncvisual_from_plane()`,
-    which all used -1. A length of zero passed to line-drawing functions is
-    now an error. Several line-drawing functions now reliably return errors
-    as opposed to short successes. Dimensions of 0 to `ncplane_mergedown()`
-    now mean "everything". Almost all coordinates now accept -1 to indicate the
-    current cursor position in that dimension. `ncplane_highgradient()` has
-    been deprecated in favor of the new `ncplane_gradient2x1()`, which takes
-    origin coordinates. `ncplane_format()` and `ncplane_stain()` now take
-    origin coordinates. All now interpret their `unsigned` argument as
-    lengths rather than closing coordinates, observing the same semantics as
-    outlined above.
   * `ncvisual_geom()` has been introduced, using the `ncvgeom` struct
     introduced for direct mode. This allows complete statement of geometry
     for an `ncvisual`. It replaces `ncvisual_blitter_geom()`, which has been

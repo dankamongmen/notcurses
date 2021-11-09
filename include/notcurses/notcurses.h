@@ -1995,19 +1995,65 @@ API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* s
 // (though not beyond the end of the plane); this number is returned on success.
 // On error, a non-positive number is returned, indicating the number of columns
 // which were written before the error.
-API int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters);
+static inline int
+ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
+  int ret = 0;
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+//fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    gclusters += wcs;
+    ret += cols;
+  }
+  return ret;
+}
 
 static inline int
 ncplane_putstr(struct ncplane* n, const char* gclustarr){
   return ncplane_putstr_yx(n, -1, -1, gclustarr);
 }
 
-API int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align,
-                               const char* s);
+static inline int
+ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s){
+  int validbytes, validwidth;
+  // we'll want to do the partial write if there's an error somewhere within
+  ncstrwidth_valid(s, &validbytes, &validwidth);
+  int xpos = ncplane_halign(n, align, validwidth);
+  if(xpos < 0){
+    return -1;
+  }
+  return ncplane_putstr_yx(n, y, xpos, s);
+}
 
 // Replace a string's worth of glyphs at the current cursor location, but
 // retain the styling. The current styling of the plane will not be changed.
-API int ncplane_putstr_stained(struct ncplane* n, const char* s);
+static inline int
+ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
+  int ret = 0;
+  while(*gclusters){
+    int wcs;
+    int cols = ncplane_putegc_stained(n, gclusters, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    gclusters += wcs;
+    ret += cols;
+  }
+  return ret;
+}
 
 static inline int
 ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str){
