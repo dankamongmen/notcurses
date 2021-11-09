@@ -1658,7 +1658,7 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Move this plane relative to its current location. Negative values move up
 // and left, respectively. Pass 0 to hold an axis constant.
 __attribute__ ((nonnull (1))) static inline int
-ncplane_moverel(struct ncplane* n, int y, int x){
+ncplane_move_rel(struct ncplane* n, int y, int x){
   int oy, ox;
   ncplane_yx(n, &oy, &ox);
   return ncplane_move_yx(n, oy + y, ox + x);
@@ -3358,11 +3358,14 @@ API void* nctablet_userptr(struct nctablet* t);
 API struct ncplane* nctablet_plane(struct nctablet* t);
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
-// adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
-// buffer to generate up to |[IB]PREFIXCOLUMNS| columns' worth of EGCs. The
+// adding the necessary SI suffix. Usually, pass a |NC[IB]?PREFIXSTRLEN+1|-sized
+// buffer to generate up to |NC[IB]?PREFIXCOLUMNS| columns' worth of EGCs. The
 // characteristic can occupy up through |mult-1| characters (3 for 1000, 4 for
 // 1024). The mantissa can occupy either zero or two characters.
-
+//
+// snprintf(3) is used internally, with 's' as its size bound. If the output
+// requires more size than is available, NULL will be returned.
+//
 // Floating-point is never used, because an IEEE758 double can only losslessly
 // represent integers through 2^53-1.
 //
@@ -3370,6 +3373,7 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 // an 89-bit uintmax_t. Beyond Z(etta) and Y(otta) lie lands unspecified by SI.
 // 2^-63 is 0.000000000000000000108, 1.08a(tto).
 // val: value to print
+// s: maximum output size; see snprintf(3)
 // decimal: scaling. '1' if none has taken place.
 // buf: buffer in which string will be generated
 // omitdec: inhibit printing of all-0 decimal portions
@@ -3378,11 +3382,6 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 //   only printed if suffix is actually printed (input >= mult).
 //
 // You are encouraged to consult notcurses_metric(3).
-API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
-                         int omitdec, uintmax_t mult, int uprefix)
-  __attribute__ ((nonnull (3)));
-
-// uses snprintf() internally with the argument 's' as its bound
 API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
                           char* buf, int omitdec, uintmax_t mult,
                           int uprefix)
@@ -3391,7 +3390,7 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. NCPREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
-// ncmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
+// ncnmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
 // mult == 1024 (digital information) ncmetric(). NCBPREFIXSTRLEN is the maximum
 // number of columns used by a mult == 1024 call making use of the 'i' suffix.
 // This is the true number of columns; to set up a printf()-style maximum
@@ -3412,19 +3411,19 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
 static inline const char*
 ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
+  return ncnmetric(val, NCPREFIXSTRLEN + 1, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
 static inline const char*
 nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
+  return ncnmetric(val, NCIPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
 static inline const char*
 ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
+  return ncnmetric(val, NCBPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, 'i');
 }
 
 // Enable or disable the terminal's cursor, if supported, placing it at

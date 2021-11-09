@@ -1047,7 +1047,7 @@ int ncplane_move_yx(struct ncplane* n, int y, int x);
 // Move this plane relative to its current location. Negative values move up
 // and left, respectively. Pass 0 to hold an axis constant.
 __attribute__ ((nonnull (1))) static inline int
-ncplane_moverel(struct ncplane* n, int y, int x){
+ncplane_move_rel(struct ncplane* n, int y, int x){
   int oy, ox;
   ncplane_yx(n, &oy, &ox);
   return ncplane_move_yx(n, oy + y, ox + x);

@@ -1051,22 +1051,22 @@ TEST_CASE("Plane") {
     CHECK(x == 2);
     CHECK(1 == ncplane_set_base(n, " ", 0, channels));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_moverel(n, -1, 0)); // up
+    CHECK(0 == ncplane_move_rel(n, -1, 0)); // up
     ncplane_yx(n, &y, &x);
     CHECK(y == 1);
     CHECK(x == 2);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_moverel(n, 2, 0)); // down
+    CHECK(0 == ncplane_move_rel(n, 2, 0)); // down
     ncplane_yx(n, &y, &x);
     CHECK(y == 3);
     CHECK(x == 2);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_moverel(n, 0, -1)); // left
+    CHECK(0 == ncplane_move_rel(n, 0, -1)); // left
     ncplane_yx(n, &y, &x);
     CHECK(y == 3);
     CHECK(x == 1);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_moverel(n, 0, 2)); // right
+    CHECK(0 == ncplane_move_rel(n, 0, 2)); // right
     ncplane_yx(n, &y, &x);
     CHECK(y == 3);
     CHECK(x == 3);

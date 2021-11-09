@@ -71,7 +71,7 @@ typedef struct ncplane_options {
 
 **int ncplane_move_yx(struct ncplane* ***n***, int ***y***, int ***x***);**
 
-**int ncplane_moverel(struct ncplane* ***n***, int ***y***, int ***x***);**
+**int ncplane_move_rel(struct ncplane* ***n***, int ***y***, int ***x***);**
 
 **void ncplane_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 

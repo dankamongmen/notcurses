@@ -127,12 +127,12 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
       char buf[NCPREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
-          ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
+          ncqprefix(ncp->maxy * 100, 100, buf, 0); \
         }else{ \
-          ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0'); \
+          ncqprefix(pow(interval, (y + 1) * states) * 100, 100, buf, 0); \
         } \
       }else{ \
-        ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
+        ncqprefix((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0); \
       } \
       if(y == dimy - 1 && strlen(ncp->plot.title)){ \
         ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, 0, "%*.*s %s", \
@@ -297,12 +297,12 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
       char buf[NCPREFIXSTRLEN + 1]; \
       if(ncp->plot.exponentiali){ \
         if(y == dimy - 1){ /* we cheat on the top row to exactly match maxy */ \
-          ncmetric(ncp->maxy * 100, 100, buf, 0, 1000, '\0'); \
+          ncqprefix(ncp->maxy * 100, 100, buf, 0); \
         }else{ \
-          ncmetric(pow(interval, (y + 1) * states) * 100, 100, buf, 0, 1000, '\0'); \
+          ncqprefix(pow(interval, (y + 1) * states) * 100, 100, buf, 0); \
         } \
       }else{ \
-        ncmetric((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0, 1000, '\0'); \
+        ncqprefix((ncp->maxy - interval * states * (dimy - y - 1)) * 100, 100, buf, 0); \
       } \
       if(y == dimy - 1 && strlen(ncp->plot.title)){ \
         ncplane_printf_yx(ncp->plot.ncp, dimy - y - 1, NCPREFIXCOLUMNS - strlen(buf), "%s %s", buf, ncp->plot.title); \

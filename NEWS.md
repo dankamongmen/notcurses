@@ -231,7 +231,7 @@ rearrangements of Notcurses.
   * `notcurses_detected_terminal()` and `ncdirect_detected_terminal()` now
     both return a heap-allocated string, which will contain the terminal
     version if Notcurses was able to detect it. This result ought be free()d.
-  * Added `ncplane_moverel()`.
+  * Added `ncplane_move_rel()`.
   * Documented `ncplane_move_yx()` in `notcurses_plane.3`, and removed the
     false comment that "passing -1 as a coordinate will hold that axis
     constant" from `USAGE.md` and `notcurses.h`. This has never been true.

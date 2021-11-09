@@ -1564,7 +1564,7 @@ void scroll_down(ncplane* n){
   for(struct ncplane* c = n->blist ; c ; c = c->bnext){
     if(!c->fixedbound){
       if(ncplanes_intersect_p(n, c)){
-        ncplane_moverel(c, -1, 0);
+        ncplane_move_rel(c, -1, 0);
       }
     }
   }
