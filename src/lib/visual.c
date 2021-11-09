@@ -1138,23 +1138,6 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
   return n;
 }
 
-// compatability wrapper around ncvisual_blit that provides the standard plane
-// plus NCVISUAL_OPTION_CHILDPLANE if vopts->n is NULL.
-ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-  struct ncvisual_options fakevopts;
-  if(vopts == NULL){
-    memset(&fakevopts, 0, sizeof(fakevopts));
-  }else{
-    memcpy(&fakevopts, vopts, sizeof(fakevopts));
-  }
-  vopts = &fakevopts;
-  if(vopts->n == NULL){
-    fakevopts.n = notcurses_stdplane(nc);
-    fakevopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
-  }
-  return ncvisual_blit(nc, ncv, vopts);
-}
-
 ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit,
                               int begy, int begx,
                               unsigned leny, unsigned lenx){
