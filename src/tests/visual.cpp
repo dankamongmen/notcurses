@@ -4,11 +4,11 @@
 #include <cmath>
 
 // verify results for extrinsic geometries with NULL or default vopts
-void default_visual_extrinsics(const ncvgeom& g) {
+void default_visual_extrinsics(const notcurses* nc, const ncvgeom& g) {
   CHECK(0 == g.pixy);
   CHECK(0 == g.pixx);
-  CHECK(1 <= g.cdimy);
-  CHECK(1 <= g.cdimx);
+  CHECK(nc->tcache.cellpixy == g.cdimy);
+  CHECK(nc->tcache.cellpixx == g.cdimx);
   CHECK(1 <= g.scaley);
   CHECK(1 <= g.scalex);
   CHECK(0 == g.rpixy);
@@ -72,7 +72,7 @@ TEST_CASE("Visual") {
   SUBCASE("VisualExtrinsicGeometryNULL") {
     ncvgeom g{};
     CHECK(0 == ncvisual_geom(nc_, nullptr, nullptr, &g));
-    default_visual_extrinsics(g);
+    default_visual_extrinsics(nc_, g);
   }
 
   // ncvisual_geom() with a NULL ncvisual and default visual_options
@@ -80,7 +80,7 @@ TEST_CASE("Visual") {
     ncvgeom g{};
     struct ncvisual_options vopts{};
     CHECK(0 == ncvisual_geom(nc_, nullptr, &vopts, &g));
-    default_visual_extrinsics(g);
+    default_visual_extrinsics(nc_, g);
   }
 
   // ncvisual_geom() with a NULL ncvisual and NCBLIT_PIXEL requested
