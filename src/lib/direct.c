@@ -1124,11 +1124,6 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, fbuf* f){
   return r;
 }
 
-// turn on any specified stylebits
-int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
-  return ncdirect_on_styles(n, stylebits);
-}
-
 int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
   if((stylebits & n->tcache.supported_styles) < stylebits){ // unsupported styles
     return -1;
@@ -1146,10 +1141,6 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   return 0;
-}
-
-int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
-  return ncdirect_off_styles(n, stylebits);
 }
 
 uint16_t ncdirect_styles(const ncdirect* n){
@@ -1171,10 +1162,6 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   return 0;
-}
-
-int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
-  return ncdirect_set_styles(n, stylebits);
 }
 
 // set the current stylebits to exactly those provided
