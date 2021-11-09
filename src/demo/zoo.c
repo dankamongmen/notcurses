@@ -2,27 +2,29 @@
 
 // open up changes.jpg, stretch it to fill, drop it to greyscale
 static int
-draw_background(struct notcurses* nc){
-  if(notcurses_canopen_images(nc)){
-    struct ncplane* n = notcurses_stdplane(nc);
-    char* path = find_data("changes.jpg");
-    struct ncvisual* ncv = ncvisual_from_file(path);
-    free(path);
-    if(!ncv){
-      return -1;
-    }
-    struct ncvisual_options vopts = {
-      .scaling = NCSCALE_STRETCH,
-      .n = n,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
-    };
-    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
-      ncvisual_destroy(ncv);
-      return -1;
-    }
-    ncplane_greyscale(n);
-    ncvisual_destroy(ncv);
+draw_background(struct notcurses* nc, struct ncplane** bgp){
+  *bgp = NULL;
+  if(!notcurses_canopen_images(nc)){
+    return 0;
   }
+  struct ncplane* n = notcurses_stdplane(nc);
+  char* path = find_data("changes.jpg");
+  struct ncvisual* ncv = ncvisual_from_file(path);
+  free(path);
+  if(!ncv){
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .scaling = NCSCALE_STRETCH,
+    .n = n,
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
+  };
+  if((*bgp = ncvisual_blit(nc, ncv, &vopts)) == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  ncplane_greyscale(n);
+  ncvisual_destroy(ncv);
   return 0;
 }
 
@@ -438,8 +440,11 @@ done:
 // screen. as it does so, two widgets (selector and multiselector) come in
 // from the left and right, respectively. they then fade out.
 int zoo_demo(struct notcurses* nc){
-  if(draw_background(nc)){
+  struct ncplane* bgp;
+  if(draw_background(nc, &bgp)){
     return -1;
   }
-  return reader_demo(nc);
+  int ret = reader_demo(nc);
+  ncplane_destroy(bgp);
+  return ret;
 }
