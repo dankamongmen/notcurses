@@ -874,6 +874,23 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
   return 0;
 }
 
+// each time we *draw* a sprixel, we track its metadata in the rendering state.
+// if the next pile rasterized is not the same as this pile, we need drop any
+// graphics that were displayed (assuming that they're not in the new pile--
+// they could have been reparented). all we need track is the sprixel ID, its
+// location at the time of rendering, and the relevant geometries. when we
+// render, check to see whether we're the pile that rendered last. if so,
+// these can all be discarded. otherwise, they need be shuffled into the set
+// of sprixels to be drawn (any duplicates being removed).
+//
+// this adds a copy of the provided sprixel's metadata to the last-drawn list.
+static void
+track_sprixel_metadata(notcurses* nc, const sprixel* s){
+  (void)nc;
+  fprintf(stderr, "DISPLAYED %u\n", s->id);
+  // FIXME
+}
+
 // this first phase of sprixel rasterization is responsible for:
 //  1) invalidating all QUIESCENT sprixels if the pile has changed (because
 //      it would have been destroyed when switching away from our pile).
@@ -935,6 +952,11 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
       int r = sprite_redraw(nc, p, s, f, nc->margin_t, nc->margin_l);
       if(r < 0){
         return -1;
+      }
+      // a move under sixel is a redisplay, and will return bytes. under kitty
+      // it is not, which is exactly what we want.
+      if(r > 0){
+        track_sprixel_metadata(nc, s);
       }
       bytesemitted += r;
       ++nc->stats.s.sprixelemissions;
