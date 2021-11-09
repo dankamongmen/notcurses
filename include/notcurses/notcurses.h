@@ -942,17 +942,20 @@ typedef struct notcurses_options {
 // Lex a margin argument according to the standard Notcurses definition. There
 // can be either a single number, which will define all margins equally, or
 // there can be four numbers separated by commas.
-API int notcurses_lex_margins(const char* op, notcurses_options* opts);
+API int notcurses_lex_margins(const char* op, notcurses_options* opts)
+  __attribute__ ((nonnull (1)));
 
 // Lex a blitter.
-API int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
+API int notcurses_lex_blitter(const char* op, ncblitter_e* blitter)
+  __attribute__ ((nonnull (1)));
 
 // Get the name of a blitter.
 API const char* notcurses_str_blitter(ncblitter_e blitter);
 
 // Lex a scaling mode (one of "none", "stretch", "scale", "hires",
 // "scalehi", or "inflate").
-API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
+API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode)
+  __attribute__ ((nonnull (1)));
 
 // Get the name of a scaling mode.
 API const char* notcurses_str_scalemode(ncscale_e scalemode);
@@ -967,7 +970,7 @@ API ALLOC struct notcurses* notcurses_init(const notcurses_options* opts, FILE* 
 // allowing for a svelter binary. Link with notcurses-core if this is used.
 API ALLOC struct notcurses* notcurses_core_init(const notcurses_options* opts, FILE* fp);
 
-// Destroy a Notcurses context.
+// Destroy a Notcurses context. A NULL 'nc' is a no-op.
 API int notcurses_stop(struct notcurses* nc);
 
 // Shift to the alternate screen, if available. If already using the alternate
@@ -985,8 +988,10 @@ API int notcurses_leave_alternate_screen(struct notcurses* nc)
 // Get a reference to the standard plane (one matching our current idea of the
 // terminal size) for this terminal. The standard plane always exists, and its
 // origin is always at the uppermost, leftmost cell of the terminal.
-API struct ncplane* notcurses_stdplane(struct notcurses* nc);
-API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
+API struct ncplane* notcurses_stdplane(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
+API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Return the topmost plane of the pile containing 'n'.
 API struct ncplane* ncpile_top(struct ncplane* n)
@@ -995,6 +1000,18 @@ API struct ncplane* ncpile_top(struct ncplane* n)
 // Return the bottommost plane of the pile containing 'n'.
 API struct ncplane* ncpile_bottom(struct ncplane* n)
   __attribute__ ((nonnull (1)));
+
+// Return the topmost plane of the standard pile.
+static inline struct ncplane*
+notcurses_top(struct notcurses* n){
+  return ncpile_top(notcurses_stdplane(n));
+}
+
+// Return the bottommost plane of the standard pile.
+static inline struct ncplane*
+notcurses_bottom(struct notcurses* n){
+  return ncpile_bottom(notcurses_stdplane(n));
+}
 
 // Renders the pile of which 'n' is a part. Rendering this pile again will blow
 // away the render. To actually write out the render, call ncpile_rasterize().

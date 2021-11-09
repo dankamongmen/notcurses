@@ -2232,14 +2232,6 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
   return 0;
 }
 
-ncplane* notcurses_top(notcurses* n){
-  return ncplane_pile(n->stdplane)->top;
-}
-
-ncplane* notcurses_bottom(notcurses* n){
-  return ncplane_pile(n->stdplane)->bottom;
-}
-
 ncplane* ncpile_top(ncplane* n){
   return ncplane_pile(n)->top;
 }
