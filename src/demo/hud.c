@@ -392,7 +392,7 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      char buf[PREFIXCOLUMNS + 2];
+      char buf[NCPREFIXCOLUMNS + 2];
       ncnmetric(e->totalns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
       for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
         nccell ci = CELL_TRIVIAL_INITIALIZER;
@@ -612,7 +612,7 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    char buf[PREFIXCOLUMNS + 2];
+    char buf[NCPREFIXCOLUMNS + 2];
     ncnmetric(ns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
     for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
       nccell ci = CELL_TRIVIAL_INITIALIZER;

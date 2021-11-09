@@ -166,10 +166,10 @@ void summarize_stats(notcurses* nc){
     clreol = "";
   }
   const ncstats *stats = &nc->stashed_stats;
-  char totalbuf[BPREFIXSTRLEN + 1];
-  char minbuf[BPREFIXSTRLEN + 1];
-  char maxbuf[BPREFIXSTRLEN + 1];
-  char avgbuf[BPREFIXSTRLEN + 1];
+  char totalbuf[NCBPREFIXSTRLEN + 1];
+  char minbuf[NCBPREFIXSTRLEN + 1];
+  char maxbuf[NCBPREFIXSTRLEN + 1];
+  char avgbuf[NCBPREFIXSTRLEN + 1];
   if(stats->renders){
     ncqprefix(stats->render_ns, NANOSECS_IN_SEC, totalbuf, 0);
     ncqprefix(stats->render_min_ns, NANOSECS_IN_SEC, minbuf, 0);

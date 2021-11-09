@@ -11,16 +11,16 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define PREFIXCOLUMNS 7
-#define IPREFIXCOLUMNS 8
-#define BPREFIXCOLUMNS 9
-#define PREFIXSTRLEN (PREFIXCOLUMNS + 1)
-#define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1)
-#define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1)
+#define NCPREFIXCOLUMNS 7
+#define NCIPREFIXCOLUMNS 8
+#define NCBPREFIXCOLUMNS 9
+#define NCPREFIXSTRLEN (NCPREFIXCOLUMNS + 1)
+#define NCIPREFIXSTRLEN (NCIPREFIXCOLUMNS + 1)
+#define NCBPREFIXSTRLEN (NCBPREFIXCOLUMNS + 1)
 #define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
-#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
-#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
-#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
+#define NCPREFIXFMT(x) NCMETRICFWIDTH((x), NCPREFIXCOLUMNS), (x)
+#define NCIPREFIXFMT(x) NCMETRIXFWIDTH((x), NCIPREFIXCOLUMNS), (x)
+#define NCBPREFIXFMT(x) NCMETRICFWIDTH((x), NCBPREFIXCOLUMNS), (x)
 ```
 
 **const char* ncmetric(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***, unsigned ***mult***, int ***uprefix***);**
@@ -36,8 +36,8 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 **ncmetric** (and the helper wrappers **qprefix** and **bprefix**) accept
 very large (or very small) non-negative numbers, and prepare formatted output
 of a maximum width using metric suffixes. The suffix can represent arbitrary
-amounts of growth, but is designed for 1000 (**PREFIX**) or 1024
-(**IPREFIX**). 1024 is used for "digital units of information", i.e. kibibytes
+amounts of growth, but is designed for 1000 (**NCPREFIX**) or 1024
+(**NCIPREFIX**). 1024 is used for "digital units of information", i.e. kibibytes
 and gibibits. **ncmetric** supports the large suffixes KMGTPEZY (Kilo, Mega,
 Giga, Tera, Peta, Exa, Zetta, and Yotta) and the small suffixes mµnpfazy
 (Milli, Micro, Nano, Pico, Femto, Atto, Zepto, and Yocto). This covers the
@@ -49,26 +49,26 @@ a 64-bit **uintmax_t**.
 should be larger than **val**. The output will be written to **buf**, which
 must be at least:
 
-* **PREFIXSTRLEN** + 1 bytes for a 1000-based value
-* **IPREFIXSTRLEN** + 1 bytes for a 1024-based value
-* **BPREFIXSTRLEN** + 1 bytes for a 1024-based value with an 'i' suffix
+* **NCPREFIXSTRLEN** + 1 bytes for a 1000-based value
+* **NCIPREFIXSTRLEN** + 1 bytes for a 1024-based value
+* **NCBPREFIXSTRLEN** + 1 bytes for a 1024-based value with an 'i' suffix
 
 Three helper functions are provided to simplify these common cases:
 
 ```
-// Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
+// Mega, kilo, gigafoo. Use NCPREFIXSTRLEN + 1 and NCPREFIXCOLUMNS.
 static inline const char*
 ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
-// Mibi, kebi, gibibytes sans 'i' suffix. Use IPREFIXSTRLEN + 1.
+// Mibi, kebi, gibibytes sans 'i' suffix. Use NCIPREFIXSTRLEN + 1.
 static inline const char*
 nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
 }
 
-// Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1 and BPREFIXCOLUMNS.
+// Mibi, kebi, gibibytes. Use NCBPREFIXSTRLEN + 1 and NCBPREFIXCOLUMNS.
 static inline const char*
 ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
@@ -86,9 +86,9 @@ bytes, since Unicode doesn't necessarily map to single-byte characters
 (including the 'µ' micro suffix). The corresponding defines for maximum column
 length are:
 
-* **PREFIXCOLUMNS** (7)
-* **IPREFIXCOLUMNS** (8)
-* **BPREFIXCOLUMNS** (9)
+* **NCPREFIXCOLUMNS** (7)
+* **NCIPREFIXCOLUMNS** (8)
+* **NCBPREFIXCOLUMNS** (9)
 
 In general, the maximum-width output will take the form **CCC.mmMu**, where C
 are digits of the characteristic (up to ceil(log10(**mult**)) digits), the
@@ -101,15 +101,15 @@ Three more defines are provided to simplify formatted fixed-width output using
 the results of **ncmetric**. Each of these macros accepts a character buffer
 holding the result of the call, and expand to *two* arguments:
 
-* **PREFIXFMT(x)**
-* **IPREFIXFMT(x)**
-* **BPREFIXFMT(x)**
+* **NCPREFIXFMT(x)**
+* **NCIPREFIXFMT(x)**
+* **NCBPREFIXFMT(x)**
 
 These can be used in e.g. the following ungainly fashion:
 
-**ncplane_printf(n, "%*s", PREFIXFMT(buf));**
+**ncplane_printf(n, "%*s", NCPREFIXFMT(buf));**
 
-to ensure that the output is always **PREFIXCOLUMNS** wide.
+to ensure that the output is always **NCPREFIXCOLUMNS** wide.
 
 # RETURN VALUES
 

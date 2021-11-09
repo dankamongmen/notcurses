@@ -404,9 +404,9 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   table_segment(n, "%a", "│");
   table_segment(n, "%w", "│");
   table_segment(n, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
-  char timebuf[PREFIXSTRLEN + 1];
-  char tfpsbuf[PREFIXSTRLEN + 1];
-  char totalbuf[BPREFIXSTRLEN + 1];
+  char timebuf[NCPREFIXSTRLEN + 1];
+  char tfpsbuf[NCPREFIXSTRLEN + 1];
+  char totalbuf[NCBPREFIXSTRLEN + 1];
   uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
@@ -437,7 +437,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
     ncplane_set_fg_rgb8(n, 178, 102, 255);
     ncplane_printf(n, "│%*ss│%7" PRIu64 "│%*s│%7.1f│%2" PRId64 "│%2" PRId64 "│%2" PRId64 "│%*s║",
-           PREFIXFMT(timebuf), results[i].stats.renders, BPREFIXFMT(totalbuf),
+           NCPREFIXFMT(timebuf), results[i].stats.renders, NCBPREFIXFMT(totalbuf),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
            (results[i].timens ?
@@ -446,7 +446,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
             results[i].stats.raster_ns * 100 / results[i].timens : 0),
            (results[i].timens ?
             results[i].stats.writeout_ns * 100 / results[i].timens : 0),
-           PREFIXFMT(tfpsbuf));
+           NCPREFIXFMT(tfpsbuf));
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%s\n", results[i].result < 0 ? "FAILED" :
                    results[i].result > 0 ? "ABORTED" :
@@ -463,9 +463,9 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   ncbprefix(totalbytes, 1, totalbuf, 0);
   table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
   ncplane_putstr(n, "            ");
-  table_printf(n, "│", "%*ss", PREFIXFMT(timebuf));
+  table_printf(n, "│", "%*ss", NCPREFIXFMT(timebuf));
   table_printf(n, "│", "%7lu", totalframes);
-  table_printf(n, "│", "%*s", BPREFIXFMT(totalbuf));
+  table_printf(n, "│", "%*s", NCBPREFIXFMT(totalbuf));
   //table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   ncplane_putchar(n, '\n');
   ncplane_set_fg_rgb8(n, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20

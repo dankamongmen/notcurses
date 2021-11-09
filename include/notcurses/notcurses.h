@@ -3374,25 +3374,25 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
   __attribute__ ((nonnull (4)));
 
 // The number of columns is one fewer, as the STRLEN expressions must leave
-// an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
+// an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. NCPREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
-// ncmetric() call. IPREFIXCOLUMNS is the maximum number of columns used by a
-// mult == 1024 (digital information) ncmetric(). BPREFIXSTRLEN is the maximum
+// ncmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
+// mult == 1024 (digital information) ncmetric(). NCBPREFIXSTRLEN is the maximum
 // number of columns used by a mult == 1024 call making use of the 'i' suffix.
 // This is the true number of columns; to set up a printf()-style maximum
-// field width, you should use [IB]PREFIXFMT (see below).
-#define PREFIXCOLUMNS 7
-#define IPREFIXCOLUMNS 8
-#define BPREFIXCOLUMNS 9
-#define PREFIXSTRLEN (PREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
-#define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
-#define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
+// field width, you should use NC[IB]PREFIXFMT (see below).
+#define NCPREFIXCOLUMNS 7
+#define NCIPREFIXCOLUMNS 8
+#define NCBPREFIXCOLUMNS 9
+#define NCPREFIXSTRLEN (NCPREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
+#define NCIPREFIXSTRLEN (NCIPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
+#define NCBPREFIXSTRLEN (NCBPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
 // Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
 // We need this convoluted grotesquery to properly handle 'µ'.
 #define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
-#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
-#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
-#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
+#define NCPREFIXFMT(x) NCMETRICFWIDTH((x), NCPREFIXCOLUMNS), (x)
+#define NCIPREFIXFMT(x) NCMETRIXFWIDTH((x), NCIPREFIXCOLUMNS), (x)
+#define NCBPREFIXFMT(x) NCMETRICFWIDTH((x), NCBPREFIXCOLUMNS), (x)
 
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
 static inline const char*
@@ -4309,6 +4309,16 @@ __attribute__ ((deprecated)) static inline const char*
 bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
+
+#define PREFIXCOLUMNS 7
+#define IPREFIXCOLUMNS 8
+#define BPREFIXCOLUMNS 9
+#define PREFIXSTRLEN (PREFIXCOLUMNS + 1)  // Does not include a '\0' (xxx.xxU)
+#define IPREFIXSTRLEN (IPREFIXCOLUMNS + 1) //  Does not include a '\0' (xxxx.xxU)
+#define BPREFIXSTRLEN (BPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
+#define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
+#define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
+#define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
 
 #undef API
 #undef ALLOC
