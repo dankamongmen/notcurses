@@ -45,11 +45,11 @@ typedef struct ncinput {
 
 **int notcurses_getvec(struct notcurses* ***n***, const struct timespec* ***ts***, ncinput* ***ni***, int vcount);**
 
-**uint32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
+**uint32_t notcurses_get_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**uint32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
+**uint32_t notcurses_get_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**int notcurses_mice_enable(struct notcurses* ***n***, unsigned ***eventmask***);**
+**int cnotcurses_mice_enable(struct notcurses* ***n***, unsigned ***eventmask***);**
 
 **int notcurses_mice_disable(struct notcurses* ***n***);**
 
@@ -65,9 +65,9 @@ typedef struct ncinput {
 
 notcurses supports input from keyboards and mice, and any device that looks
 like them. Mouse support requires a broker such as GPM, Wayland, or Xorg, and
-must be explicitly enabled via **notcurses_mouse_enable**. The full 32-bit
+must be explicitly enabled via **notcurses_mice_enable**. The full 32-bit
 range of Unicode is supported (see **unicode(7)**), with synthesized events
-mapped into the [Supplementary Private Use Area-B](https://unicode.org/charts/PDF/U1.0.10.pdf).
+mapped above the 1,114,112 codepoints of Unicode 14.0's seventeen Planes.
 Unicode characters are returned directly as UCS-32, one codepoint at a time.
 
 notcurses takes its keyboard input from **stdin**, which will be placed into
@@ -77,11 +77,11 @@ notcurses maintains its own buffer of input characters, which it will attempt
 to fill whenever it reads.
 
 **notcurses_get** allows a **struct timespec** to be specified as a timeout.
-If **ts** is **NULL**, **notcurses_get** will block until it reads input, or
+If ***ts*** is **NULL**, **notcurses_get** will block until it reads input, or
 is interrupted by a signal. If its values are zeroes, there will be no
-blocking. Otherwise, **ts** specifies an absolute deadline (taken against
+blocking. Otherwise, ***ts*** specifies an absolute deadline (taken against
 **CLOCK_MONOTONIC**; see **clock_gettime(2)**). On timeout, 0 is returned.
-Event details will be reported in **ni**, unless **ni** is NULL.
+Event details will be reported in ***ni***, unless ***ni*** is NULL.
 
 **notcurses_inputready_fd** provides a file descriptor suitable for use with
 I/O multiplexors such as **poll(2)**. This file descriptor might or might not
@@ -178,6 +178,8 @@ contexts).
 
 When support is detected, the Kitty keyboard disambiguation protocol will be
 requested. This eliminates most of the **BUGS** mentioned below.
+
+The full list of synthesized events is available in **<notcurses/nckeys.h>**.
 
 # BUGS
 

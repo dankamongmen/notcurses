@@ -647,76 +647,23 @@ must be readable without delay for it to be interpreted as such.
 ```c
 // All input is taken from stdin. We attempt to read a single UTF8-encoded
 // Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
-// possible that we will read a special keypress, i.e. anything that doesn't
-// correspond to a Unicode codepoint (e.g. arrow keys, function keys, screen
-// resize events, etc.). These are mapped into Unicode's Supplementary
-// Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
+// possible that we will produce a synthesized event, i.e. anything that
+// doesn't correspond to a Unicode codepoint (e.g. arrow keys, function keys,
+// screen resize events, etc.). The full list of synthesized events can be
+// found in <notcurses/nckeys.h>.
 //
 // notcurses_get_nblock() is nonblocking. notcurses_get_blocking() blocks
 // until a codepoint or special key is read, or until interrupted by a signal.
 // notcurses_get() allows an optional timeout to be controlled.
 //
-// In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
-// returned to indicate that no input was available. Otherwise (including on
-// EOF) (uint32_t)-1 is returned.
-
-#define suppuabize(w) ((w) + 0x100000)
-
-// Special composed key definitions. These values are added to 0x100000.
-#define NCKEY_INVALID   suppuabize(0)
-#define NCKEY_RESIZE    suppuabize(1) // generated internally in response to SIGWINCH
-#define NCKEY_UP        suppuabize(2)
-#define NCKEY_RIGHT     suppuabize(3)
-#define NCKEY_DOWN      suppuabize(4)
-#define NCKEY_LEFT      suppuabize(5)
-#define NCKEY_INS       suppuabize(6)
-#define NCKEY_DEL       suppuabize(7)
-#define NCKEY_BACKSPACE suppuabize(8) // backspace (sometimes)
-#define NCKEY_PGDOWN    suppuabize(9)
-#define NCKEY_PGUP      suppuabize(10)
-#define NCKEY_HOME      suppuabize(11)
-#define NCKEY_END       suppuabize(12)
-#define NCKEY_F00       suppuabize(20)
-#define NCKEY_F01       suppuabize(21)
-#define NCKEY_F02       suppuabize(22)
-#define NCKEY_F03       suppuabize(23)
-#define NCKEY_F04       suppuabize(24)
-// ... up to 100 function keys, egads
-#define NCKEY_ENTER     suppuabize(121)
-#define NCKEY_CLS       suppuabize(122) // "clear-screen or erase"
-#define NCKEY_DLEFT     suppuabize(123) // down + left on keypad
-#define NCKEY_DRIGHT    suppuabize(124)
-#define NCKEY_ULEFT     suppuabize(125) // up + left on keypad
-#define NCKEY_URIGHT    suppuabize(126)
-#define NCKEY_CENTER    suppuabize(127) // the most truly neutral of keypresses
-#define NCKEY_BEGIN     suppuabize(128)
-#define NCKEY_CANCEL    suppuabize(129)
-#define NCKEY_CLOSE     suppuabize(130)
-#define NCKEY_COMMAND   suppuabize(131)
-#define NCKEY_COPY      suppuabize(132)
-#define NCKEY_EXIT      suppuabize(133)
-#define NCKEY_PRINT     suppuabize(134)
-#define NCKEY_REFRESH   suppuabize(135)
-// Mouse events. We try to encode some details into the uint32_t (i.e. which
-// button was pressed), but some is embedded in the ncinput event. The release
-// event is generic across buttons; callers must maintain state, if they care.
-#define NCKEY_BUTTON1   suppuabize(201)
-#define NCKEY_BUTTON2   suppuabize(202)
-#define NCKEY_BUTTON3   suppuabize(203)
-// ... up to 11 mouse buttons
-#define NCKEY_EOF       suppuabize(300)
-
-// Is this uint32_t a Supplementary Private Use Area-B codepoint?
-static inline bool
-nckey_supppuab_p(uint32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
+// In the case of a valid read, the provided ncinput is filled in, and the
+// id field is returned. 0 is returned to indicate that no input was available.
+// On any error, (uint32_t)-1 is returned.
 
 // An input event. Cell coordinates are currently defined only for mouse events.
 typedef struct ncinput {
-  uint32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
-  int y;           // y cell coordinate of event, -1 for undefined
-  int x;           // x cell coordinate of event, -1 for undefined
+  uint32_t id;     // identifier (unicode codepoint or synthesized NCKEY event)
+  int y, x;        // y/x cell coordinate of event, -1 for undefined
   bool alt;        // was alt held?
   bool shift;      // was shift held?
   bool ctrl;       // was ctrl held?
@@ -726,6 +673,7 @@ typedef struct ncinput {
     NCTYPE_REPEAT,
     NCTYPE_RELEASE,
   } evtype;
+  int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
 
 // Read a UTF-32-encoded Unicode codepoint from input. This might only be part

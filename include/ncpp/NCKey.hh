@@ -96,6 +96,12 @@ namespace ncpp
 		static constexpr char32_t Copy      = NCKEY_COPY;
 		static constexpr char32_t Exit      = NCKEY_EXIT;
 		static constexpr char32_t Print     = NCKEY_PRINT;
+		static constexpr char32_t CapsLock  = NCKEY_CAPS_LOCK;
+		static constexpr char32_t ScrollLock= NCKEY_SCROLL_LOCK;
+		static constexpr char32_t NumLock   = NCKEY_NUM_LOCK;
+		static constexpr char32_t PrintScreen= NCKEY_PRINT_SCREEN;
+		static constexpr char32_t Pause     = NCKEY_PAUSE;
+		static constexpr char32_t Menu      = NCKEY_MENU;
 		static constexpr char32_t Refresh   = NCKEY_REFRESH;
 		static constexpr char32_t Button1   = NCKEY_BUTTON1;
 		static constexpr char32_t Button2   = NCKEY_BUTTON2;
@@ -117,7 +123,12 @@ namespace ncpp
 			return nckey_mouse_p (ch);
 		}
 
-		static bool IsSuppUAB (char32_t ch) noexcept
+		static bool IsSupPUAa (char32_t ch) noexcept
+		{
+			return nckey_supppuaa_p (ch);
+		}
+
+		static bool IsSupPUAb (char32_t ch) noexcept
 		{
 			return nckey_supppuab_p (ch);
 		}

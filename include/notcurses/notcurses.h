@@ -1073,12 +1073,6 @@ API void notcurses_drop_planes(struct notcurses* nc)
 // returned to indicate that no input was available. Otherwise (including on
 // EOF) (uint32_t)-1 is returned.
 
-// Is this uint32_t a Supplementary Private Use Area-B codepoint?
-static inline bool
-nckey_supppuab_p(uint32_t w){
-  return w >= 0x100000 && w <= 0x10fffd;
-}
-
 // Is the event a synthesized mouse event?
 static inline bool
 nckey_mouse_p(uint32_t r){
