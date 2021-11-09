@@ -74,18 +74,17 @@ int chunli_demo(struct notcurses* nc){
     free(path);
     struct ncplane* ncp;
     struct ncvisual_options vopts = {
+      .x = NCALIGN_CENTER,
+      .y = NCALIGN_CENTER,
       .n = notcurses_stdplane(nc),
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .flags = NCVISUAL_OPTION_CHILDPLANE |
+               NCVISUAL_OPTION_HORALIGNED |
+               NCVISUAL_OPTION_VERALIGNED,
     };
     if((ncp = ncvisual_blit(nc, ncv, &vopts)) == NULL){
       return -1;
     }
     ncplane_set_base_cell(ncp, &b);
-    unsigned thisx, thisy;
-    ncplane_dim_yx(ncp, &thisy, &thisx);
-    if(ncplane_move_yx(ncp, (dimy - thisy) / 2, (dimx - thisx) / 2)){
-      return -1;
-    }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &iterdelay);
     ncvisual_destroy(ncv);
