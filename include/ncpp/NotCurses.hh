@@ -248,9 +248,9 @@ namespace ncpp
 		uint32_t get (bool blocking = false, ncinput *ni = nullptr) const noexcept
 		{
 			if (blocking)
-				return notcurses_getc_blocking (nc, ni);
+				return notcurses_get_blocking (nc, ni);
 
-			return notcurses_getc_nblock (nc, ni);
+			return notcurses_get_nblock (nc, ni);
 		}
 
 		char* get_at (int yoff, int xoff, uint16_t* attr, uint64_t* channels) const noexcept

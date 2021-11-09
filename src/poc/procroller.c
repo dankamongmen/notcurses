@@ -75,7 +75,7 @@ int main(int argc, char** argv){
   notcurses_render(nc);
   ncinput ni;
   do{
-    notcurses_getc_blocking(nc, &ni);
+    notcurses_get_blocking(nc, &ni);
   }while(ni.evtype == NCTYPE_RELEASE);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;

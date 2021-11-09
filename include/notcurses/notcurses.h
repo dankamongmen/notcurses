@@ -1048,7 +1048,7 @@ API void notcurses_drop_planes(struct notcurses* nc)
 // resize events, etc.). These are mapped into Unicode's Supplementary
 // Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
 //
-// notcurses_getc_nblock() is nonblocking. notcurses_getc_blocking() blocks
+// notcurses_get_nblock() is nonblocking. notcurses_get_blocking() blocks
 // until a codepoint or special key is read, or until interrupted by a signal.
 // notcurses_get() allows an optional timeout to be controlled.
 //
@@ -1107,10 +1107,10 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 
 // Read a UTF-32-encoded Unicode codepoint from input. This might only be part
 // of a larger EGC. Provide a NULL 'ts' to block at length, and otherwise a
-// timespec to bound blocking. Returns a single Unicode code point, or
-// (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
-// return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
-// a delay bound against CLOCK_MONOTONIC (see clock_gettime(2)).
+// timespec specifying an absolute deadline calculated using CLOCK_MONOTONIC.
+// Returns a single Unicode code point, or a synthesized special key constant,
+// or (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed,
+// the return value is the 'id' field from that event. 'ni' may be NULL.
 API uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                            ncinput* ni)
   __attribute__ ((nonnull (1)));
@@ -1122,7 +1122,7 @@ API int notcurses_getvec(struct notcurses* n, const struct timespec* ts,
   __attribute__ ((nonnull (1, 3)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
-// descriptor becomes available, you can call notcurses_getc_nblock(),
+// descriptor becomes available, you can call notcurses_get_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
 API int notcurses_inputready_fd(struct notcurses* n)
@@ -1131,7 +1131,7 @@ API int notcurses_inputready_fd(struct notcurses* n)
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is immediately ready, returns 0.
 static inline uint32_t
-notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
+notcurses_get_nblock(struct notcurses* n, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
   return notcurses_get(n, &ts, ni);
 }
@@ -1139,7 +1139,7 @@ notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received (including resize events).
 static inline uint32_t
-notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
+notcurses_get_blocking(struct notcurses* n, ncinput* ni){
   return notcurses_get(n, NULL, ni);
 }
 

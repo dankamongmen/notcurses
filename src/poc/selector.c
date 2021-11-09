@@ -33,7 +33,7 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
   notcurses_render(nc);
   uint32_t keypress;
   ncinput ni;
-  while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
+  while((keypress = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncselector_offer_input(ns, &ni)){
       if(ni.evtype == NCTYPE_RELEASE){
         continue;

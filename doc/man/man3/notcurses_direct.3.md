@@ -118,6 +118,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **bool ncdirect_canget_cursor(const struct ncdirect* ***nc***);**
 
+**uint32_t ncdirect_get(struct ncdirect* ***n***, const struct timespec* ***absdl***, ncinput* ***ni***);**
+
 ```c
 typedef struct ncvgeom {
   int pixy, pixx;     // true pixel geometry of ncvisual data

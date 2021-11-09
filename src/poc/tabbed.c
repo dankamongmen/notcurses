@@ -105,7 +105,7 @@ int main(int argc, char** argv){
   int tabnameind = 0;
   uint32_t c;
   ncinput ni;
-  while((c = notcurses_getc_blocking(nc, &ni)) != 'q'){
+  while((c = notcurses_get_blocking(nc, &ni)) != 'q'){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
     }

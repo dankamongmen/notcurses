@@ -10,6 +10,8 @@ rearrangements of Notcurses.
     without an obvious replacement is the `renderfp` field of
     `notcurses_options`, for which I make no apology. If you've been avoiding
     deprecated functionality, ABI3 ought require small changes, if any.
+  * `notcurses_get()` and `ncdirect_get()` now require an absolute deadline
+    rather than a delay bound; it ought be calculated using `CLOCK_MONOTONIC`.
   * The handling of geometry and distance has been normalized across all
     functions. Lengths are now `unsigned` as opposed to `int`. Where -1 was
     being used to indicate "everything", 0 is now required. This affects

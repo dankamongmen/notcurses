@@ -2146,29 +2146,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   return id;
 }
 
-// FIXME kill off for API3, and expect an absolute deadline directly
-static inline void
-delaybound_to_deadline(const struct timespec* ts, struct timespec* absdl){
-  if(ts){
-    // incoming ts is a delay bound, but we want an absolute deadline for
-    // pthread_cond_timedwait(). convert it, using CLOCK_MONOTONIC (we
-    // initialized the condvar with pthread_condmonotonic_init()).
-    struct timespec tspec;
-    clock_gettime(CLOCK_MONOTONIC, &tspec);
-    absdl->tv_sec = ts->tv_sec + tspec.tv_sec;
-    absdl->tv_nsec = ts->tv_nsec + tspec.tv_nsec;
-    if(absdl->tv_nsec > 1000000000){
-      ++absdl->tv_sec;
-      absdl->tv_nsec -= 1000000000;
-    }
-  }
-}
-
 // infp has already been set non-blocking
-uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
-  struct timespec absdl;
-  delaybound_to_deadline(ts, &absdl);
-  uint32_t id = internal_get(nc->tcache.ictx, ts ? &absdl : NULL, ni);
+uint32_t notcurses_get(notcurses* nc, const struct timespec* absdl, ncinput* ni){
+  uint32_t id = internal_get(nc->tcache.ictx, absdl, ni);
   if(ni){
     if(id == (uint32_t)-1){
       ni->id = id;
@@ -2178,12 +2158,10 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* ts, ncinput* ni){
 }
 
 // FIXME better performance if we move this within the locked area
-int notcurses_getvec(notcurses* n, const struct timespec* ts,
+int notcurses_getvec(notcurses* n, const struct timespec* absdl,
                      ncinput* ni, int vcount){
-  struct timespec absdl;
-  delaybound_to_deadline(ts, &absdl);
   for(int v = 0 ; v < vcount ; ++v){
-    uint32_t u = notcurses_get(n, ts ? &absdl : NULL, &ni[v]);
+    uint32_t u = notcurses_get(n, absdl, &ni[v]);
     if(u == (uint32_t)-1){
       if(v == 0){
         return -1;
@@ -2196,8 +2174,8 @@ int notcurses_getvec(notcurses* n, const struct timespec* ts,
   return vcount;
 }
 
-uint32_t ncdirect_get(ncdirect* n, const struct timespec* ts, ncinput* ni){
-  return internal_get(n->tcache.ictx, ts, ni);
+uint32_t ncdirect_get(ncdirect* n, const struct timespec* absdl, ncinput* ni){
+  return internal_get(n->tcache.ictx, absdl, ni);
 }
 
 int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){

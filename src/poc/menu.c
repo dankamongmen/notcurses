@@ -28,7 +28,7 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   uint32_t keypress;
   ncinput ni;
   notcurses_render(nc);
-  while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
+  while((keypress = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
       if(ni.evtype == NCTYPE_RELEASE){
         continue;

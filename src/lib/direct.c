@@ -982,7 +982,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   ncinput ni;
   uint32_t id;
   unsigned oldx = xstart;
-  while((id = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
+  while((id = ncdirect_get_blocking(n, &ni)) != (uint32_t)-1){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
     }

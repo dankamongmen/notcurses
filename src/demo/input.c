@@ -129,7 +129,7 @@ ultramegaok_demo(void* vnc){
   ncinput ni;
   struct notcurses* nc = vnc;
   uint32_t id;
-  while((id = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
+  while((id = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(id == 0){
       continue;
     }

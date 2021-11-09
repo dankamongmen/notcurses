@@ -241,16 +241,16 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
   __attribute__ ((nonnull (1)));
 
 // Provide a NULL 'ts' to block at length, a 'ts' of 0 for non-blocking
-// operation, and otherwise a timespec to bound blocking. Returns a single
-// Unicode code point, or (uint32_t)-1 on error. Returns 0 on a timeout. If
-// an event is processed, the return value is the 'id' field from that
-// event. 'ni' may be NULL.
-API uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* ts,
+// operation, and otherwise an absolute deadline in terms of CLOCK_MONOTONIC.
+// Returns a single Unicode code point, a synthesized special key constant,
+// or (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed,
+// the return value is the 'id' field from that event. 'ni' may be NULL.
+API uint32_t ncdirect_get(struct ncdirect* n, const struct timespec* absdl,
                           ncinput* ni)
   __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
-// descriptor becomes available, you can call ncdirect_getc_nblock(),
+// descriptor becomes available, you can call ncdirect_get_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
 API int ncdirect_inputready_fd(struct ncdirect* n)
@@ -259,7 +259,7 @@ API int ncdirect_inputready_fd(struct ncdirect* n)
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
 static inline uint32_t
-ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
+ncdirect_get_nblock(struct ncdirect* n, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
   return ncdirect_get(n, &ts, ni);
 }
@@ -267,7 +267,7 @@ ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
 static inline uint32_t
-ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
+ncdirect_get_blocking(struct ncdirect* n, ncinput* ni){
   return ncdirect_get(n, NULL, ni);
 }
 

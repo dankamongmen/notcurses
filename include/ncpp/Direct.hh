@@ -210,8 +210,8 @@ namespace ncpp
 		char32_t get (ncinput *ni, bool blocking) const noexcept
 		{
 			if (blocking)
-				return ncdirect_getc_blocking (direct, ni);
-			return ncdirect_getc_nblock (direct, ni);
+				return ncdirect_get_blocking (direct, ni);
+			return ncdirect_get_nblock (direct, ni);
 		}
 
 		char32_t get (const struct timespec *ts, ncinput *ni) const noexcept

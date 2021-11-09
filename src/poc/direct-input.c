@@ -10,7 +10,7 @@ int main(void){
   }
   ncinput ni;
   uint32_t i;
-  while((i = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
+  while((i = ncdirect_get_blocking(n, &ni)) != (uint32_t)-1){
     unsigned char utf8[5] = {};
     notcurses_ucs32_to_utf8(&i, 1, utf8, sizeof(utf8));
     printf("Read input: [%c%c%c] %s\n", ni.ctrl ? 'C' : 'c',

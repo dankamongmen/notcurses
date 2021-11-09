@@ -120,7 +120,7 @@ int runreels(struct notcurses* nc, struct ncreel* nr){
   int y, x;
   char32_t key;
   ncinput ni;
-  while((key = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+  while((key = notcurses_get_blocking(nc, &ni)) != (char32_t)-1){
     if(ni.evtype == EvType::Release){
       continue;
     }

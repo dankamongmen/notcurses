@@ -652,7 +652,7 @@ must be readable without delay for it to be interpreted as such.
 // resize events, etc.). These are mapped into Unicode's Supplementary
 // Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
 //
-// notcurses_getc_nblock() is nonblocking. notcurses_getc_blocking() blocks
+// notcurses_get_nblock() is nonblocking. notcurses_get_blocking() blocks
 // until a codepoint or special key is read, or until interrupted by a signal.
 // notcurses_get() allows an optional timeout to be controlled.
 //
@@ -730,10 +730,10 @@ typedef struct ncinput {
 
 // Read a UTF-32-encoded Unicode codepoint from input. This might only be part
 // of a larger EGC. Provide a NULL 'ts' to block at length, and otherwise a
-// timespec to bound blocking. Returns a single Unicode code point, or
-// (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed, the
-// return value is the 'id' field from that event. 'ni' may be NULL. 'ts' is an
-// a delay bound against CLOCK_MONOTONIC (see clock_gettime(2)).
+// timespec specifying an absolute deadline calculated using CLOCK_MONOTONIC.
+// Returns a single Unicode code point, or a synthesized special key constant,
+// or (uint32_t)-1 on error. Returns 0 on a timeout. If an event is processed,
+// the return value is the 'id' field from that event. 'ni' may be NULL.
 uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
                        ncinput* ni);
 
@@ -742,10 +742,10 @@ uint32_t notcurses_get(struct notcurses* n, const struct timespec* ts,
 int notcurses_getvec(struct notcurses* n, const struct timespec* ts,
                      ncinput* ni, int vcount);
 
-// 'ni' may be NULL if the caller is uninterested in event details. If no event
-// is ready, returns 0.
+// 'ni' may be NULL if the caller is uninterested in event details. If no
+// event is ready, returns 0.
 static inline uint32_t
-notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
+notcurses_get_nblock(struct notcurses* n, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
   return notcurses_get(n, &ts, ni);
 }
@@ -753,7 +753,7 @@ notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
 static inline uint32_t
-notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
+notcurses_get_blocking(struct notcurses* n, ncinput* ni){
   return notcurses_get(n, NULL, ni);
 }
 

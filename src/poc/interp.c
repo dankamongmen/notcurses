@@ -111,7 +111,7 @@ int main(void){
   }
   ncinput ni;
   do{
-    notcurses_getc_blocking(nc, &ni);
+    notcurses_get_blocking(nc, &ni);
   }while(ni.id != (uint32_t)-1 && ni.evtype != NCTYPE_RELEASE);
   notcurses_stop(nc);
   return EXIT_SUCCESS;

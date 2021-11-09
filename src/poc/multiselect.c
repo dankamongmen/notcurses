@@ -43,7 +43,7 @@ run_mselect(struct notcurses* nc, struct ncmultiselector* ns){
   notcurses_render(nc);
   uint32_t keypress;
   ncinput ni;
-  while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
+  while((keypress = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
     }
