@@ -1227,20 +1227,33 @@ tcap_cb(inputctx* ictx){
     free(str);
     return 2;
   }
-  const char* s = str;
+  char* s = str;
   while(*s){
-    // FIXME clean this crap up
+    // FIXME clean this crap up, grotesque
     if(strncasecmp(s, "544e=", 5) == 0){
-      if(ictx->initdata->qterm != TERMINAL_UNKNOWN){
-        const char* tn = s + 5;
-        if(strcasecmp(tn, "6D6C7465726D;") == 0){
-          ictx->initdata->qterm = TERMINAL_MLTERM;
-        }else if(strcasecmp(tn, "787465726d;") == 0){
-          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
-        }else if(strcasecmp(tn, "787465726d2d6b69747479;") == 0){
-          ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
-        }else if(strcasecmp(tn, "787465726d2d323536636f6c6f72;") == 0){
-          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
+      size_t len = 5;
+      while(s[len] && s[len] != ';'){
+        ++len;
+      }
+      const char* tn = s + 5;
+      len -= 5;
+      if(ictx->initdata->qterm == TERMINAL_UNKNOWN){
+        if(len == 10){
+          if(strncasecmp(tn, "787465726d", 10) == 0){
+            ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
+          }
+        }else if(len == 12){
+          if(strncasecmp(tn, "6D6C7465726D", 12) == 0){
+            ictx->initdata->qterm = TERMINAL_MLTERM;
+          }
+        }else if(len == 22){
+          if(strncasecmp(tn, "787465726d2d6b69747479", 22) == 0){
+            ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
+          }
+        }else if(len == 28){
+          if(strncasecmp(tn, "787465726d2d323536636f6c6f72", 28) == 0){
+            ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
+          }
         }else{
           logdebug("unknown terminal name %s\n", tn);
         }
