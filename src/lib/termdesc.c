@@ -832,11 +832,13 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     logpanic("failed opening Windows ConPTY\n");
     return -1;
   }
+  /* FIXME reenable once we're using GetConsoleScreenBufferInfo() once more, maybe?
   unsigned ucy, ucx;
   if(locate_cursor(ti, &ucy, &ucx) == 0){
     *cursor_y = ucy;
     *cursor_x = ucx;
   }
+  */
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
@@ -1147,6 +1149,7 @@ char* termdesc_longterm(const tinfo* ti){
 // is valid, we can just camp there. otherwise, we need dance with potential
 // user input looking at infd.
 int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x){
+  /* FIXME? u7 does work...
 #ifdef __MINGW64__
   if(ti->outhandle){
     CONSOLE_SCREEN_BUFFER_INFO conbuf;
@@ -1160,6 +1163,7 @@ int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x){
     return 0;
   }
 #endif
+*/
   const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7 == NULL){
     logwarn("No support in terminfo\n");

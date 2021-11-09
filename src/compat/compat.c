@@ -134,11 +134,14 @@ int pthread_condmonotonic_init(pthread_cond_t* cond){
   if(pthread_condattr_init(&cat)){
     return -1;
   }
+  // FIXME we need a solution for this on macos/windows
 #ifndef __APPLE__
+#ifndef __MINGW64__
   if(pthread_condattr_setclock(&cat, CLOCK_MONOTONIC)){
     pthread_condattr_destroy(&cat);
     return -1;
   }
+#endif
 #endif
   if(pthread_cond_init(cond, &cat)){
     pthread_condattr_destroy(&cat);
