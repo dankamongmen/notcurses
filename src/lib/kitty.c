@@ -1117,7 +1117,7 @@ int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
 
 int kitty_remove(int id, fbuf* f){
   loginfo("Removing graphic %u\n", id);
-  if(fbuf_printf(f, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
+  if(fbuf_printf(f, "\e_Ga=d,d=I,i=%d\e\\", id) < 0){
     return -1;
   }
   return 0;

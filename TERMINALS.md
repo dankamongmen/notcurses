@@ -266,6 +266,8 @@ are best avoided until the problems are better understood:
    bound to up to three digits, which ought be drawn inside.
 * '࣢' U+08E2 ARABIC DISPUTED END OF AYAH
 * '﷽' U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM
+* '⁄' U+2044 [FRACTION SLASH](https://en.wikipedia.org/wiki/Universal_Character_Set_characters#Fraction_slash)
+   bound to digits fore and aft
 
 ## Notes for terminal authors
 

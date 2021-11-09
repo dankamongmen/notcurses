@@ -2146,6 +2146,7 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
   }
 }
 
+// special case of ncplane_erase_region()
 void ncplane_erase(ncplane* n){
   loginfo("erasing plane\n");
   if(n->sprite){
