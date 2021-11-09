@@ -1480,11 +1480,6 @@ int ncdirect_double_box(ncdirect* n, uint64_t ul, uint64_t ur,
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXDOUBLEW, ylen, xlen, ctlword);
 }
 
-// Can we load images? This requires being built against FFmpeg/OIIO.
-bool ncdirect_canopen_images(const ncdirect* n __attribute__ ((unused))){
-  return notcurses_canopen_images(NULL);
-}
-
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 bool ncdirect_canutf8(const ncdirect* n){
   return n->tcache.caps.utf8;

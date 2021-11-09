@@ -336,28 +336,31 @@ ALLOC API char* ncdirect_detected_terminal(const struct ncdirect* n)
 
 // Can we directly specify RGB values per cell, or only use palettes?
 static inline bool
-ncdirect_cantruecolor(const struct ncdirect* nc){
-  return ncdirect_capabilities(nc)->rgb;
+ncdirect_cantruecolor(const struct ncdirect* n){
+  return ncdirect_capabilities(n)->rgb;
 }
 
 // Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
 static inline bool
-ncdirect_canchangecolor(const struct ncdirect* nc){
-  return nccapability_canchangecolor(ncdirect_capabilities(nc));
+ncdirect_canchangecolor(const struct ncdirect* n){
+  return nccapability_canchangecolor(ncdirect_capabilities(n));
 }
 
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 static inline bool
-ncdirect_canfade(const struct ncdirect* nc){
-  return ncdirect_canchangecolor(nc) || ncdirect_cantruecolor(nc);
+ncdirect_canfade(const struct ncdirect* n){
+  return ncdirect_canchangecolor(n) || ncdirect_cantruecolor(n);
 }
 
 // Can we load images? This requires being built against FFmpeg/OIIO.
-API bool ncdirect_canopen_images(const struct ncdirect* n);
+static inline bool
+ncdirect_canopen_images(const struct ncdirect* n __attribute__ ((unused))){
+  return notcurses_canopen_images(NULL);
+}
 
 // Can we load videos? This requires being built against FFmpeg.
 static inline bool
-ncdirect_canopen_videos(const struct ncdirect* nc __attribute__ ((unused))){
+ncdirect_canopen_videos(const struct ncdirect* n __attribute__ ((unused))){
   return notcurses_canopen_videos(NULL);
 }
 

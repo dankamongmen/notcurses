@@ -1759,10 +1759,6 @@ char* notcurses_detected_terminal(const notcurses* nc){
   return termdesc_longterm(&nc->tcache);
 }
 
-bool notcurses_cantruecolor(const notcurses* nc){
-  return nc->tcache.caps.rgb;
-}
-
 // conform to the specified stylebits
 void ncplane_set_styles(ncplane* n, unsigned stylebits){
   n->stylemask = (stylebits & NCSTYLE_MASK);
@@ -2253,47 +2249,6 @@ int notcurses_mice_enable(notcurses* n, unsigned eventmask){
     return -1;
   }
   return 0;
-}
-
-// FIXME begone in abi3
-int notcurses_mouse_enable(notcurses* n){
-  if(notcurses_mice_enable(n, NCMICE_BUTTON_EVENT)){
-    return -1;
-  }
-  return 0;
-}
-
-// FIXME begone in abi3
-int notcurses_mouse_disable(notcurses* n){
-  return notcurses_mice_disable(n);
-}
-
-bool notcurses_canutf8(const notcurses* nc){
-  return nc->tcache.caps.utf8;
-}
-
-bool notcurses_canhalfblock(const notcurses* nc){
-  return nc->tcache.caps.utf8;
-}
-
-bool notcurses_canquadrant(const notcurses* nc){
-  return nc->tcache.caps.quadrants && nc->tcache.caps.utf8;
-}
-
-bool notcurses_cansextant(const notcurses* nc){
-  return nc->tcache.caps.sextants && nc->tcache.caps.utf8;
-}
-
-bool notcurses_canbraille(const notcurses* nc){
-  return nc->tcache.caps.braille && nc->tcache.caps.utf8;
-}
-
-bool notcurses_canfade(const notcurses* nc){
-  return nc->tcache.caps.can_change_colors || nc->tcache.caps.rgb;
-}
-
-bool notcurses_canchangecolor(const notcurses* nc){
-  return nccapability_canchangecolor(&nc->tcache.caps);
 }
 
 ncpalette* ncpalette_new(notcurses* nc){
@@ -3042,4 +2997,8 @@ void ncplane_pixel_geom(const ncplane* n,
       *maxbmapx = 0;
     }
   }
+}
+
+const nccapabilities* notcurses_capabilities(const notcurses* n){
+  return &n->tcache.caps;
 }
