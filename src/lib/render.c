@@ -886,9 +886,14 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
 // this adds a copy of the provided sprixel's metadata to the last-drawn list.
 static void
 track_sprixel_metadata(notcurses* nc, const sprixel* s){
-  (void)nc;
-  fprintf(stderr, "DISPLAYED %u\n", s->meta.id);
-  // FIXME
+  sprixel_metadata* smd = malloc(sizeof(*smd));
+  if(smd == NULL){
+    logerror("couldn't track sprixel %u\n", s->meta.id);
+    return;
+  }
+  memcpy(smd, &s->meta, sizeof(*smd));
+  smd->next = nc->rstate.sprixels_last_drawn;
+  nc->rstate.sprixels_last_drawn = smd;
 }
 
 // this first phase of sprixel rasterization is responsible for:

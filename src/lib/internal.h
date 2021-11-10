@@ -137,6 +137,10 @@ typedef struct rasterstate {
   unsigned lastbg;
   unsigned lastbb;
 
+  // we track the sprixels that were visible as of the last rasterization,
+  // so that we can clear them if the pile changes.
+  sprixel_metadata* sprixels_last_drawn;
+
   // used in CLI mode, these track the end of logical output, to place the
   // cursor following each rasterization. they are tracked thusly:
   //  * initialized to the initial physical cursor position
