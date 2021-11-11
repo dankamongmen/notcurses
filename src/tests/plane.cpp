@@ -107,7 +107,9 @@ TEST_CASE("Plane") {
   SUBCASE("EmitNULCell") {
     nccell c = CELL_CHAR_INITIALIZER('a');
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
-    CHECK(0 == strcmp("a", ncplane_at_yx(n_, 0, 0, nullptr, nullptr)));
+    auto egc = ncplane_at_yx(n_, 0, 0, nullptr, nullptr);
+    CHECK(0 == strcmp("a", egc));
+    free(egc);
     unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -115,7 +117,9 @@ TEST_CASE("Plane") {
     CHECK(0 == notcurses_render(nc_));
     c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
-    CHECK(0 == strcmp("", ncplane_at_yx(n_, 0, 0, nullptr, nullptr)));
+    egc = ncplane_at_yx(n_, 0, 0, nullptr, nullptr);
+    CHECK(0 == strcmp("", egc));
+    free(egc);
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 == x);
