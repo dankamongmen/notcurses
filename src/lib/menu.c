@@ -259,6 +259,7 @@ err:
   while(i--){
     free_menu_section(&ncm->sections[i]);
   }
+  free(ncm->sections);
   return -1;
 }
 

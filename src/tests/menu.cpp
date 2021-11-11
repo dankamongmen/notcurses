@@ -33,7 +33,7 @@ TEST_CASE("Menu") {
   SUBCASE("EmptySectionReject") {
     struct ncmenu_options opts{};
     struct ncmenu_section sections[] = {
-      { .name = strdup("Empty"), .itemcount = 0, .items = nullptr, .shortcut = ncinput(), },
+      { .name = "Empty", .itemcount = 0, .items = nullptr, .shortcut = ncinput(), },
     };
     opts.sections = sections;
     opts.sectioncount = sizeof(sections) / sizeof(*sections);
@@ -49,7 +49,7 @@ TEST_CASE("Menu") {
       { .desc = nullptr, .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("Empty"), .itemcount = 1, .items = empty_items, .shortcut = ncinput(), },
+      { .name = "Empty", .itemcount = 1, .items = empty_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -62,10 +62,10 @@ TEST_CASE("Menu") {
 
   SUBCASE("MenuOneSection") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = ncinput(), },
+      { .desc = "I would like a new file", .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
+      { .name = "File", .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -79,10 +79,10 @@ TEST_CASE("Menu") {
   // don't call ncmenu_destroy(), invoking destruction in notcurses_stop()
   SUBCASE("MenuNoFree") {
     struct ncmenu_item file_items[] = {
-      { .desc = strdup("I would like a new file"), .shortcut = ncinput(), },
+      { .desc = "I would like a new file", .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("File"), .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
+      { .name = "File", .itemcount = sizeof(file_items) / sizeof(*file_items), .items = file_items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
@@ -94,14 +94,14 @@ TEST_CASE("Menu") {
 
   SUBCASE("RightAlignedSection") {
     struct ncmenu_item items[] = {
-      { .desc = strdup("Yet another crappy item"), .shortcut = {}, },
+      { .desc = "Yet another crappy item", .shortcut = {}, },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("Left section"), .itemcount = sizeof(items) / sizeof(*items),
+      { .name = "Left section", .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
       { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
-      { .name = strdup("Right section"), .itemcount = sizeof(items) / sizeof(*items),
+      { .name = "Right section", .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
     };
     struct ncmenu_options opts{};
@@ -128,16 +128,16 @@ TEST_CASE("Menu") {
   // you can only shift to right alignment once in a menu
   SUBCASE("DoubleAlignRejected") {
     struct ncmenu_item items[] = {
-      { .desc = strdup("Yet another crappy item"), .shortcut = {}, },
+      { .desc = "Yet another crappy item", .shortcut = {}, },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("Left section"), .itemcount = sizeof(items) / sizeof(*items),
+      { .name = "Left section", .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
       { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
       { .name = nullptr, .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
-      { .name = strdup("Right section"), .itemcount = sizeof(items) / sizeof(*items),
+      { .name = "Right section", .itemcount = sizeof(items) / sizeof(*items),
         .items = items, .shortcut = {}, },
     };
     struct ncmenu_options opts{};
@@ -149,14 +149,14 @@ TEST_CASE("Menu") {
 
   SUBCASE("VeryLongMenu") {
     struct ncmenu_item items[] = {
-      { .desc = strdup("Generic menu entry"), .shortcut = ncinput(), },
+      { .desc = "Generic menu entry", .shortcut = ncinput(), },
     };
     struct ncmenu_section sections[] = {
-      { .name = strdup("antidisestablishmentarianism"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
-      { .name = strdup("floccinaucinihilipilification"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
-      { .name = strdup("pneumonoultramicroscopicsilicovolcanoconiosis"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
-      { .name = strdup("supercalifragilisticexpialidocious"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
-      { .name = strdup("Incomprehensibilities"), .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = "antidisestablishmentarianism", .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = "floccinaucinihilipilification", .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = "pneumonoultramicroscopicsilicovolcanoconiosis", .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = "supercalifragilisticexpialidocious", .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
+      { .name = "Incomprehensibilities", .itemcount = sizeof(items) / sizeof(*items), .items = items, .shortcut = ncinput(), },
     };
     struct ncmenu_options opts{};
     opts.sections = sections;
