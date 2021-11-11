@@ -27,7 +27,7 @@ rearrangements of Notcurses.
     lengths rather than closing coordinates, observing the same semantics as
     outlined above.
 
-* 2.4.9 (not yet released)
+* 2.4.9 (2021-11-11)
   * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`
     was reimplemented as a trivial wrapper around `ncnmetric()`.
   * `qprefix()`, `bprefix()`, and `iprefix()` have been renamed
