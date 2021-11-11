@@ -173,6 +173,7 @@ TEST_CASE("Plot") {
       // FIXME loop throughout plane, check all cells
       auto egc = ncplane_at_yx(ncp, 5, 49, &smask, &channels);
       CHECK(0 == strcmp(egc, "⣿"));
+      free(egc);
     }
     ncuplot_destroy(p);
   }

@@ -431,6 +431,9 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
 static const struct blitset* \
 create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T miny, const T maxy, \
            const T trueminy, const T truemaxy){ \
+  /* set up ->plot.ncp first so it gets destroyed on error */ \
+  ncpp->plot.ncp = n; \
+  ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy); \
   ncplot_options zeroed = {}; \
   if(!opts){ \
     opts = &zeroed; \
@@ -440,23 +443,19 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   } \
   /* if miny == maxy (enabling domain detection), they both must be equal to 0 */ \
   if(miny == maxy && miny){ \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   if(opts->rangex < 0){ \
     logerror("error: supplied negative independent range %d\n", opts->rangex); \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   if(maxy < miny){ \
     logerror("error: supplied maxy < miny\n"); \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   /* DETECTMAXONLY can't be used without domain detection */ \
   if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){ \
     logerror("Supplied DETECTMAXONLY without domain detection"); \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   const notcurses* notc = ncplane_notcurses(n); \
@@ -467,13 +466,11 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   bool degrade_blitter = !(opts && (opts->flags & NCPLOT_OPTION_NODEGRADE)); \
   const struct blitset* bset = lookup_blitset(&notc->tcache, blitfxn, degrade_blitter); \
   if(bset == NULL){ \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   unsigned sdimy, sdimx; \
   ncplane_dim_yx(n, &sdimy, &sdimx); \
   if(sdimx <= 0){ \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   unsigned dimx = sdimx; \
@@ -500,11 +497,9 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   size_t slotsize = sizeof(*ncpp->slots) * ncpp->plot.slotcount; \
   ncpp->slots = malloc(slotsize); \
   if(ncpp->slots == NULL){ \
-    ncplane_destroy(n); \
     return NULL; \
   } \
   memset(ncpp->slots, 0, slotsize); \
-  ncpp->plot.ncp = n; \
   ncpp->plot.maxchannels = opts->maxchannels; \
   ncpp->plot.minchannels = opts->minchannels; \
   ncpp->plot.bset = bset; \
@@ -526,12 +521,10 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.channels = NULL; \
   if(bset->geom == NCBLIT_PIXEL){ \
     if(create_pixelp(&ncpp->plot, n)){ \
-      ncplane_destroy(n); \
       return NULL; \
     } \
   } \
   redraw_plot_##T(ncpp); \
-  ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy); \
   return bset; \
 } \
 /* if x is less than the window, return -1, as the sample will be thrown away. \
