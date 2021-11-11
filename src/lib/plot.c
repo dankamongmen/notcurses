@@ -531,6 +531,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     } \
   } \
   redraw_plot_##T(ncpp); \
+  ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy); \
   return bset; \
 } \
 /* if x is less than the window, return -1, as the sample will be thrown away. \
@@ -606,7 +607,9 @@ CREATE(double, d)
 static void
 ncplot_destroy(ncplot* n){
   free(n->title);
-  ncplane_destroy(n->ncp);
+  if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
+    ncplane_destroy(n->ncp);
+  }
   ncplane_destroy(n->pixelp);
   free(n->channels);
 }

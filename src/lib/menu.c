@@ -412,7 +412,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
       };
       ret->ncp = ncplane_create(n, &nopts);
       if(ret->ncp){
-        ncplane_set_widget(ret->ncp, ret, ncmenu_destroy);
+        ncplane_set_widget(ret->ncp, ret, (void(*)(void*))ncmenu_destroy);
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->dissectchannels = opts->headerchannels;
@@ -766,8 +766,7 @@ ncplane* ncmenu_plane(ncmenu* menu){
   return menu->ncp;
 }
 
-int ncmenu_destroy(ncmenu* n){
-  int ret = 0;
+void ncmenu_destroy(ncmenu* n){
   if(n){
     free_menu_sections(n);
     if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
@@ -775,5 +774,4 @@ int ncmenu_destroy(ncmenu* n){
     }
     free(n);
   }
-  return ret;
 }

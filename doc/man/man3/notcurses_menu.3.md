@@ -60,7 +60,7 @@ typedef struct ncmenu_options {
 
 **bool ncmenu_offer_input(struct ncmenu* ***n***, const ncinput* ***nc***);**
 
-**int ncmenu_destroy(struct ncmenu* ***n***);**
+**void ncmenu_destroy(struct ncmenu* ***n***);**
 
 # DESCRIPTION
 

@@ -340,7 +340,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
     goto freeitems;
   }
   ncselector_draw(ns); // deal with error here?
-  ncplane_set_widget(ns->ncp, ns, ncselector_destroy);
+  ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncselector_destroy);
   return ns;
 
 freeitems:
@@ -549,12 +549,8 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
   return false;
 }
 
-void ncselector_destroy(ncselector* n, char** item){
+void ncselector_destroy(ncselector* n){
   if(n){
-    if(item){
-      *item = n->items[n->selected].option;
-      n->items[n->selected].option = NULL;
-    }
     while(n->itemcount--){
       free(n->items[n->itemcount].option);
       free(n->items[n->itemcount].desc);
@@ -948,7 +944,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     goto freeitems;
   }
   ncmultiselector_draw(ns); // deal with error here?
-  ncplane_set_widget(ns->ncp, ns, ncmultiselector_destroy);
+  ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncmultiselector_destroy);
   return ns;
 
 freeitems:

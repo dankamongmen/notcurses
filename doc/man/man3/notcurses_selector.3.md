@@ -55,7 +55,7 @@ typedef struct ncselector_options {
 
 **bool ncselector_offer_input(struct ncselector* ***n***, const ncinput* ***nc***);**
 
-**void ncselector_destroy(struct ncselector* ***n***, char\*\* ***item***);**
+**void ncselector_destroy(struct ncselector* ***n***);**
 
 # DESCRIPTION
 

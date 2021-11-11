@@ -429,7 +429,7 @@ reader_demo(struct notcurses* nc){
   }
 
 done:
-  ncselector_destroy(selector, NULL);
+  ncselector_destroy(selector);
   ncmultiselector_destroy(mselector);
   ncplane_destroy(rp);
   return ret;
