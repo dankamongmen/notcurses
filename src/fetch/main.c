@@ -113,6 +113,8 @@ fetch_windows_cpuinfo(fetched_info* fi){
   return 0;
 }
 
+// guess what? the form of /proc/cpuinfo is arch-dependent!
+// that's right, fuck you!
 static int
 fetch_cpu_info(fetched_info* fi){
   FILE* cpuinfo = fopen("/proc/cpuinfo", "re");
@@ -122,7 +124,8 @@ fetch_cpu_info(fetched_info* fi){
   }
   char buf[BUFSIZ];
   while(fgets(buf, sizeof(buf), cpuinfo)){
-#define CORE "core id"
+// works for both amd64 and ARM
+#define CORE "processor"
 // model name doesn't appear on all architectures, so fall back to vendor_id
 #define TAG "model name"
 #define VEND "vendor_id"
@@ -147,7 +150,8 @@ fetch_cpu_info(fetched_info* fi){
           fi->cpu_model = strdup(start);
         }
       }
-    }else if(strncmp(buf, CORE, strlen(CORE)) == 0){
+      // need strncasecmp() because ARM cpuinfo uses "Processor" ugh
+    }else if(strncasecmp(buf, CORE, strlen(CORE)) == 0){
       ++fi->core_count;
     }
 #undef VEND
