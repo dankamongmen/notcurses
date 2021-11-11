@@ -1046,14 +1046,6 @@ API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen)
 API int ncpile_render_to_file(struct ncplane* p, FILE* fp)
   __attribute__ ((nonnull (1, 2)));
 
-// Return the topmost ncplane of the standard pile.
-API struct ncplane* notcurses_top(struct notcurses* n)
-  __attribute__ ((nonnull (1)));
-
-// Return the bottommost ncplane of the standard pile.
-API struct ncplane* notcurses_bottom(struct notcurses* n)
-  __attribute__ ((nonnull (1)));
-
 // Destroy all ncplanes other than the stdplane.
 API void notcurses_drop_planes(struct notcurses* nc)
   __attribute__ ((nonnull (1)));
