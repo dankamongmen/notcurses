@@ -97,7 +97,7 @@ TEST_CASE("FdsAndSubprocs"
 
   /*
   SUBCASE("SubprocDestroyCmdExecFails") {
-    char * const argv[] = { strdup("/should-not-exist"), nullptr, };
+    char * const argv[] = { "/should-not-exist", nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
@@ -116,7 +116,7 @@ TEST_CASE("FdsAndSubprocs"
   */
 
   SUBCASE("SubprocDestroyCmdSucceeds") {
-    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), nullptr, };
+    char const * const argv[] = { "/bin/cat", "/dev/null", nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
@@ -135,7 +135,7 @@ TEST_CASE("FdsAndSubprocs"
   // assuming the path /dev/nope doesn't exist, cat ought be successfully
   // launched (fork() and exec() both succeed), but then immediately fail.
   SUBCASE("SubprocDestroyCmdFailed") {
-    char * const argv[] = { strdup("/bin/cat"), strdup("/dev/nope"), nullptr, };
+    char const * const argv[] = { "/bin/cat", "/dev/nope", nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;
@@ -152,7 +152,7 @@ TEST_CASE("FdsAndSubprocs"
   }
 
   SUBCASE("SubprocDestroyCmdHung") {
-    char * const argv[] = { strdup("/bin/cat"), nullptr, };
+    char const * const argv[] = { "/bin/cat", nullptr, };
     bool outofline_cancelled = false;
     ncsubproc_options opts{};
     opts.curry = &outofline_cancelled;

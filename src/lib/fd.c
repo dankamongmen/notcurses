@@ -378,21 +378,22 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
 }
 
 ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
-                             const char* bin,  char* const arg[],
+                             const char* bin, const char* const arg[],
                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  return ncexecvpe(n, opts, 0, bin, arg, NULL, cbfxn, donecbfxn);
+  return ncexecvpe(n, opts, 0, bin, (char* const *)arg, NULL, cbfxn, donecbfxn);
 }
 
 ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
-                              const char* bin,  char* const arg[],
+                              const char* bin, const char* const arg[],
                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  return ncexecvpe(n, opts, 1, bin, arg, NULL, cbfxn, donecbfxn);
+  return ncexecvpe(n, opts, 1, bin, (char* const *)arg, NULL, cbfxn, donecbfxn);
 }
 
 ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
-                       const char* bin,  char* const arg[], char* const env[],
+                       const char* bin, const char* const arg[],
+                       const char* const env[],
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  return ncexecvpe(n, opts, 1, bin, arg, env, cbfxn, donecbfxn);
+  return ncexecvpe(n, opts, 1, bin, (char* const *)arg, (char* const*)env, cbfxn, donecbfxn);
 }
 
 int ncsubproc_destroy(ncsubproc* n){

@@ -4211,17 +4211,18 @@ typedef struct ncsubproc_options {
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
 API ALLOC struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
-                                              const char* bin, char* const arg[],
+                                              const char* bin, const char* const arg[],
                                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
-                                               const char* bin, char* const arg[],
+                                               const char* bin, const char* const arg[],
                                                ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API ALLOC struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
-                                                const char* bin, char* const arg[], char* const env[],
+                                                const char* bin, const char* const arg[],
+                                                const char* const env[],
                                                 ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
