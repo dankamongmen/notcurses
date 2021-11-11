@@ -976,7 +976,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
-  ret->last_pile = NULL;
+  ret->rstate.sprixels_last_drawn = NULL;
+  ret->rstate.last_pile = NULL;
   ret->rstate.f.buf = NULL;
   ret->rstate.f.used = 0;
   ret->rstate.f.size = 0;

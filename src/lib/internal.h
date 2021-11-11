@@ -57,6 +57,19 @@ struct ncvisual_details;
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
 
+typedef struct ncpile {
+  struct ncplane* top;        // topmost plane, never NULL
+  struct ncplane* bottom;     // bottommost plane, never NULL
+  struct ncplane* roots;      // head of root plane list
+  struct crender* crender;    // array (rows * cols crender objects)
+  struct notcurses* nc;       // notcurses context
+  struct ncpile *prev, *next; // circular list
+  size_t crenderlen;          // size of crender vector
+  unsigned dimy, dimx;        // rows and cols at time of last render
+  int scrolls;                // how many real lines need be scrolled at raster
+  sprixel* sprixelcache;      // list of sprixels
+} ncpile;
+
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window, and part of a pile. Each pile has a total order along
 // its z-axis. Functions update these virtual planes over a series of API
@@ -137,6 +150,12 @@ typedef struct rasterstate {
   unsigned lastbg;
   unsigned lastbb;
 
+  // the last pile we rasterized. NULL until we've rasterized once. might
+  // be invalid due to the pile being destroyed; you are only allowed to
+  // evaluate it for equality to the pile being currently rasterized. when
+  // we switch piles, we need to clear all displayed sprixels, and
+  // invalidate the new pile's, pursuant to their display.
+  ncpile* last_pile;
   // we track the sprixels that were visible as of the last rasterization,
   // so that we can clear them if the pile changes.
   sprixel_metadata* sprixels_last_drawn;
@@ -290,19 +309,6 @@ struct crender {
   } s;
 };
 
-typedef struct ncpile {
-  ncplane* top;               // topmost plane, never NULL
-  ncplane* bottom;            // bottommost plane, never NULL
-  ncplane* roots;             // head of root plane list
-  struct crender* crender;    // array (rows * cols crender objects)
-  struct notcurses* nc;       // notcurses context
-  struct ncpile *prev, *next; // circular list
-  size_t crenderlen;          // size of crender vector
-  unsigned dimy, dimx;        // rows and cols at time of last render
-  int scrolls;                // how many real lines need be scrolled at raster
-  sprixel* sprixelcache;      // list of sprixels
-} ncpile;
-
 // the standard pile can be reached through ->stdplane.
 typedef struct notcurses {
   ncplane* stdplane; // standard plane, covers screen
@@ -313,12 +319,6 @@ typedef struct notcurses {
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
   nccell* lastframe;// last rasterized framebuffer, NULL until first raster
-  // the last pile we rasterized. NULL until we've rasterized once. might
-  // be invalid due to the pile being destroyed; you are only allowed to
-  // evaluate it for equality to the pile being currently rasterized. when
-  // we switch piles, we need to clear all displayed sprixels, and
-  // invalidate the new pile's, pursuant to their display.
-  ncpile* last_pile;
   egcpool pool;   // egcpool for lastframe
 
   unsigned lfdimx; // dimensions of lastframe, unchanged by screen resize

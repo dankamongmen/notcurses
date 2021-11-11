@@ -917,7 +917,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
     loginfo("Phase 1 sprixel %u state %d loc %d/%d\n", s->meta.id,
             s->invalidated, s->n ? s->n->absy : -1, s->n ? s->n->absx : -1);
     if(s->invalidated == SPRIXEL_QUIESCENT){
-      if(p != nc->last_pile){
+      if(p != nc->rstate.last_pile){
         s->invalidated = SPRIXEL_UNSEEN;
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
@@ -941,7 +941,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
              s->invalidated == SPRIXEL_INVALIDATED){
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
-        if(p != nc->last_pile){
+        if(p != nc->rstate.last_pile){
           s->invalidated = SPRIXEL_UNSEEN;
         }else{
           if(s->n->absx == s->meta.movedfromx){
@@ -1378,7 +1378,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, fbuf* f){
       ret = -1;
     }
   }
-  nc->last_pile = p;
+  nc->rstate.last_pile = p;
   return ret;
 }
 
