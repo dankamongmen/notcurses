@@ -32,7 +32,7 @@ TEST_CASE("Selectors") {
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(5 == dimx);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("TitledSelector") {
@@ -57,7 +57,7 @@ TEST_CASE("Selectors") {
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(6 == dimy);
     CHECK(strlen(opts.title) + 4 == dimx);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("SecondarySelector") {
@@ -82,7 +82,7 @@ TEST_CASE("Selectors") {
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(strlen(opts.secondary) + 2 == dimx);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("FooterSelector") {
@@ -107,7 +107,7 @@ TEST_CASE("Selectors") {
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(4 == dimy);
     CHECK(strlen(opts.footer) + 2 == dimx);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("PopulatedSelector") {
@@ -137,7 +137,7 @@ TEST_CASE("Selectors") {
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(7 == dimy);
     CHECK(15 < dimx);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("EmptySelectorMovement") {
@@ -162,7 +162,7 @@ TEST_CASE("Selectors") {
     sel = ncselector_previtem(ncs);
     REQUIRE(nullptr == sel);
     CHECK(0 == notcurses_render(nc_));
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   SUBCASE("SelectorMovement") {
@@ -207,7 +207,7 @@ TEST_CASE("Selectors") {
     REQUIRE(nullptr != sel);
     CHECK(0 == strcmp(sel, items[0].option));
     CHECK(0 == notcurses_render(nc_));
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   // Provide three items, limited to 1 shown at a time
@@ -259,7 +259,7 @@ TEST_CASE("Selectors") {
     unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(5 == dimy);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   // Provide three items, limited to 2 shown at a time
@@ -310,7 +310,7 @@ TEST_CASE("Selectors") {
     unsigned dimy, dimx;
     ncplane_dim_yx(ncsp, &dimy, &dimx);
     CHECK(6 == dimy);
-    ncselector_destroy(ncs, nullptr);
+    ncselector_destroy(ncs);
   }
 
   CHECK(0 == notcurses_stop(nc_));

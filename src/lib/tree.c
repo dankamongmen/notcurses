@@ -117,6 +117,7 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
     }
     ret->items.ncp = n;
     ret->items.curry = NULL;
+    ncplane_set_widget(n, ret, (void(*)(void*))nctree_destroy);
     nctree_redraw(ret);
   }
   return ret;
@@ -153,6 +154,9 @@ error:
 void nctree_destroy(nctree* n){
   if(n){
     free_tree_items(&n->items);
+    if(ncplane_set_widget(n->items.ncp, NULL, NULL) == 0){
+      ncplane_destroy(n->items.ncp);
+    }
     free(n->currentpath);
     free(n);
   }

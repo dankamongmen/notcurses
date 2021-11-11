@@ -223,6 +223,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     }
   }
   nctabbed_redraw(nt);
+  ncplane_set_widget(nt->p, nt, (void(*)(void*))nctabbed_destroy);
   return nt;
 }
 
@@ -424,7 +425,9 @@ void nctabbed_destroy(nctabbed* nt){
     free(t);
     t = tmp;
   }
-  ncplane_destroy_family(nt->ncp);
+  if(ncplane_set_widget(nt->ncp, NULL, NULL) == 0){
+    ncplane_destroy_family(nt->ncp);
+  }
   free(nt->opts.separator);
   free(nt);
 }

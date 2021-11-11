@@ -781,6 +781,7 @@ ncreel* ncreel_create(ncplane* n, const ncreel_options* ropts){
     free(nr);
     return NULL;
   }
+  ncplane_set_widget(nr->p, nr, (void(*)(void*))ncreel_destroy);
   return nr;
 }
 
@@ -857,7 +858,9 @@ void ncreel_destroy(ncreel* nreel){
     while( (t = nreel->tablets) ){
       ncreel_del(nreel, t);
     }
-    ncplane_destroy(nreel->p);
+    if(ncplane_set_widget(nreel->p, NULL, NULL) == 0){
+      ncplane_destroy(nreel->p);
+    }
     free(nreel);
   }
 }

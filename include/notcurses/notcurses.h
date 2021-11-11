@@ -3608,9 +3608,8 @@ API const char* ncselector_nextitem(struct ncselector* n)
 API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc)
   __attribute__ ((nonnull (1, 2)));
 
-// Destroy the ncselector. If 'item' is not NULL, the last selected option will
-// be strdup()ed and assigned to '*item' (and must be free()d by the caller).
-API void ncselector_destroy(struct ncselector* n, char** item);
+// Destroy the ncselector.
+API void ncselector_destroy(struct ncselector* n);
 
 struct ncmselector_item {
   const char* option;
@@ -3825,7 +3824,7 @@ API bool ncmenu_offer_input(struct ncmenu* n, const ncinput* nc)
   __attribute__ ((nonnull (1, 2)));
 
 // Destroy a menu created with ncmenu_create().
-API int ncmenu_destroy(struct ncmenu* n);
+API void ncmenu_destroy(struct ncmenu* n);
 
 // Progress bars. They proceed linearly in any of four directions. The entirety
 // of the plane will be used -- any border should be provided by the caller on
