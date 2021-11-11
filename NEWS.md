@@ -26,6 +26,7 @@ rearrangements of Notcurses.
     origin coordinates. All now interpret their `unsigned` argument as
     lengths rather than closing coordinates, observing the same semantics as
     outlined above.
+  * `ncplayer` now defaults to pixel blitting.
 
 * 2.4.9 (2021-11-11)
   * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`

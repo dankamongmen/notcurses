@@ -14,9 +14,7 @@ ncplayer - Render images and video to a terminal
 
 **ncplayer** uses a multimedia-enabled Notcurses to render images and videos to a
 terminal. By default, **stretch**-type scaling is used to fill the rendering
-area, and the **sex**-type blitter is used (where known to work well) for a
-3x2→1 mapping from pixels to cells. In a terminal that doesn't support Unicode
-13 sextants, the **quadblitter** is used instead.
+area, and the highest-quality blitter available is employed.
 
 # OPTIONS
 
@@ -60,14 +58,12 @@ Negative margins are illegal.
 
 Scaling mode **stretch** resizes the object to match the target rendering
 area exactly. Unless a blitter is specified with **-b**, **stretch** will use
-the highest-resolution non-pixel blitter available. **scale** resizes the
-object so that the longer edge of the rendering area is matched exactly, and
-the other edge is changed to maintain aspect ratio. **none** uses the original
-image size. Both **scale** and **none** aim for a 1:1 aspect ratio, and default
-to **NCBLIT_2x1** at the cost of some potential resolution. The alternatives
-**scalehi** and **hires** use the highest-resolution non-pixel blitter
-available. Pixel blitting is never performed unless explicitly requested with
-**-bpixel**.
+the highest-resolution blitter available. **scale** resizes the object so that
+the longer edge of the rendering area is matched exactly, and the other edge is
+changed to maintain aspect ratio. **none** uses the original image size. Both
+**scale** and **none** aim for a 1:1 aspect ratio, and will thus prefer **half**
+to **quad**, **sex**, or **braille**. **scalehi** and **hires** use the
+highest-resolution blitter available.
 
 Blitters can be selected at runtime by pressing '0' through '6'.
 **NCBLIT_DEFAULT** corresponds to '0'. The various blitters are described in

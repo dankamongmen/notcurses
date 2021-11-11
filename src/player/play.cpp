@@ -208,8 +208,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         break;
       case 'b':
         if(notcurses_lex_blitter(optarg, blitter)){
-          std::cerr << "Invalid blitter specification (got "
-                    << optarg << ")" << std::endl;
+          std::cerr << "Invalid blitter specification (got " << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         break;
@@ -507,7 +506,7 @@ auto main(int argc, char** argv) -> int {
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
-  ncblitter_e blitter = NCBLIT_DEFAULT;
+  ncblitter_e blitter = NCBLIT_PIXEL;
   uint32_t transcolor = 0;
   bool quiet = false;
   bool loop = false;
