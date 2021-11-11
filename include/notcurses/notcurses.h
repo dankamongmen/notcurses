@@ -2413,9 +2413,9 @@ API int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
   __attribute__ ((nonnull (1)));
 
 // Set the given style throughout the specified region, keeping content and
-// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// channels unchanged. The upper left corner is at 'y', 'x', and -1 may be
 // specified to indicate the cursor's position in that dimension. The lower
-// right corner is specified by 'xstop', 'ystop'. It is an error for any
+// right corner is specified by 'ystop', 'xstop'. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
 API int ncplane_format(struct ncplane* n, int y, int x, unsigned ystop,
@@ -3456,7 +3456,7 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 // buffer to generate up to |NC[IB]?PREFIXCOLUMNS| columns' worth of EGCs. The
 // characteristic can occupy up through |mult-1| characters (3 for 1000, 4 for
 // 1024). The mantissa can occupy either zero or two characters.
-//
+
 // snprintf(3) is used internally, with 's' as its size bound. If the output
 // requires more size than is available, NULL will be returned.
 //
@@ -3485,7 +3485,7 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. NCPREFIXCOLUMNS
 // is the maximum number of columns used by a mult == 1000 (standard)
 // ncnmetric() call. NCIPREFIXCOLUMNS is the maximum number of columns used by a
-// mult == 1024 (digital information) ncmetric(). NCBPREFIXSTRLEN is the maximum
+// mult == 1024 (digital information) ncnmetric(). NCBPREFIXSTRLEN is the maximum
 // number of columns used by a mult == 1024 call making use of the 'i' suffix.
 // This is the true number of columns; to set up a printf()-style maximum
 // field width, you should use NC[IB]PREFIXFMT (see below).
