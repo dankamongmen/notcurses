@@ -11,7 +11,7 @@ extern "C" {
 
 // Rather than using one of the Private Use Areas of Unicode, we use the area
 // beyond the 17 65536-entry Planes (1114112). We round up to 5000 so that it's
-// trivial to idenfity synthesized characters based on their numeric definition
+// trivial to identify synthesized characters based on their numeric definition
 // here. This is safe, since we needn't convert these synthesized characters
 // into UTF8 (they would otherwise require more than four bytes).
 #define PRETERUNICODEBASE 1115000

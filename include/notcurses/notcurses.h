@@ -1054,8 +1054,8 @@ API void notcurses_drop_planes(struct notcurses* nc)
 // Unicode codepoint, *not* an entire Extended Grapheme Cluster. It is also
 // possible that we will read a special keypress, i.e. anything that doesn't
 // correspond to a Unicode codepoint (e.g. arrow keys, function keys, screen
-// resize events, etc.). These are mapped into Unicode's Supplementary
-// Private Use Area-B, starting at U+100000. See <notcurses/nckeys.h>.
+// resize events, etc.). These are mapped into a Unicode's area beyond the
+// 17 65536-entry Planes, starting at U+1115000. See <notcurses/nckeys.h>.
 //
 // notcurses_get_nblock() is nonblocking. notcurses_get_blocking() blocks
 // until a codepoint or special key is read, or until interrupted by a signal.
