@@ -624,7 +624,7 @@ NcPlane_putegc_yx(NcPlaneObject *self, PyObject *args)
 {
     int y = 0, x = 0;
     const char *egc = NULL;
-    int sbytes = 0;
+    size_t sbytes = 0;
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iis",
                                        &y, &x,
@@ -632,35 +632,35 @@ NcPlane_putegc_yx(NcPlaneObject *self, PyObject *args)
 
     CHECK_NOTCURSES(ncplane_putegc_yx(self->ncplane_ptr, y, x, egc, &sbytes));
 
-    return Py_BuildValue("i", sbytes);
+    return Py_BuildValue("n", sbytes);
 }
 
 static PyObject *
 NcPlane_putegc(NcPlaneObject *self, PyObject *args)
 {
     const char *egc = NULL;
-    int sbytes = 0;
+    size_t sbytes = 0;
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                        &egc));
 
     CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
 
-    return Py_BuildValue("i", sbytes);
+    return Py_BuildValue("n", sbytes);
 }
 
 static PyObject *
 NcPlane_putegc_stained(NcPlaneObject *self, PyObject *args)
 {
     const char *egc = NULL;
-    int sbytes = 0;
+    size_t sbytes = 0;
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                        &egc));
 
     CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
 
-    return Py_BuildValue("i", sbytes);
+    return Py_BuildValue("n", sbytes);
 }
 
 static PyObject *
