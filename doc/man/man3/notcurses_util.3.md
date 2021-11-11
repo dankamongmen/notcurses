@@ -1,6 +1,6 @@
 % notcurses_util(3)
 % nick black <nickblack@linux.com>
-% v2.4.8
+% v2.4.9
 
 # NAME
 

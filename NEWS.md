@@ -1,17 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.0 (not yet released) **"In the A"**
-  * Made the ABI changes that have been planned/collected during 2.x
-    development. This primarily involved removing deprecated functions,
-    and making some `static inline` (and thus no longer linkable symbols).
-    There have been a few small renamings (i.e. `ncplane_pixelgeom()` to
-    `ncplane_pixel_geom()`) for purposes of regularity. The only thing removed
-    without an obvious replacement is the `renderfp` field of
-    `notcurses_options`, for which I make no apology. If you've been avoiding
-    deprecated functionality, ABI3 ought require small changes, if any.
-
-* 2.4.9 (not yet released)
+* 2.4.9 (2021-11-11)
+  * **This is the last release planned from the 2.x.x branch.
+      The next release is expected to be 3.0.0, and will be
+      an ABI+API break. Try to move away from any deprecated
+      functionality ASAP.**
   * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
     `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which
     have been deprecated, and will be removed in ABI3.
