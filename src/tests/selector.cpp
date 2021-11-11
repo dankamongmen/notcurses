@@ -37,7 +37,7 @@ TEST_CASE("Selectors") {
 
   SUBCASE("TitledSelector") {
     struct ncselector_options opts{};
-    auto title = strdup("hey hey whaddya say");
+    auto title = "hey hey whaddya say";
     opts.title = title;
     struct ncplane_options nopts = {
       .y = 0,
@@ -58,12 +58,11 @@ TEST_CASE("Selectors") {
     CHECK(6 == dimy);
     CHECK(strlen(opts.title) + 4 == dimx);
     ncselector_destroy(ncs, nullptr);
-    free(title);
   }
 
   SUBCASE("SecondarySelector") {
     struct ncselector_options opts{};
-    auto secondary = strdup("this is not a title, but it's not *not* a title");
+    auto secondary = "this is not a title, but it's not *not* a title";
     opts.secondary = secondary;
     struct ncplane_options nopts = {
       .y = 0,
@@ -84,12 +83,11 @@ TEST_CASE("Selectors") {
     CHECK(4 == dimy);
     CHECK(strlen(opts.secondary) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
-    free(secondary);
   }
 
   SUBCASE("FooterSelector") {
     struct ncselector_options opts{};
-    auto foot = strdup("i am a lone footer, little old footer");
+    auto foot = "i am a lone footer, little old footer";
     opts.footer = foot;
     struct ncplane_options nopts = {
       .y = 0,
@@ -110,14 +108,13 @@ TEST_CASE("Selectors") {
     CHECK(4 == dimy);
     CHECK(strlen(opts.footer) + 2 == dimx);
     ncselector_destroy(ncs, nullptr);
-    free(foot);
   }
 
   SUBCASE("PopulatedSelector") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { "op1", "this is option 1", },
+      { "2ndop", "this is option #2", },
+      { "tres", "option the third", },
       { NULL, NULL, },
     };
     struct ncselector_options opts{};
@@ -170,9 +167,9 @@ TEST_CASE("Selectors") {
 
   SUBCASE("SelectorMovement") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { "op1", "this is option 1", },
+      { "2ndop", "this is option #2", },
+      { "tres", "option the third", },
       { NULL, NULL, },
     };
     struct ncselector_options opts{};
@@ -216,9 +213,9 @@ TEST_CASE("Selectors") {
   // Provide three items, limited to 1 shown at a time
   SUBCASE("ScrollingSelectorOne") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { "op1", "this is option 1", },
+      { "2ndop", "this is option #2", },
+      { "tres", "option the third", },
       { NULL, NULL, },
     };
     struct ncselector_options opts{};
@@ -268,9 +265,9 @@ TEST_CASE("Selectors") {
   // Provide three items, limited to 2 shown at a time
   SUBCASE("ScrollingSelectorTwo") {
     ncselector_item items[] = {
-      { strdup("op1"), strdup("this is option 1"), },
-      { strdup("2ndop"), strdup("this is option #2"), },
-      { strdup("tres"), strdup("option the third"), },
+      { "op1", "this is option 1", },
+      { "2ndop", "this is option #2", },
+      { "tres", "option the third", },
       { NULL, NULL, },
     };
     struct ncselector_options opts{};
