@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <locale.h>
+#include <strings.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/param.h>
