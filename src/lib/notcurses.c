@@ -346,6 +346,13 @@ ncpile_destroy(ncpile* pile){
 
 void free_plane(ncplane* p){
   if(p){
+    if(p->widget){
+      void* w = p->widget;
+      void (*wdestruct)(void*) = p->wdestruct;
+      p->widget = NULL;
+      p->wdestruct = NULL;
+      wdestruct(w);
+    }
     // ncdirect fakes an ncplane with no ->pile
     if(ncplane_pile(p)){
       notcurses* nc = ncplane_notcurses(p);
@@ -444,6 +451,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   p->scrolling = false;
   p->fixedbound = nopts->flags & NCPLANE_OPTION_FIXED;
+  p->widget = NULL;
+  p->wdestruct = NULL;
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     p->margin_b = nopts->margin_b;
     p->margin_r = nopts->margin_r;

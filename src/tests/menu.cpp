@@ -76,7 +76,7 @@ TEST_CASE("Menu") {
     ncmenu_destroy(ncm);
   }
 
-  // don't call ncmenu_destroy(), invoking destruction in notcurses_stop()
+  // don't call ncmenu_destroy(), invoking destruction in notcurses_stop().
   SUBCASE("MenuNoFree") {
     struct ncmenu_item file_items[] = {
       { .desc = "I would like a new file", .shortcut = ncinput(), },

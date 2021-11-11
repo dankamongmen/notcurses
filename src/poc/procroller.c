@@ -54,7 +54,8 @@ int main(int argc, char** argv){
   struct ncplane* std = notcurses_stdplane(nc);
   ncplane_set_scrolling(std, true);
   ncsubproc_options nopts = {};
-  struct ncsubproc* nsproc = ncsubproc_createvp(std, &nopts, *argv, argv, cb, eofcb);
+  struct ncsubproc* nsproc = ncsubproc_createvp(std, &nopts, *argv,
+                              (const char* const*)argv, cb, eofcb);
   if(nsproc == NULL){
     notcurses_stop(nc);
     return EXIT_FAILURE;
