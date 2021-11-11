@@ -113,6 +113,12 @@ typedef struct ncplane {
   int margin_b, margin_r;// bottom and right margins, stored for resize
   bool scrolling;        // is scrolling enabled? always disabled by default
   bool fixedbound;       // are we fixed relative to the parent's scrolling?
+
+  // we need to track any widget to which we are bound, so that (1) we don't
+  // end up bound to two widgets and (2) we can clean them up on shutdown
+  // (assuming they weren't explicitly cleaned up by the client).
+  void* widget;            // widget to which we are bound, can be NULL
+  void(*wdestruct)(void*); // widget destructor, NULL iff widget is NULL
 } ncplane;
 
 // current presentation state of the terminal. it is carried across render
@@ -428,7 +434,25 @@ ncplane_stdplane_const(const ncplane* n){
   return notcurses_stdplane_const(ncplane_notcurses_const(n));
 }
 
-// initialize libav
+// set the plane's widget and wdestruct fields, returning non-zero if they're
+// already non-NULL (i.e. if the plane is already bound), unless we pass NULL
+// (which ought be done from the widget destructor, to avoid corecursion).
+static inline int
+ncplane_set_widget(ncplane* n, void* w, void(*wdestruct)(void*)){
+  if(n->widget){
+    if(w){
+      logerror("plane is already bound to a widget\n");
+      return -1;
+    }
+  }else if(w == NULL){
+    return -1;
+  }
+  n->widget = w;
+  n->wdestruct = wdestruct;
+  return 0;
+}
+
+// initialize visualization backend (ffmpeg/oiio)
 int ncvisual_init(int loglevel);
 
 static inline int
