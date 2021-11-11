@@ -125,7 +125,6 @@ draw_eagle(struct ncplane* n, const char* sprite){
   ncplane_set_base_cell(n, &bgc);
   nccell_release(n, &bgc);
   size_t s;
-  int sbytes;
   for(s = 0 ; sprite[s] ; ++s){
     switch(sprite[s]){
       case '0':
@@ -146,7 +145,7 @@ draw_eagle(struct ncplane* n, const char* sprite){
       b = ncplane_bg_rgb(n);
       ncplane_set_fg_rgb(n, b);
       ncplane_set_bg_rgb(n, f);
-      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", &sbytes) != 1){
+      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", NULL) != 1){
         return -1;
       }
       ncplane_set_fg_rgb(n, f);

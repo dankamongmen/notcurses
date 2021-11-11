@@ -91,10 +91,9 @@ notcurses_stop_minimal(void* vnc){
   if(cnorm && fbuf_emit(f, cnorm)){
     ret = -1;
   }
-  if(blocking_write(fileno(nc->ttyfp), f->buf, f->used)){
+  if(fbuf_flush(f, nc->ttyfp)){
     ret = -1;
   }
-  fbuf_reset(f);
   if(nc->tcache.ttyfd >= 0){
     ret |= notcurses_mice_disable(nc);
     if(nc->tcache.tpreserved){
@@ -1684,7 +1683,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
 
-int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes){
+int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, size_t* sbytes){
   int cols;
   int bytes = utf8_egc_len(gclust, &cols);
   if(bytes < 0){
@@ -1709,7 +1708,7 @@ int ncplane_putchar_stained(ncplane* n, char c){
   return ret;
 }
 
-int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
+int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, size_t* sbytes){
   uint64_t channels = n->channels;
   uint16_t stylemask = n->stylemask;
   const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
@@ -1721,7 +1720,7 @@ int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
   return ret;
 }
 
-int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
+int ncplane_putegc_stained(ncplane* n, const char* gclust, size_t* sbytes){
   uint64_t channels = n->channels;
   uint16_t stylemask = n->stylemask;
   const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];

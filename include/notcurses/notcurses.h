@@ -1956,17 +1956,18 @@ API int ncplane_putchar_stained(struct ncplane* n, char c);
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned. The number of bytes converted from gclust is
 // written to 'sbytes' if non-NULL.
-API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
+API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
+                          size_t* sbytes);
 
 // Call ncplane_putegc_yx() at the current cursor location.
 static inline int
-ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
+ncplane_putegc(struct ncplane* n, const char* gclust, size_t* sbytes){
   return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
 }
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbytes);
+API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, size_t* sbytes);
 
 // 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
 #define WCHAR_MAX_UTF8BYTES 4
@@ -1995,7 +1996,7 @@ ncwcsrtombs(const wchar_t* src){
 
 // ncplane_putegc(), but following a conversion from wchar_t to UTF-8 multibyte.
 static inline int
-ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
+ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, size_t* sbytes){
   char* mbstr = ncwcsrtombs(gclust);
   if(mbstr == NULL){
     return -1;
@@ -2008,7 +2009,7 @@ ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes){
 // Call ncplane_putwegc() after successfully moving to y, x.
 static inline int
 ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
-                   int* sbytes){
+                   size_t* sbytes){
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
@@ -2017,7 +2018,7 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* sbytes);
+API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, size_t* sbytes);
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -2029,7 +2030,7 @@ static inline int
 ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
   int ret = 0;
   while(*gclusters){
-    int wcs;
+    size_t wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
 //fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
     if(cols < 0){
@@ -2071,7 +2072,7 @@ static inline int
 ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
   int ret = 0;
   while(*gclusters){
-    int wcs;
+    size_t wcs;
     int cols = ncplane_putegc_stained(n, gclusters, &wcs);
     if(cols < 0){
       return -ret;
@@ -2100,7 +2101,7 @@ ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclust
   int offset = 0;
 //fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   while((size_t)offset < s && gclusters[offset]){
-    int wcs;
+    size_t wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
     if(cols < 0){
       return -ret;

@@ -170,7 +170,7 @@ drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
     free(ncplane_at_yx(std, endy, endx, NULL, channels));
     ncplane_set_bg_rgb(std, ncchannels_bg_rgb(*channels));
     ncplane_set_fg_rgb(std, 0xffffff);
-    int sbytes;
+    size_t sbytes;
     if(ncplane_putegc_yx(std, endy, endx, cstr + offset, &sbytes) < 0){
       return -1;
     }

@@ -30,7 +30,7 @@ int main(void){
   const char *b = brew;
   for(unsigned y = dimy / 2 + 2 ; y < dimy ; ++y){
     for(unsigned x = 0 ; x < dimx ; ++x){
-      int bytes;
+      size_t bytes;
       if(ncplane_putegc_yx(n, y, x, b, &bytes) <= 0){
         break;
       }

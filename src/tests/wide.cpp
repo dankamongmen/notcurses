@@ -19,8 +19,7 @@ TEST_CASE("Wide") {
   // Verify we can emit a wide character, and it advances the cursor by 2
   SUBCASE("EmitWideAsian") {
     const char* w = "\u5168";
-    int sbytes = 0;
-    CHECK(0 < ncplane_putegc(n_, w, &sbytes));
+    CHECK(0 < ncplane_putegc(n_, w, nullptr));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -31,16 +30,15 @@ TEST_CASE("Wide") {
   // Verify a wide character is rejected with cursor on the last column
   SUBCASE("RejectWideAsian") {
     const char* w = "\u5168";
-    int sbytes = 0;
     unsigned dimx;
     ncplane_dim_yx(n_, nullptr, &dimx);
-    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, nullptr));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(dimx - 1 == x);
     // now it ought be rejected
-    CHECK(0 > ncplane_putegc(n_, w, &sbytes));
+    CHECK(0 > ncplane_putegc(n_, w, nullptr));
     // cursor ought remain where it was
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -51,11 +49,10 @@ TEST_CASE("Wide") {
   // Verify a wide character is rejected when placed on the last column
   SUBCASE("RejectWideAsianPlaced") {
     const char* w = "\u5168";
-    int sbytes = 0;
     unsigned dimx;
     ncplane_dim_yx(n_, nullptr, &dimx);
     // now it ought be rejected
-    CHECK(0 > ncplane_putegc_yx(n_, 0, dimx - 1, w, &sbytes));
+    CHECK(0 > ncplane_putegc_yx(n_, 0, dimx - 1, w, nullptr));
     // cursor ought remain where it was
     unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
@@ -113,14 +110,13 @@ TEST_CASE("Wide") {
     const char* w = FROG;
     const char* wbashed = SCORPION;
     const char bashed = 'X';
-    int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 1, wbashed, nullptr));
     CHECK(0 < ncplane_putchar_yx(n_, 1, 1, bashed));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(1 == y);
     CHECK(2 == x);
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, nullptr));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < nccell_load(n_, &c, w));
     CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
@@ -143,10 +139,9 @@ TEST_CASE("Wide") {
   SUBCASE("WideCharAnnihilatesWideLeft") {
     const char* w = SNAKE;
     const char* wbashed = SCORPION;
-    int sbytes = 0;
-    int cols1 = ncplane_putegc_yx(n_, 0, 0, wbashed, &sbytes);
+    int cols1 = ncplane_putegc_yx(n_, 0, 0, wbashed, nullptr);
     CHECK(0 < cols1);
-    int cols2 = ncplane_putegc_yx(n_, 0, 1, w, &sbytes);
+    int cols2 = ncplane_putegc_yx(n_, 0, 1, w, nullptr);
     CHECK(0 < cols2);
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -170,9 +165,8 @@ TEST_CASE("Wide") {
     const char* cc = "X";
     const char* wbashedl = SNAKE;
     const char* wbashedr = SCORPION;
-    int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wbashedl, nullptr));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 2, wbashedr, nullptr));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 1, *cc));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
     unsigned x, y;
@@ -201,9 +195,8 @@ TEST_CASE("Wide") {
     const char* cc = "X";
     const char* wsafel = SNAKE;
     const char* wsafer = SCORPION;
-    int sbytes = 0;
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, &sbytes));
-    CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, &sbytes));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 0, wsafel, nullptr));
+    CHECK(0 < ncplane_putegc_yx(n_, 0, 3, wsafer, nullptr));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 2, *cc));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -422,8 +415,7 @@ TEST_CASE("Wide") {
     nccell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
     ncplane_set_bg_rgb8(n_, 0x20, 0x20, 0x20);
-    int sbytes;
-    CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", &sbytes));
+    CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", nullptr));
     uint64_t channels = 0;
     ncchannels_set_bg_alpha(&channels, NCALPHA_BLEND);
     ncchannels_set_bg_rgb8(&channels, 0x80, 0xf0, 0x10);

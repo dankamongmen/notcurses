@@ -526,7 +526,7 @@ namespace ncpp
 			return error_guard<int> (ncplane_putchar_yx (plane, y, x, c), -1);
 		}
 
-		int putc (const char *gclust, int *sbytes = nullptr, bool retain_styling = false) const NOEXCEPT_MAYBE
+		int putc (const char *gclust, size_t *sbytes = nullptr, bool retain_styling = false) const NOEXCEPT_MAYBE
 		{
 			int ret;
 			if (retain_styling) {
@@ -538,12 +538,12 @@ namespace ncpp
 			return error_guard<int> (ret, -1);
 		}
 
-		int putc (int y, int x, const char *gclust, int *sbytes = nullptr) const NOEXCEPT_MAYBE
+		int putc (int y, int x, const char *gclust, size_t *sbytes = nullptr) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putegc_yx (plane, y, x, gclust, sbytes), -1);
 		}
 
-		int putc (const wchar_t *gclust, int *sbytes = nullptr, bool retain_styling = false) const NOEXCEPT_MAYBE
+		int putc (const wchar_t *gclust, size_t *sbytes = nullptr, bool retain_styling = false) const NOEXCEPT_MAYBE
 		{
 			int ret;
 			if (retain_styling) {
@@ -555,7 +555,7 @@ namespace ncpp
 			return error_guard<int> (ret, -1);
 		}
 
-		int putc (int y, int x, const wchar_t *gclust, int *sbytes = nullptr) const NOEXCEPT_MAYBE
+		int putc (int y, int x, const wchar_t *gclust, size_t *sbytes = nullptr) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putwegc_yx (plane, y, x, gclust, sbytes), -1);
 		}

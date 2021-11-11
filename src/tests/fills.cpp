@@ -53,7 +53,7 @@ TEST_CASE("Fills") {
     CHECK(0 < ncplane_putc_yx(pfn, 0, 0, &c));
     CHECK(0 < nccell_load(pfn, &c, "/"));
     CHECK(0 < ncplane_polyfill_yx(pfn, 0, 0, &c));
-    char* ncpc = ncplane_at_yx(pfn, 0, 0, NULL, NULL);
+    char* ncpc = ncplane_at_yx(pfn, 0, 0, nullptr, nullptr);
     CHECK(0 == strcmp(ncpc, "/"));
     free(ncpc);
     CHECK(0 == notcurses_render(nc_));
@@ -241,11 +241,10 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("Format") {
-    int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
-    CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
+    CHECK(1 == ncplane_putegc(n_, "A", nullptr));
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x888888));
-    CHECK(1 == ncplane_putegc(n_, "B", &sbytes));
+    CHECK(1 == ncplane_putegc(n_, "B", nullptr));
     CHECK(0 == notcurses_render(nc_));
     // attr should change, but not the EGC/color
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
@@ -259,11 +258,10 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("Stain") {
-    int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
     for(unsigned y = 0 ; y < 8 ; ++y){
       for(unsigned x = 0 ; x < 8 ; ++x){
-        CHECK(1 == ncplane_putegc_yx(n_, y, x, "A", &sbytes));
+        CHECK(1 == ncplane_putegc_yx(n_, y, x, "A", nullptr));
       }
     }
     CHECK(0 == notcurses_render(nc_));
@@ -286,9 +284,8 @@ TEST_CASE("Fills") {
 
   // test the single-cell (1x1) special case
   SUBCASE("GradientSingleCell") {
-    int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
-    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", &sbytes));
+    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", nullptr));
     CHECK(0 == notcurses_render(nc_));
     uint64_t channels = 0;
     ncchannels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
@@ -304,9 +301,8 @@ TEST_CASE("Fills") {
 
   // 1d gradients over multiple cells
   SUBCASE("Gradient1D") {
-    int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
-    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", &sbytes));
+    CHECK(1 == ncplane_putegc_yx(n_, 0, 0, "A", nullptr));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t chan1 = 0, chan2 = 0;

@@ -116,7 +116,6 @@ draw_luigi(struct ncplane* n, const char* sprite){
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
   size_t s;
-  int sbytes;
   // optimization so we can elide more color changes, see README's "#perf"
   ncplane_set_bg_rgb8(n, 0x00, 0x00, 0x00);
   for(s = 0 ; sprite[s] ; ++s){
@@ -134,7 +133,7 @@ draw_luigi(struct ncplane* n, const char* sprite){
         break;
     }
     if(sprite[s] != '0'){
-      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", &sbytes) != 1){
+      if(ncplane_putegc_yx(n, s / 16, s % 16, " ", NULL) != 1){
         return -1;
       }
     }

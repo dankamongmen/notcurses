@@ -2,7 +2,7 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 3.0.0 (not yet released) **"In the A"**
-  * Made the ABI changes that have been planned/collected during 2.x
+  * Made the ABI/API changes that have been planned/collected during 2.x
     development. This primarily involved removing deprecated functions,
     and making some `static inline` (and thus no longer linkable symbols).
     There have been a few small renamings (i.e. `ncplane_pixelgeom()` to
@@ -34,7 +34,6 @@ rearrangements of Notcurses.
     `ncqprefix()`, `ncbprefix()`, and `nciprefix()`, respectively.
     All related constants have been prefixed with `NC`, and the old
     definitions will be removed for abi3.
-    The former forms have been deprecated, and will be removed in abi3.
   * `notcurses_mice_enable()` and `notcurses_mouse_disable()` replace
     `notcurses_mouse_enable()` and `notcurses_mouse_disable()`, which
     have been deprecated, and will be removed in ABI3.

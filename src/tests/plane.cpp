@@ -138,8 +138,7 @@ TEST_CASE("Plane") {
   // Verify we can emit a wchar_t, and it advances the cursor
   SUBCASE("EmitWcharT") {
     const wchar_t* w = L"✔";
-    int sbytes = 0;
-    CHECK(0 < ncplane_putwegc(n_, w, &sbytes));
+    CHECK(0 < ncplane_putwegc(n_, w, nullptr));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
@@ -761,8 +760,7 @@ TEST_CASE("Plane") {
   SUBCASE("RightToLeft") {
     // give us some room on both sides
     CHECK(0 == ncplane_cursor_move_yx(n_, 1, 5));
-    int sbytes = -1;
-    CHECK(0 < ncplane_putegc(n_, "־", &sbytes));
+    CHECK(0 < ncplane_putegc(n_, "־", nullptr));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 3, 5));
     CHECK(0 < ncplane_putstr(n_, "I write English + מילים בעברית together."));
@@ -833,17 +831,16 @@ TEST_CASE("Plane") {
 
   SUBCASE("EGCStained") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    int sbytes;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
-    CHECK(1 == ncplane_putegc(n_, "A", &sbytes));
+    CHECK(1 == ncplane_putegc(n_, "A", nullptr));
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x888888));
-    CHECK(1 == ncplane_putegc(n_, "B", &sbytes));
+    CHECK(1 == ncplane_putegc(n_, "B", nullptr));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     CHECK(0 == notcurses_render(nc_));
     // EGC should change, but not the color
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x222222));
-    CHECK(1 == ncplane_putegc_stained(n_, "C", &sbytes));
-    CHECK(1 == ncplane_putegc_stained(n_, "D", &sbytes));
+    CHECK(1 == ncplane_putegc_stained(n_, "C", nullptr));
+    CHECK(1 == ncplane_putegc_stained(n_, "D", nullptr));
     uint64_t channels = 0;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(cell_simple_p(&c));

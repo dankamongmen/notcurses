@@ -139,7 +139,7 @@ emoji_viz(struct ncplane* n){
                               "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f" // type-3 woman playing water polo
                               ;
   ncplane_set_bg_rgb(n, 0);
-  int bytes;
+  size_t bytes;
   for(const char* e = emoji ; *e ; e += bytes){
     if(ncplane_putegc(n, e, &bytes) < 0){
       if(ncplane_putchar(n, ' ') < 0){
