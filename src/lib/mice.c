@@ -32,6 +32,9 @@ int mouse_setup(tinfo* ti, unsigned eventmask){
   }else if(eventmask & NCMICE_BUTTON_EVENT){
     ti->mouseproto = '0'; // SET_X11_MOUSE_PROT
   }else if(eventmask == 0){
+    if(ti->mouseproto == 0){
+      return 0;
+    }
     command = 'l';
   }
 // Sets the shift-escape option, allowing shift+mouse to override the standard
@@ -40,6 +43,9 @@ int mouse_setup(tinfo* ti, unsigned eventmask){
   char mousecmd[] = XTSHIFTESCAPE "\x1b[?100x;" SET_SGR_MOUSE_PROT "x";
   mousecmd[11] = ti->mouseproto;
   mousecmd[17] = command;
+  if(command == 'l'){
+    ti->mouseproto = 0;
+  }
   return tty_emit(mousecmd, ti->ttyfd);
 #undef XTSHIFTESCAPE
 }
