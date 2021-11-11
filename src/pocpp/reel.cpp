@@ -214,7 +214,8 @@ int main(int argc, char** argv){
   auto nstd = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane* n;
   if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
-    return -1;
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
   }
   struct ncplane_options nopts = {
     .y = 1,
@@ -229,10 +230,12 @@ int main(int argc, char** argv){
   };
   n = ncplane_create(nstd, &nopts);
   if(!n){
-    return -1;
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
   }
   if(ncplane_set_fg_rgb8(n, 0xb1, 0x1b, 0xb1)){
-    return -1;
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
   }
   ncchannels_set_fg_rgb(&ropts.focusedchan, 0xffffff);
   ncchannels_set_bg_rgb(&ropts.focusedchan, 0x00c080);
@@ -240,9 +243,11 @@ int main(int argc, char** argv){
   auto nr = ncreel_create(n, &ropts);
   ncplane_set_userptr(n, nr);
   if(!nr){
-    return -1;
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
   }
   int r = runreels(nc, nr);
+  ncreel_destroy(nr);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
