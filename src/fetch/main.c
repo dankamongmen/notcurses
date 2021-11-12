@@ -59,10 +59,17 @@ free_fetched_info(fetched_info* fi){
 
 static int
 fetch_env_vars(struct notcurses* nc, fetched_info* fi){
+#ifndef __MINGW64__
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
+#else
+  fi->desktop = "Metro";
+#endif
   fi->shell = getenv("SHELL");
   fi->term = notcurses_detected_terminal(nc);
   fi->lang = getenv("LANG");
+  if(fi->lang == NULL){
+    fi->lang = nl_langinfo(CODESET);
+  }
   return 0;
 }
 
@@ -348,11 +355,11 @@ get_kernel(fetched_info* fi){
   OSVERSIONINFOEX osvi;
   ZeroMemory(&osvi, sizeof(osvi));
   osvi.dwOSVersionInfoSize = sizeof(osvi);
-  GetVersionExA(&osvi);
+  GetVersionExA((LPOSVERSIONINFOA)&osvi);
   char ver[20]; // sure why not
   snprintf(ver, sizeof(ver), "%lu.%lu", osvi.dwMajorVersion, osvi.dwMinorVersion);
   fi->kernver = strdup(ver);
-  fi->kernel = strdup("Windows NT");
+  fi->kernel = strdup("WNT");
   DWORD ptype;
   if(GetProductInfo(osvi.dwMajorVersion,
                     osvi.dwMinorVersion,
@@ -403,6 +410,7 @@ get_kernel(fetched_info* fi){
   return NCNEO_UNKNOWN;
 }
 
+// windows distro_pretty gets handled in get_kernel() above
 static const distro_info*
 windows_ncneofetch(fetched_info* fi){
   static const distro_info mswin = {
@@ -410,7 +418,6 @@ windows_ncneofetch(fetched_info* fi){
     .logofile = NULL, // FIXME
   };
   fi->neologo = get_neofetch_art("Windows");
-  fi->distro_pretty = NULL;
   return &mswin;
 }
 
