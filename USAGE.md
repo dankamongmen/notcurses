@@ -1628,9 +1628,9 @@ int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
                         uint32_t ll, uint32_t lr);
 
 // Set the given style throughout the specified region, keeping content and
-// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// channels unchanged. The upper left corner is at 'y', 'x', and -1 may be
 // specified to indicate the cursor's position in that dimension. The area
-// is specified by 'xlen', 'ylen', and 0 may be specified to indicate everything
+// is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
@@ -1638,9 +1638,9 @@ int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
                    unsigned xlen, uint16_t stylemask);
 
 // Set the given channels throughout the specified region, keeping content and
-// channels unchanged. The upper left corner is at 'x', 'y', and -1 may be
+// channels unchanged. The upper left corner is at 'y', 'x', and -1 may be
 // specified to indicate the cursor's position in that dimension. The area
-// is specified by 'xlen', 'ylen', and 0 may be specified to indicate everything
+// is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.

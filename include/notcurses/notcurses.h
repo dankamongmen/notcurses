@@ -2406,22 +2406,24 @@ API int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
 
 // Set the given style throughout the specified region, keeping content and
 // channels unchanged. The upper left corner is at 'y', 'x', and -1 may be
-// specified to indicate the cursor's position in that dimension. The lower
-// right corner is specified by 'ystop', 'xstop'. It is an error for any
+// specified to indicate the cursor's position in that dimension. The area
+// is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
+// remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
-API int ncplane_format(struct ncplane* n, int y, int x, unsigned ystop,
-                       unsigned xstop, uint16_t stylemask)
+API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
+                       unsigned xlen, uint16_t stylemask)
   __attribute__ ((nonnull (1)));
 
 // Set the given channels throughout the specified region, keeping content and
-// attributes unchanged. The upper left corner is at 'x', 'y', and -1 may be
-// specified to indicate the cursor's position in that dimension. The lower
-// right corner is specified by 'xstop', 'ystop'. It is an error for any
+// channels unchanged. The upper left corner is at 'y', 'x', and -1 may be
+// specified to indicate the cursor's position in that dimension. The area
+// is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
+// remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
 // or -1 on failure.
-API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ystop,
-                      unsigned xstop, uint64_t ul, uint64_t ur,
+API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ylen,
+                      unsigned xlen, uint64_t ul, uint64_t ur,
                       uint64_t ll, uint64_t lr)
   __attribute__ ((nonnull (1)));
 
