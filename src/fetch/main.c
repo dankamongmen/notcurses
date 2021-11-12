@@ -345,14 +345,45 @@ get_kernel(fetched_info* fi){
   }
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
 #else
-  OSVERSIONINFO osvi;
-  ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+  OSVERSIONINFOEX osvi;
+  ZeroMemory(&osvi, sizeof(osvi));
+  osvi.dwOSVersionInfoSize = sizeof(osvi);
   GetVersionEx(&osvi);
   char ver[20]; // sure why not
   snprintf(ver, sizeof(ver), "%lu.%lu", osvi.dwMajorVersion, osvi.dwMinorVersion);
   fi->kernver = strdup(ver);
   fi->kernel = strdup("Windows NT");
+  DWORD ptype;
+  if(GetProductInfo(osvi.dwMajorVersion,
+                    osvi.dwMinorVersion,
+                    osvi.wServicePackMajor,
+                    osvi.wServicePackMinor,
+                    &ptype)){
+    switch(ptype){
+      case PRODUCT_CORE: fi->distro_pretty = strdup("Windows 10 Home"); break;
+      case PRODUCT_CORE_N: fi->distro_pretty = strdup("Windows 10 Home N"); break;
+      case PRODUCT_ENTERPRISE: fi->distro_pretty = strdup("Windows 10 Enterprise"); break;
+      case PRODUCT_ENTERPRISE_E: fi->distro_pretty = strdup("Windows 10 Enterprise E"); break;
+      case PRODUCT_ENTERPRISE_N: fi->distro_pretty = strdup("Windows 10 Enterprise N"); break;
+      case PRODUCT_HOME_BASIC: fi->distro_pretty = strdup("Home Basic"); break;
+      case PRODUCT_HOME_BASIC_N: fi->distro_pretty = strdup("Home Basic N"); break;
+      case PRODUCT_HOME_PREMIUM: fi->distro_pretty = strdup("Home Premium"); break;
+      case PRODUCT_HOME_PREMIUM_N: fi->distro_pretty = strdup("Home Premium N"); break;
+      case PRODUCT_HOME_PREMIUM_SERVER: fi->distro_pretty = strdup("Windows Home Server 2011"); break;
+      case PRODUCT_HOME_SERVER: fi->distro_pretty = strdup("Windows Storage Server 2008 R2 Essentials"); break;
+      case PRODUCT_HYPERV: fi->distro_pretty = strdup("Windows Hyper-V Server"); break;
+      case PRODUCT_IOTUAP: fi->distro_pretty = strdup("Windows 10 IoT Core"); break;
+      case PRODUCT_IOTUAPCOMMERCIAL: fi->distro_pretty = strdup("Windows 10 IoT Core Commercial"); break;
+      case PRODUCT_PRO_WORKSTATION: fi->distro_pretty = strdup("Windows 10 Pro for Workstations"); break;
+      case PRODUCT_PRO_WORKSTATION_N: fi->distro_pretty = strdup("Windows 10 Pro for Workstations N"); break;
+      case PRODUCT_PROFESSIONAL: fi->distro_pretty = strdup("Windows 10 Pro"); break;
+      case PRODUCT_PROFESSIONAL_N: fi->distro_pretty = strdup("Windows 10 Pro N"); break;
+      case PRODUCT_PROFESSIONAL_WMC: fi->distro_pretty = strdup("Professional with Media Center"); break;
+      case PRODUCT_ULTIMATE: fi->distro_pretty = strdup("Ultimate"); break;
+      case PRODUCT_ULTIMATE_N: fi->distro_pretty = strdup("Ultimate N"); break;
+      default: fi->dist_pretty = strdup("Unknown product"); break;
+    }
+  }
   return NCNEO_WINDOWS;
 #endif
   return NCNEO_UNKNOWN;
