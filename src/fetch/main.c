@@ -6,6 +6,7 @@
 #include <locale.h>
 #include <strings.h>
 #include <pthread.h>
+#include <langinfo.h>
 #include <semaphore.h>
 #include <sys/param.h>
 #include <sys/types.h>
