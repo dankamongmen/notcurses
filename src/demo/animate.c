@@ -143,11 +143,11 @@ spin_cycle(const char* utf8, int iters){
       return offsets[iters % o];
     }
     if(o == sizeof(offsets) / sizeof(*offsets)){
-      break;
+      return offsets[iters % o]; // FIXME?
     }
     offsets[o] = offset;
     offset += s;
-    if(++o == iters){
+    if(o++ == iters){
       return offsets[iters % o];
     }
   }
