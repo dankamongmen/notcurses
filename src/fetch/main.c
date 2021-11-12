@@ -348,7 +348,7 @@ get_kernel(fetched_info* fi){
   OSVERSIONINFOEX osvi;
   ZeroMemory(&osvi, sizeof(osvi));
   osvi.dwOSVersionInfoSize = sizeof(osvi);
-  GetVersionEx(&osvi);
+  GetVersionExA(&osvi);
   char ver[20]; // sure why not
   snprintf(ver, sizeof(ver), "%lu.%lu", osvi.dwMajorVersion, osvi.dwMinorVersion);
   fi->kernver = strdup(ver);
@@ -360,11 +360,25 @@ get_kernel(fetched_info* fi){
                     osvi.wServicePackMinor,
                     &ptype)){
     switch(ptype){
+      case PRODUCT_BUSINESS: fi->distro_pretty = strdup("Business"); break;
+      case PRODUCT_BUSINESS_N: fi->distro_pretty = strdup("Business N"); break;
+      case PRODUCT_CLUSTER_SERVER: fi->distro_pretty = strdup("HPC Edition"); break;
+      case PRODUCT_CLUSTER_SERVER_V: fi->distro_pretty = strdup("Server Hyper Core V"); break;
       case PRODUCT_CORE: fi->distro_pretty = strdup("Windows 10 Home"); break;
+      case PRODUCT_CORE_COUNTRYSPECIFIC: fi->distro_pretty = strdup("Windows 10 Home China"); break;
       case PRODUCT_CORE_N: fi->distro_pretty = strdup("Windows 10 Home N"); break;
+      case PRODUCT_CORE_SINGLELANGUAGE: fi->distro_pretty = strdup("Windows 10 Home Single Language"); break;
+      case PRODUCT_EDUCATION: fi->distro_pretty = strdup("Windows 10 Education"); break;
+      case PRODUCT_EDUCATION_N: fi->distro_pretty = strdup("Windows 10 Education N"); break;
       case PRODUCT_ENTERPRISE: fi->distro_pretty = strdup("Windows 10 Enterprise"); break;
+      case PRODUCT_ENTERPRISE_EVALUATION: fi->distro_pretty = strdup("Windows 10 Enterprise Eval"); break;
       case PRODUCT_ENTERPRISE_E: fi->distro_pretty = strdup("Windows 10 Enterprise E"); break;
       case PRODUCT_ENTERPRISE_N: fi->distro_pretty = strdup("Windows 10 Enterprise N"); break;
+      case PRODUCT_ENTERPRISE_N_EVALUATION: fi->distro_pretty = strdup("Windows 10 Enterprise N Eval"); break;
+      case PRODUCT_ENTERPRISE_S: fi->distro_pretty = strdup("Windows 10 Enterprise 2015 LTSB"); break;
+      case PRODUCT_ENTERPRISE_S_EVALUATION: fi->distro_pretty = strdup("Windows 10 Enterprise 2015 LTSB Eval"); break;
+      case PRODUCT_ENTERPRISE_S_N: fi->distro_pretty = strdup("Windows 10 Enterprise 2015 LTSB N"); break;
+      case PRODUCT_ENTERPRISE_S_N_EVALUATION: fi->distro_pretty = strdup("Windows 10 Enterprise 2015 LTSB N Eval"); break;
       case PRODUCT_HOME_BASIC: fi->distro_pretty = strdup("Home Basic"); break;
       case PRODUCT_HOME_BASIC_N: fi->distro_pretty = strdup("Home Basic N"); break;
       case PRODUCT_HOME_PREMIUM: fi->distro_pretty = strdup("Home Premium"); break;
