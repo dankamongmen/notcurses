@@ -2,11 +2,15 @@
 
 You are generally recommended to use your distro's package manager to install
 Notcurses; it is [available](https://repology.org/project/notcurses/versions)
-prepackaged on many distributions. Otherwise, acquire the current source via
+prepackaged on many distributions. If you wish to build from source, read on.
+
+## Prerequisites for building
+
+Acquire the current source via
 
 `git clone https://github.com/dankamongmen/notcurses.git`
 
-## Prerequisites
+There are no submodules. Dependencies are fairly minimal.
 
 ### APT
 
@@ -31,6 +35,12 @@ Install build dependencies:
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
 RPM Fusion), you might want to use FFmpeg rather than OpenImageIO.
+
+### FreeBSD / DragonFly BSD
+
+Install build dependencies:
+
+`pkg install devel/ncurses multimedia/ffmpeg graphics/qr-code-generator devel/libunistring`
 
 ### Microsoft Windows
 

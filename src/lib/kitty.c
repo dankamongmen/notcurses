@@ -628,8 +628,18 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
 }
 
 static int
-finalize_deflator(z_stream* zctx, fbuf* f, int dimy, int dimx){
+finalize_deflator(z_stream* zctx, uint32_t* buf, fbuf* f, int dimy, int dimx){
   assert(0 == zctx->avail_in);
+  size_t blen = dimx * dimy * 4;
+  zctx->next_in = (void*)buf;
+  zctx->avail_in = blen;
+  unsigned long b = deflateBound(zctx, blen);
+  unsigned char* ztmp = malloc(b);
+  if(ztmp == NULL){
+    return -1;
+  }
+  zctx->avail_out = b;
+  zctx->next_out = ztmp;
   int zret = deflate(zctx, Z_FINISH);
   if(zret != Z_STREAM_END){
     logerror("Error deflating (%d)\n", zret);
@@ -641,12 +651,10 @@ finalize_deflator(z_stream* zctx, fbuf* f, int dimy, int dimx){
   return 0;
 }
 
-// copy |encodeable| pixels to the deflate state
-static int
-add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[static 3]){
-  assert(0 == zctx->avail_in);
-  uint32_t dst[3];
-  zctx->next_in = (void*)dst;
+// copy |encodeable| pixels to the buffer |dst|
+static inline int
+add_to_buf(uint32_t dst[static 3], const uint32_t* src,
+           int encodeable, bool wipe[static 3]){
   dst[0] = *src++;
   if(wipe[0] || rgba_trans_p(dst[0], 0)){
     ncpixel_set_a(&dst[0], 0);
@@ -663,6 +671,16 @@ add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[s
       }
     }
   }
+  return 0;
+}
+
+// copy |encodeable| pixels to the deflate state
+static inline int
+add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[static 3]){
+  assert(0 == zctx->avail_in);
+  uint32_t dst[3];
+  add_to_buf(dst, src, encodeable, wipe);
+  zctx->next_in = (void*)dst;
   zctx->avail_in = encodeable * 4;
   int zret = deflate(zctx, Z_NO_FLUSH);
   if(zret != Z_OK){
@@ -676,28 +694,28 @@ add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[s
 static int
 prep_deflator(ncpixelimpl_e level, z_stream* zctx, int pixy, int pixx,
               unsigned* animated){
-  memset(zctx, 0, sizeof(*zctx));
-  if(level >= NCPIXEL_KITTY_ANIMATED){
-    int zret;
-    // 2 seems to work well for things that are going to compress up
-    // meaningfully at all, while not taking too much time.
-    if((zret = deflateInit(zctx, 2)) != Z_OK){
-      logerror("Couldn't get a deflate context (%d)\n", zret);
-      return -1;
-    }
-    size_t blen = pixx * pixy * 4;
-    unsigned long b = deflateBound(zctx, blen);
-    unsigned char* buf = malloc(b);
-    if(buf == NULL){
-      deflateEnd(zctx);
-      return -1;
-    }
-    zctx->avail_out = b;
-    zctx->next_out = buf;
-    *animated = true;
-  }else{
+  if(level < NCPIXEL_KITTY_ANIMATED){
     *animated = false;
+    return 0;
   }
+  *animated = true;
+  memset(zctx, 0, sizeof(*zctx));
+  int zret;
+  // 2 seems to work well for things that are going to compress up
+  // meaningfully at all, while not taking too much time.
+  if((zret = deflateInit(zctx, 2)) != Z_OK){
+    logerror("Couldn't get a deflate context (%d)\n", zret);
+    return -1;
+  }
+  size_t blen = pixx * pixy * 4;
+  unsigned long b = deflateBound(zctx, blen);
+  unsigned char* buf = malloc(b);
+  if(buf == NULL){
+    deflateEnd(zctx);
+    return -1;
+  }
+  zctx->avail_out = b;
+  zctx->next_out = buf;
   return 0;
 }
 
@@ -753,6 +771,8 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   if(prep_deflator(level, &zctx, leny, lenx, &animated)){
     return -1;
   }
+  uint32_t* buf = malloc(lenx * leny * sizeof(*buf));
+  unsigned bufidx = 0;
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   sprixel* s = bargs->u.pixel.spx;
   int sprixelid = s->id;
@@ -898,9 +918,13 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
       }
       totalout += encodeable;
       if(animated){
-        if(add_to_deflator(&zctx, source, encodeable, wipe)){
+        if(add_to_buf(buf + bufidx, source, encodeable, wipe)){
           goto err;
         }
+        bufidx += encodeable;
+        /*if(add_to_deflator(&zctx, source, encodeable, wipe)){
+          goto err;
+        }*/
       }else{
         // we already took transcolor to alpha 0; there's no need to
         // check it again, so pass 0.
@@ -917,7 +941,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
     }
   }
   if(animated){
-    if(finalize_deflator(&zctx, f, leny, lenx)){
+    if(finalize_deflator(&zctx, buf, f, leny, lenx)){
       goto err;
     }
     if(selfref_annihilated){
