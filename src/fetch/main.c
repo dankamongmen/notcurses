@@ -91,9 +91,9 @@ fetch_bsd_cpuinfo(fetched_info* fi){
 static int
 fetch_windows_cpuinfo(fetched_info* fi){
 #ifdef __MINGW64__
-  LPSYSTEM_INFO info;
-  GetSystemInfo(info);
-  switch(info->wProcessorArchitecture){
+  SYSTEM_INFO info = {};
+  GetSystemInfo(&info);
+  switch(info.wProcessorArchitecture){
     case PROCESSOR_ARCHITECTURE_AMD64:
       fi->cpu_model = strdup("amd64"); break;
     case PROCESSOR_ARCHITECTURE_ARM:
@@ -107,7 +107,7 @@ fetch_windows_cpuinfo(fetched_info* fi){
     default:
       fi->cpu_model = strdup("Unknown processor"); break;
   }
-  fi->core_count = info->dwNumberOfProcessors;
+  fi->core_count = info.dwNumberOfProcessors;
 #else
   (void)fi;
 #endif
