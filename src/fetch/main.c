@@ -387,15 +387,15 @@ get_kernel(fetched_info* fi){
       case PRODUCT_HOME_SERVER: fi->distro_pretty = strdup("Windows Storage Server 2008 R2 Essentials"); break;
       case PRODUCT_HYPERV: fi->distro_pretty = strdup("Windows Hyper-V Server"); break;
       case PRODUCT_IOTUAP: fi->distro_pretty = strdup("Windows 10 IoT Core"); break;
-      case PRODUCT_IOTUAPCOMMERCIAL: fi->distro_pretty = strdup("Windows 10 IoT Core Commercial"); break;
+      /*case PRODUCT_IOTUAPCOMMERCIAL: fi->distro_pretty = strdup("Windows 10 IoT Core Commercial"); break;
       case PRODUCT_PRO_WORKSTATION: fi->distro_pretty = strdup("Windows 10 Pro for Workstations"); break;
-      case PRODUCT_PRO_WORKSTATION_N: fi->distro_pretty = strdup("Windows 10 Pro for Workstations N"); break;
+      case PRODUCT_PRO_WORKSTATION_N: fi->distro_pretty = strdup("Windows 10 Pro for Workstations N"); break;*/
       case PRODUCT_PROFESSIONAL: fi->distro_pretty = strdup("Windows 10 Pro"); break;
       case PRODUCT_PROFESSIONAL_N: fi->distro_pretty = strdup("Windows 10 Pro N"); break;
       case PRODUCT_PROFESSIONAL_WMC: fi->distro_pretty = strdup("Professional with Media Center"); break;
       case PRODUCT_ULTIMATE: fi->distro_pretty = strdup("Ultimate"); break;
       case PRODUCT_ULTIMATE_N: fi->distro_pretty = strdup("Ultimate N"); break;
-      default: fi->dist_pretty = strdup("Unknown product"); break;
+      default: fi->distro_pretty = strdup("Unknown product"); break;
     }
   }
   return NCNEO_WINDOWS;
