@@ -432,7 +432,7 @@ copy_and_close_linux_fb(tinfo* ti, struct framebuffer_copy* fbdup){
 
 static void
 kill_fbcopy(struct framebuffer_copy* fbdup){
-  free(fbdup->map);
+  free(fbdup->map); // just a memdup(), not an actual mmap
 }
 
 static int
@@ -611,6 +611,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
   added += halvesadded;
   loginfo("successfully added %d kernel font glyph%s via %d\n", added, added == 1 ? "" : "s", ti->linux_fb_fd);
   if(ti->linux_fb_fd < 0){ // console doesn't imply framebuffer
+    kill_fbcopy(&fbdup);
     return 0;
   }
   unsigned pixely, pixelx;
