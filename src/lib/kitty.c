@@ -647,7 +647,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
   if(0 == clen){ // wasn't enough room; compressed data is larger than original
     ret = encode_and_chunkify(f, buf, blen, 0);
   }else{
-    loginfo("deflated %juB to %juB\n", (uintmax_t)blen, (uintmax_t)clen);
+    loginfo("deflated %" PRIuPTR "B to %" PRIuPTR "B\n", blen, clen);
     ret = encode_and_chunkify(f, cbuf, clen, 1);
   }
   free(cbuf);
