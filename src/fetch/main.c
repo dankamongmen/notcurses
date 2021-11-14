@@ -694,6 +694,7 @@ display_thread(void* vmarshal){
       }
       struct ncvisual_options vopts = {
         .n = notcurses_stdplane(m->nc),
+        .y = y,
         .x = NCALIGN_CENTER,
         .blitter = pixeling ? NCBLIT_PIXEL : NCBLIT_3x2,
         .scaling = pixeling ? NCSCALE_NONE : NCSCALE_SCALE_HIRES,

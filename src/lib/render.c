@@ -924,8 +924,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
         }else{
           if(s->n->absx == s->movedfromx){
             if(s->movedfromy - s->n->absy == scrolls){
-              s->invalidated = SPRIXEL_QUIESCENT; // FIXME might need to return to INVALIDATED?
-              loginfo("sprixel was scrolled %d, no redraw\n", scrolls);
+              s->invalidated = SPRIXEL_INVALIDATED;
               continue;
             }
           }
@@ -1028,7 +1027,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
   while( (s = *parent) ){
-//fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
+//fprintf(stderr, "raster YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, nc->margin_t, nc->margin_l, s->n);
       int r = sprite_draw(&nc->tcache, p, s, f, nc->margin_t, nc->margin_l);

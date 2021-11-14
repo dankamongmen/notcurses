@@ -182,6 +182,7 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
   if(ti->cellpixy < 1){
     return;
   }
+  logdebug("scrolling %d\n", rows);
   int totalrows = ti->cellpixy * p->dimy;
   int srows = rows * ti->cellpixy; // number of pixel rows being scrolled
   if(srows > totalrows){
