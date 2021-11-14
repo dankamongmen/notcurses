@@ -131,7 +131,6 @@ usage_expo(FILE* out, struct ncdirect* n, const char* op, const char* expo){
   fprintf(out, "%s\n", expo);
 }
 
-// FIXME stylize this a little
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
