@@ -21,30 +21,31 @@ steps:
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
     - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
----
-kind: pipeline
-type: docker
-name: fedora-rawhide
-
-steps:
-- name: fedora-rawhide
-  image: dankamongmen/rawhide:2021-11-14a
-  commands:
-    - export LANG=en_US.UTF-8
-    - export TERM=xterm
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio -DUSE_QRCODEGEN=on ..
-    - make -j2
-    - ctest --output-on-failure
-    - make install
-    - ldconfig
-    - cd ../cffi
-    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - cd ../python
-    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
-    - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
+# gone until we package libdeflate
+#---
+#kind: pipeline
+#type: docker
+#name: fedora-rawhide
+#
+#steps:
+#- name: fedora-rawhide
+#  image: dankamongmen/rawhide:2021-11-14a
+#  commands:
+#    - export LANG=en_US.UTF-8
+#    - export TERM=xterm
+#    - mkdir build
+#    - cd build
+#    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio -DUSE_QRCODEGEN=on ..
+#    - make -j2
+#    - ctest --output-on-failure
+#    - make install
+#    - ldconfig
+#    - cd ../cffi
+#    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
+#    - cd ../python
+#    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
+#    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
+#    - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
 ---
 kind: pipeline
 type: docker
