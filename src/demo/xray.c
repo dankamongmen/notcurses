@@ -70,6 +70,7 @@ struct marsh {
   float dm;                 // delay multiplier
   int next_frame;
   int* frame_to_render; // protected by renderlock
+  struct ncplane** lplane;   // plane to destroy
 };
 
 // make a plane on a new pile suitable for rendering a frame of the video
@@ -129,13 +130,11 @@ xray_thread(void *vmarsh){
               | NCVISUAL_OPTION_ADDALPHA,
   };
   int ret;
-  struct ncplane* lplane = NULL;
   do{
     if(make_plane(m->nc, &vopts.n)){
       return NULL;
     }
     if((frame = get_next_frame(m, &vopts)) < 0){
-      ncplane_destroy(lplane);
       ncplane_destroy(vopts.n);
       // FIXME need to cancel other one; it won't be able to progress
       return NULL;
@@ -150,16 +149,15 @@ xray_thread(void *vmarsh){
     if(ncplane_move_yx(m->slider, 1, x - 1) == 0){
       ncplane_reparent(vopts.n, notcurses_stdplane(m->nc));
       ncplane_move_top(vopts.n);
-      ncplane_destroy(lplane);
+      ncplane_destroy(*m->lplane);
       ret = demo_render(m->nc);
     }
     *m->frame_to_render = frame + 1;
-    lplane = vopts.n;
+    *m->lplane = vopts.n;
     pthread_mutex_unlock(&render_lock);
     pthread_cond_signal(&cond);
     vopts.n = NULL;
   }while(ret == 0);
-  ncplane_destroy(lplane);
   return NULL;
 }
 
@@ -189,6 +187,7 @@ int xray_demo(struct notcurses* nc){
   // returns non-zero if the selected blitter isn't available
   pthread_t tid1, tid2;
   int last_frame = 0;
+  struct ncplane* kplane = NULL; // to kill
   struct marsh m1 = {
     .slider = slider,
     .nc = nc,
@@ -196,6 +195,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv1,
+    .lplane = &kplane,
   };
   struct marsh m2 = {
     .slider = slider,
@@ -204,6 +204,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv2,
+    .lplane = &kplane,
   };
   int ret = -1;
   if(pthread_create(&tid1, NULL, xray_thread, &m1)){
@@ -219,5 +220,8 @@ err:
   ncvisual_destroy(ncv1);
   ncvisual_destroy(ncv2);
   ncplane_destroy(slider);
+  if(kplane){
+    ncplane_destroy(kplane);
+  }
   return ret;
 }
