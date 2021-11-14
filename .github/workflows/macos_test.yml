@@ -24,6 +24,7 @@ jobs:
             coreutils \
             doctest \
             ffmpeg \
+            libdeflate \
             libunistring \
             ncurses
 

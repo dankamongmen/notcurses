@@ -29,6 +29,7 @@ jobs:
             libavcodec-dev \
             libavformat-dev \
             libavutil-dev \
+            libdeflate-dev \
             libncurses-dev \
             libqrcodegen-dev \
             libswscale-dev \

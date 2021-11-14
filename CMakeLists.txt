@@ -137,8 +137,6 @@ endif()
 # feature_summary + set_package_properties to fail in one fell swoop.
 find_package(Threads)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED)
-find_package(ZLIB)
-set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
 # platform-specific logics
 if(WIN32)
   set(LIBRT_LIBRARIES wsock32 ws2_32 Secur32)
@@ -168,6 +166,14 @@ endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
+unset(HAVE_DEFLATE_H CACHE)
+check_include_file("libdeflate.h" HAVE_DEFLATE_H)
+if(NOT "${HAVE_DEFLATE_H}")
+  message(FATAL_ERROR "Couldn't find libdeflate.h")
+endif()
+find_library(libdeflate deflate REQUIRED)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libdeflate)
+set_package_properties(libdeflate PROPERTIES TYPE REQUIRED)
 if(${USE_GPM}) # no pkgconfig from gpm
 unset(HAVE_GPM_H CACHE)
 check_include_file("gpm.h" HAVE_GPM_H)
@@ -231,7 +237,7 @@ target_include_directories(notcurses-core
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
-    "${ZLIB_INCLUDE_DIRS}"
+    "${libdeflate_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   BEFORE
@@ -241,11 +247,11 @@ target_include_directories(notcurses-core-static
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
-    "${ZLIB_STATIC_INCLUDE_DIRS}"
+    "${libdeflate_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
-    "${ZLIB_LIBRARIES}"
+    "${libdeflate}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
@@ -256,7 +262,7 @@ target_link_libraries(notcurses-core
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
-    "${ZLIB_STATIC_LIBRARIES}"
+    "${libdeflate_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
@@ -268,12 +274,12 @@ target_link_libraries(notcurses-core-static
 target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
-    "${ZLIB_LIBRARY_DIRS}"
+    "${libdeflate_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
-    "${ZLIB_STATIC_LIBRARY_DIRS}"
+    "${libdeflate_STATIC_LIBRARY_DIRS}"
 )
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses-core PRIVATE qrcodegen)
