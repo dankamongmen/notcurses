@@ -6,14 +6,15 @@
 #include <locale.h>
 #include <strings.h>
 #include <pthread.h>
-#include <langinfo.h>
 #include <semaphore.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
+#include <langinfo.h>
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
 #elif !defined(__MINGW64__)
+#include <langinfo.h>
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
 #else
