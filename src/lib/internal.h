@@ -582,6 +582,16 @@ plane_debug(const ncplane* n, bool details){
   }
 }
 
+static inline notcurses*
+ncpile_notcurses(ncpile* p){
+  return p->nc;
+}
+
+static inline const notcurses*
+ncpile_notcurses_const(const ncpile* p){
+  return p->nc;
+}
+
 static inline void
 ncpile_debug(const ncpile* p, fbuf* f){
   fbuf_printf(f, "  ************************* %16p pile ****************************\n", p);
