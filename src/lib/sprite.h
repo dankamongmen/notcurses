@@ -135,7 +135,6 @@ typedef struct sprixel_metadata {
   unsigned cellpxy, cellpxx; // cell-pixel geometry at time of creation
   unsigned movedfromy;  // for SPRIXEL_MOVED/SPRIXEL_HIDE, the last place we
   unsigned movedfromx;  // were drawn (absolute coordinates), for damaging
-  struct sprixel* next; // metadata doesn't need a prev; it's sprixel-only
 } sprixel_metadata;
 
 // a sprixel represents a bitmap, using whatever local protocol is available.
@@ -151,6 +150,7 @@ typedef struct sprixel {
   // responsible in such a case for NULLing out this link themselves.
   struct ncplane* n;    // associated ncplane
   sprixel_e invalidated;// sprixel invalidation state
+  struct sprixel* next;
   struct sprixel* prev;
   int pxoffy, pxoffx;   // X and Y parameters to display command
   // only used for kitty-based sprixels

@@ -158,7 +158,7 @@ typedef struct rasterstate {
   ncpile* last_pile;
   // we track the sprixels that were visible as of the last rasterization,
   // so that we can clear them if the pile changes.
-  sprixel_metadata* sprixels_last_drawn;
+  sprixel* sprixels_last_drawn;
 
   // used in CLI mode, these track the end of logical output, to place the
   // cursor following each rasterization. they are tracked thusly:

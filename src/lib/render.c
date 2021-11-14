@@ -253,19 +253,19 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   if(p->sprite){
     paint_sprixel(p, rvec, starty, startx, offy, offx, dstleny, dstlenx);
     // decouple from the pile's sixel list
-    if(p->sprite->meta.next){
-      p->sprite->meta.next->prev = p->sprite->prev;
+    if(p->sprite->next){
+      p->sprite->next->prev = p->sprite->prev;
     }
     if(p->sprite->prev){
-      p->sprite->prev->meta.next = p->sprite->meta.next;
+      p->sprite->prev->next = p->sprite->next;
     }else{
-      ncplane_pile(p)->sprixelcache = p->sprite->meta.next;
+      ncplane_pile(p)->sprixelcache = p->sprite->next;
     }
     // stick on the head of the running list: top sprixel is at end
     if(*sprixelstack){
       (*sprixelstack)->prev = p->sprite;
     }
-    p->sprite->meta.next = *sprixelstack;
+    p->sprite->next = *sprixelstack;
     p->sprite->prev = NULL;
     *sprixelstack = p->sprite;
     return;
@@ -678,9 +678,9 @@ term_esc_rgb(fbuf* f, bool foreground, unsigned r, unsigned g, unsigned b){
   // and gives rise to some inaccurate colors (possibly due to special handling
   // of values < 256; I'm not at this time sure). So we just cons up our own.
   /*if(esc == 4){
-    return fbuf_emit(f, "setab", tiparm(nc->setab, (int)((r << 16u) | (g << 8u) | b)));
+    return fbuf_emit(f, "setab", tiparm(nc->setab, ((r << 16u) | (g << 8u) | b)));
   }else if(esc == 3){
-    return fbuf_emit(f, "setaf", tiparm(nc->setaf, (int)((r << 16u) | (g << 8u) | b)));
+    return fbuf_emit(f, "setaf", tiparm(nc->setaf, ((r << 16u) | (g << 8u) | b)));
   }else{
     return -1;
   }*/
@@ -886,12 +886,12 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
 // this adds a copy of the provided sprixel's metadata to the last-drawn list.
 static void
 track_sprixel_metadata(notcurses* nc, const sprixel* s){
-  sprixel_metadata* smd = malloc(sizeof(*smd));
+  sprixel* smd = malloc(sizeof(*smd));
   if(smd == NULL){
     logerror("couldn't track sprixel %u\n", s->meta.id);
     return;
   }
-  memcpy(smd, &s->meta, sizeof(*smd));
+  memcpy(&smd->meta, &s->meta, sizeof(smd->meta));
   smd->next = nc->rstate.sprixels_last_drawn;
   nc->rstate.sprixels_last_drawn = smd;
 }
@@ -926,8 +926,8 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
       if(r < 0){
         return -1;
       }else if(r > 0){
-        if( (*parent = s->meta.next) ){
-          s->meta.next->prev = s->prev;
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
         }
         sprixel_free(s);
         // need to avoid the rest of the iteration, as s is dead
@@ -944,8 +944,8 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
         if(p != nc->rstate.last_pile){
           s->invalidated = SPRIXEL_UNSEEN;
         }else{
-          if(s->n->absx == s->meta.movedfromx){
-            if(s->meta.movedfromy - s->n->absy == scrolls){
+          if(s->n->absx == (int)s->meta.movedfromx){
+            if((int)s->meta.movedfromy - s->n->absy == scrolls){
               s->invalidated = SPRIXEL_QUIESCENT; // FIXME might need to return to INVALIDATED?
               loginfo("sprixel was scrolled %d, no redraw\n", scrolls);
               continue;
@@ -968,7 +968,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
     }else{
       ++nc->stats.s.sprixelelisions;
     }
-    parent = &s->meta.next;
+    parent = &s->next;
 //fprintf(stderr, "SPRIXEL STATE: %d\n", s->invalidated);
   }
   return bytesemitted;
@@ -1082,14 +1082,14 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
         if(nc->tcache.pixel_remove(s->meta.id, f) < 0){
           return -1;
         }
-        if( (*parent = s->meta.next) ){
-          s->meta.next->prev = s->prev;
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
         }
         sprixel_free(s);
         continue;
       }
     }
-    parent = &s->meta.next;
+    parent = &s->next;
   }
   return bytesemitted;
 }
@@ -1117,7 +1117,7 @@ rasterize_sprixels_post(notcurses* nc, ncpile* p){
       }
       bytesemitted += r;
     }
-    parent = &s->meta.next;
+    parent = &s->next;
   }
   return bytesemitted;
 }
@@ -1493,10 +1493,10 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx){
   if(sprixel_list){
     if(np->sprixelcache){
       sprixel* s = sprixel_list;
-      while(s->meta.next){
-        s = s->meta.next;
+      while(s->next){
+        s = s->next;
       }
-      if( (s->meta.next = np->sprixelcache) ){
+      if( (s->next = np->sprixelcache) ){
         np->sprixelcache->prev = s;
       }
     }

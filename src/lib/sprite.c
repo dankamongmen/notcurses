@@ -139,14 +139,14 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
   ret->meta.cellpxx = ti->cellpixx;
   if(ncplane_pile(ret->n)){ // rendered mode
     ncpile* np = ncplane_pile(ret->n);
-    if( (ret->meta.next = np->sprixelcache) ){
-      ret->meta.next->prev = ret;
+    if( (ret->next = np->sprixelcache) ){
+      ret->next->prev = ret;
     }
     np->sprixelcache = ret;
     ret->prev = NULL;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
   }else{ // ncdirect case
-    ret->meta.next = ret->prev = NULL;
+    ret->next = ret->prev = NULL;
   }
   return ret;
 }

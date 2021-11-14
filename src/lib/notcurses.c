@@ -326,7 +326,7 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
 static void
 free_sprixels(ncpile* n){
   while(n->sprixelcache){
-    sprixel* tmp = n->sprixelcache->meta.next;
+    sprixel* tmp = n->sprixelcache->next;
     sprixel_free(n->sprixelcache);
     n->sprixelcache = tmp;
   }
@@ -2512,23 +2512,23 @@ unsplice_sprixels_recursive(ncplane* n, sprixel* prev){
   sprixel* s = n->sprite;
   if(s){
     if(s->prev){
-      s->prev->meta.next = s->meta.next;
+      s->prev->next = s->next;
     }else{
-      ncplane_pile(n)->sprixelcache = s->meta.next;
+      ncplane_pile(n)->sprixelcache = s->next;
     }
-    if(s->meta.next){
-      s->meta.next->prev = s->prev;
+    if(s->next){
+      s->next->prev = s->prev;
     }
     if( (s->prev = prev) ){
-      prev->meta.next = s;
+      prev->next = s;
     }
-    s->meta.next = NULL;
+    s->next = NULL;
     prev = s;
   }
   for(ncplane* child = n->blist ; child ; child = child->bnext){
     unsplice_sprixels_recursive(child, prev);
-    while(prev && prev->meta.next){ // FIXME lame
-      prev = prev->meta.next;
+    while(prev && prev->next){ // FIXME lame
+      prev = prev->next;
     }
   }
   return prev;
@@ -2616,10 +2616,10 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   if(s){ // must be on new plane, with sprixels to donate
     sprixel* lame = s;
-    while(lame->meta.next){
-      lame = lame->meta.next;
+    while(lame->next){
+      lame = lame->next;
     }
-    if( (lame->meta.next = n->pile->sprixelcache) ){
+    if( (lame->next = n->pile->sprixelcache) ){
       n->pile->sprixelcache->prev = lame;
     }
     n->pile->sprixelcache = s;
