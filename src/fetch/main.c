@@ -246,7 +246,7 @@ linux_ncneofetch(fetched_info* fi){
     {
       .name = "arch",
       // from core/filesystem
-      .logofile = "/usr/share/pixmaps/archlinux.png",
+      .logofile = "/usr/share/pixmaps/archlinux-logo.png",
     }, {
       .name = "artix",
       // from system/filesystem
