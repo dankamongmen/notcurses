@@ -1,4 +1,4 @@
-#include <zlib.h>
+#include <libdeflate.h>
 #include "internal.h"
 #include "base64.h"
 
@@ -559,19 +559,17 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
   return 0;
 }
 
-static inline void*
-zctx_origbuf(z_stream* zctx, int pixy, int pixx){
-  size_t blen = pixx * pixy * 4;
-  unsigned long b = deflateBound(zctx, blen);
-  return (unsigned char *)zctx->next_out - (b - zctx->avail_out);
-}
-
+// chunkify and write the collected buffer in the animated case. this might
+// or might not be compressed (depends on whether compression was useful).
 static int
-encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
-  unsigned long totw = zctx->total_out;
-  unsigned char* buf = zctx_origbuf(zctx, pixy, pixx);
+encode_and_chunkify(fbuf* f, const unsigned char* buf, size_t blen, unsigned compressed){
   // need to terminate the header, requiring semicolon
-  if(totw > 4096 * 3 / 4){
+  if(compressed){
+    if(fbuf_putn(f, ",o=z", 4) < 0){
+      return -1;
+    }
+  }
+  if(blen > 4096 * 3 / 4){
     if(fbuf_putn(f, ",m=1", 4) < 0){
       return -1;
     }
@@ -582,7 +580,7 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
   bool first = true;
   unsigned long i = 0;
   char b64d[4];
-  while(totw - i > 4096 * 3 / 4){
+  while(blen - i > 4096 * 3 / 4){
     if(!first){
       if(fbuf_putn(f, "\x1b_Gm=1;", 7) < 0){
         return -1;
@@ -606,13 +604,13 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
       return -1;
     }
   }
-  while(i < totw){
-    if(totw - i < 3){
-      base64final(buf + i, b64d, totw - i);
+  while(i < blen){
+    if(blen - i < 3){
+      base64final(buf + i, b64d, blen - i);
       if(fbuf_putn(f, b64d, 4) < 0){
         return -1;
       }
-      i += totw - i;
+      i += blen - i;
     }else{
       base64x3(buf + i, b64d);
       if(fbuf_putn(f, b64d, 4) < 0){
@@ -628,33 +626,39 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
 }
 
 static int
-finalize_deflator(z_stream* zctx, uint32_t* buf, fbuf* f, int dimy, int dimx){
-  assert(0 == zctx->avail_in);
+deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
+  // 2 has been shown to work pretty well for things that are actually going
+  // to compress; results per unit time fall off quickly after 2.
+  struct libdeflate_compressor* cmp = libdeflate_alloc_compressor(6);
+  if(cmp == NULL){
+    logerror("couldn't get libdeflate context\n");
+    return -1;
+  }
   size_t blen = dimx * dimy * 4;
-  zctx->next_in = (void*)buf;
-  zctx->avail_in = blen;
-  unsigned long b = deflateBound(zctx, blen);
-  unsigned char* ztmp = malloc(b);
-  if(ztmp == NULL){
-    return -1;
+  // if this allocation fails, just skip compression, no need to bail
+  void* cbuf = malloc(blen);
+  size_t clen;
+  if(cbuf){
+    clen = libdeflate_zlib_compress(cmp, buf, blen, cbuf, blen);
+  }else{
+    clen = 0;
   }
-  zctx->avail_out = b;
-  zctx->next_out = ztmp;
-  int zret = deflate(zctx, Z_FINISH);
-  if(zret != Z_STREAM_END){
-    logerror("Error deflating (%d)\n", zret);
-    return -1;
+  int ret;
+  if(0 == clen){ // wasn't enough room; compressed data is larger than original
+    ret = encode_and_chunkify(f, buf, blen, 0);
+  }else{
+    loginfo("deflated %juB to %juB\n", (uintmax_t)blen, (uintmax_t)clen);
+    ret = encode_and_chunkify(f, cbuf, clen, 1);
   }
-  if(encode_and_chunkify(f, zctx, dimy, dimx)){
-    return -1;
-  }
-  return 0;
+  free(cbuf);
+  libdeflate_free_compressor(cmp);
+  return ret;
 }
 
-// copy |encodeable| pixels to the buffer |dst|
+// copy |encodeable| ([1..3]) pixels from |src| to the buffer |dst|, setting
+// alpha along the way according to |wipe|. 
 static inline int
-add_to_buf(uint32_t dst[static 3], const uint32_t* src,
-           int encodeable, bool wipe[static 3]){
+add_to_buf(uint32_t *dst, const uint32_t* src, int encodeable, bool wipe[static 3]){
   dst[0] = *src++;
   if(wipe[0] || rgba_trans_p(dst[0], 0)){
     ncpixel_set_a(&dst[0], 0);
@@ -674,57 +678,20 @@ add_to_buf(uint32_t dst[static 3], const uint32_t* src,
   return 0;
 }
 
-// copy |encodeable| pixels to the deflate state
+// writes to |*animated| based on normalized |level|. if we're not animated,
+// we won't be using compression.
 static inline int
-add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[static 3]){
-  assert(0 == zctx->avail_in);
-  uint32_t dst[3];
-  add_to_buf(dst, src, encodeable, wipe);
-  zctx->next_in = (void*)dst;
-  zctx->avail_in = encodeable * 4;
-  int zret = deflate(zctx, Z_NO_FLUSH);
-  if(zret != Z_OK){
-    logerror("Error deflating (%d)\n", zret);
-    return -1;
-  }
-  return 0;
-}
-
-// writes to |*animated| based on normalized |level|
-static int
-prep_deflator(ncpixelimpl_e level, z_stream* zctx, int pixy, int pixx,
-              unsigned* animated){
+prep_animation(ncpixelimpl_e level, uint32_t** buf, int leny, int lenx, unsigned* animated){
   if(level < NCPIXEL_KITTY_ANIMATED){
     *animated = false;
-    return 0;
+    *buf = NULL;
+  }else{
+    if((*buf = malloc(lenx * leny * sizeof(uint32_t))) == NULL){
+      return -1;
+    }
+    *animated = true;
   }
-  *animated = true;
-  memset(zctx, 0, sizeof(*zctx));
-  int zret;
-  // 2 seems to work well for things that are going to compress up
-  // meaningfully at all, while not taking too much time.
-  if((zret = deflateInit(zctx, 2)) != Z_OK){
-    logerror("Couldn't get a deflate context (%d)\n", zret);
-    return -1;
-  }
-  size_t blen = pixx * pixy * 4;
-  unsigned long b = deflateBound(zctx, blen);
-  unsigned char* buf = malloc(b);
-  if(buf == NULL){
-    deflateEnd(zctx);
-    return -1;
-  }
-  zctx->avail_out = b;
-  zctx->next_out = buf;
   return 0;
-}
-
-static void
-destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
-  if(animated){
-    free(zctx_origbuf(zctx, pixy, pixx));
-    deflateEnd(zctx);
-  }
 }
 
 // if we're NCPIXEL_KITTY_SELFREF, and we're blitting a secondary frame, we need
@@ -764,21 +731,20 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
     logerror("stride (%d) badly aligned\n", linesize);
     return -1;
   }
-  // we only deflate if we're using animation, since otherwise we need be able
-  // to edit the encoded bitmap in-place for wipes/restores.
-  z_stream zctx;
   unsigned animated;
-  if(prep_deflator(level, &zctx, leny, lenx, &animated)){
+  uint32_t* buf;
+  // we'll be collecting the pixels, modified to reflect alpha nullification
+  // due to preexisting wipes, into a temporary buffer for compression (iff
+  // we're animated). pixels are 32 bits each.
+  if(prep_animation(level, &buf, leny, lenx, &animated)){
     return -1;
   }
-  uint32_t* buf = malloc(lenx * leny * sizeof(*buf));
-  unsigned bufidx = 0;
+  unsigned bufidx = 0; // an index; the actual offset is bufidx * 4
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   sprixel* s = bargs->u.pixel.spx;
-  int sprixelid = s->id;
-  int cdimy = s->cellpxy;
-  int cdimx = s->cellpxx;
-  uint32_t transcolor = bargs->transcolor;
+  const int cdimy = s->cellpxy;
+  const int cdimx = s->cellpxx;
+  const uint32_t transcolor = bargs->transcolor;
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
@@ -797,10 +763,11 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
     if(totalout == 0){
       // older versions of kitty will delete uploaded images when scrolling,
       // alas. see https://github.com/dankamongmen/notcurses/issues/1910 =[.
-      // parse_start isn't used in animation mode, so no worries there.
+      // parse_start isn't used in animation mode, so no worries about the
+      // fact that this doesn't complete the header in that case.
       *parse_start = fbuf_printf(f, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s",
-                                 lenx, leny, sprixelid,
-                                 animated ? "o=z,q=2" : chunks ? "m=1;" : "q=2;");
+                                 lenx, leny, s->id,
+                                 animated ? "q=2" : chunks ? "m=1;" : "q=2;");
       if(*parse_start < 0){
         goto err;
       }
@@ -922,9 +889,6 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
           goto err;
         }
         bufidx += encodeable;
-        /*if(add_to_deflator(&zctx, source, encodeable, wipe)){
-          goto err;
-        }*/
       }else{
         // we already took transcolor to alpha 0; there's no need to
         // check it again, so pass 0.
@@ -940,8 +904,10 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
       }
     }
   }
+  // we only deflate if we're using animation, since otherwise we need be able
+  // to edit the encoded bitmap in-place for wipes/restores.
   if(animated){
-    if(finalize_deflator(&zctx, buf, f, leny, lenx)){
+    if(deflate_buf(buf, f, leny, lenx)){
       goto err;
     }
     if(selfref_annihilated){
@@ -951,13 +917,13 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
     }
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
-  destroy_deflator(animated, &zctx, leny, lenx);
+  free(buf);
   return 0;
 
 err:
   logerror("failed blitting kitty graphics\n");
   cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
-  destroy_deflator(animated, &zctx, leny, lenx);
+  free(buf);
   return -1;
 }
 
