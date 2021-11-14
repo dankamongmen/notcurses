@@ -1,4 +1,4 @@
-#include <zlib.h>
+#include <libdeflate.h>
 #include "internal.h"
 
 // only invoked without suppress banners flag. prints various warnings based on
@@ -61,7 +61,7 @@ int init_banner(const notcurses* nc, fbuf* f){
     const char* ncursesver = curses_version();
     const char* ncver = strchr(ncursesver, ' ');
     ncver = ncver ? ncver + 1 : ncursesver;
-    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo %s zlib %s GPM %s" NL,
+    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo %s libdeflate %s GPM %s" NL,
                 nc->tcache.caps.colors, clreol,
 #ifdef __clang__
             "", // name is contained in __VERSION__
@@ -82,7 +82,7 @@ int init_banner(const notcurses* nc, fbuf* f){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            clreol, ncver, zlibVersion(), gpm_version());
+            clreol, ncver, LIBDEFLATE_VERSION_STRING, gpm_version());
     fbuf_puts(f, clreol); // for ncvisual banner
     ncvisual_printbanner(f);
     init_banner_warnings(nc, f, clreol);
