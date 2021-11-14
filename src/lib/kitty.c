@@ -231,8 +231,8 @@ init_sprixel_animation(sprixel* s){
 // auxiliary vector back into the actual data. we then free the auxvector.
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   const int totalpixels = s->meta.pixy * s->meta.pixx;
-  const int xpixels = s->meta.cellpxx;
-  const int ypixels = s->meta.cellpxy;
+  const unsigned xpixels = s->meta.cellpxx;
+  const unsigned ypixels = s->meta.cellpxy;
   int targx = xpixels;
   if((xcell + 1) * xpixels > s->meta.pixx){
     targx = s->meta.pixx - xcell * xpixels;
@@ -465,8 +465,8 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
     return -1;
   }
   const int totalpixels = s->meta.pixy * s->meta.pixx;
-  const int xpixels = s->meta.cellpxx;
-  const int ypixels = s->meta.cellpxy;
+  const unsigned xpixels = s->meta.cellpxx;
+  const unsigned ypixels = s->meta.cellpxy;
   // if the cell is on the right or bottom borders, it might only be partially
   // filled by actual graphic data, and we need to cap our target area.
   int targx = xpixels;
@@ -767,7 +767,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, unsigned cols,
       // parse_start isn't used in animation mode, so no worries about the
       // fact that this doesn't complete the header in that case.
       *parse_start = fbuf_printf(f, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s",
-                                 lenx, leny, s->id,
+                                 lenx, leny, s->meta.id,
                                  animated ? "q=2" : chunks ? "m=1;" : "q=2;");
       if(*parse_start < 0){
         goto err;
@@ -935,14 +935,14 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   fbuf* f = &s->glyph;
-  const int ystart = ycell * s->meta.cellpxy;
-  const int xstart = xcell * s->meta.cellpxx;
-  const int xlen = xstart + s->meta.cellpxx > s->meta.pixx ?
-             (int)s->meta.pixx - xstart : s->meta.cellpxx;
-  const int ylen = ystart + s->meta.cellpxy > s->meta.pixy ?
-             (int)s->meta.pixy - ystart : s->meta.cellpxy;
+  const unsigned ystart = ycell * s->meta.cellpxy;
+  const unsigned xstart = xcell * s->meta.cellpxx;
+  const unsigned xlen = xstart + s->meta.cellpxx > s->meta.pixx ?
+             s->meta.pixx - xstart : s->meta.cellpxx;
+  const unsigned ylen = ystart + s->meta.cellpxy > s->meta.pixy ?
+             s->meta.pixy - ystart : s->meta.cellpxy;
   logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->meta.id, ycell, xcell, ylen, xlen);
-  fbuf_printf(f, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%u,r=1,c=2,q=2;\x1b\\",
+  fbuf_printf(f, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%u,h=%u,i=%u,r=1,c=2,q=2;\x1b\\",
               xcell * s->meta.cellpxx, ycell * s->meta.cellpxy,
               xcell * s->meta.cellpxx, ycell * s->meta.cellpxy,
               xlen, ylen, s->meta.id);
@@ -958,19 +958,19 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   fbuf* f = &s->glyph;
-  const int ystart = ycell * s->meta.cellpxy;
-  const int xstart = xcell * s->meta.cellpxx;
-  const int xlen = xstart + s->meta.cellpxx > s->meta.pixx ?
-             (int)s->meta.pixx - xstart : s->meta.cellpxx;
-  const int ylen = ystart + s->meta.cellpxy > s->meta.pixy ?
-             (int)s->meta.pixy - ystart : s->meta.cellpxy;
+  const unsigned ystart = ycell * s->meta.cellpxy;
+  const unsigned xstart = xcell * s->meta.cellpxx;
+  const unsigned xlen = xstart + s->meta.cellpxx > s->meta.pixx ?
+             s->meta.pixx - xstart : s->meta.cellpxx;
+  const unsigned ylen = ystart + s->meta.cellpxy > s->meta.pixy ?
+             s->meta.pixy - ystart : s->meta.cellpxy;
   const int linesize = xlen * 4;
   const int total = xlen * ylen;
   const int tyx = xcell + ycell * s->meta.dimx;
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
   int totalout = 0; // total pixels of payload out
   int y = 0; // position within source image (pixels)
-  int x = 0;
+  unsigned x = 0;
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   // FIXME this ought be factored out and shared with write_kitty_data()
@@ -979,7 +979,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     if(totalout == 0){
       const int c = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 2 : 1;
       const int r = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 1 : 2;
-      if(fbuf_printf(f, "\e_Ga=f,x=%u,y=%u,s=%d,v=%d,i=%u,X=1,c=%d,r=%d,%s;",
+      if(fbuf_printf(f, "\e_Ga=f,x=%u,y=%u,s=%u,v=%u,i=%u,X=1,c=%d,r=%d,%s;",
                      xcell * s->meta.cellpxx, ycell * s->meta.cellpxy, xlen, ylen,
                      s->meta.id, c, r, chunks ? "m=1" : "q=2") < 0){
         return -1;

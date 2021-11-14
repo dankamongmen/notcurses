@@ -19,13 +19,13 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
     return -1;
   }
   char* glyph = s->glyph.buf;
-  for(int y = 0 ; y < s->meta.cellpxy ; ++y){
+  for(unsigned y = 0 ; y < s->meta.cellpxy ; ++y){
     if(ycell * s->meta.cellpxy + y >= s->meta.pixy){
       break;
     }
     // number of pixels total above our pixel row
     const size_t yoff = s->meta.pixx * (ycell * s->meta.cellpxy + y);
-    for(int x = 0 ; x < s->meta.cellpxx ; ++x){
+    for(unsigned x = 0 ; x < s->meta.cellpxx ; ++x){
       if(xcell * s->meta.cellpxx + x >= s->meta.pixx){
         break;
       }
@@ -125,12 +125,12 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   sprixcell_e state = SPRIXCELL_TRANSPARENT;
-  for(int y = 0 ; y < s->meta.cellpxy ; ++y){
+  for(unsigned y = 0 ; y < s->meta.cellpxy ; ++y){
     if(ycell * s->meta.cellpxy + y >= s->meta.pixy){
       break;
     }
     const size_t yoff = s->meta.pixx * (ycell * s->meta.cellpxy + y);
-    for(int x = 0 ; x < s->meta.cellpxx ; ++x){
+    for(unsigned x = 0 ; x < s->meta.cellpxx ; ++x){
       if(xcell * s->meta.cellpxx + x >= s->meta.pixx){
         break;
       }

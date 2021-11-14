@@ -231,13 +231,13 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   }
   memset(auxvec + s->meta.cellpxx * s->meta.cellpxy, 0xff, s->meta.cellpxx * s->meta.cellpxy);
   sixelmap* smap = s->smap;
-  const int startx = xcell * s->meta.cellpxx;
-  const int starty = ycell * s->meta.cellpxy;
-  int endx = ((xcell + 1) * s->meta.cellpxx) - 1;
+  const unsigned startx = xcell * s->meta.cellpxx;
+  const unsigned starty = ycell * s->meta.cellpxy;
+  unsigned endx = ((xcell + 1) * s->meta.cellpxx) - 1;
   if(endx >= s->meta.pixx){
     endx = s->meta.pixx - 1;
   }
-  int endy = ((ycell + 1) * s->meta.cellpxy) - 1;
+  unsigned endy = ((ycell + 1) * s->meta.cellpxy) - 1;
   if(endy >= s->meta.pixy){
     endy = s->meta.pixy - 1;
   }
@@ -961,10 +961,10 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 int sixel_scrub(const ncpile* p, sprixel* s){
   loginfo("%u state %d at %u/%u (%u/%u)\n", s->meta.id, s->invalidated,
           s->meta.movedfromy, s->meta.movedfromx, s->meta.dimy, s->meta.dimx);
-  int starty = s->meta.movedfromy;
-  int startx = s->meta.movedfromx;
-  for(int yy = starty ; yy < starty + (int)s->meta.dimy && yy < (int)p->dimy ; ++yy){
-    for(int xx = startx ; xx < startx + (int)s->meta.dimx && xx < (int)p->dimx ; ++xx){
+  unsigned starty = s->meta.movedfromy;
+  unsigned startx = s->meta.movedfromx;
+  for(unsigned yy = starty ; yy < starty + s->meta.dimy && yy < p->dimy ; ++yy){
+    for(unsigned xx = startx ; xx < startx + s->meta.dimx && xx < p->dimx ; ++xx){
       int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
       if(!s->n){
@@ -973,11 +973,11 @@ int sixel_scrub(const ncpile* p, sprixel* s){
         continue;
       }
       sprixel* trues = r->sprixel ? r->sprixel : s;
-      if(yy >= (int)trues->n->leny || yy - trues->n->absy < 0){
+      if(yy >= trues->n->leny || (int)yy - trues->n->absy < 0){
         r->s.damaged = 1;
         continue;
       }
-      if(xx >= (int)trues->n->lenx || xx - trues->n->absx < 0){
+      if(xx >= trues->n->lenx || (int)xx - trues->n->absx < 0){
         r->s.damaged = 1;
         continue;
       }
@@ -1015,14 +1015,8 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
       return -1;
     }
     if(s->invalidated == SPRIXEL_MOVED){
-      for(int yy = s->meta.movedfromy ; yy < s->meta.movedfromy + (int)s->meta.dimy && yy < (int)p->dimy ; ++yy){
-        if(yy < 0){
-          continue;
-        }
-        for(int xx = s->meta.movedfromx ; xx < s->meta.movedfromx + (int)s->meta.dimx && xx < (int)p->dimx ; ++xx){
-          if(xx < 0){
-            continue;
-          }
+      for(unsigned yy = s->meta.movedfromy ; yy < s->meta.movedfromy + s->meta.dimy && yy < p->dimy ; ++yy){
+        for(unsigned xx = s->meta.movedfromx ; xx < s->meta.movedfromx + s->meta.dimx && xx < p->dimx ; ++xx){
           struct crender *r = &p->crender[yy * p->dimx + xx];
           if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE_SIXEL){
             r->s.damaged = 1;
@@ -1066,18 +1060,18 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   sixelmap* smap = s->smap;
   const int startx = xcell * s->meta.cellpxx;
   const int starty = ycell * s->meta.cellpxy;
-  int endx = ((xcell + 1) * s->meta.cellpxx) - 1;
+  unsigned endx = ((xcell + 1) * s->meta.cellpxx) - 1;
   if(endx > s->meta.pixx){
     endx = s->meta.pixx;
   }
-  int endy = ((ycell + 1) * s->meta.cellpxy) - 1;
+  unsigned endy = ((ycell + 1) * s->meta.cellpxy) - 1;
   if(endy > s->meta.pixy){
     endy = s->meta.pixy;
   }
-  int transparent = 0;
+  unsigned transparent = 0;
 //fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
-  for(int x = startx ; x <= endx ; ++x){
-    for(int y = starty ; y <= endy ; ++y){
+  for(unsigned x = startx ; x <= endx ; ++x){
+    for(unsigned y = starty ; y <= endy ; ++y){
       int auxvecidx = (y - starty) * s->meta.cellpxx + (x - startx);
       int trans = auxvec[s->meta.cellpxx * s->meta.cellpxy + auxvecidx];
       if(!trans){
