@@ -910,6 +910,15 @@ track_sprixel_metadata(notcurses* nc, const sprixel* s){
 // graphics are not yet visible, and they have not moved.
 static int64_t
 clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
+  // if we were the last pile rendered, we don't need worry about existing
+  // sprixels; clear out that metadata list.
+  if(p == nc->rstate.last_pile){
+    sprixel* s;
+    while( (s = nc->rstate.sprixels_last_drawn) ){
+      nc->rstate.sprixels_last_drawn = s->next;
+      free(s); // just metadata; don't use sprixel_free()
+    }
+  }
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
