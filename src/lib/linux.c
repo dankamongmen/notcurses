@@ -158,6 +158,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
+  logdebug("id %lu dest %d/%d\n", s->id, y, x);
   int wrote = 0;
   for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
@@ -608,8 +609,8 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     *quadrants = true;
   }
   added += halvesadded;
-  loginfo("successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
-  if(ti->linux_fb_fd){ // console doesn't imply framebuffer
+  loginfo("successfully added %d kernel font glyph%s via %d\n", added, added == 1 ? "" : "s", ti->linux_fb_fd);
+  if(ti->linux_fb_fd < 0){ // console doesn't imply framebuffer
     return 0;
   }
   unsigned pixely, pixelx;
