@@ -48,7 +48,7 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-impish
+name: ubuntu-jellyfish
 
 steps:
 - name: ubuntu-build
