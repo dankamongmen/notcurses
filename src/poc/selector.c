@@ -39,8 +39,8 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
         continue;
       }
       switch(keypress){
-        case NCKEY_ENTER: ncselector_destroy(ns); return;
-        case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns); return; }
+        case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
+        case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
       }
       if(keypress == 'q'){
         break;
@@ -48,7 +48,7 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
     }
     notcurses_render(nc);
   }
-  ncselector_destroy(ns);
+  ncselector_destroy(ns, NULL);
 }
 
 int main(void){

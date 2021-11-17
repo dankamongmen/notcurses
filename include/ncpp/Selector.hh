@@ -38,7 +38,7 @@ namespace ncpp
 		~Selector ()
 		{
 			if (!is_notcurses_stopped ())
-				ncselector_destroy (selector);
+				ncselector_destroy (selector, nullptr);
 		}
 
 		int additem (const ncselector_item *item) const NOEXCEPT_MAYBE

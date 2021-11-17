@@ -1,5 +1,26 @@
 #include "internal.h"
 
+static void
+ncreader_destroy_internal(ncreader* n){
+  if(n){
+    if(n->manage_cursor){
+      notcurses_cursor_disable(ncplane_notcurses(n->ncp));
+    }
+    ncplane_destroy(n->textarea);
+    ncplane_destroy(n->ncp);
+    free(n);
+  }
+}
+
+void ncreader_destroy(ncreader* n, char** contents){
+  if(n){
+    if(contents){
+      *contents = ncreader_contents(n);
+    }
+    ncreader_destroy_internal(n);
+  }
+}
+
 ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   ncreader_options zeroed = {};
   if(!opts){
@@ -37,6 +58,12 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   nr->manage_cursor = opts->flags & NCREADER_OPTION_CURSOR;
   ncplane_set_channels(nr->ncp, opts->tchannels);
   ncplane_set_styles(nr->ncp, opts->tattrword);
+  if(ncplane_set_widget(n, nr, (void(*)(void*))ncreader_destroy_internal)){
+    ncplane_destroy(nr->textarea);
+    ncplane_destroy(nr->ncp);
+    free(nr);
+    return NULL;
+  }
   return nr;
 }
 
@@ -382,18 +409,4 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
 
 char* ncreader_contents(const ncreader* n){
   return ncplane_contents(n->ncp, 0, 0, 0, 0);
-}
-
-void ncreader_destroy(ncreader* n, char** contents){
-  if(n){
-    if(contents){
-      *contents = ncreader_contents(n);
-    }
-    if(n->manage_cursor){
-      notcurses_cursor_disable(ncplane_notcurses(n->ncp));
-    }
-    ncplane_destroy(n->textarea);
-    ncplane_destroy(n->ncp);
-    free(n);
-  }
 }

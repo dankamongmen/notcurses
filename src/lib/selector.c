@@ -249,6 +249,34 @@ ncselector_dim_yx(const ncselector* n, unsigned* ncdimy, unsigned* ncdimx){
   *ncdimx = cols;
 }
 
+static void
+ncselector_destroy_internal(ncselector* n){
+  if(n){
+    while(n->itemcount--){
+      free(n->items[n->itemcount].option);
+      free(n->items[n->itemcount].desc);
+    }
+    if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
+      ncplane_destroy(n->ncp);
+    }
+    free(n->items);
+    free(n->title);
+    free(n->secondary);
+    free(n->footer);
+    free(n);
+  }
+}
+
+void ncselector_destroy(ncselector* n, char** item){
+  if(n){
+    if(item){
+      *item = n->items[n->selected].option;
+      n->items[n->selected].option = NULL;
+    }
+    ncselector_destroy_internal(n);
+  }
+}
+
 ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   if(n == notcurses_stdplane(ncplane_notcurses(n))){
     logerror("won't use the standard plane\n"); // would fail later on resize
@@ -269,13 +297,11 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   ncselector* ns = malloc(sizeof(*ns));
   if(ns == NULL){
-fprintf(stderr, "SHIT -3\n");
     return NULL;
   }
   memset(ns, 0, sizeof(*ns));
   if(opts->defidx && opts->defidx >= itemcount){
     logerror("default index %u too large (%u items)\n", opts->defidx, itemcount);
-fprintf(stderr, "SHIT -2\n");
     goto freeitems;
   }
   ns->title = opts->title ? strdup(opts->title) : NULL;
@@ -305,7 +331,6 @@ fprintf(stderr, "SHIT -2\n");
   ns->darrowy = ns->uarrowy = ns->arrowx = -1;
   if(itemcount){
     if(!(ns->items = malloc(sizeof(*ns->items) * itemcount))){
-fprintf(stderr, "SHIT -1\n");
       goto freeitems;
     }
   }else{
@@ -315,7 +340,6 @@ fprintf(stderr, "SHIT -1\n");
     const struct ncselector_item* src = &opts->items[ns->itemcount];
     int unsafe = ncstrwidth(src->option);
     if(unsafe < 0){
-fprintf(stderr, "SHIT 0\n");
       goto freeitems;
     }
     unsigned cols = unsafe;
@@ -326,7 +350,6 @@ fprintf(stderr, "SHIT 0\n");
     const char *desc = src->desc ? src->desc : "";
     unsafe = ncstrwidth(desc);
     if(unsafe < 0){
-fprintf(stderr, "SHIT 1\n");
       goto freeitems;
     }
     cols = unsafe;
@@ -337,7 +360,6 @@ fprintf(stderr, "SHIT 1\n");
     ns->items[ns->itemcount].option = strdup(src->option);
     ns->items[ns->itemcount].desc = strdup(desc);
     if(!(ns->items[ns->itemcount].desc && ns->items[ns->itemcount].option)){
-fprintf(stderr, "SHIT 2\n");
       free(ns->items[ns->itemcount].option);
       free(ns->items[ns->itemcount].desc);
       goto freeitems;
@@ -347,15 +369,12 @@ fprintf(stderr, "SHIT 2\n");
   ns->ncp = n;
   ncselector_dim_yx(ns, &dimy, &dimx);
   if(ncplane_resize_simple(n, dimy, dimx)){
-fprintf(stderr, "SHIT 3\n");
     goto freeitems;
   }
-  if(ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncselector_destroy)){
-fprintf(stderr, "SHIT 4\n");
+  if(ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncselector_destroy_internal)){
     goto freeitems;
   }
   ncselector_draw(ns); // deal with error here?
-fprintf(stderr, "RETURNING %p\n", ns);
   return ns;
 
 freeitems:
@@ -367,7 +386,6 @@ freeitems:
   free(ns->title); free(ns->secondary); free(ns->footer);
   free(ns);
   ncplane_destroy(n);
-fprintf(stderr, "RETURNING %p\n", NULL);
   return NULL;
 }
 
@@ -563,23 +581,6 @@ bool ncselector_offer_input(ncselector* n, const ncinput* nc){
     }
   }
   return false;
-}
-
-void ncselector_destroy(ncselector* n){
-  if(n){
-    while(n->itemcount--){
-      free(n->items[n->itemcount].option);
-      free(n->items[n->itemcount].desc);
-    }
-    if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
-      ncplane_destroy(n->ncp);
-    }
-    free(n->items);
-    free(n->title);
-    free(n->secondary);
-    free(n->footer);
-    free(n);
-  }
 }
 
 ncplane* ncmultiselector_plane(ncmultiselector* n){

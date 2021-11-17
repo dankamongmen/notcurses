@@ -3609,7 +3609,7 @@ API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc)
   __attribute__ ((nonnull (1, 2)));
 
 // Destroy the ncselector.
-API void ncselector_destroy(struct ncselector* n);
+API void ncselector_destroy(struct ncselector* n, char** item);
 
 struct ncmselector_item {
   const char* option;
