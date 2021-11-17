@@ -412,21 +412,22 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
       };
       ret->ncp = ncplane_create(n, &nopts);
       if(ret->ncp){
-        ncplane_set_widget(ret->ncp, ret, (void(*)(void*))ncmenu_destroy);
-        ret->unrolledsection = -1;
-        ret->headerchannels = opts->headerchannels;
-        ret->dissectchannels = opts->headerchannels;
-        ncchannels_set_fg_rgb(&ret->dissectchannels, 0xdddddd);
-        ret->sectionchannels = opts->sectionchannels;
-        ret->disablechannels = ret->sectionchannels;
-        ncchannels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
-        nccell c = CELL_TRIVIAL_INITIALIZER;
-        nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
-        nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
-        ncplane_set_base_cell(ret->ncp, &c);
-        nccell_release(ret->ncp, &c);
-        if(write_header(ret) == 0){
-          return ret;
+        if(ncplane_set_widget(ret->ncp, ret, (void(*)(void*))ncmenu_destroy) == 0){
+          ret->unrolledsection = -1;
+          ret->headerchannels = opts->headerchannels;
+          ret->dissectchannels = opts->headerchannels;
+          ncchannels_set_fg_rgb(&ret->dissectchannels, 0xdddddd);
+          ret->sectionchannels = opts->sectionchannels;
+          ret->disablechannels = ret->sectionchannels;
+          ncchannels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
+          nccell c = CELL_TRIVIAL_INITIALIZER;
+          nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
+          nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
+          ncplane_set_base_cell(ret->ncp, &c);
+          nccell_release(ret->ncp, &c);
+          if(write_header(ret) == 0){
+            return ret;
+          }
         }
         ncplane_destroy(ret->ncp);
       }
