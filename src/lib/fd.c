@@ -77,6 +77,9 @@ fdthread(ncfdplane* ncfp, int pidfd){
   if(r <= 0 && !ncfp->destroyed){
     ncfp->donecb(ncfp, r == 0 ? 0 : errno, ncfp->curry);
   }
+  if(ncfp->destroyed){
+    ncfdplane_destroy_inner(ncfp);
+  }
   free(buf);
 }
 
