@@ -882,6 +882,10 @@ ncmultiselector_dim_yx(const ncmultiselector* n, unsigned* ncdimy, unsigned* ncd
 }
 
 ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_options* opts){
+  if(n == notcurses_stdplane(ncplane_notcurses(n))){
+    logerror("won't use the standard plane\n"); // would fail later on resize
+    return NULL;
+  }
   ncmultiselector_options zeroed = {};
   if(!opts){
     opts = &zeroed;
@@ -959,8 +963,10 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   if(ncplane_resize_simple(ns->ncp, dimy, dimx)){
     goto freeitems;
   }
+  if(ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncmultiselector_destroy)){
+    goto freeitems;
+  }
   ncmultiselector_draw(ns); // deal with error here?
-  ncplane_set_widget(ns->ncp, ns, (void(*)(void*))ncmultiselector_destroy);
   return ns;
 
 freeitems:

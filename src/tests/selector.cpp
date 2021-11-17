@@ -11,6 +11,13 @@ TEST_CASE("Selectors") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
+  // selector can't be bound to the standard plane
+  SUBCASE("RefuseStandardPlane") {
+    ncselector_options s{};
+    struct ncselector* ns = ncselector_create(n_, &s);
+    REQUIRE(nullptr == ns);
+  }
+
   // create a selector, but don't explicitly destroy it, thus testing the
   // context shutdown cleanup path
   SUBCASE("ImplicitDestroy") {
