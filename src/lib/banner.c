@@ -1,4 +1,6 @@
+#ifdef USE_DEFLATE
 #include <libdeflate.h>
+#endif
 #include "internal.h"
 
 // only invoked without suppress banners flag. prints various warnings based on
@@ -82,7 +84,13 @@ int init_banner(const notcurses* nc, fbuf* f){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            clreol, ncver, LIBDEFLATE_VERSION_STRING, gpm_version());
+            clreol, ncver,
+#ifdef USE_DEFLATE
+            LIBDEFLATE_VERSION_STRING,
+#else
+            "n/a",
+#endif
+            gpm_version());
     fbuf_puts(f, clreol); // for ncvisual banner
     ncvisual_printbanner(f);
     init_banner_warnings(nc, f, clreol);
