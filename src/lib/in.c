@@ -1999,6 +1999,9 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   // on exit (in cancel_and_join()).
   sigdelset(&smask, SIGTHR);
 #endif
+  int events;
+  // FIXME we usually have a termfd, so this doesn't get used. if we put
+  // it above the termfd check, we never return(!)
   if(pfdcount == 0){
     loginfo("output queues full; blocking on ipipes\n");
     pfds[pfdcount].fd = ictx->ipipes[0];
@@ -2006,7 +2009,6 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
-  int events;
 #if defined(__APPLE__) || defined(__MINGW64__)
   int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
@@ -2016,8 +2018,10 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
 #endif
     if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
+      logerror("error polling (%s)\n", strerror(errno));
       return -1;
     }else if(errno == EINTR){
+      loginfo("interrupted by signal\n");
       return resize_seen;
     }
   }
