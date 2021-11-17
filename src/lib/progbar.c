@@ -188,7 +188,9 @@ double ncprogbar_progress(const ncprogbar* n){
 
 void ncprogbar_destroy(ncprogbar* n){
   if(n){
-    ncplane_destroy(n->ncp);
+    if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
+      ncplane_destroy(n->ncp);
+    }
     free(n);
   }
 }
