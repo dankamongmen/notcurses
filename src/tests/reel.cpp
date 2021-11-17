@@ -139,12 +139,28 @@ TEST_CASE("Reels") {
   // attempt to bind a single plane to two different reels, ensuring that it is
   // refused by the second (and testing that error path). this ought result in
   // the shared plane (and thus the original widget) also being destroyed.
-  SUBCASE("RefuseBoundPlane") {
+  SUBCASE("RefuseBoundStandardPlane") {
     ncreel_options r = { };
     struct ncreel* nr = ncreel_create(n_, &r);
     REQUIRE(nr);
     CHECK(0 == notcurses_render(nc_));
     struct ncreel* fail = ncreel_create(n_, &r);
+    CHECK(nullptr == fail);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // now do the same, but with a plane we have created.
+  SUBCASE("RefuseBoundCreatedPlane") {
+    struct ncplane_options nopts{};
+    nopts.rows = ncplane_dim_y(n_);
+    nopts.cols = ncplane_dim_x(n_);
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != ncp);
+    ncreel_options r = { };
+    struct ncreel* nr = ncreel_create(ncp, &r);
+    REQUIRE(nr);
+    CHECK(0 == notcurses_render(nc_));
+    struct ncreel* fail = ncreel_create(ncp, &r);
     CHECK(nullptr == fail);
     CHECK(0 == notcurses_render(nc_));
   }

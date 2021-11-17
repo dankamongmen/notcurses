@@ -102,6 +102,17 @@ TEST_CASE("Plane") {
     CHECK(0 > ncplane_set_fg_rgb8(n_, 256, 256, 256));
   }
 
+  SUBCASE("StandardPlaneChild") {
+    struct ncplane_options nopts;
+    nopts.rows = ncplane_dim_y(n_);
+    nopts.cols = ncplane_dim_x(n_);
+    auto n = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != n);
+    CHECK(ncplane_dim_y(n) == ncplane_dim_y(n_));
+    CHECK(ncplane_dim_x(n) == ncplane_dim_x(n_));
+    CHECK(0 == ncplane_destroy(n));
+  }
+
   // Verify we can emit a NUL character, and it advances the cursor after
   // wiping out whatever we printed it atop.
   SUBCASE("EmitNULCell") {
