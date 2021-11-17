@@ -62,11 +62,12 @@ typedef struct ncselector_options {
 # NOTES
 
 The **ncplane** **n** provided to **ncselector_create** must not be **NULL**.
-It will be freely resized by the new **ncselector**. **ncselector_selected**
-returns the currently-selected option. **ncselector_additem** and
-**ncselector_delitem** allow items to be added and deleted on the fly
-(a static set of items can all be provided in the **ncselector_create**
-call). The backing plane will be resized as necessary for item changes.
+It will be freely resized by the new **ncselector**, and thus cannot be
+the standard plane. **ncselector_selected** returns the currently-selected
+option. **ncselector_additem** and **ncselector_delitem** allow items to be
+added and deleted on the fly (a static set of items can all be provided in the
+**ncselector_create** call). The backing plane will be resized as necessary for
+item changes.
 
 **ncselector_nextitem** and **ncselector_previtem** select the next (down) or
 previous (up) option, scrolling if necessary. It is safe to call these
@@ -100,5 +101,6 @@ items, they return **NULL**.
 
 **notcurses(3)**,
 **notcurses_input(3)**,
-**notcurses_multiselector(3)**
-**notcurses_plane(3)**
+**notcurses_multiselector(3)**,
+**notcurses_plane(3)**,
+**notcurses_stdplane(3)**
