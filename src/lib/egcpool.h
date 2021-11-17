@@ -101,7 +101,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
   wchar_t wc, prevw = 0;
   bool injoin = false;
   do{
-    r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
+    r = mbrtowc(&wc, gcluster, MB_LEN_MAX, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
       logerror("invalid UTF8: %s\n", gcluster);
