@@ -534,9 +534,9 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
-  ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, " LANG: %s", fi->lang);
+  ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, " LANG: %s ", fi->lang);
   ncplane_set_styles(infop, NCSTYLE_ITALIC | NCSTYLE_BOLD);
-  ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)",
+  ncplane_printf_aligned(infop, 5, NCALIGN_CENTER, "%s (%d cores)",
                          fi->cpu_model ? fi->cpu_model : fallback_cpuinfo(),
                          fi->core_count);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
@@ -579,7 +579,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 
 static int
 infoplane(struct notcurses* nc, const fetched_info* fi){
-  const int planeheight = 8;
+  const int planeheight = 7;
   int r = infoplane_notcurses(nc, fi, planeheight);
   r |= notcurses_stop(nc);
   return r;
