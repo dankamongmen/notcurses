@@ -635,7 +635,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
 #ifdef USE_DEFLATE
   // 2 has been shown to work pretty well for things that are actually going
   // to compress; results per unit time fall off quickly after 2.
-  struct libdeflate_compressor* cmp = libdeflate_alloc_compressor(6);
+  struct libdeflate_compressor* cmp = libdeflate_alloc_compressor(2);
   if(cmp == NULL){
     logerror("couldn't get libdeflate context\n");
     return -1;

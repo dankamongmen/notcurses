@@ -23,9 +23,6 @@
 // latter contains escapes. Unbounded input will hopefully only be present when
 // redirected from a file (NCOPTION_TOSS_INPUT)
 
-// FIXME still need to:
-//  probably want pipes/eventfds rather than SIGCONT
-
 static sig_atomic_t cont_seen;
 static sig_atomic_t resize_seen;
 
@@ -110,7 +107,8 @@ typedef struct inputctx {
   unsigned drain;     // drain away bulk input?
   ncsharedstats *stats; // stats shared with notcurses context
 
-  ipipe readypipes[2];  // pipes[0]: poll()able fd indicating the presence of user input
+  ipipe ipipes[2];
+  ipipe readypipes[2]; // pipes[0]: poll()able fd indicating the presence of user input
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
   bool failed;          // error initializing input automaton, abort
@@ -453,11 +451,11 @@ mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
 #ifndef __MINGW64__
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
-    logwarn("error writing to readypipe (%d) (%s)\n", pipes[1], strerror(errno));
+    logwarn("error writing to pipe (%d) (%s)\n", pipes[1], strerror(errno));
 #else
   DWORD wrote;
   if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
-    logwarn("error writing to readypipe\n");
+    logwarn("error writing to pipe\n");
 #endif
   }
 }
@@ -1449,36 +1447,39 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                 if((i->stdinfd = fileno(infp)) >= 0){
                   if( (i->initdata = malloc(sizeof(*i->initdata))) ){
                     if(getpipes(i->readypipes) == 0){
-                      memset(&i->amata, 0, sizeof(i->amata));
-                      if(prep_special_keys(i) == 0){
-                        if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
-                          i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
-                          memset(i->initdata, 0, sizeof(*i->initdata));
-                          i->initdata->qterm = ti->qterm;
-                          i->iread = i->iwrite = i->ivalid = 0;
-                          i->cread = i->cwrite = i->cvalid = 0;
-                          i->initdata_complete = NULL;
-                          i->stats = stats;
-                          i->ti = ti;
-                          i->stdineof = 0;
+                      if(getpipes(i->ipipes) == 0){
+                        memset(&i->amata, 0, sizeof(i->amata));
+                        if(prep_special_keys(i) == 0){
+                          if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
+                            i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
+                            memset(i->initdata, 0, sizeof(*i->initdata));
+                            i->initdata->qterm = ti->qterm;
+                            i->iread = i->iwrite = i->ivalid = 0;
+                            i->cread = i->cwrite = i->cvalid = 0;
+                            i->initdata_complete = NULL;
+                            i->stats = stats;
+                            i->ti = ti;
+                            i->stdineof = 0;
 #ifdef __MINGW64__
-                          i->stdinhandle = ti->inhandle;
+                            i->stdinhandle = ti->inhandle;
 #endif
-                          i->ibufvalid = 0;
-                          i->linesigs = linesigs_enabled;
-                          i->tbufvalid = 0;
-                          i->midescape = 0;
-                          i->lmargin = lmargin;
-                          i->tmargin = tmargin;
-                          i->rmargin = rmargin;
-                          i->bmargin = bmargin;
-                          i->drain = drain;
-                          i->failed = false;
-                          logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
-                          return i;
+                            i->ibufvalid = 0;
+                            i->linesigs = linesigs_enabled;
+                            i->tbufvalid = 0;
+                            i->midescape = 0;
+                            i->lmargin = lmargin;
+                            i->tmargin = tmargin;
+                            i->rmargin = rmargin;
+                            i->bmargin = bmargin;
+                            i->drain = drain;
+                            i->failed = false;
+                            logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                            return i;
+                          }
                         }
+                        input_free_esctrie(&i->amata);
                       }
-                      input_free_esctrie(&i->amata);
+                      endpipes(i->ipipes);
                     }
                     endpipes(i->readypipes);
                   }
@@ -1523,6 +1524,7 @@ free_inputctx(inputctx* i){
       free(i->initdata_complete);
     }
     endpipes(i->readypipes);
+    endpipes(i->ipipes);
     free(i->inputs);
     free(i->csrs);
     free(i);
@@ -1998,10 +2000,11 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   sigdelset(&smask, SIGTHR);
 #endif
   if(pfdcount == 0){
-    loginfo("output queues full; blocking on signals\n");
-    int signum;
-    sigwait(&smask, &signum);
-    return 0;
+    loginfo("output queues full; blocking on ipipes\n");
+    pfds[pfdcount].fd = ictx->ipipes[0];
+    pfds[pfdcount].events = inevents;
+    pfds[pfdcount].revents = 0;
+    ++pfdcount;
   }
   int events;
 #if defined(__APPLE__) || defined(__MINGW64__)
@@ -2029,7 +2032,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       --events;
     }
   }
-loginfo("got events: %c%c %d\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', pfds[0].revents);
+  loginfo("got events: %c%c %d\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', pfds[0].revents);
   return events;
 #endif
 }
@@ -2168,7 +2171,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
-    pthread_kill(ictx->tid, SIGCONT);
+    mark_pipe_ready(ictx->ipipes);
   }
   return id;
 }
