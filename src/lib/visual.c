@@ -1170,9 +1170,6 @@ void ncvisual_destroy(ncvisual* ncv){
 
 int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
                              const struct timespec* tspec, void* curry){
-  if(notcurses_render(ncplane_notcurses(vopts->n))){
-    return -1;
-  }
   struct ncplane* subtitle = NULL;
   int ret = 0;
   if(curry){
@@ -1183,6 +1180,9 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
       subncp->blist = NULL;
     }
     subtitle = ncvisual_subtitle_plane(subncp, ncv);
+  }
+  if(notcurses_render(ncplane_notcurses(vopts->n))){
+    return -1;
   }
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
   ncplane_destroy(subtitle);
