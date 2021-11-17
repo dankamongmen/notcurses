@@ -127,12 +127,21 @@ found in **<notcurses/notcurses.h>**. For more details, consult **terminfo(5)**.
 ## **NCKEY_RESIZE**
 
 Unless the **SIGWINCH** handler has been inhibited (see **notcurses_init**),
-notcurses will automatically catch screen resizes, and synthesize an
+Notcurses will automatically catch screen resizes, and synthesize an
 **NCKEY_RESIZE** event. Upon receiving this event, the user may call
 **notcurses_refresh** to force an immediate reflow, or just wait until the
 next call to **notcurses_render**, when notcurses will pick up the resize
 itself. If the **SIGWINCH** handler is inhibited, **NCKEY_RESIZE** is never
 generated.
+
+## **NCKEY_SIGNAL**
+
+Unless the **SIGWINCH** handler has been inhibited (see **notcurses_init**),
+Notcurses will catch **SIGCONT**, and synthesize an **NCKEY_SIGNAL** event.
+This typically indicates that the program has been restarted after being
+paused or placed in the background. The next rasterization will be a full
+rebuild of the screen, as if **notcurses_refresh** had been called; the user
+might wish to immediately call **notcurses_refresh** themselves.
 
 ## **NCKEY_EOF**
 

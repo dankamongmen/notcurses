@@ -39,6 +39,7 @@ extern "C" {
 #define SIGQUIT 0
 #define SIGCONT 0
 #define SIGWINCH 0
+#define SIGSTOP 0
 #define gettimeofday mingw_gettimeofday
 #define sigaddset(x, y)
 typedef struct siginfo_t {
