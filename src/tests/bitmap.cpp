@@ -327,7 +327,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(bmap));
   }
 
-  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + (null) alignment
+  // test NCVISUAL_OPTION_CHILDPLANE + stretch + (null) alignment
   SUBCASE("ImageChildScaling") {
     struct ncplane_options opts = {
       .y = 0, .x = 0,

@@ -252,15 +252,20 @@ TEST_CASE("Media") {
     }
   }
 
-  // do a pixel video, reusing the same plane over and over
-  SUBCASE("LoadVideoPixelStretchOnePlane") {
+  // do a pixel video, reusing the same pile over and over
+  SUBCASE("LoadVideoPixelStretchOnePile") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         unsigned dimy, dimx;
         ncplane_dim_yx(ncp_, &dimy, &dimx);
         auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
         REQUIRE(ncv);
-        struct ncplane* n = NULL;
+        ncplane_options nopts{};
+        // shrink it down so this test runs more quickly
+        nopts.rows = 5;
+        nopts.cols = 20;
+        auto n = ncpile_create(nc_, &nopts);
+        REQUIRE(nullptr != n);
         for(;;){ // run at the highest speed we can
           int ret = ncvisual_decode(ncv);
           if(1 == ret){
@@ -273,10 +278,12 @@ TEST_CASE("Media") {
           opts.n = n;
           n = ncvisual_blit(nc_, ncv, &opts);
           REQUIRE(nullptr != n);
-          CHECK(0 == notcurses_render(nc_));
+          CHECK(0 == ncpile_render(n));
+          CHECK(0 == ncpile_rasterize(n));
         }
-        CHECK(0 == ncplane_destroy(n));
         ncvisual_destroy(ncv);
+        CHECK(0 == ncplane_destroy(n));
+        CHECK(0 == notcurses_render(nc_));
       }
     }
   }
@@ -310,6 +317,7 @@ TEST_CASE("Media") {
           CHECK(0 == ncplane_destroy(n));
         }
         ncvisual_destroy(ncv);
+        CHECK(0 == notcurses_render(nc_));
       }
     }
   }
@@ -360,7 +368,7 @@ TEST_CASE("Media") {
     }
   }
 
-  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + null alignment, using a file
+  // test NCVISUAL_OPTION_CHILDPLANE + stretch + null alignment, using a file
   SUBCASE("ImageFileChildScaling") {
     struct ncplane_options opts = {
       .y = 0, .x = 0,
