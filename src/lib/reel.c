@@ -234,6 +234,74 @@ tablet_geom(const ncreel* nr, nctablet* t, int* begx, int* begy,
   return 0;
 }
 
+// kill the planes associated with |t|
+static void
+nctablet_wipeout(nctablet* t){
+  if(t){
+    if(ncplane_set_widget(t->p, NULL, NULL) == 0){
+      ncplane_destroy_family(t->p);
+    }
+    t->p = NULL;
+    t->cbp = NULL;
+  }
+}
+
+// destroy all existing tablet planes pursuant to redraw
+static void
+clean_reel(ncreel* r){
+  nctablet* vft = r->vft;
+  if(vft){
+    for(nctablet* n = vft->next ; n->p && n != vft ; n = n->next){
+//fprintf(stderr, "CLEANING NEXT: %p (%p)\n", n, n->p);
+      nctablet_wipeout(n);
+    }
+    for(nctablet* n = vft->prev ; n->p && n != vft ; n = n->prev){
+//fprintf(stderr, "CLEANING PREV: %p (%p)\n", n, n->p);
+      nctablet_wipeout(n);
+    }
+//fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
+    nctablet_wipeout(vft);
+    r->vft = NULL;
+  }
+}
+
+// used as ncplane widget destructor callback, and likewise the heart of
+// ncreel_del(). without this, at context collapse time we'd wipe out all the
+// planes (without wiping out their subsidiaries), and ncreel_destroy() would
+// walk freed memory. as we have no handle on the ncreel, we do not update its
+// metadata (tabletcount), nor redraw, but who cares? we're shutting down.
+static void
+nctablet_delete_internal(struct nctablet* t){
+  t->prev->next = t->next;
+  t->next->prev = t->prev;
+  if(t->p){
+    if(ncplane_set_widget(t->p, NULL, NULL) == 0){
+      ncplane_destroy_family(t->p);
+    }
+  }
+  free(t);
+}
+
+int ncreel_del(ncreel* nr, struct nctablet* t){
+  if(t == NULL){
+    return -1;
+  }
+  nctablet_delete_internal(t);
+  if(nr->tablets == t){
+    if((nr->tablets = t->next) == t){
+      nr->tablets = NULL;
+    }
+    // FIXME ought set direction based on actual location of replacement tablet
+    nr->direction = LASTDIRECTION_DOWN;
+  }
+  if(nr->vft == t){
+    clean_reel(nr); // maybe just make nr->tablets the vft?
+  }
+  --nr->tabletcount;
+  ncreel_redraw(nr);
+  return 0;
+}
+
 // Draw the specified tablet, if possible. DIRECTION_UP means we're laying out
 // bottom-to-top. DIRECTION_DOWN means top-to-bottom. 'frontier{top, bottom}'
 // are the lines to which we'll be fitting the tablet ('frontiertop' to our
@@ -266,6 +334,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
 //fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
     return -1;
   }
+  ncplane_set_widget(t->p, t, (void(*)(void*))nctablet_delete_internal);
   // we allow the callback to use a bound plane that lives above our border
   // plane, thus preventing the callback from spilling over the tablet border.
   int cby = 0, cbx = 0, cbleny = leny, cblenx = lenx;
@@ -596,31 +665,6 @@ tighten_reel(ncreel* r){
   return trim_reel_overhang(r, top, bottom);
 }
 
-// destroy all existing tablet planes pursuant to redraw
-static void
-clean_reel(ncreel* r){
-  nctablet* vft = r->vft;
-  if(vft){
-    for(nctablet* n = vft->next ; n->p && n != vft ; n = n->next){
-//fprintf(stderr, "CLEANING NEXT: %p (%p)\n", n, n->p);
-      ncplane_destroy_family(n->p);
-      n->p = NULL;
-      n->cbp = NULL;
-    }
-    for(nctablet* n = vft->prev ; n->p && n != vft ; n = n->prev){
-//fprintf(stderr, "CLEANING PREV: %p (%p)\n", n, n->p);
-      ncplane_destroy_family(n->p);
-      n->p = NULL;
-      n->cbp = NULL;
-    }
-//fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
-    ncplane_destroy_family(vft->p);
-    vft->p = NULL;
-    vft->cbp = NULL;
-    r->vft = NULL;
-  }
-}
-
 // Arrange the panels, starting with the focused window, wherever it may be.
 // If necessary, resize it to the full size of the reel--focus has its
 // privileges. We then work in the opposite direction of travel, filling out
@@ -827,38 +871,13 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   return t;
 }
 
-int ncreel_del(ncreel* nr, struct nctablet* t){
-  if(t == NULL){
-    return -1;
-  }
-  t->prev->next = t->next;
-  if(nr->tablets == t){
-    if((nr->tablets = t->next) == t){
-      nr->tablets = NULL;
-    }
-    // FIXME ought set direction based on actual location of replacement tablet
-    nr->direction = LASTDIRECTION_DOWN;
-  }
-  if(nr->vft == t){
-    clean_reel(nr); // maybe just make nr->tablets the vft?
-  }
-  t->next->prev = t->prev;
-  if(t->p){
-    ncplane_destroy_family(t->p);
-  }
-  free(t);
-  --nr->tabletcount;
-  ncreel_redraw(nr);
-  return 0;
-}
-
 void ncreel_destroy(ncreel* nreel){
   if(nreel){
-    nctablet* t;
-    while( (t = nreel->tablets) ){
-      ncreel_del(nreel, t);
-    }
     if(ncplane_set_widget(nreel->p, NULL, NULL) == 0){
+      nctablet* t;
+      while( (t = nreel->tablets) ){
+        ncreel_del(nreel, t);
+      }
       ncplane_destroy(nreel->p);
     }
     free(nreel);

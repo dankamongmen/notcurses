@@ -346,13 +346,6 @@ ncpile_destroy(ncpile* pile){
 
 void free_plane(ncplane* p){
   if(p){
-    if(p->widget){
-      void* w = p->widget;
-      void (*wdestruct)(void*) = p->wdestruct;
-      p->widget = NULL;
-      p->wdestruct = NULL;
-      wdestruct(w);
-    }
     // ncdirect fakes an ncplane with no ->pile
     if(ncplane_pile(p)){
       notcurses* nc = ncplane_notcurses(p);
@@ -365,6 +358,15 @@ void free_plane(ncplane* p){
           ncpile_destroy(ncplane_pile(p));
         pthread_mutex_unlock(&nc->pilelock);
       }
+    }
+    if(p->widget){
+      void* w = p->widget;
+      void (*wdestruct)(void*) = p->wdestruct;
+      p->widget = NULL;
+      p->wdestruct = NULL;
+      logdebug("calling widget destructor %p(%p)\n", wdestruct, w);
+      wdestruct(w);
+      logdebug("got the widget\n");
     }
     if(p->sprite){
       sprixel_hide(p->sprite);
@@ -1180,6 +1182,7 @@ ncpile_drop(notcurses* nc, ncpile** pile){
   ncplane* p = (*pile)->top;
   while(p){
     ncplane* tmp = p->below;
+    logdebug("killing plane %p, next is %p\n", p, tmp);
     if(nc->stdplane != p){
       free_plane(p);
     }else{
@@ -1198,6 +1201,7 @@ ncpile_drop(notcurses* nc, ncpile** pile){
 
 // drop all piles and all planes, save the standard plane and its pile
 void notcurses_drop_planes(notcurses* nc){
+  logdebug("we have some planes\n");
   pthread_mutex_lock(&nc->pilelock);
   ncpile* p = ncplane_pile(nc->stdplane);
   ncpile* p0 = p;
@@ -1205,6 +1209,7 @@ void notcurses_drop_planes(notcurses* nc){
     ncpile_drop(nc, &p);
   }while(p0 != p);
   pthread_mutex_unlock(&nc->pilelock);
+  logdebug("all planes dropped\n");
 }
 
 int notcurses_stop(notcurses* nc){
@@ -1228,7 +1233,9 @@ int notcurses_stop(notcurses* nc){
     }
     if(nc->stdplane){
       notcurses_drop_planes(nc);
+      logdebug("say goodbye to the standard plane\n");
       free_plane(nc->stdplane);
+      logdebug("get outta here\n");
     }
     if(nc->tcache.ttyfd >= 0){
       ret |= close(nc->tcache.ttyfd);
