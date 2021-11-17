@@ -19,7 +19,7 @@ extern "C" {
 
 // Special composed key definitions. These values are added to 0x100000.
 #define NCKEY_INVALID   preterunicode(0)
-#define NCKEY_SIGNAL    preterunicode(1) // we received either SIGWINCH or SIGCONT
+#define NCKEY_RESIZE    preterunicode(1) // we received SIGWINCH
 #define NCKEY_UP        preterunicode(2)
 #define NCKEY_RIGHT     preterunicode(3)
 #define NCKEY_DOWN      preterunicode(4)
@@ -158,21 +158,23 @@ extern "C" {
 #define NCKEY_BUTTON10  preterunicode(210)
 #define NCKEY_BUTTON11  preterunicode(211)
 
+// we received SIGCONT
+#define NCKEY_SIGNAL    preterunicode(400)
+
 // indicates that we have reached the end of input. any further calls
 // will continute to return this immediately.
-#define NCKEY_EOF       preterunicode(300)
+#define NCKEY_EOF       preterunicode(500)
 
 // Is this uint32_t a synthesized event?
 static inline bool
 nckey_synthesized_p(uint32_t w){
-  return w >= PRETERUNICODEBASE && w <= (PRETERUNICODEBASE + 300);
+  return w >= PRETERUNICODEBASE && w <= NCKEY_EOF;
 }
 
 // Synonyms (so far as we're concerned)
 #define NCKEY_SCROLL_UP   NCKEY_BUTTON4
 #define NCKEY_SCROLL_DOWN NCKEY_BUTTON5
 #define NCKEY_RETURN      NCKEY_ENTER
-#define NCKEY_RESIZE      NCKEY_SIGNAL
 
 // Just aliases, ma'am, from the 128 characters common to ASCII+UTF8
 #define NCKEY_ESC      0x1b
