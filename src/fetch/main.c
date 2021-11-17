@@ -41,7 +41,6 @@ typedef struct fetched_info {
   const char* shell;           // getenv("SHELL")
   char* term;                  // notcurses_detected_terminal(), heap-alloced
   char* lang;                  // getenv("LANG")
-  int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet
   int core_count;
   // if there is no other logo found, fall back to a logo filched from neofetch
@@ -73,6 +72,25 @@ fetch_env_vars(struct notcurses* nc, fetched_info* fi){
     fi->lang = nl_langinfo(CODESET);
   }
   return 0;
+}
+
+// if nothing else is available, use a generic architecture based on compile
+static const char*
+fallback_cpuinfo(void){
+#if defined(__amd64__) || defined(_M_AMD64)
+  return "amd64";
+#elif defined(__aarch64__)
+  return "aarch64";
+#elif defined(__arm__)
+  return "arm";
+#elif defined(__i386__) || defined(_M_IX86)
+  return "i386";
+#elif defined(__ia64__)
+  return "ia64";
+#else
+  #warning "unknown target architecture"
+  return "unknown";
+#endif
 }
 
 static int
@@ -168,49 +186,6 @@ fetch_cpu_info(fetched_info* fi){
 #undef TAG
 #undef CORE
   }
-  return 0;
-}
-
-static char*
-pipe_getline(const char* cmdline){
-  FILE* p = popen(cmdline, "re");
-  if(p == NULL){
-    fprintf(stderr, "Error running %s (%s)\n", cmdline, strerror(errno));
-    return NULL;
-  }
-  char* buf = malloc(BUFSIZ); // gatesv("BUFSIZ bytes is enough for anyone")
-  if(fgets(buf, BUFSIZ, p) == NULL){
-//fprintf(stderr, "Error reading from %s (%s)\n", cmdline, strerror(errno));
-    pclose(p);
-    free(buf);
-    return NULL;
-  }
-  // FIXME read any remaining junk so as to stave off SIGPIPEs?
-  if(pclose(p)){
-    fprintf(stderr, "Error closing pipe (%s)\n", strerror(errno));
-    free(buf);
-    return NULL;
-  }
-  return buf;
-}
-
-static int
-fetch_x_props(fetched_info* fi){
-  char* xrandr = pipe_getline("xrandr --current 2>/dev/null");
-  if(xrandr == NULL){
-    return -1;
-  }
-  char* randrcurrent = strstr(xrandr, " current ");
-  if(randrcurrent == NULL){
-    free(xrandr);
-    return -1;
-  }
-  randrcurrent += strlen(" current ");
-  if(sscanf(randrcurrent, "%d x %d", &fi->dimx, &fi->dimy) != 2){
-    free(xrandr);
-    return -1;
-  }
-  free(xrandr);
   return 0;
 }
 
@@ -559,15 +534,11 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
-  ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
-  ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
-#ifndef __MINGW64__
-  ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());
-#else
-  ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %s ", "FIXME"); // FIXME
-#endif
+  ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, " LANG: %s", fi->lang);
   ncplane_set_styles(infop, NCSTYLE_ITALIC | NCSTYLE_BOLD);
-  ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
+  ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)",
+                         fi->cpu_model ? fi->cpu_model : fallback_cpuinfo(),
+                         fi->core_count);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
@@ -757,9 +728,6 @@ ncneofetch(struct notcurses* nc){
   fi.hostname = notcurses_hostname();
   fi.username = notcurses_accountname();
   fetch_env_vars(nc, &fi);
-  if(kern != NCNEO_XNU && kern != NCNEO_WINDOWS){
-    fetch_x_props(&fi);
-  }
   if(kern == NCNEO_LINUX){
     fetch_cpu_info(&fi);
   }else if(kern == NCNEO_WINDOWS){

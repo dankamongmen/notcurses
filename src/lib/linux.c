@@ -158,7 +158,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
-  logdebug("id %lu dest %d/%d\n", s->id, y, x);
+  logdebug("id %" PRIu32 " dest %d/%d\n", s->id, y, x);
   int wrote = 0;
   for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
