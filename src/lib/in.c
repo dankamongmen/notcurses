@@ -25,12 +25,15 @@
 // FIXME still need to:
 //  probably want pipes/eventfds rather than SIGCONT
 
+static sig_atomic_t cont_seen;
 static sig_atomic_t resize_seen;
 
 // called for SIGWINCH and SIGCONT, and causes block_on_input to return
 void sigwinch_handler(int signo){
   if(signo == SIGWINCH){
     resize_seen = signo;
+  }else if(signo == SIGCONT){
+    cont_seen = signo;
   }
 }
 
@@ -1903,6 +1906,13 @@ process_ibuf(inputctx* ictx){
     };
     load_ncinput(ictx, &tni, 0);
     resize_seen = 0;
+  }
+  if(cont_seen){
+    ncinput tni = {
+      .id = NCKEY_SIGNAL,
+    };
+    load_ncinput(ictx, &tni, 0);
+    cont_seen = 0;
   }
   if(ictx->tbufvalid){
     // we could theoretically do this in parallel with process_bulk, but it
