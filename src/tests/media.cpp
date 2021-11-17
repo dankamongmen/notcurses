@@ -281,8 +281,8 @@ TEST_CASE("Media") {
     }
   }
 
-  // do a pixel video with a different plane for each frame
-  SUBCASE("LoadVideoPixelStretchDifferentPlanes") {
+  // do a pixel video with a different pile for each frame
+  SUBCASE("LoadVideoPixelStretchDifferentPiles") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         unsigned dimy, dimx;
@@ -295,12 +295,18 @@ TEST_CASE("Media") {
             break;
           }
           CHECK(0 == ret);
+          ncplane_options nopts{};
+          // shrink it down so this test runs more quickly
+          nopts.rows = 5;
+          nopts.cols = 20;
+          auto n = ncpile_create(nc_, &nopts);
           struct ncvisual_options opts{};
           opts.scaling = NCSCALE_STRETCH;
           opts.blitter = NCBLIT_PIXEL;
-          auto n = ncvisual_blit(nc_, ncv, &opts);
-          REQUIRE(nullptr != n);
-          CHECK(0 == notcurses_render(nc_));
+          opts.n = n;
+          CHECK(n == ncvisual_blit(nc_, ncv, &opts));
+          CHECK(0 == ncpile_render(n));
+          CHECK(0 == ncpile_rasterize(n));
           CHECK(0 == ncplane_destroy(n));
         }
         ncvisual_destroy(ncv);
