@@ -411,25 +411,25 @@ void nctabbed_destroy(nctabbed* nt){
   if(!nt){
     return;
   }
-  nctab* t = nt->leftmost;
-  nctab* tmp;
-  if(t){
-    t->prev->next = NULL;
-    if(t->next){
-      t->next->prev = NULL;
-    }
-  }
-  while(t){
-    tmp = t->next;
-    free(t->name);
-    free(t);
-    t = tmp;
-  }
   if(ncplane_set_widget(nt->ncp, NULL, NULL) == 0){
+    nctab* t = nt->leftmost;
+    nctab* tmp;
+    if(t){
+      t->prev->next = NULL;
+      if(t->next){
+        t->next->prev = NULL;
+      }
+    }
+    while(t){
+      tmp = t->next;
+      free(t->name);
+      free(t);
+      t = tmp;
+    }
     ncplane_destroy_family(nt->ncp);
+    free(nt->opts.separator);
+    free(nt);
   }
-  free(nt->opts.separator);
-  free(nt);
 }
 
 void nctabbed_set_hdrchan(nctabbed* nt, uint64_t chan){
