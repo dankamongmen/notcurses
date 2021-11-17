@@ -103,7 +103,7 @@ TEST_CASE("Plane") {
   }
 
   SUBCASE("StandardPlaneChild") {
-    struct ncplane_options nopts;
+    struct ncplane_options nopts{};
     nopts.rows = ncplane_dim_y(n_);
     nopts.cols = ncplane_dim_x(n_);
     auto n = ncplane_create(n_, &nopts);
