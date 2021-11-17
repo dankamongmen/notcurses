@@ -531,7 +531,9 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   //fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
     if(maxy < y){
   //fprintf(stderr, "NUKING bottom!\n");
-      ncplane_destroy_family(bottom->p);
+      if(ncplane_set_widget(bottom->p, NULL, NULL) == 0){
+        ncplane_destroy_family(bottom->p);
+      }
       bottom->p = NULL;
       bottom->cbp = NULL;
       bottom = bottom->prev;
@@ -820,12 +822,16 @@ ncreel* ncreel_create(ncplane* n, const ncreel_options* ropts){
   memcpy(&nr->ropts, ropts, sizeof(*ropts));
   nr->p = n;
   nr->vft = NULL;
+  if(ncplane_set_widget(nr->p, nr, (void(*)(void*))ncreel_destroy)){
+    ncplane_destroy(nr->p);
+    free(nr);
+    return NULL;
+  }
   if(ncreel_redraw(nr)){
     ncplane_destroy(nr->p);
     free(nr);
     return NULL;
   }
-  ncplane_set_widget(nr->p, nr, (void(*)(void*))ncreel_destroy);
   return nr;
 }
 
