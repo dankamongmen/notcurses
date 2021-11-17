@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "automaton.h"
 #include "internal.h"
+#include "render.h"
 #include "in.h"
 
 // Notcurses takes over stdin, and if it is not connected to a terminal, also
@@ -34,6 +35,7 @@ void sigwinch_handler(int signo){
     resize_seen = signo;
   }else if(signo == SIGCONT){
     cont_seen = signo;
+    sigcont_seen_for_render = 1;
   }
 }
 

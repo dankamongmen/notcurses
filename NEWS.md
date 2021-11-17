@@ -27,6 +27,8 @@ rearrangements of Notcurses.
     lengths rather than closing coordinates, observing the same semantics as
     outlined above.
   * `ncplayer` now defaults to pixel blitting.
+  * `NCKEY_SIGNAL` is no longer a synonym for `NCKEY_RESIZE`, but instead
+    indicates receipt of `SIGCONT`.
 
 * 2.4.9 (2021-11-11)
   * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`

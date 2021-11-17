@@ -4,6 +4,8 @@
 #include <notcurses/direct.h>
 #include "internal.h"
 
+sig_atomic_t sigcont_seen_for_render = 0;
+
 // update for a new visual area of |rows|x|cols|, neither of which may be zero.
 // copies that area of the lastframe (damage map) which is shared between the
 // two. new areas are initialized to empty, just like a new plane. lost areas
@@ -1477,6 +1479,10 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx){
 }
 
 int ncpile_rasterize(ncplane* n){
+  if(sigcont_seen_for_render){
+    sigcont_seen_for_render = 0;
+    notcurses_refresh(ncplane_notcurses(n), NULL, NULL);
+  }
   struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   ncpile* pile = ncplane_pile(n);
