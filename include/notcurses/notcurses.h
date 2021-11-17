@@ -1299,18 +1299,25 @@ API ALLOC struct ncplane* ncplane_create(struct ncplane* n, const ncplane_option
 API ALLOC struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts)
   __attribute__ ((nonnull (1, 2)));
 
-// Suitable for use as a 'resizecb', this will resize the plane to the visual
-// region's size. It is used for the standard plane.
+// Utility resize callbacks. When a parent plane is resized, it invokes each
+// child's resize callback. Any logic can be run in a resize callback, but
+// these are some generically useful ones.
+
+// resize the plane to the visual region's size (used for the standard plane).
 API int ncplane_resize_maximize(struct ncplane* n);
 
-// Suitable for use as a 'resizecb' with planes created with
-// NCPLANE_OPTION_MARGINALIZED. This will resize the plane 'n' against its
-// parent, attempting to enforce the supplied margins.
+// resize the plane to its parent's size, attempting to enforce the margins
+// supplied along with NCPLANE_OPTION_MARGINALIZED.
 API int ncplane_resize_marginalized(struct ncplane* n);
 
-// Suitable for use as a 'resizecb'. This will realign the plane 'n' against
-// its parent, using the alignment specified at ncplane_create()-time.
+// realign the plane 'n' against its parent, using the alignments specified
+// with NCPLANE_OPTION_HORALIGNED and/or NCPLANE_OPTION_VERALIGNED.
 API int ncplane_resize_realign(struct ncplane* n);
+
+// move the plane such that it is entirely within its parent, if possible.
+// no resizing is performed.
+API int ncplane_resize_placewithin(struct ncplane* n);
+///////////////////////////////////////////////////////////////////////////////
 
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
 // The standard plane's resizecb may not be changed.

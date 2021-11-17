@@ -2385,6 +2385,50 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
   return n->resizecb;
 }
 
+int ncplane_resize_placewithin(ncplane* n){
+  if(n->boundto == n){
+    return 0;
+  }
+  int absy = ncplane_abs_y(n);
+  int absx = ncplane_abs_x(n);
+  int ret = 0;
+  if(absy + ncplane_dim_y(n) > ncplane_dim_y(n->boundto)){
+    const int dy = (absy + ncplane_dim_y(n)) - ncplane_dim_y(n->boundto);
+    logdebug("moving up %d\n", dy);
+    if(ncplane_move_rel(n, -dy, 0)){
+      ret = -1;
+    }
+    absy = ncplane_abs_y(n);
+  }
+  if(absx + ncplane_dim_x(n) > ncplane_dim_x(n->boundto)){
+    const int dx = ncplane_dim_x(n->boundto) - (absx + ncplane_dim_x(n));
+    logdebug("moving left %d\n", dx);
+    if(ncplane_move_rel(n, 0, dx)){
+      ret = -1;
+    }
+    absx = ncplane_abs_x(n);
+  }
+  // this will prefer upper-left material if the child plane is larger than
+  // the parent. we might want a smarter rule, one based on origin?
+  if(absy < 0){
+    logdebug("moving down %d\n", -absy);
+    // we're at least partially above our parent
+    if(ncplane_move_rel(n, -absy, 0)){
+      ret = -1;
+    }
+    absy = ncplane_abs_y(n);
+  }
+  if(absx < 0){
+    logdebug("moving right %d\n", -absx);
+    // we're at least partially to the left of our parent
+    if(ncplane_move_rel(n, 0, -absx)){
+      ret = -1;
+    }
+    absx = ncplane_abs_x(n);
+  }
+  return ret;
+}
+
 int ncplane_resize_marginalized(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
   // a marginalized plane cannot be larger than its oppressor plane =]

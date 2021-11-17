@@ -61,6 +61,8 @@ typedef struct ncplane_options {
 
 **int ncplane_resize_marginalized(struct ncplane* ***n***);**
 
+**int ncplane_resize_placewithin(struct ncplane* ***n***);**
+
 **void ncplane_set_resizecb(struct ncplane* ***n***, int(*resizecb)(struct ncplane*));**
 
 **int (*ncplane_resizecb(const struct ncplane* ***n***))(struct ncplane*);**
