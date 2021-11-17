@@ -11,13 +11,19 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
     logwarn("Invalid flags %016" PRIx64 "\n", opts->flags);
   }
   ncprogbar* ret = malloc(sizeof(*ret));
-  if(ret){
-    ret->ncp = n;
-    ret->ulchannel = opts->ulchannel;
-    ret->urchannel = opts->urchannel;
-    ret->blchannel = opts->blchannel;
-    ret->brchannel = opts->brchannel;
-    ret->retrograde = opts->flags & NCPROGBAR_OPTION_RETROGRADE;
+  if(ret == NULL){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ret->ncp = n;
+  ret->ulchannel = opts->ulchannel;
+  ret->urchannel = opts->urchannel;
+  ret->blchannel = opts->blchannel;
+  ret->brchannel = opts->brchannel;
+  ret->retrograde = opts->flags & NCPROGBAR_OPTION_RETROGRADE;
+  if(ncplane_set_widget(n, ret, (void(*)(void*))ncprogbar_destroy)){
+    ncplane_destroy(n);
+    return NULL;
   }
   return ret;
 }

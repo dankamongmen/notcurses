@@ -29,41 +29,6 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
 }
 
 static struct ncplane*
-greatscott(struct notcurses* nc, int dimx){
-  char* path = find_data("greatscott.jpg");
-  if(path == NULL){
-    return NULL;
-  }
-  struct ncvisual* ncv = ncvisual_from_file(path);
-  free(path);
-  if(ncv == NULL){
-    return NULL;
-  }
-  struct ncplane_options opts = {
-    .y = 2,
-    .x = NCALIGN_CENTER,
-    .rows = 18,
-    .cols = dimx - 2,
-    .flags = NCPLANE_OPTION_HORALIGNED,
-    .name = "gsct",
-  };
-  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &opts);
-  if(n == NULL){
-    ncvisual_destroy(ncv);
-    return NULL;
-  }
-  struct ncvisual_options vopts = {
-    .n = n,
-    .blitter = NCBLIT_PIXEL,
-    .scaling = NCSCALE_STRETCH,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
-  };
-  struct ncplane* ret = ncvisual_blit(nc, ncv, &vopts);
-  ncvisual_destroy(ncv);
-  return ret;
-}
-
-static struct ncplane*
 orcashow(struct notcurses* nc, unsigned dimy, unsigned dimx){
   char* path = find_data("natasha-blur.png");
   if(path == NULL){
@@ -270,14 +235,6 @@ int intro(struct notcurses* nc){
     }
   }while(timespec_to_ns(&now) < deadline || flipmode < expected_iter);
   ncplane_destroy(on);
-  struct ncplane* gscott = NULL;
-  if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    if((gscott = greatscott(nc, cols)) == NULL){
-      return -1;
-    }
-    DEMO_RENDER(nc);
-    demo_nanosleep(nc, &demodelay);
-  }
   if(notcurses_canfade(nc)){
     struct timespec fade = demodelay;
     int err;
@@ -285,6 +242,5 @@ int intro(struct notcurses* nc){
       return err;
     }
   }
-  ncplane_destroy(gscott);
   return 0;
 }
