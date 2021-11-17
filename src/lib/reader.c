@@ -6,8 +6,10 @@ ncreader_destroy_internal(ncreader* n){
     if(n->manage_cursor){
       notcurses_cursor_disable(ncplane_notcurses(n->ncp));
     }
+    if(ncplane_set_widget(n->ncp, NULL, NULL) == 0){
+      ncplane_destroy(n->ncp);
+    }
     ncplane_destroy(n->textarea);
-    ncplane_destroy(n->ncp);
     free(n);
   }
 }
