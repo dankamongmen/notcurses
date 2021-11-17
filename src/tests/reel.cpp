@@ -127,6 +127,28 @@ TEST_CASE("Reels") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
+  // create a reel, but don't explicitly destroy it, thus testing the
+  // context shutdown cleanup path
+  SUBCASE("ImplicitDestroy") {
+    ncreel_options r = { };
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
+  // attempt to bind a single plane to two different reels, ensuring that it is
+  // refused by the second (and testing that error path). this ought result in
+  // the shared plane (and thus the original widget) also being destroyed.
+  SUBCASE("RefuseBoundPlane") {
+    ncreel_options r = { };
+    struct ncreel* nr = ncreel_create(n_, &r);
+    REQUIRE(nr);
+    CHECK(0 == notcurses_render(nc_));
+    struct ncreel* fail = ncreel_create(n_, &r);
+    CHECK(nullptr == fail);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   SUBCASE("InitLinear") {
     ncreel_options r = { };
     struct ncreel* nr = ncreel_create(n_, &r);
