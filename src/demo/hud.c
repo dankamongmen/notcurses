@@ -424,7 +424,7 @@ struct ncplane* hud_create(struct notcurses* nc){
     .cols = HUD_COLS,
     .userptr = NULL,
     .name = "hud",
-    .resizecb = NULL,
+    .resizecb = ncplane_resize_placewithin,
     .flags = NCPLANE_OPTION_HORALIGNED |
              NCPLANE_OPTION_FIXED,
   };
