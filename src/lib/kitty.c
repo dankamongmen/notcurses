@@ -1,6 +1,8 @@
-#include <libdeflate.h>
 #include "internal.h"
 #include "base64.h"
+#ifdef USE_DEFLATE
+#include <libdeflate.h>
+#endif
 
 // Kitty has its own bitmap graphics protocol, rather superior to DEC Sixel.
 // A header is written with various directives, followed by a number of
@@ -627,6 +629,10 @@ encode_and_chunkify(fbuf* f, const unsigned char* buf, size_t blen, unsigned com
 
 static int
 deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
+  const size_t blen = dimx * dimy * 4;
+  void* cbuf = NULL;
+  size_t clen = 0;
+#ifdef USE_DEFLATE
   // 2 has been shown to work pretty well for things that are actually going
   // to compress; results per unit time fall off quickly after 2.
   struct libdeflate_compressor* cmp = libdeflate_alloc_compressor(6);
@@ -634,24 +640,22 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
     logerror("couldn't get libdeflate context\n");
     return -1;
   }
-  size_t blen = dimx * dimy * 4;
   // if this allocation fails, just skip compression, no need to bail
-  void* cbuf = malloc(blen);
-  size_t clen;
+  cbuf = malloc(blen);
   if(cbuf){
     clen = libdeflate_zlib_compress(cmp, buf, blen, cbuf, blen);
-  }else{
-    clen = 0;
   }
+  libdeflate_free_compressor(cmp);
+#endif
   int ret;
   if(0 == clen){ // wasn't enough room; compressed data is larger than original
+    loginfo("deflated in vain; using original %" PRIuPTR "B\n", blen);
     ret = encode_and_chunkify(f, buf, blen, 0);
   }else{
     loginfo("deflated %" PRIuPTR "B to %" PRIuPTR "B\n", blen, clen);
     ret = encode_and_chunkify(f, cbuf, clen, 1);
   }
   free(cbuf);
-  libdeflate_free_compressor(cmp);
   return ret;
 }
 

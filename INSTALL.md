@@ -20,7 +20,9 @@ Install build dependencies:
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
-list.
+list. If you do not want to deflate Kitty graphics, you can omit
+'libdeflate-dev'. If you don't want to generate QR codes, you can omit
+'libqrcodegen-dev'.
 
 If you want to build the Python wrappers, you'll also need:
 
@@ -34,24 +36,31 @@ Install build dependencies:
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
-RPM Fusion), you might want to use FFmpeg rather than OpenImageIO.
+RPM Fusion), you might want to use FFmpeg rather than OpenImageIO. If you don't
+want to generate QR codes, you can omit 'libqrcodegen-devel'.
 
 ### FreeBSD / DragonFly BSD
 
 Install build dependencies:
 
-`pkg install devel/ncurses multimedia/ffmpeg graphics/qr-code-generator devel/libunistring`
+`pkg install archivers/libdeflate devel/ncurses multimedia/ffmpeg graphics/qr-code-generator devel/libunistring`
+
+If you only intend to build core Notcurses (without multimedia support), you
+can omit `multimedia/ffmpeg`. If you do not want to deflate Kitty graphics,
+you can omit 'archivers/libdeflate'. If you don't want to generate QR codes,
+you can omit 'graphics/qr-code-generator'.
 
 ### Microsoft Windows
 
-Currently, building on Windows requires [MSYS2](https://www.msys2.org/) in its
+Building on Windows requires [MSYS2](https://www.msys2.org/) in its
 64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
 and EXEs, though it does not use Visual Studio. Install build dependencies:
 
-`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ninja`
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libdeflate mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ninja`
 
 If you only intend to build core Notcurses (without multimedia support), you
-can omit `mingw-w64-ucrt-x86_64-ffmpeg`.
+can omit `mingw-w64-ucrt-x86_64-ffmpeg`. If you do not want to deflate Kitty
+graphics, you can omit 'mingw-w64-ucrt-x86_64-libdeflate'.
 
 ## Building
 
@@ -80,8 +89,8 @@ test failures, *please* file a bug including the output of
 
 (`make test` also runs `notcurses-tester`, but hides important output).
 
-To watch the bitchin' demo, run `make demo`. More details can
-be found on the `notcurses-demo(1)` man page.
+To watch the bitchin' demo, run `make demo` (or `./notcurses-demo -p ../data`).
+More details can be found on the `notcurses-demo(1)` man page.
 
 Install with `make install` following a successful build. This installs the C
 core library, the C headers, the C++ library, and the C++ headers (note that

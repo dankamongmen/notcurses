@@ -19,6 +19,7 @@ cmake_dependent_option(
   USE_DOCTEST "Build notcurses-tester with doctest" ON
   "BUILD_TESTING;USE_CPP" OFF
 )
+option(USE_DEFLATE "Use libdeflate for compression of Kitty graphics" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
@@ -166,6 +167,7 @@ endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
+if(${USE_DEFLATE})
 unset(HAVE_DEFLATE_H CACHE)
 check_include_file("libdeflate.h" HAVE_DEFLATE_H)
 if(NOT "${HAVE_DEFLATE_H}")
@@ -174,6 +176,7 @@ endif()
 find_library(libdeflate deflate REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libdeflate)
 set_package_properties(libdeflate PROPERTIES TYPE REQUIRED)
+endif()
 if(${USE_GPM}) # no pkgconfig from gpm
 unset(HAVE_GPM_H CACHE)
 check_include_file("gpm.h" HAVE_GPM_H)
