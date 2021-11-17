@@ -149,21 +149,23 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   nctabbed_options zeroed = {};
   ncplane_options nopts = {};
   unsigned nrows, ncols;
-  nctabbed* nt;
+  nctabbed* nt = NULL;
   if(!topts){
     topts = &zeroed;
   }
   if(!nctabbed_validate_opts(topts)){
-    return NULL;
+    goto err;
   }
   if((nt = malloc(sizeof(*nt))) == NULL){
     logerror("Couldn't allocate nctabbed");
-    return NULL;
+    goto err;
   }
   nt->ncp = n;
   nt->leftmost = nt->selected = NULL;
   nt->tabcount = 0;
+  nt->sepcols = 0;
   memcpy(&nt->opts, topts, sizeof(*topts));
+  nt->opts.separator = NULL;
   nt->opts.selchan = topts->selchan;
   nt->opts.hdrchan = topts->hdrchan;
   nt->opts.sepchan = topts->sepchan;
@@ -171,18 +173,13 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   if(topts->separator){
     if((nt->opts.separator = strdup(topts->separator)) == NULL){
       logerror("Couldn't allocate nctabbed separator");
-      free(nt);
-      return NULL;
+      goto err;
     }
     if((nt->sepcols = ncstrwidth(nt->opts.separator)) < 0){
       logerror("Separator string contains illegal characters");
       free(nt->opts.separator);
-      free(nt);
-      return NULL;
+      goto err;
     }
-  }else{
-    nt->opts.separator = NULL;
-    nt->sepcols = 0;
   }
   ncplane_dim_yx(n, &nrows, &ncols);
   if(topts->flags & NCTABBED_OPTION_BOTTOM){
@@ -191,17 +188,14 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab content plane");
-      ncplane_destroy_family(n);
-      free(nt);
-      return NULL;
+      goto err;
     }
     nopts.y = nrows - 2;
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab headers plane");
-      ncplane_destroy_family(n);
-      free(nt);
-      return NULL;
+      ncplane_destroy(nt->p);
+      goto err;
     }
   }else{
     nopts.y = nopts.x = 0;
@@ -209,22 +203,31 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab headers plane");
-      ncplane_destroy_family(n);
-      free(nt);
-      return NULL;
+      goto err;
     }
     nopts.y = 1;
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab content plane");
-      ncplane_destroy_family(n);
-      free(nt);
-      return NULL;
+      ncplane_destroy(nt->hp);
+      goto err;
     }
   }
+  if(ncplane_set_widget(nt->p, nt, (void(*)(void*))nctabbed_destroy)){
+    ncplane_destroy(nt->hp);
+    ncplane_destroy(nt->p);
+    goto err;
+  }
   nctabbed_redraw(nt);
-  ncplane_set_widget(nt->p, nt, (void(*)(void*))nctabbed_destroy);
   return nt;
+
+err:
+  ncplane_destroy_family(n);
+  if(nt){
+    free(nt->opts.separator);
+    free(nt);
+  }
+  return NULL;
 }
 
 nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
