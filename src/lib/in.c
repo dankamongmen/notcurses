@@ -694,6 +694,8 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
         synth = SIGINT;
       }else if(tni.id == '\\'){
         synth = SIGQUIT;
+      }else if(tni.id == 'Z'){
+        synth = SIGSTOP;
       }
     }
   }
