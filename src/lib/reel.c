@@ -286,7 +286,6 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
   if(t == NULL){
     return -1;
   }
-  nctablet_delete_internal(t);
   if(nr->tablets == t){
     if((nr->tablets = t->next) == t){
       nr->tablets = NULL;
@@ -297,6 +296,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
   if(nr->vft == t){
     clean_reel(nr); // maybe just make nr->tablets the vft?
   }
+  nctablet_delete_internal(t);
   --nr->tabletcount;
   ncreel_redraw(nr);
   return 0;
