@@ -263,7 +263,7 @@ int input_demo(ncpp::NotCurses* nc) {
     .cols = PLOTWIDTH,
     .userptr = nullptr,
     .name = "plot",
-    .resizecb = nullptr, // FIXME
+    .resizecb = ncplane_resize_realign,
     .flags = NCPLANE_OPTION_HORALIGNED,
     .margin_b = 0,
     .margin_r = 0,
