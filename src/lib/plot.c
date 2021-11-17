@@ -433,7 +433,9 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
            const T trueminy, const T truemaxy){ \
   /* set up ->plot.ncp first so it gets destroyed on error */ \
   ncpp->plot.ncp = n; \
-  ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy); \
+  if(ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy)){ \
+    return NULL; \
+  } \
   ncplot_options zeroed = {}; \
   if(!opts){ \
     opts = &zeroed; \

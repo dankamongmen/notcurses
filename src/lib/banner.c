@@ -1,7 +1,7 @@
+#include "internal.h"
 #ifdef USE_DEFLATE
 #include <libdeflate.h>
 #endif
-#include "internal.h"
 
 // only invoked without suppress banners flag. prints various warnings based on
 // the environment / terminal definition. returns the number of lines printed.
