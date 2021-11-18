@@ -1200,7 +1200,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           nc->rstate.bgdefelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
+//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016" PRIx64 "\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
         if(rvec[damageidx].sprixel){

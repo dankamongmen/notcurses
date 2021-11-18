@@ -909,6 +909,12 @@ int ncplane_destroy_family(ncplane *ncp){
 // called setlocale() themselves, and set the NCOPTION_INHIBIT_SETLOCALE flag.
 // if that flag is set, we take the locale and encoding as we get them.
 void init_lang(void){
+  char* setret;
+#ifdef __MINGW64__
+  if((setret = setlocale(LC_ALL, ".UTF8")) == NULL){
+    logwarn("couldn't set LC_ALL to utf8\n");
+  }
+#endif
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && !strcmp(encoding, "UTF-8")){
     return; // already utf-8, great!
@@ -919,7 +925,11 @@ void init_lang(void){
     loginfo("LANG was explicitly set to %s, not changing locale\n", lang);
     return;
   }
-  setlocale(LC_ALL, "");
+#ifndef __MINGW64__
+  if((setret = setlocale(LC_ALL, "")) == NULL){
+    logwarn("setting locale based on LANG failed\n");
+  }
+#endif
   encoding = nl_langinfo(CODESET);
   if(encoding && !strcmp(encoding, "UTF-8")){
     loginfo("Set locale from LANG; client should call setlocale(2)!\n");
@@ -996,6 +1006,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
   }
+//fprintf(stderr, "getenv LC_ALL: %s LC_CTYPE: %s\n", getenv("LC_ALL"), getenv("LC_CTYPE"));
   const char* encoding = nl_langinfo(CODESET);
   bool utf8;
   if(encoding && !strcmp(encoding, "UTF-8")){
@@ -1708,7 +1719,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, size_t* sbyt
   if(sbytes){
     *sbytes = bytes;
   }
-//fprintf(stderr, "cols: %d wcs: %d\n", cols, bytes);
+//fprintf(stderr, "glust: %s cols: %d wcs: %d\n", gclust, cols, bytes);
   return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
 

@@ -677,6 +677,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   }else if(qterm == TERMINAL_MSTERMINAL){
     termname = "Windows Terminal";
     ti->caps.rgb = true;
+    ti->caps.quadrants = true;
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;

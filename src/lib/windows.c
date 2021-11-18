@@ -79,6 +79,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   }
   // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
   // otherwise, we're something else; go ahead and try.
+  // FIXME handle redirection to a file, where this fails
   if(!SetConsoleMode(ti->outhandle, ENABLE_PROCESSED_OUTPUT
                      | ENABLE_WRAP_AT_EOL_OUTPUT
                      | ENABLE_VIRTUAL_TERMINAL_PROCESSING
