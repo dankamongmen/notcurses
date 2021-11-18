@@ -195,7 +195,7 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
   unsigned tocopy = rowbytes * (totalrows - srows);
   memmove(targ, src, tocopy);
   targ += tocopy;
-  memset(targ, 0, srows * rowbytes);
+  memset(src, 0, (totalrows - srows) * rowbytes);
 }
 
 // each row is a contiguous set of bits, starting at the msb

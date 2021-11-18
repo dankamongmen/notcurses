@@ -998,6 +998,7 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
       p->nc->rstate.logendx = 0;
     }
   }
+  // FIXME probably need this to take place at the end of cycle...
   if(p->nc->tcache.pixel_scroll){
     p->nc->tcache.pixel_scroll(p, &p->nc->tcache, scrolls);
   }
