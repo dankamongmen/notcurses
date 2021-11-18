@@ -833,13 +833,6 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     logpanic("failed opening Windows ConPTY\n");
     return -1;
   }
-  /* FIXME reenable once we're using GetConsoleScreenBufferInfo() once more, maybe?
-  unsigned ucy, ucx;
-  if(locate_cursor(ti, &ucy, &ucx) == 0){
-    *cursor_y = ucy;
-    *cursor_x = ucx;
-  }
-  */
 #elif defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
@@ -1148,23 +1141,11 @@ char* termdesc_longterm(const tinfo* ti){
 
 // send a u7 request, and wait until we have a cursor report. if input's ttyfd
 // is valid, we can just camp there. otherwise, we need dance with potential
-// user input looking at infd.
+// user input looking at infd. note that we do not use Windows's
+// GetConsoleScreenBufferInfo() because it is unreliable for this purpose
+// when the viewing area is not aligned with the forward edge of the buffer,
+// and also due to negative interactions with ssh.
 int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x){
-  /* FIXME? u7 does work...
-#ifdef __MINGW64__
-  if(ti->outhandle){
-    CONSOLE_SCREEN_BUFFER_INFO conbuf;
-    if(!GetConsoleScreenBufferInfo(ti->outhandle, &conbuf)){
-      logerror("couldn't get cursor info\n");
-      return -1;
-    }
-    *cursor_y = conbuf.dwCursorPosition.Y;
-    *cursor_x = conbuf.dwCursorPosition.X;
-    loginfo("got a report from y=%d x=%d\n", *cursor_y, *cursor_x);
-    return 0;
-  }
-#endif
-*/
   const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7 == NULL){
     logwarn("No support in terminfo\n");
