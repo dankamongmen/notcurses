@@ -234,7 +234,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   geom->cdimy = ti->cellpixy;
   geom->cdimx = ti->cellpixx;
   if((geom->blitter = (*bset)->geom) == NCBLIT_PIXEL){
-    geom->maxpixely = ti->sixel_maxy_pristine;
+    geom->maxpixely = ti->sixel_maxy;
     geom->maxpixelx = ti->sixel_maxx;
   }
   geom->scaley = encoding_y_scale(ti, *bset);

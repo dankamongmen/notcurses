@@ -96,8 +96,8 @@ TEST_CASE("Visual") {
     if(notcurses_canpixel(nc_)){
       CHECK(g.cdimy == g.scaley);
       CHECK(g.cdimx == g.scalex);
-      CHECK(0 <= g.maxpixely);
-      CHECK(0 <= g.maxpixelx);
+      CHECK(nc_->tcache.sixel_maxy <= g.maxpixely);
+      CHECK(nc_->tcache.sixel_maxx <= g.maxpixelx);
     }else{
       CHECK(1 <= g.scaley);
       CHECK(1 <= g.scalex);
