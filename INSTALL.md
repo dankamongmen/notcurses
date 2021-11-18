@@ -67,8 +67,8 @@ graphics, you can omit 'mingw-w64-ucrt-x86_64-libdeflate'.
 * Create a subdirectory, traditionally `build` (this is not strictly necessary,
   but it keeps your source tree clean). Enter the directory.
 * `cmake ..`
-** You might want to set e.g. `CMAKE_BUILD_TYPE`. Use `-DVAR=val`.
-** To build without multimedia support, use `-DUSE_MULTIMEDIA=none`.
+  * You might want to set e.g. `CMAKE_BUILD_TYPE`. Use `-DVAR=val`.
+  * To build without multimedia support, use `-DUSE_MULTIMEDIA=none`.
 * `make`
 * `make test`
 * `make install`
