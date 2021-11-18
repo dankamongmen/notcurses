@@ -179,23 +179,32 @@ int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   return wrote;
 }
 
+// we have some number of (cell) rows we want to scroll. scale by cell height,
+// and cap at the total pixel height (P) for N. that means we're *losing* N
+// rows from the top. we're *moving* all remaining P-N rows to the top, and
+// we're *clearing* N rows at the bottom. every pixel is written to once, and
+// they're written in order. if we're scrolling all rows, we're clearing the
+// entire space; we always clear something (we might not always move anything).
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
   if(ti->cellpixy < 1){
     return;
   }
   logdebug("scrolling %d\n", rows);
-  int totalrows = ti->cellpixy * p->dimy;
+  const int rowbytes = ti->cellpixx * p->dimx * 4;
+  const int totalrows = ti->cellpixy * p->dimy;
   int srows = rows * ti->cellpixy; // number of pixel rows being scrolled
   if(srows > totalrows){
     srows = totalrows;
   }
-  int rowbytes = ti->cellpixx * p->dimx * 4;
+  // srows is the number of rows we're *losing*
   uint8_t* targ = ti->linux_fbuffer;
   uint8_t* src = ti->linux_fbuffer + srows * rowbytes;
   unsigned tocopy = rowbytes * (totalrows - srows);
-  memmove(targ, src, tocopy);
+  if(tocopy){
+    memmove(targ, src, tocopy);
+  }
   targ += tocopy;
-  memset(src, 0, (totalrows - srows) * rowbytes);
+  memset(targ, 0, (totalrows * rowbytes) - tocopy);
 }
 
 // each row is a contiguous set of bits, starting at the msb
