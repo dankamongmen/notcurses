@@ -564,6 +564,7 @@ If things break or seem otherwise lackluster, **please** consult the
 * [Emoji: how do you get from U+1F355 to 🍕?](https://meowni.ca/posts/emoji-emoji-emoji/)
 * [Glyph Hell: An introduction to glyphs, as used and defined in the FreeType engine](http://chanae.walon.org/pub/ttf/ttf_glyphs.htm)
 * [Text Rendering Hates You](https://gankra.github.io/blah/text-hates-you/)
+* [Use the UTF-8 code page](https://docs.microsoft.com/en-us/windows/apps/design/globalizing/use-utf8-code-page)
 * My wiki's [Sixel page](https://nick-black.com/dankwiki/index.php?title=Sixel) and Kitty's [extensions](https://sw.kovidgoyal.net/kitty/protocol-extensions.html).
 * Linux man pages: [console_codes(4)](http://man7.org/linux/man-pages/man4/console_codes.4.html), [termios(3)](http://man7.org/linux/man-pages/man3/termios.3.html), [ioctl_tty(2)](http://man7.org/linux/man-pages/man2/ioctl_tty.2.html), [ioctl_console(2)](http://man7.org/linux/man-pages/man2/ioctl_console.2.html)
 * The Microsoft Windows [Console Reference](https://docs.microsoft.com/en-us/windows/console/console-reference)
