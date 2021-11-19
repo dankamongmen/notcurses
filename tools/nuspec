@@ -3,7 +3,7 @@
     <metadata>
         <!-- Required elements-->
         <id>Notcurses</id>
-        <version>2.4.99</version>
+        <version>2.4.97</version>
         <title>Notcurses TUI/CLI library</title>
         <description>Library for blingful TUIs and character graphics</description>
         <authors>nick black</authors>
