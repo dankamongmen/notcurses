@@ -74,8 +74,8 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   if(f->palette_has_changed){
     fprintf(stderr, " [NewPal]");
   }
-  fprintf(stderr, " PTS %ld Flags: 0x%04x\n", f->pts, f->flags);
-  fprintf(stderr, " %lums@%lums (%skeyframe) qual: %d\n",
+  fprintf(stderr, " PTS %" PRId64 " Flags: 0x%04x\n", f->pts, f->flags);
+  fprintf(stderr, " %" PRIu64 "ms@%" PRIu64 "ms (%skeyframe) qual: %d\n",
           f->pkt_duration, // FIXME in 'time_base' units
           f->best_effort_timestamp,
           f->key_frame ? "" : "non-",
