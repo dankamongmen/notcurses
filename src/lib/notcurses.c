@@ -1076,7 +1076,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  int fakecursory, fakecursorx;
+  int fakecursory = ret->rstate.logendy;
+  int fakecursorx = ret->rstate.logendx;
   int* cursory = opts->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendy : &fakecursory;
   int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
@@ -1099,6 +1100,15 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
+    if(*cursory < 0 || *cursorx < 0){
+      unsigned cy, cx;
+      if(locate_cursor(&ret->tcache, &cy, &cx)){
+        logpanic("couldn't preserve cursor\n");
+        goto err;
+      }
+      *cursory = cy;
+      *cursorx = cx;
+    }
     if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx, NULL)){
       goto err;
     }

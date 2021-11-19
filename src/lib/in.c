@@ -1443,6 +1443,8 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                             i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                             memset(i->initdata, 0, sizeof(*i->initdata));
                             i->initdata->qterm = ti->qterm;
+                            i->initdata->cursory = -1;
+                            i->initdata->cursorx = -1;
                             i->iread = i->iwrite = i->ivalid = 0;
                             i->cread = i->cwrite = i->cvalid = 0;
                             i->initdata_complete = NULL;

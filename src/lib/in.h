@@ -55,8 +55,8 @@ typedef enum {
 // after spawning the input layer, send initial queries to the terminal. its
 // responses will be built up herein. it's dangerous to go alone! take this!
 struct initial_responses {
-  int cursory;                 // cursor location
-  int cursorx;                 // cursor location
+  int cursory;                 // cursor location, -1 for none
+  int cursorx;                 // cursor location, -1 for none
   unsigned appsync_supported;  // is application-synchronized mode supported?
   queried_terminals_e qterm;   // determined terminal
   unsigned kitty_graphics;     // kitty graphics supported
