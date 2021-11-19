@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <!-- Required elements-->
+    <!-- need 4.9.0+ for SPDX license expressions -->
+    <metadata minClientVersion="4.9.0">
         <id>Notcurses</id>
         <version>2.4.97</version>
         <title>Notcurses TUI/CLI library</title>
         <description>Library for blingful TUIs and character graphics</description>
         <authors>nick black</authors>
+        <projectUrl>https://notcurses.com</projectUrl>
         <license type="expression">Apache-2.0</license>
         <copyright>copyright 2019–2021 nick black</copyright>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <repository type="git" url="https://github.com/dankamongmen/notcurses.git" />
         <tags>tui graphics cli</tags>
+        <icon>..\doc\icon.png</icon>
+        <readme>README.md</readme>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
     </metadata>
     <files>
-      <file src="*.md" target="" />
-      <file src="*.dll" target="" />
+      <file src="../*.md" target="" />
+      <file src="*.dll" target="lib/" />
       <file src="ncneofetch.exe" target="" />
       <file src="ncplayer.exe" target="" />
       <file src="nctetris.exe" target="" />
       <file src="notcurses-demo.exe" target="" />
       <file src="notcurses-info.exe" target="" />
       <file src="notcurses-input.exe" target="" />
-      <file src="notcurses-tester.exe" target="" />
     </files>
 </package>
