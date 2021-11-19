@@ -61,23 +61,14 @@ PyInit_notcurses(void)
 
     // if this bit is set, we are *not* using the default background color
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BGDEFAULT_MASK));
-    // if this bit is set, we are *not* using the default foreground color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FGDEFAULT_MASK));
     // extract these bits to get the background RGB value
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_RGB_MASK));
-    // extract these bits to get the foreground RGB value
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_RGB_MASK));
     // if this bit *and* NC_BGDEFAULT_MASK are set, we're using a
     // palette-indexed background color
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_PALETTE));
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCPALETTESIZE));
-    // if this bit *and* CELL_FGDEFAULT_MASK are set, we're using a
-    // palette-indexed foreground color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_PALETTE));
     // extract these bits to get the background alpha mask
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_ALPHA_MASK));
-    // extract these bits to get the foreground alpha mask
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_ALPHA_MASK));
 
     PyObject *traceback_module CLEANUP_PY_OBJ = GNU_PY_CHECK(PyImport_ImportModule("traceback"));
     traceback_format_exception = GNU_PY_CHECK(PyObject_GetAttrString(traceback_module, "format_exception"));
