@@ -601,10 +601,10 @@ neologo_present(struct notcurses* nc, const char* nlogo){
   size_t linelen; // length in bytes, including newline
   char** lines = NULL;
   int linecount = 0;
-  for(const char* cur = nlogo ; *cur ; cur += linelen){
+  for(const char* cur = nlogo ; *cur ; cur += linelen + 1){
     const char* nl = strchr(cur, '\n');
     if(nl){
-      linelen = (nl + 1) - cur;
+      linelen = nl - cur;
     }else{
       linelen = strlen(cur);
     }
