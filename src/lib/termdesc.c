@@ -408,20 +408,22 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
 // send any identification queries (we've already identified the terminal).
+// write DSRCPR as early as possible, so that it precedes any query material
+// that's bled onto stdin and echoed.
 static int
 send_initial_queries(int fd, bool minimal, bool noaltscreen){
   const char *queries;
   if(noaltscreen){
     if(minimal){
-      queries = KKBDENTER DSRCPR DIRECTIVES;
+      queries = DSRCPR KKBDENTER DIRECTIVES;
     }else{
-      queries = KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
+      queries = DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
     }
   }else{
     if(minimal){
-      queries = SMCUP KKBDENTER DSRCPR DIRECTIVES;
+      queries = SMCUP DSRCPR KKBDENTER DIRECTIVES;
     }else{
-      queries = SMCUP KKBDENTER DSRCPR IDQUERIES DIRECTIVES;
+      queries = SMCUP DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
     }
   }
   size_t len = strlen(queries);
