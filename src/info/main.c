@@ -46,8 +46,9 @@ tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
 
 static void
 wviz(struct ncplane* n, const wchar_t* wp){
-  for(const wchar_t* w = wp ; *w ; ++w){
-    if(ncplane_putwc(n, *w) <= 0){
+  unsigned wchars;
+  for(const wchar_t* w = wp ; *w ; w += wchars){
+    if(ncplane_putwc_utf32(n, w, &wchars) <= 0){
       ncplane_putchar(n, ' ');
     }
   }
@@ -160,13 +161,13 @@ static int
 legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
            const wchar_t* anglesr, const wchar_t* anglesl){
   ncplane_printf(n, "%s ", indent);
-  for(const wchar_t* e = eighths ; *e ; ++e){
-    if(ncplane_putwc(n, *e) <= 0){
+  unsigned wchars;
+  for(const wchar_t* e = eighths ; *e ; e += wchars){
+    if(ncplane_putwc_utf32(n, e, &wchars) <= 0){
       ncplane_putchar(n, ' ');
     }
   }
   ncplane_putchar(n, ' ');
-  unsigned wchars;
   const wchar_t* r = anglesr;
   const wchar_t* l = anglesl;
   while(*r){
