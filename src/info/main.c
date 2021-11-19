@@ -266,7 +266,8 @@ unicodedumper(struct ncplane* n, const char* indent){
   if(notcurses_canutf8(ncplane_notcurses_const(n))){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls⎧", indent, NCQUADBLOCKS);
-    sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
+    // 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹
+    sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥\U0001FBF0\U0001FBF1\U0001FBF2\U0001FBF3\U0001FBF4\U0001FBF5\U0001FBF6\U0001FBF7\U0001FBF8\U0001FBF9\u2157\u2158\u2159\u215a\u215b");
     vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', L"┌╥─╥─╥┐🭩⎛⎞");
     ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗ ⫷⫸ ⎩", indent);
     sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"♦♣\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
