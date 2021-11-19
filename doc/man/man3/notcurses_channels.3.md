@@ -31,10 +31,6 @@ notcurses_channels - operations on notcurses channels
 
 **int ncchannel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
 
-**unsigned ncchannel_palindex(uint32_t ***channel***);**
-
-**int ncchannel_set_palindex(uint32_t* ***channel***, int ***idx***);**
-
 **uint32_t ncchannel_alpha(uint32_t ***channel***);**
 
 **int ncchannel_set_alpha(uint32_t* ***channel***, unsigned ***alpha***);**
@@ -59,14 +55,6 @@ notcurses_channels - operations on notcurses channels
 
 **int ncchannels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
-**unsigned ncchannels_fg_palindex(uint64_t ***channels***);**
-
-**unsigned ncchannels_bg_palindex(uint64_t ***channels***);**
-
-**int ncchannels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
-
-**int ncchannels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
-
 **uint32_t ncchannels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
 **uint32_t ncchannels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
@@ -85,8 +73,32 @@ notcurses_channels - operations on notcurses channels
 
 **uint64_t ncchannels_reverse(uint64_t ***channels***);**
 
+**unsigned ncchannel_palindex(uint32_t ***channel***);**
+
+**bool ncchannel_palindex_p(uint32_t ***channel***);**
+
+**int ncchannel_set_palindex(uint32_t* ***channel***, int ***idx***);**
+
+**unsigned ncchannels_fg_palindex(uint64_t ***channels***);**
+
+**unsigned ncchannels_bg_palindex(uint64_t ***channels***);**
+
+**int ncchannels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
+
+**int ncchannels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
+
+**uint64_t ncchannels_combine(uint32_t ***fchan***, uint32_t ***bchan***);**
+
 # DESCRIPTION
 
+**ncchannel_palindex** extracts the palette index from a channel. The channel
+must be palette-indexed, or the return value is meaningless. Verify palette
+indexing with **ncchannel_palindex_p**. A channel can be set to palette
+indexed mode (and have the index set) with **ncchannel_set_palindex**. The
+index must be less than **NCPALETTESIZE**.
+
+**ncchannels_combine** creates a new channel pair using ***fchan*** as the
+foreground channel and ***bchan*** as the background channel.
 
 # RETURN VALUES
 
