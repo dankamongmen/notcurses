@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <!-- Required elements-->
+        <id>Notcurses</id>
+        <version>2.4.99</version>
+        <title>Notcurses TUI/CLI library</title>
+        <description>Library for blingful TUIs and character graphics</description>
+        <authors>nick black</authors>
+        <license type="expression">Apache-2.0</license>
+        <copyright>copyright 2019–2021 nick black</copyright>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <tags>tui graphics cli</tags>
+    </metadata>
+    <files>
+      <file src="*.md" target="" />
+      <file src="*.dll" target="" />
+      <file src="ncneofetch.exe" target="" />
+      <file src="ncplayer.exe" target="" />
+      <file src="nctetris.exe" target="" />
+      <file src="notcurses-demo.exe" target="" />
+      <file src="notcurses-info.exe" target="" />
+      <file src="notcurses-input.exe" target="" />
+      <file src="notcurses-tester.exe" target="" />
+    </files>
+</package>

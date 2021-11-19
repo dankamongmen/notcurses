@@ -413,3 +413,26 @@ user. We thus keep two queues at all times: received control messages, and
 received user input. The received user input is non-segmented UTF-8 (i.e.
 translated from control sequences). The received control information is stored
 as distinct multibyte escape sequences.
+
+## Windows
+
+We support only the [ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/)
+aka the Windows Pseudo Console, introduced in Windows 10. We require that the
+environment is already attached to a ConPTY (i.e. we don't create an instance
+with `CreatePseudoConsole()`. With this, most of the terminal I/O is portable.
+We don't have termios at our disposal, using instead `GetConsoleBufferInfo()`.
+ConPTY implements cursor location requests via `u7`.
+
+ConHost/ConPTY do not pass input directly through to the end terminal, instead
+effectively handing it rendered surfaces. This means that queries are answered
+by ConPTY, and thus that it's impossible to do end-terminal identification via
+queries. It barely matters, since almost all interaction is with ConPTY
+anyway (i.e. it is probably not possible for a ConPTY terminal to support
+bitmap graphics at this time).
+
+We only use the UCRT runtime, as this seems to be the only one with sane UTF8
+support. Getting UTF8 on Windows is annoyingly complicated. There is no `LANG`
+environment variable in the UNIX sense. It is necessary to explicitly call
+`setlocale(LC_ALL, ".UTF8")`, even if `nc_langinfo(LC_ENCODING)` returns
+"UTF-8". `SetConsoleOutputCP(CP_UTF8)` also seems advised. Code page 65001 is
+UTF-8.
