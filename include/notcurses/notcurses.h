@@ -141,22 +141,13 @@ API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
 #define NC_NOBACKGROUND_MASK  0x8700000000000000ull
 // if this bit is set, we are *not* using the default background color
 #define NC_BGDEFAULT_MASK     0x0000000040000000ull
-// if this bit is set, we are *not* using the default foreground color
-#define NC_FGDEFAULT_MASK     (NC_BGDEFAULT_MASK << 32u)
 // extract these bits to get the background RGB value
 #define NC_BG_RGB_MASK        0x0000000000ffffffull
-// extract these bits to get the foreground RGB value
-#define NC_FG_RGB_MASK        (NC_BG_RGB_MASK << 32u)
 // if this bit *and* NC_BGDEFAULT_MASK are set, we're using a
 // palette-indexed background color
 #define NC_BG_PALETTE         0x0000000008000000ull
-// if this bit *and* NC_FGDEFAULT_MASK are set, we're using a
-// palette-indexed foreground color
-#define NC_FG_PALETTE         (NC_BG_PALETTE << 32u)
 // extract these bits to get the background alpha mask
 #define NC_BG_ALPHA_MASK      0x30000000ull
-// extract these bits to get the foreground alpha mask
-#define NC_FG_ALPHA_MASK      (NC_BG_ALPHA_MASK << 32u)
 
 // initialize a 32-bit channel pair with specified RGB
 #define NCCHANNEL_INITIALIZER(r, g, b) \
@@ -213,7 +204,9 @@ ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
     return -1;
   }
   uint32_t c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
+  // clear the existing rgb bits, clear the palette index indicator, set
+  // the not-default bit, and or in the new rgb.
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
   return 0;
 }
 
@@ -241,7 +234,7 @@ ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
     b = 0;
   }
   uint32_t c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
 }
 
 // Same, but provide an assembled, packed 24 bits of rgb.
@@ -250,7 +243,7 @@ ncchannel_set(uint32_t* channel, uint32_t rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | rgb;
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb;
   return 0;
 }
 
@@ -321,7 +314,7 @@ static inline uint64_t
 ncchannels_reverse(uint64_t channels){
   const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
                        ncchannels_fchannel(channels);
-  const uint64_t statemask = (NC_NOBACKGROUND_MASK | NC_FG_ALPHA_MASK |
+  const uint64_t statemask = (NC_NOBACKGROUND_MASK | (NC_BG_ALPHA_MASK << 32u) |
                               NC_BG_ALPHA_MASK | (NC_NOBACKGROUND_MASK >> 32u));
   uint64_t ret = raw & ~statemask;
   ret |= channels & statemask;

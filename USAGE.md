@@ -2984,24 +2984,51 @@ channel_rgb8(uint32_t channel, unsigned* r, unsigned* g, unsigned* b){
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged.
 static inline int
-channel_set_rgb8(unsigned* channel, unsigned r, unsigned g, unsigned b){
+ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
-  unsigned c = (r << 16u) | (g << 8u) | b;
-  c |= NC_BGDEFAULT_MASK;
-  const uint64_t mask = NC_BGDEFAULT_MASK | NC_BG_MASK;
-  *channel = (*channel & ~mask) | c;
+  uint32_t c = (r << 16u) | (g << 8u) | b;
+  // clear the existing rgb bits, clear the palette index indicator, set
+  // the not-default bit, and or in the new rgb.
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
   return 0;
+}
+
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged. r, g, and b will be
+// clipped to the range [0..255].
+static inline void
+ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
+  if(r >= 256){
+    r = 255;
+  }
+  if(g >= 256){
+    g = 255;
+  }
+  if(b >= 256){
+    b = 255;
+  }
+  if(r <= -1){
+    r = 0;
+  }
+  if(g <= -1){
+    g = 0;
+  }
+  if(b <= -1){
+    b = 0;
+  }
+  uint32_t c = (r << 16u) | (g << 8u) | b;
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
 }
 
 // Same, but provide an assembled, packed 24 bits of rgb.
 static inline int
-channel_set(unsigned* channel, unsigned rgb){
+ncchannel_set(uint32_t* channel, uint32_t rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  *channel = (*channel & ~NC_BG_MASK) | NC_BGDEFAULT_MASK | rgb;
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb;
   return 0;
 }
 
