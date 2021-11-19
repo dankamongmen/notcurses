@@ -1103,14 +1103,16 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     if(*cursory < 0 || *cursorx < 0){
       unsigned cy, cx;
       if(locate_cursor(&ret->tcache, &cy, &cx)){
-        logpanic("couldn't preserve cursor\n");
+        logwarn("couldn't preserve cursor\n");
+      }else{
+        *cursory = cy;
+        *cursorx = cx;
+      }
+    }
+    if(*cursory >= 0 && *cursorx >= 0){
+      if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx, NULL)){
         goto err;
       }
-      *cursory = cy;
-      *cursorx = cx;
-    }
-    if(goto_location(ret, &ret->rstate.f, *cursory, *cursorx, NULL)){
-      goto err;
     }
   }
   unsigned dimy, dimx;
