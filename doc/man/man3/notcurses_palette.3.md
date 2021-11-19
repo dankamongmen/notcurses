@@ -13,7 +13,7 @@ notcurses_palette - operations on notcurses palettes
 ```c
 typedef struct ncpalette {
   // We store the RGB values as a regular ol' channel
-  uint32_t chans[256];
+  uint32_t chans[NCPALETTESIZE];
 } ncpalette;
 ```
 

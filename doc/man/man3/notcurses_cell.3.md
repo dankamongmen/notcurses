@@ -112,6 +112,18 @@ typedef struct nccell {
 
 **bool nccell_bg_default_p(const nccell* ***c***);**
 
+**int nccell_set_fg_palindex(nccell* ***cl***, int ***idx***);**
+
+**int nccell_set_bg_palindex(nccell* ***cl***, int ***idx***);**
+
+**uint32_t nccell_fg_palindex(const nccell* ***cl***);**
+
+**uint32_t nccell_bg_palindex(const nccell* ***cl***);**
+
+**bool nccell_fg_palindex_p(const nccell* ***cl***);**
+
+**bool nccell_bg_palindex_p(const nccell* ***cl***);**
+
 **int ncstrwidth(const char* ***text***)**;
 
 **int ncstrwidth_valid(const char* ***text***, int* ***validbytes***, int* ***validwidth***)**;
@@ -146,6 +158,13 @@ A heap-allocated copy can be acquired with **nccell_strdup**.
 string, or -1 if an error is encountered. In either case, the number of valid
 bytes and columns, respectively, consumed before error into ***validbytes***
 and ***validwidth*** (assuming them to not be **NULL**).
+
+**nccell_fg_palindex** extracts the palette index from a cell's foreground
+channel. The channel must be palette-indexed, or the return value is
+meaningless. Verify palette indexing with **nccell_fg_palindex_p**. A cell's
+foreground channel can be set to palette-indexed mode (and have the index set)
+with **nccell_set_fg_palindex**. The index must be less than **NCPALETTESIZE**.
+Replace **fg** with **bg** to operate on the background channel.
 
 # RETURN VALUES
 
