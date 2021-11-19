@@ -36,17 +36,6 @@ void sigwinch_handler(int signo){
   }
 }
 
-// data collected from responses to our terminal queries.
-typedef struct termqueries {
-  int celly, cellx;     // cell geometry on startup
-  int pixy, pixx;       // pixel geometry on startup
-  int cursory, cursorx; // cursor location on startup
-  unsigned kittygraphs; // are kitty graphics supported?
-  int sixely, sixelx;   // maximum sixel size
-  int cregs;            // sixel color registers
-  unsigned appsync;     // application-sync supported?
-} termqueries;
-
 typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
