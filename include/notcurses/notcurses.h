@@ -2157,17 +2157,22 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
   return ncplane_putwstr_yx(n, -1, -1, gclustarr);
 }
 
-// Replace the cell at the specified coordinates with the provided wide char
-// 'w'. Advance the cursor by the character's width as reported by wcwidth().
+// Replace the cell at the specified coordinates with the provided UTF-32
+// 'u'. Advance the cursor by the character's width as reported by wcwidth().
 // On success, returns the number of columns written. On failure, returns -1.
 static inline int
-ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+ncplane_pututf32_yx(struct ncplane* n, int y, int x, uint32_t u){
+  if(u > WCHAR_MAX){
+    return -1;
+  }
   // we use MB_LEN_MAX (and potentially "waste" a few stack bytes to avoid
   // the greater sin of a VLA (and to be locale-independent).
   char utf8c[MB_LEN_MAX + 1];
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
-  size_t s = wcrtomb(utf8c, w, &ps);
+  // this isn't going to be valid for reconstructued surrogate pairs...
+  // we need our own, or to use unistring or something.
+  size_t s = wcrtomb(utf8c, u, &ps);
   if(s == (size_t)-1){
     return -1;
   }
@@ -2175,10 +2180,41 @@ ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   return ncplane_putegc_yx(n, y, x, utf8c, NULL);
 }
 
+static inline int
+ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
+  return ncplane_pututf32_yx(n, y, x, w);
+}
+
 // Write 'w' at the current cursor position, using the plane's current styling.
 static inline int
 ncplane_putwc(struct ncplane* n, wchar_t w){
   return ncplane_putwc_yx(n, -1, -1, w);
+}
+
+// Write the first Unicode character from 'w' at the current cursor position,
+// using the plane's current styling. In environments where wchar_t is only
+// 16 bits (Windows, essentially), a single Unicode might require two wchar_t
+// values forming a surrogate pair. On environments with 32-bit wchar_t, this
+// should not happen. If w[0] is a surrogate, it is decoded together with
+// w[1], and passed as a single reconstructed UTF-32 character to
+// ncplane_pututf32(); 'wchars' will get a value of 2 in this case. 'wchars'
+// otherwise gets a value of 1. A surrogate followed by an invalid pairing
+// will set 'wchars' to 2, but return -1 immediately.
+static inline int
+ncplane_putwc_utf32(struct ncplane* n, const wchar_t* w, unsigned* wchars){
+  uint32_t utf32;
+  if(*w >= 0xd000 && *w <= 0xdbff){
+    *wchars = 2;
+    if(w[1] < 0xdc00 || w[1] > 0xdff){
+      return -1; // invalid surrogate pairing
+    }
+    utf32 = (w[0] & 0x3fflu) << 10lu;
+    utf32 += (w[1] & 0x3fflu);
+  }else{
+    *wchars = 1;
+    utf32 = *w;
+  }
+  return ncplane_pututf32_yx(n, -1, -1, utf32);
 }
 
 // Write 'w' at the current cursor position, using any preexisting styling

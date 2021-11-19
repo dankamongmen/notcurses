@@ -188,8 +188,9 @@ sex_viz(struct ncplane* n, const wchar_t* sex, wchar_t r, const wchar_t* post){
   if(ncplane_putwc(n, r) <= 0){
     ncplane_putchar(n, ' ');
   }
-  for(const wchar_t* p = post ; *p ; ++p){
-    if(ncplane_putwc(n, *p) <= 0){
+  unsigned wchars = 0;
+  for(const wchar_t* p = post ; *p ; p += wchars){
+    if(ncplane_putwc_utf32(n, p, &wchars) <= 0){
       ncplane_putchar(n, ' ');
     }
   }
@@ -266,7 +267,8 @@ unicodedumper(struct ncplane* n, const char* indent){
   if(notcurses_canutf8(ncplane_notcurses_const(n))){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls⎧", indent, NCQUADBLOCKS);
-    // 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹
+    // 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹 (on Windows, these will be encoded as UTF-16 surrogate
+    // pairs due to a 16-bit wchar_t.
     sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥\U0001FBF0\U0001FBF1\U0001FBF2\U0001FBF3\U0001FBF4\U0001FBF5\U0001FBF6\U0001FBF7\U0001FBF8\U0001FBF9\u2157\u2158\u2159\u215a\u215b");
     vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', L"┌╥─╥─╥┐🭩⎛⎞");
     ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗ ⫷⫸ ⎩", indent);
