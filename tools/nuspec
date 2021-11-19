@@ -16,6 +16,9 @@
         <icon>..\doc\icon.png</icon>
         <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <dependencies>
+          <dependency id="LibDeflate.native" version="1.7.1" />
+        </dependencies>
     </metadata>
     <files>
       <file src="../*.md" target="" />
