@@ -166,13 +166,18 @@ legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
     }
   }
   ncplane_putchar(n, ' ');
-  for(const wchar_t* r = anglesr ; *r ; ++r){
-    if(ncplane_putwc(n, *r) <= 0){
+  unsigned wchars;
+  const wchar_t* r = anglesr;
+  const wchar_t* l = anglesl;
+  while(*r){
+    if(ncplane_putwc_utf32(n, r, &wchars) <= 0){
       ncplane_putchar(n, ' ');
     }
-    if(ncplane_putwc(n, anglesl[r - anglesr]) <= 0){
+    r += wchars;
+    if(ncplane_putwc_utf32(n, l, &wchars) <= 0){
       ncplane_putchar(n, ' ');
     }
+    l += wchars;
     ncplane_putchar(n, ' ');
   }
   return 0;
@@ -269,7 +274,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     ncplane_printf(n, "%s%ls⎧", indent, NCQUADBLOCKS);
     // 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹 (on Windows, these will be encoded as UTF-16 surrogate
     // pairs due to a 16-bit wchar_t.
-    sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥\U0001FBF0\U0001FBF1\U0001FBF2\U0001FBF3\U0001FBF4\U0001FBF5\U0001FBF6\U0001FBF7\U0001FBF8\U0001FBF9\u2157\u2158\u2159\u215a\u215b");
+    sex_viz(n, NCSEXBLOCKS, L'⎫', L"♠♥" NCSEGDIGITS L"\u2157\u2158\u2159\u215a\u215b");
     vertviz(n, L'⎧', NCEIGHTHSR[0], NCEIGHTHSL[0], L'⎫', L"┌╥─╥─╥┐🭩⎛⎞");
     ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗ ⫷⫸ ⎩", indent);
     sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"♦♣\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
