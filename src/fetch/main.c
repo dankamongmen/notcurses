@@ -615,6 +615,9 @@ neologo_present(struct notcurses* nc, const char* nlogo){
     }
     lines = tmpl;
     lines[linecount++] = strndup(cur, linelen);
+    if(nl){ // chomp any newline
+      lines[linecount - 1][linelen] = '\0';
+    }
     size_t collen = ncstrwidth(lines[linecount - 1]);
     if(collen > maxlinelen){
       maxlinelen = collen;
@@ -624,7 +627,10 @@ neologo_present(struct notcurses* nc, const char* nlogo){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int leftpad = (dimx - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
-    ncplane_printf(n, "%*.*s%s", leftpad, leftpad, "", lines[i]);
+    int cols = ncplane_printf(n, "%*.*s%s", leftpad, leftpad, "", lines[i]);
+    if(cols >= 0 && (unsigned)cols < dimx){
+	    ncplane_printf(n, "%*.*s", dimx - cols, dimx - cols, "");
+    }
     free(lines[i]);
   }
   free(lines);
