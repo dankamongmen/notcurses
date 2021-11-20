@@ -287,56 +287,66 @@ force_rgba(ncvisual* n){
   return 0;
 }
 
+// turn arbitrary input packets into RGBA frames. reads packets until it gets
+// a visual frame. a packet might contain several frames (this is typically
+// true only of audio), and a frame might be carried across several packets.
+// * avcodec_receive_frame() returns EAGAIN if it needs more packets.
+// * avcodec_send_packet() returns EAGAIN if avcodec_receive_frame() needs
+//    be called to extract further frames; in this case, the packet ought
+//    be resubmitted once the existing frames are cleared.
 int ffmpeg_decode(ncvisual* n){
   if(n->details->fmtctx == NULL){ // not a file-backed ncvisual
     return -1;
   }
   bool have_frame = false;
   bool unref = false;
+  // note that there are two loops here; once we're out of the external one,
+  // we've either returned a failure, or we have a frame. averr2ncerr()
+  // translates AVERROR_EOF into a return of 1.
   do{
-    do{
-      if(n->details->packet_outstanding){
-        break;
-      }
-      if(unref){
+    if(!n->details->packet_outstanding){
+      do{
+        if(unref){
+          av_packet_unref(n->details->packet);
+        }
+        int averr;
+        if((averr = av_read_frame(n->details->fmtctx, n->details->packet)) < 0){
+          /*if(averr != AVERROR_EOF){
+            fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(averr));
+          }*/
+          return averr2ncerr(averr);
+        }
+        unref = true;
+        if(n->details->packet->stream_index == n->details->sub_stream_index){
+          int result = 0, ret;
+          avsubtitle_free(&n->details->subtitle);
+          ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
+          if(ret >= 0 && result){
+            // FIXME?
+          }
+        }
+      }while(n->details->packet->stream_index != n->details->stream_index);
+      n->details->packet_outstanding = true;
+      int averr = avcodec_send_packet(n->details->codecctx, n->details->packet);
+      if(averr < 0){
+        n->details->packet_outstanding = false;
         av_packet_unref(n->details->packet);
-      }
-      int averr;
-      if((averr = av_read_frame(n->details->fmtctx, n->details->packet)) < 0){
-        /*if(averr != AVERROR_EOF){
-          fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(averr));
-        }*/
+  //fprintf(stderr, "Error processing AVPacket\n");
         return averr2ncerr(averr);
       }
-      unref = true;
-      if(n->details->packet->stream_index == n->details->sub_stream_index){
-        int result = 0, ret;
-        avsubtitle_free(&n->details->subtitle);
-        ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
-        if(ret >= 0 && result){
-          // FIXME?
-        }
-      }
-    }while(n->details->packet->stream_index != n->details->stream_index);
-    n->details->packet_outstanding = true;
-    int averr = avcodec_send_packet(n->details->codecctx, n->details->packet);
-    if(averr < 0){
-      n->details->packet_outstanding = false;
-      av_packet_unref(n->details->packet);
-//fprintf(stderr, "Error processing AVPacket\n");
-      return averr2ncerr(averr);
     }
-    n->details->packet_outstanding = false;
-    av_packet_unref(n->details->packet);
-    averr = avcodec_receive_frame(n->details->codecctx, n->details->frame);
+    int averr = avcodec_receive_frame(n->details->codecctx, n->details->frame);
     if(averr >= 0){
       have_frame = true;
-    }else if(averr == AVERROR(EAGAIN) || averr == AVERROR_EOF){
-      have_frame = false;
     }else if(averr < 0){
-//fprintf(stderr, "Error decoding AVPacket\n");
-      return averr2ncerr(averr);
+      av_packet_unref(n->details->packet);
+      have_frame = false;
+      n->details->packet_outstanding = false;
+      if(averr != AVERROR(EAGAIN)){
+        return averr2ncerr(averr);
+      }
     }
+//fprintf(stderr, "Error decoding AVPacket\n");
   }while(!have_frame);
 //print_frame_summary(n->details->codecctx, n->details->frame);
   const AVFrame* f = n->details->frame;
