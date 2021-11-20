@@ -22,7 +22,6 @@ struct AVCodecParameters;
 struct AVPacket;
 
 typedef struct ncvisual_details {
-  int packet_outstanding;
   struct AVFormatContext* fmtctx;
   struct AVCodecContext* codecctx;     // video codec context
   struct AVCodecContext* subtcodecctx; // subtitle codec context
@@ -36,6 +35,7 @@ typedef struct ncvisual_details {
   AVSubtitle subtitle;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
+  bool packet_outstanding;
 } ncvisual_details;
 
 #define IMGALLOCALIGN 64
@@ -263,15 +263,13 @@ force_rgba(ncvisual* n){
                          sframe->linesize);
   if(height < 0){
 //fprintf(stderr, "Error applying converting %d\n", inf->format);
-    av_freep(&sframe->data[0]);
-    av_freep(&sframe);
+    av_frame_free(&sframe);
     return -1;
   }
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(sframe->format));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
-    av_freep(&sframe->data[0]);
-    av_freep(&sframe);
+    av_frame_free(&sframe);
     return -1;
   }
   n->rowstride = sframe->linesize[0];
@@ -321,13 +319,15 @@ int ffmpeg_decode(ncvisual* n){
         }
       }
     }while(n->details->packet->stream_index != n->details->stream_index);
-    ++n->details->packet_outstanding;
+    n->details->packet_outstanding = true;
     int averr = avcodec_send_packet(n->details->codecctx, n->details->packet);
     if(averr < 0){
+      n->details->packet_outstanding = false;
+      av_packet_unref(n->details->packet);
 //fprintf(stderr, "Error processing AVPacket\n");
       return averr2ncerr(averr);
     }
-    --n->details->packet_outstanding;
+    n->details->packet_outstanding = false;
     av_packet_unref(n->details->packet);
     averr = avcodec_receive_frame(n->details->codecctx, n->details->frame);
     if(averr >= 0){
