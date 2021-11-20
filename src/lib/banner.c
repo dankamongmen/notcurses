@@ -1,4 +1,5 @@
 #include "internal.h"
+#include <curses.h>
 #ifdef USE_DEFLATE
 #include <libdeflate.h>
 #endif

@@ -22,7 +22,6 @@ extern "C" {
 // KEY_EVENT is defined by both ncurses.h (prior to 6.3) and wincon.h. since we
 // don't use either definition, kill it before inclusion of ncurses.h.
 #undef KEY_EVENT
-#include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <time.h>
 #include <term.h>
