@@ -25,9 +25,8 @@ typedef struct ncvisual_details {
   struct AVFormatContext* fmtctx;
   struct AVCodecContext* codecctx;     // video codec context
   struct AVCodecContext* subtcodecctx; // subtitle codec context
-  struct AVFrame* frame;               // frame as read
+  struct AVFrame* frame;               // frame as read/loaded/converted
   struct AVCodec* codec;
-  struct AVCodecParameters* cparams;
   struct AVCodec* subtcodec;
   struct AVPacket* packet;
   struct SwsContext* swsctx;
@@ -377,7 +376,6 @@ ncvisual* ffmpeg_create(){
 }
 
 ncvisual* ffmpeg_from_file(const char* filename){
-  AVStream* st;
   ncvisual* ncv = ffmpeg_create();
   if(ncv == NULL){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
@@ -433,7 +431,7 @@ ncvisual* ffmpeg_from_file(const char* filename){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
     goto err;
   }
-  st = ncv->details->fmtctx->streams[ncv->details->stream_index];
+  AVStream* st = ncv->details->fmtctx->streams[ncv->details->stream_index];
   if((ncv->details->codecctx = avcodec_alloc_context3(ncv->details->codec)) == NULL){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
     goto err;
@@ -445,14 +443,6 @@ ncvisual* ffmpeg_from_file(const char* filename){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }
-  /*if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
-    //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
-    goto err;
-  }
-  if((*averr = avcodec_parameters_from_context(ncv->cparams, ncv->details->codecctx)) < 0){
-    //fprintf(stderr, "Couldn't get codec params for %s (%s)\n", filename, av_err2str(*averr));
-    goto err;
-  }*/
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details->frame);
   // frame is set up in prep_details(), so that format can be set there, as
   // is necessary when it is prepared from inputs other than files.
@@ -694,7 +684,6 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
-  //avcodec_parameters_free(&ncv->cparams);
   sws_freeContext(deets->rgbactx);
   sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
