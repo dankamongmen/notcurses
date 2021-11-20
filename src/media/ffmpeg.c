@@ -149,7 +149,7 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
   return n;
 }
 
-static uint32_t palette[256];
+static uint32_t palette[NCPALETTESIZE];
 
 struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
@@ -178,8 +178,8 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
         continue;
       }
       struct ncvisual* v = ncvisual_from_palidx(rect->data[0], rect->h,
-                                                rect->w, rect->w, 256, 1,
-                                                palette);
+                                                rect->w, rect->w,
+                                                NCPALETTESIZE, 1, palette);
       if(v == NULL){
         return NULL;
       }
@@ -651,14 +651,8 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 }
 
 void ffmpeg_details_seed(ncvisual* ncv){
-  ncv->details->frame->data[0] = NULL;
-  ncv->details->frame->data[1] = NULL;
-  ncv->details->frame->data[2] = NULL;
-  ncv->details->frame->data[3] = NULL;
+  memset(ncv->details->frame, 0, sizeof(*ncv->details->frame));
   ncv->details->frame->linesize[0] = ncv->rowstride;
-  ncv->details->frame->linesize[1] = 0;
-  ncv->details->frame->linesize[2] = 0;
-  ncv->details->frame->linesize[3] = 0;
   ncv->details->frame->width = ncv->pixx;
   ncv->details->frame->height = ncv->pixy;
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
