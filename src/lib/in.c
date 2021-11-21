@@ -552,12 +552,14 @@ cursor_location_cb(inputctx* ictx){
   unsigned y = amata_next_numeric(&ictx->amata, "\x1b[", ';') - 1;
   unsigned x = amata_next_numeric(&ictx->amata, "", 'R') - 1;
   // the first one doesn't go onto the queue; consume it here
+  pthread_mutex_lock(&ictx->clock);
+  --ictx->coutstanding;
   if(ictx->initdata){
+    pthread_mutex_unlock(&ictx->clock);
     ictx->initdata->cursory = y;
     ictx->initdata->cursorx = x;
     return 2;
   }
-  pthread_mutex_lock(&ictx->clock);
   if(ictx->cvalid == ictx->csize){
     pthread_mutex_unlock(&ictx->clock);
     logwarn("dropping cursor location report %u/%u\n", y, x);
@@ -2207,14 +2209,15 @@ uint32_t ncdirect_get(ncdirect* n, const struct timespec* absdl, ncinput* ni){
 
 int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){
   pthread_mutex_lock(&ictx->clock);
-  while(ictx->cvalid == 0 && ictx->coutstanding == 0){
-    if(tty_emit(u7, ictx->ti->ttyfd)){
-      return -1;
+  while(ictx->cvalid == 0){
+    if(ictx->coutstanding == 0){
+      if(tty_emit(u7, ictx->ti->ttyfd)){
+        return -1;
+      }
+      ++ictx->coutstanding;
     }
-    ++ictx->coutstanding;
     pthread_cond_wait(&ictx->ccond, &ictx->clock);
   }
-  --ictx->coutstanding;
   const cursorloc* cloc = &ictx->csrs[ictx->cread];
   if(++ictx->cread == ictx->csize){
     ictx->cread = 0;
