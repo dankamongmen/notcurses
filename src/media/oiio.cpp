@@ -126,7 +126,7 @@ int oiio_decode_loop(ncvisual* ncv){
 }
 
 // resize, converting to RGBA (if necessary) along the way
-int oiio_resize(ncvisual* nc, int rows, int cols) {
+int oiio_resize(ncvisual* nc, unsigned rows, unsigned cols) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", nc->pixy, nc->pixx, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(nc->details->ibuf && (nc->pixx != cols || nc->pixy != rows)){ // scale it

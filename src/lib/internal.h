@@ -1752,7 +1752,7 @@ typedef struct ncvisual_implementation {
   struct ncplane* (*visual_subtitle)(struct ncplane* parent, const struct ncvisual* ncv);
   int rowalign; // rowstride base, can be 0 for no padding
   // do a persistent resize, changing the ncv itself
-  int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);
+  int (*visual_resize)(struct ncvisual* ncv, unsigned rows, unsigned cols);
   void (*visual_destroy)(struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
