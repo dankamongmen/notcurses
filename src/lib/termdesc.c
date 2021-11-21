@@ -326,7 +326,13 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // send this with the other identification queries, since APCs tend not to
 // be consumed by certain terminal emulators (looking at you, Linux console)
 // which can be identified directly, sans queries.
+// we do not send this query on Windows because it is bled through ConHost,
+// and echoed onto the standard output.
+#ifndef __MINGW64__
 #define KITTYQUERY "\x1b_Gi=1,a=q;\x1b\\"
+#else
+#define KITTYQUERY
+#endif
 
 // request kitty keyboard protocol features 1, 2, and 8, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
