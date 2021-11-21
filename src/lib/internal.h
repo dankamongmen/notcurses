@@ -1737,7 +1737,7 @@ create_polyfill_op(int y, int x, struct topolyfill** stck){
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(fbuf* f);
-  int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
+  int (*visual_blit)(struct ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
                      const struct blitset* bset, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);

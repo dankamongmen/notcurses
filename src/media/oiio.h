@@ -11,7 +11,7 @@ int oiio_decode(ncvisual* nc);
 struct ncvisual_details* oiio_details_init(void);
 void oiio_printbanner(fbuf* f);
 void oiio_details_seed(struct ncvisual* ncv);
-int oiio_blit(ncvisual* ncv, int rows, int cols,
+int oiio_blit(ncvisual* ncv, unsigned rows, unsigned cols,
               struct ncplane* n, const struct blitset* bset,
               const blitterargs* bargs);
 ncvisual* oiio_from_file(const char* filename);

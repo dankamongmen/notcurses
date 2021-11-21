@@ -144,7 +144,7 @@ int oiio_resize(ncvisual* nc, unsigned rows, unsigned cols) {
   return 0;
 }
 
-int oiio_blit(struct ncvisual* ncv, int rows, int cols,
+int oiio_blit(struct ncvisual* ncv, unsigned rows, unsigned cols,
               ncplane* n, const struct blitset* bset,
               const blitterargs* bargs) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->pixy, ncv->pixx, rows, cols);

@@ -631,7 +631,7 @@ int ffmpeg_resize(ncvisual* n, unsigned rows, unsigned cols){
 }
 
 // rows/cols: scaled output geometry (pixels)
-int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+int ffmpeg_blit(ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
                 const struct blitset* bset, const blitterargs* bargs){
   void* data;
   int stride = 0;
