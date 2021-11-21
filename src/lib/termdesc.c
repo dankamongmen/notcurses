@@ -684,7 +684,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
     ti->bce = true;
   }else if(qterm == TERMINAL_MSTERMINAL){
-    termname = "Windows Terminal";
+    termname = "Windows ConHost";
     ti->caps.rgb = true;
     ti->caps.quadrants = true;
   }else if(qterm == TERMINAL_CONTOUR){
