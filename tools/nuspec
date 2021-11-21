@@ -25,6 +25,9 @@
       <file src="libnotcurses-core.dll" target="" />
       <file src="libnotcurses.dll" target="" />
       <file src="libnotcurses++.dll" target="" />
+      <file src="libnotcurses-core.a" target="" />
+      <file src="libnotcurses.a" target="" />
+      <file src="libnotcurses++.a" target="" />
       <file src="ncneofetch.exe" target="" />
       <file src="ncplayer.exe" target="" />
       <file src="nctetris.exe" target="" />
