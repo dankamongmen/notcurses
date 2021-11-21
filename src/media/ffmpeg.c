@@ -651,6 +651,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 }
 
 void ffmpeg_details_seed(ncvisual* ncv){
+  av_frame_unref(ncv->details->frame);
   memset(ncv->details->frame, 0, sizeof(*ncv->details->frame));
   ncv->details->frame->linesize[0] = ncv->rowstride;
   ncv->details->frame->width = ncv->pixx;
