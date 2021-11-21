@@ -29,7 +29,7 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 auto oiio_details_seed(ncvisual* ncv) -> void {
   int pixels = ncv->pixy * ncv->pixx;
   ncv->details->frame = std::make_unique<uint32_t[]>(pixels);
-  OIIO::ImageSpec rgbaspec{ncv->pixx, ncv->pixy, 4};
+  OIIO::ImageSpec rgbaspec{static_cast<int>(ncv->pixx), static_cast<int>(ncv->pixy), 4};
   ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, ncv->data);
 //fprintf(stderr, "got pixel_stride: %ld %ld\n", ncv->details->ibuf->pixel_stride(), ncv->details->ibuf->scanline_stride());
 }
