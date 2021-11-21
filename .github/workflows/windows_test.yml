@@ -30,7 +30,7 @@ jobs:
             git
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-doctest
-            mingw-w64-ucrt-x86_64-ffmpeg
+            mingw-w64-ucrt-x86_64-openimageio
             mingw-w64-ucrt-x86_64-libdeflate
             mingw-w64-ucrt-x86_64-libunistring
             mingw-w64-ucrt-x86_64-ncurses
@@ -56,6 +56,7 @@ jobs:
           cmake .. \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_MULTIMEDIA=oiio \
             -DUSE_PANDOC=off \
             -DUSE_QRCODEGEN=on
 
