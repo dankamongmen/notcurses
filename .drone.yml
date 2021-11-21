@@ -11,7 +11,7 @@ steps:
     - export TERM=xterm
     - mkdir build
     - cd build
-    - cmake .. -DUSE_ASAN=on -DCMAKE_BUILD_TYPE=Release -DUSE_GPM=on -DUSE_QRCODEGEN=on
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_GPM=on -DUSE_QRCODEGEN=on
     - make -j2
     - ./notcurses-info
     - ctest --output-on-failure
