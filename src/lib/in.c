@@ -75,6 +75,7 @@ typedef struct inputctx {
   // ringbuffers for processed, structured input
   cursorloc* csrs;    // cursor reports are dumped here
   ncinput* inputs;    // processed input is dumped here
+  int coutstanding;   // outstanding cursor location requests
   int csize, isize;   // total number of slots in csrs/inputs
   int cvalid, ivalid; // population count of csrs/inputs
   int cwrite, iwrite; // slot where we'll write the next csr/input;
@@ -1442,6 +1443,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                           if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                             i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                             memset(i->initdata, 0, sizeof(*i->initdata));
+                            i->coutstanding = 1; // one in initial request set
                             i->initdata->qterm = ti->qterm;
                             i->initdata->cursory = -1;
                             i->initdata->cursorx = -1;
@@ -2205,12 +2207,14 @@ uint32_t ncdirect_get(ncdirect* n, const struct timespec* absdl, ncinput* ni){
 
 int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){
   pthread_mutex_lock(&ictx->clock);
-  while(ictx->cvalid == 0){
+  while(ictx->cvalid == 0 && ictx->coutstanding == 0){
     if(tty_emit(u7, ictx->ti->ttyfd)){
       return -1;
     }
+    ++ictx->coutstanding;
     pthread_cond_wait(&ictx->ccond, &ictx->clock);
   }
+  --ictx->coutstanding;
   const cursorloc* cloc = &ictx->csrs[ictx->cread];
   if(++ictx->cread == ictx->csize){
     ictx->cread = 0;
