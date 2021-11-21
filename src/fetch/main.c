@@ -60,10 +60,12 @@ free_fetched_info(fetched_info* fi){
 
 static int
 fetch_env_vars(struct notcurses* nc, fetched_info* fi){
-#ifndef __MINGW64__
-  fi->desktop = getenv("XDG_CURRENT_DESKTOP");
-#else
+#if defined(__APPLE__)
+  fi->desktop = "Aqua";
+#elif defined(__MINGW64__)
   fi->desktop = "Metro";
+#else
+  fi->desktop = getenv("XDG_CURRENT_DESKTOP");
 #endif
   fi->shell = getenv("SHELL");
   fi->term = notcurses_detected_terminal(nc);
