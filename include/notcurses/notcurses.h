@@ -2205,7 +2205,7 @@ ncplane_putwc_utf32(struct ncplane* n, const wchar_t* w, unsigned* wchars){
   uint32_t utf32;
   if(*w >= 0xd000 && *w <= 0xdbff){
     *wchars = 2;
-    if(w[1] < 0xdc00 || w[1] > 0xdff){
+    if(w[1] < 0xdc00 || w[1] > 0xdfff){
       return -1; // invalid surrogate pairing
     }
     utf32 = (w[0] & 0x3fflu) << 10lu;
