@@ -13,16 +13,18 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <repository type="git" url="https://github.com/dankamongmen/notcurses.git" />
         <tags>tui graphics cli</tags>
-        <icon>..\doc\icon.png</icon>
+        <icon>icon.png</icon>
         <readme>README.md</readme>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <dependencies>
           <dependency id="LibDeflate.native" version="1.7.1" />
         </dependencies>
     </metadata>
     <files>
       <file src="../*.md" target="" />
-      <file src="*.dll" target="lib/" />
+      <file src="../doc/icon.png" target="" />
+      <file src="libnotcurses-core.dll" target="" />
+      <file src="libnotcurses.dll" target="" />
+      <file src="libnotcurses++.dll" target="" />
       <file src="ncneofetch.exe" target="" />
       <file src="ncplayer.exe" target="" />
       <file src="nctetris.exe" target="" />
