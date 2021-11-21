@@ -542,6 +542,13 @@ if(${USE_CPP})
   endforeach()
 endif()
 endif()
+target_link_libraries(ffmpeg
+  PRIVATE
+    "${AVCODEC_LIBRARIES}"
+    "${AVFORMAT_LIBRARIES}"
+    "${SWSCALE_LIBRARIES}"
+    "${AVUTIL_LIBRARIES}"
+)
 
 ############################################################################
 # notcurses-demo

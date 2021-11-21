@@ -1,6 +1,6 @@
 % notcurses_stdplane(3)
 % nick black <nickblack@linux.com>
-% v2.4.97
+% v2.4.98
 
 # NAME
 

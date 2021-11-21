@@ -3458,6 +3458,7 @@ const char subdivision_flag[] =
   "\U0001F471"
   "\U0001F3FF\u200D\u2640";
 
+// FIXME work out the actual number of rows
 static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
   ncplane_options nopts = {
@@ -3515,9 +3516,9 @@ unicode52(struct ncplane* title, int y){
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\u26f7\ufe0f" // skier
-                             "\u26f9\ufe0f" // person bouncing ball
-                             "\u26f0\ufe0f" // mountain
+  ncplane_putstr_yx(n, 1, 1, "\u26f7"//"\ufe0f" // skier
+                             "\u26f9"//"\ufe0f" // person bouncing ball
+                             "\u26f0"//"\ufe0f" // mountain
                              "\u26ea" // church
                              "\u26e9\ufe0f" // shinto shrine
                              "\u26f2" // fountain
@@ -3610,11 +3611,13 @@ unicode14(struct ncplane* title, int y){
 
 struct ncplane*
 makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
-  int cols = ncstrwidth(emoji);
-  if(cols < 0){ // take a wild guess on ncstrwidth() error from old libcs, sigh.
-    cols = strlen(emoji) * 3 / 5; // best by test
+  mbstate_t mbs = {};
+  size_t count = mbsrtowcs(NULL, &emoji, 0, &mbs);
+  if(count == (size_t)-1){
+    fprintf(stderr, "couldn't convert %s\n", emoji);
+    return NULL;
   }
-  struct ncplane* n = mojiplane(title, y, 3 + cols / (planewidth - 12), name);
+  struct ncplane* n = mojiplane(title, y, count * 2 / (planewidth + 1) + 3, name);
   if(n == NULL){
     return NULL;
   }
@@ -3637,7 +3640,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     }
     emoji += bytes;
     x += w;
-    if(x >= planewidth - 10){ // leave some wiggle room for wcwidth() problems
+    if(x >= planewidth - 1){ // leave some wiggle room for wcwidth() problems
       ++y;
       x = 1;
     }
