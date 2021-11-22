@@ -71,13 +71,7 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
   return -1;
 }
 
-int oiio_init(int logl __attribute__ ((unused))) {
-  // FIXME set OIIO global attribute "debug" based on loglevel
-  // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
-  return 0; // allow success here
-}
-
-const ncvisual_implementation local_visual_implementation = {
+ncvisual_implementation local_visual_implementation = {
   .visual_init = oiio_init,
   .visual_printbanner = oiio_printbanner,
   .visual_blit = oiio_blit,

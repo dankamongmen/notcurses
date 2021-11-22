@@ -1759,7 +1759,7 @@ typedef struct ncvisual_implementation {
 } ncvisual_implementation;
 
 // populated by libnotcurses.so if linked with multimedia
-API extern ncvisual_implementation visual_implementation;
+API extern ncvisual_implementation* visual_implementation;
 
 static inline char
 path_separator(void){

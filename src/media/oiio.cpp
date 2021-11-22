@@ -198,7 +198,18 @@ auto oiio_destroy(ncvisual* ncv) -> void {
 void oiio_printbanner(fbuf* f){
   fbuf_puts(f, "openimageio ");
   fbuf_puts(f, OIIO_VERSION_STRING);
-  fbuf_puts(f, NL);
+  std::string s = OIIO::get_string_attribute("oiio:simd");
+  fbuf_printf(f, " %s (with%s video)" NL, s.c_str(),
+              local_visual_implementation.canopen_videos ? "" : "out");
+}
+
+int oiio_init(int logl __attribute__ ((unused))) {
+  // FIXME set OIIO global attribute "debug" based on loglevel
+  std::string s = OIIO::get_string_attribute("library_list");
+  if(s.find("ffmpeg")){
+    local_visual_implementation.canopen_videos = true;
+  }
+  return 0; // allow success here
 }
 
 #endif
