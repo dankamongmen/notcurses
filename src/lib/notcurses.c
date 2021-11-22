@@ -298,8 +298,35 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
   }
 #else
   CONSOLE_SCREEN_BUFFER_INFO csbi;
+  // There is the buffer itself, which is similar in function to the scrollback
+  // buffer in a Linux terminal, and there is the display window, which is the
+  // visible view of that buffer. The addressable area (from a VT point of
+  // view) spans the width of the buffer, but the height of the display window.
+  //
+  //  +--------------------------+      ^
+  //  |                          |      |
+  //  |                          |      |
+  //  +-----+--------------+-----+ ^ w  | b
+  //  |XXXXX|XXXXXXXXXXXXXX|XXXXX| | i  | u
+  //  |XXXXX|XXXXXXXXXXXXXX|XXXXX| | n  | f
+  //  |XXXXX|XXXXXXXXXXXXXX|XXXXX| | d  | f
+  //  |XXXXX|XXXXXXXXXXXXXX|XXXXX| | o  | e
+  //  +-----+--------------+-----+ v w  | r
+  //  |                          |      |
+  //  |                          |      |
+  //  +--------------------------+      v
+  //
+  //      <--- window --->
+  //
+  //<--------- buffer --------->
+  //
+  // Because the buffer extends past the bottom of the display window, a user
+  // can potentially scroll down beyond what would normally be thought of as the
+  // end of the buffer. Because the buffer can be wider than the display
+  // window, the user can scroll horizontally to view parts of the addressable
+  // area that aren't currently visible.
   if(GetConsoleScreenBufferInfo(tcache->outhandle, &csbi)){
-    *cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    *cols = csbi.dwSize.X;
     *rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
   }else{
     *rows = tcache->default_rows;
