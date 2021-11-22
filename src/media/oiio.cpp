@@ -206,7 +206,7 @@ void oiio_printbanner(fbuf* f){
 int oiio_init(int logl __attribute__ ((unused))) {
   // FIXME set OIIO global attribute "debug" based on loglevel
   std::string s = OIIO::get_string_attribute("library_list");
-  if(s.find("ffmpeg")){
+  if(s.find("ffmpeg") != std::string::npos){
     local_visual_implementation.canopen_videos = true;
   }
   return 0; // allow success here
