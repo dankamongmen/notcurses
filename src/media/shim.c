@@ -1,7 +1,7 @@
 #include "notcurses/direct.h"
 #include "lib/internal.h"
 
-extern const ncvisual_implementation local_visual_implementation;
+extern ncvisual_implementation local_visual_implementation;
 
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   visual_implementation = &local_visual_implementation;

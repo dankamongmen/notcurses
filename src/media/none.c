@@ -8,7 +8,7 @@ printbanner(fbuf* f){
   fbuf_puts(f, "built without multimedia support" NL);
 }
 
-const ncvisual_implementation local_visual_implementation = {
+ncvisual_implementation local_visual_implementation = {
   .visual_printbanner = printbanner,
 };
 

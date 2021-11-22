@@ -713,7 +713,7 @@ void ffmpeg_destroy(ncvisual* ncv){
   }
 }
 
-const ncvisual_implementation local_visual_implementation = {
+ncvisual_implementation local_visual_implementation = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
   .visual_blit = ffmpeg_blit,
