@@ -285,6 +285,9 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   if(argv[optind] == nullptr){
     usage(std::cerr, argv[0], EXIT_FAILURE);
   }
+  if(*blitter == NCBLIT_DEFAULT){
+    *blitter = NCBLIT_PIXEL;
+  }
   return optind;
 }
 
@@ -506,7 +509,7 @@ auto main(int argc, char** argv) -> int {
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
-  ncblitter_e blitter = NCBLIT_PIXEL;
+  ncblitter_e blitter = NCBLIT_DEFAULT;
   uint32_t transcolor = 0;
   bool quiet = false;
   bool loop = false;

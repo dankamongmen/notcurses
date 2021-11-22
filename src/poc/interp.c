@@ -26,6 +26,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   };
   struct ncplane* ncvp = ncvisual_blit(nc, ncv, &vopts);
   if(ncvp == NULL){
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
@@ -41,6 +42,9 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.scaling = NCSCALE_STRETCH;
   popts.x += ncplane_dim_x(scalep) + 1;
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
@@ -49,6 +53,10 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.n = scalepni;
   vopts.flags = NCVISUAL_OPTION_NOINTERPOLATE;
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
@@ -56,10 +64,18 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   popts.x += ncplane_dim_x(scalepni) + 1;
   struct ncplane* resizep = ncplane_create(stdn, &popts);
   if(resizep == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
   if(ncvisual_resize(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
@@ -67,6 +83,10 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   vopts.n = resizep;
   vopts.scaling = NCSCALE_NONE;
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     free(randrgb);
     return -1;
   }
@@ -77,13 +97,25 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   popts.x += ncplane_dim_x(scalepni) + 1;
   struct ncplane* inflatep = ncplane_create(stdn, &popts);
   if(inflatep == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     return -1;
   }
   vopts.n = inflatep;
   if(ncvisual_resize_noninterpolative(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     return -1;
   }
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncplane_destroy(scalep);
+    ncplane_destroy(scalepni);
+    ncplane_destroy(ncvp);
+    ncvisual_destroy(ncv);
     return -1;
   }
   ncplane_putstr_yx(stdn, 2, 41, "resize(no)");
