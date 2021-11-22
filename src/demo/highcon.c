@@ -104,7 +104,7 @@ int highcontrast_demo(struct notcurses* nc){
       const int l = totcells + dimx - offset;
       ncplane_at_yx_cell(n, f / dimx, f % dimx, &c);
       nccell_set_fg_rgb(&c, 0x004000 + (16 * offset));
-      nccell_set_bg_default(&c);
+      nccell_set_bg_rgb(&c, 0);
       nccell_set_fg_alpha(&c, NCALPHA_OPAQUE);
       if(ncplane_putc_yx(n, f / dimx, f % dimx, &c) < 0){
         goto err;
