@@ -333,6 +333,8 @@ ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
   return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
 }
 
+// Creates a new channel pair using 'fchan' as the foreground channel
+// and 'bchan' as the background channel.
 static inline uint64_t
 ncchannels_combine(uint32_t fchan, uint32_t bchan){
   uint64_t channels = 0;
