@@ -247,15 +247,10 @@ dostring(struct ncplane* n, const char** s, uint32_t rgb,
       continue;
     }
     size_t ulen = 0;
-    int r;
-    if(wcwidth(wcs) <= (int)(maxx - x)){
-      if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
-        return -1;
-      }
-    }else{
-      if((r = ncplane_putchar(n, '#')) < 1){
-        return -1;
-      }
+    int r = 0;
+    int w;
+    if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
+      return 0;
     }
     ncplane_cursor_yx(n, &y, &x);
     idx += ulen;
@@ -406,6 +401,7 @@ int witherworm_demo(struct notcurses* nc){
     "Jeg kan spise glas, det gør ikke ondt på mig",
     "㎚㎛㎜㎝㎞㎟㎠㎡㎢㎣㎤㎥㎦㎕㎖㎗㎘㏄㎰㎱㎲㎳㎍㎎㎏㎅㎆㏔㎇㎐㎑㎒㎓㎔㎮㎯",
     "Æ ka æe glass uhen at det go mæ naue",
+    // FIXME this one
     "က္ယ္ဝန္တော္၊က္ယ္ဝန္မ မ္ယက္စားနုိင္သည္။ ၎က္ရောင္ ထိခုိက္မ္ဟု မရ္ဟိပာ။",
     "ကျွန်တော် ကျွန်မ မှန်စားနိုင်တယ်။ ၎င်းကြောင့် ထိခိုက်မှုမရှိပါ။ ",
     "Tôi có thể ăn thủy tinh mà không hại gì",

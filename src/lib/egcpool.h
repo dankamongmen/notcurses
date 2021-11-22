@@ -136,7 +136,9 @@ utf8_egc_len(const char* gcluster, int* colcount){
     }
     ret += r;
     gcluster += r;
-    prevw = wc;
+    if(!prevw){
+      prevw = wc;
+    }
   }while(r);
   // FIXME what if injoin is set? incomplete EGC!
   return ret;

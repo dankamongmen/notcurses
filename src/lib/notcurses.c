@@ -1752,6 +1752,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, size_t* sbytes){
   int cols;
   int bytes = utf8_egc_len(gclust, &cols);
+fprintf(stderr, "BYTES: %d COLS: %d [%s]\n", bytes, cols, gclust);
   if(bytes < 0){
     return -1;
   }
