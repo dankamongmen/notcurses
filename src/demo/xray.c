@@ -168,7 +168,7 @@ int xray_demo(struct notcurses* nc){
   unsigned dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_erase(notcurses_stdplane(nc));
-  char* path = find_data("notcursesIII.mkv");
+  char* path = find_data("notcursesIII.mov");
   struct ncvisual* ncv1 = ncvisual_from_file(path);
   struct ncvisual* ncv2 = ncvisual_from_file(path);
   free(path);
