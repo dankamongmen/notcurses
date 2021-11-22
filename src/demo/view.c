@@ -37,7 +37,7 @@ static int
 view_video_demo(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stdplane(nc);
   struct ncvisual* ncv;
-  char* fm6 = find_data("fm6.mkv");
+  char* fm6 = find_data("fm6.mov");
   ncv = ncvisual_from_file(fm6);
   if(!ncv){
     free(fm6);
