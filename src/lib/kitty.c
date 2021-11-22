@@ -689,11 +689,11 @@ prep_animation(ncpixelimpl_e level, uint32_t** buf, int leny, int lenx, unsigned
   if(level < NCPIXEL_KITTY_ANIMATED){
     *animated = false;
     *buf = NULL;
-  }else{
-    if((*buf = malloc(lenx * leny * sizeof(uint32_t))) == NULL){
-      return -1;
-    }
-    *animated = true;
+    return 0;
+  }
+  *animated = true;
+  if((*buf = malloc(lenx * leny * sizeof(uint32_t))) == NULL){
+    return -1;
   }
   return 0;
 }
