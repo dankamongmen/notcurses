@@ -215,6 +215,57 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   return 0;
 }
 
+// print the EGCs of the UTF8 string on the standard plane, wrapping around
+// the borders. the plane is not set to scroll, so we handle it ourselves.
+static int
+dostring(struct ncplane* n, const char** s, uint32_t rgb,
+         unsigned maxy, unsigned maxx,
+         unsigned* egcs, unsigned* cols, unsigned* bytes){
+  size_t idx = 0;
+  unsigned y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  while((*s)[idx]){ // each multibyte char of string
+    if(ncplane_set_fg_rgb8(n, ncchannel_r(rgb), ncchannel_g(rgb), ncchannel_b(rgb))){
+      return -1;
+    }
+    if(x >= maxx){
+      x = 0;
+      ++y;
+    }
+    if(y >= maxy){
+      break;
+    }
+    wchar_t wcs;
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    int eaten = mbrtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1, &mbstate);
+    if(eaten < 0){
+      return -1;
+    }
+    if(iswspace(wcs)){
+      idx += eaten;
+      continue;
+    }
+    size_t ulen = 0;
+    int r;
+    if(wcwidth(wcs) <= (int)(maxx - x)){
+      if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
+        return -1;
+      }
+    }else{
+      if((r = ncplane_putchar(n, '#')) < 1){
+        return -1;
+      }
+    }
+    ncplane_cursor_yx(n, &y, &x);
+    idx += ulen;
+    *bytes += ulen;
+    *cols += r;
+    ++*egcs;
+  }
+  return 0;
+}
+
 // Much of this text comes from http://kermitproject.org/utf8.html
 int witherworm_demo(struct notcurses* nc){
   static const char* strs[] = {
@@ -468,64 +519,26 @@ int witherworm_demo(struct notcurses* nc){
       const int start = starts[i];
       int step = steps[i];
       nccell_init(&c);
-      unsigned y, x;
       unsigned maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx); // might resize
-      int rgb = start;
-      int bytes_out = 0;
-      int egcs_out = 0;
-      int cols_out = 0;
-      y = 1;
-      x = 0;
+      uint32_t rgb = start;
+      unsigned bytes_out = 0;
+      unsigned egcs_out = 0;
+      unsigned cols_out = 0;
+      unsigned y = 1;
+      unsigned x = 0;
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }
       ncplane_set_bg_rgb8(n, 20, 20, 20);
       do{ // we fill up the screen, however large, bouncing around our strtable
         s = strs + rand() % ((sizeof(strs) / sizeof(*strs)) - 1);
-        size_t idx = 0;
-        ncplane_cursor_yx(n, &y, &x);
-        while((*s)[idx]){ // each multibyte char of string
-          if(ncplane_set_fg_rgb8(n, ncchannel_r(rgb), ncchannel_g(rgb), ncchannel_b(rgb))){
-            return -1;
-          }
-          if(x >= maxx){
-            x = 0;
-            ++y;
-          }
-          if(y >= maxy){
-            break;
-          }
-          wchar_t wcs;
-          mbstate_t mbstate;
-          memset(&mbstate, 0, sizeof(mbstate));
-          int eaten = mbrtowc(&wcs, &(*s)[idx], MB_CUR_MAX + 1, &mbstate);
-          if(eaten < 0){
-            return -1;
-          }
-          if(iswspace(wcs)){
-            idx += eaten;
-            continue;
-          }
-          size_t ulen = 0;
-          int r;
-          if(wcwidth(wcs) <= (int)(maxx - x)){
-            if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
-              return -1;
-            }
-          }else{
-            if((r = ncplane_putchar(n, '#')) < 1){
-              return -1;
-            }
-          }
-          ncplane_cursor_yx(n, &y, &x);
-          idx += ulen;
-          bytes_out += ulen;
-          cols_out += r;
-          ++egcs_out;
+        if(dostring(n, s, rgb, maxy, maxx, &egcs_out, &cols_out, &bytes_out)){
+          return -1;
         }
         rgb += step;
-      }while(y < maxy);
+        ncplane_cursor_yx(n, &y, &x);
+      }while(y < (maxy - 1) || x < (maxx - 2));
       struct ncplane* math = mathplane(nc);
       if(math == NULL){
         return -1;
@@ -542,7 +555,7 @@ int witherworm_demo(struct notcurses* nc){
         return -1;
       }
       if(message(mess, maxy, maxx, i, sizeof(steps) / sizeof(*steps),
-                  bytes_out, egcs_out, cols_out)){
+                 bytes_out, egcs_out, cols_out)){
         ncplane_destroy(math); ncplane_destroy(mess);
         return -1;
       }
