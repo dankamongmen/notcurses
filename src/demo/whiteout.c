@@ -248,7 +248,6 @@ dostring(struct ncplane* n, const char** s, uint32_t rgb,
     }
     size_t ulen = 0;
     int r = 0;
-    int w;
     if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
       return 0;
     }
