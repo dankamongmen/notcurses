@@ -56,10 +56,14 @@ typedef struct notcurses_options {
 # DESCRIPTION
 
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
-mode. The **FILE** provided as ***fp*** must be writable and attached to a
-terminal, or **NULL**. If it is **NULL**, **/dev/tty** will be opened. The
-**struct notcurses_option** passed as ***opts*** controls behavior. A process
-can have only one Notcurses context active at a time.
+mode. The **FILE** provided as ***fp*** must be writable, or **NULL** (if it
+is **NULL**, **stdout** will be used). If the **FILE** is not connected to a
+terminal, **/dev/tty** will be opened (if possible) for communication with
+the controlling terminal. The **struct notcurses_option** passed as ***opts***
+controls behavior. Passing a **NULL** ***opts*** is equivalent to passing an
+all-zero (default) ***opts***. A process can have only one Notcurses context
+active at a time; calling **notcurses_init** again before calling
+**notcurses_stop** will return **NULL**.
 
 On success, a pointer to a valid **struct notcurses** is returned. **NULL** is
 returned on failure. Before the process exits, **notcurses_stop(3)** should be
@@ -67,11 +71,14 @@ called to reset the terminal and free up resources.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see
-**getenv(3)**), but a non-**NULL** value for **termtype** will override this. An
-invalid terminfo specification can lead to reduced performance, reduced
-display capabilities, and/or display errors. notcurses natively targets
-24bpp/8bpc RGB color, and it is thus desirable to use a terminal with the
-**rgb** capability (e.g. xterm's **xterm-direct**).
+**getenv(3)**), but a non-**NULL** value for **termtype** will override this
+(terminfo is not used on Microsoft Windows, and it is neither meaningful nor
+necessary to define **TERM** there). An invalid terminfo specification
+can lead to reduced performance, reduced display capabilities, and/or display
+errors. notcurses natively targets 24bpp/8bpc RGB color, and it is thus
+desirable to use a terminal with the **rgb** capability (e.g. xterm's
+**xterm-direct**). Colors will otherwise be quantized down to whatever the
+terminal supports.
 
 If the terminal advertises support for an "alternate screen" via the **smcup**
 terminfo capability, notcurses will employ it by default. This can be prevented
