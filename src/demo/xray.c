@@ -19,9 +19,9 @@ static const char* leg[] = {
 
 static struct ncplane*
 make_slider(struct notcurses* nc, int dimx){
-  // 487 frames in the video
+  // 862 frames in the video
   const int len = strlen(leg[0]);
-  const int REPS = 487 / len + dimx / len;
+  const int REPS = 862 / len + dimx / len;
   struct ncplane_options nopts = {
     .y = 1,
     .x = 0,
