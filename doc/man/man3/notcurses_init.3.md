@@ -87,7 +87,9 @@ strong opinions regarding the alternate screen, so it's often useful to expose
 this via a command-line option. When the alternate screen is not used, the
 contents of the terminal at startup remain visible until obliterated, on a
 cell-by-cell basis (see **notcurses_plane(3)** for details on clearing the
-screen at startup without using the alternate screen).
+screen at startup without using the alternate screen). If the alternate screen
+is not available, the display will still be cleared without
+**NCOPTION_NO_ALTERNATE_SCREEN**.
 
 notcurses hides the cursor by default. It can be dynamically enabled, moved, or
 disabled during execution via **notcurses_cursor_enable** and
