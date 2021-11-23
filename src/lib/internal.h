@@ -334,7 +334,6 @@ typedef struct notcurses {
   FILE* ttyfp;    // FILE* for writing rasterized data
   tinfo tcache;   // terminfo cache
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
-  bool suppress_banner; // from notcurses_options
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
