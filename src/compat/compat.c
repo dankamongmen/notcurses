@@ -6,15 +6,24 @@
 #include <synchapi.h>
 #include <handleapi.h>
 #include <processthreadsapi.h>
+#include <stdio.h>
+
 char* strndup(const char* str, size_t size){
+  if(size == 0){
+    return NULL;
+  }
+  // t is how many bytes we're copying from the old string (not including
+  // any NUL terminator). it cannot be larger than strlen(str), nor can it
+  // be larger than size.
   size_t t = strlen(str);
   if(t > size){
     t = size;
   }
-  ++t;
-  char* r = malloc(t);
+  char* r = malloc(t + 1);
   if(r){
-    memcpy(r, str, t);
+    if(t){
+      memcpy(r, str, t);
+    }
     r[t] = '\0';
   }
   return r;
