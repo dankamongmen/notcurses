@@ -822,7 +822,6 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     cursor_y = &foolcursor_y;
   }
   *cursor_x = *cursor_y = -1;
-  memset(ti, 0, sizeof(*ti));
   ti->bg_collides_default = 0xfe000000;
   ti->kbdlevel = UINT_MAX; // see comment in tinfo definition
   ti->qterm = TERMINAL_UNKNOWN;
