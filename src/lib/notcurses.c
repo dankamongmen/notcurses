@@ -999,70 +999,68 @@ ncpixelimpl_e notcurses_check_pixel_support(const notcurses* nc){
   return nc->tcache.pixel_implementation;
 }
 
-// FIXME cut this up into a few distinct pieces, yearrrgh
-notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
-  if(outfp == NULL){
-    outfp = stdout;
-  }
-  notcurses_options defaultopts = { };
-  if(!opts){
-    opts = &defaultopts;
-  }
-  if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
-    fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
-    return NULL;
-  }
-  if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
-    fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
-  }
-  if(opts->termtype){
-    if(putenv_term(opts->termtype)){
-      return NULL;
-    }
-  }
+// the earliest stage of initialization. logging does not yet work; all
+// diagostics should be emitted with fprintf(stderr).
+//  * validates |opts|, if not NULL
+//  * creates and zeroes out the notcurses struct
+//  * ensures that we're using ASCII or UTF8 and calls setlocale(3)
+//  * checks the environment for NOTCURSES_LOGLEVEL and sets ret->loglevel
+//  * writes TERM to the environment, if specified via opts->termtype
+//
+// iff we're using UTF8, |utf8| will be set to 1. it is otherwise set to 0.
+__attribute__ ((nonnull (2))) static notcurses*
+notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* utf8){
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;
   }
+  memset(ret, 0, sizeof(*ret));
+  if(opts){
+    if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
+      fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
+      return NULL;
+    }
+    if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
+      fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
+    }
+    if(opts->termtype){
+      if(putenv_term(opts->termtype)){
+        return NULL;
+      }
+    }
+    ret->flags = opts->flags;
+    ret->margin_t = opts->margin_t;
+    ret->margin_b = opts->margin_b;
+    ret->margin_l = opts->margin_l;
+    ret->margin_r = opts->margin_r;
+    ret->loglevel = opts->loglevel;
+  }
   ret->last_pile = NULL;
   ret->rstate.f.buf = NULL;
-  ret->rstate.f.used = 0;
-  ret->rstate.f.size = 0;
-  ret->loglevel = opts->loglevel;
+  ret->lastframe = NULL;
   set_loglevel_from_env(&ret->loglevel);
-  if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
+  if(!(ret->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
   }
 //fprintf(stderr, "getenv LC_ALL: %s LC_CTYPE: %s\n", getenv("LC_ALL"), getenv("LC_CTYPE"));
   const char* encoding = nl_langinfo(CODESET);
-  bool utf8;
   if(encoding && !strcmp(encoding, "UTF-8")){
-    utf8 = true;
-  }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") ||
-                        !strcmp(encoding, "US-ASCII") ||
-                        !strcmp(encoding, "ASCII"))){
-    utf8 = false;
+    *utf8 = true;
   }else{
-    fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
-            encoding ? encoding : "none found");
-    free(ret);
-    return NULL;
+    *utf8 = false;
+    if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") ||
+                          !strcmp(encoding, "US-ASCII") ||
+                          !strcmp(encoding, "ASCII"))){
+      fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
+              encoding ? encoding : "none found");
+      free(ret);
+      return NULL;
+    }
   }
-  ret->flags = opts->flags;
-  ret->margin_t = opts->margin_t;
-  ret->margin_b = opts->margin_b;
-  ret->margin_l = opts->margin_l;
-  ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
   reset_stats(&ret->stats.s);
   reset_stats(&ret->stashed_stats);
-  ret->ttyfp = outfp;
-  memset(&ret->rstate, 0, sizeof(ret->rstate));
-  memset(&ret->palette_damage, 0, sizeof(ret->palette_damage));
-  memset(&ret->palette, 0, sizeof(ret->palette));
-  ret->lastframe = NULL;
-  ret->lfdimy = 0;
-  ret->lfdimx = 0;
+  ret->ttyfp = fp;
   egcpool_init(&ret->pool);
   if(ret->loglevel > NCLOGLEVEL_TRACE || ret->loglevel < NCLOGLEVEL_SILENT){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
@@ -1070,13 +1068,25 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   if(recursive_lock_init(&ret->pilelock)){
-    logfatal("Couldn't initialize pile mutex\n");
+    fprintf(stderr, "Couldn't initialize pile mutex\n");
     free(ret);
     return NULL;
   }
   if(pthread_mutex_init(&ret->stats.lock, NULL)){
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
+    return NULL;
+  }
+  return ret;
+}
+
+notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
+  if(outfp == NULL){
+    outfp = stdout;
+  }
+  unsigned utf8;
+  notcurses* ret = notcurses_early_init(opts, outfp, &utf8);
+  if(ret == NULL){
     return NULL;
   }
   // the fbuf is needed by notcurses_stop_minimal, so this must be done
@@ -1087,8 +1097,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
-                   (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
+  if(setup_signals(ret, (ret->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
+                   (ret->flags & NCOPTION_NO_WINCH_SIGHANDLER),
                    notcurses_stop_minimal)){
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
@@ -1102,20 +1112,19 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.logendy = -1;
   ret->rstate.logendx = -1;
   ret->rstate.x = ret->rstate.y = -1;
-  ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   int fakecursory = ret->rstate.logendy;
   int fakecursorx = ret->rstate.logendx;
-  int* cursory = opts->flags & NCOPTION_PRESERVE_CURSOR ?
+  int* cursory = ret->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendy : &fakecursory;
-  int* cursorx = opts->flags & NCOPTION_PRESERVE_CURSOR ?
+  int* cursorx = ret->flags & NCOPTION_PRESERVE_CURSOR ?
                   &ret->rstate.logendx : &fakecursorx;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfp, utf8,
-                          opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
-                          opts->flags & NCOPTION_NO_FONT_CHANGES,
+                          ret->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
+                          ret->flags & NCOPTION_NO_FONT_CHANGES,
                           cursory, cursorx, &ret->stats,
                           ret->margin_l, ret->margin_t,
                           ret->margin_r, ret->margin_b,
-                          opts->flags & NCOPTION_DRAIN_INPUT)){
+                          ret->flags & NCOPTION_DRAIN_INPUT)){
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);
@@ -1123,7 +1132,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  if((opts->flags & NCOPTION_PRESERVE_CURSOR) || !ret->suppress_banner){
+  if((ret->flags & NCOPTION_PRESERVE_CURSOR) ||
+      (!(ret->flags & NCOPTION_SUPPRESS_BANNERS))){
     // the u7 led the queries so that we would get a cursor position
     // unaffected by any query spill (unconsumed control sequences). move
     // us back to that location, in case there was any such spillage.
@@ -1171,7 +1181,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->rstate.logendy >= 0){ // if either is set, both are
-    if(!ret->suppress_banner && ret->tcache.ttyfd >= 0){
+    if(!(ret->flags & NCOPTION_SUPPRESS_BANNERS) && ret->tcache.ttyfd >= 0){
       unsigned uendy, uendx;
       if(locate_cursor(&ret->tcache, &uendy, &uendx)){
         free_plane(ret->stdplane);
@@ -1180,11 +1190,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       ret->rstate.logendy = uendy;
       ret->rstate.logendx = uendx;
     }
-    if(opts->flags & NCOPTION_PRESERVE_CURSOR){
+    if(ret->flags & NCOPTION_PRESERVE_CURSOR){
       ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
     }
   }
-  if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+  if(!(ret->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     // perform an explicit clear since the alternate screen was requested
     // (smcup *might* clear, but who knows? and it might not have been
     // available in any case).
@@ -1196,7 +1206,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   // the sprite clear ought take place within the alternate screen, if it's
   // being used.
-  if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
+  if(!(ret->flags & NCOPTION_NO_CLEAR_BITMAPS)){
     if(sprite_clear_all(&ret->tcache, &ret->rstate.f)){
       goto err;
     }
@@ -1294,7 +1304,7 @@ int notcurses_stop(notcurses* nc){
     free(nc->lastframe);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
-    if(!nc->suppress_banner){
+    if(!(nc->flags & NCOPTION_SUPPRESS_BANNERS)){
       summarize_stats(nc);
     }
 #ifndef __MINGW64__

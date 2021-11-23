@@ -27,7 +27,7 @@ int init_banner(const notcurses* nc, fbuf* f){
   if(clreol == NULL){
     clreol = "";
   }
-  if(!nc->suppress_banner){
+  if(!(nc->flags & NCOPTION_SUPPRESS_BANNERS)){
     term_fg_palindex(nc, f, 50 % nc->tcache.caps.colors);
     char* osver = notcurses_osversion();
     fbuf_printf(f, "%snotcurses %s on %s %s%s(%s)" NL,
