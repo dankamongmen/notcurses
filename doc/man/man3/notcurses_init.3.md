@@ -131,6 +131,10 @@ zero. The following flags are defined:
     **SIGQUIT**, **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such
     exceptions. With this flag, the handler will not be installed.
 
+* **NCOPTION_PRESERVE_CURSOR**: The virtual cursor is typically placed at the
+    screen's origin at startup. With this flag, it is instead placed wherever
+    the cursor was at program launch.
+
 * **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
     information printed on startup, and the performance summary on exit.
 
