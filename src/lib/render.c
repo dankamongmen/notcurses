@@ -1038,7 +1038,8 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
         return -1;
       }else if(r > 0){
         bytesemitted += r;
-        nc->rstate.hardcursorpos = true;
+        nc->rstate.y = -1;
+        nc->rstate.x = -1;
       }
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
@@ -1050,7 +1051,8 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
         if(sprite_commit(&nc->tcache, f, s, false)){
           return -1;
         }
-        nc->rstate.hardcursorpos = true;
+        nc->rstate.y = -1;
+        nc->rstate.x = -1;
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
       if(nc->tcache.pixel_remove){

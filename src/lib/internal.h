@@ -158,9 +158,6 @@ typedef struct rasterstate {
   bool bgpalelidable;
   bool fgdefelidable;
   bool bgdefelidable;
-
-  // need we do a hard cursor update (i.e. did we just emit a pixel graphic)?
-  bool hardcursorpos;
 } rasterstate;
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to
@@ -719,7 +716,10 @@ sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x)
       return 0;
     }
     int r = ti->pixel_draw(ti, p, s, f, y, x);
-    nc->rstate.hardcursorpos = true;
+    // different terminals put the cursor at different places following
+    // emission of a bitmap graphic. just reset y/x.
+    nc->rstate.y = -1;
+    nc->rstate.x = -1;
     return r;
   }
 }
@@ -1180,7 +1180,7 @@ goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
   // TERM i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
   const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
-  if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
+  if(nc->rstate.y == y && hpa){ // only need move x
     if(nc->rstate.x == x){
       if(nc->rstate.lastsrcp == srcp || !nc->tcache.gratuitous_hpa){
         return 0; // needn't move shit
@@ -1203,7 +1203,6 @@ goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
   }
   nc->rstate.x = x;
   nc->rstate.y = y;
-  nc->rstate.hardcursorpos = 0;
   nc->rstate.lastsrcp = srcp;
   return ret;
 }
