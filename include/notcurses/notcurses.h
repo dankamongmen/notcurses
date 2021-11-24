@@ -2032,7 +2032,7 @@ ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
   while(*gclusters){
     size_t wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
-//fprintf(stderr, "wrote %.*s %d cols %d bytes now at %d/%d\n", wcs, gclusters, cols, wcs, n->y, n->x);
+//fprintf(stderr, "wrote %.*s %d cols %zu bytes\n", (int)wcs, gclusters, cols, wcs);
     if(cols < 0){
       return -ret;
     }

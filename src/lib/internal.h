@@ -1197,6 +1197,7 @@ goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
       return -1;
     }
   }
+  // FIXME ought be able to remove this
   if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
     nc->rstate.logendy = y;
     nc->rstate.logendx = x;
@@ -1389,7 +1390,10 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
   if(bytes < 0 || cols < 0){
     return -1;
   }
-  if(is_control_egc((const unsigned char*)gcluster, bytes)){
+  // we allow newlines to be blitted into the pool, as they're picked up and
+  // given special semantics by paint() and rasterization.
+  if(*gcluster != '\n' && is_control_egc((const unsigned char*)gcluster, bytes)){
+    logerror("not loading control character %u\n", *(const unsigned char*)gcluster);
     return -1;
   }
   c->width = cols;
@@ -1830,6 +1834,18 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
     }
     --count;
   }
+  return 0;
+}
+
+// both emit the |count > 0| scroll ops to |f|, and update the cursor
+// tracking in |nc|
+static inline int
+emit_scrolls_track(notcurses* nc, int count, fbuf* f){
+  if(emit_scrolls(&nc->tcache, count, f)){
+    return -1;
+  }
+  nc->rstate.y -= count;
+  nc->rstate.x = 0;
   return 0;
 }
 
