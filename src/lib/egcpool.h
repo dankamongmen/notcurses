@@ -122,6 +122,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
       if(cols < 0){
         injoin = false;
         if(iswspace(wc)){ // newline or tab
+          *colcount = 1;
           return ret + 1;
         }
         cols = 1;

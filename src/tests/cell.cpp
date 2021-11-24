@@ -356,13 +356,13 @@ TEST_CASE("Cell") {
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), "*"));
   }
 
-  // only space is allowed
+  // only space/newline is allowed from control char whitespace
   SUBCASE("CellLoadCharWhitespace") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(-1 == nccell_load_char(n_, &c, '\n'));
     CHECK(-1 == nccell_load_char(n_, &c, '\f'));
     CHECK(-1 == nccell_load_char(n_, &c, '\v'));
     CHECK(-1 == nccell_load_char(n_, &c, '\t'));
+    CHECK(1 == nccell_load_char(n_, &c, '\n'));
     CHECK(1 == nccell_load_char(n_, &c, ' '));
   }
 
