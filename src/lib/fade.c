@@ -230,7 +230,7 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
   return ret;
 }
 
-static ncfadectx* 
+static ncfadectx*
 ncfadectx_setup_internal(ncplane* n, const struct timespec* ts){
   if(!ncplane_notcurses(n)->tcache.caps.rgb &&
      !ncplane_notcurses(n)->tcache.caps.can_change_colors){ // terminal can't fade

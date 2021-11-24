@@ -1555,7 +1555,7 @@ rgba_trans_p(uint32_t p, uint32_t transcolor){
   if(ncpixel_a(p) < 192){
     return true;
   }
-  if(transcolor && 
+  if(transcolor &&
       (ncpixel_r(p) == (transcolor & 0xff0000ull) >> 16) &&
       (ncpixel_g(p) == (transcolor & 0xff00ull) >> 8) &&
       (ncpixel_b(p) == (transcolor & 0xffull))){

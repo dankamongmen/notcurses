@@ -36,7 +36,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     { ESCAPE_RMUL,  "\x1b[24m", },
     { ESCAPE_SGR0,  "\x1b[0m", },
     { ESCAPE_MAX, NULL, }
-  }, *w; 
+  }, *w;
   for(w = wterms ; w->tinfo; ++w){
     if(grow_esc_table(ti, w->tinfo, w->esc, tablelen, tableused)){
       return -1;

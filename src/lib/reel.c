@@ -390,7 +390,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
       }
       // We needn't move the resized plane if drawing down, or the focused plane.
       // The focused tablet will have been resized properly above, but it might
-      // be out of position (the focused tablet ought move as little as possible). 
+      // be out of position (the focused tablet ought move as little as possible).
       // Move it back to the frontier, or the nearest line above if it has grown.
       if(nr->tablets == t){
         if(leny - frontiertop + 1 < ll){
