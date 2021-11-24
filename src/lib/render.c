@@ -1236,8 +1236,10 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
             nc->rstate.logendy = y;
             nc->rstate.logendx = 0;
           }
-          if(x >= nc->lfdimx){
-            ++nc->rstate.logendy;
+          if(x >= p->dimx + nc->margin_l - 1){
+            if(nc->rstate.logendy < (int)(p->dimy + nc->margin_t - 1)){
+              ++nc->rstate.logendy;
+            }
             nc->rstate.logendx = 0;
             saw_linefeed = false;
 //fprintf(stderr, "**********8SCROLLING PLACEMENT AT %u %u\n", nc->rstate.logendy, nc->rstate.logendx);
@@ -1250,11 +1252,9 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
     if(saw_linefeed){
-fprintf(stderr, "OH WE SAW THE LINEFEED!\n");
+fprintf(stderr, "OH WE SAW THE LINEFEED (%d/%d)!\n", nc->rstate.logendy, nc->rstate.logendx);
       nc->rstate.logendx = 0;
-      if(nc->rstate.logendy < (int)(p->dimy + nc->margin_t - 1)){
-        ++nc->rstate.logendy;
-      }
+fprintf(stderr, "OH WE SAW THE LINEFEED (%d/%d)!\n", nc->rstate.logendy, nc->rstate.logendx);
     }
   }
   return 0;
