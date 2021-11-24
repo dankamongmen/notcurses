@@ -621,8 +621,9 @@ static int
 term_putc(fbuf* f, const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
-    // we must not have any 'cntrl' characters at this point
-    if(c->gcluster == 0){
+    // we must not have any 'cntrl' characters at this point, except for
+    // nil or newline
+    if(c->gcluster == 0 || c->gcluster == '\n'){
       if(fbuf_putc(f, ' ') < 0){
         return -1;
       }
@@ -1227,12 +1228,17 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         }
         if((int)y > nc->rstate.logendy || ((int)y == nc->rstate.logendy && (int)x > nc->rstate.logendx)){
           if((int)y > nc->rstate.logendy){
+//fprintf(stderr, "**************8NATURAL PLACEMENT AT %u/ %u\n", y, x);
             nc->rstate.logendy = y;
+            nc->rstate.logendx = 0;
           }
-          nc->rstate.logendx = nc->rstate.x;
-          if(nc->rstate.logendx >= (int)nc->lfdimx){
+          if(x >= nc->lfdimx){
             ++nc->rstate.logendy;
             nc->rstate.logendx = 0;
+//fprintf(stderr, "**********8SCROLLING PLACEMENT AT %u %u\n", nc->rstate.logendy, nc->rstate.logendx);
+          }else if((int)x >= nc->rstate.logendx){
+            nc->rstate.logendx = x;
+//fprintf(stderr, "**********HORIZ PLACEMENT AT %u %u\n", nc->rstate.logendy, nc->rstate.logendx);
           }
         }
       }
