@@ -1118,6 +1118,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
   // bit per coordinate, one per struct crender.
   for(unsigned y = nc->margin_t; y < p->dimy + nc->margin_t ; ++y){
     const int innery = y - nc->margin_t;
+    bool saw_linefeed = 0;
     for(unsigned x = nc->margin_l ; x < p->dimx + nc->margin_l ; ++x){
       const int innerx = x - nc->margin_l;
       const size_t damageidx = innery * nc->lfdimx + innerx;
@@ -1218,6 +1219,9 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         if(term_putc(f, &nc->pool, srccell)){
           return -1;
         }
+        if(srccell->gcluster == '\n'){
+          saw_linefeed = true;
+        }
         rvec[damageidx].s.damaged = 0;
         rvec[damageidx].s.p_beats_sprixel = 0;
         nc->rstate.x += srccell->width;
@@ -1235,6 +1239,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           if(x >= nc->lfdimx){
             ++nc->rstate.logendy;
             nc->rstate.logendx = 0;
+            saw_linefeed = false;
 //fprintf(stderr, "**********8SCROLLING PLACEMENT AT %u %u\n", nc->rstate.logendy, nc->rstate.logendx);
           }else if((int)x >= nc->rstate.logendx){
             nc->rstate.logendx = x;
@@ -1243,6 +1248,13 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         }
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
+    }
+    if(saw_linefeed){
+fprintf(stderr, "OH WE SAW THE LINEFEED!\n");
+      nc->rstate.logendx = 0;
+      if(nc->rstate.logendy < (int)(p->dimy + nc->margin_t - 1)){
+        ++nc->rstate.logendy;
+      }
     }
   }
   return 0;
