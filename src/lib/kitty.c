@@ -660,7 +660,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
 }
 
 // copy |encodeable| ([1..3]) pixels from |src| to the buffer |dst|, setting
-// alpha along the way according to |wipe|. 
+// alpha along the way according to |wipe|.
 static inline int
 add_to_buf(uint32_t *dst, const uint32_t* src, int encodeable, bool wipe[static 3]){
   dst[0] = *src++;
