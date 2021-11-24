@@ -11,13 +11,24 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
-  ncplane_putstr(stdn, "press any key\n");
-  notcurses_render(nc);
+  ncplane_set_scrolling(stdn, true);
+  if(ncplane_putstr(stdn, "press any key\n") < 0){
+    goto err;
+  }
+  if(notcurses_render(nc)){
+    goto err;
+  }
   ncinput ni;
   do{
     notcurses_get_blocking(nc, &ni);
   }while(ni.evtype == NCTYPE_RELEASE);
-  notcurses_render(nc);
+  if(notcurses_render(nc)){
+    goto err;
+  }
   notcurses_stop(nc);
   return EXIT_SUCCESS;
+
+err:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
 }
