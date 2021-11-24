@@ -17,6 +17,8 @@ int main(void){
   do{
     notcurses_get_blocking(nc, &ni);
   }while(ni.evtype == NCTYPE_RELEASE);
+  ncplane_putchar(stdn, '\n');
+  notcurses_render(nc);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 }
