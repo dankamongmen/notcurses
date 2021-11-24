@@ -65,15 +65,16 @@ jobs:
           cd build
           ninja
 
-      - name: test
-        run: |
-          cd build
-          ctest --output-on-failure
+      # this is not going to work until we have a ConPTY CI environment
+      # - name: test
+        #run: |
+          #cd build
+          #ctest --output-on-failure
 
-      - name: install
-        run: |
-          cd build
-          ninja install
+          # - name: install
+          #run: |
+          #cd build
+          #ninja install
 
           #- name: python wrappers
           #run: |
