@@ -3,6 +3,9 @@
 #include <vector>
 #include <cmath>
 
+// only run through this many frames of video
+constexpr auto FRAMECOUNT = 100;
+
 TEST_CASE("Media") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
@@ -142,7 +145,8 @@ TEST_CASE("Media") {
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mov").get());
       REQUIRE(ncv);
       // FIXME can't we use use ncvisual_stream() here?
-      for(;;){ // run at the highest speed we can
+      // run at the highest speed we can
+      for(int frame = 0 ; frame < FRAMECOUNT ; ++frame){
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
           break;
@@ -165,7 +169,8 @@ TEST_CASE("Media") {
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mov").get());
       REQUIRE(ncv);
-      for(;;){ // run at the highest speed we can
+      // run at the highest speed we can
+      for(int frame = 0 ; frame < FRAMECOUNT ; ++frame){
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
           break;
@@ -189,7 +194,8 @@ TEST_CASE("Media") {
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mov").get());
       REQUIRE(ncv);
-      for(;;){ // run at the highest speed we can
+      // run at the highest speed we can
+      for(int frame = 0 ; frame < FRAMECOUNT ; ++frame){
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
           break;
@@ -211,8 +217,8 @@ TEST_CASE("Media") {
       unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mov").get());
-      REQUIRE(ncv);
-      for(;;){ // run at the highest speed we can
+      // run at the highest speed we can
+      for(int frame = 0 ; frame < FRAMECOUNT ; ++frame){
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
           break;
@@ -234,8 +240,8 @@ TEST_CASE("Media") {
       unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mov").get());
-      REQUIRE(ncv);
-      for(;;){ // run at the highest speed we can
+      // run at the highest speed we can
+      for(int frame = 0 ; frame < FRAMECOUNT ; ++frame){
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
           break;
