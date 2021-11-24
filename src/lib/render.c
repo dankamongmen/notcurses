@@ -1252,9 +1252,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
     if(saw_linefeed){
-fprintf(stderr, "OH WE SAW THE LINEFEED (%d/%d)!\n", nc->rstate.logendy, nc->rstate.logendx);
       nc->rstate.logendx = 0;
-fprintf(stderr, "OH WE SAW THE LINEFEED (%d/%d)!\n", nc->rstate.logendy, nc->rstate.logendx);
     }
   }
   return 0;
