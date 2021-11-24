@@ -1197,11 +1197,6 @@ goto_location(notcurses* nc, fbuf* f, int y, int x, const ncplane* srcp){
       return -1;
     }
   }
-  // FIXME ought be able to remove this
-  if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
-    nc->rstate.logendy = y;
-    nc->rstate.logendx = x;
-  }
   nc->rstate.x = x;
   nc->rstate.y = y;
   nc->rstate.lastsrcp = srcp;
@@ -1841,6 +1836,7 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 // tracking in |nc|
 static inline int
 emit_scrolls_track(notcurses* nc, int count, fbuf* f){
+  logdebug("emitting %d scrolls\n", count);
   if(emit_scrolls(&nc->tcache, count, f)){
     return -1;
   }
