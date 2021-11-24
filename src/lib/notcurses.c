@@ -1639,14 +1639,12 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
     logerror("child plane is fixed\n");
     return -1;
   }
-  int parend = ncplane_abs_y(n) + ncplane_dim_y(n); // where parent ends
-  int chend = ncplane_abs_y(child) + ncplane_dim_y(child); // where child ends
-fprintf(stderr, "CHEND: %d PAREND: %d\n", chend, parend);
+  int parend = ncplane_abs_y(n) + ncplane_dim_y(n) - 1; // where parent ends
+  int chend = ncplane_abs_y(child) + ncplane_dim_y(child) - 1; // where child ends
   if(chend <= parend){
     return 0;
   }
   int r = chend - parend; // how many rows we need scroll parent
-fprintf(stderr, "SCROLLING %d\n", r);
   int ret = ncplane_scrollup(n, r);
   return ret;
 }
@@ -2175,7 +2173,6 @@ move_bound_planes(ncplane* n, int dy, int dx){
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
-fprintf(stderr, "MOVE PLANE TO %d/%d\n", y, x);
   if(n == ncplane_notcurses(n)->stdplane){
     return -1;
   }
