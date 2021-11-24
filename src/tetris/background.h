@@ -32,7 +32,9 @@ void DrawBoard() { // draw all fixed components of the game
   scoreplane_->set_base("", 0, scorechan);
   scoreplane_->set_bg_alpha(NCALPHA_TRANSPARENT);
   scoreplane_->set_fg_rgb(0xd040d0);
-  scoreplane_->printf(0, 1, "%s", *std::make_unique<char*>(notcurses_accountname()));
+  char* n = notcurses_accountname();
+  scoreplane_->printf(0, 1, "%s", n);
+  free(n);
   scoreplane_->set_fg_rgb(0x00d0a0);
   UpdateScore();
   nc_.render();
