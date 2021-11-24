@@ -34,6 +34,7 @@ TEST_CASE("Readers") {
     char* contents = nullptr;
     ncreader_destroy(nr, &contents);
     REQUIRE(contents);
+    free(contents);
     CHECK(0 == notcurses_render(nc_));
   }
 
