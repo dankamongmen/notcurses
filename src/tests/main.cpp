@@ -7,7 +7,6 @@
 #include <iostream>
 #include <climits>
 #include <sys/stat.h>
-#include <filesystem>
 
 const char* datadir = NOTCURSES_SHARE;
 // NCLOGLEVEL_INFO for initial testing framework creation. we then switch to
