@@ -1279,16 +1279,10 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     ret |= notcurses_stop_minimal(nc);
     // if we were not using the alternate screen, our cursor's wherever we last
-    // wrote. move it to the bottom left of the screen, *unless*
-    // PRESERVE_CURSOR was used, which is a bit more complex.
-    if((nc->flags & NCOPTION_PRESERVE_CURSOR) || !get_escape(&nc->tcache, ESCAPE_SMCUP)){
-      unsigned targy = nc->rstate.logendy;
+    // wrote. move it to the furthest place to which it advanced.
+    if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
       fbuf_reset(&nc->rstate.f);
-      if(++targy >= nc->lfdimy){
-        fbuf_putc(&nc->rstate.f, '\n');
-        --targy;
-      }
-      goto_location(nc, &nc->rstate.f, targy, 0, NULL);
+      goto_location(nc, &nc->rstate.f, nc->rstate.logendy, nc->rstate.logendx, NULL);
       fbuf_finalize(&nc->rstate.f, stdout);
     }
     if(nc->stdplane){
@@ -1668,7 +1662,7 @@ int cell_load(ncplane* n, nccell* c, const char* gcluster){
 // either or both of |y|/|x| is -1, the current cursor location for that
 // dimension will be used. if the glyph cannot fit on the current line, it is
 // an error unless scrolling is enabled.
-static inline int
+static int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
   if(n->sprite){
@@ -1707,7 +1701,6 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
   if(*egc == '\n'){
     scroll_down(n);
-    return 0;
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one cell of a wide character
@@ -1737,18 +1730,20 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
 //fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, nccell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
   // must set our right hand sides wide, and check for further damage
-  ++n->x;
-  for(int i = 1 ; i < cols ; ++i){
-    nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
-    int off = nccell_cols(candidate);
-    nccell_release(n, &n->fb[nfbcellidx(n, n->y, n->x)]);
-    while(--off > 0){
-      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + off)]);
-    }
-    candidate->channels = targ->channels;
-    candidate->stylemask = targ->stylemask;
-    candidate->width = targ->width;
+  if(*egc != '\n'){
     ++n->x;
+    for(int i = 1 ; i < cols ; ++i){
+      nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
+      int off = nccell_cols(candidate);
+      nccell_release(n, &n->fb[nfbcellidx(n, n->y, n->x)]);
+      while(--off > 0){
+        nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + off)]);
+      }
+      candidate->channels = targ->channels;
+      candidate->stylemask = targ->stylemask;
+      candidate->width = targ->width;
+      ++n->x;
+    }
   }
   return cols;
 }
