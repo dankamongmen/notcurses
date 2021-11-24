@@ -1810,6 +1810,7 @@ cancel_and_join(const char* name, pthread_t tid, void** res){
 
 static inline int
 emit_scrolls(const tinfo* ti, int count, fbuf* f){
+  logdebug("emitting %d scrolls\n", count);
   if(count > 1){
     const char* indn = get_escape(ti, ESCAPE_INDN);
     if(indn){
@@ -1836,7 +1837,6 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
 // tracking in |nc|
 static inline int
 emit_scrolls_track(notcurses* nc, int count, fbuf* f){
-  logdebug("emitting %d scrolls\n", count);
   if(emit_scrolls(&nc->tcache, count, f)){
     return -1;
   }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <locale.h>
+#include <assert.h>
 #include <strings.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -475,14 +476,13 @@ drawpalette(struct notcurses* nc){
 }
 
 static int
-infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
+infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
+                    int planeheight, int nextline){
   const int planewidth = 72;
   unsigned dimy;
-  unsigned y;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
-  ncplane_cursor_yx(std, &y, NULL);
   struct ncplane_options nopts = {
-    .y = y,
+    .y = nextline,
     .x = NCALIGN_CENTER,
     .rows = planeheight,
     .cols = planewidth,
@@ -573,6 +573,11 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   ncchannels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
   ncplane_scrollup_child(std, infop);
+  int parend = ncplane_abs_y(std) + ncplane_dim_y(std) - 1; // where parent ends
+  int chend = ncplane_abs_y(infop) + ncplane_dim_y(infop) - 1; // where child ends
+  if(chend > parend){
+    ncplane_move_rel(infop, -(chend - parend), 0);
+  }
   ncplane_putchar(std, '\n');
   if(notcurses_render(nc)){
     return -1;
@@ -581,14 +586,15 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
 }
 
 static int
-infoplane(struct notcurses* nc, const fetched_info* fi){
+infoplane(struct notcurses* nc, const fetched_info* fi, int nextline){
   const int planeheight = 7;
-  int r = infoplane_notcurses(nc, fi, planeheight);
+  int r = infoplane_notcurses(nc, fi, planeheight, nextline);
   r |= notcurses_stop(nc);
   return r;
 }
 
 struct marshal {
+  int nextline; // line following display plane, where info plane ought be placed
   struct notcurses* nc;
   const distro_info* dinfo;
   const char* logo; // read from /etc/os-release (or builtin), may be NULL
@@ -640,9 +646,9 @@ neologo_present(struct notcurses* nc, const char* nlogo){
   ncplane_set_fg_default(n);
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   if(notcurses_canopen_images(nc)){
-    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
+    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(no image file is known for your distro)\n");
   }else{
-    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
+    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)\n");
   }
   ncplane_off_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   return notcurses_render(nc);
@@ -687,8 +693,7 @@ display_thread(void* vmarshal){
         ncplane_move_yx(iplane, y, x);
         ncplane_scrollup_child(notcurses_stdplane(m->nc), iplane);
         notcurses_render(m->nc);
-        ncplane_cursor_move_yx(notcurses_stdplane(m->nc),
-                               ncplane_abs_y(iplane) + ncplane_dim_y(iplane), 0);
+        m->nextline = ncplane_abs_y(iplane) + ncplane_dim_y(iplane);
         return NULL;
       }
     }
@@ -698,6 +703,9 @@ display_thread(void* vmarshal){
       return NULL;
     }
   }
+  unsigned nl;
+  ncplane_cursor_yx(notcurses_stdplane(m->nc), &nl, NULL);
+  m->nextline = nl;
   return NULL;
 }
 
@@ -731,6 +739,7 @@ ncneofetch(struct notcurses* nc){
     .dinfo = fi.distro,
     .logo = fi.logo,
     .neologo = fi.neologo,
+    .nextline = -1,
   };
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
@@ -747,7 +756,8 @@ ncneofetch(struct notcurses* nc){
   if(launched){
     pthread_join(tid, NULL);
   }
-  if(infoplane(nc, &fi)){
+  assert(display_marshal.nextline >= 0);
+  if(infoplane(nc, &fi, display_marshal.nextline)){
     free_fetched_info(&fi);
     return -1;
   }
