@@ -578,7 +578,11 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
   if(chend > parend){
     ncplane_move_rel(infop, -(chend - parend), 0);
   }
-  ncplane_putchar(std, '\n');
+  if(ncplane_putchar_yx(std, ncplane_abs_y(infop) + ncplane_dim_y(infop) - 1,
+                        ncplane_abs_x(infop) + ncplane_dim_x(infop) + 1,
+                        '\n') != 1){
+    return -1;
+  }
   if(notcurses_render(nc)){
     return -1;
   }
