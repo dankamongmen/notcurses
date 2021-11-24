@@ -67,8 +67,8 @@ int main(void){
   ncplane_putstr(n, "a ═ bold underline italic struck\n");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERCURL | NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   ncplane_putstr(n, "a ═ bold undercurl italic struck\n");
-
   ncplane_set_styles(n, NCSTYLE_NONE);
+  ncplane_putstr(n, "a ═ none\n");
   if(notcurses_render(nc)){
     goto err;
   }
