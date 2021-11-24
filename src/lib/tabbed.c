@@ -213,7 +213,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
       goto err;
     }
   }
-  if(ncplane_set_widget(nt->p, nt, (void(*)(void*))nctabbed_destroy)){
+  if(ncplane_set_widget(nt->ncp, nt, (void(*)(void*))nctabbed_destroy)){
     ncplane_destroy(nt->hp);
     ncplane_destroy(nt->p);
     goto err;
