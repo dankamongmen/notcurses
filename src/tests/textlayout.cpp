@@ -32,7 +32,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutRight") {
@@ -57,7 +57,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutCenter") {
@@ -82,7 +82,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "this is going to be broken up"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // lay out text where a word ends on the boundary
@@ -109,7 +109,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my nuclear arms"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // lay out text where a word crosses the boundary
@@ -136,7 +136,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my grasping arms"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // ensure we're honoring newlines
@@ -163,7 +163,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "abcde")); // FIXME should have newlines
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // ensure we're honoring newlines at the start/end of rows
@@ -190,7 +190,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "abcdefgh"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // lay out text where a wide word crosses the boundary
@@ -218,7 +218,7 @@ TEST_CASE("TextLayout") {
       REQUIRE(line);
       CHECK(0 == strcmp(line, boundstr));
       free(line);
-      ncplane_destroy(sp);
+      CHECK(0 == ncplane_destroy(sp));
     }
   }
 
@@ -247,7 +247,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "my thermonuclear arms"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // a long word (one requiring a split no matter what) ought not force the
@@ -276,7 +276,7 @@ TEST_CASE("TextLayout") {
       REQUIRE(line);
       CHECK(0 == strcmp(line, "1 我能吞下玻璃"));
       free(line);
-      ncplane_destroy(sp);
+      CHECK(0 == ncplane_destroy(sp));
     }
   }
 
@@ -303,7 +303,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "    my thermonuclear arms"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of two rows, and fill exactly one with one word
@@ -330,7 +330,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quarkgluonfart "));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of two rows, and fill exactly one with words
@@ -357,7 +357,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quark gluon fart "));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of two rows, and exactly fill the first line
@@ -384,7 +384,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of three rows, and exactly fill two with regular ol' words
@@ -411,7 +411,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls scratchy no?! "));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of three rows, and exactly fill two, with no spaces
@@ -438,7 +438,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "0123456789AB"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   // create a plane of three rows, and exactly fill two with wide chars
@@ -466,7 +466,7 @@ TEST_CASE("TextLayout") {
       REQUIRE(line);
       CHECK(0 == strcmp(line, "我能吞 下玻璃 "));
       free(line);
-      ncplane_destroy(sp);
+      CHECK(0 == ncplane_destroy(sp));
     }
   }
 
@@ -496,7 +496,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "quantum balls scratchy no?! "));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutLongScroll") {
@@ -523,7 +523,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "scratchy?! true! arrrrp"));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutLongLines") {
@@ -557,7 +557,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare neque ac ipsum viverra, vestibulum hendrerit leo consequat. Integer velit, pharetra sed nisl quis, porttitor ornare purus. Cras ac sollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis."));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutZooText") {
@@ -593,7 +593,7 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   SUBCASE("LayoutZooTextNoScroll") {
@@ -630,7 +630,26 @@ TEST_CASE("TextLayout") {
     REQUIRE(line);
     CHECK(0 == strcmp(line, "Notcurses provides several widgets to quickly build vivid TUIs.This NCReader widget facilitates free-form text entry complete with readline-style bindings. NCSelector allows a single option to be selected from a list. NCMultiselector allows 0..n options to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);
-    ncplane_destroy(sp);
+    CHECK(0 == ncplane_destroy(sp));
+  }
+
+  // there shouldn't be any leftover material from lines scrolled off the plane
+  SUBCASE("ScrollClearsEnd") {
+    const char text[] = "1234\n12\n54";
+    struct ncplane_options nopts{};
+    nopts.rows = 2;
+    nopts.cols = 5;
+    auto sp = ncplane_create(n_, &nopts);
+    REQUIRE(sp);
+    ncplane_set_scrolling(sp, true);
+    size_t bytes;
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
+    CHECK(bytes == strlen(text));
+    CHECK(0 == notcurses_render(nc_));
+    char* line = ncplane_contents(sp, 0, 0, 0, 0);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "1254"));
+    CHECK(0 == ncplane_destroy(sp));
   }
 
   CHECK(0 == notcurses_stop(nc_));
