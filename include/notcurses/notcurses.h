@@ -1357,7 +1357,8 @@ API ALLOC struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque)
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
 // and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
-                           int* RESTRICT y, int* RESTRICT x);
+                           int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // Fed absolute 'y'/'x' coordinates, determine whether that coordinate is
 // within the ncplane 'n'. If not, return false. If so, return true. Either
@@ -1387,11 +1388,13 @@ typedef struct ncpalette {
 // Create a new palette store. It will be initialized with notcurses' best
 // knowledge of the currently configured palette. The palette upon startup
 // cannot be reliably detected, sadly.
-API ALLOC ncpalette* ncpalette_new(struct notcurses* nc);
+API ALLOC ncpalette* ncpalette_new(struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
 // transfer ownership of 'p'; ncpalette_free() can (ought) still be called.
-API int ncpalette_use(struct notcurses* nc, const ncpalette* p);
+API int ncpalette_use(struct notcurses* nc, const ncpalette* p)
+  __attribute__ ((nonnull (1, 2)));
 
 // Manipulate entries in the palette store 'p'. These are *not* locked.
 static inline int
@@ -1918,7 +1921,7 @@ API uint16_t ncplane_styles(const struct ncplane* n)
 // plane). On success, returns the number of columns the cursor was advanced.
 // 'c' must already be associated with 'n'. On failure, -1 is returned.
 API int ncplane_putc_yx(struct ncplane* n, int y, int x, const nccell* c)
-  __attribute__ ((nonnull));
+  __attribute__ ((nonnull (1, 4)));
 
 // Call ncplane_putc_yx() for the current cursor location.
 static inline int
@@ -1943,7 +1946,8 @@ ncplane_putchar(struct ncplane* n, char c){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putchar_stained(struct ncplane* n, char c);
+API int ncplane_putchar_stained(struct ncplane* n, char c)
+  __attribute__ ((nonnull (1)));
 
 // Replace the cell at the specified coordinates with the provided EGC, and
 // advance the cursor by the width of the cluster (but not past the end of the
@@ -1961,7 +1965,8 @@ ncplane_putegc(struct ncplane* n, const char* gclust, size_t* sbytes){
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, size_t* sbytes);
+API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, size_t* sbytes)
+  __attribute__ ((nonnull (1, 2)));
 
 // 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
 #define WCHAR_MAX_UTF8BYTES 4
@@ -2012,7 +2017,8 @@ ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust,
 
 // Replace the EGC underneath us, but retain the styling. The current styling
 // of the plane will not be changed.
-API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, size_t* sbytes);
+API int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, size_t* sbytes)
+  __attribute__ ((nonnull (1, 2)));
 
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
@@ -2152,7 +2158,8 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
 
-API int ncplane_putwstr_stained(struct ncplane* n, const wchar_t* gclustarr);
+API int ncplane_putwstr_stained(struct ncplane* n, const wchar_t* gclustarr)
+  __attribute__ ((nonnull (1, 2)));
 
 static inline int
 ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
@@ -2229,20 +2236,27 @@ ncplane_putwc_stained(struct ncplane* n, wchar_t w){
 
 // The ncplane equivalents of printf(3) and vprintf(3).
 API int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align,
-                                const char* format, va_list ap);
+                                const char* format, va_list ap)
+  __attribute__ ((nonnull (1, 4)))
+  __attribute__ ((format (printf, 4, 0)));
 
 API int ncplane_vprintf_yx(struct ncplane* n, int y, int x,
-                           const char* format, va_list ap);
+                           const char* format, va_list ap)
+  __attribute__ ((nonnull (1, 4)))
+  __attribute__ ((format (printf, 4, 0)));
 
 static inline int
 ncplane_vprintf(struct ncplane* n, const char* format, va_list ap){
   return ncplane_vprintf_yx(n, -1, -1, format, ap);
 }
 
-API int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap);
+API int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap)
+  __attribute__ ((nonnull (1, 2)))
+  __attribute__ ((format (printf, 2, 0)));
 
 static inline int
 ncplane_printf(struct ncplane* n, const char* format, ...)
+  __attribute__ ((nonnull (1, 2)))
   __attribute__ ((format (printf, 2, 3)));
 
 static inline int
@@ -2256,7 +2270,7 @@ ncplane_printf(struct ncplane* n, const char* format, ...){
 
 static inline int
 ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
+  __attribute__ ((nonnull (1, 4))) __attribute__ ((format (printf, 4, 5)));
 
 static inline int
 ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
@@ -2270,7 +2284,7 @@ ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...){
 static inline int
 ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align,
                        const char* format, ...)
-  __attribute__ ((format (printf, 4, 5)));
+  __attribute__ ((nonnull (1, 4))) __attribute__ ((format (printf, 4, 5)));
 
 static inline int
 ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...){
@@ -2283,7 +2297,7 @@ ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* fo
 
 static inline int
 ncplane_printf_stained(struct ncplane* n, const char* format, ...)
-  __attribute__ ((format (printf, 2, 3)));
+  __attribute__ ((nonnull (1, 2))) __attribute__ ((format (printf, 2, 3)));
 
 static inline int
 ncplane_printf_stained(struct ncplane* n, const char* format, ...){
@@ -2314,7 +2328,8 @@ ncplane_printf_stained(struct ncplane* n, const char* format, ...){
 //
 // A newline at any point will move the cursor to the next row.
 API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
-                        const char* text, size_t* bytes);
+                        const char* text, size_t* bytes)
+  __attribute__ ((nonnull (1, 4)));
 
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
