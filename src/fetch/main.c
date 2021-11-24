@@ -573,6 +573,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   ncchannels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
   ncplane_scrollup_child(std, infop);
+  ncplane_putchar(std, '\n');
   if(notcurses_render(nc)){
     return -1;
   }

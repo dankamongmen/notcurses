@@ -991,13 +991,13 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
     return 0;
   }
   logdebug("order-%d scroll\n", scrolls);
-  if(p->nc->rstate.logendy >= 0){
+  /*if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= scrolls;
     if(p->nc->rstate.logendy < 0){
       p->nc->rstate.logendy = 0;
       p->nc->rstate.logendx = 0;
     }
-  }
+  }*/
   // FIXME probably need this to take place at the end of cycle...
   if(p->nc->tcache.pixel_scroll){
     p->nc->tcache.pixel_scroll(p, &p->nc->tcache, scrolls);
@@ -1012,7 +1012,7 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
       return -1;
     }
   }
-  return emit_scrolls(&p->nc->tcache, scrolls, f);
+  return emit_scrolls_track(p->nc, scrolls, f);
 }
 
 // second sprixel pass in rasterization. by this time, all sixels are handled
@@ -1225,6 +1225,16 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         }else{
           ++nc->rstate.x;
         }
+        if((int)y > nc->rstate.logendy || ((int)y == nc->rstate.logendy && (int)x > nc->rstate.logendx)){
+          if((int)y > nc->rstate.logendy){
+            nc->rstate.logendy = y;
+          }
+          nc->rstate.logendx = nc->rstate.x;
+          if(nc->rstate.logendx >= (int)nc->lfdimx){
+            ++nc->rstate.logendy;
+            nc->rstate.logendx = 0;
+          }
+        }
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
@@ -1366,19 +1376,16 @@ int clear_and_home(notcurses* nc, tinfo* ti, fbuf* f){
   const char* clearscr = get_escape(ti, ESCAPE_CLEAR);
   if(clearscr){
     if(fbuf_emit(f, clearscr) == 0){
-      goto success;
+      nc->rstate.x = nc->rstate.y = 0;
+      return 0;
     }
   }
-  if(emit_scrolls(ti, ncplane_dim_y(notcurses_stdplane_const(nc)), f)){
+  if(emit_scrolls_track(nc, ncplane_dim_y(notcurses_stdplane_const(nc)), f)){
     return -1;
   }
   if(goto_location(nc, f, 0, 0, NULL)){
     return -1;
   }
-
-success:
-  nc->rstate.x = 0;
-  nc->rstate.y = 0;
   return 0;
 }
 
