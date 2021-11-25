@@ -21,7 +21,7 @@
 // without unbounded allocation, and also without losing data. We'd furthermore
 // like to reliably differentiate escapes and regular input, even when that
 // latter contains escapes. Unbounded input will hopefully only be present when
-// redirected from a file (NCOPTION_TOSS_INPUT)
+// redirected from a file.
 
 static sig_atomic_t cont_seen;
 static sig_atomic_t resize_seen;

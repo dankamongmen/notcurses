@@ -829,9 +829,11 @@ ncdirect_stop_minimal(void* vnc){
     ret |= fbuf_finalize(&f, stdout);
   }
   if(nc->tcache.ttyfd >= 0){
-    if(nc->tcache.kbdlevel){
-      if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
-        ret = -1;
+    if(!(nc->flags & NCDIRECT_OPTION_DRAIN_INPUT)){
+      if(nc->tcache.kbdlevel){
+        if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+          ret = -1;
+        }
       }
     }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
