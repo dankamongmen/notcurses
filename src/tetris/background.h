@@ -14,7 +14,7 @@ void DrawLogo(const ncpp::Plane& score,
   auto logo = std::make_unique<ncpp::Visual>(s.c_str());
   auto rows = nc_.get_stdplane()->get_dim_y() -
               (score.get_dim_y() + score.get_abs_y()) - 2;
-  auto cols = board.get_abs_x() - score.get_abs_x();
+  auto cols = board.get_abs_x() - score.get_abs_x() - 1;
   logop_ = std::make_unique<ncpp::Plane>(rows, cols,
                 score.get_abs_y() + 2, score.get_abs_x());
   ncvisual_options opts{};
