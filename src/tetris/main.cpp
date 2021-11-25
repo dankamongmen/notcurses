@@ -15,7 +15,15 @@
 #include "version.h"
 
 std::mutex ncmtx;
-const std::string BackgroundFile = NOTCURSES_SHARE "/tetris-background.jpg";
+
+#ifdef __MINGW64__
+#define PATHSEP "\\"
+#else
+#define PATHSEP "/"
+#endif
+const std::string BackgroundFile = NOTCURSES_SHARE PATHSEP "tetris-background.jpg";
+const std::string LogoFile = NOTCURSES_SHARE PATHSEP "notcurses.png";
+#undef PATHSEP
 
 using namespace std::chrono_literals;
 
@@ -58,6 +66,7 @@ private:
   std::mutex mtx_; // guards msdelay_
   std::unique_ptr<ncpp::Plane> curpiece_;
   std::unique_ptr<ncpp::Plane> board_;
+  std::unique_ptr<ncpp::Plane> logop_;
   std::unique_ptr<ncpp::Visual> backg_;
   ncpp::Plane* stdplane_;
   std::unique_ptr<ncpp::Plane> scoreplane_;
