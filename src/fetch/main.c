@@ -413,20 +413,20 @@ get_kernel(fetched_info* fi){
 // windows distro_pretty gets handled in get_kernel() above
 static const distro_info*
 windows_ncneofetch(fetched_info* fi){
-  static const distro_info mswin = {
+  static distro_info mswin = {
     .name = "Windows",
-    .logofile = NULL, // FIXME
   };
+  mswin.logofile = find_data("Windows10Logo.png"),
   fi->neologo = get_neofetch_art("Windows");
   return &mswin;
 }
 
 static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
-  static const distro_info fbsd = {
+  static distro_info fbsd = {
     .name = "FreeBSD",
-    .logofile = "freebsd.png",
   };
+  fbsd.logofile = find_data("freebsd.png"),
   fi->neologo = get_neofetch_art("BSD"); // use big daemon logo
   fi->distro_pretty = NULL;
   return &fbsd;
