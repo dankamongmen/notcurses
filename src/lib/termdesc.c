@@ -1089,6 +1089,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     // kitty trumps sixel, when both are available
     if((kitty_graphics = iresp->kitty_graphics) == 0){
       ti->color_registers = iresp->color_registers;
+      ti->sixel_maxy_pristine = iresp->sixely;
       ti->sixel_maxy = iresp->sixely;
       ti->sixel_maxx = iresp->sixelx;
     }

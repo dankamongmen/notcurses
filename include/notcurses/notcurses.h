@@ -3073,8 +3073,8 @@ struct ncvisual_options {
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
   // these numbers are all in terms of ncvisual pixels. negative values are
   // prohibited.
-  unsigned begy, begx; // origin of rendered section
-  unsigned leny, lenx; // size of rendered section
+  unsigned begy, begx; // origin of rendered section in pixels
+  unsigned leny, lenx; // size of rendered section in pixels
   // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
   // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
   // chosen for NCBLIT_DEFAULT.
