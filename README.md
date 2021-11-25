@@ -419,6 +419,19 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>I compiled with AddressSanitizer, and ASAN throws an exception on
+    program exit.</summary>
+  Yeah, I think it has something to do with our signal handling, don't know
+  yet, sorry.
+</details>
+
+<details>
+ <summary>I ran my Notcurses program under <code>valgrind</code>/ASAN, and
+    it shows memory leaks from <code>libtinfo.so</code>, what's up with that?</summary>
+  Yeah, the NCURSES Terminfo leaks memory unless compiled a special,
+  non-standard way (see the NCURSES FAQ). It shouldn't be a substantial amount;
+  you're advised not to worry overmuch about it.
+<details>
   <summary>I ran <code>notcurses-demo</code>, but my table numbers don't match
   the Notcurses banner numbers, you charlatan.</summary>
   <code>notcurses-demo</code> renders several frames beyond the actual demos.
