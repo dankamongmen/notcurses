@@ -1231,14 +1231,11 @@ int cbreak_mode(tinfo* ti){
     return -1;
   }
 #else
-  // we don't yet have a way to take Cygwin/MSYS2 out of canonical mode. we'll
-  // hit this stanza in MSYS2; allow the GetConsoleMode() to fail for now. this
-  // means we'll need enter pressed after the query response, obviously an
-  // unacceptable state of affairs...FIXME
+  // we don't yet have a way to take Cygwin/MSYS2 out of canonical mode FIXME.
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
     logerror("error acquiring input mode\n");
-    return 0; // FIXME is it safe?
+    return -1;
   }
   mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
   if(!SetConsoleMode(ti->inhandle, mode)){
