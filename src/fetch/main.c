@@ -23,7 +23,27 @@
 #endif
 #include <notcurses/notcurses.h>
 #include "compat/compat.h"
+#include "builddef.h"
 #include "ncart.h"
+
+static inline const char*
+path_separator(void){
+#ifdef __MINGW64__
+  return "\\";
+#else
+  return "/";
+#endif
+}
+
+static inline char*
+find_data(const char* datum){
+  const char* datadir = NOTCURSES_SHARE;
+  char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
+  strcpy(path, datadir);
+  strcat(path, path_separator());
+  strcat(path, datum);
+  return path;
+}
 
 typedef struct distro_info {
   const char* name;            // must match 'lsb_release -i'
@@ -405,7 +425,7 @@ static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
   static const distro_info fbsd = {
     .name = "FreeBSD",
-    .logofile = NULL, // FIXME
+    .logofile = "freebsd.png",
   };
   fi->neologo = get_neofetch_art("BSD"); // use big daemon logo
   fi->distro_pretty = NULL;

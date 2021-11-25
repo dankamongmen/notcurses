@@ -1256,6 +1256,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
+    // shouldn't this happen only if the linefeed was on the last line? FIXME
     if(saw_linefeed){
       nc->rstate.logendx = 0;
     }
