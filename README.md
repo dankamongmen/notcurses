@@ -322,8 +322,7 @@ If things break or seem otherwise lackluster, **please** consult the
   Go to <a href="ms-settings:regionlanguage">Language Setting</a>, click
   "Administrative language settings", click "Change system locale", and check
   the "Beta: Use Unicode UTF-8 for worldwide language support" option. Restart
-  the computer. That ought help a little bit. Ensure your code page is 65001
-  with <code>chcp 65001</code>. Try playing with fonts.
+  the computer. That ought help a little bit. Try playing with fonts.
 </details>
 
 <details>
