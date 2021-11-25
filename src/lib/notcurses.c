@@ -101,14 +101,17 @@ notcurses_stop_minimal(void* vnc){
     }
     // don't use use leave_alternate_screen() here; we need pop the keyboard
     // whether we're in regular or alternate screen, and we need it done
-    // before returning to the regular screen if we're in the alternate.
-    if(nc->tcache.kbdlevel){
-      if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
-        ret = -1;
-      }
-    }else{
-      if(tty_emit(XTMODKEYSUNDO, nc->tcache.ttyfd)){
-        ret = -1;
+    // before returning to the regular screen if we're in the alternate. if
+    // we drained input, we never sent a keyboard modifier; send none now.
+    if(!(nc->flags & NCOPTION_DRAIN_INPUT)){
+      if(nc->tcache.kbdlevel){
+        if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
+          ret = -1;
+        }
+      }else{
+        if(tty_emit(XTMODKEYSUNDO, nc->tcache.ttyfd)){
+          ret = -1;
+        }
       }
     }
     if(nc->tcache.in_alt_screen){

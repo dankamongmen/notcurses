@@ -416,21 +416,39 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
 // send any identification queries (we've already identified the terminal).
 // write DSRCPR as early as possible, so that it precedes any query material
-// that's bled onto stdin and echoed.
+// that's bled onto stdin and echoed. if 'noaltscreen' is set, do not send
+// an smcup. if 'draininput' is set, do not send any keyboard modifiers.
 static int
-send_initial_queries(int fd, bool minimal, bool noaltscreen){
+send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
+                     unsigned draininput){
   const char *queries;
   if(noaltscreen){
     if(minimal){
-      queries = DSRCPR KKBDENTER DIRECTIVES;
+      if(draininput){
+        queries = DSRCPR DIRECTIVES;
+      }else{
+        queries = DSRCPR KKBDENTER DIRECTIVES;
+      }
     }else{
-      queries = DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
+      if(draininput){
+        queries = DSRCPR IDQUERIES DIRECTIVES;
+      }else{
+        queries = DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
+      }
     }
   }else{
     if(minimal){
-      queries = SMCUP DSRCPR KKBDENTER DIRECTIVES;
+      if(draininput){
+        queries = SMCUP DSRCPR DIRECTIVES;
+      }else{
+        queries = SMCUP DSRCPR KKBDENTER DIRECTIVES;
+      }
     }else{
-      queries = SMCUP DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
+      if(draininput){
+        queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
+      }else{
+        queries = SMCUP DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
+      }
     }
   }
   size_t len = strlen(queries);
@@ -453,6 +471,7 @@ int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
   if(term_emit(smcup, fp, false) < 0){
     return -1;
   }
+  // probably don't want to send these if we've drained input...FIXME
   if(ti->kbdlevel){
     if(term_emit(KKBDENTER, fp, flush)){
       return -1;
@@ -475,6 +494,7 @@ int leave_alternate_screen(FILE* fp, tinfo* ti){
     logerror("can't leave alternate screen");
     return -1;
   }
+  // probably don't want to send these if we've drained input...FIXME
   if(ti->kbdlevel){
     if(term_emit(KKEYBOARD_POP, fp, false) ||
       term_emit(rmcup, fp, false) ||
@@ -867,7 +887,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(ti->ttyfd, minimal, noaltscreen)){
+    if(send_initial_queries(ti->ttyfd, minimal, noaltscreen, draininput)){
       goto err;
     }
   }
