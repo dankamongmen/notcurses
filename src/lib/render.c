@@ -227,8 +227,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
 // the sprixelstack orders sprixels of the plane (so we needn't keep them
 // ordered between renders). each time we meet a sprixel, extract it from
 // the pile's sprixel list, and update the sprixelstack.
-__attribute__ ((nonnull (1, 2, 7)))
-static void
+__attribute__ ((nonnull (1, 2, 7))) static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx, sprixel** sprixelstack){
   unsigned y, x, dimy, dimx;
@@ -288,6 +287,12 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       nccell* targc = &crender->c;
       if(nccell_wide_right_p(targc)){
         continue;
+      }
+      // if we encounter a newline (always a bare linefeed; Windows CRLF
+      // translation only matters for text stdio), we're done with this
+      // line *for this plane*.
+      if(targc->gcluster == '\n'){
+        break;
       }
 
       if(nccell_fg_alpha(targc) > NCALPHA_OPAQUE){
