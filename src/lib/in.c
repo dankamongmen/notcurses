@@ -2160,7 +2160,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   bool sendsignal = false;
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
-  }else if(ictx->ivalid){
+  }else{
     logtrace("draining event readiness pipe %d\n", ictx->ivalid);
     char c;
 #ifndef __MINGW64__
