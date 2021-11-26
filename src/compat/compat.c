@@ -9,15 +9,24 @@
 #include <stdio.h>
 
 char* notcurses_data_dir(void){
+  const char key[] = "Software\\Notcurses\\InstallDir";
   DWORD plen = 0;
-  LSTATUS r = RegGetValueA(HKEY_CURRENT_USER,
-                           "Software\\Notcurses"
-                           "InstallDir",
-                           RRF_RT_REG_SZ, NULL,
+  LSTATUS r = RegGetValueA(HKEY_CURRENT_USER, key,
+			   NULL, RRF_RT_REG_SZ, NULL,
                            NULL, &plen);
-fprintf(stderr, "PLEN: %u\n", plen);
-// FIXME
-  return NULL;
+  if(r){
+    return NULL;
+  }
+  char* val = malloc(plen + 1);
+  if(val == NULL){
+    return NULL;
+  }
+  r = RegGetValueA(HKEY_CURRENT_USER, key, NULL, RRF_RT_REG_SZ, NULL, val, &plen);
+  if(r){
+    free(val);
+    return NULL;
+  }
+  return val;
 }
 
 char* strndup(const char* str, size_t size){

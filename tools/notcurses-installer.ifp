@@ -25,7 +25,7 @@ Header image = C:\msys64\home\niblack\src\notcurses\doc\icon.png
 Show Label = 1
 VisualStylesEnabled = 1
 [Files]
-Installation path = <ProgramFiles>\DSSCAW\<AppName>\
+Installation path = <ProgramFiles>\<AppName>\
 Autcip = 1
 [Uninstall]
 Vwau = 0
