@@ -26,6 +26,9 @@ rearrangements of Notcurses.
     origin coordinates. All now interpret their `unsigned` argument as
     lengths rather than closing coordinates, observing the same semantics as
     outlined above.
+  * `ncstrwidth_valid()`, introduced in 2.4.1, has replaced `ncstrwidth()`
+    entirely, and been renamed to reflect this. For the old behavior,
+    simply add two `NULL`s to your `ncstrwidth()` invocations.
   * `ncplayer` now defaults to pixel blitting.
   * `NCKEY_SIGNAL` is no longer a synonym for `NCKEY_RESIZE`, but instead
     indicates receipt of `SIGCONT`.

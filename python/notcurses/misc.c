@@ -41,7 +41,7 @@ python_ncstrwidth(PyObject *Py_UNUSED(self), PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s", &s, NULL, NULL));
 
-    return Py_BuildValue("i", ncstrwidth(s));
+    return Py_BuildValue("i", ncstrwidth(s, NULL, NULL));
 }
 
 PyMethodDef MiscFunctions[] = {
