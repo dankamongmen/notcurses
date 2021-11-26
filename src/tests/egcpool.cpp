@@ -23,9 +23,9 @@ TEST_CASE("EGCpool") {
   auto n_ = notcurses_stdplane(nc_);
 
   SUBCASE("UTF8EGC") {
-    int c = ncstrwidth("☢");
+    int c = ncstrwidth("☢", NULL, NULL);
     CHECK(0 < c);
-    c = ncstrwidth("▓");
+    c = ncstrwidth("▓", NULL, NULL);
     CHECK(0 < c);
   }
 

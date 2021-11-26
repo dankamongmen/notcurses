@@ -123,7 +123,7 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
   }
   sdup[n + mbbytes] = '\0';
   dst->shortdesc = sdup;
-  dst->shortdesccols = ncstrwidth(dst->shortdesc);
+  dst->shortdesccols = ncstrwidth(dst->shortdesc, NULL, NULL);
   return 0;
 #undef CTLMOD
 #undef ALTMOD
@@ -156,7 +156,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
         return -1;
       }
       gotitem = true;
-      int cols = ncstrwidth(dst->items[i].desc);
+      int cols = ncstrwidth(dst->items[i].desc, NULL, NULL);
       if(dst->items[i].shortdesc){
         cols += 2 + dst->items[i].shortdesccols; // two spaces minimum
       }
@@ -203,7 +203,7 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, unsigned* totalwidth,
   int i;
   for(i = 0 ; i < opts->sectioncount ; ++i){
     if(opts->sections[i].name){
-      int cols = ncstrwidth(opts->sections[i].name);
+      int cols = ncstrwidth(opts->sections[i].name, NULL, NULL);
       if(rightaligned){ // FIXME handle more than one right-aligned section
         ncm->sections[i].xoff = -(cols + 2);
       }else{
@@ -277,14 +277,14 @@ section_x(const ncmenu* ncm, int x){
       if(x < pos){
         break;
       }
-      if(x < pos + ncstrwidth(ncm->sections[i].name)){
+      if(x < pos + ncstrwidth(ncm->sections[i].name, NULL, NULL)){
         return i;
       }
     }else{
       if(x < ncm->sections[i].xoff){
         break;
       }
-      if(x < ncm->sections[i].xoff + ncstrwidth(ncm->sections[i].name)){
+      if(x < ncm->sections[i].xoff + ncstrwidth(ncm->sections[i].name, NULL, NULL)){
         return i;
       }
     }
@@ -345,7 +345,7 @@ write_header(ncmenu* ncm){
         }
         nccell_release(ncm->ncp, &cl);
       }
-      xoff += ncstrwidth(ncm->sections[i].name);
+      xoff += ncstrwidth(ncm->sections[i].name, NULL, NULL);
     }
   }
   while(xoff < dimx){

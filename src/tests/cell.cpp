@@ -50,22 +50,22 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("MultibyteWidth") {
-    CHECK(0 == ncstrwidth(""));       // zero bytes, zero columns
-    CHECK(-1 == ncstrwidth("\x7"));   // single byte, non-printable
-    CHECK(1 == ncstrwidth(" "));      // single byte, one column
-    CHECK(5 == ncstrwidth("abcde"));  // single byte, one column
-    CHECK(1 == ncstrwidth("µ"));      // two bytes, one column
-    CHECK(1 <= ncstrwidth("\U0001f982"));     // four bytes, two columns
-    CHECK(3 <= ncstrwidth("平仮名")); // nine bytes, six columns
-    CHECK(1 == ncstrwidth("\U00012008")); // four bytes, 1 column
+    CHECK(0 == ncstrwidth("", NULL, NULL));       // zero bytes, zero columns
+    CHECK(-1 == ncstrwidth("\x7", NULL, NULL));   // single byte, non-printable
+    CHECK(1 == ncstrwidth(" ", NULL, NULL));      // single byte, one column
+    CHECK(5 == ncstrwidth("abcde", NULL, NULL));  // single byte, one column
+    CHECK(1 == ncstrwidth("µ", NULL, NULL));      // two bytes, one column
+    CHECK(1 <= ncstrwidth("\U0001f982", NULL, NULL));     // four bytes, two columns
+    CHECK(3 <= ncstrwidth("平仮名", NULL, NULL)); // nine bytes, six columns
+    CHECK(1 == ncstrwidth("\U00012008", NULL, NULL)); // four bytes, 1 column
   }
 
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
-    CHECK(2 == ncstrwidth("\U0001F471"));
+    CHECK(2 == ncstrwidth("\U0001F471", NULL, NULL));
 #ifndef __APPLE__ // FIXME
-    CHECK(2 == ncstrwidth("\U0001F471\u200D"));
-    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640"));
+    CHECK(2 == ncstrwidth("\U0001F471\u200D", NULL, NULL));
+    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640", NULL, NULL));
 #endif
   }
 

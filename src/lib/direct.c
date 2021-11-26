@@ -797,7 +797,11 @@ int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fm
   if(r == NULL){
     return -1;
   }
-  const size_t len = ncstrwidth(r);
+  const int len = ncstrwidth(r, NULL, NULL);
+  if(len < 0){
+    free(r);
+    return -1;
+  }
   const int x = ncdirect_align(n, align, len);
   if(ncdirect_cursor_move_yx(n, y, x)){
     free(r);

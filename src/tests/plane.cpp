@@ -169,7 +169,7 @@ TEST_CASE("Plane") {
     for(const char** s = ss ; *s ; ++s){
       CHECK(0 == ncplane_cursor_move_yx(n_, s - ss, 0));
       int wrote = ncplane_putstr(n_, *s);
-      CHECK(ncstrwidth(*s) == wrote);
+      CHECK(ncstrwidth(*s, NULL, NULL) == wrote);
     }
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -405,7 +405,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < u2);
     REQUIRE(strlen(w1) == u1);
     REQUIRE(strlen(w2) == u2);
-    CHECK(ncstrwidth(w1) == 1 + nccell_double_wide_p(&c1));
+    CHECK(ncstrwidth(w1, NULL, NULL) == 1 + nccell_double_wide_p(&c1));
     CHECK_FALSE(nccell_double_wide_p(&c2));
     nccell_release(n_, &c1);
     nccell_release(n_, &c2);

@@ -100,14 +100,7 @@ typedef enum {
 // and the number of valid bytes and columns will be written into *|validbytes|
 // and *|validwidth| (assuming them non-NULL). If the entire string is valid,
 // *|validbytes| and *|validwidth| reflect the entire string.
-API int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth);
-
-// Returns the number of columns occupied by a multibyte (UTF-8) string, or
-// -1 if a non-printable/illegal character is encountered.
-static inline int
-ncstrwidth(const char* mbs){
-  return ncstrwidth_valid(mbs, NULL, NULL);
-}
+API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
 
 // Returns a heap-allocated copy of the user name under which we are running.
 API ALLOC char* notcurses_accountname(void);
@@ -2058,7 +2051,7 @@ static inline int
 ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s){
   int validbytes, validwidth;
   // we'll want to do the partial write if there's an error somewhere within
-  ncstrwidth_valid(s, &validbytes, &validwidth);
+  ncstrwidth(s, &validbytes, &validwidth);
   int xpos = ncplane_halign(n, align, validwidth);
   if(xpos < 0){
     return -1;
@@ -3544,7 +3537,8 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 #define NCBPREFIXSTRLEN (NCBPREFIXCOLUMNS + 1) // Does not include a '\0' (xxxx.xxUi), i == prefix
 // Used as arguments to a variable field width (i.e. "%*s" -- these are the *).
 // We need this convoluted grotesquery to properly handle 'µ'.
-#define NCMETRICFWIDTH(x, cols) ((int)(strlen(x) - ncstrwidth(x) + (cols)))
+#define NCMETRICFWIDTH(x, cols) \
+    ((int)(strlen(x) - ncstrwidth(x, NULL, NULL) + (cols)))
 #define NCPREFIXFMT(x) NCMETRICFWIDTH((x), NCPREFIXCOLUMNS), (x)
 #define NCIPREFIXFMT(x) NCMETRIXFWIDTH((x), NCIPREFIXCOLUMNS), (x)
 #define NCBPREFIXFMT(x) NCMETRICFWIDTH((x), NCBPREFIXCOLUMNS), (x)

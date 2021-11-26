@@ -394,11 +394,11 @@ hud_print_finished(elem* list){
       }
       char buf[NCPREFIXCOLUMNS + 2];
       ncnmetric(e->totalns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
-      for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
+      for(int x = 6 ; x < 14 - ncstrwidth(buf, NULL, NULL) ; ++x){
         nccell ci = CELL_TRIVIAL_INITIALIZER;
         ncplane_putc_yx(hud, 1, x, &ci);
       }
-      if(ncplane_printf_yx(hud, line, 14 - ncstrwidth(buf), "%ss", buf) < 0){
+      if(ncplane_printf_yx(hud, line, 14 - ncstrwidth(buf, NULL, NULL), "%ss", buf) < 0){
         return -1;
       }
       if(ncplane_putstr_yx(hud, line, 16, e->name) < 0){
@@ -614,12 +614,12 @@ int demo_render(struct notcurses* nc){
     }
     char buf[NCPREFIXCOLUMNS + 2];
     ncnmetric(ns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
-    for(int x = 6 ; x < 14 - ncstrwidth(buf) ; ++x){
+    for(int x = 6 ; x < 14 - ncstrwidth(buf, NULL, NULL) ; ++x){
       nccell ci = CELL_TRIVIAL_INITIALIZER;
       ncplane_putc_yx(hud, 1, x, &ci);
     }
-//fprintf(stderr, "[%s] %zu %d\n", buf, strlen(buf), ncstrwidth(buf));
-    if(ncplane_printf_yx(hud, 1, 14 - ncstrwidth(buf), "%ss", buf) < 0){
+//fprintf(stderr, "[%s] %zu %d\n", buf, strlen(buf), ncstrwidth(buf, NULL, NULL));
+    if(ncplane_printf_yx(hud, 1, 14 - ncstrwidth(buf, NULL, NULL), "%ss", buf) < 0){
       return -1;
     }
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){

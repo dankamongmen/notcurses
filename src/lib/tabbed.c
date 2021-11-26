@@ -175,7 +175,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
       logerror("Couldn't allocate nctabbed separator");
       goto err;
     }
-    if((nt->sepcols = ncstrwidth(nt->opts.separator)) < 0){
+    if((nt->sepcols = ncstrwidth(nt->opts.separator, NULL, NULL)) < 0){
       logerror("Separator string contains illegal characters");
       free(nt->opts.separator);
       goto err;
@@ -251,7 +251,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
     free(t);
     return NULL;
   }
-  if((t->namecols = ncstrwidth(name)) < 0){
+  if((t->namecols = ncstrwidth(name, NULL, NULL)) < 0){
     logerror("Tab name contains illegal characters")
     free(t->name);
     free(t);
@@ -456,7 +456,7 @@ tabcb nctab_set_cb(nctab* t, tabcb newcb){
 int nctab_set_name(nctab* t, const char* newname){
   int newnamecols;
   char* prevname = t->name;
-  if((newnamecols = ncstrwidth(newname)) < 0){
+  if((newnamecols = ncstrwidth(newname, NULL, NULL)) < 0){
     logerror("New tab name contains illegal characters");
     return -1;
   }
@@ -479,7 +479,7 @@ void* nctab_set_userptr(nctab* t, void* newopaque){
 int nctabbed_set_separator(nctabbed* nt, const char* separator){
   int newsepcols;
   char* prevsep = nt->opts.separator;
-  if((newsepcols = ncstrwidth(separator)) < 0){
+  if((newsepcols = ncstrwidth(separator, NULL, NULL)) < 0){
     logerror("New tab separator contains illegal characters");
     return -1;
   }

@@ -199,7 +199,7 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int endx = -1;
   int totallength = 0;
   for(const char** c = cycles ; *c ; ++c){
-    totallength += ncstrwidth(*c);
+    totallength += ncstrwidth(*c, NULL, NULL);
   }
   int totalmoves = determine_totalmoves(std, ncprogbar_plane(left), ncprogbar_plane(right),
                                         heady, headx, endy, endx, totallength);

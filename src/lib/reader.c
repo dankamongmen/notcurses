@@ -214,7 +214,7 @@ int ncreader_move_down(ncreader* n){
 
 // only writing can enlarge the textarea. movement can pan, but not enlarge.
 int ncreader_write_egc(ncreader* n, const char* egc){
-  const int cols = ncstrwidth(egc);
+  const int cols = ncstrwidth(egc, NULL, NULL);
   if(cols < 0){
     logerror("Fed illegal UTF-8 [%s]\n", egc);
     return -1;

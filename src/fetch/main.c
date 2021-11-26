@@ -651,7 +651,7 @@ neologo_present(struct notcurses* nc, const char* nlogo){
     if(nl){ // chomp any newline
       lines[linecount - 1][linelen] = '\0';
     }
-    size_t collen = ncstrwidth(lines[linecount - 1]);
+    size_t collen = ncstrwidth(lines[linecount - 1], NULL, NULL);
     if(collen > maxlinelen){
       maxlinelen = collen;
     }

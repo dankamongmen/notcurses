@@ -48,6 +48,11 @@ typedef HANDLE ipipe;
 
 // local state for the input thread. don't put this large struct on the stack.
 typedef struct inputctx {
+  // these two are not ringbuffers; we always move any leftover materia to the
+  // front of the queue (it ought be a handful of bytes at most).
+  unsigned char tbuf[BUFSIZ]; // only used if we have distinct terminal fd
+  unsigned char ibuf[BUFSIZ]; // might be intermingled bulk/control data
+
   int stdinfd;          // bulk in fd. always >= 0 (almost always 0). we do not
                         //  own this descriptor, and must not close() it.
   int termfd;           // terminal fd: -1 with no controlling terminal, or
@@ -60,11 +65,6 @@ typedef struct inputctx {
   int rmargin, bmargin; // margins in use at right and bottom
 
   automaton amata;
-
-  // these two are not ringbuffers; we always move any leftover materia to the
-  // front of the queue (it ought be a handful of bytes at most).
-  unsigned char ibuf[BUFSIZ]; // might be intermingled bulk/control data
-  unsigned char tbuf[BUFSIZ]; // only used if we have distinct terminal fd
   int ibufvalid;      // we mustn't read() if ibufvalid == sizeof(ibuf)
   int tbufvalid;      // only used if we have distinct terminal connection
 
@@ -447,6 +447,8 @@ mark_pipe_ready(ipipe pipes[static 2]){
   if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
     logwarn("error writing to pipe\n");
 #endif
+  }else{
+    loginfo("wrote to readiness pipe\n");
   }
 }
 

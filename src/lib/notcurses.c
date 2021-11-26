@@ -3055,7 +3055,7 @@ int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
   return buflen;
 }
 
-int ncstrwidth_valid(const char* egcs, int* validbytes, int* validwidth){
+int ncstrwidth(const char* egcs, int* validbytes, int* validwidth){
   int cols;
   if(validwidth == NULL){
     validwidth = &cols;

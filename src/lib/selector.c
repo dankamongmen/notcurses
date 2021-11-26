@@ -305,11 +305,11 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
     goto freeitems;
   }
   ns->title = opts->title ? strdup(opts->title) : NULL;
-  ns->titlecols = opts->title ? ncstrwidth(opts->title) : 0;
+  ns->titlecols = opts->title ? ncstrwidth(opts->title, NULL, NULL) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
-  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary) : 0;
+  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary, NULL, NULL) : 0;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  ns->footercols = opts->footer ? ncstrwidth(opts->footer) : 0;
+  ns->footercols = opts->footer ? ncstrwidth(opts->footer, NULL, NULL) : 0;
   ns->selected = opts->defidx;
   ns->longop = 0;
   if( (ns->maxdisplay = opts->maxdisplay) ){
@@ -338,7 +338,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncselector_item* src = &opts->items[ns->itemcount];
-    int unsafe = ncstrwidth(src->option);
+    int unsafe = ncstrwidth(src->option, NULL, NULL);
     if(unsafe < 0){
       goto freeitems;
     }
@@ -348,7 +348,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
       ns->longop = cols;
     }
     const char *desc = src->desc ? src->desc : "";
-    unsafe = ncstrwidth(desc);
+    unsafe = ncstrwidth(desc, NULL, NULL);
     if(unsafe < 0){
       goto freeitems;
     }
@@ -401,7 +401,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   n->items[n->itemcount].option = strdup(item->option);
   const char *desc = item->desc ? item->desc : "";
   n->items[n->itemcount].desc = strdup(desc);
-  int usafecols = ncstrwidth(item->option);
+  int usafecols = ncstrwidth(item->option, NULL, NULL);
   if(usafecols < 0){
     return -1;
   }
@@ -410,7 +410,7 @@ int ncselector_additem(ncselector* n, const struct ncselector_item* item){
   if(cols > n->longop){
     n->longop = cols;
   }
-  cols = ncstrwidth(desc);
+  cols = ncstrwidth(desc, NULL, NULL);
   n->items[n->itemcount].desccolumns = cols;
   if(cols > n->longdesc){
     n->longdesc = cols;
@@ -444,11 +444,11 @@ int ncselector_delitem(ncselector* n, const char* item){
       found = true;
       --idx;
     }else{
-      int cols = ncstrwidth(n->items[idx].option);
+      int cols = ncstrwidth(n->items[idx].option, NULL, NULL);
       if(cols > maxop){
         maxop = cols;
       }
-      cols = ncstrwidth(n->items[idx].desc);
+      cols = ncstrwidth(n->items[idx].desc, NULL, NULL);
       if(cols > maxdesc){
         maxdesc = cols;
       }
@@ -906,11 +906,11 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   }
   memset(ns, 0, sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
-  ns->titlecols = opts->title ? ncstrwidth(opts->title) : 0;
+  ns->titlecols = opts->title ? ncstrwidth(opts->title, NULL, NULL) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
-  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary) : 0;
+  ns->secondarycols = opts->secondary ? ncstrwidth(opts->secondary, NULL, NULL) : 0;
   ns->footer = opts->footer ? strdup(opts->footer) : NULL;
-  ns->footercols = opts->footer ? ncstrwidth(opts->footer) : 0;
+  ns->footercols = opts->footer ? ncstrwidth(opts->footer, NULL, NULL) : 0;
   ns->current = 0;
   ns->startdisp = 0;
   ns->longitem = 0;
@@ -931,7 +931,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
   }
   for(ns->itemcount = 0 ; ns->itemcount < itemcount ; ++ns->itemcount){
     const struct ncmselector_item* src = &opts->items[ns->itemcount];
-    int unsafe = ncstrwidth(src->option);
+    int unsafe = ncstrwidth(src->option, NULL, NULL);
     if(unsafe < 0){
       goto freeitems;
     }
@@ -939,7 +939,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     if(cols > ns->longitem){
       ns->longitem = cols;
     }
-    unsafe = ncstrwidth(src->desc);
+    unsafe = ncstrwidth(src->desc, NULL, NULL);
     if(unsafe < 0){
       goto freeitems;
     }
