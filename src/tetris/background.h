@@ -3,7 +3,7 @@ void DrawBackground(const std::string& s) {
   ncvisual_options opts{};
   opts.scaling = NCSCALE_STRETCH;
   opts.n = *nc_.get_stdplane();
-  opts.blitter = NCBLIT_PIXEL;
+  opts.blitter = NCBLIT_3x2;
   opts.flags = NCVISUAL_OPTION_CHILDPLANE;
   backg_->blit(&opts);
 }
