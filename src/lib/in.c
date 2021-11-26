@@ -1972,7 +1972,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
 #ifdef POLLRDHUP
   inevents |= POLLRDHUP;
 #endif
-  struct pollfd pfds[3];
+  struct pollfd pfds[2];
   int pfdcount = 0;
   if(!ictx->stdineof){
     if(ictx->ibufvalid != sizeof(ictx->ibuf)){
