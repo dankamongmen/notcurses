@@ -1948,6 +1948,7 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
 // are set high iff they are ready for reading, and otherwise cleared.
 static int
 block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
+  logtrace("blocking on input availability\n");
   *rtfd = *rifd = 0;
   unsigned nonblock = ictx->midescape;
   if(nonblock){
@@ -1971,7 +1972,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
 #ifdef POLLRDHUP
   inevents |= POLLRDHUP;
 #endif
-  struct pollfd pfds[2];
+  struct pollfd pfds[3];
   int pfdcount = 0;
   if(!ictx->stdineof){
     if(ictx->ibufvalid != sizeof(ictx->ibuf)){
@@ -1981,12 +1982,20 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       ++pfdcount;
     }
   }
+  if(pfdcount == 0){
+    loginfo("output queues full; blocking on ipipes\n");
+    pfds[pfdcount].fd = ictx->ipipes[0];
+    pfds[pfdcount].events = inevents;
+    pfds[pfdcount].revents = 0;
+    ++pfdcount;
+  }
   if(ictx->termfd >= 0){
     pfds[pfdcount].fd = ictx->termfd;
     pfds[pfdcount].events = inevents;
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
+  logtrace("waiting on %d fds (ibuf: %u/%"PRIuPTR")\n", pfdcount, ictx->ibufvalid, sizeof(ictx->ibuf));
   sigset_t smask;
   sigfillset(&smask);
   sigdelset(&smask, SIGCONT);
@@ -1997,15 +2006,6 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   sigdelset(&smask, SIGTHR);
 #endif
   int events;
-  // FIXME we usually have a termfd, so this doesn't get used. if we put
-  // it above the termfd check, we never return(!)
-  if(pfdcount == 0){
-    loginfo("output queues full; blocking on ipipes\n");
-    pfds[pfdcount].fd = ictx->ipipes[0];
-    pfds[pfdcount].events = inevents;
-    pfds[pfdcount].revents = 0;
-    ++pfdcount;
-  }
 #if defined(__APPLE__) || defined(__MINGW64__)
   int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
@@ -2022,6 +2022,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       return resize_seen;
     }
   }
+  loginfo("poll returned %d\n", events);
   pfdcount = 0;
   while(events){
     if(pfds[pfdcount].revents){
@@ -2029,11 +2030,13 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
         *rifd = 1;
       }else if(pfds[pfdcount].fd == ictx->termfd){
         *rtfd = 1;
+      }else if(pfds[pfdcount].fd == ictx->ipipes[0]){
       }
       --events;
     }
+    ++pfdcount;
   }
-  loginfo("got events: %c%c %d\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', pfds[0].revents);
+  loginfo("got events: %c%c\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i');
   return events;
 #endif
 }
@@ -2158,7 +2161,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
   }else if(ictx->ivalid){
-    logtrace("draining event readiness pipe\n");
+    logtrace("draining event readiness pipe %d\n", ictx->ivalid);
     char c;
 #ifndef __MINGW64__
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
@@ -2185,6 +2188,7 @@ uint32_t notcurses_get(notcurses* nc, const struct timespec* absdl, ncinput* ni)
       ni->id = id;
     }
   }
+  logdebug("returning 0x%08x\n", id);
   return id;
 }
 
