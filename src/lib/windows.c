@@ -15,7 +15,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     { ESCAPE_HPA,   "\x1b[%i%p1%dG", },
     { ESCAPE_SC,    "\x1b[s", },
     { ESCAPE_RC,    "\x1b[u", },
-    { EXCAPE_INITC, "\x1b]4;%p1%d;rgb:%p2%{255}%*%{1000}%/%2.2X/%p3%{255}%*%{1000}%/%2.2X/%p4%{255}%*%{1000}%/%2.2X\E\\", },
+    { ESCAPE_INITC, "\x1b]4;%p1%d;rgb:%p2%{255}%*%{1000}%/%2.2X/%p3%{255}%*%{1000}%/%2.2X/%p4%{255}%*%{1000}%/%2.2X\E\\", },
     { ESCAPE_CLEAR, "\x1b[2J", },
     { ESCAPE_SMCUP, "\x1b[?1049h", },
     { ESCAPE_RMCUP, "\x1b[?1049l", },
