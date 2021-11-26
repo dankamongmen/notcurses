@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <notcurses/notcurses.h>
 
 int main(void){
@@ -12,16 +13,23 @@ int main(void){
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_scrolling(stdn, true);
-  if(ncplane_putstr(stdn, "press any key\n") < 0){
-    goto err;
-  }
-  if(notcurses_render(nc)){
-    goto err;
-  }
   ncinput ni;
+  int fd = notcurses_inputready_fd(nc);
   do{
+    if(ncplane_putstr(stdn, "press any key\n") < 0){
+      goto err;
+    }
+    if(notcurses_render(nc)){
+      goto err;
+    }
+    struct pollfd pfd = {
+      .fd = fd,
+      .events = POLLIN,
+    };
+    while(poll(&pfd, 1, -1) <= 0){
+    }
     notcurses_get_blocking(nc, &ni);
-  }while(ni.evtype == NCTYPE_RELEASE);
+  }while(ni.evtype == NCTYPE_RELEASE || ni.id != 'q');
   if(notcurses_render(nc)){
     goto err;
   }
