@@ -17,6 +17,10 @@ extern "C" {
 #endif
 
 #ifdef  __MINGW64__
+static inline char
+path_separator(void){
+  return '\\';
+}
 #define NL "\r\n"
 #include <Lmcons.h>
 #include <winsock2.h>
@@ -57,6 +61,10 @@ struct winsize {
 };
 #define WNOHANG 0
 #else
+static inline char
+path_separator(void){
+  return '/';
+}
 #define NL "\n"
 #include <poll.h>
 #include <termios.h>
@@ -65,6 +73,11 @@ struct winsize {
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #endif
+
+// get the default data directory (heap-allocated). on unix, this is compiled
+// in from builddef.h. on windows, we try to look it up in the registry (it
+// ought have been written during installation), and fall back to builddef.h.
+char* notcurses_data_dir(void);
 
 // initializes a pthread_cond_t to use CLOCK_MONOTONIC (as opposed to the
 // default CLOCK_REALTIME) if possible. if not possible, initializes a

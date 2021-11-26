@@ -1758,15 +1758,6 @@ typedef struct ncvisual_implementation {
 // populated by libnotcurses.so if linked with multimedia
 API extern ncvisual_implementation* visual_implementation;
 
-static inline char
-path_separator(void){
-#ifdef __MINGW64__
-  return '\\';
-#else
-  return '/';
-#endif
-}
-
 // prepend base with the Notcurses data directory as configured.
 static inline char*
 prefix_data(const char* base){

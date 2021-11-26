@@ -8,6 +8,18 @@
 #include <processthreadsapi.h>
 #include <stdio.h>
 
+char* notcurses_data_dir(void){
+  DWORD plen = 0;
+  LSTATUS r = RegGetValueA(HKEY_CURRENT_USER,
+                           "Software\\Notcurses"
+                           "InstallDir",
+                           RRF_RT_REG_SZ, NULL,
+                           NULL, &plen);
+fprintf(stderr, "PLEN: %u\n", plen);
+// FIXME
+  return NULL;
+}
+
 char* strndup(const char* str, size_t size){
   if(size == 0){
     return NULL;

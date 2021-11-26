@@ -26,22 +26,14 @@
 #include "builddef.h"
 #include "ncart.h"
 
-static inline const char*
-path_separator(void){
-#ifdef __MINGW64__
-  return "\\";
-#else
-  return "/";
-#endif
-}
-
 static inline char*
 find_data(const char* datum){
   const char* datadir = NOTCURSES_SHARE;
-  char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
+  const size_t dlen = strlen(datadir);
+  char* path = malloc(dlen + 1 + strlen(datum) + 1);
   strcpy(path, datadir);
-  strcat(path, path_separator());
-  strcat(path, datum);
+  path[dlen] = path_separator();
+  strcpy(path + dlen + 1, datum);
   return path;
 }
 

@@ -42,15 +42,6 @@ struct job {
   std::string p;
 };
 
-static inline char
-path_separator(void){
-#ifdef __MINGW64__
-  return '\\';
-#else
-  return '/';
-#endif
-}
-
 // FIXME see above; we ought have std::filesystem
 auto path_join(const std::string& dir, const std::string& p) -> std::string {
   if(dir.empty()){
