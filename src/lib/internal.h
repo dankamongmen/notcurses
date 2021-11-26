@@ -1780,7 +1780,7 @@ prefix_data(const char* base){
 static inline int
 tty_check(int fd){
 #ifdef __MINGW64__
-  return fd >= 0 ? 1 : 0;
+  return _isatty(fd);
 #endif
   return isatty(fd);
 }
