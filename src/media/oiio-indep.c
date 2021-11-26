@@ -25,6 +25,9 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
   memcpy(&activevopts, vopts, sizeof(*vopts));
   int ncerr;
   do{
+    if(activevopts.n){
+      ncplane_erase(activevopts.n); // new frame could be partially transparent
+    }
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
     ncvgeom geom;
