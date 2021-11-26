@@ -120,7 +120,7 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
 //logerror("need a parent plane\n");
     return NULL;
   }
-  int width = ncstrwidth(text);
+  int width = ncstrwidth(text, NULL, NULL);
   if(width <= 0){
 //logwarn("couldn't extract subtitle from %s\n", text);
     return NULL;
