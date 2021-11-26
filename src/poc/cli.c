@@ -1,4 +1,6 @@
+#ifndef __MINGW64__
 #include <poll.h>
+#endif
 #include <notcurses/notcurses.h>
 
 int main(void){
@@ -22,12 +24,15 @@ int main(void){
     if(notcurses_render(nc)){
       goto err;
     }
+    // just some pointless testing of notcurses_inputready_fd() here
+#ifndef __MINGW64__
     struct pollfd pfd = {
       .fd = fd,
       .events = POLLIN,
     };
     while(poll(&pfd, 1, -1) <= 0){
     }
+#endif
     notcurses_get_blocking(nc, &ni);
   }while(ni.evtype == NCTYPE_RELEASE || ni.id != 'q');
   if(notcurses_render(nc)){
