@@ -53,7 +53,11 @@ ncvisual* ncvisual_from_file(const char* filename){
   if(!visual_implementation->visual_from_file){
     return NULL;
   }
-  return visual_implementation->visual_from_file(filename);
+  ncvisual* n = visual_implementation->visual_from_file(filename);
+  if(n == NULL){
+    logerror("error loading %s\n", filename);
+  }
+  return n;
 }
 
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
@@ -62,7 +66,11 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   if(!visual_implementation->visual_stream){
     return -1;
   }
-  return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
+  int ret = visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
+  if(ret < 0){
+    logerror("error streaming media\n");
+  }
+  return ret;
 }
 
 ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
