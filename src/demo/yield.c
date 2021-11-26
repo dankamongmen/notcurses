@@ -164,6 +164,11 @@ int yield_demo(struct notcurses* nc){
   const bool bitmaps = notcurses_canpixel(nc);
   struct ncplane_options nopts = {
     .y = 1,
+    // this chops one line off the bottom that we could use in the case
+    // of kitty graphics (xterm can't draw on the bottom row without
+    // scrolling). this doesn't hit clamping thresholds since we're
+    // starting on row 1. what we really need is a valid story for trimming
+    // sprixels which cross the bottom row, see #2195.
     .rows = dimy - 1 - bitmaps, // FIXME
     .cols = dimx,
     .name = "wmap",

@@ -1132,7 +1132,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     placey = 0;
     placex = 0;
   }
-  logdebug("blit to plane %p at %d/%d geom %dx%d\n", n, ncplane_y(n), ncplane_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
+  logdebug("blit to plane %p at %d/%d geom %dx%d\n", n, ncplane_abs_y(n), ncplane_abs_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
   if(geom.blitter != NCBLIT_PIXEL){
     n = ncvisual_render_cells(ncv, bset, placey, placex,
                               &geom, n, vopts->flags, transcolor);
