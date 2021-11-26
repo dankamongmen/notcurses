@@ -30,7 +30,7 @@ Ncplane_create(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     int y = 0, x = 0;
     unsigned rows = 0, cols = 0;
     const char *name = NULL;
-    // TODO reseize callback
+    // TODO resize callback
     unsigned long long flags = 0;
     int margin_b = 0, margin_r = 0;
 
