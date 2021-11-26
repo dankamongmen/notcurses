@@ -991,7 +991,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   if(ti->caps.colors > 1){
     const char* initc = get_escape(ti, ESCAPE_INITC);
     if(initc){
-      ti->caps.can_change_colors = tigetflag("ccc") == 1;
+      ti->caps.can_change_colors = true;
     }
   }else{ // disable initc if there's no color support
     ti->escindices[ESCAPE_INITC] = 0;
