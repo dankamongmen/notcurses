@@ -14,7 +14,7 @@ Windows 8 = 0
 Windows 10 = 1
 Windows Server 2016 = 0
 DoNotCheckOS = 0
-Company name = Dirty South Supercomputing
+Company name = nick black
 Website = https://notcurses.com
 SFA = 0
 DFA = 0
@@ -1309,12 +1309,17 @@ C:\msys64\home\niblack\src\notcurses\build\opencv_videoio_ffmpeg452_64.dll
 20 MB
 dll
 [Licence_Begin]
-120
-{\urtf1\ansi\ansicpg65001\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Arial;}}
-\viewkind4\uc1\pard\cf0\fs20\par
+114
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Arial;}}
+\viewkind4\uc1\pard\fs20\par
 }
  [Licence_End]
 [Registry]
+HKEY_CURRENT_USER
+Software\Notcurses\InstallDir
+
+<InstallPath>
+1
 [Variables]
 [SCs]
 [IFP_End]
