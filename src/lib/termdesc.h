@@ -205,13 +205,6 @@ typedef struct tinfo {
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;
 
-static inline void
-update_tinfo_geometry(tinfo* ti, int dimy, int dimx){
-  // FIXME probably need a lock on this!
-  ti->dimy = dimy;
-  ti->dimx = dimx;
-}
-
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
 static inline __attribute__ ((pure)) const char*
 get_escape(const tinfo* tdesc, escape_e e){

@@ -73,9 +73,13 @@ notcurses_resize_internal(ncplane* pp, unsigned* restrict rows, unsigned* restri
   unsigned oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
-  if(update_term_dimensions(rows, cols, &n->tcache, n->margin_b)){
+  unsigned cgeo_changed, pgeo_changed;
+  if(update_term_dimensions(rows, cols, &n->tcache, n->margin_b,
+                            &cgeo_changed, &pgeo_changed)){
     return -1;
   }
+  n->stats.s.cell_geo_changes += cgeo_changed;
+  n->stats.s.pixel_geo_changes += pgeo_changed;
   *rows -= n->margin_t + n->margin_b;
   if(*rows <= 0){
     *rows = 1;

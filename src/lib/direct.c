@@ -147,7 +147,8 @@ int ncdirect_clear(ncdirect* nc){
 unsigned ncdirect_dim_x(ncdirect* nc){
   unsigned x;
   if(nc->tcache.ttyfd >= 0){
-    if(update_term_dimensions(NULL, &x, &nc->tcache, 0) == 0){
+    unsigned cgeo, pgeo; // don't care about either
+    if(update_term_dimensions(NULL, &x, &nc->tcache, 0, &cgeo, &pgeo) == 0){
       return x;
     }
   }else{
@@ -159,7 +160,8 @@ unsigned ncdirect_dim_x(ncdirect* nc){
 unsigned ncdirect_dim_y(ncdirect* nc){
   unsigned y;
   if(nc->tcache.ttyfd >= 0){
-    if(update_term_dimensions(&y, NULL, &nc->tcache, 0) == 0){
+    unsigned cgeo, pgeo; // don't care about either
+    if(update_term_dimensions(&y, NULL, &nc->tcache, 0, &cgeo, &pgeo) == 0){
       return y;
     }
   }else{
@@ -920,7 +922,8 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(loglevel)){
     goto err;
   }
-  update_term_dimensions(NULL, NULL, &ret->tcache, 0);
+  unsigned cgeo, pgeo; // both are don't-cares
+  update_term_dimensions(NULL, NULL, &ret->tcache, 0, &cgeo, &pgeo);
   ncdirect_set_styles(ret, 0);
   return ret;
 

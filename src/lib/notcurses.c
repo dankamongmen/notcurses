@@ -249,7 +249,10 @@ void ncplane_dim_yx(const ncplane* n, unsigned* rows, unsigned* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
-int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b){
+int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
+                           int margin_b, unsigned* cgeo_changed, unsigned* pgeo_changed){
+  *pgeo_changed = 0;
+  *cgeo_changed = 0;
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(tcache->ttyfd < 0){
     if(rows){
@@ -258,18 +261,18 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
     if(cols){
       *cols = tcache->default_cols;
     }
-    if(tcache){
-      tcache->cellpixy = 0;
-      tcache->cellpixx = 0;
-    }
+    tcache->cellpixy = 0;
+    tcache->cellpixx = 0;
     return 0;
   }
   unsigned rowsafe, colsafe;
   if(rows == NULL){
     rows = &rowsafe;
+    rowsafe = tcache->dimy;
   }
   if(cols == NULL){
     cols = &colsafe;
+    colsafe = tcache->dimx;
   }
 #ifndef __MINGW64__
   struct winsize ws;
@@ -278,11 +281,10 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
   }
   *rows = ws.ws_row;
   *cols = ws.ws_col;
-  if(tcache){
 #ifdef __linux__
-    if(tcache->linux_fb_fd >= 0){
-      get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
-    }else
+  if(tcache->linux_fb_fd >= 0){
+    get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
+  }else{
 #endif
     // we might have the pixel geometry from CSI14t, so don't override a valid
     // earlier response with 0s from the ioctl. we do want to fire off a fresh
@@ -293,8 +295,16 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
     }
     // update even if we didn't get values just now, because we need set
     // cellpix{y,x} up from an initial CSI14n, which set only pix{y,x}.
-    tcache->cellpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
-    tcache->cellpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
+    unsigned cpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
+    unsigned cpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
+    if(tcache->cellpixy != cpixy){
+      tcache->cellpixy = cpixy;
+      *pgeo_changed = 1;
+    }
+    if(tcache->cellpixx != cpixx){
+      tcache->cellpixx = cpixx;
+      *pgeo_changed = 1;
+    }
     if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
       tcache->pixel_draw = NULL; // disable support
     }
@@ -336,7 +346,14 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int ma
     *cols = tcache->default_cols;
   }
 #endif
-  update_tinfo_geometry(tcache, *rows, *cols);
+  if(tcache->dimy != *rows){
+    tcache->dimy = *rows;
+    *cgeo_changed = 1;
+  }
+  if(tcache->dimx != *cols){
+    tcache->dimx = *cols;
+    *cgeo_changed = 1;
+  }
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
     // if the bottom margin is at least one row, we can draw into the last
@@ -1155,8 +1172,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       }
     }
   }
-  unsigned dimy, dimx;
-  if(update_term_dimensions(&dimy, &dimx, &ret->tcache, ret->margin_b)){
+  unsigned dimy, dimx, cgeo, pgeo; // latter two are don't-cares
+  if(update_term_dimensions(&dimy, &dimx, &ret->tcache, ret->margin_b, &cgeo, &pgeo)){
     goto err;
   }
   if(ncvisual_init(ret->loglevel)){

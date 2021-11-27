@@ -901,7 +901,9 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int yoff, int xoff,
                             unsigned ylen, unsigned xlen);
 
-int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b);
+int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache, int margin_b,
+                           unsigned* cgeo_changed, unsigned* pgeo_changed)
+  __attribute__ ((nonnull (3, 5, 6)));
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){
