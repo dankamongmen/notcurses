@@ -45,6 +45,8 @@ typedef struct ncstats {
   uint64_t input_events;     // inputs received or synthesized
   uint64_t input_errors;     // errors processing input
   uint64_t hpa_gratuitous;   // gratuitous HPAs issued
+  uint64_t cell_geo_changes; // cell geometry changes (resizes)
+  uint64_t pixel_geo_changes;// pixel geometry changes (font resize)
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers
@@ -127,6 +129,14 @@ is not even generally possible to know how many glyphs will result from a
 sequence of EGCs. As a result, Notcurses sometimes issues "gratuitous" **hpa**
 controls.
 
+**cell_geo_changes** is the number of changes to the visible area's cell
+geometry. The cell geometry changes whenever the visible area is resized
+without a corresponding cell-pixel geometry change. **pixel_geo_changes**
+is the number of changes to cells' pixel geometry (i.e. the height and
+width of each cell), and changes whenever the font size changes. Both can
+change at the same time if e.g. a terminal undergoes a font size change
+without changing its total size.
+
 # NOTES
 
 Unsuccessful render operations do not contribute to the render timing stats.
@@ -141,7 +151,7 @@ value of **raster_bytes**.
 
 Neither **notcurses_stats** nor **notcurses_stats_reset** can fail. Neither
 returns any value. **notcurses_stats_alloc** returns a valid **ncstats**
-object on success, or **NULL** on failure.
+object on success, or **NULL** on allocation failure.
 
 # SEE ALSO
 

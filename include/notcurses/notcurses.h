@@ -1590,6 +1590,8 @@ typedef struct ncstats {
   uint64_t input_errors;     // errors processing control sequences/utf8
   uint64_t input_events;     // characters returned to userspace
   uint64_t hpa_gratuitous;   // unnecessary hpas issued
+  uint64_t cell_geo_changes; // cell geometry changes (resizes)
+  uint64_t pixel_geo_changes;// pixel geometry changes (font resize)
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers

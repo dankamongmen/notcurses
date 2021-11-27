@@ -153,6 +153,8 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
     stash->input_errors += nc->stats.s.input_errors;
     stash->input_events += nc->stats.s.input_events;
     stash->hpa_gratuitous += nc->stats.s.hpa_gratuitous;
+    stash->cell_geo_changes += nc->stats.s.cell_geo_changes;
+    stash->pixel_geo_changes += nc->stats.s.pixel_geo_changes;
 
     stash->fbbytes = nc->stats.s.fbbytes;
     stash->planes = nc->stats.s.planes;
@@ -243,4 +245,8 @@ void summarize_stats(notcurses* nc){
           stats->raster_bytes ? (stats->sprixelbytes * 100.0) / stats->raster_bytes : 0,
           stats->appsync_updates,
           stats->writeouts ? stats->appsync_updates * 100.0 / stats->writeouts : 0);
+  if(stats->cell_geo_changes || stats->pixel_geo_changes){
+    fprintf(stderr,"%sScreen/cell geometry changes: %"PRIu64"/%"PRIu64 NL,
+            clreol, stats->cell_geo_changes, stats->pixel_geo_changes);
+  }
 }
