@@ -649,6 +649,7 @@ TEST_CASE("TextLayout") {
     char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
     CHECK(0 == strcmp(line, "1254"));
+    free(line);
     CHECK(0 == ncplane_destroy(sp));
   }
 
