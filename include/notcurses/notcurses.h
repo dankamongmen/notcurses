@@ -95,11 +95,11 @@ typedef enum {
   NCSCALE_SCALE_HIRES,
 } ncscale_e;
 
-// Returns the number of columns occupied by the valid prefix of a multibyte
-// (UTF-8) string. If an invalid character is encountered, -1 will be returned,
-// and the number of valid bytes and columns will be written into *|validbytes|
-// and *|validwidth| (assuming them non-NULL). If the entire string is valid,
-// *|validbytes| and *|validwidth| reflect the entire string.
+// Returns the number of columns occupied by the longest valid prefix of a
+// multibyte (UTF-8) string. If an invalid character is encountered, -1 will be
+// returned, and the number of valid bytes and columns will be written into
+// *|validbytes| and *|validwidth| (assuming them non-NULL). If the entire
+// string is valid, *|validbytes| and *|validwidth| reflect the entire string.
 API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
 
 // Returns a heap-allocated copy of the user name under which we are running.
