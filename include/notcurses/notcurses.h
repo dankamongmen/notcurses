@@ -1305,7 +1305,6 @@ API int ncplane_resize_realign(struct ncplane* n);
 // move the plane such that it is entirely within its parent, if possible.
 // no resizing is performed.
 API int ncplane_resize_placewithin(struct ncplane* n);
-///////////////////////////////////////////////////////////////////////////////
 
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
 // The standard plane's resizecb may not be changed.
