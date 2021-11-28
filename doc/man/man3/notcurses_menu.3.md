@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_menu - operations on menus
+notcurses_menu - operations on ncmenu objects
 
 # SYNOPSIS
 

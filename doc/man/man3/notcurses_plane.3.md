@@ -28,26 +28,18 @@ typedef struct ncplane_options {
   int margin_b, margin_r; // bottom and right margins
 } ncplane_options;
 
-#define NCSTYLE_ITALIC    0x0020u
-#define NCSTYLE_UNDERLINE 0x0010u
-#define NCSTYLE_UNDERCURL 0x0008u
-#define NCSTYLE_BOLD      0x0004u
-#define NCSTYLE_STRUCK    0x0002u
-#define NCSTYLE_BLINK     0x0001u
+#define NCSTYLE_MASK      0xffffu
+#define NCSTYLE_ITALIC    0x0010u
+#define NCSTYLE_UNDERLINE 0x0008u
+#define NCSTYLE_UNDERCURL 0x0004u
+#define NCSTYLE_BOLD      0x0002u
+#define NCSTYLE_STRUCK    0x0001u
 #define NCSTYLE_NONE      0
 ```
 
 **struct ncplane* ncplane_create(struct ncplane* ***n***, const ncplane_options* ***nopts***);**
 
 **struct ncplane* ncpile_create(struct notcurses* ***n***, const ncplane_options* ***nopts***);**
-
-**struct ncplane* notcurses_top(struct notcurses* ***n***);**
-
-**struct ncplane* notcurses_bottom(struct notcurses* ***n***);**
-
-**struct ncplane* ncpile_top(struct ncplane* ***n***);**
-
-**struct ncplane* ncpile_bottom(struct ncplane* ***n***);**
 
 **struct ncplane* ncplane_reparent(struct ncplane* ***n***, struct ncplane* ***newparent***);**
 
@@ -233,7 +225,7 @@ typedef struct ncplane_options {
 
 **char* ncplane_name(const struct ncplane* ***n***);**
 
-## DESCRIPTION
+# DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
 take a **struct ncplane** as an argument. They can be any size, and placed
@@ -401,6 +393,8 @@ plane is placed immediately atop its new parent on its new pile's z-axis.
 When **ncplane_reparent_family** is used, all planes bound to the reparented
 plane are moved along with it. Their relative z-order is maintained.
 
+More information is available from **notcurses_pile(3)**.
+
 ## Binding
 
 The planes of a pile make up a directed acyclic forest. Planes bound to
@@ -475,10 +469,6 @@ plane is the bottommost plane, NULL is returned. It cannot fail.
 **ncplane_set_scrolling** returns **true** if scrolling was previously enabled,
 and **false** otherwise.
 
-**ncpile_top** and **ncpile_bottom** return the topmost and bottommost planes,
-respectively, of the pile containing their argument. **notcurses_top** and
-**notcurses_bottom** do the same for the standard pile.
-
 **ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
 EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should
 free this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead
@@ -537,5 +527,6 @@ notcurses_refresh(nc);
 **notcurses_capabilities(3)**,
 **notcurses_cell(3)**,
 **notcurses_output(3)**,
+**notcurses_pile(3)**,
 **notcurses_stdplane(3)**,
 **notcurses_visual(3)**
