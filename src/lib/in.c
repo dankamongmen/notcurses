@@ -2113,12 +2113,12 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   struct timespec* pts = nonblock ? &ts : NULL;
   while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
 #endif
-    if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
-      logerror("error polling (%s)\n", strerror(errno));
-      return -1;
-    }else if(errno == EINTR){
+    if(errno == EINTR){
       loginfo("interrupted by signal\n");
       return resize_seen;
+    }else if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
+      logerror("error polling (%s)\n", strerror(errno));
+      return -1;
     }
   }
   loginfo("poll returned %d\n", events);
