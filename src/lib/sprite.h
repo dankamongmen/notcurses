@@ -216,10 +216,8 @@ void sixel_refresh(const struct ncpile* p, sprixel* s);
 int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
                  int parse_start, sprixel_e state);
 
-// called when a sprixel's cell-pixel geometry needs to change from
-// |ocellpxy,ocellpxx| to |ncellpxy,ncellpxx|.
-int sprixel_rescale(sprixel* spx, unsigned ocellpixy, unsigned ocellpixx,
-                    unsigned ncellpixy, unsigned ncellpixx);
+// called when a sprixel's cell-pixel geometry needs to change to |ncellpxy,ncellpxx|.
+int sprixel_rescale(sprixel* spx, unsigned ncellpixy, unsigned ncellpixx);
 
 #ifdef __cplusplus
 }

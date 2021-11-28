@@ -73,7 +73,8 @@ notcurses_resize_internal(ncplane* pp, unsigned* restrict rows, unsigned* restri
   unsigned oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
-  unsigned cgeo_changed, pgeo_changed;
+  unsigned cgeo_changed;
+  unsigned pgeo_changed;
   if(update_term_dimensions(rows, cols, &n->tcache, n->margin_b,
                             &cgeo_changed, &pgeo_changed)){
     return -1;
@@ -233,7 +234,8 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
 // the pile's sprixel list, and update the sprixelstack.
 __attribute__ ((nonnull (1, 2, 7))) static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
-      int dstabsy, int dstabsx, sprixel** sprixelstack){
+      int dstabsy, int dstabsx, sprixel** sprixelstack,
+      unsigned pgeo_changed){
   unsigned y, x, dimy, dimx;
   int offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
@@ -256,6 +258,10 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   // glyph, but we *do* need to null out any cellregions that we've
   // scribbled upon.
   if(p->sprite){
+    if(pgeo_changed){
+      // do what on failure? FIXME
+      sprixel_rescale(p->sprite, ncplane_pile(p)->cellpxy, ncplane_pile(p)->cellpxx);
+    }
     paint_sprixel(p, rvec, starty, startx, offy, offx, dstleny, dstlenx);
     // decouple from the pile's sixel list
     if(p->sprite->next){
@@ -607,9 +613,9 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   }
   init_rvec(rvec, totalcells);
   sprixel* s = NULL;
-  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s);
+  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s, 0);
   assert(NULL == s);
-  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s);
+  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, &s, 0);
   assert(NULL == s);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   const struct tinfo* ti = &ncplane_notcurses_const(dst)->tcache;
@@ -1489,14 +1495,17 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
 // which cells were changed. We solve for each coordinate's cell by walking
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
+// if |pgeo_changed|, the cell-pixel geometry for the pile has changed
+// since the last render, and thus all sprixels need be rescaled.
 static void
-ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx){
+ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
+                       unsigned pgeo_changed){
 //fprintf(stderr, "rendering %dx%d\n", leny, lenx);
   ncpile* np = ncplane_pile(n);
   ncplane* p = np->top;
   sprixel* sprixel_list = NULL;
   while(p){
-    paint(p, rvec, leny, lenx, 0, 0, &sprixel_list);
+    paint(p, rvec, leny, lenx, 0, 0, &sprixel_list, pgeo_changed);
     p = p->below;
   }
   if(sprixel_list){
@@ -1570,11 +1579,17 @@ int ncpile_render(ncplane* n){
   notcurses* nc = ncplane_notcurses(n);
   ncpile* pile = ncplane_pile(n);
   // update our notion of screen geometry, and render against that
+  unsigned pgeo_changed = 0;
   notcurses_resize_internal(n, NULL, NULL);
+  if(pile->cellpxy != nc->tcache.cellpxy || pile->cellpxx != nc->tcache.cellpxx){
+    pile->cellpxy = nc->tcache.cellpxy;
+    pile->cellpxx = nc->tcache.cellpxx;
+    pgeo_changed = 1;
+  }
   if(engorge_crender_vector(pile)){
     return -1;
   }
-  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
+  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx, pgeo_changed);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->stats.lock);
     update_render_stats(&renderdone, &start, &nc->stats.s);

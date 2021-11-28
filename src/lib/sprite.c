@@ -222,12 +222,9 @@ int sprite_init(const tinfo* t, int fd){
   return t->pixel_init(fd);
 }
 
-int sprixel_rescale(sprixel* spx, unsigned ocellpxy, unsigned ocellpxx,
-                    unsigned ncellpxy, unsigned ncellpxx){
+int sprixel_rescale(sprixel* spx, unsigned ncellpxy, unsigned ncellpxx){
   assert(spx->n);
-  if(ocellpxy == ncellpxy && ocellpxx == ncellpxx){ // no change
-    return 0;
-  }
+  loginfo("rescaling -> %ux%u\n", ncellpxy, ncellpxx);
   // FIXME need adjust for sixel (scale_height)
   int nrows = (spx->pixy + (ncellpxy - 1)) / ncellpxy;
   int ncols = (spx->pixx + (ncellpxx - 1)) / ncellpxx;
@@ -237,7 +234,14 @@ int sprixel_rescale(sprixel* spx, unsigned ocellpxy, unsigned ocellpxx,
   }
   // FIXME rebuild all annihilated cells
   // FIXME prepare new tam entries
+  ncplane* ncopy = spx->n;
   destroy_tam(spx->n);
+  // spx->n->tam has been reset, so it will not be resized herein
+  ncplane_resize_simple(spx->n, nrows, ncols);
+  spx->n = ncopy;
+  spx->n->sprite = spx;
   spx->n->tam = ntam;
+  spx->dimy = nrows;
+  spx->dimx = ncols;
   return 0;
 }
