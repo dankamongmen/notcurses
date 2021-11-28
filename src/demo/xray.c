@@ -2,8 +2,13 @@
 #include <pthread.h>
 #include <stdatomic.h>
 
-// FIXME turn this into one large plane and move the plane, ratrher than
-// manually redrawing each time
+// this can take a long time, especially in large terminals; we cap execution
+// at twenty seconds, and drop frames when behind.
+#define MAX_SECONDS 20
+
+// issue #2390 adds ncvisual_frame_count(). until then...FIXME
+#define VIDEO_FRAMES 862
+
 static const char* leg[] = {
 "                              88              88            88           88                          88             88               88                        ",
 "                              \"\"              88            88           88                          88             \"\"               \"\"                 ,d     ",
@@ -62,15 +67,15 @@ make_slider(struct notcurses* nc, int dimx){
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t render_lock = PTHREAD_MUTEX_INITIALIZER;
 
-// initialized per run
 struct marsh {
   struct notcurses* nc;
   struct ncvisual* ncv;     // video stream, one copy per thread
   struct ncplane* slider;   // text plane at top, sliding to the left
   float dm;                 // delay multiplier
   int next_frame;
-  int* frame_to_render; // protected by renderlock
-  struct ncplane** lplane;   // plane to destroy
+  struct ncplane** lplane;  // plane to destroy
+  uint64_t deadline_ns;     // be done by this CLOCK_MONOTONIC
+  int* frame_to_render;     // protected by renderlock
 };
 
 // make a plane on a new pile suitable for rendering a frame of the video
@@ -188,6 +193,7 @@ int xray_demo(struct notcurses* nc){
   pthread_t tid1, tid2;
   int last_frame = 0;
   struct ncplane* kplane = NULL; // to kill
+  uint64_t curns = clock_getns(CLOCK_MONOTONIC);
   struct marsh m1 = {
     .slider = slider,
     .nc = nc,
@@ -195,6 +201,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv1,
+    .deadline_ns = curns + MAX_SECONDS * NANOSECS_IN_SEC,
     .lplane = &kplane,
   };
   struct marsh m2 = {
@@ -204,6 +211,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv2,
+    .deadline_ns = curns + MAX_SECONDS * NANOSECS_IN_SEC,
     .lplane = &kplane,
   };
   int ret = -1;

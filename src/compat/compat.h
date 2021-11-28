@@ -100,6 +100,15 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
   return ts;
 }
 
+static inline uint64_t
+clock_getns(clockid_t clockid){
+  struct timespec tspec;
+  if(clock_gettime(clockid, &tspec) < 0){
+    return 0;
+  }
+  return timespec_to_ns(&tspec);
+}
+
 // compatibility wrappers for code available only on certain operating systems.
 // this file is not installed, but only consumed during compilation. if we're
 // on an operating system which implements a given function, it won't be built.
