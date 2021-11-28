@@ -777,6 +777,34 @@ wezterm_cb(inputctx* ictx){
 }
 
 static int
+legacy_cb_f1(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'P');
+  kitty_kbd(ictx, NCKEY_F01, mods, 0);
+  return 2;
+}
+
+static int
+legacy_cb_f2(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'Q');
+  kitty_kbd(ictx, NCKEY_F02, mods, 0);
+  return 2;
+}
+
+static int
+legacy_cb_f3(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'R');
+  kitty_kbd(ictx, NCKEY_F03, mods, 0);
+  return 2;
+}
+
+static int
+legacy_cb_f4(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'S');
+  kitty_kbd(ictx, NCKEY_F04, mods, 0);
+  return 2;
+}
+
+static int
 kitty_cb_f1(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'P');
@@ -865,6 +893,27 @@ kitty_cb_up(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'A');
   kitty_kbd(ictx, NCKEY_UP, mods, ev);
+  return 2;
+}
+
+static int
+legacy_cb_begin(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'E');
+  kitty_kbd(ictx, NCKEY_BEGIN, mods, 0);
+  return 2;
+}
+
+static int
+legacy_cb_end(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'F');
+  kitty_kbd(ictx, NCKEY_END, mods, 0);
+  return 2;
+}
+
+static int
+legacy_cb_home(inputctx* ictx){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", 'H');
+  kitty_kbd(ictx, NCKEY_HOME, mods, 0);
   return 2;
 }
 
@@ -1341,10 +1390,19 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[\\N;\\N:\\N~", kitty_cb_functional, },
+    /*
+    { "[1;\\NP", legacy_cb_f1, },
+    { "[1;\\NQ", legacy_cb_f2, },
+    { "[1;\\NR", legacy_cb_f3, },
+    { "[1;\\NS", legacy_cb_f4, },
+    */
     { "[1;\\ND", legacy_cb_left, },
     { "[1;\\NC", legacy_cb_right, },
     { "[1;\\NB", legacy_cb_down, },
     { "[1;\\NA", legacy_cb_up, },
+    { "[1;\\NE", legacy_cb_begin, },
+    { "[1;\\NF", legacy_cb_end, },
+    { "[1;\\NH", legacy_cb_home, },
     { "[1;\\N:\\NP", kitty_cb_f1, },
     { "[1;\\N:\\NQ", kitty_cb_f2, },
     { "[1;\\N:\\NR", kitty_cb_f3, },
