@@ -706,10 +706,10 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
     return NULL;
   }
   memmove(newn->fb, n->fb, fbsize);
-  if(ncplane_cursor_move_yx(newn, n->y, n->x) < 0){
-    ncplane_destroy(newn);
-    return NULL;
-  }
+  // don't use ncplane_cursor_move_yx() here; the cursor could be in an
+  // invalid location, which will be disallowed, failing out.
+  newn->y = n->y;
+  newn->x = n->x;
   newn->halign = n->halign;
   newn->stylemask = ncplane_styles(n);
   newn->channels = ncplane_channels(n);
