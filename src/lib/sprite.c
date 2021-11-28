@@ -154,18 +154,6 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
 int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
-  /*
-  if(spx->cellpxy > 0){ // don't explode on ncdirect case
-    if((pixy + spx->cellpxy - 1) / spx->cellpxy > spx->dimy){
-      logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->cellpxy, spx->dimy);
-      return -1;
-    }
-    if((pixx + spx->cellpxx - 1) / spx->cellpxx > spx->dimx){
-      logerror("bad pixx %d (cellpxx %d dimx %d)\n", pixx, spx->cellpxx, spx->dimx);
-      return -1;
-    }
-  }
-  */
   if(&spx->glyph != f){
     fbuf_free(&spx->glyph);
     memcpy(&spx->glyph, f, sizeof(*f));
@@ -180,6 +168,7 @@ int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
 // returns 1 if already annihilated, 0 if we successfully annihilated the cell,
 // or -1 if we could not annihilate the cell (i.e. we're sixel).
 int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  assert(s->n);
   int idx = s->dimx * ycell + xcell;
   if(s->n->tam[idx].state == SPRIXCELL_TRANSPARENT){
     // need to make a transparent auxvec, because a reload will force us to
