@@ -197,9 +197,7 @@ ext_demos(struct notcurses* nc, const char* spec){
   }
   memset(results, 0, sizeof(*results) * strlen(spec));
   democount = strlen(spec);
-  struct timespec start, now;
-  clock_gettime(CLOCK_MONOTONIC, &start);
-  uint64_t prevns = timespec_to_ns(&start);
+  uint64_t prevns = clock_getns(CLOCK_MONOTONIC);
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     results[i].selector = spec[i];
   }
@@ -220,11 +218,10 @@ ext_demos(struct notcurses* nc, const char* spec){
     uint64_t stdc = NCCHANNELS_INITIALIZER(0, 0, 0, 0, 0, 0);
     ncplane_set_base(n, "", 0, stdc);
 
-    hud_schedule(demos[idx].name);
+    hud_schedule(demos[idx].name, prevns);
     ret = demos[idx].fxn(nc);
     notcurses_stats_reset(nc, &results[i].stats);
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    uint64_t nowns = timespec_to_ns(&now);
+    uint64_t nowns = clock_getns(CLOCK_MONOTONIC);
     results[i].timens = nowns - prevns;
     prevns = nowns;
     results[i].result = ret;

@@ -512,8 +512,8 @@ int hud_completion_notify(const demoresult* result){
   return 0;
 }
 
-// inform the HUD of an upcoming demo
-int hud_schedule(const char* demoname){
+// inform the HUD of an upcoming demo, starting at startns.
+int hud_schedule(const char* demoname, uint64_t startns){
   elem* cure = malloc(sizeof(*cure));
   if(!cure){
     return -1;
@@ -522,10 +522,8 @@ int hud_schedule(const char* demoname){
   cure->name = strdup(demoname);
   cure->totalns = 0;
   cure->frames = 0;
+  cure->startns = startns;
   elems = cure;
-  struct timespec cur;
-  clock_gettime(CLOCK_MONOTONIC, &cur);
-  cure->startns = timespec_to_ns(&cur);
   return hud_print_finished(elems);
 }
 
