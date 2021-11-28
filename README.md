@@ -283,6 +283,14 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>Do I want ffmpeg or OpenImageIO?</summary>
+  While OpenImageIO is a superb library for dealing with single-frame images,
+  its video support is less than perfect (blame me; I've been promising Larry
+  I'd rewrite it for several months), and in any case implemented
+  atop...ffmpeg. ffmpeg is the preferred multimedia backend.
+</details>
+
+<details>
   <summary>Does it work with hardware terminals?</summary>
   With the correct <code>TERM</code> value, many hardware terminals are
   supported. The VT100 is sadly unsupported due to its extensive need for
