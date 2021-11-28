@@ -140,7 +140,7 @@ struct ncmenu* menu_create(struct notcurses* nc);
 int hud_destroy(void);
 
 // let the HUD know about an upcoming demo
-int hud_schedule(const char* demoname);
+int hud_schedule(const char* demoname, uint64_t startns);
 
 // demos should not call notcurses_render() themselves, but instead call
 // demo_render(), which will ensure the HUD stays on the top of the z-stack.
