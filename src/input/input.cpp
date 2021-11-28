@@ -219,11 +219,11 @@ dim_rows(const Plane* n){
 
 void Tick(ncpp::NotCurses* nc, uint64_t sec) {
   const std::lock_guard<std::mutex> lock(mtx);
-  if(ncuplot_add_sample(plot, sec, 0)){
-    throw std::runtime_error("couldn't register timetick");
-  }
-  if(!nc->render()){
-    throw std::runtime_error("error rendering");
+  // might fail on various geometry changes
+  if(ncuplot_add_sample(plot, sec, 0) == 0){
+    if(!nc->render()){
+      throw std::runtime_error("error rendering");
+    }
   }
 }
 

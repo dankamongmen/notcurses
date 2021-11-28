@@ -2690,8 +2690,10 @@ splice_zaxis_recursive(ncplane* n, ncpile* p, unsigned ocellpxy, unsigned ocellp
     n->boundto->above = n;
   }
   if(n->sprite){
-    sprixel_rescale(n->sprite, ocellpxy, ocellpxx, ncellpxy, ncellpxx);
-    // FIXME do what on error?
+    if(ocellpxy != ncellpxy || ocellpxx != ncellpxx){
+      sprixel_rescale(n->sprite, ncellpxy, ncellpxx);
+      // FIXME do what on error?
+    }
   }
   for(ncplane* child = n->blist ; child ; child = child->bnext){
     splice_zaxis_recursive(child, p, ocellpxy, ocellpxx, ncellpxy, ncellpxx);
