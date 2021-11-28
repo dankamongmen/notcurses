@@ -172,7 +172,7 @@ xray_thread(void *vmarsh){
         ncplane_printf_aligned(stdn, 1 + ncplane_dim_y(m->slider),
                                NCALIGN_RIGHT, "%d dropped frame%s",
                                *m->dropped, *m->dropped == 0 ? "s 🤘" :
-                               *m->dropped == 1 ? "🤔" :
+                               *m->dropped == 1 ? " 🤔 " :
                                *m->dropped < 10 ? "s 😕" :
                                *m->dropped < 100 ? "s 😞" :
                                *m->dropped < 250 ? "s 😟" :
