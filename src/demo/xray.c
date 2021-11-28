@@ -74,7 +74,7 @@ struct marsh {
   float dm;                 // delay multiplier
   int next_frame;
   struct ncplane** lplane;  // plane to destroy
-  uint64_t deadline_ns;     // be done by this CLOCK_MONOTONIC
+  uint64_t startns;         // when we started (CLOCK_MONOTONIC) for frame dropping
   int* frame_to_render;     // protected by renderlock
 };
 
@@ -97,28 +97,30 @@ make_plane(struct notcurses* nc, struct ncplane** t){
 }
 
 // returns the index of the next frame, which can immediately begin to be
-// rendered onto the thread's plane.
+// rendered onto the thread's plane. if we're behind the clock, we don't
+// bother blitting it, and drop the plane to signal as much.
 static int
 get_next_frame(struct marsh* m, struct ncvisual_options* vopts){
-  int ret = 0;
   // one does the odds, and one the evens. load two unless we're the even,
   // and it's the first frame.
   if(m->next_frame){
     if(ncvisual_decode(m->ncv)){
-      ret = -1;
+      return -1;
     }
   }
-  if(ret == 0){
-    if(ncvisual_decode(m->ncv)){
-      ret = -1;
-    }else if(ncvisual_blit(m->nc, m->ncv, vopts) == NULL){
-      ret = -1;
-    }
+  if(ncvisual_decode(m->ncv)){
+    return -1;
   }
-  if(ret == 0){
-    ret = m->next_frame;
-    m->next_frame += 2;
+  uint64_t ns = clock_getns(CLOCK_MONOTONIC);
+  int ret = m->next_frame;
+  uint64_t deadline = m->startns + (m->next_frame + 1) * 20 * (NANOSECS_IN_SEC / VIDEO_FRAMES);
+  if(ns > deadline){
+    ncplane_destroy(vopts->n);
+    vopts->n = NULL;
+  }else if(ncvisual_blit(m->nc, m->ncv, vopts) == NULL){
+    return -1;
   }
+  m->next_frame += 2;
   return ret;
 }
 
@@ -139,6 +141,9 @@ xray_thread(void *vmarsh){
     if(make_plane(m->nc, &vopts.n)){
       return NULL;
     }
+    // if we're behind where we want to be time-wise, this will return the
+    // expected frame id, but vopts.n will be NULL (and the plane we created
+    // will have been destroyed). that frame has been dropped.
     if((frame = get_next_frame(m, &vopts)) < 0){
       ncplane_destroy(vopts.n);
       // FIXME need to cancel other one; it won't be able to progress
@@ -152,8 +157,11 @@ xray_thread(void *vmarsh){
     }
     int x = ncplane_x(m->slider);
     if(ncplane_move_yx(m->slider, 1, x - 1) == 0){
-      ncplane_reparent(vopts.n, notcurses_stdplane(m->nc));
-      ncplane_move_top(vopts.n);
+      // FIXME otherwise, increment a visible drop count?
+      if(vopts.n){
+        ncplane_reparent(vopts.n, notcurses_stdplane(m->nc));
+        ncplane_move_top(vopts.n);
+      }
       ncplane_destroy(*m->lplane);
       ret = demo_render(m->nc);
     }
@@ -201,7 +209,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv1,
-    .deadline_ns = curns + MAX_SECONDS * NANOSECS_IN_SEC,
+    .startns = curns,
     .lplane = &kplane,
   };
   struct marsh m2 = {
@@ -211,7 +219,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv2,
-    .deadline_ns = curns + MAX_SECONDS * NANOSECS_IN_SEC,
+    .startns = curns,
     .lplane = &kplane,
   };
   int ret = -1;
