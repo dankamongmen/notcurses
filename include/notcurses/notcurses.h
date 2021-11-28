@@ -95,7 +95,7 @@ typedef enum {
   NCSCALE_SCALE_HIRES,
 } ncscale_e;
 
-// Returns the number of columns occupied by a the valid prefix of a multibyte
+// Returns the number of columns occupied by the valid prefix of a multibyte
 // (UTF-8) string. If an invalid character is encountered, -1 will be returned,
 // and the number of valid bytes and columns will be written into *|validbytes|
 // and *|validwidth| (assuming them non-NULL). If the entire string is valid,
