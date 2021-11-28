@@ -755,6 +755,12 @@ legacy_functional(uint32_t id){
 }
 
 static int
+simple_cb_begin(inputctx* ictx){
+  kitty_kbd(ictx, NCKEY_BEGIN, 0, 0);
+  return 2;
+}
+
+static int
 kitty_cb_functional(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
@@ -1380,6 +1386,7 @@ build_cflow_automaton(inputctx* ictx){
     triefunc fxn;
   } csis[] = {
     // CSI (\e[)
+    { "[E", simple_cb_begin, },
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
