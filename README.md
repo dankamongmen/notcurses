@@ -565,6 +565,17 @@ If things break or seem otherwise lackluster, **please** consult the
   machines, and these writes aren't tracked by the standard statistics.
 </details>
 
+<details>
+  <summary>I just want to display a bitmap on my terminal. Your library is
+  complex and stupid. You are simple and stupid.</summary>
+  If you're willing to call a binary, use <tt>ncplayer</tt> to put an image,
+  with desired scaling, anywhere on the screen and call it a day. Otherwise,
+  call <tt>notcurses_init()</tt>, <tt>ncvisual_from_file()</tt>,
+  <tt>ncvisual_blit()</tt>, <tt>notcurses_render()</tt>, and
+  <tt>notcurses_stop()</tt>. It's not too tough. And thanks—your thoughtful
+  comments and appreciative tone are why I work on Free Software.
+</details>
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
