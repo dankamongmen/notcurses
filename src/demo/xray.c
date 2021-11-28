@@ -168,7 +168,6 @@ xray_thread(void *vmarsh){
         ncplane_move_top(vopts.n);
         ncplane_destroy(*m->lplane);
         *m->lplane = vopts.n;
-      }else{
         ncplane_printf_aligned(stdn, 1 + ncplane_dim_y(m->slider),
                                NCALIGN_RIGHT, "%d dropped frame%s",
                                *m->dropped, *m->dropped == 0 ? "s 🤘" :
@@ -178,9 +177,14 @@ xray_thread(void *vmarsh){
                                *m->dropped < 250 ? "s 😟" :
                                *m->dropped < 450 ? "s 😠" :
                                *m->dropped < 700 ? "s 😡" : "s 🤬");
+        ret = demo_render(m->nc);
+      }else{
+        // FIXME i'd like to at least render the updated drop count and the
+        // moved slider, but even that's too slow with stupid shitty sixel,
+        // due to redrawing far too much of it see #2380
         ++*m->dropped;
+        ret = 0;
       }
-      ret = demo_render(m->nc);
     }
     *m->frame_to_render = frame + 1;
     pthread_mutex_unlock(&render_lock);
