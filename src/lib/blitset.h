@@ -9,7 +9,7 @@ extern "C" {
 static inline int
 encoding_y_scale(const tinfo* tcache, const struct blitset* bset) {
   if(bset->geom == NCBLIT_PIXEL){
-    return tcache->cellpixy;
+    return tcache->cellpxy;
   }
   return bset->height;
 }
@@ -18,7 +18,7 @@ encoding_y_scale(const tinfo* tcache, const struct blitset* bset) {
 static inline int
 encoding_x_scale(const tinfo* tcache, const struct blitset* bset) {
   if(bset->geom == NCBLIT_PIXEL){
-    return tcache->cellpixx;
+    return tcache->cellpxx;
   }
   return bset->width;
 }

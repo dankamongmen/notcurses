@@ -141,22 +141,27 @@ ncvisual_origin(const struct ncvisual_options* vopts, unsigned* restrict begy,
 // included within |disppixx| nor |disppixy|, but count towards |outx| and
 // |outy|. these last two are furthermore clamped to sixel maxima, and |outy|
 // accounts for sixels being a multiple of six pixels tall.
+//
+// cellpxy/cellpxx and dimy/dimx ought describe the cell-pixel and cell
+// geometry of the target pile or, in Direct Mode, the tcache.
 static void
-shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
+shape_sprixel_plane(const tinfo* ti, unsigned cellpxy, unsigned cellpxx,
+                    unsigned dimy, unsigned dimx,
+                    ncplane* parent, const ncvisual* ncv,
                     ncscale_e scaling, unsigned* disppixy, unsigned* disppixx,
                     uint64_t flags, unsigned* outy, unsigned* outx,
                     int* placey, int* placex, int pxoffy, int pxoffx){
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
     // disppixy/disppix are treated initially as cells
     if(parent == NULL){
-      *disppixy = ti->dimy;
-      *disppixx = ti->dimx;
+      *disppixy = dimy;
+      *disppixx = dimx;
     }else{
       ncplane_dim_yx(parent, disppixy, disppixx);
     }
     // FIXME why do we clamp only vertical, not horizontal, here?
-    if(*placey + *disppixy >= ti->dimy){
-      *disppixy = ti->dimy - *placey;
+    if(*placey + *disppixy >= dimy){
+      *disppixy = dimy - *placey;
     }
     if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
       *disppixy -= *placey;
@@ -164,8 +169,8 @@ shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
     if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
       *disppixx -= *placex;
     }
-    *disppixx *= ti->cellpixx;
-    *disppixy *= ti->cellpixy;
+    *disppixx *= cellpxx;
+    *disppixy *= cellpxy;
     *disppixx += pxoffx;
     *disppixy += pxoffy;
     *outx = *disppixx;
@@ -187,10 +192,16 @@ shape_sprixel_plane(const tinfo* ti, ncplane* parent, const ncvisual* ncv,
   *disppixx -= pxoffx;
 }
 
-// in addition to the geom fields, we pass out:
+// in addition to the fields in 'geom', we pass out:
 //  * 'disppixx'/'disppixy': scaled output size in pixels
 //  * 'outy'/'outx': true output size in pixels (ie post-sixel clamping)
 //  * 'placey'/'placex': offset at which to draw
+//  * 'bset': blitter that will be used
+// we take in:
+//  * 'p': target pile (for cell-pixel and cell geometry)
+//  * 'ti': used if p is NULL (direct mode only!)
+//  * 'n': input ncvisual
+//  * 'vopts': requested ncvisual_options
 int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
                         const struct ncvisual_options* vopts, ncvgeom* geom,
                         const struct blitset** bset,
@@ -230,7 +241,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->pixy = n->pixy;
     geom->pixx = n->pixx;
   }
-  // when nc is NULL, we only report properties intrinsic to the ncvisual,
+  // when ti is NULL, we only report properties intrinsic to the ncvisual,
   // i.e. only its original pixel geometry.
   if(ti == NULL){
     return 0;
@@ -241,8 +252,9 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     logerror("couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
-  geom->cdimy = ti->cellpixy;
-  geom->cdimx = ti->cellpixx;
+  const ncpile* p = vopts->n ? ncplane_pile_const(vopts->n) : NULL;
+  geom->cdimy = p ? p->cellpxy : ti->cellpxy;
+  geom->cdimx = p ? p->cellpxx : ti->cellpxx;
   if((geom->blitter = (*bset)->geom) == NCBLIT_PIXEL){
     geom->maxpixely = ti->sixel_maxy;
     geom->maxpixelx = ti->sixel_maxx;
@@ -301,41 +313,44 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         logerror("non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
-      if(vopts->pxoffy >= ti->cellpixy){
-        logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, ti->cellpixy);
+      if(vopts->pxoffy >= geom->cdimy){
+        logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, geom->cdimy);
         return -1;
       }
-      if(vopts->pxoffx >= ti->cellpixx){
-        logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, ti->cellpixx);
+      if(vopts->pxoffx >= geom->cdimx){
+        logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, geom->cdimx);
         return -1;
       }
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         // FIXME clamp to sprixel limits
-        unsigned rows = ((geom->leny + ti->cellpixy - 1) / ti->cellpixy) + !!vopts->pxoffy;
+        unsigned rows = ((geom->leny + geom->cdimy - 1) / geom->cdimy) + !!vopts->pxoffy;
         if(rows > ncplane_dim_y(vopts->n)){
           logerror("sprixel too tall %d for plane %d\n", geom->leny + vopts->pxoffy,
-                   ncplane_dim_y(vopts->n) * ti->cellpixy);
+                   ncplane_dim_y(vopts->n) * geom->cdimy);
           return -1;
         }
-        unsigned cols = ((geom->lenx + ti->cellpixx - 1) / ti->cellpixx) + !!vopts->pxoffx;
+        unsigned cols = ((geom->lenx + geom->cdimx - 1) / geom->cdimx) + !!vopts->pxoffx;
         if(cols > ncplane_dim_x(vopts->n)){
           logerror("sprixel too wide %d for plane %d\n", geom->lenx + vopts->pxoffx,
-                   ncplane_dim_x(vopts->n) * ti->cellpixx);
+                   ncplane_dim_x(vopts->n) * geom->cdimx);
           return -1;
         }
       }
     }
     if(vopts->n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
       // we'll need to create the plane
-      shape_sprixel_plane(ti, vopts->n, n, scaling, disppixy, disppixx,
+      const int dimy = p ? p->dimy : ti->dimy;
+      const int dimx = p ? p->dimx : ti->dimx;
+      shape_sprixel_plane(ti, geom->cdimy, geom->cdimx, dimy, dimx,
+                          vopts->n, n, scaling, disppixy, disppixx,
                           vopts->flags, outy, outx, placey, placex,
                           vopts->pxoffy, vopts->pxoffx);
     }else{
       if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
         ncplane_dim_yx(vopts->n, disppixy, disppixx);
-        *disppixx *= ti->cellpixx;
+        *disppixx *= geom->cdimx;
         *disppixx += vopts->pxoffx;
-        *disppixy *= ti->cellpixy;
+        *disppixy *= geom->cdimy;
         *disppixy += vopts->pxoffy;
         clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
         int absplacex = 0, absplacey = 0;
@@ -345,8 +360,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         if(!(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
           absplacey = *placey;
         }
-        *disppixx -= absplacex * ti->cellpixx;
-        *disppixy -= absplacey * ti->cellpixy;
+        *disppixx -= absplacex * geom->cdimx;
+        *disppixy -= absplacey * geom->cdimy;
       }else{
         *disppixx = geom->lenx + vopts->pxoffx;
         *disppixy = geom->leny + vopts->pxoffy;
@@ -358,7 +373,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       }
       clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
       // FIXME use a closed form
-      while((*outy + ti->cellpixy - 1) / ti->cellpixy > (unsigned)ncplane_dim_y(vopts->n)){
+      while((*outy + geom->cdimy - 1) / geom->cdimy > ncplane_dim_y(vopts->n)){
         *outy -= ti->sprixel_scale_height;
         *disppixy = *outy;
       }
@@ -366,11 +381,11 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       *disppixx -= vopts->pxoffx;
       *disppixy -= vopts->pxoffy;
     }
-    logdebug("pblit: %dx%d ← %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, ti->cellpixx);
+    logdebug("pblit: %dx%d ← %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, geom->cdimx);
     geom->rpixy = *disppixy;
     geom->rpixx = *disppixx;
-    geom->rcellx = *outx / ti->cellpixx + !!(*outx % ti->cellpixx);
-    geom->rcelly = *outy / ti->cellpixy + !!(*outy % ti->cellpixy);
+    geom->rcellx = *outx / geom->cdimx + !!(*outx % geom->cdimx);
+    geom->rcelly = *outy / geom->cdimy + !!(*outy % geom->cdimy);
   }else{ // cellblit
     if(vopts->pxoffx || vopts->pxoffy){
       logerror("pixel offsets cannot be used with cell blitting\n");
@@ -1009,8 +1024,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.colorregs = ti->color_registers;
   bargs.u.pixel.pxoffy = pxoffy;
   bargs.u.pixel.pxoffx = pxoffx;
+  bargs.u.pixel.cellpxy = geom->cdimy;
+  bargs.u.pixel.cellpxx = geom->cdimx;
+  const ncpile* p = ncplane_pile_const(n);
   if(n->sprite == NULL){
-    if((n->sprite = sprixel_alloc(&nc->tcache, n, geom->rcelly, geom->rcellx)) == NULL){
+    if((n->sprite = sprixel_alloc(n, geom->rcelly, geom->rcellx)) == NULL){
       return NULL;
     }
     if((n->tam = create_tam(geom->rcelly, geom->rcellx)) == NULL){
@@ -1036,9 +1054,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   // zeroed out, thus neither of these will have any effect.
   if(flags & NCVISUAL_OPTION_HORALIGNED){
     if(placex == NCALIGN_CENTER){
-      placex = (ncplane_dim_x(ncplane_parent_const(n)) * ti->cellpixx - geom->rpixx) / 2 / ti->cellpixx;
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * p->cellpxx - geom->rpixx) / 2 / p->cellpxx;
     }else if(placex == NCALIGN_RIGHT){
-      placex = (ncplane_dim_x(ncplane_parent_const(n)) * ti->cellpixx - geom->rpixx) / ti->cellpixx;
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * p->cellpxx - geom->rpixx) / p->cellpxx;
     }
     if(placex < 0){
       return NULL;
@@ -1046,9 +1064,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   if(flags & NCVISUAL_OPTION_VERALIGNED){
     if(placey == NCALIGN_CENTER){
-      placey = (ncplane_dim_y(ncplane_parent_const(n)) * ti->cellpixy - geom->rpixy) / 2 / ti->cellpixy;
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * p->cellpxy - geom->rpixy) / 2 / p->cellpxy;
     }else if(placey == NCALIGN_BOTTOM){
-      placey = (ncplane_dim_y(ncplane_parent_const(n)) * ti->cellpixy - geom->rpixy) / ti->cellpixy;
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * p->cellpxy - geom->rpixy) / p->cellpxy;
     }
     if(placey < 0){
       return NULL;

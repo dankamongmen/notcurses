@@ -1078,8 +1078,8 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->pixx = iresp->pixx;
     }
     if(ti->default_rows && ti->default_cols){
-      ti->cellpixy = ti->pixy / ti->default_rows;
-      ti->cellpixx = ti->pixx / ti->default_cols;
+      ti->cellpxy = ti->pixy / ti->default_rows;
+      ti->cellpxx = ti->pixx / ti->default_cols;
     }
     if(iresp->got_bg){
       // reset the 0xfe000000 we loaded during initialization. if we're

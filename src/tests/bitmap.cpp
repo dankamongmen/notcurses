@@ -14,8 +14,8 @@ TEST_CASE("Bitmaps") {
   }
 
   SUBCASE("SprixelTermValues") {
-    CHECK(0 < nc_->tcache.cellpixy);
-    CHECK(0 < nc_->tcache.cellpixx);
+    CHECK(0 < nc_->tcache.cellpxy);
+    CHECK(0 < nc_->tcache.cellpxx);
     if(!nc_->tcache.pixel_draw_late){
       CHECK(nc_->tcache.pixel_draw);
     }
@@ -66,8 +66,8 @@ TEST_CASE("Bitmaps") {
 
   // a sprixel requires a plane large enough to hold it
   SUBCASE("SprixelTooTall") {
-    auto y = nc_->tcache.cellpixy + 6;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy + 6;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -89,8 +89,8 @@ TEST_CASE("Bitmaps") {
   }
 
   SUBCASE("SprixelTooWide") {
-    auto y = nc_->tcache.cellpixy;
-    auto x = nc_->tcache.cellpixx + 1;
+    auto y = nc_->tcache.cellpxy;
+    auto x = nc_->tcache.cellpxx + 1;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -114,8 +114,8 @@ TEST_CASE("Bitmaps") {
 
   // should not be able to emit glyphs to a sprixelated plane
   SUBCASE("SprixelNoGlyphs") {
-    auto y = nc_->tcache.cellpixy;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -139,8 +139,8 @@ TEST_CASE("Bitmaps") {
   }
 
   SUBCASE("BitmapStack") {
-    auto y = nc_->tcache.cellpixy * 10;
-    auto x = nc_->tcache.cellpixx * 10;
+    auto y = nc_->tcache.cellpxy * 10;
+    auto x = nc_->tcache.cellpxx * 10;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -152,8 +152,8 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != botn);
     // should just have a red plane
     CHECK(0 == notcurses_render(nc_));
-    y = nc_->tcache.cellpixy * 5;
-    x = nc_->tcache.cellpixx * 5;
+    y = nc_->tcache.cellpxy * 5;
+    x = nc_->tcache.cellpxx * 5;
     std::vector<uint32_t> v2(x * y, htole(0x8142f1ff));
     auto ncv2 = ncvisual_from_rgba(v2.data(), y, sizeof(decltype(v2)::value_type) * x, x);
     REQUIRE(nullptr != ncv2);
@@ -198,8 +198,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("BitmapStretch") {
     // first, assemble a visual equivalent to 1 cell
-    auto y = nc_->tcache.cellpixy;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -211,8 +211,8 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
-    CHECK(nc_->tcache.cellpixy == ncv->pixy);
-    CHECK(nc_->tcache.cellpixx == ncv->pixx);
+    CHECK(nc_->tcache.cellpxy == ncv->pixy);
+    CHECK(nc_->tcache.cellpxx == ncv->pixx);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
       .y = 1,
@@ -232,8 +232,8 @@ TEST_CASE("Bitmaps") {
     CHECK(vopts.n == ncvisual_blit(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
-    CHECK(4 * nc_->tcache.cellpixy == ncv->pixy);
-    CHECK(4 * nc_->tcache.cellpixx == ncv->pixx);
+    CHECK(4 * nc_->tcache.cellpxy == ncv->pixy);
+    CHECK(4 * nc_->tcache.cellpxx == ncv->pixx);
     vopts.y = 1;
     vopts.x = 6;
     vopts.n = n_;
@@ -242,7 +242,7 @@ TEST_CASE("Bitmaps") {
     auto infn = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(infn);
     if(nc_->tcache.sprixel_scale_height == 6){
-      if(4 * nc_->tcache.cellpixy % 6){
+      if(4 * nc_->tcache.cellpxy % 6){
         CHECK(5 == ncplane_dim_y(infn));
       }else{
         CHECK(4 == ncplane_dim_y(infn));
@@ -259,8 +259,8 @@ TEST_CASE("Bitmaps") {
     vopts.x = 11;
     auto resizen = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(resizen);
-    CHECK((8 + nc_->tcache.cellpixy - 1) / nc_->tcache.cellpixy == ncplane_dim_y(resizen));
-    CHECK((8 + nc_->tcache.cellpixx - 1) / nc_->tcache.cellpixx == ncplane_dim_x(resizen));
+    CHECK((8 + nc_->tcache.cellpxy - 1) / nc_->tcache.cellpxy == ncplane_dim_y(resizen));
+    CHECK((8 + nc_->tcache.cellpxx - 1) / nc_->tcache.cellpxx == ncplane_dim_x(resizen));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(bigp));
     CHECK(0 == ncplane_destroy(resizen));
@@ -274,8 +274,8 @@ TEST_CASE("Bitmaps") {
   // resulting geometries for (rough) equality
   SUBCASE("InflateVsScale") {
     // first, assemble a visual equivalent to 1 cell
-    auto y = nc_->tcache.cellpixy;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xff7799dd));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -355,8 +355,8 @@ TEST_CASE("Bitmaps") {
       .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto y = nc_->tcache.cellpixy * 6;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy * 6;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -399,8 +399,8 @@ TEST_CASE("Bitmaps") {
       .transcolor = 0,
       .pxoffy = 0, .pxoffx = 0,
     };
-    auto y = nc_->tcache.cellpixy * 6;
-    auto x = nc_->tcache.cellpixx;
+    auto y = nc_->tcache.cellpxy * 6;
+    auto x = nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -417,8 +417,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("PixelCellWipe") {
     // first, assemble a visual equivalent to 4 cells
-    auto y = 2 * nc_->tcache.cellpixy;
-    auto x = 2 * nc_->tcache.cellpixx;
+    auto y = 2 * nc_->tcache.cellpxy;
+    auto x = 2 * nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -446,8 +446,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("PixelCellWipePolychromatic") {
     // first, assemble a visual equivalent to 4 cells
-    auto y = 2 * nc_->tcache.cellpixy;
-    auto x = 2 * nc_->tcache.cellpixx;
+    auto y = 2 * nc_->tcache.cellpxy;
+    auto x = 2 * nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
       e -= htole(rand() % 0x1000000);
@@ -478,8 +478,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("PixelBigCellWipePolychromatic") {
     // first, assemble a visual equivalent to 100 cells
-    auto y = 10 * nc_->tcache.cellpixy;
-    auto x = 10 * nc_->tcache.cellpixx;
+    auto y = 10 * nc_->tcache.cellpxy;
+    auto x = 10 * nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
       e -= htole(rand() % 0x1000000);
@@ -513,14 +513,14 @@ TEST_CASE("Bitmaps") {
     // first, assemble a visual equivalent to 54 cells
     auto dimy = 6;
     auto dimx = 9;
-    auto y = dimy * nc_->tcache.cellpixy;
-    auto x = dimx * nc_->tcache.cellpixx;
+    auto y = dimy * nc_->tcache.cellpxy;
+    auto x = dimx * nc_->tcache.cellpxx;
     std::vector<uint32_t> v(x * y, htole(0xffffffff));
     // every other cell, set some pixels transparent
     for(int i = 0 ; i < dimy * dimx ; ++i){
       if(i % 2){
-        int py = (i / dimx) * nc_->tcache.cellpixy;
-        int px = (i % dimx) * nc_->tcache.cellpixx;
+        int py = (i / dimx) * nc_->tcache.cellpxy;
+        int px = (i % dimx) * nc_->tcache.cellpxx;
         ncpixel_set_a(&v[py * x + px], 0);
       }
     }
@@ -540,8 +540,8 @@ TEST_CASE("Bitmaps") {
     CHECK(s->dimx == dimx);
     const auto tam = n->tam;
     for(unsigned i = 0 ; i < s->dimy * s->dimx ; ++i){
-      int py = (i / dimx) * nc_->tcache.cellpixy;
-      int px = (i % dimx) * nc_->tcache.cellpixx;
+      int py = (i / dimx) * nc_->tcache.cellpxy;
+      int px = (i % dimx) * nc_->tcache.cellpxx;
       // cells with a transparent pixel ought be SPRIXCELL_MIXED;
       // cells without one ought be SPRIXCELL_OPAQUE.
       sprixcell_e state = tam[(i / dimx) + (i % dimx)].state;
@@ -613,8 +613,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("BitmapMoveOffscreenLeft") {
     // first, assemble a visual equivalent to 2x2 cells
-    auto y = nc_->tcache.cellpixy * 2;
-    auto x = nc_->tcache.cellpixx * 2;
+    auto y = nc_->tcache.cellpxy * 2;
+    auto x = nc_->tcache.cellpxx * 2;
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -634,8 +634,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("BitmapMoveOffscreenRight") {
     // first, assemble a visual equivalent to 2x2 cells
-    auto y = nc_->tcache.cellpixy * 2;
-    auto x = nc_->tcache.cellpixx * 2;
+    auto y = nc_->tcache.cellpxy * 2;
+    auto x = nc_->tcache.cellpxx * 2;
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -656,8 +656,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("BitmapMoveOffscreenDown") {
     // first, assemble a visual equivalent to 2x2 cells
-    auto y = nc_->tcache.cellpixy * 2;
-    auto x = nc_->tcache.cellpixx * 2;
+    auto y = nc_->tcache.cellpxy * 2;
+    auto x = nc_->tcache.cellpxx * 2;
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -677,8 +677,8 @@ TEST_CASE("Bitmaps") {
 
   SUBCASE("BitmapMoveOffscreenUp") {
     // first, assemble a visual equivalent to 2x2 cells
-    auto y = nc_->tcache.cellpixy * 2;
-    auto x = nc_->tcache.cellpixx * 2;
+    auto y = nc_->tcache.cellpxy * 2;
+    auto x = nc_->tcache.cellpxx * 2;
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -700,8 +700,8 @@ TEST_CASE("Bitmaps") {
   // smoothly move a bitmap diagonally across the screen
   SUBCASE("BitmapSmoothMove") {
     // first, assemble a visual equivalent to 2x2 cells
-    auto y = nc_->tcache.cellpixy * 2;
-    auto x = nc_->tcache.cellpixx * 2;
+    auto y = nc_->tcache.cellpxy * 2;
+    auto x = nc_->tcache.cellpxx * 2;
     std::vector<uint32_t> v(x * y * 4, htole(0xffccccff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -711,15 +711,15 @@ TEST_CASE("Bitmaps") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
     auto n = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
-    auto xpx = (ncplane_dim_x(n_) - 2) * nc_->tcache.cellpixx;
-    auto ypx = (ncplane_dim_y(n_) - 2) * nc_->tcache.cellpixy;
+    auto xpx = (ncplane_dim_x(n_) - 2) * nc_->tcache.cellpxx;
+    auto ypx = (ncplane_dim_y(n_) - 2) * nc_->tcache.cellpxy;
     double xyrat = (double)ypx / xpx;
     for(unsigned xat = 0 ; xat < xpx ; ++xat){
-      vopts.x = xat / nc_->tcache.cellpixx;
-      vopts.pxoffx = xat % nc_->tcache.cellpixx;
+      vopts.x = xat / nc_->tcache.cellpxx;
+      vopts.pxoffx = xat % nc_->tcache.cellpxx;
       int yat = xat * xyrat;
-      vopts.y = yat / nc_->tcache.cellpixy;
-      vopts.pxoffy = yat % nc_->tcache.cellpixy;
+      vopts.y = yat / nc_->tcache.cellpxy;
+      vopts.pxoffy = yat % nc_->tcache.cellpxy;
       CHECK(0 == ncplane_destroy(n));
       n = ncvisual_blit(nc_, ncv, &vopts);
       REQUIRE(nullptr != n);

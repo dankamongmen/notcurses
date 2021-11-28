@@ -143,7 +143,6 @@ typedef struct sprixel {
   struct sprixel* prev;
   unsigned dimy, dimx;  // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
-  int cellpxy, cellpxx; // cell-pixel geometry at time of creation
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
   int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
@@ -196,8 +195,8 @@ int kitty_remove(int id, fbuf* f);
 int kitty_clear_all(fbuf* f);
 int sixel_init(int fd);
 int sixel_init_inverted(int fd);
-uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
-uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
+uint8_t* sixel_trans_auxvec(const struct ncpile* p);
+uint8_t* kitty_trans_auxvec(const struct ncpile* p);
 int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);

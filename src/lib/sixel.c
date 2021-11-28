@@ -27,7 +27,7 @@ sixelcount(int dimy, int dimx){
 // bytes, saving 7/8 of the space FIXME).
 static inline uint8_t*
 sixel_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
+  int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
   uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
   if(ret){
     memset(ret, 0, sizeof(*ret) * pixels);
@@ -229,15 +229,17 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(auxvec == NULL){
     return -1;
   }
-  memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  memset(auxvec + cellpxx * cellpxy, 0xff, cellpxx * cellpxy);
   sixelmap* smap = s->smap;
-  const int startx = xcell * s->cellpxx;
-  const int starty = ycell * s->cellpxy;
-  int endx = ((xcell + 1) * s->cellpxx) - 1;
+  const int startx = xcell * cellpxx;
+  const int starty = ycell * cellpxy;
+  int endx = ((xcell + 1) * cellpxx) - 1;
   if(endx >= s->pixx){
     endx = s->pixx - 1;
   }
-  int endy = ((ycell + 1) * s->cellpxy) - 1;
+  int endy = ((ycell + 1) * cellpxy) - 1;
   if(endy >= s->pixy){
     endy = s->pixy - 1;
   }
@@ -248,7 +250,7 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   int w = 0;
   for(int c = 0 ; c < smap->colors ; ++c){
     w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
-                    s->pixx, s->cellpxy, s->cellpxx, auxvec);
+                    s->pixx, cellpxy, cellpxx, auxvec);
   }
   if(w){
     s->wipes_outstanding = true;
@@ -429,8 +431,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int begx = bargs->begx;
   const int begy = bargs->begy;
   sprixel* s = bargs->u.pixel.spx;
-  const int cdimy = s->cellpxy;
-  const int cdimx = s->cellpxx;
+  const int cdimy = ncplane_pile(s->n)->cellpxy;
+  const int cdimx = ncplane_pile(s->n)->cellpxx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
@@ -876,11 +878,14 @@ sixel_reblit(sprixel* s){
 // scaled geometry in pixels. We calculate output geometry herein, and supply
 // transparent filler input for any missing rows.
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
+sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs, tament* tam){
   fbuf f;
   if(fbuf_init(&f)){
     return -1;
   }
+  sprixel* s = bargs->u.pixel.spx;
+  const int cellpxy = bargs->u.pixel.cellpxy;
+  const int cellpxx = bargs->u.pixel.cellpxx;
   int parse_start = 0;
   int outy = leny;
   if(leny % 6){
@@ -892,7 +897,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
     fbuf_free(&f);
     return -1;
   }
-  scrub_tam_boundaries(tam, outy, lenx, s->cellpxy, s->cellpxx);
+  scrub_tam_boundaries(tam, outy, lenx, cellpxy, cellpxx);
   // take ownership of buf on success
   if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
     fbuf_free(&f);
@@ -945,7 +950,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   // takes ownership of sixelmap on success
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs->u.pixel.spx, n->tam);
+  int r = sixel_blit_inner(leny, lenx, &stable, bargs, n->tam);
   if(r < 0){
     sixelmap_free(stable.map);
   }
@@ -1063,13 +1068,15 @@ int sixel_init_inverted(int fd){
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   s->wipes_outstanding = true;
   sixelmap* smap = s->smap;
-  const int startx = xcell * s->cellpxx;
-  const int starty = ycell * s->cellpxy;
-  int endx = ((xcell + 1) * s->cellpxx) - 1;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int startx = xcell * cellpxx;
+  const int starty = ycell * cellpxy;
+  int endx = ((xcell + 1) * cellpxx) - 1;
   if(endx > s->pixx){
     endx = s->pixx;
   }
-  int endy = ((ycell + 1) * s->cellpxy) - 1;
+  int endy = ((ycell + 1) * cellpxy) - 1;
   if(endy > s->pixy){
     endy = s->pixy;
   }
@@ -1077,8 +1084,8 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 //fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
   for(int x = startx ; x <= endx ; ++x){
     for(int y = starty ; y <= endy ; ++y){
-      int auxvecidx = (y - starty) * s->cellpxx + (x - startx);
-      int trans = auxvec[s->cellpxx * s->cellpxy + auxvecidx];
+      int auxvecidx = (y - starty) * cellpxx + (x - startx);
+      int trans = auxvec[cellpxx * cellpxy + auxvecidx];
       if(!trans){
         int color = auxvec[auxvecidx];
         int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
@@ -1094,7 +1101,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     }
   }
   sprixcell_e newstate;
-  if(transparent == s->cellpxx * s->cellpxy){
+  if(transparent == cellpxx * cellpxy){
     newstate = SPRIXCELL_TRANSPARENT;
   }else if(transparent){
     newstate = SPRIXCELL_MIXED_SIXEL;
@@ -1111,8 +1118,8 @@ int sixel_shutdown(fbuf* f){
   return 0;
 }
 
-uint8_t* sixel_trans_auxvec(const tinfo* ti){
-  const size_t slen = 2 * ti->cellpixy * ti->cellpixx;
+uint8_t* sixel_trans_auxvec(const ncpile* p){
+  const size_t slen = 2 * p->cellpxy * p->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);
