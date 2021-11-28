@@ -164,8 +164,8 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   logdebug("id %" PRIu32 " dest %d/%d\n", s->id, y, x);
   int wrote = 0;
-  const int cellpxy = ncplane_pile(s->n)->cellpxy;
-  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  const int cellpxy = ncplane_pile(s->n) ? ncplane_pile(s->n)->cellpxy : ti->cellpxy;
+  const int cellpxx = ncplane_pile(s->n) ? ncplane_pile(s->n)->cellpxx : ti->cellpxx;
   for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * cellpxy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y * cellpxy) * ti->pixx + x * cellpxx) * 4;
