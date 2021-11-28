@@ -175,6 +175,7 @@ xray_thread(void *vmarsh){
 }
 
 int xray_demo(struct notcurses* nc){
+  uint64_t curns = clock_getns(CLOCK_MONOTONIC);
   if(!notcurses_canopen_videos(nc)){
     return 0;
   }
@@ -201,7 +202,6 @@ int xray_demo(struct notcurses* nc){
   pthread_t tid1, tid2;
   int last_frame = 0;
   struct ncplane* kplane = NULL; // to kill
-  uint64_t curns = clock_getns(CLOCK_MONOTONIC);
   struct marsh m1 = {
     .slider = slider,
     .nc = nc,
