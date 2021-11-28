@@ -73,9 +73,10 @@ struct marsh {
   struct ncplane* slider;   // text plane at top, sliding to the left
   float dm;                 // delay multiplier
   int next_frame;
-  struct ncplane** lplane;  // plane to destroy
   uint64_t startns;         // when we started (CLOCK_MONOTONIC) for frame dropping
-  int* frame_to_render;     // protected by renderlock
+  int* frame_to_render;     // shared; protected by renderlock
+  int* dropped;             // shared; protected by renderlock
+  struct ncplane** lplane;  // shared; plane to destroy, renderlocked
 };
 
 // make a plane on a new pile suitable for rendering a frame of the video
@@ -130,6 +131,7 @@ get_next_frame(struct marsh* m, struct ncvisual_options* vopts){
 static void*
 xray_thread(void *vmarsh){
   struct marsh* m = vmarsh;
+  struct ncplane* stdn = notcurses_stdplane(m->nc);
   int frame = -1;
   struct ncvisual_options vopts = {
     .x = NCALIGN_CENTER,
@@ -166,6 +168,17 @@ xray_thread(void *vmarsh){
         ncplane_move_top(vopts.n);
         ncplane_destroy(*m->lplane);
         *m->lplane = vopts.n;
+      }else{
+        ncplane_printf_aligned(stdn, 1 + ncplane_dim_y(m->slider),
+                               NCALIGN_RIGHT, "%d dropped frame%s",
+                               *m->dropped, *m->dropped == 0 ? "s 🤘" :
+                               *m->dropped == 1 ? "🤔" :
+                               *m->dropped < 10 ? "s 😕" :
+                               *m->dropped < 100 ? "s 😞" :
+                               *m->dropped < 250 ? "s 😟" :
+                               *m->dropped < 450 ? "s 😠" :
+                               *m->dropped < 700 ? "s 😡" : "s 🤬");
+        ++*m->dropped;
       }
       ret = demo_render(m->nc);
     }
@@ -200,9 +213,11 @@ int xray_demo(struct notcurses* nc, uint64_t startns){
   uint64_t stdc = 0;
   ncchannels_set_bg_rgb(&stdc, 0);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
+  ncplane_set_bg_rgb(notcurses_stdplane(nc), 0);
   // returns non-zero if the selected blitter isn't available
   pthread_t tid1, tid2;
   int last_frame = 0;
+  int dropped = 0;
   struct ncplane* kplane = NULL; // to kill
   struct marsh m1 = {
     .slider = slider,
@@ -213,6 +228,7 @@ int xray_demo(struct notcurses* nc, uint64_t startns){
     .ncv = ncv1,
     .startns = startns,
     .lplane = &kplane,
+    .dropped = &dropped,
   };
   struct marsh m2 = {
     .slider = slider,
@@ -223,6 +239,7 @@ int xray_demo(struct notcurses* nc, uint64_t startns){
     .ncv = ncv2,
     .startns = startns,
     .lplane = &kplane,
+    .dropped = &dropped,
   };
   int ret = -1;
   if(pthread_create(&tid1, NULL, xray_thread, &m1)){
