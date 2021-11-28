@@ -73,7 +73,7 @@ int jungle_demo(struct notcurses* nc){
 // be disabled) or a non-multimedia build (all images/videos must be disabled).
 static struct {
   const char* name;
-  int (*fxn)(struct notcurses*);
+  int (*fxn)(struct notcurses*, uint64_t startns);
   bool dfsg_disabled;             // disabled for DFSG builds
 } demos[26] = {
   { "animate", animate_demo, false, },
@@ -83,22 +83,22 @@ static struct {
   { "eagle", eagle_demo, true, },
   { "fission", fission_demo, false, },
   { "grid", grid_demo, false, },
-  { "highcon", highcontrast_demo, false, },
-  { "intro", intro, false, },
+  { "highcon", highcon_demo, false, },
+  { "intro", intro_demo, false, },
   { "jungle", jungle_demo, true, },
   { "keller", keller_demo, true, },
   { "luigi", luigi_demo, true, },
   { "mojibake", mojibake_demo, false, },
   { "normal", normal_demo, false, },
-  { "outro", outro, false, },
-  { NULL, NULL, false, }, // pango
+  { "outro", outro_demo, false, },
+  { NULL, NULL, false, }, // it's a secret to everyone
   { "qrcode", qrcode_demo, false, }, // is blank without USE_QRCODEGEN
   { "reel", reel_demo, false, },
-  { "sliders", sliding_puzzle_demo, false, },
+  { "sliders", sliders_demo, false, },
   { "trans", trans_demo, false, },
-  { "uniblock", unicodeblocks_demo, false, },
+  { "uniblock", uniblock_demo, false, },
   { "view", view_demo, true, },
-  { "whiteout", witherworm_demo, false, },
+  { "whiteout", whiteout_demo, false, },
   { "xray", xray_demo, false, },
   { "yield", yield_demo, false, },
   { "zoo", zoo_demo, false, },
@@ -219,7 +219,7 @@ ext_demos(struct notcurses* nc, const char* spec){
     ncplane_set_base(n, "", 0, stdc);
 
     hud_schedule(demos[idx].name, prevns);
-    ret = demos[idx].fxn(nc);
+    ret = demos[idx].fxn(nc, prevns);
     notcurses_stats_reset(nc, &results[i].stats);
     uint64_t nowns = clock_getns(CLOCK_MONOTONIC);
     results[i].timens = nowns - prevns;

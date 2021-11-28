@@ -60,7 +60,8 @@ generate_next_color(unsigned *total, unsigned *r, unsigned *g, unsigned *b,
   return ret;
 }
 
-int highcontrast_demo(struct notcurses* nc){
+int highcon_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   const int STEP = 16;
   int ret = -1;
   unsigned dimy, dimx;

@@ -26562,7 +26562,7 @@ cycle_palettes(struct notcurses* nc, ncpalette* p){
   return 0;
 }
 
-int jungle_demo(struct notcurses* nc){
+int jungle_demo(struct notcurses* nc, uint64_t startns){
   if(!notcurses_canchangecolor(nc)){
     return 0; // skip
   }
@@ -26571,8 +26571,7 @@ int jungle_demo(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
-  struct timespec start, now;
-  clock_gettime(CLOCK_MONOTONIC, &start);
+  struct timespec now;
   size_t have = 0, out = 0;
   ncpalette* pal;
   if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
@@ -26655,7 +26654,7 @@ int jungle_demo(struct notcurses* nc){
     }
     cycle_palettes(nc, pal);
     clock_gettime(CLOCK_MONOTONIC, &now);
-    nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
+    nsrunning = timespec_to_ns(&now) - startns;
   }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
   ncpalette_free(pal);
   return 0;

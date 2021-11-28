@@ -86,7 +86,8 @@ orcaride(struct notcurses* nc, struct ncplane* on, int iterations){
   return 0;
 }
 
-int intro(struct notcurses* nc){
+int intro_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canutf8(nc)){
     return 0;
   }

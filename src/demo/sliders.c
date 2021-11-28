@@ -41,14 +41,12 @@ move_square(struct notcurses* nc, struct ncplane* chunk, int* holey, int* holex,
 
 // we take demodelay * 5 to play MOVES moves
 static int
-play(struct notcurses* nc, struct ncplane** chunks){
+play(struct notcurses* nc, struct ncplane** chunks, uint64_t startns){
   const uint64_t delayns = timespec_to_ns(&demodelay);
   const int chunkcount = CHUNKS_VERT * CHUNKS_HORZ;
-  struct timespec cur;
-  clock_gettime(CLOCK_MONOTONIC, &cur);
   // we don't want to spend more than demodelay * 5
   const uint64_t totalns = delayns * 5;
-  const uint64_t deadline_ns = timespec_to_ns(&cur) + totalns;
+  const uint64_t deadline_ns = startns + totalns;
   const uint64_t movens = totalns / MOVES;
   int hole = rand() % chunkcount;
   int holex, holey;
@@ -58,8 +56,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
   int m;
   int lastdir = -1;
   for(m = 0 ; m < MOVES ; ++m){
-    clock_gettime(CLOCK_MONOTONIC, &cur);
-    uint64_t now = cur.tv_sec * NANOSECS_IN_SEC + cur.tv_nsec;
+    uint64_t now = clock_getns(CLOCK_MONOTONIC);
     if(now >= deadline_ns){
       break;
     }
@@ -132,7 +129,7 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
 }
 
 // make a bunch of boxes with gradients and use them to play a sliding puzzle.
-int sliding_puzzle_demo(struct notcurses* nc){
+int sliders_demo(struct notcurses* nc, uint64_t startns){
   int ret = -1, z;
   unsigned maxx, maxy;
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
@@ -205,7 +202,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     chunks[i1] = t;
     DEMO_RENDER(nc);
   }
-  ret = play(nc, chunks);
+  ret = play(nc, chunks, startns);
 
 done:
   for(z = 0 ; z < chunkcount ; ++z){

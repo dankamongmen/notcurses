@@ -188,7 +188,7 @@ handle_input(struct notcurses* nc, const struct timespec* deadline,
 }
 
 static int
-ncreel_demo_core(struct notcurses* nc){
+ncreel_demo_core(struct notcurses* nc, uint64_t startns){
   tabletctx* tctxs = NULL;
   bool aborted = false;
   int x = 8, y = 4;
@@ -241,9 +241,7 @@ ncreel_demo_core(struct notcurses* nc){
   ncplane_off_styles(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   // FIXME clrtoeol();
   struct timespec deadline;
-  clock_gettime(CLOCK_MONOTONIC, &deadline);
-  ns_to_timespec((timespec_to_ns(&demodelay) * 5) + timespec_to_ns(&deadline),
-                 &deadline);
+  ns_to_timespec((timespec_to_ns(&demodelay) * 5) + startns, &deadline);
   unsigned id = 0;
   struct tabletctx* newtablet;
   // Make an initial number of tablets suitable for the screen's height
@@ -323,8 +321,8 @@ ncreel_demo_core(struct notcurses* nc){
   return aborted ? 1 : 0;
 }
 
-int reel_demo(struct notcurses* nc){
+int reel_demo(struct notcurses* nc, uint64_t startns){
   ncplane_greyscale(notcurses_stdplane(nc));
-  int ret = ncreel_demo_core(nc);
+  int ret = ncreel_demo_core(nc, startns);
   return ret;
 }

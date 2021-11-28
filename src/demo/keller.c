@@ -76,7 +76,8 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   return 0;
 }
 
-int keller_demo(struct notcurses* nc){
+int keller_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

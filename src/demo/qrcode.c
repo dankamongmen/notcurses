@@ -1,6 +1,7 @@
 #include "demo.h"
 
-int qrcode_demo(struct notcurses* nc){
+int qrcode_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canutf8(nc)){
     return 0;
   }

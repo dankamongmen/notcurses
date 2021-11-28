@@ -169,7 +169,8 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   return 0;
 }
 
-int view_demo(struct notcurses* nc){
+int view_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

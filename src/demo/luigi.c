@@ -141,7 +141,8 @@ draw_luigi(struct ncplane* n, const char* sprite){
   return 0;
 }
 
-int luigi_demo(struct notcurses* nc){
+int luigi_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

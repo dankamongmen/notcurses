@@ -216,7 +216,8 @@ eagles(struct notcurses* nc, struct ncplane* n){
 }
 
 // motherfucking eagles!
-int eagle_demo(struct notcurses* nc){
+int eagle_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   struct ncplane* zncp = NULL;
   int err;
   if(notcurses_canopen_images(nc)){
