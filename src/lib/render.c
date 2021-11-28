@@ -1415,7 +1415,6 @@ int clear_and_home(notcurses* nc, tinfo* ti, fbuf* f){
   return 0;
 }
 
-// FIXME need to work with the most recently-rendered pile, no?
 int notcurses_refresh(notcurses* nc, unsigned* restrict dimy, unsigned* restrict dimx){
   if(notcurses_resize(nc, dimy, dimx)){
     return -1;
