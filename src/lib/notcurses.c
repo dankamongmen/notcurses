@@ -249,6 +249,10 @@ void ncplane_dim_yx(const ncplane* n, unsigned* rows, unsigned* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
+// sets |cgeo_changed| high iff the cell geometry changed (will happen on a
+//  resize, and on a font resize if the pixel geometry does not change).
+// sets |pgeo_changed| high iff the cell-pixel geometry changed (will happen
+//  on a font resize).
 int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
                            int margin_b, unsigned* cgeo_changed, unsigned* pgeo_changed){
   *pgeo_changed = 0;

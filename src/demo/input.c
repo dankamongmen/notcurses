@@ -84,11 +84,7 @@ uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
     if(!menu_or_hud_key(nc, &q->ni)){
       if(nckey_mouse_p(q->ni.id)){
         if(!handle_mouse(&q->ni)){
-          if(id == 'L' && q->ni.ctrl){
-            notcurses_refresh(nc, NULL, NULL);
-          }else{
-            handoff = true;
-          }
+          handoff = true;
         }
       }else{
         if(id == 'L' && q->ni.ctrl){
