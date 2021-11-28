@@ -30,6 +30,7 @@ static sig_atomic_t resize_seen;
 void sigwinch_handler(int signo){
   if(signo == SIGWINCH){
     resize_seen = signo;
+    sigcont_seen_for_render = 1;
   }else if(signo == SIGCONT){
     cont_seen = signo;
     sigcont_seen_for_render = 1;
