@@ -439,6 +439,8 @@ If things break or seem otherwise lackluster, **please** consult the
   Yeah, the NCURSES Terminfo leaks memory unless compiled a special,
   non-standard way (see the NCURSES FAQ). It shouldn't be a substantial amount;
   you're advised not to worry overmuch about it.
+</details>
+
 <details>
   <summary>I ran <code>notcurses-demo</code>, but my table numbers don't match
   the Notcurses banner numbers, you charlatan.</summary>
