@@ -285,9 +285,13 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
   }
   *rows = ws.ws_row;
   *cols = ws.ws_col;
+  unsigned cpixy;
+  unsigned cpixx;
 #ifdef __linux__
   if(tcache->linux_fb_fd >= 0){
     get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
+    cpixy = tcache->pixy / *rows;
+    cpixx = tcache->pixx / *cols;
   }else{
 #else
   {
@@ -301,19 +305,19 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
     }
     // update even if we didn't get values just now, because we need set
     // cellpx{y,x} up from an initial CSI14n, which set only pix{y,x}.
-    unsigned cpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
-    unsigned cpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
-    if(tcache->cellpxy != cpixy){
-      tcache->cellpxy = cpixy;
-      *pgeo_changed = 1;
-    }
-    if(tcache->cellpxx != cpixx){
-      tcache->cellpxx = cpixx;
-      *pgeo_changed = 1;
-    }
-    if(tcache->cellpxy == 0 || tcache->cellpxx == 0){
-      tcache->pixel_draw = NULL; // disable support
-    }
+    cpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
+    cpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
+  }
+  if(tcache->cellpxy != cpixy){
+    tcache->cellpxy = cpixy;
+    *pgeo_changed = 1;
+  }
+  if(tcache->cellpxx != cpixx){
+    tcache->cellpxx = cpixx;
+    *pgeo_changed = 1;
+  }
+  if(tcache->cellpxy == 0 || tcache->cellpxx == 0){
+    tcache->pixel_draw = NULL; // disable support
   }
 #else
   CONSOLE_SCREEN_BUFFER_INFO csbi;
