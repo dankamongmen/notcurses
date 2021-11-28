@@ -222,8 +222,22 @@ int sprite_init(const tinfo* t, int fd){
   return t->pixel_init(fd);
 }
 
-int sprixel_rescale(sprixel* spx, unsigned ocellpixy, unsigned ocellpixx,
-                    unsigned ncellpixy, unsigned ncellpixx){
-  // FIXME
+int sprixel_rescale(sprixel* spx, unsigned ocellpxy, unsigned ocellpxx,
+                    unsigned ncellpxy, unsigned ncellpxx){
+  assert(spx->n);
+  if(ocellpxy == ncellpxy && ocellpxx == ncellpxx){ // no change
+    return 0;
+  }
+  // FIXME need adjust for sixel (scale_height)
+  int nrows = (spx->pixy + (ncellpxy - 1)) / ncellpxy;
+  int ncols = (spx->pixx + (ncellpxx - 1)) / ncellpxx;
+  tament* ntam = create_tam(nrows, ncols);
+  if(ntam == NULL){
+    return -1;
+  }
+  // FIXME rebuild all annihilated cells
+  // FIXME prepare new tam entries
+  destroy_tam(spx->n);
+  spx->n->tam = ntam;
   return 0;
 }
