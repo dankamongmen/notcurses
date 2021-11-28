@@ -150,7 +150,8 @@ offset(uint32_t* rgba, int y, int x, int dx){
 }
 
 // make a pixel array out from the center, blitting it as we go
-int normal_demo(struct notcurses* nc){
+int normal_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canutf8(nc)){
     return 0;
   }

@@ -47,7 +47,8 @@ dragonmayer(struct ncvisual* ncv, const char* str, int iters){
   return total;
 }
 
-int dragon_demo(struct notcurses* nc){
+int dragon_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   done = false;
   unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);

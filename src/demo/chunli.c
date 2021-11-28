@@ -47,7 +47,8 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
 }
 
 // test of sprites from files
-int chunli_demo(struct notcurses* nc){
+int chunli_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

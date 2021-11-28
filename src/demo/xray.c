@@ -174,8 +174,7 @@ xray_thread(void *vmarsh){
   return NULL;
 }
 
-int xray_demo(struct notcurses* nc){
-  uint64_t curns = clock_getns(CLOCK_MONOTONIC);
+int xray_demo(struct notcurses* nc, uint64_t startns){
   if(!notcurses_canopen_videos(nc)){
     return 0;
   }
@@ -209,7 +208,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv1,
-    .startns = curns,
+    .startns = startns,
     .lplane = &kplane,
   };
   struct marsh m2 = {
@@ -219,7 +218,7 @@ int xray_demo(struct notcurses* nc){
     .frame_to_render = &last_frame,
     .dm = notcurses_check_pixel_support(nc) ? 0 : 0.5 * delaymultiplier,
     .ncv = ncv2,
-    .startns = curns,
+    .startns = startns,
     .lplane = &kplane,
   };
   int ret = -1;

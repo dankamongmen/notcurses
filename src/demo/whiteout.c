@@ -261,7 +261,7 @@ dostring(struct ncplane* n, const char** s, uint32_t rgb,
 }
 
 // Much of this text comes from http://kermitproject.org/utf8.html
-int witherworm_demo(struct notcurses* nc){
+int whiteout_demo(struct notcurses* nc, uint64_t startns){
   static const char* strs[] = {
     "Война и мир",
     "Бра́тья Карама́зовы",
@@ -504,6 +504,7 @@ int witherworm_demo(struct notcurses* nc){
   bool initial_scroll = ncplane_scrolling_p(n);
   ncplane_set_scrolling(n, true);
   ncplane_erase(n);
+  (void)startns; // FIXME integrate
   for(i = 0 ; i < screens ; ++i){
     uint32_t key = NCKEY_INVALID;
     nccell c;

@@ -439,7 +439,8 @@ done:
 // a plane with exposition text rises from the bottom to the center of the
 // screen. as it does so, two widgets (selector and multiselector) come in
 // from the left and right, respectively. they then fade out.
-int zoo_demo(struct notcurses* nc){
+int zoo_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   struct ncplane* bgp;
   if(draw_background(nc, &bgp)){
     return -1;

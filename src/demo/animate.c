@@ -190,7 +190,8 @@ drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
 }
 
 static int
-animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
+animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right,
+        uint64_t expect_ns){
   unsigned dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   int headx = -1;
@@ -212,9 +213,6 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   phase_e headphase = PHASE_SPIRAL;
   phase_e endphase = PHASE_SPIRAL;
   int moves = 0;
-  struct timespec expected;
-  clock_gettime(CLOCK_MONOTONIC, &expected);
-  uint64_t expect_ns = timespec_to_ns(&expected);
   uint64_t channels = 0;
   int length = 1;
   do{
@@ -294,7 +292,7 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
   return 0;
 }
 
-int animate_demo(struct notcurses* nc){
+int animate_demo(struct notcurses* nc, uint64_t startns){
   if(!notcurses_canutf8(nc)){
     return 0;
   }
@@ -342,7 +340,7 @@ int animate_demo(struct notcurses* nc){
     return -1;
   }
   ncplane_destroy(column);
-  int r = animate(nc, pbarleft, pbarright);
+  int r = animate(nc, pbarleft, pbarright, startns);
   ncprogbar_destroy(pbarleft);
   ncprogbar_destroy(pbarright);
   return r;

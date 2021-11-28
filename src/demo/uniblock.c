@@ -119,7 +119,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   return 0;
 }
 
-int unicodeblocks_demo(struct notcurses* nc){
+int uniblock_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   unsigned maxx, maxy;
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   // some blocks are good for the printing, some less so. some are only

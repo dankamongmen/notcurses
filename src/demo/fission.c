@@ -102,7 +102,8 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
 }
 
 // you played yourself https://genius.com/De-la-soul-fallin-lyrics
-int fission_demo(struct notcurses* nc){
+int fission_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   struct ncplane* npl = NULL;
   unsigned dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);

@@ -141,7 +141,8 @@ yielder_thread(void* vmarsh){
   return NULL; // FIXME indicate failure/success
 }
 
-int yield_demo(struct notcurses* nc){
+int yield_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   if(!notcurses_canopen_images(nc)){
     return 0;
   }

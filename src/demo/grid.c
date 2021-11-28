@@ -245,7 +245,8 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
 }
 
 // red across, blue down, green from UL to LR
-int grid_demo(struct notcurses* nc){
+int grid_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   unsigned y, x;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);

@@ -162,7 +162,8 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
   return 0;
 }
 
-int box_demo(struct notcurses* nc){
+int box_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   unsigned ylen, xlen;
   struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);

@@ -184,7 +184,8 @@ outro_message(struct notcurses* nc, unsigned* rows, unsigned* cols){
   return non;
 }
 
-int outro(struct notcurses* nc){
+int outro_demo(struct notcurses* nc, uint64_t startns){
+  (void)startns;
   unsigned rows, cols;
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   ncplane_erase(ncp);
