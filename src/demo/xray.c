@@ -168,6 +168,7 @@ xray_thread(void *vmarsh){
         ncplane_move_top(vopts.n);
         ncplane_destroy(*m->lplane);
         *m->lplane = vopts.n;
+        ncplane_set_fg_rgb8_clipped(stdn, 32 + *m->dropped / 2, 0, 0x20);
         ncplane_printf_aligned(stdn, 1 + ncplane_dim_y(m->slider),
                                NCALIGN_RIGHT, "%d dropped frame%s",
                                *m->dropped, *m->dropped == 0 ? "s 🤘" :
