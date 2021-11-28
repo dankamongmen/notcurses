@@ -233,8 +233,8 @@ init_sprixel_animation(sprixel* s){
 // auxiliary vector back into the actual data. we then free the auxvector.
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   const int totalpixels = s->pixy * s->pixx;
-  const int xpixels = s->cellpxx;
-  const int ypixels = s->cellpxy;
+  const int xpixels = ncplane_pile(s->n)->cellpxx;
+  const int ypixels = ncplane_pile(s->n)->cellpxy;
   int targx = xpixels;
   if((xcell + 1) * xpixels > s->pixx){
     targx = s->pixx - xcell * xpixels;
@@ -308,8 +308,8 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 // wiping)?
 static inline unsigned
 kitty_anim_auxvec_blitsource_p(const sprixel* s, const uint8_t* auxvec){
-  const size_t offset = s->cellpxy * s->cellpxx * 4;
-  if(auxvec[offset]){
+  size_t off = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx * 4;
+  if(auxvec[off]){
     return 1;
   }
   return 0;
@@ -354,8 +354,8 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
   return a;
 }
 
-uint8_t* kitty_trans_auxvec(const tinfo* ti){
-  const size_t slen = ti->cellpixy * ti->cellpixx;
+uint8_t* kitty_trans_auxvec(const ncpile* p){
+  const size_t slen = p->cellpxy * p->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);
@@ -367,13 +367,14 @@ uint8_t* kitty_trans_auxvec(const tinfo* ti){
 // by the wipe proper, and when blitting a new frame with annihilations.
 static int
 kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
   if(fbuf_printf(f, "\x1b_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
-                 xcell * s->cellpxx, ycell * s->cellpxy,
-                 s->cellpxx, s->cellpxy, s->id) < 0){
+                 xcell * cellpxx, ycell * cellpxy, cellpxx, cellpxy, s->id) < 0){
     return -1;
   }
   // FIXME ought be smaller around the fringes!
-  int totalp = s->cellpxy * s->cellpxx;
+  int totalp = cellpxy * cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
   #define TRINULLALPHA "AAAAAAAAAAAAAAAA"
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
@@ -416,7 +417,7 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   }
   int tamidx = ycell * s->dimx + xcell;
   uint8_t* auxvec = s->n->tam[tamidx].auxvector;
-  auxvec[s->cellpxx * s->cellpxy * 4] = 0;
+  auxvec[ncplane_pile(s->n)->cellpxx * ncplane_pile(s->n)->cellpxy * 4] = 0;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -444,14 +445,14 @@ sprixel* kitty_recycle(ncplane* n){
   int dimy = hides->dimy;
   int dimx = hides->dimx;
   sprixel_hide(hides);
-  return sprixel_alloc(&ncplane_notcurses_const(n)->tcache, n, dimy, dimx);
+  return sprixel_alloc(n, dimy, dimx);
 }
 
 // for pre-animation kitty (NCPIXEL_KITTY_STATIC), we need a byte per pixel,
 // in which we stash the alpha.
 static inline uint8_t*
 kitty_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
+  int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
   uint8_t* ret = malloc(sizeof(*ret) * pixels);
   if(ret){
     memset(ret, 0, sizeof(*ret) * pixels);
@@ -466,8 +467,8 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
     return -1;
   }
   const int totalpixels = s->pixy * s->pixx;
-  const int xpixels = s->cellpxx;
-  const int ypixels = s->cellpxy;
+  const int xpixels = ncplane_pile(s->n)->cellpxx;
+  const int ypixels = ncplane_pile(s->n)->cellpxy;
   // if the cell is on the right or bottom borders, it might only be partially
   // filled by actual graphic data, and we need to cap our target area.
   int targx = xpixels;
@@ -515,7 +516,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "POSTCHOMP: [%.16s]\n", c + tripbytes);
       assert(chomped >= 0);
       auxvecidx += chomped;
-      assert(auxvecidx <= s->cellpxy * s->cellpxx);
+      assert(auxvecidx <= ypixels * xpixels);
       thisrow -= chomped;
 //fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       if(thisrow == 0){
@@ -746,8 +747,10 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   unsigned bufidx = 0; // an index; the actual offset is bufidx * 4
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   sprixel* s = bargs->u.pixel.spx;
-  const int cdimy = s->cellpxy;
-  const int cdimx = s->cellpxx;
+  const int cdimy = bargs->u.pixel.cellpxy;
+  const int cdimx = bargs->u.pixel.cellpxx;
+  assert(0 != cdimy);
+  assert(0 != cdimx);
   const uint32_t transcolor = bargs->transcolor;
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
@@ -847,7 +850,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
           }else if(level == NCPIXEL_KITTY_SELFREF){
             selfref_annihilated = true;
           }else{
-            ((uint8_t*)tam[tyx].auxvector)[s->cellpxx * s->cellpxy * 4] = 1;
+            ((uint8_t*)tam[tyx].auxvector)[cdimx * cdimy * 4] = 1;
             wipe[e] = 1;
           }
           if(rgba_trans_p(source[e], transcolor)){
@@ -938,14 +941,16 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   fbuf* f = &s->glyph;
-  const int ystart = ycell * s->cellpxy;
-  const int xstart = xcell * s->cellpxx;
-  const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
-  const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  const int ystart = ycell * cellpxy;
+  const int xstart = xcell * cellpxx;
+  const int xlen = xstart + cellpxx > s->pixx ? s->pixx - xstart : cellpxx;
+  const int ylen = ystart + cellpxy > s->pixy ? s->pixy - ystart : cellpxy;
   logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->id, ycell, xcell, ylen, xlen);
   fbuf_printf(f, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,c=2,q=2;\x1b\\",
-              xcell * s->cellpxx, ycell * s->cellpxy,
-              xcell * s->cellpxx, ycell * s->cellpxy,
+              xcell * cellpxx, ycell * cellpxy,
+              xcell * cellpxx, ycell * cellpxy,
               xlen, ylen, s->id);
   const int tyx = xcell + ycell * s->dimx;
   memcpy(&s->n->tam[tyx].state, auxvec, sizeof(s->n->tam[tyx].state));
@@ -959,10 +964,12 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   fbuf* f = &s->glyph;
-  const int ystart = ycell * s->cellpxy;
-  const int xstart = xcell * s->cellpxx;
-  const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
-  const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  const int ystart = ycell * cellpxy;
+  const int xstart = xcell * cellpxx;
+  const int xlen = xstart + cellpxx > s->pixx ? s->pixx - xstart : cellpxx;
+  const int ylen = ystart + cellpxy > s->pixy ? s->pixy - ystart : cellpxy;
   const int linesize = xlen * 4;
   const int total = xlen * ylen;
   const int tyx = xcell + ycell * s->dimx;
@@ -973,13 +980,13 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   // FIXME this ought be factored out and shared with write_kitty_data()
-  logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
+  logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * cellpxy, xcell * cellpxx);
   while(chunks--){
     if(totalout == 0){
       const int c = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 2 : 1;
       const int r = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 1 : 2;
       if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,c=%d,r=%d,%s;",
-                     xcell * s->cellpxx, ycell * s->cellpxy, xlen, ylen,
+                     xcell * cellpxx, ycell * cellpxy, xlen, ylen,
                      s->id, c, r, chunks ? "m=1" : "q=2") < 0){
         return -1;
       }
@@ -1023,13 +1030,13 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
         wipe[e] = 0;
         if(rgba_trans_p(source[e], 0)){
-          if(x % s->cellpxx == 0 && y % s->cellpxy == 0){
+          if(x % cellpxx == 0 && y % cellpxy == 0){
             s->n->tam[tyx].state = SPRIXCELL_TRANSPARENT;
           }else if(s->n->tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
             s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;
           }
         }else{
-          if(x % s->cellpxx == 0 && y % s->cellpxy == 0){
+          if(x % cellpxx == 0 && y % cellpxy == 0){
             s->n->tam[tyx].state = SPRIXCELL_OPAQUE_KITTY;
           }else if(s->n->tam[tyx].state == SPRIXCELL_TRANSPARENT){
             s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;

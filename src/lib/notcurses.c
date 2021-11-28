@@ -261,8 +261,8 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
     if(cols){
       *cols = tcache->default_cols;
     }
-    tcache->cellpixy = 0;
-    tcache->cellpixx = 0;
+    tcache->cellpxy = 0;
+    tcache->cellpxx = 0;
     return 0;
   }
   unsigned rowsafe, colsafe;
@@ -296,18 +296,18 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
       tcache->pixx = ws.ws_xpixel;
     }
     // update even if we didn't get values just now, because we need set
-    // cellpix{y,x} up from an initial CSI14n, which set only pix{y,x}.
+    // cellpx{y,x} up from an initial CSI14n, which set only pix{y,x}.
     unsigned cpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
     unsigned cpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
-    if(tcache->cellpixy != cpixy){
-      tcache->cellpixy = cpixy;
+    if(tcache->cellpxy != cpixy){
+      tcache->cellpxy = cpixy;
       *pgeo_changed = 1;
     }
-    if(tcache->cellpixx != cpixx){
-      tcache->cellpixx = cpixx;
+    if(tcache->cellpxx != cpixx){
+      tcache->cellpxx = cpixx;
       *pgeo_changed = 1;
     }
-    if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
+    if(tcache->cellpxy == 0 || tcache->cellpxx == 0){
       tcache->pixel_draw = NULL; // disable support
     }
   }
@@ -363,7 +363,7 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
     if(margin_b){
       ++sixelrows;
     }
-    tcache->sixel_maxy = sixelrows * tcache->cellpixy;
+    tcache->sixel_maxy = sixelrows * tcache->cellpxy;
     if(tcache->sixel_maxy > tcache->sixel_maxy_pristine){
       tcache->sixel_maxy = tcache->sixel_maxy_pristine;
     }
@@ -451,8 +451,10 @@ make_ncpile(notcurses* nc, ncplane* n){
     }
     n->above = NULL;
     n->below = NULL;
-    ret->dimy = 0;
-    ret->dimx = 0;
+    ret->dimy = nc->tcache.dimy;
+    ret->dimx = nc->tcache.dimx;
+    ret->cellpxy = nc->tcache.cellpxy;
+    ret->cellpxx = nc->tcache.cellpxx;
     ret->crender = NULL;
     ret->crenderlen = 0;
     ret->sprixelcache = NULL;
@@ -3102,28 +3104,29 @@ void ncplane_pixel_geom(const ncplane* n,
                         unsigned* RESTRICT pxy, unsigned* RESTRICT pxx,
                         unsigned* RESTRICT celldimy, unsigned* RESTRICT celldimx,
                         unsigned* RESTRICT maxbmapy, unsigned* RESTRICT maxbmapx){
-  notcurses* nc = ncplane_notcurses(n);
+  const notcurses* nc = ncplane_notcurses_const(n);
+  const ncpile* p = ncplane_pile_const(n);
   if(celldimy){
-    *celldimy = nc->tcache.cellpixy;
+    *celldimy = p->cellpxy;
   }
   if(celldimx){
-    *celldimx = nc->tcache.cellpixx;
+    *celldimx = p->cellpxx;
   }
   if(pxy){
-    *pxy = nc->tcache.cellpixy * ncplane_dim_y(n);
+    *pxy = p->cellpxy * ncplane_dim_y(n);
   }
   if(pxx){
-    *pxx = nc->tcache.cellpixx * ncplane_dim_x(n);
+    *pxx = p->cellpxx * ncplane_dim_x(n);
   }
   if(notcurses_check_pixel_support(nc) > 0){
     if(maxbmapy){
-      *maxbmapy = nc->tcache.cellpixy * ncplane_dim_y(n);
+      *maxbmapy = p->cellpxy * ncplane_dim_y(n);
       if(*maxbmapy > nc->tcache.sixel_maxy && nc->tcache.sixel_maxy){
         *maxbmapy = nc->tcache.sixel_maxy;
       }
     }
     if(maxbmapx){
-      *maxbmapx = nc->tcache.cellpixx * ncplane_dim_x(n);
+      *maxbmapx = p->cellpxx * ncplane_dim_x(n);
       if(*maxbmapx > nc->tcache.sixel_maxx && nc->tcache.sixel_maxx){
         *maxbmapx = nc->tcache.sixel_maxx;
       }

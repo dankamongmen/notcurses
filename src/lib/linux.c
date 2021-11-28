@@ -1,11 +1,11 @@
 #include "linux.h"
 #include "internal.h"
 
-// auxvecs for framebuffer are 1B each for s->cellpxx * s->cellpxy elements,
+// auxvecs for framebuffer are 1B each for cellpxx * cellpxy elements,
 // and store the original alpha value.
 static inline uint8_t*
 fbcon_auxiliary_vector(const sprixel* s){
-  int pixels = s->cellpxy * s->cellpxx;
+  int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
   uint8_t* ret = malloc(sizeof(*ret) * pixels);
   if(ret){
     memset(ret, 0, sizeof(*ret) * pixels);
@@ -18,19 +18,21 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   if(auxvec == NULL){
     return -1;
   }
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
   char* glyph = s->glyph.buf;
-  for(int y = 0 ; y < s->cellpxy ; ++y){
-    if(ycell * s->cellpxy + y >= s->pixy){
+  for(int y = 0 ; y < cellpxy ; ++y){
+    if(ycell * cellpxy + y >= s->pixy){
       break;
     }
     // number of pixels total above our pixel row
-    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
-    for(int x = 0 ; x < s->cellpxx ; ++x){
-      if(xcell * s->cellpxx + x >= s->pixx){
+    const size_t yoff = s->pixx * (ycell * cellpxy + y);
+    for(int x = 0 ; x < cellpxx ; ++x){
+      if(xcell * cellpxx + x >= s->pixx){
         break;
       }
-      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
-      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
+      size_t offset = (yoff + xcell * cellpxx + x) * 4;
+      const int vyx = (y % cellpxy) * cellpxx + x;
       auxvec[vyx] = glyph[offset + 3];
       glyph[offset + 3] = 0;
     }
@@ -43,8 +45,8 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   uint32_t transcolor = bargs->transcolor;
   sprixel* s = bargs->u.pixel.spx;
-  int cdimx = s->cellpxx;
-  int cdimy = s->cellpxy;
+  int cdimx = bargs->u.pixel.cellpxx;
+  int cdimy = bargs->u.pixel.cellpxy;
   // FIXME this will need be a copy of the tinfo's fbuf map
   size_t flen = leny * lenx * 4;
   if(fbuf_reserve(&s->glyph, flen)){
@@ -124,18 +126,20 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   if(auxvec == NULL){
     return -1;
   }
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
   sprixcell_e state = SPRIXCELL_TRANSPARENT;
-  for(int y = 0 ; y < s->cellpxy ; ++y){
-    if(ycell * s->cellpxy + y >= s->pixy){
+  for(int y = 0 ; y < cellpxy ; ++y){
+    if(ycell * cellpxy + y >= s->pixy){
       break;
     }
-    const size_t yoff = s->pixx * (ycell * s->cellpxy + y);
-    for(int x = 0 ; x < s->cellpxx ; ++x){
-      if(xcell * s->cellpxx + x >= s->pixx){
+    const size_t yoff = s->pixx * (ycell * cellpxy + y);
+    for(int x = 0 ; x < cellpxx ; ++x){
+      if(xcell * cellpxx + x >= s->pixx){
         break;
       }
-      size_t offset = (yoff + xcell * s->cellpxx + x) * 4;
-      const int vyx = (y % s->cellpxy) * s->cellpxx + x;
+      size_t offset = (yoff + xcell * cellpxx + x) * 4;
+      const int vyx = (y % cellpxy) * cellpxx + x;
       if(x == 0 && y == 0){
         if(auxvec[vyx] == 0){
           state = SPRIXCELL_TRANSPARENT;
@@ -160,9 +164,11 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
   logdebug("id %" PRIu32 " dest %d/%d\n", s->id, y, x);
   int wrote = 0;
-  for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * ti->cellpixy < ti->pixy ; ++l){
+  const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  for(unsigned l = 0 ; l < (unsigned)s->pixy && l + y * cellpxy < ti->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
-    size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
+    size_t offset = ((l + y * cellpxy) * ti->pixx + x * cellpxx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
     const char* src = (char*)s->glyph.buf + (l * s->pixx * 4);
     for(unsigned c = 0 ; c < (unsigned)s->pixx && c < ti->pixx ; ++c){
@@ -186,13 +192,15 @@ int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
 // they're written in order. if we're scrolling all rows, we're clearing the
 // entire space; we always clear something (we might not always move anything).
 void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
-  if(ti->cellpixy < 1){
+  const int cellpxy = p->cellpxy;
+  const int cellpxx = p->cellpxx;
+  if(cellpxy < 1){
     return;
   }
   logdebug("scrolling %d\n", rows);
-  const int rowbytes = ti->cellpixx * p->dimx * 4;
-  const int totalrows = ti->cellpixy * p->dimy;
-  int srows = rows * ti->cellpixy; // number of pixel rows being scrolled
+  const int rowbytes = cellpxx * p->dimx * 4;
+  const int totalrows = cellpxy * p->dimy;
+  int srows = rows * cellpxy; // number of pixel rows being scrolled
   if(srows > totalrows){
     srows = totalrows;
   }

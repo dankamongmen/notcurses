@@ -59,11 +59,11 @@ create_pixelp(ncplot *p, ncplane* n){
 // we have some color gradient across the life of the plot (almost; it gets
 // recalculated if the cell-pixel geometry changes and we're using
 // NCBLIT_PIXEL). if we're using cell blitting, we only get one channel pair
-// per row, no matter what height we have. with pixels, we get cellpixy * rows.
+// per row, no matter what height we have. with pixels, we get cellpxy * rows.
 static int
 calculate_gradient_vector(ncplot* p, unsigned pixelp){
   const int dimy = ncplane_dim_y(p->ncp);
-  const unsigned states = dimy * (pixelp ? ncplane_notcurses(p->ncp)->tcache.cellpixy : 1);
+  const unsigned states = dimy * (pixelp ? ncplane_pile(p->ncp)->cellpxy : 1);
   if(states == p->chancount){ // no need to recalculate
     return 0;
   }
@@ -93,13 +93,13 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   if(calculate_gradient_vector(&ncp->plot, 1)){ \
     return -1; \
   } \
-  const int scale = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixx; \
+  const int scale = ncplane_pile_const(ncp->plot.ncp)->cellpxx; \
   ncplane_erase(ncp->plot.ncp); \
   unsigned dimy, dimx; \
   ncplane_dim_yx(ncp->plot.ncp, &dimy, &dimx); \
   const unsigned scaleddim = dimx * scale; \
   /* each transition is worth this much change in value */ \
-  const size_t states = ncplane_notcurses_const(ncp->plot.ncp)->tcache.cellpixy; \
+  const size_t states = ncplane_pile_const(ncp->plot.ncp)->cellpxy; \
   /* FIXME can we not rid ourselves of this meddlesome double? either way, the \
      interval is one row's range (for linear plots), or the base \
      (base^slots == maxy-miny) of the range (for exponential plots). */ \
@@ -480,8 +480,8 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   ncpp->plot.rangex = opts->rangex; \
   /* if we're sizing the plot based off the plane dimensions, scale it by the \
      plot geometry's width for all calculations */ \
-  const unsigned scaleddim = dimx * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
-  const unsigned scaledprefixlen = NCPREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_notcurses(n)->tcache.cellpixx : bset->width); \
+  const unsigned scaleddim = dimx * (bset->geom == NCBLIT_PIXEL ? ncplane_pile_const(n)->cellpxx : bset->width); \
+  const unsigned scaledprefixlen = NCPREFIXCOLUMNS * (bset->geom == NCBLIT_PIXEL ? ncplane_pile_const(n)->cellpxx : bset->width); \
   if((ncpp->plot.slotcount = ncpp->plot.rangex) == 0){ \
     ncpp->plot.slotcount = scaleddim; \
   } \

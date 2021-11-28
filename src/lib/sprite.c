@@ -56,7 +56,7 @@ sprixel* sprixel_recycle(ncplane* n){
     int dimy = hides->dimy;
     int dimx = hides->dimx;
     sprixel_hide(hides);
-    return sprixel_alloc(&nc->tcache, n, dimy, dimx);
+    return sprixel_alloc(n, dimy, dimx);
   }
   sixelmap_free(n->sprite->smap);
   n->sprite->smap = NULL;
@@ -114,7 +114,7 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   }
 }
 
-sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret == NULL){
     return NULL;
@@ -134,8 +134,6 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
     sprixelid_nonce = 1;
   }
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
-  ret->cellpxy = ti->cellpixy;
-  ret->cellpxx = ti->cellpixx;
   if(ncplane_pile(ret->n)){ // rendered mode
     ncpile* np = ncplane_pile(ret->n);
     if( (ret->next = np->sprixelcache) ){
@@ -156,6 +154,7 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
 int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
                  int parse_start, sprixel_e state){
   assert(spx->n);
+  /*
   if(spx->cellpxy > 0){ // don't explode on ncdirect case
     if((pixy + spx->cellpxy - 1) / spx->cellpxy > spx->dimy){
       logerror("bad pixy %d (cellpxy %d dimy %d)\n", pixy, spx->cellpxy, spx->dimy);
@@ -166,6 +165,7 @@ int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
       return -1;
     }
   }
+  */
   if(&spx->glyph != f){
     fbuf_free(&spx->glyph);
     memcpy(&spx->glyph, f, sizeof(*f));
@@ -187,7 +187,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     // be entirely 0s coming from pixel_trans_auxvec().
     if(s->n->tam[idx].auxvector == NULL){
       if(nc->tcache.pixel_trans_auxvec){
-        s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
+        s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(ncplane_pile(s->n));
         if(s->n->tam[idx].auxvector == NULL){
           return -1;
         }

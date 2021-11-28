@@ -654,8 +654,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
       disprows = dimy * encoding_y_scale(&n->tcache, bset) - 1;
       outy = disprows;
     }else{
-      dispcols = dimx * n->tcache.cellpixx;
-      disprows = dimy * n->tcache.cellpixy;
+      dispcols = dimx * n->tcache.cellpxx;
+      disprows = dimy * n->tcache.cellpxy;
       clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, vopts->scaling);
     }
     if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
@@ -675,7 +675,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     }
   }
   if(bset->geom == NCBLIT_PIXEL){
-    while((outy + n->tcache.cellpixy - 1) / n->tcache.cellpixy > dimy){
+    while((outy + n->tcache.cellpxy - 1) / n->tcache.cellpxy > dimy){
       outy -= n->tcache.sprixel_scale_height;
       disprows = outy;
     }
@@ -693,8 +693,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     .flags = 0,
   };
   if(bset->geom == NCBLIT_PIXEL){
-    nopts.rows = outy / n->tcache.cellpixy + !!(outy % n->tcache.cellpixy);
-    nopts.cols = dispcols / n->tcache.cellpixx + !!(dispcols % n->tcache.cellpixx);
+    nopts.rows = outy / n->tcache.cellpxy + !!(outy % n->tcache.cellpxy);
+    nopts.cols = dispcols / n->tcache.cellpxx + !!(dispcols % n->tcache.cellpxx);
   }
   if(ymax && nopts.rows > ymax){
     nopts.rows = ymax;
@@ -717,7 +717,9 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   }
   if(bset->geom == NCBLIT_PIXEL){
     bargs.u.pixel.colorregs = n->tcache.color_registers;
-    if((bargs.u.pixel.spx = sprixel_alloc(&n->tcache, ncdv, nopts.rows, nopts.cols)) == NULL){
+    bargs.u.pixel.cellpxy = n->tcache.cellpxy;
+    bargs.u.pixel.cellpxx = n->tcache.cellpxx;
+    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, nopts.rows, nopts.cols)) == NULL){
       free_plane(ncdv);
       return NULL;
     }

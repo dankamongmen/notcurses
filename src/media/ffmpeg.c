@@ -173,7 +173,9 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
         continue;
       }
       struct notcurses* nc = ncplane_notcurses(parent);
-      if(nc->tcache.cellpixy <= 0 || nc->tcache.cellpixx <= 0){
+      const unsigned cellpxy = ncplane_pile_const(parent)->cellpxy;
+      const unsigned cellpxx = ncplane_pile_const(parent)->cellpxx;
+      if(cellpxy <= 0 || cellpxx <= 0){
         continue;
       }
       struct ncvisual* v = ncvisual_from_palidx(rect->data[0], rect->h,
@@ -182,10 +184,10 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       if(v == NULL){
         return NULL;
       }
-      int rows = (rect->h + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
+      int rows = (rect->h + cellpxx - 1) / cellpxy;
       struct ncplane_options nopts = {
         .rows = rows,
-        .cols = (rect->w + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
+        .cols = (rect->w + cellpxx - 1) / cellpxx,
         .y = ncplane_dim_y(parent) - rows - 1,
         .name = "t1st",
       };

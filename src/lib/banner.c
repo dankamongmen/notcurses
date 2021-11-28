@@ -38,13 +38,13 @@ int init_banner(const notcurses* nc, fbuf* f){
     free(osver);
     term_fg_palindex(nc, f, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
-    if(nc->tcache.cellpixy && nc->tcache.cellpixx){
+    if(nc->tcache.cellpxy && nc->tcache.cellpxx){
       fbuf_printf(f, "%s%d rows (%dpx) %d cols (%dpx) %dx%d ",
                   clreol,
-                  nc->stdplane->leny, nc->tcache.cellpixy,
-                  nc->stdplane->lenx, nc->tcache.cellpixx,
-                  nc->stdplane->leny * nc->tcache.cellpixy,
-                  nc->stdplane->lenx * nc->tcache.cellpixx);
+                  nc->stdplane->leny, nc->tcache.cellpxy,
+                  nc->stdplane->lenx, nc->tcache.cellpxx,
+                  nc->stdplane->leny * nc->tcache.cellpxy,
+                  nc->stdplane->lenx * nc->tcache.cellpxx);
     }else{
       fbuf_printf(f, "%d rows %d cols ",
                   nc->stdplane->leny, nc->stdplane->lenx);

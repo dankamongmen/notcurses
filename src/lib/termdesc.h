@@ -110,8 +110,8 @@ typedef struct tinfo {
   unsigned pixx;                   // total pixel geometry, width
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
-  unsigned cellpixy;               // cell pixel height, might be 0
-  unsigned cellpixx;               // cell pixel width, might be 0
+  unsigned cellpxy;                // cell pixel height, might be 0
+  unsigned cellpxx;                // cell pixel width, might be 0
   unsigned dimy, dimx;             // most recent cell geometry
 
   unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv
@@ -149,7 +149,7 @@ typedef struct tinfo {
   int (*pixel_commit)(fbuf* f, struct sprixel* s, unsigned noscroll);
   // scroll all graphics up. only used with fbcon.
   void (*pixel_scroll)(const struct ncpile* p, struct tinfo*, int rows);
-  uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
+  uint8_t* (*pixel_trans_auxvec)(const struct ncpile* p); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and

@@ -288,17 +288,37 @@ struct crender {
   } s;
 };
 
+// a pile is a collection of planes which will be rendered together. piles are
+// completely distinct with regards to thread-safety; one can always operate
+// concurrently on distinct piles (save rasterizing, of course). material from
+// other piles will be blown away whenever a pile is rasterized. no ordering
+// is meaningful between planes. when a new one is added, or one is destroyed,
+// the pilelock (in struct notcurses) is taken. a pile is destroyed whenever
+// its last plane is destroyed or reparented away. a pile contains a totally-
+// ordered list of piles (ordered on the z axis) and a directed acyclic forest
+// of bound planes, with each root plane rooting a DAG.
+//
+// the geometries are updated each time the pile is rendered. until a pile is
+// rendered, its geometries might be out-of-date with regards to the terminal
+// description in tcache. when it is rendered again, the geometries will be
+// updated, sprixels will have their TAMs rebuilt (if necessary), and each
+// root plane will have its resize callback invoked (possibly invoking its
+// bound planes' resize callbacks in turn).
+//
+// at context start, there is one pile (the standard pile), containing one
+// plane (the standard plane). each ncplane holds a pointer to its pile.
 typedef struct ncpile {
   ncplane* top;               // topmost plane, never NULL
   ncplane* bottom;            // bottommost plane, never NULL
   ncplane* roots;             // head of root plane list
   struct crender* crender;    // array (rows * cols crender objects)
   struct notcurses* nc;       // notcurses context
-  struct ncpile *prev, *next; // circular list
+  struct ncpile *prev, *next; // circular list pointers
   size_t crenderlen;          // size of crender vector
-  unsigned dimy, dimx;        // rows and cols at time of last render
+  unsigned dimy, dimx;        // rows and cols at last render/creation
+  unsigned cellpxx, cellpxy;  // cell-pixel geometry at last render/creation
   int scrolls;                // how many real lines need be scrolled at raster
-  sprixel* sprixelcache;      // list of sprixels
+  sprixel* sprixelcache;      // sorted list of sprixels, assembled during paint
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.
@@ -359,6 +379,8 @@ typedef struct blitterargs {
       sprixel* spx;    // sprixel object
       int pxoffy;      // pixel y-offset within origin cell
       int pxoffx;      // pixel x-offset within origin cell
+      int cellpxy;     // targeted cell-pixel geometry. this ought come from the
+      int cellpxx;     // target ncpile, or tcache in Direct Mode
     } pixel;           // for pixels
   } u;
 } blitterargs;
@@ -664,7 +686,7 @@ void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
 // dimy and dimx are cell geometry, not pixel.
-sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx);
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, fbuf* f);
@@ -1748,7 +1770,7 @@ typedef struct ncvisual_implementation {
   int (*visual_decode_loop)(struct ncvisual* nc);
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
                        ncstreamcb streamer, const struct ncvisual_options* vopts, void* curry);
-  struct ncplane* (*visual_subtitle)(struct ncplane* parent, const struct ncvisual* ncv);
+  ncplane* (*visual_subtitle)(ncplane* parent, const struct ncvisual* ncv);
   int rowalign; // rowstride base, can be 0 for no padding
   // do a persistent resize, changing the ncv itself
   int (*visual_resize)(struct ncvisual* ncv, unsigned rows, unsigned cols);

@@ -1778,6 +1778,7 @@ API int ncplane_scrollup(struct ncplane* n, int r)
 // Scroll |n| up until |child| is no longer hidden beneath it. Returns an
 // error if |child| is not a child of |n|, or |n| is not scrolling, or |child|
 // is fixed. Returns the number of scrolling events otherwise (might be 0).
+// If the child plane is not fixed, it will likely scroll as well.
 API int ncplane_scrollup_child(struct ncplane* n, const struct ncplane* child)
   __attribute__ ((nonnull (1, 2)));
 
