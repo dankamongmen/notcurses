@@ -232,6 +232,11 @@ int sprixel_rescale(sprixel* spx, unsigned ncellpxy, unsigned ncellpxx){
   if(ntam == NULL){
     return -1;
   }
+  for(unsigned y = 0 ; y < spx->dimy ; ++y){
+    for(unsigned x = 0 ; x < spx->dimx ; ++x){
+      sprite_rebuild(ncplane_notcurses(spx->n), spx, y, x);
+    }
+  }
   // FIXME rebuild all annihilated cells
   // FIXME prepare new tam entries
   ncplane* ncopy = spx->n;
