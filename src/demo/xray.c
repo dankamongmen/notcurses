@@ -161,12 +161,12 @@ xray_thread(void *vmarsh){
       if(vopts.n){
         ncplane_reparent(vopts.n, notcurses_stdplane(m->nc));
         ncplane_move_top(vopts.n);
+        ncplane_destroy(*m->lplane);
+        *m->lplane = vopts.n;
       }
-      ncplane_destroy(*m->lplane);
       ret = demo_render(m->nc);
     }
     *m->frame_to_render = frame + 1;
-    *m->lplane = vopts.n;
     pthread_mutex_unlock(&render_lock);
     pthread_cond_signal(&cond);
     vopts.n = NULL;
