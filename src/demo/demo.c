@@ -387,6 +387,9 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   uint64_t totalrenderns = 0;
   uint64_t totalwriteoutns = 0;
   ncplane_putchar(n, '\n');
+  // FIXME this shouldn't be necessary, but without it, late in 2.4.x we
+  // stopped printing the table header. see #2389.
+  notcurses_render(nc);
   table_segment(n, "             runtime", "│");
   table_segment(n, " frames", "│");
   table_segment(n, "output(B)", "│");
