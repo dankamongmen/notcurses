@@ -221,3 +221,9 @@ int sprite_init(const tinfo* t, int fd){
   }
   return t->pixel_init(fd);
 }
+
+int sprixel_rescale(sprixel* spx, unsigned ocellpixy, unsigned ocellpixx,
+                    unsigned ncellpixy, unsigned ncellpixx){
+  // FIXME
+  return 0;
+}
