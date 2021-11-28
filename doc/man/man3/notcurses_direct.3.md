@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_direct - minimal notcurses instances for styling text
+notcurses_direct - the Direct Mode API
 
 # SYNOPSIS
 

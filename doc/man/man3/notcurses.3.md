@@ -83,6 +83,8 @@ moved to another pile, one pile always exists, known as the standard pile.
 
 Note that rasterizing a pile will replace all content within its margins.
 
+For more information, see **notcurses_pile(3)**.
+
 ## Ncplanes
 
 Following initialization, a single ncplane exists, the "standard plane" (see
@@ -193,6 +195,7 @@ order to turn most error returns into exceptions.
 **notcurses_multiselector(3)**,
 **notcurses_output(3)**,
 **notcurses_palette(3)**,
+**notcurses_pile(3)**,
 **notcurses_plane(3)**,
 **notcurses_plot(3)**,
 **notcurses_progbar(3)**,
