@@ -14,7 +14,7 @@ TEST_CASE("Cell") {
   REQUIRE(nullptr != n_);
 
   SUBCASE("EGCs") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(2 == nccell_load(n_, &c, "é"));
     CHECK(1 == nccell_cols(&c));
     int cols;
@@ -43,7 +43,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("Loadchar") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == nccell_load(n_, &c, " "));
     CHECK(cell_simple_p(&c));
     nccell_release(n_, &c);
@@ -70,7 +70,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetItalic") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_ITALIC);
@@ -83,7 +83,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetBold") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_BOLD);
@@ -96,7 +96,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetUnderline") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     unsigned dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_UNDERLINE);
@@ -110,7 +110,7 @@ TEST_CASE("Cell") {
 
   /*SUBCASE("CellLoadTamil") {
     const char zerodeg[] = "\u0bb8\u0bc0\u0bb0\u0bc7\u0bb3\u0b95\u0bbf\u0b95\u0bbf\u0bb0\u0bbf";
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     size_t ulen = nccell_load(n_, &c, zerodeg);
     // First have U+0BB8 TAMIL LETTER SA U+0BC0 TAMIL VOWEL SIGN II
     // // e0 ae b8 e0 af 80
@@ -123,7 +123,7 @@ TEST_CASE("Cell") {
   }*/
 
   SUBCASE("CellSetFGAlpha"){
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 > nccell_set_fg_alpha(&c, -1));
     CHECK(0 > nccell_set_fg_alpha(&c, 4));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_OPAQUE));
@@ -137,7 +137,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellSetBGAlpha"){
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 > nccell_set_bg_alpha(&c, -1));
     CHECK(0 > nccell_set_bg_alpha(&c, 4));
     CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_OPAQUE));
@@ -151,7 +151,7 @@ TEST_CASE("Cell") {
 
   // white on a black background ought be unmolested for highcontrast
   SUBCASE("HighContrastWhiteOnBlackBackground"){
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT));
@@ -191,7 +191,7 @@ TEST_CASE("Cell") {
 
   // white on a white background ought be changed for highcontrast
   SUBCASE("HighContrastWhiteOnWhiteBackground"){
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT));
@@ -231,7 +231,7 @@ TEST_CASE("Cell") {
 
   // black on a black background must be changed for highcontrast
   SUBCASE("HighContrastBlackOnBlackBackground"){
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     CHECK(0 == nccell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT));
@@ -271,7 +271,7 @@ TEST_CASE("Cell") {
 
   // black on a white background ought be unmolested for highcontrast
   SUBCASE("HighContrastBlackOnWhiteBackground"){
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     CHECK(0 == nccell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT));
@@ -312,7 +312,7 @@ TEST_CASE("Cell") {
   // high contrast ought only be activated relevant to the background equal to
   // or below them, not above.
   SUBCASE("HighContrastBelowOnly"){
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     // top has a background of white
     CHECK(0 == nccell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT));
@@ -351,14 +351,14 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellLoadCharPrinting") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == nccell_load_char(n_, &c, '*'));
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), "*"));
   }
 
   // only space/newline is allowed from control char whitespace
   SUBCASE("CellLoadCharWhitespace") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(-1 == nccell_load_char(n_, &c, '\f'));
     CHECK(-1 == nccell_load_char(n_, &c, '\v'));
     CHECK(-1 == nccell_load_char(n_, &c, '\t'));
@@ -367,18 +367,36 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellLoadCharControl") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == nccell_load_char(n_, &c, '\0'));
     CHECK(-1 == nccell_load_char(n_, &c, 1));
     CHECK(-1 == nccell_load_char(n_, &c, '\b'));
   }
 
   SUBCASE("CellLoadEGC32") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == nccell_load_egc32(n_, &c, 0));
     CHECK(1 == nccell_load_egc32(n_, &c, 0x65));   // U+0061 LATIN SMALL LETTER A
     CHECK(2 == nccell_load_egc32(n_, &c, 0xb5c2)); // U+00B5 MICRO SIGN
     CHECK(4 == nccell_load_egc32(n_, &c, 0x82a69ff0)); // U+1F982 SCORPION
+  }
+
+  // test the nccell_rgbequal_p() predicate. it ought return true only when
+  // both channels use RGB, and are equal.
+  SUBCASE("CellRGBEqual") {
+    nccell c = NCCELL_CHAR_INITIALIZER('x');
+    nccell_set_fg_default(&c);
+    nccell_set_bg_default(&c);
+    CHECK(0 == nccell_rgbequal_p(&c));
+    nccell_set_bg_palindex(&c, 0);
+    nccell_set_fg_palindex(&c, 0);
+    CHECK(0 == nccell_rgbequal_p(&c));
+    nccell_set_bg_rgb(&c, 0);
+    CHECK(0 == nccell_rgbequal_p(&c));
+    nccell_set_fg_rgb(&c, 0x1);
+    CHECK(0 == nccell_rgbequal_p(&c));
+    nccell_set_fg_rgb(&c, 0);
+    CHECK(nccell_rgbequal_p(&c));
   }
 
   // common teardown

@@ -1238,8 +1238,21 @@ box_corner_needs(unsigned ctlword){
 // True if the cell does not generate background pixels (i.e., the cell is a
 // solid or shaded block, or certain emoji).
 static inline bool
-cell_nobackground_p(const nccell* c){
+nccell_nobackground_p(const nccell* c){
+  // needs to match all four bits of NC_NOBACKGROUND_MASK, not just one
   return (c->channels & NC_NOBACKGROUND_MASK) == NC_NOBACKGROUND_MASK;
+}
+
+// True iff the foreground and background color are both RGB, and equal.
+static inline bool
+nccell_rgbequal_p(const nccell* c){
+  if(nccell_fg_default_p(c) || nccell_fg_palindex_p(c)){
+    return false;
+  }
+  if(nccell_bg_default_p(c) || nccell_bg_palindex_p(c)){
+    return false;
+  }
+  return nccell_fg_rgb(c) == nccell_bg_rgb(c);
 }
 
 // Returns a number 0 <= n <= 15 representing the four quadrants, and which (if
