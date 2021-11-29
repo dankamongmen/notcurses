@@ -240,7 +240,7 @@ static inline void PyObject_cleanup(PyObject **object)
 
 #define GNU_PY_UINT_CHECK(py_ulong)                          \
     ({                                                       \
-        unsigned new_long = PyLong_AsUnsignedLong(py_ulong); \
+        unsigned new_long = (unsigned)PyLong_AsUnsignedLong(py_ulong); \
         if (PyErr_Occurred())                                \
         {                                                    \
             return NULL;                                     \
