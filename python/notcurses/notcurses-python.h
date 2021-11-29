@@ -196,12 +196,6 @@ static inline void PyObject_cleanup(PyObject **object)
         return_value;                   \
     })
 
-#define GNU_PY_CHECK_UINT(py_function)                 \
-    ({                                                 \
-        unsigned return_value = (unsigned)py_function; \
-        return_value;                                  \
-    })
-
 #define GNU_PY_CHECK_BOOL(py_function)  \
     ({                                  \
         int return_value = py_function; \
@@ -244,14 +238,14 @@ static inline void PyObject_cleanup(PyObject **object)
         return_ptr;                                                          \
     })
 
-#define GNU_PY_ULONG_CHECK(py_ulong)                              \
-    ({                                                            \
-        unsigned long new_long = PyLong_AsUnsignedLong(py_ulong); \
-        if (PyErr_Occurred())                                     \
-        {                                                         \
-            return NULL;                                          \
-        }                                                         \
-        new_long;                                                 \
+#define GNU_PY_UINT_CHECK(py_ulong)                          \
+    ({                                                       \
+        unsigned new_long = PyLong_AsUnsignedLong(py_ulong); \
+        if (PyErr_Occurred())                                \
+        {                                                    \
+            return NULL;                                     \
+        }                                                    \
+        new_long;                                            \
     })
 
 #define GNU_PY_LONG_CHECK(py_long)              \
