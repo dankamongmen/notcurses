@@ -238,6 +238,16 @@ static inline void PyObject_cleanup(PyObject **object)
         return_ptr;                                                          \
     })
 
+#define GNU_PY_ULONG_CHECK(py_ulong)                              \
+    ({                                                            \
+        unsigned long new_long = PyLong_AsUnsignedLong(py_ulong); \
+        if (PyErr_Occurred())                                     \
+        {                                                         \
+            return NULL;                                          \
+        }                                                         \
+        new_long;                                                 \
+    })
+
 #define GNU_PY_LONG_CHECK(py_long)              \
     ({                                          \
         long new_long = PyLong_AsLong(py_long); \

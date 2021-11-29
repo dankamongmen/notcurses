@@ -99,22 +99,22 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 
     if (NULL != margin_top)
     {
-        options.margin_t = GNU_PY_LONG_CHECK(margin_top);
+        options.margin_t = GNU_PY_ULONG_CHECK(margin_top);
     }
 
     if (NULL != margin_right)
     {
-        options.margin_r = GNU_PY_LONG_CHECK(margin_right);
+        options.margin_r = GNU_PY_ULONG_CHECK(margin_right);
     }
 
     if (NULL != margin_bottom)
     {
-        options.margin_b = GNU_PY_LONG_CHECK(margin_bottom);
+        options.margin_b = GNU_PY_ULONG_CHECK(margin_bottom);
     }
 
     if (NULL != margin_left)
     {
-        options.margin_l = GNU_PY_LONG_CHECK(margin_left);
+        options.margin_l = GNU_PY_ULONG_CHECK(margin_left);
     }
 
     options.flags = (uint64_t)flags;
