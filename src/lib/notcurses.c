@@ -1048,10 +1048,6 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
   }
   memset(ret, 0, sizeof(*ret));
   if(opts){
-    if(opts->margin_t < 0 || opts->margin_b < 0 || opts->margin_l < 0 || opts->margin_r < 0){
-      fprintf(stderr, "Provided an illegal negative margin, refusing to start\n");
-      return NULL;
-    }
     if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
       fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
     }
@@ -2801,7 +2797,7 @@ bool ncplane_scrolling_p(const ncplane* n){
 // extract an integer, which must be non-negative, and followed by either a
 // comma or a NUL terminator.
 static int
-lex_long(const char* op, int* i, char** endptr){
+lex_ulong(const char* op, unsigned* i, char** endptr){
   errno = 0;
   long l = strtol(op, endptr, 10);
   if(l < 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
@@ -2850,7 +2846,7 @@ const char* notcurses_str_scalemode(ncscale_e scalemode){
 
 int notcurses_lex_margins(const char* op, notcurses_options* opts){
   char* eptr;
-  if(lex_long(op, &opts->margin_t, &eptr)){
+  if(lex_ulong(op, &opts->margin_t, &eptr)){
     return -1;
   }
   if(!*eptr){ // allow a single value to be specified for all four margins
@@ -2858,15 +2854,15 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
     return 0;
   }
   op = ++eptr; // once here, we require four values
-  if(lex_long(op, &opts->margin_r, &eptr) || !*eptr){
+  if(lex_ulong(op, &opts->margin_r, &eptr) || !*eptr){
     return -1;
   }
   op = ++eptr;
-  if(lex_long(op, &opts->margin_b, &eptr) || !*eptr){
+  if(lex_ulong(op, &opts->margin_b, &eptr) || !*eptr){
     return -1;
   }
   op = ++eptr;
-  if(lex_long(op, &opts->margin_l, &eptr) || *eptr){ // must end in NUL
+  if(lex_ulong(op, &opts->margin_l, &eptr) || *eptr){ // must end in NUL
     return -1;
   }
   return 0;
