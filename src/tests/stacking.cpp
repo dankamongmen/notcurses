@@ -26,6 +26,58 @@ TEST_CASE("Stacking") {
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 
+  // whenever the foreground matches the background (using palette-indexed or
+  // RGB color, *not* default colors), we ought emit a space with the
+  // specified background, or a full block with the specified foreground (only
+  // if UTF8 is available). default colors must not be merged. the
+  // transformation should only take place at raster time.
+  SUBCASE("FgMatchesBg") {
+    // first we write an a with the desired background, but a distinct
+    // foreground. then we write an a with the two matching (via RGB).
+    // this ought generate a space with the desired background on the
+    // second cell.
+    ncplane_set_fg_default(n_);
+    CHECK(0 == ncplane_set_bg_rgb(n_, 0x808080));
+    CHECK(1 == ncplane_putchar(n_, 'a'));
+    CHECK(0 == ncplane_set_fg_rgb(n_, 0x808080));
+    CHECK(1 == ncplane_putchar(n_, 'a')); // ought become a space
+    // now we write an x with the desired foreground, but a distinct
+    // background. then we write an x with the two matching. this ought
+    // generate a full block with the desired foreground if UTF8 is
+    // available, and a space with the desired background otherwise.
+    ncplane_set_bg_default(n_);
+    CHECK(1 == ncplane_putchar(n_, 'x'));
+    CHECK(0 == ncplane_set_bg_rgb(n_, 0x808080));
+    CHECK(1 == ncplane_putchar(n_, 'x')); // ought become a space/block
+    CHECK(0 == notcurses_render(nc_));
+    // now we check the output. the plane ought have the characters as written,
+    // but we ought have rasterized the optimal forms.
+    uint64_t channels;
+    auto pblit = ncplane_at_yx(n_, 0, 1, nullptr, &channels);
+    CHECK(0 == strcmp("a", pblit));
+    CHECK(0x808080 == ncchannels_bg_rgb(channels));
+    CHECK(0x808080 == ncchannels_fg_rgb(channels));
+    free(pblit);
+    pblit = ncplane_at_yx(n_, 0, 3, nullptr, &channels);
+    CHECK(0 == strcmp("x", pblit));
+    CHECK(0x808080 == ncchannels_bg_rgb(channels));
+    CHECK(0x808080 == ncchannels_fg_rgb(channels));
+    free(pblit);
+    auto rblit = notcurses_at_yx(nc_, 0, 1, nullptr, &channels);
+    CHECK(0 == strcmp(" ", pblit));
+    CHECK(0x808080 == ncchannels_bg_rgb(channels));
+    free(rblit);
+    rblit = notcurses_at_yx(nc_, 0, 3, nullptr, &channels);
+    if(notcurses_canutf8(nc_)){
+      CHECK(0x808080 == ncchannels_fg_rgb(channels));
+      CHECK(0 == strcmp(u8"\u2588", rblit));
+    }else{
+      CHECK(0 == strcmp(" ", rblit));
+      CHECK(0x808080 == ncchannels_bg_rgb(channels));
+    }
+    free(rblit);
+  }
+
   SUBCASE("LowerAtopUpperWhite") {
     struct ncplane_options opts = {
       .y = 0, .x = 0, .rows = 1, .cols = 1,
