@@ -196,6 +196,12 @@ static inline void PyObject_cleanup(PyObject **object)
         return_value;                   \
     })
 
+#define GNU_PY_CHECK_UINT(py_function)       \
+    ({                                       \
+        unsigned return_value = py_function; \
+        return_value;                        \
+    })
+
 #define GNU_PY_CHECK_BOOL(py_function)  \
     ({                                  \
         int return_value = py_function; \
