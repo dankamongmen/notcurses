@@ -1166,7 +1166,10 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         //  * we are a no-background glyph, and the previous was default foreground
         bool nobackground = nccell_nobackground_p(srccell);
         bool rgbequal = nccell_rgbequal_p(srccell);
-        const char* alttext = NULL;
+fprintf(stderr, "RGBEQUAL: %u PAL: F %u %u %u B %u %u %u\n", rgbequal, nccell_fg_default_p(srccell), nccell_fg_palindex(srccell), nccell_fg_palindex_p(srccell), nccell_bg_default_p(srccell), nccell_bg_palindex(srccell), nccell_bg_palindex_p(srccell));
+rgbequal = false;
+        // FIXME ought set this based on whether it's whitespace
+        bool noforeground = false;
         if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
           if(raster_defaults(nc, nccell_fg_default_p(srccell),
                              !nobackground && nccell_bg_default_p(srccell), f)){
@@ -1208,10 +1211,12 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           if(rgbequal){
             // FIXME need one per column of original glyph
             pool_load_direct(&nc->pool, srccell, " ", 1, 1);
+            noforeground = true;
           }
         }
-        // we ought check for noforeground (see below) FIXME
-        if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
+        if(noforeground){
+          ++nc->stats.s.fgelisions;
+        }else if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
           if(emit_fg_palindex(nc, f, srccell)){
             return -1;
           }
@@ -1234,7 +1239,6 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           nc->rstate.fgdefelidable = false;
           nc->rstate.fgpalelidable = false;
         }
-//fprintf(stderr, "RGBEQUAL: %u ALTTEXT: [%s]\n", rgbequal, alttext ? alttext : "");
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016" PRIx64 "\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
@@ -1246,14 +1250,8 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
             sprixel_invalidate(rvec[damageidx].sprixel, y, x);
           }
         }
-        if(!alttext){
-          if(term_putc(f, &nc->pool, srccell)){
-            return -1;
-          }
-        }else{
-          if(fbuf_puts(f, alttext) < 0){ // alttext must match srccell's width
-            return -1;
-          }
+        if(term_putc(f, &nc->pool, srccell)){
+          return -1;
         }
         if(srccell->gcluster == '\n'){
           saw_linefeed = true;
