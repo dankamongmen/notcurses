@@ -11,7 +11,7 @@ ffibuild.set_source(
     libraries=["notcurses"],
 )
 
-with open('../include/notcurses/notcurses.h') as fp:
+with open('include/notcurses/notcurses.h') as fp:
     lines = fp.read().splitlines()
     # remove initial #includes and #ifdefs
     first = next(i for i, line in enumerate(lines) if 'notcurses_version' in line)
@@ -21,7 +21,7 @@ with open('../include/notcurses/notcurses.h') as fp:
     del lines[last:]
 
 # same with direct.h
-with open('../include/notcurses/direct.h') as fp:
+with open('include/notcurses/direct.h') as fp:
     direct_lines = fp.read().splitlines()
     first = next(i for i, line in enumerate(direct_lines) if '#define ALLOC' in line)
     del direct_lines[:first+1]
@@ -29,7 +29,7 @@ with open('../include/notcurses/direct.h') as fp:
     del direct_lines[last:]
 
 # and also nckeys.key
-with open('../include/notcurses/nckeys.h') as fp:
+with open('include/notcurses/nckeys.h') as fp:
     nckeys_lines = fp.read().splitlines()
     first = next(i for i, line in enumerate(nckeys_lines) if '#define NCKEY_' in line)
     del nckeys_lines[:first]

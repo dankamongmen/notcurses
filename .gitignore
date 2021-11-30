@@ -1,6 +1,7 @@
 /build/
 doc/examples/book
 obj-x86_64-linux-gnu
+cffi/include
 python/.eggs/
 python/build/
 python/dist/
