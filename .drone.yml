@@ -74,7 +74,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2021-11-14a
+  image: dankamongmen/edge_builder:2021-11-28a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=vt100
