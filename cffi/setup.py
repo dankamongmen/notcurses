@@ -1,11 +1,28 @@
 from setuptools import setup
 from setuptools.command.install import install
+from setuptools.command.sdist import sdist
+from distutils.command.build import build
 import os
-import sys
+import shutil
+
+here = os.path.dirname(__file__) or '.'
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
+def copy_include_dir():
+    src = os.path.join(here, "../include")
+    dst = os.path.join(here, "include")
+    if os.path.exists(src):
+        if os.path.exists(dst):
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+
 
 class ManPageGenerator(install):
     def run(self):
-        here = os.path.dirname(__file__) or '.'
         files = []
         outfile = 'notcurses-pydemo.1'
         pypandoc.convert_file(os.path.join(here, 'notcurses-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
@@ -19,18 +36,25 @@ class ManPageGenerator(install):
         print("data_files: ", self.distribution.data_files)
         super().run()
 
+
+class SdistCommand(sdist):
+    def run(self):
+        copy_include_dir()
+        super().run()
+
+
+class BuildCommand(build):
+    def run(self):
+        copy_include_dir()
+        super().run()
+
+
+cmdclass = {"sdist": SdistCommand, "build": BuildCommand}
 try:
     import pypandoc
+    cmdclass["install"] = ManPageGenerator
 except ImportError:
     print("warning: pypandoc module not found, won't generate man pages")
-    manpageinstaller=dict()
-else:
-    manpageinstaller=dict(
-        install=ManPageGenerator,
-    )
-
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name="notcurses",
@@ -61,5 +85,5 @@ setup(
         'Programming Language :: Python',
     ],
     include_package_data=True,
-    cmdclass=manpageinstaller
+    cmdclass=cmdclass,
 )
