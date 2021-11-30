@@ -1,4 +1,5 @@
 #include "compat/compat.h"
+#include <builddef.h>
 #include <pthread.h>
 #ifdef  __MINGW64__
 #include <string.h>
@@ -79,7 +80,12 @@ pid_t waitpid(pid_t pid, int* state, int options){ // FIXME
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
+char* notcurses_data_dir(void){
+  return strdup(NOTCURSES_SHARE);
+}
+
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   int flags = fcntl(fd, F_GETFL);
   if(flags < 0){

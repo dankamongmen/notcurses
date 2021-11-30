@@ -17,9 +17,9 @@
 static const int MIN_SUPPORTED_ROWS = 24;
 static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
+static char *datadir;
 static int democount;
 static demoresult* results;
-static char *datadir = NOTCURSES_SHARE;
 
 static const char DEFAULT_DEMO[] = "ixetunchmdbkywjgarvlsfqzo";
 
@@ -496,6 +496,7 @@ int main(int argc, char** argv){
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
 #endif
+  datadir = notcurses_data_dir();
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   notcurses_options nopts = {};
