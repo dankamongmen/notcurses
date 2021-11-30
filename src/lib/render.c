@@ -480,14 +480,13 @@ postpaint_cell(const tinfo* ti, nccell* lastframe, int dimx,
       // we don't need to change it when under an opaque cell, because
       // that's always printed on top.
       if(!crender->s.p_beats_sprixel){
-        // leaving out SPRIXCELL_OPAQUE_KITTY here results in cruft
         if(state != SPRIXCELL_OPAQUE_SIXEL){
 //fprintf(stderr, "damaged due to opaque %d/%d\n", y, *x);
           crender->s.damaged = 1;
         }
       }
     }else{
-//fprintf(stderr, "damaged due to opaque else %d/%d\n", y, *x);
+//fprintf(stderr, "damaged due to lastframe disagree %d/%d\n", y, *x);
       crender->s.damaged = 1;
     }
     assert(!nccell_wide_right_p(targc));
@@ -631,8 +630,8 @@ int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
   return ncplane_mergedown(src, dst, 0, 0, 0, 0, 0, 0);
 }
 
-// write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
-static int
+// write the nccell's UTF-8 extended grapheme cluster to the provided fbuf.
+static inline int
 term_putc(fbuf* f, const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
@@ -1138,7 +1137,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
       const int innerx = x - nc->margin_l;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb;
-      const nccell* srccell = &nc->lastframe[damageidx];
+      nccell* srccell = &nc->lastframe[damageidx];
       if(!rvec[damageidx].s.damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
@@ -1165,22 +1164,62 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         //  * we are a partial glyph, and the previous was default on both, or
         //  * we are a no-foreground glyph, and the previous was default background, or
         //  * we are a no-background glyph, and the previous was default foreground
-        bool nobackground = cell_nobackground_p(srccell);
+        bool nobackground = nccell_nobackground_p(srccell);
+        bool rgbequal = nccell_rgbequal_p(srccell);
+        const char* alttext = NULL;
         if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
           if(raster_defaults(nc, nccell_fg_default_p(srccell),
                              !nobackground && nccell_bg_default_p(srccell), f)){
             return -1;
           }
         }
-        // if our cell has a non-default foreground, we can elide the
-        // non-default foreground set iff either:
-        //  * the previous was non-default, and matches what we have now, or
-        //  * we are a no-foreground glyph (iswspace() is true)
+        // we apply the background first because if the fg and bg values are
+        // same, and they're both rgb (rgbequal), we can emit either a space
+        // or a full block to avoid an rgb. we prefer to emit the space, doing
+        // so unless the current background would need a change but the
+        // current foreground would not (thus requiring no rgb change at all,
+        // but only for the full black). FIXME we don't yet do this, though.
+        if(nobackground){
+          ++nc->stats.s.bgelisions;
+        }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
+          if(emit_bg_palindex(nc, f, srccell)){
+            return -1;
+          }
+        }else if(!nccell_bg_default_p(srccell)){ // rgb background
+          // if our cell has a non-default background, we can elide the
+          // non-default background set iff either:
+          //  * we do not use the background, because the cell is all-foreground,
+          //  * the previous was non-default, and matches what we have now, or
+          nccell_bg_rgb8(srccell, &br, &bg, &bb);
+          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+            ++nc->stats.s.bgelisions;
+          }else{
+            if(term_bg_rgb8(&nc->tcache, f, br, bg, bb)){
+              return -1;
+            }
+            ++nc->stats.s.bgemissions;
+            nc->rstate.bgelidable = true;
+          }
+          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+          nc->rstate.bgdefelidable = false;
+          nc->rstate.bgpalelidable = false;
+          // FIXME see above -- if we don't have to change the fg, but do need
+          // to change the bg, emit full block and no rgb at all
+          if(rgbequal){
+            // FIXME need one per column of original glyph
+            pool_load_direct(&nc->pool, srccell, " ", 1, 1);
+          }
+        }
+        // we ought check for noforeground (see below) FIXME
         if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
           if(emit_fg_palindex(nc, f, srccell)){
             return -1;
           }
         }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
+          // if our cell has a non-default foreground, we can elide the
+          // non-default foreground set iff either:
+          //  * the previous was non-default, and matches what we have now, or
+          //  * we are a no-foreground glyph (iswspace() is true) FIXME
           nccell_fg_rgb8(srccell, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.s.fgelisions;
@@ -1195,31 +1234,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           nc->rstate.fgdefelidable = false;
           nc->rstate.fgpalelidable = false;
         }
-        // if our cell has a non-default background, we can elide the
-        // non-default background set iff either:
-        //  * we do not use the background, because the cell is all-foreground,
-        //  * the previous was non-default, and matches what we have now, or
-        if(nobackground){
-          ++nc->stats.s.bgelisions;
-        }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
-          if(emit_bg_palindex(nc, f, srccell)){
-            return -1;
-          }
-        }else if(!nccell_bg_default_p(srccell)){ // rgb background
-          nccell_bg_rgb8(srccell, &br, &bg, &bb);
-          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
-            ++nc->stats.s.bgelisions;
-          }else{
-            if(term_bg_rgb8(&nc->tcache, f, br, bg, bb)){
-              return -1;
-            }
-            ++nc->stats.s.bgemissions;
-            nc->rstate.bgelidable = true;
-          }
-          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-          nc->rstate.bgdefelidable = false;
-          nc->rstate.bgpalelidable = false;
-        }
+//fprintf(stderr, "RGBEQUAL: %u ALTTEXT: [%s]\n", rgbequal, alttext ? alttext : "");
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016" PRIx64 "\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
@@ -1231,8 +1246,14 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
             sprixel_invalidate(rvec[damageidx].sprixel, y, x);
           }
         }
-        if(term_putc(f, &nc->pool, srccell)){
-          return -1;
+        if(!alttext){
+          if(term_putc(f, &nc->pool, srccell)){
+            return -1;
+          }
+        }else{
+          if(fbuf_puts(f, alttext) < 0){ // alttext must match srccell's width
+            return -1;
+          }
         }
         if(srccell->gcluster == '\n'){
           saw_linefeed = true;
