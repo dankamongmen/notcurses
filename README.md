@@ -569,10 +569,11 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
  <summary>What is the possessive form of Notcurses?</summary>
- **Notcurses'.** I cite [Garner's Modern English Usage](https://en.wikipedia.org/wiki/Garner%27s_Modern_English_Usage)
- in its third edition: "POSSESSIVES. A. Singular Possessives.**…Biblical and Classical names that end with a
- /zəs/ or /eez/ sound take only the apostrophe." Some ask: is Notcurses then
- Biblical, or is it Classical? Truly, it is both.
+ <b>Notcurses'.</b> I cite <a href="https://en.wikipedia.org/wiki/Garner%27s_Modern_English_Usage">
+ Garner's Modern English Usage</a> in its third edition: "<b>POSSESSIVES. A. Singular
+ Possessives.</b>…Biblical and Classical names that end with a /zəs/ or /eez/
+ sound take only the apostrophe." Some ask: is Notcurses then Biblical, or is it
+ Classical? Truly, it is both.
 </details>
 
 <details>
