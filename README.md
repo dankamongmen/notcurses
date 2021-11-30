@@ -568,6 +568,13 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+ <summary>What is the possessive form of Notcurses?</summary>
+ **Notcurses'.** I cite [Garner's Modern English Usage](https://en.wikipedia.org/wiki/Garner%27s_Modern_English_Usage)
+ in its third edition: "POSSESSIVES. A. Singular Possessives.**…Biblical and Classical names that end with a
+ /zəs/ or /eez/ sound take only the apostrophe."
+</details>
+
+<details>
   <summary>I just want to display a bitmap on my terminal. Your library is
   complex and stupid. You are simple and stupid.</summary>
   If you're willing to call a binary, use <tt>ncplayer</tt> to put an image,
