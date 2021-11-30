@@ -1166,7 +1166,6 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         //  * we are a no-background glyph, and the previous was default foreground
         bool nobackground = nccell_nobackground_p(srccell);
         bool rgbequal = nccell_rgbequal_p(srccell);
-fprintf(stderr, "RGBEQUAL: %u PAL: F %u %u %u B %u %u %u\n", rgbequal, nccell_fg_default_p(srccell), nccell_fg_palindex(srccell), nccell_fg_palindex_p(srccell), nccell_bg_default_p(srccell), nccell_bg_palindex(srccell), nccell_bg_palindex_p(srccell));
         if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
           if(raster_defaults(nc, nccell_fg_default_p(srccell),
                              !nobackground && nccell_bg_default_p(srccell), f)){
