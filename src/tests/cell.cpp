@@ -15,10 +15,10 @@ TEST_CASE("Cell") {
 
   SUBCASE("EGCs") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
-    CHECK(2 == nccell_load(n_, &c, "é"));
+    CHECK(2 == nccell_load(n_, &c, u8"é"));
     CHECK(1 == nccell_cols(&c));
     int cols;
-    CHECK(3 == nccell_load(n_, &c, "\x41\u0301"));
+    CHECK(3 == nccell_load(n_, &c, u8"\x41\u0301"));
     CHECK(1 == nccell_cols(&c));
     CHECK(4 == nccell_load(n_, &c, " ி"));
     cols = nccell_cols(&c);
@@ -29,14 +29,14 @@ TEST_CASE("Cell") {
     // musl+s390x (alpine) is reporting these EGCs to be 0 columns wide (they
     // ought be 1). not sure whether i've got a bug (s390x is big-endian), or
     // whether it does. just relaxed the tests for now FIXME.
-    CHECK(5 == nccell_load(n_, &c, "◌̈"));
+    CHECK(5 == nccell_load(n_, &c, u8"◌̈"));
     WARN(1 == nccell_cols(&c));
-    CHECK(9 == nccell_load(n_, &c, "นี้"));
+    CHECK(9 == nccell_load(n_, &c, u8"นี้"));
     WARN(1 == nccell_cols(&c));
 
     // type-3 woman playing water polo, 17 bytes (5 characters, 2 columns)
 #ifdef __linux__
-    CHECK(17 == nccell_load(n_, &c, "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
+    CHECK(17 == nccell_load(n_, &c, u8"\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
     WARN(2 == nccell_cols(&c));
     nccell_release(n_, &c);
 #endif
@@ -50,22 +50,22 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("MultibyteWidth") {
-    CHECK(0 == ncstrwidth("", NULL, NULL));       // zero bytes, zero columns
-    CHECK(-1 == ncstrwidth("\x7", NULL, NULL));   // single byte, non-printable
-    CHECK(1 == ncstrwidth(" ", NULL, NULL));      // single byte, one column
-    CHECK(5 == ncstrwidth("abcde", NULL, NULL));  // single byte, one column
-    CHECK(1 == ncstrwidth("µ", NULL, NULL));      // two bytes, one column
-    CHECK(1 <= ncstrwidth("\U0001f982", NULL, NULL));     // four bytes, two columns
-    CHECK(3 <= ncstrwidth("平仮名", NULL, NULL)); // nine bytes, six columns
-    CHECK(1 == ncstrwidth("\U00012008", NULL, NULL)); // four bytes, 1 column
+    CHECK(0 == ncstrwidth(u8"", NULL, NULL));       // zero bytes, zero columns
+    CHECK(-1 == ncstrwidth(u8"\x7", NULL, NULL));   // single byte, non-printable
+    CHECK(1 == ncstrwidth(u8" ", NULL, NULL));      // single byte, one column
+    CHECK(5 == ncstrwidth(u8"abcde", NULL, NULL));  // single byte, one column
+    CHECK(1 == ncstrwidth(u8"µ", NULL, NULL));      // two bytes, one column
+    CHECK(1 <= ncstrwidth(u8"\U0001f982", NULL, NULL));     // four bytes, two columns
+    CHECK(3 <= ncstrwidth(u8"平仮名", NULL, NULL)); // nine bytes, six columns
+    CHECK(1 == ncstrwidth(u8"\U00012008", NULL, NULL)); // four bytes, 1 column
   }
 
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
-    CHECK(2 == ncstrwidth("\U0001F471", NULL, NULL));
+    CHECK(2 == ncstrwidth(u8"\U0001F471", NULL, NULL));
 #ifndef __APPLE__ // FIXME
-    CHECK(2 == ncstrwidth("\U0001F471\u200D", NULL, NULL));
-    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640", NULL, NULL));
+    CHECK(2 == ncstrwidth(u8"\U0001F471\u200D", NULL, NULL));
+    CHECK(2 == ncstrwidth(u8"\U0001F471\u200D\u2640", NULL, NULL));
 #endif
   }
 
@@ -389,7 +389,9 @@ TEST_CASE("Cell") {
     nccell_set_bg_default(&c);
     CHECK(0 == nccell_rgbequal_p(&c));
     nccell_set_bg_palindex(&c, 0);
+    CHECK(nccell_bg_palindex_p(&c));
     nccell_set_fg_palindex(&c, 0);
+    CHECK(nccell_fg_palindex_p(&c));
     CHECK(0 == nccell_rgbequal_p(&c));
     nccell_set_bg_rgb(&c, 0);
     CHECK(0 == nccell_rgbequal_p(&c));
