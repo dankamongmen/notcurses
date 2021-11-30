@@ -26,12 +26,13 @@ TEST_CASE("Stacking") {
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 
-  // whenever the foreground matches the background (using palette-indexed or
-  // RGB color, *not* default colors), we ought emit a space with the
+  // whenever the foreground matches the background (using RGB color, *not*
+  // default colors not palette-indexed color), we ought emit a space with the
   // specified background, or a full block with the specified foreground (only
-  // if UTF8 is available). default colors must not be merged. the
-  // transformation should only take place at raster time.
-  SUBCASE("FgMatchesBg") {
+  // if UTF8 is available). default colors must not be merged (palette-indexed
+  // could be, but it's pointless). the transformation must only take place at
+  // raster time--the original output must be recoverable from the plane.
+  SUBCASE("FgMatchesBgRGB") {
     // first we write an a with the desired background, but a distinct
     // foreground. then we write an a with the two matching (via RGB).
     // this ought generate a space with the desired background on the
@@ -70,7 +71,9 @@ TEST_CASE("Stacking") {
     rblit = notcurses_at_yx(nc_, 0, 3, nullptr, &channels);
     if(notcurses_canutf8(nc_)){
       CHECK(0x808080 == ncchannels_fg_rgb(channels));
-      CHECK(0 == strcmp(u8"\u2588", rblit));
+      // FIXME we're not yet this advanced, and use space instead
+      // CHECK(0 == strcmp(u8"\u2588", rblit));
+      CHECK(0 == strcmp(u8" ", rblit));
     }else{
       CHECK(0 == strcmp(" ", rblit));
       CHECK(0x808080 == ncchannels_bg_rgb(channels));
@@ -115,9 +118,7 @@ TEST_CASE("Stacking") {
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
-    // ought yield space with white background FIXME currently just yields
-    // a lower half block
-    CHECK(0 == strcmp("\u2584", egc));
+    CHECK(0 == strcmp(u8" ", egc));
     free(egc);
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
@@ -158,9 +159,7 @@ TEST_CASE("Stacking") {
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
-    // ought yield space with white background FIXME currently just yields
-    // an upper half block
-    CHECK(0 == strcmp("\u2580", egc));
+    CHECK(0 == strcmp(u8" ", egc));
     free(egc);
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
@@ -202,9 +201,7 @@ TEST_CASE("Stacking") {
       uint64_t channels;
       auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
       REQUIRE(nullptr != egc);
-      // ought yield space with white background FIXME currently just yields
-      // an upper half block
-      CHECK(0 == strcmp("\u2580", egc));
+      CHECK(0 == strcmp(u8" ", egc));
       free(egc);
       CHECK(0x00ff00 == ncchannels_fg_rgb(channels));
       CHECK(0x00ff00 == ncchannels_bg_rgb(channels));
@@ -249,9 +246,7 @@ TEST_CASE("Stacking") {
       uint64_t channels;
       auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
       REQUIRE(nullptr != egc);
-      // ought yield space with white background FIXME currently just yields
-      // an upper half block
-      CHECK(0 == strcmp("\u259a", egc)); // quadrant upper left and lower right
+      CHECK(0 == strcmp(u8" ", egc)); // quadrant upper left and lower right
       free(egc);
       CHECK(0xffffff == ncchannels_fg_rgb(channels));
       CHECK(0xffffff == ncchannels_bg_rgb(channels));
