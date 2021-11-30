@@ -31,9 +31,9 @@ Autcip = 1
 Vwau = 0
 Website = https://
 Include uninstaller = 1
-Uninstaller filename = Notcurses uninstaller
-UseCustomDisplayIcon = 0
-CustomDisplayIcon = <InstallPath>\
+Uninstaller filename = ncuninstaller
+UseCustomDisplayIcon = 1
+CustomDisplayIcon = <InstallPath>\natasha-blur.png
 [Licence]
 Licence dialog = 0
 [Finish]
@@ -55,11 +55,11 @@ Time = 2
 PlaySound = 0
 Allow = 0
 [Build]
-File = C:\msys64\home\niblack\src\notcurses\installer.exe
+File = C:\msys64\home\niblack\src\notcurses\notcurses-2.4.99.exe
 SetupIconPath = C:\msys64\home\niblack\src\notcurses\doc\icon.ico
 UninstallIconPath = C:\msys64\home\niblack\src\notcurses\doc\icon.ico
 CompressionMethod = 0
-CompressionLevel = 0
+CompressionLevel = 2
 [Updater]
 Allow = 0
 1 = <AppName>
@@ -393,33 +393,15 @@ dll
 C:\msys64\home\niblack\src\notcurses\build\zlib1.dll
 92.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses.a
-625.6 KB
-a
 C:\msys64\home\niblack\src\notcurses\build\libnotcurses.dll
 738.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses.dll.a
-2 KB
-a
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.a
-925.8 KB
-a
 C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.dll
 925.7 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.dll.a
-43.6 KB
-a
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.a
-2.8 MB
-a
 C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.dll
 2.9 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.dll.a
-228.9 KB
-a
 C:\msys64\home\niblack\src\notcurses\build\ncneofetch.exe
 358.8 KB
 exe
