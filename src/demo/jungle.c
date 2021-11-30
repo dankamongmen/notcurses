@@ -26610,7 +26610,7 @@ int jungle_demo(struct notcurses* nc, uint64_t startns){
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   ncplane_erase(n);
   nccell c = NCCELL_TRIVIAL_INITIALIZER;
-  nccell_load(n, &c, "\xe2\x96\x80"); // upper half block
+  nccell_load(n, &c, u8"\u2580"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
     unsigned targy = yoff + y / (yiter * 2);
     if(targy < dimy / 2){
@@ -26622,7 +26622,7 @@ int jungle_demo(struct notcurses* nc, uint64_t startns){
         int idx = y * ORIGWIDTH + x;
         int idx2 = (y + yiter) * ORIGWIDTH + x;
         if(nccell_set_fg_palindex(&c, buf[idx])){
-                return -1;
+          return -1;
         }
         if(y + yiter < ORIGHEIGHT){
           if(nccell_set_bg_palindex(&c, buf[idx2])){
@@ -26634,7 +26634,7 @@ int jungle_demo(struct notcurses* nc, uint64_t startns){
           }
         }
         if(ncplane_putc(n, &c) < 0){
-                return -1;
+          return -1;
         }
       }
     }
