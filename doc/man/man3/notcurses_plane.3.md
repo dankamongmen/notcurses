@@ -25,7 +25,7 @@ typedef struct ncplane_options {
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // called on parent resize
   uint64_t flags;   // closure over NCPLANE_OPTION_*
-  int margin_b, margin_r; // bottom and right margins
+  unsigned margin_b, margin_r; // bottom and right margins
 } ncplane_options;
 
 #define NCSTYLE_MASK      0xffffu

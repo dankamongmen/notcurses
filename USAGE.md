@@ -811,7 +811,7 @@ typedef struct ncplane_options {
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
-  int margin_b, margin_r; // margins (require NCPLANE_OPTION_MARGINALIZED)
+  unsigned margin_b, margin_r; // margins (require NCPLANE_OPTION_MARGINALIZED)
 } ncplane_options;
 
 // Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
