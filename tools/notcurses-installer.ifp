@@ -1316,9 +1316,9 @@ dll
  [Licence_End]
 [Registry]
 HKEY_CURRENT_USER
-Software\Notcurses\InstallDir
+Software\Notcurses\DataDir
 
-<InstallPath>
+<InstallPath>\data
 1
 [Variables]
 [SCs]

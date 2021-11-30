@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 char* notcurses_data_dir(void){
-  const char key[] = "Software\\Notcurses\\InstallDir";
+  const char key[] = "Software\\Notcurses\\DataDir";
   DWORD plen = 0;
   LSTATUS r = RegGetValueA(HKEY_CURRENT_USER, key,
 			   NULL, RRF_RT_REG_SZ, NULL,
@@ -27,6 +27,7 @@ char* notcurses_data_dir(void){
     free(val);
     return NULL;
   }
+fprintf(stderr, "REGISTRY VALUE [%s]\n", val);
   return val;
 }
 
