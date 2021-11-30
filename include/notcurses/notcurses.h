@@ -1065,6 +1065,7 @@ nckey_mouse_p(uint32_t r){
 typedef struct ncinput {
   uint32_t id;       // Unicode codepoint or synthesized NCKEY event
   int y, x;          // y/x cell coordinate of event, -1 for undefined
+  char utf8[5];      // utf8 representation, if one exists
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?

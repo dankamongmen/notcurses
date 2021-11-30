@@ -346,7 +346,7 @@ int input_demo(ncpp::NotCurses* nc) {
         }
       }else{
         n->set_fg_rgb8(64, 128, 250);
-        n->printf("Unicode: [0x%08x] '%lc'", r, (wchar_t)r);
+        n->printf("Unicode: [0x%08x] '%s'", r, ni.utf8);
       }
     }
     unsigned x;

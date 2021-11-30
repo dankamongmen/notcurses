@@ -18,6 +18,7 @@ typedef struct ncinput {
   uint32_t id;     // Unicode codepoint
   int y;           // Y cell coordinate of event, -1 for undefined
   int x;           // X cell coordinate of event, -1 for undefined
+  char utf8[5];    // utf8 representation, when one exists
   bool alt;        // Was Alt held during the event?
   bool shift;      // Was Shift held during the event?
   bool ctrl;       // Was Ctrl held during the event?
@@ -69,6 +70,8 @@ must be explicitly enabled via **notcurses_mice_enable**. The full 32-bit
 range of Unicode is supported (see **unicode(7)**), with synthesized events
 mapped above the 1,114,112 codepoints of Unicode 14.0's seventeen Planes.
 Unicode characters are returned directly as UCS-32, one codepoint at a time.
+When the input has a UTF8 representation, it is written to **utf8**; this
+field is always NUL-terminated.
 
 notcurses takes its keyboard input from **stdin**, which will be placed into
 non-blocking mode for the duration of operation. The terminal is put into

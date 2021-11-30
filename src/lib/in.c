@@ -2220,6 +2220,10 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   uint32_t id;
   if(ictx->drain){
     logerror("input is being drained\n");
+    if(ni){
+      memset(ni, 0, sizeof(*ni));
+      ni->id = (uint32_t)-1;
+    }
     return (uint32_t)-1;
   }
   pthread_mutex_lock(&ictx->ilock);
@@ -2239,9 +2243,16 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
       if(r == ETIMEDOUT){
         pthread_mutex_unlock(&ictx->ilock);
+        if(ni){
+          memset(ni, 0, sizeof(*ni));
+        }
         return 0;
       }else if(r < 0){
         inc_input_errors(ictx);
+        if(ni){
+          memset(ni, 0, sizeof(*ni));
+          ni->id = (uint32_t)-1;
+        }
         return (uint32_t)-1;
       }
     }
@@ -2249,6 +2260,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   id = ictx->inputs[ictx->iread].id;
   if(ni){
     memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
+    if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){
+      ni->utf8[0] = 0;
+    }
   }
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
@@ -2278,14 +2292,8 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
 
 // infp has already been set non-blocking
 uint32_t notcurses_get(notcurses* nc, const struct timespec* absdl, ncinput* ni){
-  uint32_t id = internal_get(nc->tcache.ictx, absdl, ni);
-  if(ni){
-    if(id == (uint32_t)-1){
-      ni->id = id;
-    }
-  }
-  logdebug("returning 0x%08x\n", id);
-  return id;
+  uint32_t ret = internal_get(nc->tcache.ictx, absdl, ni);
+  return ret;
 }
 
 // FIXME better performance if we move this within the locked area

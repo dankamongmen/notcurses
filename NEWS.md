@@ -35,6 +35,9 @@ rearrangements of Notcurses.
   * `CELL_TRIVIAL_INITIALIZER`, `CELL_CHAR_INITIALIZER`, and
     `CELL_INITIALIZER` are all now prefixed with `NC`.
   * A new resize callback, `ncplane_resize_placewithin()`, has been added.
+  * The `ncinput` struct has a new field, `utf8`. `notcurses_get()` will fill
+    in this array of `char` with the NUL-terminated UTF-8 representation of
+    the input whenever one exists.
 
 * 2.4.9 (2021-11-11)
   * Added `ncnmetric()`, which uses `snprintf()` internally. `ncmetric()`
