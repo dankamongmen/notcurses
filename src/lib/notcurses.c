@@ -1076,9 +1076,9 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     *utf8 = true;
   }else{
     *utf8 = false;
-    if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") ||
-                          !strcmp(encoding, "US-ASCII") ||
-                          !strcmp(encoding, "ASCII"))){
+    if(encoding && (strcmp(encoding, "ANSI_X3.4-1968") &&
+                          strcmp(encoding, "US-ASCII") &&
+                          strcmp(encoding, "ASCII"))){
       fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
               encoding ? encoding : "none found");
       free(ret);
