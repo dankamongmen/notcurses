@@ -1398,13 +1398,9 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[\\N;\\N:\\N~", kitty_cb_functional, },
-    /*
     { "[1;\\NP", legacy_cb_f1, },
-    */
     { "[1;\\NQ", legacy_cb_f2, },
-    /*
-    { "[1;\\NR", legacy_cb_f3, },
-    */
+    //{ "[1;\\NR", legacy_cb_f3, },
     { "[1;\\NS", legacy_cb_f4, },
     { "[1;\\ND", legacy_cb_left, },
     { "[1;\\NC", legacy_cb_right, },

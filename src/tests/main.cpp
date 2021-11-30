@@ -8,7 +8,7 @@
 #include <climits>
 #include <sys/stat.h>
 
-const char* datadir = NOTCURSES_SHARE;
+const char* datadir = notcurses_data_dir();
 // NCLOGLEVEL_INFO for initial testing framework creation. we then switch to
 // command line-specified loglevel, _SILENT if none specified.
 ncloglevel_e cliloglevel = NCLOGLEVEL_INFO;

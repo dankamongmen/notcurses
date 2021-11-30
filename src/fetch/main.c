@@ -28,12 +28,13 @@
 
 static inline char*
 find_data(const char* datum){
-  const char* datadir = NOTCURSES_SHARE;
+  char* datadir = notcurses_data_dir();
   const size_t dlen = strlen(datadir);
   char* path = malloc(dlen + 1 + strlen(datum) + 1);
   strcpy(path, datadir);
   path[dlen] = path_separator();
   strcpy(path + dlen + 1, datum);
+  free(datadir);
   return path;
 }
 

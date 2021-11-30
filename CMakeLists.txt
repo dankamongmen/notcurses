@@ -198,7 +198,7 @@ endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
-file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/compat.c)
+file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/*.c)
 
 ############################################################################
 # libnotcurses-core (core shared library, core static library)
@@ -625,7 +625,7 @@ endif()
 
 ############################################################################
 # ncneofetch
-file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
+file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c src/compat/*.c)
 add_executable(ncneofetch ${FETCHSRCS} ${COMPATSRC})
 target_include_directories(ncneofetch
   BEFORE
@@ -694,7 +694,7 @@ if(${BUILD_TESTING})
 if(${USE_CPP})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
-file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
+file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp src/compat/*.c)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
   BEFORE
