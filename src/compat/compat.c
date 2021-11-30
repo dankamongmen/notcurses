@@ -27,7 +27,6 @@ char* notcurses_data_dir(void){
     free(val);
     return NULL;
   }
-fprintf(stderr, "REGISTRY VALUE [%s]\n", val);
   return val;
 }
 
