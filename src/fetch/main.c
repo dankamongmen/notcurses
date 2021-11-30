@@ -29,8 +29,15 @@
 static inline char*
 find_data(const char* datum){
   char* datadir = notcurses_data_dir();
+  if(datadir == NULL){
+    return NULL;
+  }
   const size_t dlen = strlen(datadir);
   char* path = malloc(dlen + 1 + strlen(datum) + 1);
+  if(path == NULL){
+    free(datadir);
+    return NULL;
+  }
   strcpy(path, datadir);
   path[dlen] = path_separator();
   strcpy(path + dlen + 1, datum);
