@@ -2048,7 +2048,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   DWORD ncount = 0;
   const HANDLE* handles[2];
   if(!ictx->stdineof){
-    if(ictx->ibufvalid != sizeof(ictx->buf)){
+    if(ictx->ibufvalid != sizeof(ictx->ibuf)){
       handles[ncount++] = ictx->stdinhandle;
     }
   }
