@@ -675,14 +675,13 @@ neologo_present(struct notcurses* nc, const char* nlogo){
     ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)\n");
   }
   ncplane_off_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  return notcurses_render(nc);
+  return 0;
 }
 
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-  notcurses_render(m->nc);
   ncplane_set_bg_default(notcurses_stdplane(m->nc));
   ncplane_set_fg_default(notcurses_stdplane(m->nc));
   // we've just rendered, so any necessary scrolling has been performed. draw
@@ -715,8 +714,6 @@ display_thread(void* vmarshal){
       if(iplane){
         int x = ncplane_x(iplane);
         ncplane_move_yx(iplane, y, x);
-        ncplane_scrollup_child(notcurses_stdplane(m->nc), iplane);
-        notcurses_render(m->nc);
         m->nextline = ncplane_abs_y(iplane) + ncplane_dim_y(iplane);
         return NULL;
       }
