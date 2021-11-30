@@ -65,7 +65,7 @@ TEST_CASE("Stacking") {
     CHECK(0x808080 == ncchannels_fg_rgb(channels));
     free(pblit);
     auto rblit = notcurses_at_yx(nc_, 0, 1, nullptr, &channels);
-    CHECK(0 == strcmp(" ", pblit));
+    CHECK(0 == strcmp(" ", rblit));
     CHECK(0x808080 == ncchannels_bg_rgb(channels));
     free(rblit);
     rblit = notcurses_at_yx(nc_, 0, 3, nullptr, &channels);
