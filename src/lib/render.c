@@ -1191,18 +1191,14 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
               }
               ++nc->stats.s.fgemissions;
               nc->rstate.fgelidable = true;
+            }else{
+              r = nc->rstate.lastr; g = nc->rstate.lastg; b = nc->rstate.lastb;
             }
           }
           nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
           nc->rstate.fgdefelidable = false;
           nc->rstate.fgpalelidable = false;
         }
-        // we apply the background first because if the fg and bg values are
-        // same, and they're both rgb (rgbequal), we can emit either a space
-        // or a full block to avoid an rgb. we prefer to emit the space, doing
-        // so unless the current background would need a change but the
-        // current foreground would not (thus requiring no rgb change at all,
-        // but only for the full black). FIXME we don't yet do this, though.
         if(nobackground){
           ++nc->stats.s.bgelisions;
         }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
