@@ -168,6 +168,21 @@ You're recommended to enable the following "Experimental Features":
 
 You're recommended to change the default `TERM` to `mintty-direct`.
 
+### Putty
+
+Of the fonts present on Putty 0.76, "Cascadia Mono 10 Regular" is
+far superior to the default "Courier New 10". The latter doesn't
+support quadrants, and thus the quadblitter and sexblitter are
+unavailable on Putty. I recommend setting "ClearType" under
+"Appearance→Font Quality".
+
+Be sure "UTF-8" is set under "Remote character set".
+
+DirectColor is available so long as "Allow terminal to use 24-bit color"
+is checked under "Appearance→Colours". Ensure "Allow terminal to specify
+ANSI colours" and "Allow terminal to use xterm 256-colour mode" are also
+checked.
+
 ### The Linux console
 
 The Linux console supports concurrent virtual terminals, and is manipulated

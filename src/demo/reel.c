@@ -239,7 +239,6 @@ ncreel_demo_core(struct notcurses* nc, uint64_t startns){
   ncplane_set_bg_default(std);
   ncplane_printf_yx(std, 1, 2, "a, b, c create tablets, DEL deletes.");
   ncplane_off_styles(std, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-  // FIXME clrtoeol();
   struct timespec deadline;
   ns_to_timespec((timespec_to_ns(&demodelay) * 5) + startns, &deadline);
   unsigned id = 0;
