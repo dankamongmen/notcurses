@@ -32,7 +32,7 @@ Ncplane_create(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     const char *name = NULL;
     // TODO resize callback
     unsigned long long flags = 0;
-    int margin_b = 0, margin_r = 0;
+    unsigned int margin_b = 0, margin_r = 0;
 
     char *keywords[] = {"rows", "cols",
                         "y_pos", "x_pos",
