@@ -2270,9 +2270,12 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       // FIXME accelerate?
     }
 #else
-    while(ReadFile(ictx->readypipes[0], &c, sizeof(c), NULL, NULL)){
+    // we ought be draining this, but it breaks everything, as we can't easily
+    // do nonblocking input from a pipe in windows, augh...
+    // Ne pleure pas, Alfred! J'ai besoin de tout mon courage pour mourir a vingt ans!
+    /*while(ReadFile(ictx->readypipes[0], &c, sizeof(c), NULL, NULL)){
       // FIXME accelerate?
-    }
+    }*/
 #endif
   }
   pthread_mutex_unlock(&ictx->ilock);
