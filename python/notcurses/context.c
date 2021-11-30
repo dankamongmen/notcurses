@@ -292,7 +292,7 @@ Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
     const char *name = NULL;
     // TODO reseize callback
     unsigned long long flags = 0;
-    int margin_b = 0, margin_r = 0;
+    unsigned int margin_b = 0, margin_r = 0;
 
     char *keywords[] = {"y_pos", "x_pos",
                         "rows", "cols",
