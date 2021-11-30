@@ -30,13 +30,13 @@ namespace ncpp
 		explicit Cell (uint32_t c, NotCurses *ncinst = nullptr) noexcept
 			: Root (ncinst)
 		{
-			_cell = CELL_CHAR_INITIALIZER (c);
+			_cell = NCCELL_CHAR_INITIALIZER (c);
 		}
 
 		explicit Cell (uint32_t c, uint16_t a, uint64_t chan, NotCurses *ncinst = nullptr) noexcept
 			: Root (ncinst)
 		{
-			_cell = CELL_INITIALIZER (c, a, chan);
+			_cell = NCCELL_INITIALIZER (c, a, chan);
 		}
 
 		operator nccell* () noexcept

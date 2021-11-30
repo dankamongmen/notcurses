@@ -36,9 +36,9 @@ TEST_CASE("Geometry") {
       };
       auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);
-      nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
-      nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
-      nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+      nccell tl = NCCELL_TRIVIAL_INITIALIZER, tr = NCCELL_TRIVIAL_INITIALIZER;
+      nccell bl = NCCELL_TRIVIAL_INITIALIZER, br = NCCELL_TRIVIAL_INITIALIZER;
+      nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
       CHECK(0 == nccells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
       CHECK(0 <= ncplane_perimeter(n, &tl, &tr, &bl, &br, &hl, &vl, 0));
       CHECK(0 == notcurses_render(nc_));
@@ -83,9 +83,9 @@ TEST_CASE("Geometry") {
       };
       auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);
-      nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
-      nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
-      nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+      nccell tl = NCCELL_TRIVIAL_INITIALIZER, tr = NCCELL_TRIVIAL_INITIALIZER;
+      nccell bl = NCCELL_TRIVIAL_INITIALIZER, br = NCCELL_TRIVIAL_INITIALIZER;
+      nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
       CHECK(0 == nccells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
       CHECK(0 <= ncplane_perimeter(n, &tl, &tr, &bl, &br, &hl, &vl, 0));
       CHECK(0 == notcurses_render(nc_));

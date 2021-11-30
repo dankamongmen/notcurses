@@ -40,7 +40,7 @@ TEST_CASE("Palette256") {
 
   // when we set a palette index, it ought change us from using default
   SUBCASE("FAttributes") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_fg_default_p(&c));
     nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
@@ -51,7 +51,7 @@ TEST_CASE("Palette256") {
   }
 
   SUBCASE("BAttributes") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_bg_default_p(&c));
     nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
     CHECK(0 == nccell_set_bg_palindex(&c, 0x20));
@@ -63,13 +63,13 @@ TEST_CASE("Palette256") {
 
   // write it to an ncplane, and verify attributes via reflection
   SUBCASE("PutCAttrs") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == nccell_load_char(n_, &c, 'X'));
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
     CHECK(0 == nccell_set_bg_palindex(&c, 0x40));
     CHECK(1 == ncplane_putc_yx(n_, 0, 0, &c));
     nccell_release(n_, &c);
-    nccell r = CELL_TRIVIAL_INITIALIZER;
+    nccell r = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(n_, 0, 0, &r));
     CHECK(nccell_fg_palindex_p(&r));
     CHECK(nccell_bg_palindex_p(&r));
@@ -81,7 +81,7 @@ TEST_CASE("Palette256") {
   }
 
   SUBCASE("RenderCAttrs") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     nccell_load_char(n_, &c, 'X');
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
     CHECK(0 == nccell_set_bg_palindex(&c, 0x40));
@@ -90,7 +90,7 @@ TEST_CASE("Palette256") {
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
-    nccell r = CELL_TRIVIAL_INITIALIZER;
+    nccell r = NCCELL_TRIVIAL_INITIALIZER;
     auto egc = notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels);
     CHECK(nullptr != egc);
     free(egc);

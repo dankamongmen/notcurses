@@ -40,7 +40,7 @@ TEST_CASE("Fade") {
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
   unsigned dimy, dimx;
   ncplane_dim_yx(n_, &dimy, &dimx);
-  nccell c = CELL_CHAR_INITIALIZER('*');
+  nccell c = NCCELL_CHAR_INITIALIZER('*');
   nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;
   CHECK(!ncplane_set_scrolling(n_, true));

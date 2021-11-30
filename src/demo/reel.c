@@ -62,7 +62,7 @@ kill_active_tablet(struct ncreel* pr, tabletctx** tctx){
 static int
 tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   char cchbuf[2];
-  nccell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = NCCELL_TRIVIAL_INITIALIZER;
   int y;
   int maxx = ncplane_dim_x(w) - 1;
   if(maxy > tctx->lines){

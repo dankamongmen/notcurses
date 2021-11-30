@@ -57,7 +57,7 @@ int chunli_demo(struct notcurses* nc, uint64_t startns){
   int ret;
   unsigned dimx, dimy;
   ncplane_dim_yx(notcurses_stdplane_const(nc), &dimy, &dimx);
-  nccell b = CELL_TRIVIAL_INITIALIZER;
+  nccell b = NCCELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&b, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&b, NCALPHA_TRANSPARENT);
   if( (ret = chunli_draw(nc, "bmp", CHUNS, &b)) ){

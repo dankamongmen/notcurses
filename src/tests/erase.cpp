@@ -12,7 +12,7 @@ TEST_CASE("Erase") {
   REQUIRE(n_);
 
   // fill the standard plane with 'x's
-  nccell nc = CELL_CHAR_INITIALIZER('x');
+  nccell nc = NCCELL_CHAR_INITIALIZER('x');
   CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &nc));
   nccell_release(n_, &nc);
   CHECK(0 == notcurses_render(nc_));

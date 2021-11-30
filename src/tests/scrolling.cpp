@@ -150,9 +150,9 @@ TEST_CASE("Scrolling") {
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
-    nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-    nccell dl = CELL_TRIVIAL_INITIALIZER, dr = CELL_TRIVIAL_INITIALIZER;
-    nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+    nccell dl = NCCELL_TRIVIAL_INITIALIZER, dr = NCCELL_TRIVIAL_INITIALIZER;
+    nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == nccells_double_box(n, 0, 0, &ul, &ur, &dl, &dr, &hl, &vl));
     CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 25, 0));
     CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 21, 0));
@@ -269,7 +269,7 @@ TEST_CASE("Scrolling") {
     ncplane_set_scrolling(n_, true);
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
-    nccell c = CELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
+    nccell c = NCCELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
     CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
     CHECK(0 == notcurses_render(nc_));
@@ -297,7 +297,7 @@ TEST_CASE("Scrolling") {
     ncplane_set_scrolling(n_, true);
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
-    nccell c = CELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
+    nccell c = NCCELL_INITIALIZER('a', 0, NCCHANNELS_INITIALIZER(0xbb, 0, 0xbb, 0, 0, 0));
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
     CHECK(0 == ncplane_cursor_move_yx(n_, ncplane_dim_y(n_) - 1, 0));
     CHECK(0 == notcurses_render(nc_));

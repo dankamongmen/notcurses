@@ -35,7 +35,7 @@ TEST_CASE("EGCpool") {
     const char* w1 = "\u00e0"; // (utf8: c3 a0)
     const char* w2 = "\u0061\u0300"; // (utf8: 61 cc 80)
     const char* w3 = "\u0061"; // (utf8: 61)
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(2 == nccell_load(n_, &c, w1));
     CHECK(1 == nccell_cols(&c));
     CHECK(3 == nccell_load(n_, &c, w2));
@@ -46,7 +46,7 @@ TEST_CASE("EGCpool") {
 
   SUBCASE("AddAndRemove") {
     const char* wstr = "\U0001242B"; // cuneiform numeric sign nine shar2
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     auto ulen = nccell_load(n_, &c, wstr);
     CHECK(1 == nccell_cols(&c)); // not considered wide, believe it or not
     REQUIRE(0 <= egcpool_stash(&pool_, wstr, ulen));
@@ -65,8 +65,8 @@ TEST_CASE("EGCpool") {
 
   SUBCASE("AddTwiceRemoveFirst") {
     const char* wstr = "\u8840"; // cjk unified ideograph, wide
-    nccell c1 = CELL_TRIVIAL_INITIALIZER;
-    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
     auto u2 = nccell_load(n_, &c2, wstr);
     int o1 = egcpool_stash(&pool_, wstr, u1);
@@ -90,8 +90,8 @@ TEST_CASE("EGCpool") {
 
   SUBCASE("AddTwiceRemoveSecond") {
     const char* wstr = "\u8840"; // cjk unified ideograph, wide
-    nccell c1 = CELL_TRIVIAL_INITIALIZER;
-    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
     auto u2 = nccell_load(n_, &c2, wstr);
     int o1 = egcpool_stash(&pool_, wstr, u1);

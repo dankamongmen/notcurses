@@ -69,9 +69,9 @@ static int
 draw_block(struct ncplane* nn, uint32_t blockstart){
   unsigned dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
-  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell ll = NCCELL_TRIVIAL_INITIALIZER, lr = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
   nccells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
   nccell_set_bg_alpha(&ul, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&ur, NCALPHA_TRANSPARENT);

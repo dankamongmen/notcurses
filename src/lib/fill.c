@@ -365,8 +365,8 @@ rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
 //   lower?) having the two channels as fore- and background.
 static int
 rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
-  nccell c1 = CELL_TRIVIAL_INITIALIZER;
-  nccell c2 = CELL_TRIVIAL_INITIALIZER;
+  nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
+  nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
   if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }
@@ -406,8 +406,8 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
 
 static int
 rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
-  nccell c1 = CELL_TRIVIAL_INITIALIZER;
-  nccell c2 = CELL_TRIVIAL_INITIALIZER;
+  nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
+  nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
   if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }

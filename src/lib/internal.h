@@ -330,6 +330,7 @@ typedef struct notcurses {
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
+  // FIXME why isn't this just an ncplane rather than ~10 different members?
   nccell* lastframe;// last rasterized framebuffer, NULL until first raster
   // the last pile we rasterized. NULL until we've rasterized once. might
   // be invalid due to the pile being destroyed; you are only allowed to

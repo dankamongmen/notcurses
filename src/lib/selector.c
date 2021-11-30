@@ -83,7 +83,7 @@ ncselector_body_width(const ncselector* n){
 static int
 ncselector_draw(ncselector* n){
   ncplane_erase(n->ncp);
-  nccell transchar = CELL_TRIVIAL_INITIALIZER;
+  nccell transchar = NCCELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&transchar, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&transchar, NCALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
@@ -163,7 +163,7 @@ ncselector_draw(ncselector* n){
   ++yoff;
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
-    nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+    nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   const int bodyoffset = dimx - bodywidth + 2;
@@ -187,7 +187,7 @@ ncselector_draw(ncselector* n){
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
     for(int i = xoff + 1 ; i < (int)dimx - 1 ; ++i){
-      nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+      nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
       ncplane_putc(n->ncp, &transc);
     }
     n->ncp->channels = n->opchannels;
@@ -208,7 +208,7 @@ ncselector_draw(ncselector* n){
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(int i = xoff + 1 ; i < (int)dimx - 1 ; ++i){
-    nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+    nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
@@ -611,7 +611,7 @@ ncmultiselector_body_width(const ncmultiselector* n){
 static int
 ncmultiselector_draw(ncmultiselector* n){
   ncplane_erase(n->ncp);
-  nccell transchar = CELL_TRIVIAL_INITIALIZER;
+  nccell transchar = NCCELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&transchar, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&transchar, NCALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
@@ -678,7 +678,7 @@ ncmultiselector_draw(ncmultiselector* n){
   ++yoff;
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
-    nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+    nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   const int bodyoffset = dimx - bodywidth + 2;
@@ -699,7 +699,7 @@ ncmultiselector_draw(ncmultiselector* n){
     }
     ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
     for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
-      nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+      nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
       ncplane_putc(n->ncp, &transc);
     }
     n->ncp->channels = n->descchannels;
@@ -729,7 +729,7 @@ ncmultiselector_draw(ncmultiselector* n){
   // Bottom line of body (background and possibly down arrow)
   ncplane_cursor_move_yx(n->ncp, yoff, xoff + 1);
   for(unsigned i = xoff + 1 ; i < dimx - 1 ; ++i){
-    nccell transc = CELL_TRIVIAL_INITIALIZER; // fall back to base cell
+    nccell transc = NCCELL_TRIVIAL_INITIALIZER; // fall back to base cell
     ncplane_putc(n->ncp, &transc);
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){

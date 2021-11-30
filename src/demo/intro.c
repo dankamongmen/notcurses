@@ -104,12 +104,12 @@ int intro_demo(struct notcurses* nc, uint64_t startns){
   if(ncplane_gradient2x1(ncp, -1, -1, rows - 3, cols - 2, ccul, ccur, ccll, cclr) <= 0){
     return -1;
   }
-  nccell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = NCCELL_TRIVIAL_INITIALIZER;
   nccell_set_bg_rgb8(&c, 0x20, 0x20, 0x20);
   ncplane_set_base_cell(ncp, &c);
-  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell ll = NCCELL_TRIVIAL_INITIALIZER, lr = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
   if(ncplane_cursor_move_yx(ncp, 1, 0)){
     return -1;
   }

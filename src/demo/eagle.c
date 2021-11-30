@@ -119,7 +119,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
 
 static int
 draw_eagle(struct ncplane* n, const char* sprite){
-  nccell bgc = CELL_TRIVIAL_INITIALIZER;
+  nccell bgc = NCCELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&bgc, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&bgc, NCALPHA_TRANSPARENT);
   ncplane_set_base_cell(n, &bgc);

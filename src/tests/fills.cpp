@@ -18,7 +18,7 @@ TEST_CASE("Fills") {
   SUBCASE("PolyfillNullGlyph") {
     unsigned dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 > ncplane_polyfill_yx(n_, dimy, dimx, &c));
   }
 
@@ -26,7 +26,7 @@ TEST_CASE("Fills") {
   SUBCASE("PolyfillOffplane") {
     unsigned dimx, dimy;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     CHECK(0 > ncplane_polyfill_yx(n_, dimy, 0, &c));
     CHECK(0 > ncplane_polyfill_yx(n_, 0, dimx, &c));
     CHECK(0 > ncplane_polyfill_yx(n_, 0, -2, &c));
@@ -34,7 +34,7 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillOnGlyph") {
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -61,13 +61,13 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillStandardPlane") {
-    nccell c = CELL_CHAR_INITIALIZER('-');
+    nccell c = NCCELL_CHAR_INITIALIZER('-');
     CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("PolyfillEmptyPlane") {
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -87,7 +87,7 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("PolyfillWalledPlane") {
-    nccell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = NCCELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,
@@ -119,7 +119,7 @@ TEST_CASE("Fills") {
     unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient(n_, -1, -1, dimy, dimx, "M", 0, c, c, c, c));
-    nccell cl = CELL_TRIVIAL_INITIALIZER;
+    nccell cl = NCCELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
     ncchannels_set_fg_rgb(&channels, 0x40f040);
     ncchannels_set_bg_rgb(&channels, 0x40f040);
@@ -149,7 +149,7 @@ TEST_CASE("Fills") {
     unsigned dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient(n_, 0, 0, dimy, dimx, "V", 0, ul, ur, ll, lr));
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
     ncchannels_set_fg_rgb(&channels, 0x40f040);
     ncchannels_set_bg_rgb(&channels, 0x40f040);
@@ -248,10 +248,10 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     // attr should change, but not the EGC/color
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     nccell_on_styles(&c, NCSTYLE_BOLD);
     CHECK(0 < ncplane_format(n_, 0, 0, 0, 0, c.stylemask));
-    nccell d = CELL_TRIVIAL_INITIALIZER;
+    nccell d = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(d.stylemask == c.stylemask);
     CHECK(0x444444 == nccell_fg_rgb(&d));
@@ -271,7 +271,7 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&channels, 0);
     REQUIRE(0 < ncplane_stain(n_, 0, 0, 7, 7, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
-    nccell d = CELL_TRIVIAL_INITIALIZER;
+    nccell d = NCCELL_TRIVIAL_INITIALIZER;
     for(unsigned y = 0 ; y < 7 ; ++y){
       for(unsigned x = 0 ; x < 7 ; ++x){
         CHECK(1 == ncplane_at_yx_cell(n_, y, x, &d));
@@ -292,7 +292,7 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&channels, 0);
     REQUIRE(0 < ncplane_gradient(n_, 0, 0, 0, 0, "A", 0, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
-    nccell d = CELL_TRIVIAL_INITIALIZER;
+    nccell d = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(channels == d.channels);
     REQUIRE(cell_simple_p(&d));
@@ -312,7 +312,7 @@ TEST_CASE("Fills") {
     ncchannels_set_bg_rgb(&chan2, 0);
     CHECK(0 < ncplane_gradient(n_, 0, 0, 0, 3, "A", 0, chan1, chan2, chan1, chan2));
     CHECK(0 == notcurses_render(nc_));
-    nccell d = CELL_TRIVIAL_INITIALIZER;
+    nccell d = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(chan1 == d.channels);
     CHECK(cell_simple_p(&d));
@@ -366,8 +366,8 @@ TEST_CASE("Fills") {
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "0123456789"));
     CHECK(0 == ncplane_mergedown_simple(p1, n_));
-    nccell cbase = CELL_TRIVIAL_INITIALIZER;
-    nccell cp = CELL_TRIVIAL_INITIALIZER;
+    nccell cbase = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cp = NCCELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
@@ -411,8 +411,8 @@ TEST_CASE("Fills") {
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "█▀▄▌▐🞵🞶🞷🞸🞹"));
     CHECK(0 == ncplane_mergedown_simple(p1, n_));
-    nccell cbase = CELL_TRIVIAL_INITIALIZER;
-    nccell cp = CELL_TRIVIAL_INITIALIZER;
+    nccell cbase = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cp = NCCELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
@@ -425,7 +425,7 @@ TEST_CASE("Fills") {
     // make sure glyphs replace glyps
     CHECK(0 < ncplane_putstr(p3, "🞵🞶🞷🞸🞹█▀▄▌▐"));
     CHECK(0 == ncplane_mergedown_simple(p3, n_));
-    nccell c3 = CELL_TRIVIAL_INITIALIZER;
+    nccell c3 = NCCELL_TRIVIAL_INITIALIZER;
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p3, 0, i, &c3));
@@ -463,7 +463,7 @@ TEST_CASE("Fills") {
     };
     struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
-    nccell c1 = CELL_TRIVIAL_INITIALIZER;
+    nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 < nccell_load(p1, &c1, "█"));
     CHECK(0 == nccell_set_bg_rgb(&c1, 0x00ff00));
     CHECK(0 == nccell_set_fg_rgb(&c1, 0x0000ff));
@@ -482,7 +482,7 @@ TEST_CASE("Fills") {
     };
     auto p2 = ncplane_create(n_, &n2opts);
     REQUIRE(p2);
-    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 < nccell_load(p2, &c2, "🞶"));
     CHECK(0 == nccell_set_bg_rgb(&c2, 0x00ffff));
     CHECK(0 == nccell_set_fg_rgb(&c2, 0xff00ff));
@@ -549,14 +549,14 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     for(unsigned y = 0 ; y < DIMY ; ++y){
       for(unsigned x = 0 ; x < DIMX ; ++x){
-        nccell c1 = CELL_TRIVIAL_INITIALIZER;
+        nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
           auto cstr = nccell_strdup(p1, &c1);
           CHECK(0 == strcmp(cstr, "▀"));
           free(cstr);
         }else{
-          nccell c2 = CELL_TRIVIAL_INITIALIZER;
+          nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
           CHECK(0 == nccellcmp(p1, &c1, p2, &c2));
           nccell_release(p2, &c2);

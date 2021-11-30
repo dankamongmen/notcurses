@@ -535,7 +535,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell ? fi->shell : "n/a");
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
-    nccell c = CELL_CHAR_INITIALIZER('R');
+    nccell c = NCCELL_CHAR_INITIALIZER('R');
     nccell_set_styles(&c, NCSTYLE_BOLD);
     nccell_set_fg_rgb8(&c, 0xf0, 0xa0, 0xa0);
     ncplane_putc_yx(infop, 4, 1, &c);
@@ -554,9 +554,9 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
   ncplane_printf_aligned(infop, 5, NCALIGN_CENTER, "%s (%d cores)",
                          fi->cpu_model ? fi->cpu_model : fallback_cpuinfo(),
                          fi->core_count);
-  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell ll = NCCELL_TRIVIAL_INITIALIZER, lr = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
   if(nccells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
