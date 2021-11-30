@@ -430,9 +430,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
                     tament* tam, const blitterargs* bargs){
   const int begx = bargs->begx;
   const int begy = bargs->begy;
-  sprixel* s = bargs->u.pixel.spx;
-  const int cdimy = ncplane_pile(s->n)->cellpxy;
-  const int cdimx = ncplane_pile(s->n)->cellpxx;
+  const int cdimy = bargs->u.pixel.cellpxy;
+  const int cdimx = bargs->u.pixel.cellpxx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
