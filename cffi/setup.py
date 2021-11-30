@@ -37,19 +37,10 @@ class ManPageGenerator(install):
         super().run()
 
 
-class SdistCommand(sdist):
-    def run(self):
-        copy_include_dir()
-        super().run()
+copy_include_dir()
 
 
-class BuildCommand(build):
-    def run(self):
-        copy_include_dir()
-        super().run()
-
-
-cmdclass = {"sdist": SdistCommand, "build": BuildCommand}
+cmdclass = {}
 try:
     import pypandoc
     cmdclass["install"] = ManPageGenerator
