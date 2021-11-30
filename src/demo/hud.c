@@ -124,7 +124,7 @@ debug_toggle(struct notcurses* nc){
   }
   fbuf_free(&f);
   for(unsigned y = 0 ; y < ncplane_dim_y(n) ; ++y){
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
     nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
     ncplane_putc_yx(n, y, ncplane_dim_x(n) - 1, &c);
@@ -171,9 +171,9 @@ about_toggle(struct notcurses* nc){
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "restart Ctrl+R  ");
     ncplane_printf_aligned(n, 5, NCALIGN_CENTER, "q quit");
     ncplane_putstr_aligned(n, 7, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
-    nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-    nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-    nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+    nccell lr = NCCELL_TRIVIAL_INITIALIZER, ll = NCCELL_TRIVIAL_INITIALIZER;
+    nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
     channels = 0;
     ncchannels_set_fg_rgb(&channels, 0xc020c0);
     ncchannels_set_bg_rgb(&channels, 0);
@@ -337,9 +337,9 @@ struct ncmenu* menu_create(struct notcurses* nc){
 static int
 hud_refresh(struct ncplane* n){
   ncplane_erase(n);
-  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell lr = NCCELL_TRIVIAL_INITIALIZER, ll = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
   if(nccells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
@@ -382,7 +382,7 @@ hud_print_finished(elem* list){
       break;
     }
     if(hud){
-      nccell c = CELL_TRIVIAL_INITIALIZER;
+      nccell c = NCCELL_TRIVIAL_INITIALIZER;
       ncplane_base(hud, &c);
       ncplane_set_bg_rgb(hud, nccell_bg_rgb(&c));
       ncplane_set_bg_alpha(hud, NCALPHA_BLEND);
@@ -395,7 +395,7 @@ hud_print_finished(elem* list){
       char buf[NCPREFIXCOLUMNS + 2];
       ncnmetric(e->totalns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
       for(int x = 6 ; x < 14 - ncstrwidth(buf, NULL, NULL) ; ++x){
-        nccell ci = CELL_TRIVIAL_INITIALIZER;
+        nccell ci = NCCELL_TRIVIAL_INITIALIZER;
         ncplane_putc_yx(hud, 1, x, &ci);
       }
       if(ncplane_printf_yx(hud, line, 14 - ncstrwidth(buf, NULL, NULL), "%ss", buf) < 0){
@@ -599,7 +599,7 @@ int demo_render(struct notcurses* nc){
     }
     uint64_t ns = timespec_to_ns(&ts) - elems->startns;
     ++elems->frames;
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     ncplane_base(hud, &c);
     ncplane_set_bg_rgb(hud, nccell_bg_rgb(&c));
     ncplane_set_bg_alpha(hud, NCALPHA_BLEND);
@@ -613,7 +613,7 @@ int demo_render(struct notcurses* nc){
     char buf[NCPREFIXCOLUMNS + 2];
     ncnmetric(ns, sizeof(buf), NANOSECS_IN_SEC, buf, 0, 1000, '\0');
     for(int x = 6 ; x < 14 - ncstrwidth(buf, NULL, NULL) ; ++x){
-      nccell ci = CELL_TRIVIAL_INITIALIZER;
+      nccell ci = NCCELL_TRIVIAL_INITIALIZER;
       ncplane_putc_yx(hud, 1, x, &ci);
     }
 //fprintf(stderr, "[%s] %zu %d\n", buf, strlen(buf), ncstrwidth(buf, NULL, NULL));

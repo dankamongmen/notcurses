@@ -69,9 +69,9 @@ TEST_CASE("Rotate") {
     CHECK(0 == ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT));
     CHECK(0 == ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT));
     REQUIRE(0 >= ncplane_set_base(testn, "", 0, channels));
-    nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
-    nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
-    nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    nccell tl = NCCELL_TRIVIAL_INITIALIZER, tr = NCCELL_TRIVIAL_INITIALIZER;
+    nccell bl = NCCELL_TRIVIAL_INITIALIZER, br = NCCELL_TRIVIAL_INITIALIZER;
+    nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(-1 < nccell_prime(testn, &tl, "█", 0, ul));
     CHECK(-1 < nccell_prime(testn, &tr, "█", 0, ur));
     CHECK(-1 < nccell_prime(testn, &bl, "█", 0, ll));

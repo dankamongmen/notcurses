@@ -54,9 +54,9 @@ TEST_CASE("Piles") {
     CHECK(np == ncplane_parent_const(np));
     CHECK(1 == ncplane_y(np));
     CHECK(1 == ncplane_x(np));
-    nccell c = CELL_CHAR_INITIALIZER('X');
+    nccell c = NCCELL_CHAR_INITIALIZER('X');
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
-    nccell o = CELL_CHAR_INITIALIZER('O');
+    nccell o = NCCELL_CHAR_INITIALIZER('O');
     CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &o));
     CHECK(0 == ncpile_render(np));
     CHECK(0 == ncpile_render(n_));
@@ -91,9 +91,9 @@ TEST_CASE("Piles") {
     CHECK(np == ncplane_parent_const(np));
     CHECK(-1 == ncplane_y(np));
     CHECK(-1 == ncplane_x(np));
-    nccell c = CELL_CHAR_INITIALIZER('X');
+    nccell c = NCCELL_CHAR_INITIALIZER('X');
     CHECK(0 < ncplane_polyfill_yx(np, 0, 0, &c));
-    nccell o = CELL_CHAR_INITIALIZER('O');
+    nccell o = NCCELL_CHAR_INITIALIZER('O');
     CHECK(0 < ncplane_polyfill_yx(n_, 0, 0, &o));
     CHECK(0 == ncpile_render(np));
     CHECK(0 == ncpile_render(n_));

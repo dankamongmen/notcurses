@@ -32,6 +32,8 @@ rearrangements of Notcurses.
   * `ncplayer` now defaults to pixel blitting.
   * `NCKEY_SIGNAL` is no longer a synonym for `NCKEY_RESIZE`, but instead
     indicates receipt of `SIGCONT`.
+  * `CELL_TRIVIAL_INITIALIZER`, `CELL_CHAR_INITIALIZER`, and
+    `CELL_INITIALIZER` are all now prefixed with `NC`.
   * A new resize callback, `ncplane_resize_placewithin()`, has been added.
 
 * 2.4.9 (2021-11-11)

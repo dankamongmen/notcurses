@@ -26609,7 +26609,7 @@ int jungle_demo(struct notcurses* nc, uint64_t startns){
   const int yiter = ORIGHEIGHT / (dimy - yoff) + !!(ORIGHEIGHT % dimy);
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   ncplane_erase(n);
-  nccell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = NCCELL_TRIVIAL_INITIALIZER;
   nccell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
     unsigned targy = yoff + y / (yiter * 2);

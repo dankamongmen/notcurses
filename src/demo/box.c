@@ -171,9 +171,9 @@ int box_demo(struct notcurses* nc, uint64_t startns){
   ncchannels_set_bg_alpha(&transchan, NCALPHA_TRANSPARENT);
   ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, transchan);
-  nccell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  nccell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ll = NCCELL_TRIVIAL_INITIALIZER;
+  nccell lr = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
   if(nccells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }

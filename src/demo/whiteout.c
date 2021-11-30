@@ -184,7 +184,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 4, 17, "┬", NULL);
   ncplane_putegc_yx(n, 5, 17, "│", NULL);
   ncplane_putegc_yx(n, 6, 17, "╰", NULL);
-  nccell hl = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER;
   nccell_load(n, &hl, "─");
   nccell_set_fg_rgb8(&hl, 255, 255, 255);
   nccell_set_bg_rgb8(&hl, 32, 64, 32);

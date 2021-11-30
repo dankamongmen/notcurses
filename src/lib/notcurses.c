@@ -1966,7 +1966,7 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
   int deltbg = bg2 - bg1;
   int deltbb = bb2 - bb1;
   unsigned ret;
-  nccell dupc = CELL_TRIVIAL_INITIALIZER;
+  nccell dupc = NCCELL_TRIVIAL_INITIALIZER;
   if(nccell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
@@ -2024,7 +2024,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
   unsigned ypos, xpos;
   unsigned ret;
   ncplane_cursor_yx(n, &ypos, &xpos);
-  nccell dupc = CELL_TRIVIAL_INITIALIZER;
+  nccell dupc = NCCELL_TRIVIAL_INITIALIZER;
   if(nccell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
@@ -3015,7 +3015,7 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned 
   if(ret){
     for(unsigned y = ystart, targy = 0 ; y < ystart + leny ; ++y, targy += 2){
       for(unsigned x = xstart, targx = 0 ; x < xstart + lenx ; ++x, ++targx){
-        nccell ncl = CELL_TRIVIAL_INITIALIZER;
+        nccell ncl = NCCELL_TRIVIAL_INITIALIZER;
         // we need ncplane_at_yx_cell() here instead of ncplane_at_yx(),
         // because we should only have one copy of each wide EGC.
         int clen;

@@ -116,7 +116,7 @@ TEST_CASE("Plane") {
   // Verify we can emit a NUL character, and it advances the cursor after
   // wiping out whatever we printed it atop.
   SUBCASE("EmitNULCell") {
-    nccell c = CELL_CHAR_INITIALIZER('a');
+    nccell c = NCCELL_CHAR_INITIALIZER('a');
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     auto egc = ncplane_at_yx(n_, 0, 0, nullptr, nullptr);
     CHECK(0 == strcmp("a", egc));
@@ -126,7 +126,7 @@ TEST_CASE("Plane") {
     CHECK(0 == y);
     CHECK(1 == x);
     CHECK(0 == notcurses_render(nc_));
-    c = CELL_TRIVIAL_INITIALIZER;
+    c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     egc = ncplane_at_yx(n_, 0, 0, nullptr, nullptr);
     CHECK(0 == strcmp("", egc));
@@ -353,9 +353,9 @@ TEST_CASE("Plane") {
     const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
     const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
     const char* w3 = "a"; // U+0061, U+0000         (61)
-    nccell cell1 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell2 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell3 = CELL_TRIVIAL_INITIALIZER;
+    nccell cell1 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell2 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell3 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &cell1, w1);
     auto u2 = nccell_load(n_, &cell2, w2);
     auto u3 = nccell_load(n_, &cell3, w3);
@@ -371,18 +371,18 @@ TEST_CASE("Plane") {
     const char* w1 = "à"; // U+00E0, U+0000         (c3 a0)
     const char* w2 = "à"; // U+0061, U+0300, U+0000 (61 cc 80)
     const char* w3 = "a"; // U+0061, U+0000         (61)
-    nccell cell1 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell2 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell3 = CELL_TRIVIAL_INITIALIZER;
+    nccell cell1 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell2 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell3 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &cell1, w1);
     auto u2 = nccell_load(n_, &cell2, w2);
     auto u3 = nccell_load(n_, &cell3, w3);
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
-    nccell cell4 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell5 = CELL_TRIVIAL_INITIALIZER;
-    nccell cell6 = CELL_TRIVIAL_INITIALIZER;
+    nccell cell4 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell5 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell cell6 = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == nccell_duplicate(n_, &cell4, &cell1));
     CHECK(0 == nccell_duplicate(n_, &cell5, &cell2));
     CHECK(0 == nccell_duplicate(n_, &cell6, &cell3));
@@ -397,8 +397,8 @@ TEST_CASE("Plane") {
   SUBCASE("CellMultiColumn") {
     const char* w1 = "\xf0\x9f\x91\xa9"; // U+1F469 WOMAN
     const char* w2 = "N";
-    nccell c1 = CELL_TRIVIAL_INITIALIZER;
-    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    nccell c1 = NCCELL_TRIVIAL_INITIALIZER;
+    nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &c1, w1);
     auto u2 = nccell_load(n_, &c2, w2);
     REQUIRE(0 < u1);
@@ -596,7 +596,7 @@ TEST_CASE("Plane") {
     ncplane_set_styles(n_, NCSCALE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
-    nccell testcell = CELL_TRIVIAL_INITIALIZER;
+    nccell testcell = NCCELL_TRIVIAL_INITIALIZER;
     REQUIRE(0 == ncplane_at_cursor_cell(n_, &testcell)); // want nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
@@ -634,7 +634,7 @@ TEST_CASE("Plane") {
     ncplane_set_styles(n_, NCSTYLE_NONE);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_putstr(n_, STR1));
-    nccell testcell = CELL_TRIVIAL_INITIALIZER;
+    nccell testcell = NCCELL_TRIVIAL_INITIALIZER;
     ncplane_at_cursor_cell(n_, &testcell); // should be nothing at the cursor
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
@@ -684,7 +684,7 @@ TEST_CASE("Plane") {
     unsigned newx;
     ncplane_cursor_yx(n_, &y, &newx);
     CHECK(newx == x);
-    nccell testcell = CELL_TRIVIAL_INITIALIZER;
+    nccell testcell = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == ncplane_cursor_move_yx(n_, y - 2, x - 1));
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
     CHECK(testcell.gcluster == htole(STR1[strlen(STR1) - 1]));
@@ -839,13 +839,13 @@ TEST_CASE("Plane") {
   }
 
   SUBCASE("Perimeter") {
-    nccell c = CELL_CHAR_INITIALIZER('X');
+    nccell c = NCCELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(n_, &c, &c, &c, &c, &c, &c, 0));
     CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("EGCStained") {
-    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x444444));
     CHECK(1 == ncplane_putegc(n_, "A", nullptr));
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x888888));
