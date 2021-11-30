@@ -42,8 +42,8 @@ struct ncvisual_options {
   struct ncplane* n;
   ncscale_e scaling;
   int y, x;
-  int begy, begx; // origin of rendered section
-  int leny, lenx; // size of rendered section
+  int begy, begx; // origin of rendered region
+  int leny, lenx; // size of rendered region
   ncblitter_e blitter; // glyph set to use
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
   uint32_t transcolor; // use this color for ADDALPHA
@@ -58,8 +58,8 @@ typedef struct ncvgeom {
   unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
   unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
   unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  unsigned begy, begx;     // upper-left corner of used section
-  unsigned leny, lenx;     // geometry of used section
+  unsigned begy, begx;     // upper-left corner of used region
+  unsigned leny, lenx;     // geometry of used region
   unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
   ncblitter_e blitter;i    // blitter that will be used
 } ncvgeom;
@@ -176,7 +176,7 @@ of its **struct ncvisual_options**. If ***n*** is not **NULL**, it specifies the
 plane on which to render, and ***y***/***x*** specify a location within that plane.
 Otherwise, a new plane will be created, and placed at ***y***/***x*** relative to
 the rendering area. ***begy***/***begx*** specify the upper left corner of a
-subsection of the **ncvisual** to render, while ***leny***/***lenx*** specify the
+subregion of the **ncvisual** to render, while ***leny***/***lenx*** specify the
 geometry of same. ***flags*** is a bitfield over:
 
 * **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
@@ -211,7 +211,7 @@ through the bottom right corner of the image.
 
 The ***n*** field specifies the plane to use. If this is **NULL**, a new plane
 will be created, having the precise geometry necessary to blit the specified
-section of the image. This might be larger (or smaller) than the visual area.
+region of the image. This might be larger (or smaller) than the visual area.
 
 ***y*** and ***x*** have different meanings depending on whether or not
 ***n*** is **NULL**. If not (drawing onto a preexisting plane), they specify

@@ -1615,7 +1615,7 @@ API void notcurses_stats_reset(struct notcurses* nc, ncstats* stats)
 
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,
-// unchanged. This may be a section of size 0, though none of these four
+// unchanged. This may be a region of size 0, though none of these four
 // parameters may be negative. 'keepx' and 'keepy' are relative to the ncplane.
 // They must specify a coordinate within the ncplane's totality. 'yoff' and
 // 'xoff' are relative to 'keepy' and 'keepx', and place the upper-left corner
@@ -3065,12 +3065,12 @@ struct ncvisual_options {
   // value if NCVISUAL_OPTION_HORALIGNED is provided. y is an ncalign_e if
   // NCVISUAL_OPTION_VERALIGNED is provided.
   int y, x;
-  // the section of the visual that ought be rendered. for the entire visual,
+  // the region of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
   // these numbers are all in terms of ncvisual pixels. negative values are
   // prohibited.
-  unsigned begy, begx; // origin of rendered section in pixels
-  unsigned leny, lenx; // size of rendered section in pixels
+  unsigned begy, begx; // origin of rendered region in pixels
+  unsigned leny, lenx; // size of rendered region in pixels
   // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
   // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
   // chosen for NCBLIT_DEFAULT.
@@ -3107,8 +3107,8 @@ typedef struct ncvgeom {
   unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
   unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
   unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
-  unsigned begy, begx;     // upper-left corner of used section
-  unsigned leny, lenx;     // geometry of used section
+  unsigned begy, begx;     // upper-left corner of used region
+  unsigned leny, lenx;     // geometry of used region
   unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
   ncblitter_e blitter;     // blitter that will be used
 } ncvgeom;

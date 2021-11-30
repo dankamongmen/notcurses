@@ -28,7 +28,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   struct ncplane* n = notcurses_stdplane(nc);
   *ret = -1;
   // determine size that will be represented on screen at once, and how
-  // large that section has been rendered in the outzoomed map. take the map
+  // large that region has been rendered in the outzoomed map. take the map
   // and begin opening it on larger and larger planes that fit on the screen
   // less and less. eventually, reach our natural NCSCALE_NONE size and begin
   // scrolling through the map, whooooooooosh.
