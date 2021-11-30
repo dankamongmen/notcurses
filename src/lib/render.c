@@ -1167,14 +1167,36 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         bool nobackground = nccell_nobackground_p(srccell);
         bool rgbequal = nccell_rgbequal_p(srccell);
 fprintf(stderr, "RGBEQUAL: %u PAL: F %u %u %u B %u %u %u\n", rgbequal, nccell_fg_default_p(srccell), nccell_fg_palindex(srccell), nccell_fg_palindex_p(srccell), nccell_bg_default_p(srccell), nccell_bg_palindex(srccell), nccell_bg_palindex_p(srccell));
-rgbequal = false;
-        // FIXME ought set this based on whether it's whitespace
-        bool noforeground = false;
         if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
           if(raster_defaults(nc, nccell_fg_default_p(srccell),
                              !nobackground && nccell_bg_default_p(srccell), f)){
             return -1;
           }
+        }
+        if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
+          if(emit_fg_palindex(nc, f, srccell)){
+            return -1;
+          }
+        }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
+          // if our cell has a non-default foreground, we can elide the
+          // non-default foreground set iff either:
+          //  * the previous was non-default, and matches what we have now, or
+          //  * we are a no-foreground glyph (iswspace() is true) FIXME
+          nccell_fg_rgb8(srccell, &r, &g, &b);
+          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+            ++nc->stats.s.fgelisions;
+          }else{
+            if(!rgbequal){ // if rgbequal, no need to set fg
+              if(term_fg_rgb8(&nc->tcache, f, r, g, b)){
+                return -1;
+              }
+              ++nc->stats.s.fgemissions;
+              nc->rstate.fgelidable = true;
+            }
+          }
+          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+          nc->rstate.fgdefelidable = false;
+          nc->rstate.fgpalelidable = false;
         }
         // we apply the background first because if the fg and bg values are
         // same, and they're both rgb (rgbequal), we can emit either a space
@@ -1211,33 +1233,7 @@ rgbequal = false;
           if(rgbequal){
             // FIXME need one per column of original glyph
             pool_load_direct(&nc->pool, srccell, " ", 1, 1);
-            noforeground = true;
           }
-        }
-        if(noforeground){
-          ++nc->stats.s.fgelisions;
-        }else if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
-          if(emit_fg_palindex(nc, f, srccell)){
-            return -1;
-          }
-        }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
-          // if our cell has a non-default foreground, we can elide the
-          // non-default foreground set iff either:
-          //  * the previous was non-default, and matches what we have now, or
-          //  * we are a no-foreground glyph (iswspace() is true) FIXME
-          nccell_fg_rgb8(srccell, &r, &g, &b);
-          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
-            ++nc->stats.s.fgelisions;
-          }else{
-            if(term_fg_rgb8(&nc->tcache, f, r, g, b)){
-              return -1;
-            }
-            ++nc->stats.s.fgemissions;
-            nc->rstate.fgelidable = true;
-          }
-          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-          nc->rstate.fgdefelidable = false;
-          nc->rstate.fgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016" PRIx64 "\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
