@@ -75,71 +75,59 @@ Execdlls = 0
 [Languages]
 1
 [Files/Dirs]
-C:\msys64\home\niblack\src\notcurses\build\notcurses-input.exe
-505.4 KB
-exe
-C:\msys64\home\niblack\src\notcurses\build\notcurses-info.exe
-332.4 KB
-exe
-C:\msys64\home\niblack\src\notcurses\build\notcurses-demo.exe
-1.6 MB
-exe
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.dll
-2.8 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses.dll
-606.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.dll
-925.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\data\
-N/A
-[Folder]
-C:\msys64\home\niblack\src\notcurses\build\ncneofetch.exe
-351.7 KB
-exe
-C:\msys64\home\niblack\src\notcurses\build\notcurses-info.exe
-332.4 KB
-exe
-C:\msys64\home\niblack\src\notcurses\build\libwinpthread-1.dll
-60.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgcc_s_seh-1.dll
-85.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libdeflate.dll
-60.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libunistring-2.dll
-1.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libiconv-2.dll
-1 MB
-dll
 C:\msys64\home\niblack\src\notcurses\build\avcodec-58.dll
 13.4 MB
+dll
+C:\msys64\home\niblack\src\notcurses\build\avdevice-58.dll
+147.5 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\avfilter-7.dll
+3.6 MB
 dll
 C:\msys64\home\niblack\src\notcurses\build\avformat-58.dll
 2.3 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\swscale-5.dll
-551 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libOpenColorIO.dll
-1.2 MB
-dll
 C:\msys64\home\niblack\src\notcurses\build\avutil-56.dll
 687.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\swresample-3.dll
-125 KB
+C:\msys64\home\niblack\src\notcurses\build\libaom.dll
+8.4 MB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libbluray-2.dll
+367.9 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libboost_filesystem-mt.dll
-290.6 KB
+287.4 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libboost_thread-mt.dll
-173.3 KB
+170.9 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libbrotlicommon.dll
+142.4 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libbrotlidec.dll
+55.1 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libbz2-1.dll
+74.5 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libcelt0-2.dll
+109.8 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libcrypto-1_1-x64.dll
+2.6 MB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libdav1d.dll
+1.4 MB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libde265-0.dll
+713.5 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libdeflate.dll
+60.1 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libffi-7.dll
+33.1 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libField3D-1.dll
 1.6 MB
@@ -147,1167 +135,312 @@ dll
 C:\msys64\home\niblack\src\notcurses\build\libfreetype-6.dll
 725.6 KB
 dll
+C:\msys64\home\niblack\src\notcurses\build\libgcc_s_seh-1.dll
+85.2 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libgfortran-5.dll
+2.9 MB
+dll
 C:\msys64\home\niblack\src\notcurses\build\libgif-7.dll
 43.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libHalf-2_5.dll
-276.2 KB
+C:\msys64\home\niblack\src\notcurses\build\libglib-2.0-0.dll
+1.3 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-0.dll
-1008.2 KB
+C:\msys64\home\niblack\src\notcurses\build\libgmp-10.dll
+499.8 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5-0.dll
-4.1 MB
+C:\msys64\home\niblack\src\notcurses\build\libgnutls-30.dll
+1.9 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libturbojpeg.dll
-820.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjpeg-8.dll
-696.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjpegxr.dll
-266.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libheif.dll
-601.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdr10plus.dll
-182.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5-0.dll
-4.1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_tools-0.dll
-300.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_hl-0.dll
-157.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_hl_fortran-0.dll
-98.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_hl_f90cstub-0.dll
-39.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_hl_cpp-0.dll
-23.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_fortran-0.dll
-197 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_f90cstub-0.dll
-121 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdf5_cpp-0.dll
-440 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-subset-0.dll
-787.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-icu-0.dll
-21.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-gobject-0.dll
-87.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-0.dll
-1008.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libHalf-2_5.dll
-276.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgthread-2.0-0.dll
-18.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgsm.dll
-55.1 KB
+C:\msys64\home\niblack\src\notcurses\build\libgomp-1.dll
+248.2 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libgraphite2.dll
 153.7 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\liblzo2-2.dll
-141.1 KB
+C:\msys64\home\niblack\src\notcurses\build\libgsm.dll
+55.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\liblzma-5.dll
-154.1 KB
+C:\msys64\home\niblack\src\notcurses\build\libHalf-2_5.dll
+276.2 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\liblz4.dll
-204.6 KB
+C:\msys64\home\niblack\src\notcurses\build\libharfbuzz-0.dll
+1008.2 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\liblsmash-2.dll
-562.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libhdf5_cpp-0.dll
+440 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libLerc.dll
-592.6 KB
+C:\msys64\home\niblack\src\notcurses\build\libhdf5-0.dll
+4.1 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\liblept-5.dll
-2.4 MB
+C:\msys64\home\niblack\src\notcurses\build\libheif.dll
+601.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libldl.dll
-21.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblcms2-2.dll
-397.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libklu.dll
-208.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjxrglue.dll
-133.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjsoncpp-24.dll
-524.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libintl-8.dll
-132.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libImath-2_5.dll
-91.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmThread-2_5.dll
-33.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmImfUtil-2_5.dll
-146.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmImf-2_5.dll
-2.8 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIexMath-2_5.dll
-20.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIex-2_5.dll
-298.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libidn2-0.dll
-168.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuuc69.dll
-1.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicutu69.dll
-253.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicutest69.dll
-94.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuio69.dll
-60.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuin69.dll
-2.8 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicudt69.dll
-27.4 MB
+C:\msys64\home\niblack\src\notcurses\build\libhogweed-6.dll
+271.9 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libiconv-2.dll
 1 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libturbojpeg.dll
-820.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtre-5.dll
-91.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtinyxml-0.dll
-92.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtiffxx-5.dll
-20.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtiff-5.dll
-527.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtheoraenc-1.dll
-221.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtheoradec-1.dll
-94.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtheora-0.dll
-274.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libthai-0.dll
-67.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtesseract-4.dll
-2.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtesseract-0.dll
-2.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtermcap-0.dll
-46.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libtasn1-6.dll
-102 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopus-0.dll
-397.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenvdb.dll
-6.3 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenmj2-7.dll
-200.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenjpwl-7.dll
-202.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenjpip-7.dll
-117.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenjp3d-7.dll
-164.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenjp2-7.dll
-404.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libOpenImageIO_Util.dll
-817.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libOpenImageIO.dll
-12 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_xphoto452.dll
-295.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_xobjdetect452.dll
-115.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_ximgproc452.dll
-2.2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_xfeatures2d452.dll
-2.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_wechat_qrcode452.dll
-548.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_videostab452.dll
-294.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_videoio452.dll
-404.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_video452.dll
-516.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_tracking452.dll
-2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_text452.dll
-458 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_surface_matching452.dll
-387.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_superres452.dll
-190 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_structured_light452.dll
-120.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_stitching452.dll
-656.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_stereo452.dll
-194.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_shape452.dll
-180.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_sfm452.dll
-1.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_saliency452.dll
-213.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_rgbd452.dll
-1.2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_reg452.dll
-138.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_rapid452.dll
-112.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_quality452.dll
-118 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_plot452.dll
-99.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_photo452.dll
-689.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_phase_unwrapping452.dll
-74.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_ovis452.dll
-182.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_optflow452.dll
-468.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_objdetect452.dll
-542.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_ml452.dll
-566 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_mcc452.dll
-487.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_line_descriptor452.dll
+C:\msys64\home\niblack\src\notcurses\build\libidn2-0.dll
 168.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_intensity_transform452.dll
-164.2 KB
+C:\msys64\home\niblack\src\notcurses\build\libIex-2_5.dll
+298.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_imgproc452.dll
-6.4 MB
+C:\msys64\home\niblack\src\notcurses\build\libIexMath-2_5.dll
+20.2 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_imgcodecs452.dll
-428.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libIlmImf-2_5.dll
+2.8 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_img_hash452.dll
-110.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libIlmThread-2_5.dll
+33.3 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_highgui452.dll
-154 KB
+C:\msys64\home\niblack\src\notcurses\build\libImath-2_5.dll
+91.8 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_hfs452.dll
-112 KB
+C:\msys64\home\niblack\src\notcurses\build\libintl-8.dll
+132.9 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_hdf452.dll
-90.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libjasper-4.dll
+418.8 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_gapi452.dll
-3.7 MB
+C:\msys64\home\niblack\src\notcurses\build\libjbig-0.dll
+64.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_fuzzy452.dll
-105 KB
+C:\msys64\home\niblack\src\notcurses\build\libjpeg-8.dll
+696.8 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_freetype452.dll
-78.3 KB
+C:\msys64\home\niblack\src\notcurses\build\liblcms2-2.dll
+397.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_flann452.dll
-541 KB
+C:\msys64\home\niblack\src\notcurses\build\libLerc.dll
+592.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_features2d452.dll
-792.8 KB
+C:\msys64\home\niblack\src\notcurses\build\liblzma-5.dll
+154.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_face452.dll
-556.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libmfx-1.dll
+126 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_dpm452.dll
-142.3 KB
+C:\msys64\home\niblack\src\notcurses\build\libmodplug-1.dll
+363 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_dnn452.dll
-3.7 MB
+C:\msys64\home\niblack\src\notcurses\build\libmp3lame-0.dll
+316.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_dnn_superres452.dll
-111.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_dnn_objdetect452.dll
-97.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_datasets452.dll
-584 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_core452.dll
-4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_ccalib452.dll
-412.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_calib3d452.dll
-2.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_bgsegm452.dll
-152.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_aruco452.dll
-428.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencv_alphamat452.dll
-232.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencore-amrwb-0.dll
-87.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopencore-amrnb-0.dll
-175.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libOpenColorIO.dll
-1.2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenblas.dll
-42.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libopenal-1.dll
-935 KB
+C:\msys64\home\niblack\src\notcurses\build\libnettle-8.dll
+285 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libogg-0.dll
 43.7 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libobjc-4.dll
-100.8 KB
+C:\msys64\home\niblack\src\notcurses\build\libopenblas.dll
+42.7 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libvulkan-1.dll
-371 KB
+C:\msys64\home\niblack\src\notcurses\build\libOpenColorIO.dll
+1.2 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libvpx-1.dll
-3.2 MB
+C:\msys64\home\niblack\src\notcurses\build\libopencore-amrnb-0.dll
+175.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libvorbisfile-3.dll
-39.6 KB
+C:\msys64\home\niblack\src\notcurses\build\libopencore-amrwb-0.dll
+87.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libvorbisenc-2.dll
-567.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libopencv_core452.dll
+4 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libvorbis-0.dll
-179.6 KB
+C:\msys64\home\niblack\src\notcurses\build\libopencv_imgcodecs452.dll
+428.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libuv-1.dll
-284.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libopencv_imgproc452.dll
+6.4 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libunwind.dll
-29.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libopencv_videoio452.dll
+404.8 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpython3.9.dll
-2.8 MB
+C:\msys64\home\niblack\src\notcurses\build\libOpenImageIO.dll
+12 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpugixml.dll
-240 KB
+C:\msys64\home\niblack\src\notcurses\build\libopenjp2-7.dll
+404.3 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libPtex.dll
-555.1 KB
+C:\msys64\home\niblack\src\notcurses\build\libopus-0.dll
+397.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpsl-5.dll
-97.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libprotoc.dll
-2.8 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libprotobuf-lite.dll
-615.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libprotobuf.dll
-2.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpng16-16.dll
-239.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpkgconf-3.dll
-90.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpixman-1-0.dll
-670.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpcreposix-0.dll
-42.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpcrecpp-0.dll
-64.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpcre32-0.dll
-238.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libpcre16-0.dll
-249.1 KB
+C:\msys64\home\niblack\src\notcurses\build\libp11-kit-0.dll
+1 MB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libpcre-1.dll
 278.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpangowin32-1.0-0.dll
-91.7 KB
+C:\msys64\home\niblack\src\notcurses\build\libpng16-16.dll
+239.3 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpangoft2-1.0-0.dll
-98.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libPtex.dll
+555.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpangocairo-1.0-0.dll
-73.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libpugixml.dll
+240 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libpango-1.0-0.dll
-295 KB
+C:\msys64\home\niblack\src\notcurses\build\libquadmath-0.dll
+374.2 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libp11-kit-0.dll
+C:\msys64\home\niblack\src\notcurses\build\libraw-20.dll
 1 MB
 dll
 C:\msys64\home\niblack\src\notcurses\build\librtmp-1.dll
 167.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\librhash.dll
-202 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libreadline8.dll
-254.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\librbio.dll
-123.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libraw-20.dll
-1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libraw_r-20.dll
-1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libquadmath-0.dll
-374.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssp-0.dll
-21.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssl-1_1-x64.dll
-548.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssh2-1.dll
-265.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libsrt.dll
-796.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libwebpmux-3.dll
-73 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libwebpdemux-2.dll
-26.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libwebpdecoder-3.dll
-231.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libwebp-7.dll
-442.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbz2-1.dll
-74.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbtf.dll
-22.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbrotlienc.dll
-642.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbrotlidec.dll
-55.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbrotlicommon.dll
-142.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_wserialization-mt.dll
-325.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_wave-mt.dll
-1.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_unit_test_framework-mt.dll
-929.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_type_erasure-mt.dll
-100.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_timer-mt.dll
-79.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_thread-mt.dll
-173.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_system-mt.dll
-16.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_stacktrace_windbg-mt.dll
-33.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_stacktrace_windbg_cached-mt.dll
-35.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_stacktrace_noop-mt.dll
-18.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_serialization-mt.dll
-464.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_regex-mt.dll
-475.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_random-mt.dll
-81.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_python39-mt.dll
-390 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_program_options-mt.dll
-360.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_prg_exec_monitor-mt.dll
-96.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_nowide-mt.dll
-65 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_tr1-mt.dll
-336.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_tr1l-mt.dll
-327.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_tr1f-mt.dll
-316.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_c99-mt.dll
-121.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_c99l-mt.dll
-108.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_math_c99f-mt.dll
-95.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_log-mt.dll
-1.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_log_setup-mt.dll
-1.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_locale-mt.dll
-939.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_json-mt.dll
-357.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_iostreams-mt.dll
-93.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_graph-mt.dll
-631.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_filesystem-mt.dll
-290.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_fiber-mt.dll
-158 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_date_time-mt.dll
-16.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_coroutine-mt.dll
-116.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_contract-mt.dll
-138.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_context-mt.dll
-19.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_container-mt.dll
-112.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_chrono-mt.dll
-114.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libboost_atomic-mt.dll
-32.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libbluray-2.dll
-367.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libblosc.dll
-81.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libatomic-1.dll
-39.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libass-9.dll
-287 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libasprintf-0.dll
-54 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libarchive-13.dll
-748.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libaom.dll
-8.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libamd.dll
-52.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libaec.dll
-45.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libnghttp2-14.dll
-175.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libnettle-8.dll
-285 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmysofa.dll
-63.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmpdec-2.dll
-170.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmpdec++-2.dll
-44.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmp3lame-0.dll
-316.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmodplug-1.dll
-363 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmfx-1.dll
-126 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmetis.dll
-534.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libmetalink-3.dll
-62.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblzo2-2.dll
-141.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblzma-5.dll
-154.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblz4.dll
-204.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblsmash-2.dll
-562.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libLerc.dll
-592.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblept-5.dll
-2.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libldl.dll
-21.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\liblcms2-2.dll
-397.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libklu.dll
-208.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgthread-2.0-0.dll
-18.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgsm.dll
-55.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgraphite2.dll
-153.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgpg-error-0.dll
-198.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgomp-1.dll
-248.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgobject-2.0-0.dll
-316.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgnutlsxx-28.dll
-55.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgnutls-openssl-27.dll
-88 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgnutls-30.dll
-1.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgmpxx-4.dll
-32.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgmp-10.dll
-499.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgmodule-2.0-0.dll
-27.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libglog.dll
-188.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libglib-2.0-0.dll
-1.3 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgio-2.0-0.dll
-1.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgif-7.dll
-43.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgfortran-5.dll
-2.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgflags_nothreads.dll
-190.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgflags.dll
-190.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgettextsrc-0-19-8-1.dll
-321.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgettextpo-0.dll
-390.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgettextlib-0-19-8-1.dll
-1.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgcrypt-20.dll
-1.2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgccjit-0.dll
-27.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgcc_s_seh-1.dll
-85.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libgavl-1.dll
-6.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfribidi-0.dll
-144.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfreetype-6.dll
-725.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfreeimageplus-3.dll
-60.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfreeimage-3.dll
-910.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfreeglut.dll
-304.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfontconfig-1.dll
-310.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libfmt.dll
-186.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libField3D-1.dll
-1.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libffms2-4.dll
-151 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libffi-7.dll
-33.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libexslt-0.dll
-97.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libexpat-1.dll
-199.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libexif-12.dll
-274.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libdeflate.dll
-60.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libde265-0.dll
-713.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libdav1d.dll
-1.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libdatrie-1.dll
-33.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcxsparse.dll
-254.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcurl-4.dll
-686.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcrypto-1_1-x64.dll
-2.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcppunit-1-15-1.dll
-228.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcolamd.dll
-38.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcholmod.dll
-1.1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcharset-1.dll
-41.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libceres.dll
-3.1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcelt0-2.dll
-109.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libccolamd.dll
-56.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcares-4.dll
-100 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcamd.dll
-58.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcairo-script-interpreter-2.dll
-163.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcairo-gobject-2.dll
-36.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcairo-2.dll
-1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcaca-0.dll
-833.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libcaca++-0.dll
-55.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libzzipwrap.dll
-19 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libzzipmmapped.dll
-28.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libzzipfseeko.dll
-23.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libzzip.dll
-38.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libzstd.dll
-956.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libxxhash.dll
-58.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libxslt-1.dll
-301.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libxml2-2.dll
-1.3 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libx265.dll
-19 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libx264-161.dll
-1.9 MB
+C:\msys64\home\niblack\src\notcurses\build\libsoxr.dll
+321 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libspeex-1.dll
 136.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libszip.dll
-45.1 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libsz.dll
-46.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libsystre-0.dll
-17.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libsuitesparseconfig.dll
-42.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libstdc++-6.dll
-1.9 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssp-0.dll
-21.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssl-1_1-x64.dll
-548.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libssh2-1.dll
-265.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libsrt.dll
-796.2 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\libsquish.dll
 51.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libsqlite3-0.dll
+C:\msys64\home\niblack\src\notcurses\build\libsrt.dll
+796.2 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libssp-0.dll
+21.6 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libstdc++-6.dll
+1.9 MB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libsz.dll
+46.6 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtasn1-6.dll
+102 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtheora-0.dll
+274.2 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtheoradec-1.dll
+94.6 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtheoraenc-1.dll
+221.5 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtiff-5.dll
+527.9 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libtinyxml-0.dll
+92.3 KB
+dll
+C:\msys64\home\niblack\src\notcurses\build\libunistring-2.dll
 1.7 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libspqr.dll
-203 KB
+C:\msys64\home\niblack\src\notcurses\build\libvorbis-0.dll
+179.6 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libspeexdsp-1.dll
-109.7 KB
+C:\msys64\home\niblack\src\notcurses\build\libvorbisenc-2.dll
+567.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libspeex-1.dll
-136.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libvpx-1.dll
+3.2 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libsoxr-lsr.dll
-18.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libvulkan-1.dll
+398.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libsoxr.dll
-321 KB
+C:\msys64\home\niblack\src\notcurses\build\libwebp-7.dll
+442.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libsnappy.dll
-48.6 KB
+C:\msys64\home\niblack\src\notcurses\build\libwebpdecoder-3.dll
+231.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libsliplu.dll
-294.4 KB
+C:\msys64\home\niblack\src\notcurses\build\libwebpdemux-2.dll
+26.3 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\tk86.dll
-1.4 MB
+C:\msys64\home\niblack\src\notcurses\build\libwebpmux-3.dll
+73 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\tbbmalloc_proxy.dll
-386.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libwinpthread-1.dll
+60.4 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\tbbmalloc.dll
-1.2 MB
+C:\msys64\home\niblack\src\notcurses\build\libx264-161.dll
+1.9 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\tbb.dll
-3.9 MB
+C:\msys64\home\niblack\src\notcurses\build\libx265.dll
+19 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\zlib1.dll
-92.5 KB
+C:\msys64\home\niblack\src\notcurses\build\libxml2-2.dll
+1.3 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\yaml-cpp.dll
-296.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\xvidcore.dll
-674 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\tcl86.dll
-1.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\SDL2.dll
-1.6 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\RenderSystem_GL3Plus.dll
-1.2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\RenderSystem_GL.dll
-2 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\RenderSystem_Direct3D11.dll
-1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\RenderSystem_Direct3D9.dll
-1 MB
+C:\msys64\home\niblack\src\notcurses\build\libzstd.dll
+956.2 KB
 dll
 C:\msys64\home\niblack\src\notcurses\build\rav1e.dll
 3.4 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\avfilter-7.dll
-3.6 MB
+C:\msys64\home\niblack\src\notcurses\build\swresample-3.dll
+125 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\avdevice-58.dll
-147.5 KB
+C:\msys64\home\niblack\src\notcurses\build\swscale-5.dll
+551 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\Codec_STBI.dll
-463.8 KB
+C:\msys64\home\niblack\src\notcurses\build\tbb.dll
+3.9 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\Codec_FreeImage.dll
-184 KB
+C:\msys64\home\niblack\src\notcurses\build\xvidcore.dll
+674 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\Codec_EXR.dll
-150.8 KB
+C:\msys64\home\niblack\src\notcurses\build\zlib1.dll
+92.5 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\DefaultSamples.dll
-2.1 MB
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses.a
+625.6 KB
+a
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses.dll
+738.1 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\edit.dll
-59 KB
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses.dll.a
+2 KB
+a
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.a
+925.8 KB
+a
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.dll
+925.7 KB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libjxrglue.dll
-133.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjsoncpp-24.dll
-524.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjpegxr.dll
-266.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjpeg-8.dll
-696.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjemalloc.dll
-521.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjbig-0.dll
-64.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjasper-4.dll
-418.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libjansson-4.dll
-81.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libintl-8.dll
-132.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libImath-2_5.dll
-91.8 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmThread-2_5.dll
-33.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmImfUtil-2_5.dll
-146.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIlmImf-2_5.dll
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses++.dll.a
+43.6 KB
+a
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.a
 2.8 MB
+a
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.dll
+2.9 MB
 dll
-C:\msys64\home\niblack\src\notcurses\build\libIexMath-2_5.dll
-20.2 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libIex-2_5.dll
-298.6 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libidn2-0.dll
-168.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuuc69.dll
-1.7 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicutu69.dll
-253.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicutest69.dll
-94.3 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuio69.dll
-60.7 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicuin69.dll
-2.8 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libicudt69.dll
-27.4 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libiconv-2.dll
-1 MB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhogweed-6.dll
-271.9 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhistory8.dll
-64.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libheif.dll
-601.4 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\libhdr10plus.dll
-182.5 KB
-dll
-C:\msys64\home\niblack\src\notcurses\build\opencv_videoio_ffmpeg452_64.dll
-20 MB
-dll
+C:\msys64\home\niblack\src\notcurses\build\libnotcurses-core.dll.a
+228.9 KB
+a
+C:\msys64\home\niblack\src\notcurses\build\ncneofetch.exe
+358.8 KB
+exe
+C:\msys64\home\niblack\src\notcurses\build\ncplayer.exe
+669.9 KB
+exe
+C:\msys64\home\niblack\src\notcurses\build\nctetris.exe
+516.9 KB
+exe
+C:\msys64\home\niblack\src\notcurses\build\notcurses-demo.exe
+1.6 MB
+exe
+C:\msys64\home\niblack\src\notcurses\build\notcurses-info.exe
+336.2 KB
+exe
+C:\msys64\home\niblack\src\notcurses\build\notcurses-input.exe
+505.4 KB
+exe
+C:\msys64\home\niblack\src\notcurses\data\
+N/A
+[Folder]
 [Licence_Begin]
 114
 {\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Arial;}}
