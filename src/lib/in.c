@@ -2045,7 +2045,17 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   }
 #ifdef __MINGW64__
   int timeoutms = nonblock ? 0 : -1;
-  DWORD d = WaitForSingleObject(ictx->stdinhandle, timeoutms);
+  DWORD ncount = 0;
+  const HANDLE* handles[2];
+  if(!ictx->stdineof){
+    if(ictx->ibufvalid != sizeof(ictx->buf)){
+      handles[ncount++] = ictx->stdinhandle;
+    }
+  }
+  if(ncount == 0){
+    handles[ncount++] = ictx->ipipes[0];
+  }
+  DWORD d = WaitForMultipleObjects(ncount, handles, false, timeoutms);
   if(d == WAIT_TIMEOUT){
     return 0;
   }else if(d == WAIT_FAILED){
