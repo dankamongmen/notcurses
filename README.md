@@ -485,7 +485,7 @@ If things break or seem otherwise lackluster, **please** consult the
 
 <details>
   <summary>Will there ever be Java wrappers?</summary>
-  I should hope not. If you want a Java solution, try Autumn Lamonte's
+  I should hope not. If you want a Java solution, try @klamonte's
   <a href="https://jexer.sourceforge.io/">Jexer</a>. Autumn's a good
   woman, and thorough. We seem to have neatly partitioned the language
   space.

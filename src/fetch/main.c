@@ -456,6 +456,7 @@ xnu_ncneofetch(fetched_info* fi){
 
 static int
 drawpalette(struct notcurses* nc){
+  int showpl = 64; // show this many per line
   int psize = notcurses_palette_size(nc);
   if(psize > 256){
     psize = 256;
@@ -465,26 +466,37 @@ drawpalette(struct notcurses* nc){
   if(dimx < 64){
     return -1;
   }
-  for(int y = 0 ; y < (psize + 63) / 64 ; ++y){
-    // we show a maximum of 64 palette entries per line
-    int toshow = psize - y * 64;
-    if(toshow > 64){
-      toshow = 64;
+  int scale = notcurses_canutf8(nc) ? 2 : 1; // use half blocks for 2*showpl
+  ncplane_cursor_move_yx(n, -1, 0);
+  for(int y = 0 ; y < (psize + showpl - 1) / showpl / scale ; ++y){
+    // we show a maximum of showpl * scale palette entries per line
+    int toshow = psize - y * showpl;
+    if(toshow > showpl){
+      toshow = showpl;
     }
     // center based on the number being shown on this line
     if(ncplane_cursor_move_yx(n, -1, (dimx - toshow) / 2)){
       return -1;
     }
-    for(unsigned x = (dimx - 64) / 2 ; x < dimx / 2 + 32 ; ++x){
-      const int truex = x - (dimx - 64) / 2;
-      if(y * 64 + truex >= psize){
+    for(unsigned x = (dimx - showpl) / 2 ; x < dimx / 2 + 32 ; ++x){
+      const int truex = x - (dimx - showpl) / 2;
+      if(y * showpl * scale + truex >= psize){
         break;
       }
-      if(ncplane_set_bg_palindex(n, y * 64 + truex)){
+      if(ncplane_set_bg_palindex(n, y * showpl * scale + truex)){
         return -1;
       }
-      if(ncplane_putchar(n, ' ') == EOF){
-        return -1;
+      if(scale == 2){
+        if(ncplane_set_fg_palindex(n, y * showpl * scale + truex + showpl)){
+          return -1;
+        }
+        if(ncplane_putegc(n, u8"▄", NULL) == EOF){
+          return -1;
+        }
+      }else{
+        if(ncplane_putchar(n, ' ') == EOF){
+          return -1;
+        }
       }
     }
     ncplane_set_bg_default(n);
