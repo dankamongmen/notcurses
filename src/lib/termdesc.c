@@ -459,7 +459,7 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
   return 0;
 }
 
-int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
+int enter_alternate_screen(FILE* fp, tinfo* ti, unsigned flush, unsigned drain){
   if(ti->in_alt_screen){
     return 0;
   }
@@ -471,21 +471,22 @@ int enter_alternate_screen(FILE* fp, tinfo* ti, bool flush){
   if(term_emit(smcup, fp, false) < 0){
     return -1;
   }
-  // probably don't want to send these if we've drained input...FIXME
-  if(ti->kbdlevel){
-    if(term_emit(KKBDENTER, fp, flush)){
-      return -1;
-    }
-  }else{
-    if(term_emit(XTMODKEYS, fp, flush)){
-      return -1;
+  if(!drain){
+    if(ti->kbdlevel){
+      if(term_emit(KKBDENTER, fp, flush)){
+        return -1;
+      }
+    }else{
+      if(term_emit(XTMODKEYS, fp, flush)){
+        return -1;
+      }
     }
   }
   ti->in_alt_screen = true;
   return 0;
 }
 
-int leave_alternate_screen(FILE* fp, tinfo* ti){
+int leave_alternate_screen(FILE* fp, tinfo* ti, unsigned drain){
   if(!ti->in_alt_screen){
     return 0;
   }
@@ -494,18 +495,29 @@ int leave_alternate_screen(FILE* fp, tinfo* ti){
     logerror("can't leave alternate screen");
     return -1;
   }
-  // probably don't want to send these if we've drained input...FIXME
-  if(ti->kbdlevel){
-    if(term_emit(KKEYBOARD_POP, fp, false) ||
-      term_emit(rmcup, fp, false) ||
-      term_emit(KKBDENTER, fp, true)){
-      return -1;
+  if(!drain){
+    if(ti->kbdlevel){
+      if(term_emit(KKEYBOARD_POP, fp, false)){
+        return -1;
+      }
+    }else{
+      if(term_emit(XTMODKEYSUNDO, fp, false)){
+        return -1;
+      }
     }
-  }else{
-    if(term_emit(XTMODKEYSUNDO, fp, false) ||
-      term_emit(rmcup, fp, false) ||
-      term_emit(XTMODKEYS, fp, true)){
-      return -1;
+  }
+  if(term_emit(rmcup, fp, drain)){
+    return -1;
+  }
+  if(!drain){
+    if(ti->kbdlevel){
+      if(term_emit(KKBDENTER, fp, true)){
+        return -1;
+      }
+    }else{
+      if(term_emit(XTMODKEYS, fp, true)){
+        return -1;
+      }
     }
   }
   ti->in_alt_screen = false;
@@ -1052,9 +1064,11 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       }
     }
     if((ti->kbdlevel = iresp->kbdlevel) == 0){
-      if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
-        free(iresp);
-        goto err;
+      if(!draininput){
+        if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
+          free(iresp);
+          goto err;
+        }
       }
     }
     if(iresp->qterm != TERMINAL_UNKNOWN){

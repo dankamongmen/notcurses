@@ -28,7 +28,7 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 }
 
 int notcurses_enter_alternate_screen(notcurses* nc){
-  if(enter_alternate_screen(nc->ttyfp, &nc->tcache, true)){
+  if(enter_alternate_screen(nc->ttyfp, &nc->tcache, true, nc->flags & NCOPTION_DRAIN_INPUT)){
     return -1;
   }
   ncplane_set_scrolling(notcurses_stdplane(nc), false);
@@ -36,7 +36,7 @@ int notcurses_enter_alternate_screen(notcurses* nc){
 }
 
 int notcurses_leave_alternate_screen(notcurses* nc){
-  if(leave_alternate_screen(nc->ttyfp, &nc->tcache)){
+  if(leave_alternate_screen(nc->ttyfp, &nc->tcache, nc->flags & NCOPTION_DRAIN_INPUT)){
     return -1;
   }
   // move to the end of our output
