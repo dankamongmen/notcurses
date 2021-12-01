@@ -199,8 +199,11 @@ typedef struct tinfo {
   // pop the keyboard support level, which we normally do only if we detected
   // actual support. at that point, we obviously haven't detected anything).
   // after getting the initialization package back, if it's still UINT_MAX, we
-  // set it back to 0, since we know at that point that there's no support.
+  // set it to 0, and also indicate a lack of support via kittykbdsupport (we
+  // need distinguish between level 0, used with DRAININPUT, and an absolute
+  // lack of support, in which case we move to XTMODKEYS, for notcurses-info).
   unsigned kbdlevel;         // kitty keyboard support level
+  bool kittykbdsupport;      // do we support the kitty keyboard protocol?
   bool bce;                  // is the bce property advertised?
   bool in_alt_screen;        // are we in the alternate screen?
 } tinfo;

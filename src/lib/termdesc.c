@@ -1063,13 +1063,16 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
         goto err;
       }
     }
-    if((ti->kbdlevel = iresp->kbdlevel) == 0){
+    if((ti->kbdlevel = iresp->kbdlevel) == UINT_MAX){
+      ti->kbdlevel = 0;
       if(!draininput){
         if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
           free(iresp);
           goto err;
         }
       }
+    }else{
+      ti->kittykbdsupport = true;
     }
     if(iresp->qterm != TERMINAL_UNKNOWN){
       ti->qterm = iresp->qterm;

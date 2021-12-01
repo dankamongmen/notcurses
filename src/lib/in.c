@@ -1541,6 +1541,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                             i->initdata->cursorx = -1;
                             i->iread = i->iwrite = i->ivalid = 0;
                             i->cread = i->cwrite = i->cvalid = 0;
+                            i->initdata->kbdlevel = UINT_MAX;
                             i->initdata_complete = NULL;
                             i->stats = stats;
                             i->ti = ti;
