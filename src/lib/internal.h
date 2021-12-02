@@ -1855,6 +1855,7 @@ emit_scrolls(const tinfo* ti, int count, fbuf* f){
   if(ind == NULL){
     ind = "\v";
   }
+  // fell through if we had no indn
   while(count > 0){
     if(fbuf_emit(f, ind) < 0){
       return -1;

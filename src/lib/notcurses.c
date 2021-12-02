@@ -1673,6 +1673,7 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
     return 0;
   }
   int r = chend - parend; // how many rows we need scroll parent
+  ncplane_cursor_move_yx(n, ncplane_dim_y(n) - 1, 0);
   int ret = ncplane_scrollup(n, r);
   return ret;
 }
