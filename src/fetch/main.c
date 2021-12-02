@@ -474,10 +474,17 @@ drawpalette(struct notcurses* nc){
     if(toshow > showpl){
       toshow = showpl;
     }
-    // center based on the number being shown on this line
-    if(ncplane_cursor_move_yx(n, -1, (dimx - toshow) / 2)){
+    if(ncplane_cursor_move_yx(n, -1, 0)){
       return -1;
     }
+    ncplane_set_fg_default(n);
+    ncplane_set_bg_default(n);
+    for(unsigned x = 0 ; x < (dimx - showpl) / 2 ; ++x){
+      if(ncplane_putchar(n, ' ') < 0){
+        return -1;
+      }
+    }
+    // center based on the number being shown on this line
     for(unsigned x = (dimx - showpl) / 2 ; x < dimx / 2 + 32 ; ++x){
       const int truex = x - (dimx - showpl) / 2;
       if(y * showpl * scale + truex >= psize){
@@ -499,7 +506,13 @@ drawpalette(struct notcurses* nc){
         }
       }
     }
+    ncplane_set_fg_default(n);
     ncplane_set_bg_default(n);
+    for(unsigned x = dimx / 2 + 32 ; x < dimx - 1 ; ++x){
+      if(ncplane_putchar(n, ' ') < 0){
+        return -1;
+      }
+    }
     if(ncplane_putchar(n, '\n') == EOF){
       return -1;
     }
