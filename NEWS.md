@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.0 (not yet released) **"In the A"**
+* 3.0.0 (2021-12-01) **"In the A"**
   * Made the ABI/API changes that have been planned/collected during 2.x
     development. This primarily involved removing deprecated functions,
     and making some `static inline` (and thus no longer linkable symbols).
