@@ -58,8 +58,9 @@ struct timespec demodelay = {
 // the "jungle" demo has non-free material embedded into it, and is thus
 // entirely absent (can't just be disabled). supply a stub here.
 #ifdef DFSG_BUILD
-int jungle_demo(struct notcurses* nc){
+int jungle_demo(struct notcurses* nc, uint64_t startns){
   (void)nc;
+  (void)startns
   return -1;
 }
 #endif
