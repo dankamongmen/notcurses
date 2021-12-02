@@ -44,7 +44,7 @@ const demoresult* demoresult_lookup(int idx){
 }
 
 char* find_data(const char* datum){
-  return notcurses_data_path(datum);
+  return notcurses_data_path(datadir, datum);
 }
 
 float delaymultiplier = 1;
@@ -510,7 +510,6 @@ int main(int argc, char** argv){
   sigaddset(&sigmask, SIGWINCH);
   pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
 #endif
-  datadir = notcurses_data_dir();
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   notcurses_options nopts = {};

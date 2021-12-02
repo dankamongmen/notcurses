@@ -17,8 +17,8 @@
 
 std::mutex ncmtx;
 
-const std::string BackgroundFile = notcurses_data_path("tetris-background.jpg");
-const std::string LogoFile = notcurses_data_path("notcurses.png");
+const std::string BackgroundFile = notcurses_data_path(nullptr, "tetris-background.jpg");
+const std::string LogoFile = notcurses_data_path(nullptr, "notcurses.png");
 
 using namespace std::chrono_literals;
 
