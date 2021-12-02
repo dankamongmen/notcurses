@@ -1,5 +1,6 @@
 # History
 
+* 2021-12-01: Notcurses [3.0.0 "In the 'A'"](https://github.com/dankamongmen/notcurses/releases/tag/v3.0.0).
 * 2021-09-06: Notcurses [2.4.0 "hearts alive"](https://github.com/dankamongmen/notcurses/releases/tag/v2.4.0).
   * Writeup on Phoronix. Front page of Hacker News. I guess we've arrived.
 * 2021-08-12: One thousand Github stars! https://www.youtube.com/watch?v=ROlKx7PG6sY
