@@ -33,7 +33,7 @@ Website = https://
 Include uninstaller = 1
 Uninstaller filename = ncuninstaller
 UseCustomDisplayIcon = 1
-CustomDisplayIcon = <InstallPath>\natasha-blur.png
+CustomDisplayIcon = <InstallPath>\icon.ico
 [Licence]
 Licence dialog = 0
 [Finish]
@@ -420,9 +420,234 @@ exe
 C:\msys64\home\niblack\src\notcurses\build\notcurses-input.exe
 505.4 KB
 exe
-C:\msys64\home\niblack\src\notcurses\data\
-N/A
-[Folder]
+C:\msys64\home\niblack\src\notcurses\data\aidsrobots.jpeg
+146.5 KB
+jpeg
+C:\msys64\home\niblack\src\notcurses\data\atma.png
+4.3 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\changes.jpg
+42.7 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\chunli01.png
+12.1 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli1.bmp
+12 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli02.png
+11.9 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli2.bmp
+10.9 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli03.png
+12.5 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli3.bmp
+15.2 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli04.png
+11.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli4.bmp
+19.4 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli05.png
+12.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli5.bmp
+10.9 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli06.png
+12 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli6.bmp
+17.6 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli07.png
+11.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli7.bmp
+17.6 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli08.png
+7.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli8.bmp
+10.7 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\chunli09.png
+9.9 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli10.png
+11.4 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli11.png
+9.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli12.png
+13 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli13.png
+13.4 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli14.png
+12.3 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli15.png
+13.3 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli16.png
+13.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli17.png
+11.5 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli18.png
+14.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli19.png
+13.9 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli20.png
+9.3 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli21.png
+9.7 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli22.png
+9.9 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli23.png
+9.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli24.png
+9.4 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli25.png
+11.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli26.png
+6.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli27.png
+10.5 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli28.png
+11.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli29.png
+6.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli30.png
+7.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli31.png
+7.3 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli32.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli33.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli34.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli35.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli36.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli37.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli38.png
+6.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli39.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli40.png
+6.1 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli41.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli42.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli43.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli44.png
+12 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\chunli45.png
+6.7 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\covid19.jpg
+108.4 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\dsscaw-purp.png
+239.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\eagles.png
+46.8 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\fm6.mov
+821.1 KB
+mov
+C:\msys64\home\niblack\src\notcurses\data\fonts.jpg
+32.4 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\lamepatents.jpg
+63.4 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\megaman2.bmp
+68.1 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\natasha-blur.png
+99.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\normal.png
+168.6 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\notcurses.png
+287.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\notcursesIII.mov
+2.2 MB
+mov
+C:\msys64\home\niblack\src\notcurses\data\onedot.png
+546 Byte
+png
+C:\msys64\home\niblack\src\notcurses\data\PurpleDrank.jpg
+76.3 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\samoa.avi
+781.8 KB
+avi
+C:\msys64\home\niblack\src\notcurses\data\spaceship.png
+324.4 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\tetris-background.jpg
+23 KB
+jpg
+C:\msys64\home\niblack\src\notcurses\data\warmech.bmp
+9.9 KB
+bmp
+C:\msys64\home\niblack\src\notcurses\data\Windows10Logo.png
+19.2 KB
+png
+C:\msys64\home\niblack\src\notcurses\data\worldmap.png
+150.9 KB
+png
+C:\msys64\home\niblack\src\notcurses\doc\icon.ico
+16.6 KB
+ico
 [Licence_Begin]
 114
 {\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Arial;}}
@@ -433,7 +658,7 @@ N/A
 HKEY_CURRENT_USER
 Software\Notcurses\DataDir
 
-<InstallPath>\data
+<InstallPath>
 1
 [Variables]
 [SCs]

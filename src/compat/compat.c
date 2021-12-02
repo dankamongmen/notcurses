@@ -16,18 +16,21 @@ char* notcurses_data_dir(void){
 			   NULL, RRF_RT_REG_SZ, NULL,
                            NULL, &plen);
   if(r){
-    return NULL;
+    goto err;
   }
   char* val = malloc(plen + 1);
   if(val == NULL){
-    return NULL;
+    goto err;
   }
   r = RegGetValueA(HKEY_CURRENT_USER, key, NULL, RRF_RT_REG_SZ, NULL, val, &plen);
   if(r){
     free(val);
-    return NULL;
+    goto err;
   }
   return val;
+
+err:
+  return NOTCURSES_SHARE; // fall back to build path
 }
 
 char* strndup(const char* str, size_t size){
