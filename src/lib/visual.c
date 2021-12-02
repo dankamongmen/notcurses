@@ -1256,8 +1256,9 @@ ncvisual_polyfill_core(ncvisual* n, unsigned y, unsigned x, uint32_t rgba, uint3
   stack->x = x;
   stack->next = NULL;
   int ret = 0;
+  struct topolyfill* s;
   do{
-    struct topolyfill* s = stack;
+    s = stack;
     stack = s->next;
     y = s->y;
     x = s->x;
@@ -1268,29 +1269,37 @@ ncvisual_polyfill_core(ncvisual* n, unsigned y, unsigned x, uint32_t rgba, uint3
       *pixel = rgba;
       if(y){
         if(create_polyfill_op(y - 1, x, &stack) == NULL){
-          // FIXME need free stack!
-          return -1;
+          goto err;
         }
       }
       if(y + 1 < n->pixy){
         if(create_polyfill_op(y + 1, x, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
       if(x){
         if(create_polyfill_op(y, x - 1, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
       if(x + 1 < n->pixx){
         if(create_polyfill_op(y, x + 1, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
     }
     free(s);
   }while(stack);
   return ret;
+
+err:
+  free(s);
+  while(stack){
+    s = stack->next;
+    free(stack);
+    stack = s;
+  }
+  return -1;
 }
 
 int ncvisual_polyfill_yx(ncvisual* n, unsigned y, unsigned x, uint32_t rgba){
