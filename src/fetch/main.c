@@ -752,12 +752,12 @@ notcurses_render(m->nc);
   }
   if(m->neologo){
     if(neologo_present(m->nc, m->neologo) == 0){
+      unsigned nl;
+      ncplane_cursor_yx(notcurses_stdplane(m->nc), &nl, NULL);
+      m->nextline = nl;
       return NULL;
     }
   }
-  unsigned nl;
-  ncplane_cursor_yx(notcurses_stdplane(m->nc), &nl, NULL);
-  m->nextline = nl;
   return NULL;
 }
 
