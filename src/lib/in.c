@@ -2047,7 +2047,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
 #ifdef __MINGW64__
   int timeoutms = nonblock ? 0 : -1;
   DWORD ncount = 0;
-  const HANDLE* handles[2];
+  HANDLE handles[2];
   if(!ictx->stdineof){
     if(ictx->ibufvalid != sizeof(ictx->ibuf)){
       handles[ncount++] = ictx->stdinhandle;
