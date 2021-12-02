@@ -458,8 +458,8 @@ static int
 drawpalette(struct notcurses* nc){
   int showpl = 64; // show this many per line
   int psize = notcurses_palette_size(nc);
-  if(psize > 256){
-    psize = 256;
+  if(psize > NCPALETTESIZE){
+    psize = NCPALETTESIZE;
   }
   unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
@@ -479,14 +479,14 @@ drawpalette(struct notcurses* nc){
     }
     ncplane_set_fg_default(n);
     ncplane_set_bg_default(n);
-    for(unsigned x = 0 ; x < (dimx - showpl) / 2 ; ++x){
+    for(unsigned x = 0 ; x < (dimx - toshow) / 2 ; ++x){
       if(ncplane_putchar(n, ' ') < 0){
         return -1;
       }
     }
     // center based on the number being shown on this line
-    for(unsigned x = (dimx - showpl) / 2 ; x < dimx / 2 + 32 ; ++x){
-      const int truex = x - (dimx - showpl) / 2;
+    for(unsigned x = (dimx - toshow) / 2 ; x < dimx / 2 + 32 ; ++x){
+      const int truex = x - (dimx - toshow) / 2;
       if(y * showpl * scale + truex >= psize){
         break;
       }
@@ -711,7 +711,7 @@ static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-notcurses_render(m->nc);
+  notcurses_render(m->nc);
   ncplane_set_bg_default(notcurses_stdplane(m->nc));
   ncplane_set_fg_default(notcurses_stdplane(m->nc));
   // we've just rendered, so any necessary scrolling has been performed. draw
