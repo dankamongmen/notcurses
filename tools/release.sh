@@ -37,6 +37,7 @@ sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" cffi/setup.py
 sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" python/setup.py
 sed -i -e "s/<version>$OLDVERSION</<version>$VERSION</" tools/nuspec
 sed -i -e "s/Program version = $OLDVERSION/Program version = $VERSION/" tools/notcurses-installer.ifp
+sed -i -e "s/File = \(.*\)notcurses-$OLDVERSION/File = \1notcurses-$VERSION/" tools/notcurses-installer.ifp
 
 BUILDDIR="build-$VERSION"
 
