@@ -11,19 +11,14 @@
 #include <cinttypes>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
+#include "compat/compat.h"
 #include "builddef.h"
 #include "version.h"
 
 std::mutex ncmtx;
 
-#ifdef __MINGW64__
-#define PATHSEP "\\"
-#else
-#define PATHSEP "/"
-#endif
-const std::string BackgroundFile = NOTCURSES_SHARE PATHSEP "tetris-background.jpg";
-const std::string LogoFile = NOTCURSES_SHARE PATHSEP "notcurses.png";
-#undef PATHSEP
+const std::string BackgroundFile = notcurses_data_path("tetris-background.jpg");
+const std::string LogoFile = notcurses_data_path("notcurses.png");
 
 using namespace std::chrono_literals;
 

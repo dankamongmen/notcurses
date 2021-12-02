@@ -44,12 +44,7 @@ const demoresult* demoresult_lookup(int idx){
 }
 
 char* find_data(const char* datum){
-  const size_t dlen = strlen(datadir);
-  char* path = malloc(dlen + 1 + strlen(datum) + 1);
-  strcpy(path, datadir);
-  path[dlen] = path_separator();
-  strcpy(path + dlen + 1, datum);
-  return path;
+  return notcurses_data_path(datum);
 }
 
 float delaymultiplier = 1;

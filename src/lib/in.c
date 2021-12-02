@@ -2275,8 +2275,8 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     sendsignal = true;
   }else{
     logtrace("draining event readiness pipe %d\n", ictx->ivalid);
-    char c;
 #ifndef __MINGW64__
+    char c;
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
       // FIXME accelerate?
     }

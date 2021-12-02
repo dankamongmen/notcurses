@@ -116,6 +116,26 @@ int clock_nanosleep(clockid_t clockid, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
 
+static inline char*
+notcurses_data_path(const char* f){
+  char* datadir = notcurses_data_dir();
+  if(datadir == NULL){
+    return NULL;
+  }
+  const size_t dlen = strlen(datadir);
+  // cast is for benefit of c++ callers, sigh
+  char* path = (char*)malloc(dlen + 1 + strlen(f) + 1);
+  if(path == NULL){
+    free(datadir);
+    return NULL;
+  }
+  strcpy(path, datadir);
+  free(datadir);
+  path[dlen] = path_separator();
+  strcpy(path + dlen + 1, f);
+  return path;
+}
+
 #ifdef __cplusplus
 }
 #else

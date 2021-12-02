@@ -608,11 +608,12 @@ target_link_libraries(notcurses-input
 
 ############################################################################
 # nctetris
-file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
+file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp src/compat/*.c)
 add_executable(nctetris ${TETRISSRC})
 target_include_directories(nctetris
   BEFORE
   PRIVATE
+    src
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
