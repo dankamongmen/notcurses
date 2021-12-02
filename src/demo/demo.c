@@ -60,7 +60,7 @@ struct timespec demodelay = {
 #ifdef DFSG_BUILD
 int jungle_demo(struct notcurses* nc, uint64_t startns){
   (void)nc;
-  (void)startns
+  (void)startns;
   return -1;
 }
 #endif
