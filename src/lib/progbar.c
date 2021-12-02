@@ -23,6 +23,7 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
   ret->retrograde = opts->flags & NCPROGBAR_OPTION_RETROGRADE;
   if(ncplane_set_widget(n, ret, (void(*)(void*))ncprogbar_destroy)){
     ncplane_destroy(n);
+    free(ret);
     return NULL;
   }
   return ret;

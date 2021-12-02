@@ -2952,6 +2952,22 @@ ncplane_double_box(struct ncplane* n, uint16_t styles, uint64_t channels,
 }
 
 static inline int
+ncplane_ascii_box(struct ncplane* n, uint16_t styles, uint64_t channels,
+                  unsigned ylen, unsigned xlen, unsigned ctlword){
+  int ret = 0;
+  nccell ul = NCCELL_TRIVIAL_INITIALIZER, ur = NCCELL_TRIVIAL_INITIALIZER;
+  nccell ll = NCCELL_TRIVIAL_INITIALIZER, lr = NCCELL_TRIVIAL_INITIALIZER;
+  nccell hl = NCCELL_TRIVIAL_INITIALIZER, vl = NCCELL_TRIVIAL_INITIALIZER;
+  if((ret = nccells_ascii_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+    ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ylen, xlen, ctlword);
+  }
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
+  return ret;
+}
+
+static inline int
 ncplane_perimeter_double(struct ncplane* n, uint16_t stylemask,
                          uint64_t channels, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){

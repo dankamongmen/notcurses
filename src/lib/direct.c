@@ -405,11 +405,11 @@ int ncdirect_cursor_pop(ncdirect* n){
 }
 
 static inline int
-ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
+ncdirect_align(struct ncdirect* n, ncalign_e align, unsigned c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
-  int cols = ncdirect_dim_x(n);
+  unsigned cols = ncdirect_dim_x(n);
   if(c > cols){
     return 0;
   }
@@ -974,7 +974,10 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
   if(fprintf(n->ttyfp, "%s", prompt) < 0){
     return NULL;
   }
-  int dimx = ncdirect_dim_x(n);
+  unsigned dimx = ncdirect_dim_x(n);
+  if(dimx == 0){
+    return NULL;
+  }
   // FIXME what if we're reading from redirected input, not a terminal?
   unsigned y, xstart;
   if(cursor_yx_get(n, u7, &y, &xstart)){

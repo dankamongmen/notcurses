@@ -1053,6 +1053,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     }
     if(opts->termtype){
       if(putenv_term(opts->termtype)){
+        free(ret);
         return NULL;
       }
     }

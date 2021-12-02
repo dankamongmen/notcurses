@@ -326,21 +326,29 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
 }
 
 static int
-table_segment_color(struct ncplane* n, const char* str, const char* delim, unsigned color){
+table_segment_color(struct ncplane* n, const char* str, const char* delim,
+                    const char* ascdelim, unsigned color){
   ncplane_set_fg_rgb(n, color);
   if(ncplane_putstr(n, str) < 0){
     return -1;
   }
   ncplane_set_fg_rgb8(n, 178, 102, 255);
-  if(ncplane_putstr(n, delim) < 0){
-    return -1;
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    if(ncplane_putstr(n, delim) < 0){
+      return -1;
+    }
+  }else{
+    if(ncplane_putstr(n, ascdelim) < 0){
+      return -1;
+    }
   }
   return 0;
 }
 
 static int
-table_segment(struct ncplane* n, const char* str, const char* delim){
-  return table_segment_color(n, str, delim, 0xffffff);
+table_segment(struct ncplane* n, const char* str, const char* delim,
+              const char* ascdelim){
+  return table_segment_color(n, str, delim, ascdelim, 0xffffff);
 }
 
 static int
@@ -387,14 +395,21 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   // FIXME this shouldn't be necessary, but without it, late in 2.4.x we
   // stopped printing the table header. see #2389.
   notcurses_render(nc);
-  table_segment(n, "             runtime", "│");
-  table_segment(n, " frames", "│");
-  table_segment(n, "output(B)", "│");
-  table_segment(n, "    FPS", "│");
-  table_segment(n, "%r", "│");
-  table_segment(n, "%a", "│");
-  table_segment(n, "%w", "│");
-  table_segment(n, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
+  const char* sep;
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    sep = u8"│";
+  }else{
+    sep = "|";
+  }
+  table_segment(n, "             runtime", "│", "|");
+  table_segment(n, " frames", "│", "|");
+  table_segment(n, "output(B)", "│", "|");
+  table_segment(n, "    FPS", "│", "|");
+  table_segment(n, "%r", "│", "|");
+  table_segment(n, "%a", "│", "|");
+  table_segment(n, "%w", "│", "|");
+  table_segment(n, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n",
+                "|\n--+--------+--------+-------+---------+-------+--+--+--+-------|\n");
   char timebuf[NCPREFIXSTRLEN + 1];
   char tfpsbuf[NCPREFIXSTRLEN + 1];
   char totalbuf[NCBPREFIXSTRLEN + 1];
@@ -423,21 +438,24 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%2llu", (unsigned long long)(i + 1)); // windows has %zu problems
     ncplane_set_fg_rgb8(n, 178, 102, 255);
-    ncplane_putwc(n, L'│');
+    ncplane_putegc(n, sep, NULL);
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%8s", demos[results[i].selector - 'a'].name);
     ncplane_set_fg_rgb8(n, 178, 102, 255);
-    ncplane_printf(n, "│%*ss│%7" PRIu64 "│%*s│%7.1f│%2" PRId64 "│%2" PRId64 "│%2" PRId64 "│%*s║",
-           NCPREFIXFMT(timebuf), results[i].stats.renders, NCBPREFIXFMT(totalbuf),
+    ncplane_printf(n, "%s%*ss%s%7" PRIu64 "%s%*s%s%7.1f%s%2" PRId64 "%s%2" PRId64 "%s%2" PRId64 "%s%*s%s",
+           sep, NCPREFIXFMT(timebuf), sep,
+           results[i].stats.renders, sep,
+           NCBPREFIXFMT(totalbuf), sep,
            results[i].timens ?
-            results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
+            results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0, sep,
            (results[i].timens ?
-            results[i].stats.render_ns * 100 / results[i].timens : 0),
+            results[i].stats.render_ns * 100 / results[i].timens : 0), sep,
            (results[i].timens ?
-            results[i].stats.raster_ns * 100 / results[i].timens : 0),
+            results[i].stats.raster_ns * 100 / results[i].timens : 0), sep,
            (results[i].timens ?
-            results[i].stats.writeout_ns * 100 / results[i].timens : 0),
-           NCPREFIXFMT(tfpsbuf));
+            results[i].stats.writeout_ns * 100 / results[i].timens : 0), sep,
+           NCPREFIXFMT(tfpsbuf),
+           notcurses_canutf8(ncplane_notcurses(n)) ? "║" : "|");
     ncplane_set_fg_rgb(n, rescolor);
     ncplane_printf(n, "%s\n", results[i].result < 0 ? "FAILED" :
                    results[i].result > 0 ? "ABORTED" :
@@ -452,12 +470,13 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   }
   ncqprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   ncbprefix(totalbytes, 1, totalbuf, 0);
-  table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
+  table_segment(n, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n",
+                "--+--------+--------+-------+---------+-------+--+--+--+-------+\n");
   ncplane_putstr(n, "            ");
-  table_printf(n, "│", "%*ss", NCPREFIXFMT(timebuf));
-  table_printf(n, "│", "%7lu", totalframes);
-  table_printf(n, "│", "%*s", NCBPREFIXFMT(totalbuf));
-  //table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
+  table_printf(n, sep, "%*ss", NCPREFIXFMT(timebuf));
+  table_printf(n, sep, "%7lu", totalframes);
+  table_printf(n, sep, "%*s", NCBPREFIXFMT(totalbuf));
+  //table_printf(nc, sep, "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   ncplane_putchar(n, '\n');
   ncplane_set_fg_rgb8(n, 0xfe, 0x20, 0x76); // PANTONE Strong Red C + 3x0x20
 #ifdef DFSG_BUILD

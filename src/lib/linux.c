@@ -402,6 +402,7 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(!found[widx]){
           if(add_to_map(map, s->ws[widx], fontidx)){
+            free(found);
             return -1;
           }
           ++toadd;

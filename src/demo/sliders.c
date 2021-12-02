@@ -104,10 +104,17 @@ fill_chunk(struct ncplane* n, int idx){
   ncchannel_set_rgb8(&ur, g, b, r);
   ncchannel_set_rgb8(&ll, b, r, g);
   int ret = 0;
-  if(ncplane_gradient2x1(n, -1, -1, 0, 0, ul, ur, ll, lr) <= 0){
-    ret = -1;
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    if(ncplane_gradient2x1(n, -1, -1, 0, 0, ul, ur, ll, lr) <= 0){
+      ret = -1;
+    }
+    ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
+  }else{
+    if(ncplane_gradient(n, -1, -1, 0, 0, " ", NCSTYLE_NONE, ul, ur, ll, lr) <= 0){
+      ret = -1;
+    }
+    ret |= ncplane_ascii_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   }
-  ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   if(maxx >= 4 && maxy >= 3){
     // don't zero-index to viewer
     ret |= (ncplane_printf_yx(n, (maxy - 1) / 2, (maxx - 1) / 2, "%02d", idx + 1) < 0);
@@ -122,9 +129,15 @@ draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx)
   ncchannels_set_fg_rgb8(&channels, 180, 80, 180);
   //channels_set_bg_rgb8(&channels, 0, 0, 0);
   ncplane_cursor_move_yx(n, yoff, xoff);
-  ret = ncplane_rounded_box(n, 0, channels,
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    ret = ncplane_rounded_box(n, 0, channels,
+                              CHUNKS_VERT * chunky + yoff + 1,
+                              CHUNKS_HORZ * chunkx + xoff + 1, 0);
+  }else{
+    ret = ncplane_ascii_box(n, 0, channels,
                             CHUNKS_VERT * chunky + yoff + 1,
                             CHUNKS_HORZ * chunkx + xoff + 1, 0);
+  }
   return ret;
 }
 

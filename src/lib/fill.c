@@ -26,8 +26,9 @@ ncplane_polyfill_inner(ncplane* n, unsigned y, unsigned x, const nccell* c, cons
     return -1;
   }
   int ret = 0;
+  struct topolyfill* s;
   do{
-    struct topolyfill* s = stack;
+    s = stack;
     stack = stack->next;
     y = s->y;
     x = s->x;
@@ -37,34 +38,42 @@ ncplane_polyfill_inner(ncplane* n, unsigned y, unsigned x, const nccell* c, cons
     if(strcmp(glust, filltarg) == 0){
       ++ret;
       if(nccell_duplicate(n, cur, c) < 0){
-        // FIXME need free stack!
-        return -1;
+        goto err;
       }
 //fprintf(stderr, "blooming from %d/%d ret: %d\n", y, x, ret);
       if(y){
         if(create_polyfill_op(y - 1, x, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
       if(y + 1 < n->leny){
         if(create_polyfill_op(y + 1, x, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
       if(x){
         if(create_polyfill_op(y, x - 1, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
       if(x + 1 < n->lenx){
         if(create_polyfill_op(y, x + 1, &stack) == NULL){
-          return -1;
+          goto err;
         }
       }
     }
     free(s);
   }while(stack);
   return ret;
+
+err:
+  free(s);
+  while(stack){
+    struct topolyfill* tmp = stack->next;
+    free(stack);
+    stack = tmp;
+  }
+  return -1;
 }
 
 // at the initial step only, invalid ystart, xstart is an error, so explicitly check.
