@@ -468,7 +468,7 @@ drawpalette(struct notcurses* nc){
   }
   int scale = notcurses_canutf8(nc) ? 2 : 1; // use half blocks for 2*showpl
   ncplane_cursor_move_yx(n, -1, 0);
-  for(int y = 0 ; y < (psize + showpl - 1) / showpl / scale ; ++y){
+  for(int y = 0 ; y < (psize + (showpl * scale) - 1) / showpl / scale ; ++y){
     // we show a maximum of showpl * scale palette entries per line
     int toshow = psize - y * showpl;
     if(toshow > showpl){
@@ -487,7 +487,7 @@ drawpalette(struct notcurses* nc){
         return -1;
       }
       if(scale == 2){
-        if(ncplane_set_fg_palindex(n, y * showpl * scale + truex + showpl)){
+        if(ncplane_set_fg_palindex(n, (y * showpl * scale + truex + showpl) % psize)){
           return -1;
         }
         if(ncplane_putegc(n, u8"▄", NULL) == EOF){
@@ -503,6 +503,15 @@ drawpalette(struct notcurses* nc){
     if(ncplane_putchar(n, '\n') == EOF){
       return -1;
     }
+  }
+  return 0;
+}
+
+static int
+newline_past(struct ncplane* std, struct ncplane* p){
+  if(ncplane_putchar_yx(std, ncplane_abs_y(p) + ncplane_dim_y(p) - 1,
+                        ncplane_abs_x(p) + ncplane_dim_x(p) + 1, '\n') != 1){
+    return -1;
   }
   return 0;
 }
@@ -610,11 +619,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
   if(chend > parend){
     ncplane_move_rel(infop, -(chend - parend), 0);
   }
-  if(ncplane_putchar_yx(std, ncplane_abs_y(infop) + ncplane_dim_y(infop) - 1,
-                        ncplane_abs_x(infop) + ncplane_dim_x(infop) + 1,
-                        '\n') != 1){
-    return -1;
-  }
+  newline_past(std, infop);
   if(notcurses_render(nc)){
     return -1;
   }
@@ -625,7 +630,6 @@ static int
 infoplane(struct notcurses* nc, const fetched_info* fi, int nextline){
   const int planeheight = 7;
   int r = infoplane_notcurses(nc, fi, planeheight, nextline);
-  r |= notcurses_stop(nc);
   return r;
 }
 
@@ -694,6 +698,7 @@ static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
+notcurses_render(m->nc);
   ncplane_set_bg_default(notcurses_stdplane(m->nc));
   ncplane_set_fg_default(notcurses_stdplane(m->nc));
   // we've just rendered, so any necessary scrolling has been performed. draw
@@ -724,9 +729,10 @@ display_thread(void* vmarshal){
       struct ncplane* iplane = ncvisual_blit(m->nc, ncv, &vopts);
       ncvisual_destroy(ncv);
       if(iplane){
-        int x = ncplane_x(iplane);
-        ncplane_move_yx(iplane, y, x);
-        m->nextline = ncplane_abs_y(iplane) + ncplane_dim_y(iplane);
+        ncplane_scrollup_child(notcurses_stdplane(m->nc), iplane);
+        newline_past(notcurses_stdplane(m->nc), iplane);
+        notcurses_render(m->nc);
+        m->nextline = ncplane_y(iplane) + ncplane_dim_y(iplane);
         return NULL;
       }
     }
@@ -795,7 +801,7 @@ ncneofetch(struct notcurses* nc){
     return -1;
   }
   free_fetched_info(&fi);
-  return 0;
+  return notcurses_stop(nc);
 }
 
 static void
