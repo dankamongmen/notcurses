@@ -6,6 +6,8 @@ extern "C" {
 #endif
 
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <sys/types.h>
