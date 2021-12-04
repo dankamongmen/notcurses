@@ -138,8 +138,9 @@ others are external.
 
 ## Included tools
 
-Eight binaries are installed as part of Notcurses:
+Nine binaries are installed as part of Notcurses:
 * `ncls`: an `ls` that displays multimedia in the terminal
+* `ncman`: a fancy manual browser
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
 * `ncplayer`: renders visual media (images/videos)
 * `nctetris`: a tetris clone
