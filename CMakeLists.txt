@@ -106,7 +106,7 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND FFMpeg)
 elseif(${USE_OIIO})
-pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
+find_package(OpenImageIO 2.1 REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
 endif()
 endif()
@@ -384,12 +384,12 @@ target_link_directories(notcurses-static
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
 elseif(${USE_OIIO})
-target_include_directories(notcurses PUBLIC "${OIIO_INCLUDE_DIRS}")
-target_include_directories(notcurses-static PUBLIC "${OIIO_STATIC_INCLUDE_DIRS}")
-target_link_libraries(notcurses PRIVATE ${OIIO_LIBRARIES})
-target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
-target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
-target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
+target_include_directories(notcurses PUBLIC "${OPENIMAGEIO_INCLUDE_DIRS}")
+target_include_directories(notcurses-static PUBLIC "${OPENIMAGEIO_STATIC_INCLUDE_DIRS}")
+target_link_libraries(notcurses PRIVATE OpenImageIO)
+target_link_libraries(notcurses-static PRIVATE ${OPENIMAGEIO_STATIC_LIBRARY})
+target_link_directories(notcurses PRIVATE ${OPENIMAGEIO_LIBRARY_DIRS})
+target_link_directories(notcurses-static PRIVATE ${OPENIMAGEIO_STATIC_LIBRARY_DIRS})
 endif()
 
 ############################################################################
@@ -623,6 +623,23 @@ target_link_libraries(nctetris
     notcurses++
 )
 endif()
+
+############################################################################
+# ncman
+file(GLOB NCMANSRCS CONFIGURE_DEPENDS src/man/*.c)
+add_executable(ncman ${NCMANSRCS} ${COMPATSRC})
+target_include_directories(ncman
+  BEFORE
+  PRIVATE
+    include
+    src
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(ncman
+  PRIVATE
+    notcurses-core
+)
 
 ############################################################################
 # ncneofetch
@@ -948,6 +965,7 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
+install(TARGETS ncman DESTINATION bin)
 if(${USE_CPP})
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
