@@ -359,7 +359,7 @@ TEST_CASE("Media") {
     if(notcurses_canopen_videos(nc_)){
       unsigned dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("fm6.mov").get());
+      auto ncv = ncvisual_from_file(find_data("samoa.avi").get());
       REQUIRE(ncv);
       CHECK(0 == ncvisual_decode(ncv));
       /*CHECK(dimy * 2 == frame->height);
