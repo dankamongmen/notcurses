@@ -2,9 +2,9 @@
 #include <cstdlib>
 #include "main.h"
 
-const char SNAKE[] = "\xf0\x9f\x90\x8d"; // U+1F40D SNAKE
-const char SCORPION[] = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
-const char FROG[] = "\xf0\x9f\x90\xb8"; // U+1F438 FROG FACE
+const char SNAKE[] = u8"\xf0\x9f\x90\x8d"; // U+1F40D SNAKE
+const char SCORPION[] = u8"\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
+const char FROG[] = u8"\xf0\x9f\x90\xb8"; // U+1F438 FROG FACE
 
 TEST_CASE("Wide") {
   auto nc_ = testing_notcurses();
@@ -18,7 +18,7 @@ TEST_CASE("Wide") {
 
   // Verify we can emit a wide character, and it advances the cursor by 2
   SUBCASE("EmitWideAsian") {
-    const char* w = "\u5168";
+    const char* w = u8"\u5168";
     CHECK(0 < ncplane_putegc(n_, w, nullptr));
     unsigned x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -29,7 +29,7 @@ TEST_CASE("Wide") {
 
   // Verify a wide character is rejected with cursor on the last column
   SUBCASE("RejectWideAsian") {
-    const char* w = "\u5168";
+    const char* w = u8"\u5168";
     unsigned dimx;
     ncplane_dim_yx(n_, nullptr, &dimx);
     CHECK(0 < ncplane_putegc_yx(n_, 0, dimx - 3, w, nullptr));
@@ -48,7 +48,7 @@ TEST_CASE("Wide") {
 
   // Verify a wide character is rejected when placed on the last column
   SUBCASE("RejectWideAsianPlaced") {
-    const char* w = "\u5168";
+    const char* w = u8"\u5168";
     unsigned dimx;
     ncplane_dim_yx(n_, nullptr, &dimx);
     // now it ought be rejected
@@ -63,15 +63,11 @@ TEST_CASE("Wide") {
 
   // half-width, double-width, huge-yet-narrow, all that crap
   SUBCASE("PlaneAtCursorInsane"){
-    const char EGC0[] = "\uffe0"; // fullwidth cent sign ￠
-    const char EGC1[] = "\u00c5"; // neutral A with ring above Å
-    const char EGC2[] = "\u20a9"; // half-width won ₩
-    const char EGC3[] = "\u212b"; // ambiguous angstrom Å
-#ifdef __APPLE__ // FIXME
-    const char EGC4[] = "\U00010E7D";
-#else
-    const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
-#endif
+    const char EGC0[] = u8"\uffe0"; // fullwidth cent sign ￠
+    const char EGC1[] = u8"\u00c5"; // neutral A with ring above Å
+    const char EGC2[] = u8"\u20a9"; // half-width won ₩
+    const char EGC3[] = u8"\u212b"; // ambiguous angstrom Å
+    const char EGC4[] = u8"\ufdfd"; // neutral yet huge bismillah ﷽
     std::array<nccell, 5> tcells;
     for(auto & tcell : tcells){
       nccell_init(&tcell);
@@ -254,7 +250,7 @@ TEST_CASE("Wide") {
   }
 
   SUBCASE("RenderWides") {
-    CHECK(0 <= ncplane_putstr(n_, "\u5f62\u5168"));
+    CHECK(0 <= ncplane_putstr(n_, u8"\u5f62\u5168"));
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(nccell_double_wide_p(&c));
@@ -269,7 +265,7 @@ TEST_CASE("Wide") {
     CHECK(0 == notcurses_render(nc_));
     auto egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp("\u5f62", egc));
+    CHECK(0 == strcmp(u8"\u5f62", egc));
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
@@ -277,7 +273,7 @@ TEST_CASE("Wide") {
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp("\u5168", egc));
+    CHECK(0 == strcmp(u8"\u5168", egc));
     free(egc);
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
@@ -298,12 +294,12 @@ TEST_CASE("Wide") {
     ncplane_yx(n_, &py, &px);
     CHECK(0 == py);
     CHECK(0 == px);
-    CHECK(2 == ncplane_putstr(n_, "\xe5\x85\xa8")); // \u5168 (全)
+    CHECK(2 == ncplane_putstr(n_, u8"\xe5\x85\xa8")); // \u5168 (全)
     unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(2 == x);
-    CHECK(2 == ncplane_putstr(n_, "\xe5\xbd\xa2")); // \u5f62 (形)
+    CHECK(2 == ncplane_putstr(n_, u8"\xe5\xbd\xa2")); // \u5f62 (形)
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(4 == x);
@@ -311,11 +307,11 @@ TEST_CASE("Wide") {
 
     // should be wide char 1
     CHECK(3 == ncplane_at_yx_cell(n_, 0, 0, &c));
-    CHECK(!strcmp("\xe5\x85\xa8", nccell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp(u8"\xe5\x85\xa8", nccell_extended_gcluster(n_, &c)));
     CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp("\xe5\x85\xa8", egc));
+    CHECK(!strcmp(u8"\xe5\x85\xa8", egc));
     CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
@@ -332,11 +328,11 @@ TEST_CASE("Wide") {
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 2, &c));
-    CHECK(!strcmp("\xe5\xbd\xa2", nccell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp(u8"\xe5\xbd\xa2", nccell_extended_gcluster(n_, &c)));
     CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(egc);
-    CHECK(!strcmp("\xe5\xbd\xa2", egc));
+    CHECK(!strcmp(u8"\xe5\xbd\xa2", egc));
     CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
@@ -433,7 +429,7 @@ TEST_CASE("Wide") {
     free(egc);
     nccell cl = NCCELL_TRIVIAL_INITIALIZER, cr = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(3 == ncplane_at_yx_cell(n_, 1, 1, &cl));
-    CHECK(0 == strcmp("六", nccell_extended_gcluster(n_, &cl)));
+    CHECK(0 == strcmp(u8"六", nccell_extended_gcluster(n_, &cl)));
     CHECK(0 == ncplane_at_yx_cell(n_, 1, 2, &cr));
     CHECK(cell_simple_p(&cr));
     CHECK(0 == cr.gcluster);
@@ -463,19 +459,19 @@ TEST_CASE("Wide") {
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(4 == ncplane_putstr(topp, "abcd"));
-    CHECK(8 == ncplane_putstr(n_, "六六六六"));
+    CHECK(8 == ncplane_putstr(n_, u8"六六六六"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
     uint64_t channels;
     char* egc;
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -495,7 +491,7 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_move_yx(topp, 0, 3));
     CHECK(0 == notcurses_render(nc_));
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -521,7 +517,7 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_move_yx(topp, 0, 2));
     CHECK(0 == notcurses_render(nc_));
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -539,7 +535,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "d"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -565,7 +561,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -585,13 +581,13 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, "d"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -617,33 +613,33 @@ TEST_CASE("Wide") {
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
-    CHECK(4 == ncplane_putstr(topp, "次次"));
+    CHECK(4 == ncplane_putstr(topp, u8"次次"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    CHECK(8 == ncplane_putstr(n_, "六六六六"));
+    CHECK(8 == ncplane_putstr(n_, u8"六六六六"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
     uint64_t channels;
     char* egc;
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -651,7 +647,7 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_move_yx(topp, 0, 3));
     CHECK(0 == notcurses_render(nc_));
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -660,13 +656,13 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, " "));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -677,25 +673,25 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_move_yx(topp, 0, 2));
     CHECK(0 == notcurses_render(nc_));
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -706,13 +702,13 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, " "));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -721,7 +717,7 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -729,25 +725,25 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_move_yx(topp, 0, 0));
     CHECK(0 == notcurses_render(nc_));
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 1, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 2, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "次"));
+    CHECK(0 == strcmp(egc, u8"次"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 3, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 4, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 5, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 6, &stylemask, &channels)));
-    CHECK(0 == strcmp(egc, "六"));
+    CHECK(0 == strcmp(egc, u8"六"));
     free(egc);
     REQUIRE((egc = notcurses_at_yx(nc_, 0, 7, &stylemask, &channels)));
     CHECK(0 == strcmp(egc, ""));
@@ -773,7 +769,7 @@ TEST_CASE("Wide") {
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
-    CHECK(4 == ncplane_putstr(topp, "次次"));
+    CHECK(4 == ncplane_putstr(topp, u8"次次"));
     CHECK(8 == ncplane_putstr(n_, "abcdefgh"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
