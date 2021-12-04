@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <notcurses/notcurses.h>
+#include "builddef.h"
 
 static void
 usage(const char* argv0, FILE* o){
@@ -44,26 +45,68 @@ parse_args(int argc, char** argv){
   return optind;
 }
 
+#ifdef USE_DEFLATE // libdeflate implementation
+#include <libdeflate.h>
+// assume that |buf| is |*len| bytes of deflated data, and try to inflate
+// it. if successful, the inflated map will be returned. either way, the
+// input map will be unmapped (we take ownership). |*len| will be updated
+// if an inflated map is successfully returned.
+static unsigned char*
+map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
+  struct libdeflate_decompressor* inflate = libdeflate_alloc_decompressor();
+  size_t outbytes;
+  enum libdeflate_result r;
+  r = libdeflate_gzip_decompress(inflate, buf, *len, ubuf, ulen, &outbytes);
+  munmap(buf, *len);
+  libdeflate_free_decompressor(inflate);
+  if(r != LIBDEFLATE_SUCCESS){
+    return NULL;
+  }
+  *len = ulen;
+  return ubuf;
+}
+#else // libz implementation
+static unsigned char*
+map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
+  munmap(buf, *len);
+  (void)ulen; // FIXME
+  return NULL;
+}
+#endif
+
 static unsigned char*
 map_troff_data(int fd, size_t* len){
   struct stat sbuf;
   if(fstat(fd, &sbuf)){
     return NULL;
   }
-  // gzip has a 10-byte mandatory header
-  if(sbuf.st_size < 10){
+  // gzip has a 10-byte mandatory header and an 8-byte mandatory footer
+  if(sbuf.st_size < 18){
     return NULL;
   }
-  unsigned char* buf = mmap(NULL, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  *len = sbuf.st_size;
+  unsigned char* buf = mmap(NULL, *len, PROT_READ,
+                            MAP_PRIVATE | MAP_POPULATE, fd, 0);
   if(buf == MAP_FAILED){
     return NULL;
   }
   if(buf[0] == 0x1f && buf[1] == 0x8b && buf[2] == 0x08){
-    // FIXME gzipped!
-    munmap(buf, sbuf.st_size);
-    return NULL;
+    // the last four bytes have the uncompressed length
+    uint32_t ulen;
+    memcpy(&ulen, buf + *len - 4, 4);
+    size_t pgsize = 4096; // FIXME
+    void* ubuf = mmap(NULL, (ulen + pgsize - 1) / pgsize * pgsize,
+                      PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+    if(ubuf == MAP_FAILED){
+      munmap(buf, *len);
+      return NULL;
+    }
+    if(map_gzipped_data(buf, len, ubuf, ulen) == NULL){
+      munmap(ubuf, ulen);
+      return NULL;
+    }
+    return ubuf;
   }
-  *len = sbuf.st_size;
   return buf;
 }
 

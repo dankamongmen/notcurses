@@ -628,6 +628,10 @@ endif()
 # ncman
 file(GLOB NCMANSRCS CONFIGURE_DEPENDS src/man/*.c)
 add_executable(ncman ${NCMANSRCS} ${COMPATSRC})
+target_compile_definitions(ncman
+  PRIVATE
+    _GNU_SOURCE
+)
 target_include_directories(ncman
   BEFORE
   PRIVATE
@@ -636,9 +640,15 @@ target_include_directories(ncman
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
+target_include_directories(ncman
+  BEFORE
+  PRIVATE
+    "${libdeflate_INCLUDE_DIRS}"
+)
 target_link_libraries(ncman
   PRIVATE
     notcurses-core
+    "${libdeflate}"
 )
 
 ############################################################################
