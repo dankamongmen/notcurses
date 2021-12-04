@@ -1,6 +1,6 @@
 #include "main.h"
 
-TEST_CASE("Palette256") {
+TEST_CASE("Palette") {
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;
@@ -17,7 +17,7 @@ TEST_CASE("Palette256") {
   SUBCASE("SetIndexZero") {
     ncpalette* p = ncpalette_new(nc_);
     REQUIRE(nullptr != p);
-    ncpalette_set_rgb8(p, 0, 0x80, 0x90, 0xa0);
+    CHECK(0 == ncpalette_set_rgb8(p, 0, 0x80, 0x90, 0xa0));
     unsigned r, g, b;
     ncpalette_get_rgb8(p, 0, &r, &g, &b);
     CHECK(r == 0x80);
@@ -29,7 +29,7 @@ TEST_CASE("Palette256") {
   SUBCASE("SetIndex255") {
     ncpalette* p = ncpalette_new(nc_);
     REQUIRE(nullptr != p);
-    ncpalette_set_rgb8(p, 255, 0xa0, 0x70, 0x50);
+    CHECK(0 == ncpalette_set_rgb8(p, 255, 0xa0, 0x70, 0x50));
     unsigned r, g, b;
     ncpalette_get_rgb8(p, 255, &r, &g, &b);
     CHECK(r == 0xa0);
@@ -42,7 +42,7 @@ TEST_CASE("Palette256") {
   SUBCASE("FAttributes") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_fg_default_p(&c));
-    nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
+    CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT));
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
     CHECK(!nccell_fg_default_p(&c));
     CHECK(nccell_fg_palindex_p(&c));
@@ -53,7 +53,7 @@ TEST_CASE("Palette256") {
   SUBCASE("BAttributes") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_bg_default_p(&c));
-    nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
+    CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT));
     CHECK(0 == nccell_set_bg_palindex(&c, 0x20));
     CHECK(!nccell_bg_default_p(&c));
     CHECK(nccell_bg_palindex_p(&c));
@@ -85,8 +85,8 @@ TEST_CASE("Palette256") {
     nccell_load_char(n_, &c, 'X');
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
     CHECK(0 == nccell_set_bg_palindex(&c, 0x40));
-    CHECK(0 == ncplane_set_fg_palindex(n_, 0x20));
-    CHECK(0 == ncplane_set_bg_palindex(n_, 0x40));
+    CHECK(0 == nccell_set_fg_alpha(&c, NCALPHA_OPAQUE));
+    CHECK(0 == nccell_set_bg_alpha(&c, NCALPHA_OPAQUE));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
