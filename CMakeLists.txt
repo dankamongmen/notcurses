@@ -626,6 +626,7 @@ endif()
 
 ############################################################################
 # ncman
+if(NOT WIN32)
 file(GLOB NCMANSRCS CONFIGURE_DEPENDS src/man/*.c)
 add_executable(ncman ${NCMANSRCS} ${COMPATSRC})
 target_compile_definitions(ncman
@@ -650,6 +651,7 @@ target_link_libraries(ncman
     notcurses-core
     "${libdeflate}"
 )
+endif()
 
 ############################################################################
 # ncneofetch
@@ -975,7 +977,9 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
+if(NOT WIN32)
 install(TARGETS ncman DESTINATION bin)
+endif()
 if(${USE_CPP})
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
