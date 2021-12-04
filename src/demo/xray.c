@@ -115,10 +115,10 @@ get_next_frame(struct marsh* m, struct ncvisual_options* vopts){
   uint64_t ns = clock_getns(CLOCK_MONOTONIC);
   int ret = m->next_frame;
   uint64_t deadline = m->startns + (m->next_frame + 1) * MAX_SECONDS * (NANOSECS_IN_SEC / VIDEO_FRAMES);
-  // if we've missed the deadline, drop the frame 95% of the time (you've still
+  // if we've missed the deadline, drop the frame 99% of the time (you've still
   // got to draw now and again, or else there's just the initial frame hanging
   // there for ~900 frames of crap).
-  if(ns > deadline && (rand() % 20)){
+  if(ns > deadline && (rand() % 100)){
     ncplane_destroy(vopts->n);
     vopts->n = NULL;
   }else if(ncvisual_blit(m->nc, m->ncv, vopts) == NULL){
