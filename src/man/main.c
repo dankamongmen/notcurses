@@ -66,6 +66,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
   return ubuf;
 }
 #else // libz implementation
+#error libz not yet implemented, need libdeflate
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
   munmap(buf, *len);
@@ -123,6 +124,65 @@ get_troff_data(const char *arg, size_t* len){
   return buf;
 }
 
+// calculate the number of rows necessary to display the troff data,
+// assuming the specified width |dimx|.
+static int
+troff_height(unsigned dimx, const unsigned char* map, size_t mlen){
+  // FIXME for now we assume infinitely wide lines
+  int lines = 0;
+  enum {
+    LINE_UNKNOWN,
+    LINE_COMMENT,
+    LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
+    LINE_RB, LINE_RI, LINE_SB, LINE_SM,
+    LINE_EE, LINE_EX, LINE_RE, LINE_RS,
+    LINE_SH, LINE_SS, LINE_TH,
+    LINE_IP, LINE_LP, LINE_P, LINE_PP,
+    LINE_TP, LINE_TQ,
+    LINE_ME, LINE_MT, LINE_UE, LINE_UR,
+    LINE_OP, LINE_SY, LINE_YS,
+  } linetype = LINE_UNKNOWN;
+  const unsigned char comment[] = ".\\\""; // dot slash quot
+  const unsigned char* comiter = comment;
+  for(size_t off = 0 ; off < mlen ; ++off){
+    if(map[off] == '\n'){
+      if(linetype != LINE_UNKNOWN && linetype != LINE_COMMENT){
+        ++lines;
+      }
+      linetype = LINE_UNKNOWN;
+      comiter = comment;
+    }else if(linetype == LINE_UNKNOWN){
+      if(comiter && map[off] == *comiter){
+        if(*++comiter == '\0'){
+          linetype = LINE_COMMENT;
+        }else{
+          comiter = NULL;
+        }
+      }
+    }
+  }
+  if(linetype != LINE_UNKNOWN && linetype != LINE_COMMENT){
+    ++lines;
+  }
+  return lines;
+}
+
+// we create a plane sized appropriately for the troff data. all we do
+// after that is move the plane up and down.
+static struct ncplane*
+render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen){
+  unsigned dimy, dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int rows = troff_height(dimx, map, mlen);
+  struct ncplane_options popts = {
+    .rows = rows,
+    .cols = dimx,
+  };
+  struct ncplane* pman = ncplane_create(stdn, &popts);
+  // FIXME draw it
+  return pman;
+}
+
 static int
 manloop(struct notcurses* nc, const char* arg){
   size_t len;
@@ -130,30 +190,27 @@ manloop(struct notcurses* nc, const char* arg){
   if(buf == NULL){
     return -1;
   }
-  unsigned dimy, dimx;
-  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_printf(stdn, "read %s (%" PRIuPTR "B)", arg, len);
-  if(notcurses_render(nc)){
-    munmap(buf, len);
-    return -1;
-  }
+  struct ncplane* page = render_troff(nc, buf, len);
   uint32_t key;
-  ncinput ni;
-  while((key = notcurses_get(nc, NULL, &ni)) != (uint32_t)-1){
+  do{
+    if(notcurses_render(nc)){
+      munmap(buf, len);
+      return -1;
+    }
+    ncinput ni;
+    key = notcurses_get(nc, NULL, &ni);
     switch(key){
       case 'q':
         munmap(buf, len);
         return 0;
     }
-  }
+  }while(key != (uint32_t)-1);
   munmap(buf, len);
   return -1;
 }
 
 static int
 ncman(struct notcurses* nc, const char* arg){
-  unsigned dimy, dimx;
-  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   // FIXME usage bar at bottom
   return manloop(nc, arg);
 }

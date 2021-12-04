@@ -31,5 +31,6 @@ files: Files to render.
 
 **man(1)**,
 **notcurses(3)**,
+**groff_man(7)**,
 **man-pages(7)**,
 **unicode(7)**
