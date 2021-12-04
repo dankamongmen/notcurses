@@ -781,12 +781,10 @@ TEST_CASE("Plane") {
     CHECK(0 < ncplane_putstr(n_, "I write English + מילים בעברית together."));
     CHECK(0 == ncplane_cursor_move_yx(n_, 5, 5));
     CHECK(0 < ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
-#ifndef __APPLE__ // FIXME
     CHECK(0 == ncplane_cursor_move_yx(n_, 7, 5));
     CHECK(0 < ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 8, 5));
     CHECK(0 < ncplane_putstr(n_, "㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
-#endif
     CHECK(0 == notcurses_render(nc_));
   }
 
