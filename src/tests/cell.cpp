@@ -63,10 +63,8 @@ TEST_CASE("Cell") {
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
     CHECK(2 == ncstrwidth(u8"\U0001F471", NULL, NULL));
-#ifndef __APPLE__ // FIXME
     CHECK(2 == ncstrwidth(u8"\U0001F471\u200D", NULL, NULL));
     CHECK(2 == ncstrwidth(u8"\U0001F471\u200D\u2640", NULL, NULL));
-#endif
   }
 
   SUBCASE("SetItalic") {
