@@ -124,39 +124,73 @@ get_troff_data(const char *arg, size_t* len){
   return buf;
 }
 
+typedef enum {
+  LINE_UNKNOWN,
+  LINE_COMMENT,
+  LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
+  LINE_RB, LINE_RI, LINE_SB, LINE_SM,
+  LINE_EE, LINE_EX, LINE_RE, LINE_RS,
+  LINE_SH, LINE_SS, LINE_TH,
+  LINE_IP, LINE_LP, LINE_P, LINE_PP,
+  LINE_TP, LINE_TQ,
+  LINE_ME, LINE_MT, LINE_UE, LINE_UR,
+  LINE_OP, LINE_SY, LINE_YS,
+} ltypes;
+
+// get the linetype from the leader terminating at |ws|. we are guaranteed to
+// have a period prior to |ws| within the commonly addressable area, so we
+// match backwards until that period.
+static ltypes
+get_type(const unsigned char* ws){
+  (void)ws;
+  return LINE_B; // FIXME
+}
+
 // calculate the number of rows necessary to display the troff data,
 // assuming the specified width |dimx|.
 static int
 troff_height(unsigned dimx, const unsigned char* map, size_t mlen){
   // FIXME for now we assume infinitely wide lines
   int lines = 0;
+  ltypes linetype = LINE_UNKNOWN;
   enum {
-    LINE_UNKNOWN,
-    LINE_COMMENT,
-    LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
-    LINE_RB, LINE_RI, LINE_SB, LINE_SM,
-    LINE_EE, LINE_EX, LINE_RE, LINE_RS,
-    LINE_SH, LINE_SS, LINE_TH,
-    LINE_IP, LINE_LP, LINE_P, LINE_PP,
-    LINE_TP, LINE_TQ,
-    LINE_ME, LINE_MT, LINE_UE, LINE_UR,
-    LINE_OP, LINE_SY, LINE_YS,
-  } linetype = LINE_UNKNOWN;
-  const unsigned char comment[] = ".\\\""; // dot slash quot
-  const unsigned char* comiter = comment;
+    GOT_NULL,    // line has started
+    GOT_DOT,     // got period to start line
+    GOT_LETTER,  // got letter following dot
+    GOT_SLASH,   // got slash following dot (possible comment)
+    GOT_INVALID, // line is bad
+  } state = GOT_NULL;
   for(size_t off = 0 ; off < mlen ; ++off){
     if(map[off] == '\n'){
       if(linetype != LINE_UNKNOWN && linetype != LINE_COMMENT){
         ++lines;
       }
       linetype = LINE_UNKNOWN;
-      comiter = comment;
+      state = GOT_NULL;
     }else if(linetype == LINE_UNKNOWN){
-      if(comiter && map[off] == *comiter){
-        if(*++comiter == '\0'){
+      if(state == GOT_NULL){
+        if(map[off] != '.'){
+          state = GOT_INVALID;
+        }else{
+          state = GOT_DOT;
+        }
+      }else if(state == GOT_DOT){
+        if(map[off] == '\\'){
+          state = GOT_SLASH;
+        }else if(!isalpha(map[off])){
+          state = GOT_INVALID;
+        }else{
+          state = GOT_LETTER;
+        }
+      }else if(state == GOT_LETTER){
+        if(isspace(map[off])){
+          linetype = get_type(map + off);
+        }
+      }else if(state == GOT_SLASH){
+        if(map[off] == '"'){
           linetype = LINE_COMMENT;
         }else{
-          comiter = NULL;
+          state = GOT_INVALID;
         }
       }
     }
@@ -174,6 +208,7 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   int rows = troff_height(dimx, map, mlen);
+fprintf(stderr, "ROWS: %d\n", rows);
   struct ncplane_options popts = {
     .rows = rows,
     .cols = dimx,
