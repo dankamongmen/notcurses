@@ -189,7 +189,7 @@ TEST_CASE("ChannelsReverse") {
   rev = ncchannels_reverse(rev);
   CHECK(63 == ncchannels_fg_palindex(rev));
   CHECK(ncchannels_bg_default_p(rev));
-  CHECK(NCALPHA_TRANSPARENT == ncchannels_bg_alpha(rev));
+  CHECK(NCALPHA_OPAQUE == ncchannels_bg_alpha(rev));
   ncchannels_set_fg_rgb(&rev, 0x2288cc);
   rev = ncchannels_reverse(rev);
   CHECK(0x2288cc == ncchannels_bg_rgb(rev));

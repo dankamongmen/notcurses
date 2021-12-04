@@ -320,17 +320,20 @@ ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
 }
 
-// Returns the channels with the fore- and background's color information
-// swapped, but without touching alpha, nor other housekeeping bits.
-static inline uint64_t
-ncchannels_reverse(uint64_t channels){
-  const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
-                       ncchannels_fchannel(channels);
-  const uint64_t statemask = (NC_NOBACKGROUND_MASK | (NC_BG_ALPHA_MASK << 32u) |
-                              NC_BG_ALPHA_MASK | (NC_NOBACKGROUND_MASK >> 32u));
-  uint64_t ret = raw & ~statemask;
-  ret |= channels & statemask;
-  return ret;
+static inline bool
+ncchannels_bg_rgb_p(uint64_t channels){
+  return ncchannel_rgb_p(ncchannels_bchannel(channels));
+}
+
+static inline bool
+ncchannels_fg_rgb_p(uint64_t channels){
+  return ncchannel_rgb_p(ncchannels_fchannel(channels));
+}
+
+// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
+static inline unsigned
+ncchannels_bg_alpha(uint64_t channels){
+  return ncchannel_alpha(ncchannels_bchannel(channels));
 }
 
 // Set the 32-bit background channel of a channel pair.
@@ -343,6 +346,62 @@ ncchannels_set_bchannel(uint64_t* channels, uint32_t channel){
 static inline uint64_t
 ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
   return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
+}
+
+// Set the 2-bit alpha component of the background channel.
+static inline int
+ncchannels_set_bg_alpha(uint64_t* channels, unsigned alpha){
+  if(alpha == NCALPHA_HIGHCONTRAST){ // forbidden for background alpha
+    return -1;
+  }
+  uint32_t channel = ncchannels_bchannel(*channels);
+  if(ncchannel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  ncchannels_set_bchannel(channels, channel);
+  return 0;
+}
+
+// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
+static inline unsigned
+ncchannels_fg_alpha(uint64_t channels){
+  return ncchannel_alpha(ncchannels_fchannel(channels));
+}
+
+// Set the 2-bit alpha component of the foreground channel.
+static inline int
+ncchannels_set_fg_alpha(uint64_t* channels, unsigned alpha){
+  uint32_t channel = ncchannels_fchannel(*channels);
+  if(ncchannel_set_alpha(&channel, alpha) < 0){
+    return -1;
+  }
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
+  return 0;
+}
+
+// Returns the channels with the fore- and background's color information
+// swapped, but without touching housekeeping bits. Alpha is retained unless
+// it would lead to an illegal state: HIGHCONTRAST, TRANSPARENT, and BLEND
+// are taken to OPAQUE unless the new value is RGB.
+static inline uint64_t
+ncchannels_reverse(uint64_t channels){
+  const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
+                       ncchannels_fchannel(channels);
+  const uint64_t statemask = ((NC_NOBACKGROUND_MASK | NC_BG_ALPHA_MASK) << 32u) |
+                             NC_NOBACKGROUND_MASK | NC_BG_ALPHA_MASK;
+  uint64_t ret = raw & ~statemask;
+  ret |= channels & statemask;
+  if(ncchannels_bg_alpha(ret) != NCALPHA_OPAQUE){
+    if(!ncchannels_bg_rgb_p(ret)){
+      ncchannels_set_bg_alpha(&ret, NCALPHA_OPAQUE);
+    }
+  }
+  if(ncchannels_fg_alpha(ret) != NCALPHA_OPAQUE){
+    if(!ncchannels_fg_rgb_p(ret)){
+      ncchannels_set_fg_alpha(&ret, NCALPHA_OPAQUE);
+    }
+  }
+  return ret;
 }
 
 // Creates a new channel pair using 'fchan' as the foreground channel
@@ -377,18 +436,6 @@ ncchannels_bg_rgb(uint64_t channels){
   return ncchannels_bchannel(channels) & NC_BG_RGB_MASK;
 }
 
-// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
-static inline unsigned
-ncchannels_fg_alpha(uint64_t channels){
-  return ncchannel_alpha(ncchannels_fchannel(channels));
-}
-
-// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
-static inline unsigned
-ncchannels_bg_alpha(uint64_t channels){
-  return ncchannel_alpha(ncchannels_bchannel(channels));
-}
-
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline uint32_t
 ncchannels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
@@ -419,17 +466,6 @@ ncchannels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   uint32_t channel = ncchannels_fchannel(*channels);
   ncchannel_set_rgb8_clipped(&channel, r, g, b);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-}
-
-// Set the 2-bit alpha component of the foreground channel.
-static inline int
-ncchannels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-  uint32_t channel = ncchannels_fchannel(*channels);
-  if(ncchannel_set_alpha(&channel, alpha) < 0){
-    return -1;
-  }
-  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
-  return 0;
 }
 
 static inline int
@@ -471,20 +507,6 @@ ncchannels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   uint32_t channel = ncchannels_bchannel(*channels);
   ncchannel_set_rgb8_clipped(&channel, r, g, b);
   ncchannels_set_bchannel(channels, channel);
-}
-
-// Set the 2-bit alpha component of the background channel.
-static inline int
-ncchannels_set_bg_alpha(uint64_t* channels, unsigned alpha){
-  if(alpha == NCALPHA_HIGHCONTRAST){ // forbidden for background alpha
-    return -1;
-  }
-  uint32_t channel = ncchannels_bchannel(*channels);
-  if(ncchannel_set_alpha(&channel, alpha) < 0){
-    return -1;
-  }
-  ncchannels_set_bchannel(channels, channel);
-  return 0;
 }
 
 // Set the cell's background palette index, set the background palette index
