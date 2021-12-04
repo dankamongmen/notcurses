@@ -127,7 +127,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
         }
         cols = 1;
         if(iswcntrl(wc)){
-          logerror("prohibited or invalid Unicode: 0x%x\n", wc);
+          logerror("prohibited or invalid unicode: 0x%08x\n", (unsigned)wc);
           return -1;
         }
       }
@@ -245,12 +245,12 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
 static inline bool
 egcpool_check_validity(const egcpool* pool, int offset){
   if(offset >= pool->poolsize){
-    fprintf(stderr, "Offset 0x%06x greater than size (%d)\n", offset, pool->poolsize);
+    fprintf(stderr, "offset 0x%06x greater than size (%d)\n", offset, pool->poolsize);
     return false;
   }
   const char* egc = pool->pool + offset;
   if(*egc == '\0'){
-    fprintf(stderr, "Bad offset 0x%06x: empty\n", offset);
+    fprintf(stderr, "bad offset 0x%06x: empty\n", offset);
     return false;
   }
   mbstate_t mbstate;
@@ -259,7 +259,7 @@ egcpool_check_validity(const egcpool* pool, int offset){
     wchar_t wcs;
     int r = mbrtowc(&wcs, egc, strlen(egc), &mbstate);
     if(r < 0){
-      fprintf(stderr, "Invalid UTF8 at offset 0x%06x [%s]\n", offset, strerror(errno));
+      fprintf(stderr, "invalid utf8 at offset 0x%06x [%s]\n", offset, strerror(errno));
       return false;
     }
     egc += r;
