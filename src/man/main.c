@@ -4,7 +4,7 @@
 
 static void
 usage(const char* argv0, FILE* o){
-  fprintf(o, "usage: %s [ -hV ]\n", argv0);
+  fprintf(o, "usage: %s [ -hV ] files\n", argv0);
   fprintf(o, " -h: print help and return success\n");
   fprintf(o, " -v: print version and return success\n");
 }
@@ -39,11 +39,29 @@ parse_args(int argc, char** argv){
 }
 
 static int
-ncman(struct notcurses* nc, const char* argv){
+manloop(struct notcurses* nc, const char* arg){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_putstr(stdn, argv);
-  return 0;
+  ncplane_putstr(stdn, arg);
+  if(notcurses_render(nc)){
+    return -1;
+  }
+  uint32_t key;
+  ncinput ni;
+  while((key = notcurses_get(nc, NULL, &ni)) != (uint32_t)-1){
+    switch(key){
+      case 'q': return 0;
+    }
+  }
+  return -1;
+}
+
+static int
+ncman(struct notcurses* nc, const char* arg){
+  unsigned dimy, dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  // FIXME usage bar at bottom
+  return manloop(nc, arg);
 }
 
 int main(int argc, char** argv){
