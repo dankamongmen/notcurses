@@ -355,6 +355,19 @@ are O(N) on the number of planes in the pile.
 **ncplane_move_above** and **ncplane_move_below** move the argument ***n***
 above or below, respectively, the argument ***targ***. Both operate in O(1).
 
+**ncplane_at_yx** and **ncplane_at_yx_cell** retrieve the contents of the plane
+at the specified coordinate. The content is returned as it will be used during
+rendering, and thus integrates any base cell as appropriate. If called on the
+secondary columns of a wide glyph, **ncplane_at_yx** returns the EGC, and thus
+cannot be used to distinguish between primary and secondary columns.
+**ncplane_at_yx_cell**, however, preserves this information: retrieving a
+secondary column of a wide glyph with **ncplane_at_yx_cell** will fill in
+the **nccell** argument such that **nccell_extended_gcluster(3)** returns an
+empty string, and **nccell_wide_right_p(3)** returns **true**.
+
+**ncplane_set_name** sets the plane's name, freeing any old name. ***name***
+may be **NULL**. **ncplane_set_name** duplicates the provided name internally.
+
 ## Base cells
 
 Each plane has a base cell, initialized to all zeroes. When rendering, the
@@ -424,7 +437,7 @@ beginning of the last row. This does not take place until output is generated
 (i.e. it is possible to fill a plane when scrolling is enabled).
 
 By default, planes bound to a scrolling plane will scroll along with it, if
-they intersect the plane. This can be disabled with the
+they intersect the plane. This can be disabled by creating them with the
 **NCPLANE_OPTION_FIXED** flag.
 
 ## Bitmaps
@@ -441,19 +454,6 @@ will remain associated until a new sprixel is blitted to the plane, the plane
 is resized, the plane is erased, or the plane is destroyed. The base cell of a
 sprixelated plane has no effect; if the sprixel is not even multiples of the
 cell geometry, the "excess plane" is ignored during rendering.
-
-**ncplane_at_yx** and **ncplane_at_yx_cell** retrieve the contents of the plane
-at the specified coordinate. The content is returned as it will be used during
-rendering, and thus integrates any base cell as appropriate. If called on the
-secondary columns of a wide glyph, **ncplane_at_yx** returns the EGC, and thus
-cannot be used to distinguish between primary and secondary columns.
-**ncplane_at_yx_cell**, however, preserves this information: retrieving a
-secondary column of a wide glyph with **ncplane_at_yx_cell** will fill in
-the **nccell** argument such that **nccell_extended_gcluster(3)** returns an
-empty string, and **nccell_wide_right_p(3)** returns **true**.
-
-**ncplane_set_name** sets the plane's name, freeing any old name. ***name***
-may be **NULL**.
 
 # RETURN VALUES
 

@@ -30,6 +30,20 @@ to link against a minimal Notcurses using **pkg-config --libs notcurses-core**.
 **notcurses_init(3)** can then be used to initialize a Notcurses instance for a
 given **FILE*** (usually **stdout**, usually attached to a terminal).
 
+## The alternate screen
+
+Many terminals provide an "alternate screen" with its own contents, no
+scrollback buffer, and no scrolling. Entering the alternate screen replaces
+the current visible contents wholesale, as does returning to the regular
+screen. Notcurses refers to the alternate screen's semantics as "TUI mode",
+and the regular screen's semantics as "CLI mode". It is possible to swap
+between the two modes at runtime using **notcurses_leave_alternate_screen(3)**
+and **notcurses_enter_alternate_screen(3)**. Notcurses will enter TUI mode
+by default on startup; to prevent this, use **NCOPTION_NO_ALTERNATE_SCREEN**
+as described in **notcurses_init(3)**. On program exit, Notcurses will always
+return to the regular screen, independent of the screen being used on
+program start.
+
 ## Construction
 
 Before calling into Notcurses—and usually as one of the first calls of the
