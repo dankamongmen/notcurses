@@ -172,6 +172,25 @@ signals which would normally terminate the process. The new handlers will try
 to call **notcurses_stop(3)**, and then propagate the received signal to the
 previous action.
 
+# ENVIRONMENT VARIABLES
+
+The **TERM** environment variable ought be correctly defined. It will be used
+to index into the **terminfo(5)** database by way of **setupterm(3NCURSES)**.
+Notcurses will additionally use **TERM_PROGRAM** to distinguish certain
+terminals.
+
+If the **COLORTERM** environment variable is defined as "**24bit**" or
+"**truecolor**", Notcurses will assume the terminal capable of 24-bit RGB
+color, even in the absence of "**RGB**" or "**Tc**" capabilities in
+terminfo.
+
+If the **NOTCURSES_LOGLEVEL** environment variable is defined as a number
+between -1 and 8, inclusive, that will override any logging level specified
+in the **struct notcurses_options** provided to **notcurses_init(3)**.
+
+The **LOGNAME** environment variable, if defined, will be used for
+**notcurses_accountname(3)**.
+
 # NOTES
 
 When using the C++ wrappers, **NCPP_EXCEPTIONS_PLEASE** can be defined in

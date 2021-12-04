@@ -993,7 +993,7 @@ TEST_CASE("Wide") {
 #ifndef __APPLE__  // FIXME
   SUBCASE("OfflineEGCs") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
-    const char egc[] = "\U0001F471\u200D\u2640"; // all one EGC
+    const char egc[] = u8"\U0001F471\u200D\u2640"; // all one EGC
     CHECK(0 < nccell_load(n_, &c, egc));
     ncplane_set_scrolling(n_, true);
     for(int i = 0 ; i < 100 ; ++i){ // FIXME fill up stdplane
