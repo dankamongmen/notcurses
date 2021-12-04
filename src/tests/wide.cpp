@@ -986,18 +986,26 @@ TEST_CASE("Wide") {
   }
 
   // fill the screen with un-inlineable EGCs
-#ifndef __APPLE__  // FIXME
   SUBCASE("OfflineEGCs") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     const char egc[] = u8"\U0001F471\u200D\u2640"; // all one EGC
     CHECK(0 < nccell_load(n_, &c, egc));
     ncplane_set_scrolling(n_, true);
-    for(int i = 0 ; i < 100 ; ++i){ // FIXME fill up stdplane
+    unsigned dimx, dimy;
+    ncplane_dim_yx(n_, &dimy, &dimx);
+    unsigned cy;
+    do{
       CHECK(0 < ncplane_putc(n_, &c));
-    }
+      unsigned cx;
+      ncplane_cursor_yx(n_, &cy, &cx);
+      if(cx + 2 >= dimx){
+        CHECK(0 < ncplane_putchar(n_, '\n'));
+        ncplane_cursor_yx(n_, &cy, &cx);
+      }
+    }while(cy + 1 < dimy);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
   }
-#endif
 
   SUBCASE("Putwc") {
     wchar_t w = L'\u2658';

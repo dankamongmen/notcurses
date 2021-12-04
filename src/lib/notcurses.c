@@ -1434,10 +1434,6 @@ const char* nccell_extended_gcluster(const ncplane* n, const nccell* c){
   return egcpool_extended_gcluster(&n->pool, c);
 }
 
-const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c){
-  return nccell_extended_gcluster(n, c);
-}
-
 // 'n' ends up above 'above'
 int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   if(n == above){ // probably gets optimized out =/
@@ -1685,10 +1681,6 @@ int nccell_load(ncplane* n, nccell* c, const char* gcluster){
   return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
 }
 
-int cell_load(ncplane* n, nccell* c, const char* gcluster){
-  return nccell_load(n, c, gcluster);
-}
-
 // where the magic happens. write the single EGC completely described by |egc|,
 // occupying |cols| columns, to the ncplane |n| at the coordinate |y|, |x|. if
 // either or both of |y|/|x| is -1, the current cursor location for that
@@ -1782,8 +1774,17 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   const int cols = nccell_cols(c);
-  const char* egc = nccell_extended_gcluster(n, c);
-  return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
+  // unfortunately, |c| comes from |n|. the act of writing |c| to |n| could
+  // grow |n|'s egcpool, invalidating the reference represented by
+  // nccell_extended_gcluster(). so we must copy and free it.
+  char* egc = nccell_strdup(n, c);
+  if(egc == NULL){
+    logerror("coudln't duplicate cell\n");
+    return -1;
+  }
+  int r = ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
+  free(egc);
+  return r;
 }
 
 int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, size_t* sbytes){
@@ -2262,7 +2263,7 @@ void ncplane_erase(ncplane* n){
   memset(n->fb, 0, sizeof(*n->fb) * n->leny * n->lenx);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
-  // we need to zero out the EGC before handing this off to cell_load, but
+  // we need to zero out the EGC before handing this off to nccell_load, but
   // we don't want to lose the channels/attributes, so explicit gcluster load.
   n->basecell.gcluster = 0;
   nccell_load(n, &n->basecell, egc);
