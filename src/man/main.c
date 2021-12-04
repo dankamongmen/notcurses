@@ -125,17 +125,33 @@ get_troff_data(const char *arg, size_t* len){
 }
 
 typedef enum {
-  LINE_UNKNOWN,
-  LINE_COMMENT,
-  LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
-  LINE_RB, LINE_RI, LINE_SB, LINE_SM,
-  LINE_EE, LINE_EX, LINE_RE, LINE_RS,
-  LINE_SH, LINE_SS, LINE_TH,
-  LINE_IP, LINE_LP, LINE_P, LINE_PP,
-  LINE_TP, LINE_TQ,
-  LINE_ME, LINE_MT, LINE_UE, LINE_UR,
-  LINE_OP, LINE_SY, LINE_YS,
+    LINE_UNKNOWN,
+    LINE_COMMENT,
+    LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
+    LINE_RB, LINE_RI, LINE_SB, LINE_SM,
+    LINE_EE, LINE_EX, LINE_RE, LINE_RS,
+    LINE_SH, LINE_SS, LINE_TH,
+    LINE_IP, LINE_LP, LINE_P, LINE_PP,
+    LINE_TP, LINE_TQ,
+    LINE_ME, LINE_MT, LINE_UE, LINE_UR,
+    LINE_OP, LINE_SY, LINE_YS,
 } ltypes;
+
+typedef struct {
+  ltypes ltype;
+  const char* symbol;
+} trofftype;
+
+static const trofftype trofftypes[] = {
+#define TROFF(x) { .ltype = LINE_##x, .symbol = #x, },
+  TROFF(B)
+  TROFF(BI)
+  TROFF(BR)
+  TROFF(I)
+  TROFF(IB)
+  TROFF(IR)
+#undef TROFF
+};
 
 // get the linetype from the leader terminating at |ws|. we are guaranteed to
 // have a period prior to |ws| within the commonly addressable area, so we
