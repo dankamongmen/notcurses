@@ -151,35 +151,102 @@ API ALLOC char* notcurses_osversion(void);
   ((NCCHANNEL_INITIALIZER(fr, fg, fb) << 32ull) + \
    (NCCHANNEL_INITIALIZER(br, bg, bb)))
 
-// These lowest-level functions manipulate a 64-bit channel encoding directly.
-// Users will typically manipulate ncplane and nccell channels through those
+// These lowest-level functions manipulate a channel encodings directly. Users
+// will typically manipulate ncplanes' and nccells' channels through their
 // APIs, rather than calling these explicitly.
 
-// Extract the 8-bit red component from a 32-bit channel.
-static inline unsigned
-ncchannel_r(uint32_t channel){
-  return (channel & 0xff0000u) >> 16u;
-}
-
-// Extract the 8-bit green component from a 32-bit channel.
-static inline unsigned
-ncchannel_g(uint32_t channel){
-  return (channel & 0x00ff00u) >> 8u;
-}
-
-// Extract the 8-bit blue component from a 32-bit channel.
-static inline unsigned
-ncchannel_b(uint32_t channel){
-  return (channel & 0x0000ffu);
-}
-
-// Extract the 2-bit alpha component from a 32-bit channel.
+// Extract the 2-bit alpha component from a 32-bit channel. It is not
+// shifted down, and can be directly compared to NCALPHA_* values.
 static inline unsigned
 ncchannel_alpha(uint32_t channel){
   return channel & NC_BG_ALPHA_MASK;
 }
 
+// Set the 2-bit alpha component of the 32-bit channel. Background channels
+// must not be set to NCALPHA_HIGHCONTRAST. It is an error if alpha contains
+// any bits other than NCALPHA_*.
+static inline int
+ncchannel_set_alpha(uint32_t* channel, unsigned alpha){
+  if(alpha & ~NC_BG_ALPHA_MASK){
+    return -1;
+  }
+  *channel = alpha | (*channel & ~NC_BG_ALPHA_MASK);
+  if(alpha != NCALPHA_OPAQUE){
+    *channel |= NC_BGDEFAULT_MASK;
+  }
+  return 0;
+}
+
+// Is this channel using the "default color" rather than RGB/palette-indexed?
+static inline bool
+ncchannel_default_p(uint32_t channel){
+  return !(channel & NC_BGDEFAULT_MASK);
+}
+
+// Mark the channel as using its default color. Alpha is set opaque.
+static inline uint32_t
+ncchannel_set_default(uint32_t* channel){
+  *channel &= ~NC_BGDEFAULT_MASK; // turn off not-default bit
+  ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
+  return *channel;
+}
+
+// Is this channel using palette-indexed color?
+static inline bool
+ncchannel_palindex_p(uint32_t channel){
+  return !ncchannel_default_p(channel) && (channel & NC_BG_PALETTE);
+}
+
+// Extract the palette index from a channel. Only valid if
+// ncchannel_palindex_p() would return true for the channel.
+static inline unsigned
+ncchannel_palindex(uint32_t channel){
+  return channel & 0xff;
+}
+
+// Mark the channel as using the specified palette color. It is an error if
+// the index is negative, or greater than NCPALETTESIZE. Alpha is set opaque.
+static inline int
+ncchannel_set_palindex(uint32_t* channel, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
+  *channel &= 0xff000000ull;
+  *channel |= NC_BGDEFAULT_MASK | NC_BG_PALETTE | idx;
+  return 0;
+}
+
+// Is this channel using RGB color?
+static inline bool
+ncchannel_rgb_p(uint32_t channel){
+  // bitwise or is intentional (allows compiler more freedom)
+  return !(ncchannel_default_p(channel) | ncchannel_palindex_p(channel));
+}
+
+// Extract the 8-bit red component from a 32-bit channel. Only valid if
+// ncchannel_rgb_p() would return true for the channel.
+static inline unsigned
+ncchannel_r(uint32_t channel){
+  return (channel & 0xff0000u) >> 16u;
+}
+
+// Extract the 8-bit green component from a 32-bit channel. Only valid if
+// ncchannel_rgb_p() would return true for the channel.
+static inline unsigned
+ncchannel_g(uint32_t channel){
+  return (channel & 0x00ff00u) >> 8u;
+}
+
+// Extract the 8-bit blue component from a 32-bit channel. Only valid if
+// ncchannel_rgb_p() would return true for the channel.
+static inline unsigned
+ncchannel_b(uint32_t channel){
+  return (channel & 0x0000ffu);
+}
+
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
+// Only valid if ncchannel_rgb_p() would return true for the channel.
 static inline unsigned
 ncchannel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
                unsigned* RESTRICT b){
@@ -190,7 +257,8 @@ ncchannel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
 }
 
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
-// the default color. Retain the other bits unchanged.
+// the default color. Retain the other bits unchanged. Any value greater than
+// 255 will result in a return of -1 and no change to the channel.
 static inline int
 ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
   if(r >= 256 || g >= 256 || b >= 256){
@@ -200,6 +268,16 @@ ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
   // clear the existing rgb bits, clear the palette index indicator, set
   // the not-default bit, and or in the new rgb.
   *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
+  return 0;
+}
+
+// Same, but provide an assembled, packed 24 bits of rgb.
+static inline int
+ncchannel_set(uint32_t* channel, uint32_t rgb){
+  if(rgb > 0xffffffu){
+    return -1;
+  }
+  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb;
   return 0;
 }
 
@@ -230,65 +308,6 @@ ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
   *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
 }
 
-// Same, but provide an assembled, packed 24 bits of rgb.
-static inline int
-ncchannel_set(uint32_t* channel, uint32_t rgb){
-  if(rgb > 0xffffffu){
-    return -1;
-  }
-  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb;
-  return 0;
-}
-
-static inline unsigned
-ncchannel_palindex(uint32_t channel){
-  return channel & 0xff;
-}
-
-// Set the 2-bit alpha component of the 32-bit channel.
-static inline int
-ncchannel_set_alpha(uint32_t* channel, unsigned alpha){
-  if(alpha & ~NC_BG_ALPHA_MASK){
-    return -1;
-  }
-  *channel = alpha | (*channel & ~NC_BG_ALPHA_MASK);
-  if(alpha != NCALPHA_OPAQUE){
-    *channel |= NC_BGDEFAULT_MASK;
-  }
-  return 0;
-}
-
-static inline int
-ncchannel_set_palindex(uint32_t* channel, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
-    return -1;
-  }
-  *channel |= NC_BGDEFAULT_MASK;
-  *channel |= NC_BG_PALETTE;
-  ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
-  *channel &= 0xff000000ull;
-  *channel |= idx;
-  return 0;
-}
-
-// Is this ncchannel using the "default color" rather than RGB/palette-indexed?
-static inline bool
-ncchannel_default_p(uint32_t channel){
-  return !(channel & NC_BGDEFAULT_MASK);
-}
-
-// Is this channel using palette-indexed color rather than RGB?
-static inline bool
-ncchannel_palindex_p(uint32_t channel){
-  return !ncchannel_default_p(channel) && (channel & NC_BG_PALETTE);
-}
-
-// Mark the channel as using its default color, which also marks it opaque.
-static inline uint32_t
-ncchannel_set_default(uint32_t* channel){
-  return *channel &= ~(NC_BGDEFAULT_MASK | NCALPHA_HIGHCONTRAST);
-}
-
 // Extract the 32-bit background channel from a channel pair.
 static inline uint32_t
 ncchannels_bchannel(uint64_t channels){
@@ -301,8 +320,8 @@ ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
 }
 
-// Returns the channels with the color information swapped, but not
-// alpha, nor other housekeeping bits.
+// Returns the channels with the fore- and background's color information
+// swapped, but without touching alpha, nor other housekeeping bits.
 static inline uint64_t
 ncchannels_reverse(uint64_t channels){
   const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
