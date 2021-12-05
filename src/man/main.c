@@ -125,17 +125,26 @@ get_troff_data(const char *arg, size_t* len){
 }
 
 typedef enum {
-    LINE_UNKNOWN,
-    LINE_COMMENT,
-    LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
-    LINE_RB, LINE_RI, LINE_SB, LINE_SM,
-    LINE_EE, LINE_EX, LINE_RE, LINE_RS,
-    LINE_SH, LINE_SS, LINE_TH,
-    LINE_IP, LINE_LP, LINE_P, LINE_PP,
-    LINE_TP, LINE_TQ,
-    LINE_ME, LINE_MT, LINE_UE, LINE_UR,
-    LINE_OP, LINE_SY, LINE_YS,
+  LINE_UNKNOWN,
+  LINE_COMMENT,
+  LINE_B, LINE_BI, LINE_BR, LINE_I, LINE_IB, LINE_IR,
+  LINE_RB, LINE_RI, LINE_SB, LINE_SM,
+  LINE_EE, LINE_EX, LINE_RE, LINE_RS,
+  LINE_SH, LINE_SS, LINE_TH,
+  LINE_IP, LINE_LP, LINE_P, LINE_PP,
+  LINE_TP, LINE_TQ,
+  LINE_ME, LINE_MT, LINE_UE, LINE_UR,
+  LINE_OP, LINE_SY, LINE_YS,
 } ltypes;
+
+typedef enum {
+  TROFF_COMMENT,
+  TROFF_FONT,
+  TROFF_STRUCTURE,
+  TROFF_PARAGRAPH,
+  TROFF_HYPERLINK,
+  TROFF_SYNOPSIS
+} ttypes;
 
 typedef struct {
   ltypes ltype;
@@ -143,14 +152,44 @@ typedef struct {
 } trofftype;
 
 static const trofftype trofftypes[] = {
-#define TROFF(x) { .ltype = LINE_##x, .symbol = #x, },
-  TROFF(B)
-  TROFF(BI)
-  TROFF(BR)
-  TROFF(I)
-  TROFF(IB)
-  TROFF(IR)
-#undef TROFF
+  { .ltype = LINE_UNKNOWN, .symbol = "", },
+  { .ltype = LINE_COMMENT, .symbol = ".\\\"", },
+#define TROFF_FONT(x) { .ltype = LINE_##x, .symbol = "."#x, },
+  TROFF_FONT(B)
+  TROFF_FONT(BI)
+  TROFF_FONT(BR)
+  TROFF_FONT(I)
+  TROFF_FONT(IB)
+  TROFF_FONT(IR)
+#undef TROFF_FONT
+#define TROFF_STRUCTURE(x) { .ltype = LINE_##x, .symbol = "."#x, },
+  TROFF_STRUCTURE(EE)
+  TROFF_STRUCTURE(EX)
+  TROFF_STRUCTURE(RE)
+  TROFF_STRUCTURE(RS)
+  TROFF_STRUCTURE(SH)
+  TROFF_STRUCTURE(SS)
+  TROFF_STRUCTURE(TH)
+#undef TROFF_STRUCTURE
+#define TROFF_PARA(x) { .ltype = LINE_##x, .symbol = "."#x, },
+  TROFF_PARA(IP)
+  TROFF_PARA(LP)
+  TROFF_PARA(P)
+  TROFF_PARA(PP)
+  TROFF_PARA(TP)
+  TROFF_PARA(TQ)
+#undef TROFF_PARA
+#define TROFF_HLINK(x) { .ltype = LINE_##x, .symbol = "."#x, },
+  TROFF_HLINK(ME)
+  TROFF_HLINK(MT)
+  TROFF_HLINK(UE)
+  TROFF_HLINK(UR)
+#undef TROFF_HLINK
+#define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = "."#x, },
+  TROFF_SYNOPSIS(OP)
+  TROFF_SYNOPSIS(SY)
+  TROFF_SYNOPSIS(YS)
+#undef TROFF_SYNOPSIS
 };
 
 // get the linetype from the leader terminating at |ws|. we are guaranteed to
