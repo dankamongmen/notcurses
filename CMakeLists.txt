@@ -653,16 +653,14 @@ target_include_directories(ncman
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-)
-target_include_directories(ncman
-  BEFORE
-  PRIVATE
     "${libdeflate_INCLUDE_DIRS}"
+    "${ZLIB_INCLUDE_DIRS}"
 )
 target_link_libraries(ncman
   PRIVATE
     notcurses-core
     "${libdeflate}"
+    "${ZLIB_LIBRARIES}"
 )
 endif()
 
