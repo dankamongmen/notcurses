@@ -445,6 +445,22 @@ lex_title(pagedom* dom){
 }
 
 static pagenode*
+add_subsection(pagenode* pnode, char* text){
+  unsigned ncount = pnode->subcount + 1;
+  pagenode* tmpsubs = realloc(pnode->subs, sizeof(*pnode->subs) * ncount);
+  if(tmpsubs == NULL){
+    return NULL;
+  }
+  pnode->subs = tmpsubs;
+  pagenode* r = pnode->subs + pnode->subcount;
+  pnode->subcount = ncount;
+  memset(r, 0, sizeof(*r));
+  r->text = text;
+//fprintf(stderr, "ADDED SECTION %s %u\n", text, pnode->subcount);
+  return r;
+}
+
+static pagenode*
 add_section(pagedom* dom, char* text){
   unsigned ncount = dom->root->subcount + 1;
   pagenode* tmpsubs = realloc(dom->root->subs, sizeof(*dom->root->subs) * ncount);
@@ -474,6 +490,8 @@ static int
 troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   const struct troffnode* trie = dom->trie;
   const unsigned char* line = map;
+  pagenode* current_section = NULL;
+  pagenode* current_subsection = NULL;
   for(size_t off = 0 ; off < mlen ; ++off){
     const unsigned char* ws = line;
     size_t left = mlen - off;
@@ -485,8 +503,6 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       ++eol;
       --left;
     }
-    pagenode* current_section = NULL;
-    pagenode* current_subsection = NULL;
     // functional end of line--doesn't include possible newline
     const unsigned char* feol = eol;
     if(left && *eol == '\n'){
@@ -523,6 +539,21 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
         }
         current_section->ttype = node;
         current_subsection = NULL;
+      }else if(node->ltype == LINE_SS){
+        char* et = extract_text(ws, feol);
+        if(et == NULL){
+          return -1;
+        }
+        if(current_section == NULL){
+          fprintf(stderr, "subsection %s without section\n", et);
+          free(et);
+          return -1;
+        }
+        if((current_subsection = add_subsection(current_section, et)) == NULL){
+          free(et);
+          return -1;
+        }
+        current_subsection->ttype = node;
       }
     }
     off += eol - line;
@@ -548,6 +579,13 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
       ncplane_cursor_move_rel(p, 2, 0);
       ncplane_set_styles(p, NCSTYLE_BOLD);
       ncplane_putstr(p, n->text);
+      ncplane_set_styles(p, NCSTYLE_NONE);
+      ncplane_cursor_move_yx(p, -1, 0);
+      break;
+    case LINE_SS: // subsection heading
+      ncplane_cursor_move_rel(p, 2, 0);
+      ncplane_set_styles(p, NCSTYLE_ITALIC);
+      ncplane_printf(p, "    %s", n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
       break;
