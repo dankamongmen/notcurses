@@ -212,6 +212,7 @@ static const trofftype trofftypes[] = {
 #define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_SYNOPSIS, },
   TROFF_SYNOPSIS(OP) TROFF_SYNOPSIS(SY) TROFF_SYNOPSIS(YS)
 #undef TROFF_SYNOPSIS
+  { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, },
 };
 
 // the troff trie is only defined on the 128 ascii values.
@@ -445,7 +446,7 @@ lex_title(pagedom* dom){
 }
 
 static pagenode*
-add_subsection(pagenode* pnode, char* text){
+add_node(pagenode* pnode, char* text){
   unsigned ncount = pnode->subcount + 1;
   pagenode* tmpsubs = realloc(pnode->subs, sizeof(*pnode->subs) * ncount);
   if(tmpsubs == NULL){
@@ -460,22 +461,6 @@ add_subsection(pagenode* pnode, char* text){
   return r;
 }
 
-static pagenode*
-add_section(pagedom* dom, char* text){
-  unsigned ncount = dom->root->subcount + 1;
-  pagenode* tmpsubs = realloc(dom->root->subs, sizeof(*dom->root->subs) * ncount);
-  if(tmpsubs == NULL){
-    return NULL;
-  }
-  dom->root->subs = tmpsubs;
-  pagenode* r = dom->root->subs + dom->root->subcount;
-  dom->root->subcount = ncount;
-  memset(r, 0, sizeof(*r));
-  r->text = text;
-//fprintf(stderr, "ADDED SECTION %s %u\n", text, dom->root->subcount);
-  return r;
-}
-
 static char*
 extract_text(const unsigned char* ws, const unsigned char* feol){
   if(ws == feol || ws + 1 == feol){
@@ -485,6 +470,26 @@ extract_text(const unsigned char* ws, const unsigned char* feol){
   return strndup((const char*)ws + 1, feol - ws);
 }
 
+static char*
+augment_text(pagenode* pnode, const unsigned char* ws, const unsigned char* feol){
+  if(ws == feol || ws + 1 == feol){
+    fprintf(stderr, "bogus empty text\n");
+    return NULL;
+  }
+  const size_t slen = pnode->text ? strlen(pnode->text) + 1 : 0;
+  char* tmp = realloc(pnode->text, slen + (feol - ws) + 2);
+  if(tmp == NULL){
+    return NULL;
+  }
+  pnode->text = tmp;
+  if(slen){
+    pnode->text[slen - 1] = ' ';
+  }
+  memcpy(pnode->text + slen, ws, feol - ws + 1);
+  pnode->text[slen + (feol - ws + 1)] = '\0';
+  return pnode->text;
+}
+
 // extract the page structure.
 static int
 troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
@@ -492,6 +497,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   const unsigned char* line = map;
   pagenode* current_section = NULL;
   pagenode* current_subsection = NULL;
+  pagenode* current_para = NULL;
   for(size_t off = 0 ; off < mlen ; ++off){
     const unsigned char* ws = line;
     size_t left = mlen - off;
@@ -528,17 +534,23 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
         if(lex_title(dom)){
           return -1;
         }
+        current_para = dom->root;
       }else if(node->ltype == LINE_SH){
+        if(dom->root == NULL){
+          fprintf(stderr, "section transcends structure\n");
+          return -1;
+        }
         char* et = extract_text(ws, feol);
         if(et == NULL){
           return -1;
         }
-        if((current_section = add_section(dom, et)) == NULL){
+        if((current_section = add_node(dom->root, et)) == NULL){
           free(et);
           return -1;
         }
         current_section->ttype = node;
         current_subsection = NULL;
+        current_para = current_section;
       }else if(node->ltype == LINE_SS){
         char* et = extract_text(ws, feol);
         if(et == NULL){
@@ -549,11 +561,31 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           free(et);
           return -1;
         }
-        if((current_subsection = add_subsection(current_section, et)) == NULL){
+        if((current_subsection = add_node(current_section, et)) == NULL){
           free(et);
           return -1;
         }
         current_subsection->ttype = node;
+        current_para = current_subsection;
+      }else if(node->ltype == LINE_PP){
+        if(dom->root == NULL){
+          fprintf(stderr, "paragraph transcends structure\n");
+          return -1;
+        }
+        if((current_para = add_node(current_para, NULL)) == NULL){
+          return -1;
+        }
+        current_para->ttype = node;
+      }
+    }else{
+      if(current_para == NULL){
+        fprintf(stderr, "free-floating text transcends para\n");
+        fprintf(stderr, "[%s]\n", line);
+        return -1;
+      }
+      char* et = augment_text(current_para, line, feol);
+      if(et == NULL){
+        return -1;
       }
     }
     off += eol - line;
@@ -588,6 +620,14 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
       ncplane_printf(p, "    %s", n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
+      break;
+    case LINE_PP: // paragraph
+      if(n->text){
+        ncplane_cursor_move_rel(p, 2, 0);
+        size_t b = 0;
+        ncplane_puttext(p, -1, NCALIGN_LEFT, n->text, &b);
+        ncplane_cursor_move_yx(p, -1, 0);
+      }
       break;
     default:
       fprintf(stderr, "unhandled ltype %d\n", n->ttype->ltype);
