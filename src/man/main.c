@@ -297,11 +297,7 @@ get_type(const struct troffnode* trie, const unsigned char** ws, size_t len){
 
 typedef struct pagenode {
   char* text;
-  enum {
-    NODE_SECTION,
-    NODE_SUBSECTION,
-    NODE_PARAGRAPH,
-  } level;
+  const trofftype* ttype;
   struct pagenode* subs;
   unsigned subcount;
 } pagenode;
@@ -444,6 +440,15 @@ lex_title(pagedom* dom){
   return 0;
 }
 
+static char*
+extract_text(const unsigned char* ws, const unsigned char* feol){
+  if(ws == feol || ws + 1 == feol){
+    fprintf(stderr, "bogus empty title\n");
+    return NULL;
+  }
+  return strndup((const char*)ws + 1, feol - (ws + 1));
+}
+
 // extract the page structure.
 static int
 troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
@@ -471,19 +476,25 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           fprintf(stderr, "found a second title (was %s)\n", dom_get_title(dom));
           return -1;
         }
-        if(ws == feol || ws + 1 == feol){
-          fprintf(stderr, "bogus empty title\n");
+        char* et = extract_text(ws, feol);
+        if(et == NULL){
           return -1;
         }
         if((dom->root = malloc(sizeof(*dom->root))) == NULL){
+          free(et);
           return -1;
         }
-        if((dom->root->text = strndup((const char*)ws + 1, feol - (ws + 1))) == NULL){
-          return -1;
-        }
+        dom->root->ttype = node;
+        dom->root->text = et;
         if(lex_title(dom)){
           return -1;
         }
+      }else if(node->ltype == LINE_SH){
+        char* et = extract_text(ws, feol);
+        if(et == NULL){
+          return -1;
+        }
+        // FIXME add it to current; we'll need a stack
       }
     }
     off += eol - line;
@@ -497,11 +508,32 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
 }
 
 static int
+draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
+  switch(n->ttype->ltype){
+    case LINE_TH:
+      ncplane_printf_aligned(p, 0, NCALIGN_LEFT, "%s(%s)", dom->title, dom->section);
+      ncplane_printf_aligned(p, 0, NCALIGN_RIGHT, "%s(%s)", dom->title, dom->section);
+      break;
+    case LINE_SH: // section heading
+      ncplane_cursor_move_rel(p, 1, 0);
+      ncplane_putstr(p, n->text);
+      ncplane_cursor_move_rel(p, 2, 0);
+      ncplane_cursor_move_yx(p, -1, 0);
+      break;
+    default:
+      fprintf(stderr, "unhandled ltype %d\n", n->ttype->ltype);
+      return 0; // FIXME
+  }
+  return 0;
+}
+
+// for now, we draw the entire thing, resizing as necessary, and we'll
+// scroll the entire plane. higher memory cost, longer initial latency,
+// very fast moves.
+static int
 draw_content(struct ncplane* p){
   const pagedom* dom = ncplane_userptr(p);
-  ncplane_printf_aligned(p, 0, NCALIGN_LEFT, "%s(%s)", dom->title, dom->section);
-  ncplane_printf_aligned(p, 0, NCALIGN_RIGHT, "%s(%s)", dom->title, dom->section);
-  return 0;
+  return draw_domnode(p, dom, dom->root);
 }
 
 static int
@@ -589,6 +621,7 @@ pagedom_destroy(pagedom* dom){
   free(dom->root);
   free(dom->title);
   free(dom->version);
+  free(dom->section);
 }
 
 static struct ncplane*
