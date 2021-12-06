@@ -444,13 +444,29 @@ lex_title(pagedom* dom){
   return 0;
 }
 
+static pagenode*
+add_section(pagedom* dom, char* text){
+  unsigned ncount = dom->root->subcount + 1;
+  pagenode* tmpsubs = realloc(dom->root->subs, sizeof(*dom->root->subs) * ncount);
+  if(tmpsubs == NULL){
+    return NULL;
+  }
+  dom->root->subs = tmpsubs;
+  pagenode* r = dom->root->subs + dom->root->subcount;
+  dom->root->subcount = ncount;
+  memset(r, 0, sizeof(*r));
+  r->text = text;
+//fprintf(stderr, "ADDED SECTION %s %u\n", text, dom->root->subcount);
+  return r;
+}
+
 static char*
 extract_text(const unsigned char* ws, const unsigned char* feol){
   if(ws == feol || ws + 1 == feol){
     fprintf(stderr, "bogus empty title\n");
     return NULL;
   }
-  return strndup((const char*)ws + 1, feol - (ws + 1));
+  return strndup((const char*)ws + 1, feol - ws);
 }
 
 // extract the page structure.
@@ -469,6 +485,8 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       ++eol;
       --left;
     }
+    pagenode* current_section = NULL;
+    pagenode* current_subsection = NULL;
     // functional end of line--doesn't include possible newline
     const unsigned char* feol = eol;
     if(left && *eol == '\n'){
@@ -499,7 +517,12 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
         if(et == NULL){
           return -1;
         }
-        // FIXME add it to current; we'll need a stack
+        if((current_section = add_section(dom, et)) == NULL){
+          free(et);
+          return -1;
+        }
+        current_section->ttype = node;
+        current_subsection = NULL;
       }
     }
     off += eol - line;
@@ -516,18 +539,26 @@ static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
   switch(n->ttype->ltype){
     case LINE_TH:
+      ncplane_set_styles(p, NCSTYLE_UNDERLINE);
       ncplane_printf_aligned(p, 0, NCALIGN_LEFT, "%s(%s)", dom->title, dom->section);
       ncplane_printf_aligned(p, 0, NCALIGN_RIGHT, "%s(%s)", dom->title, dom->section);
+      ncplane_set_styles(p, NCSTYLE_NONE);
       break;
     case LINE_SH: // section heading
-      ncplane_cursor_move_rel(p, 1, 0);
-      ncplane_putstr(p, n->text);
       ncplane_cursor_move_rel(p, 2, 0);
+      ncplane_set_styles(p, NCSTYLE_BOLD);
+      ncplane_putstr(p, n->text);
+      ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
       break;
     default:
       fprintf(stderr, "unhandled ltype %d\n", n->ttype->ltype);
       return 0; // FIXME
+  }
+  for(unsigned z = 0 ; z < n->subcount ; ++z){
+    if(draw_domnode(p, dom, &n->subs[z])){
+      return -1;
+    }
   }
   return 0;
 }
