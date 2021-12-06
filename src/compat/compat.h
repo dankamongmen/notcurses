@@ -147,7 +147,9 @@ notcurses_data_path(const char* ddir, const char* f){
 #ifdef __cplusplus
 }
 #else
+#ifdef __MINGW64__
 char* strndup(const char* str, size_t size);
+#endif
 #endif
 
 #endif
