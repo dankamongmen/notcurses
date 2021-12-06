@@ -42,6 +42,8 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
   }
   return 0;
 }
+
+void setup_alt_sig_stack(void){}
 #else
 // only one notcurses object can be the target of signal handlers, due to their
 // process-wide nature. hold this lock over any of the shared data below.
