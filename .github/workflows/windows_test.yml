@@ -30,6 +30,7 @@ jobs:
             git
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-doctest
+            mingw-w64-ucrt-x86_64-ilmbase
             mingw-w64-ucrt-x86_64-openimageio
             mingw-w64-ucrt-x86_64-libdeflate
             mingw-w64-ucrt-x86_64-libunistring
