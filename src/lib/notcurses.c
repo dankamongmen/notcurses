@@ -770,17 +770,17 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   }
   unsigned rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-  if(keepleny + keepy > (unsigned)rows){
+  if(keepleny + keepy > rows){
     logerror("can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
     return -1;
   }
-  if(keeplenx + keepx > (unsigned)cols){
+  if(keeplenx + keepx > cols){
     logerror("can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
   loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
-      (unsigned)rows == ylen && (unsigned)cols == xlen){
+      rows == ylen && cols == xlen){
     return 0;
   }
   notcurses* nc = ncplane_notcurses(n);
@@ -812,10 +812,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     }
   }
   // update the cursor, if it would otherwise be off-plane
-  if((unsigned)n->y >= ylen){
+  if(n->y >= ylen){
     n->y = ylen - 1;
   }
-  if((unsigned)n->x >= xlen){
+  if(n->x >= xlen){
     n->x = xlen - 1;
   }
   nccell* preserved = n->fb;
@@ -2118,7 +2118,7 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
   }
   ++yoff;
   // middle rows (vertical lines)
-  if((unsigned)yoff < ystop){
+  if(yoff < ystop){
     if(!(ctlword & NCBOXMASK_LEFT)){
       if(ncplane_cursor_move_yx(n, yoff, xoff)){
         return -1;
