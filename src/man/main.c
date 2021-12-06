@@ -304,14 +304,98 @@ typedef struct pagenode {
 typedef struct pagedom {
   struct pagenode* root;
   struct troffnode* trie;
+  char* title;
+  char* section;
+  char* version;
 } pagedom;
 
 static const char*
 dom_get_title(const pagedom* dom){
-  if(dom->root == NULL){
-    return NULL;
+  return dom->title;
+}
+
+// take the newly-added title section, and extract the title, section, and
+// version (technically footer-middle, footer-inside, and header-middle).
+// they ought be quoted, but might not be.
+static int
+lex_title(pagedom* dom){
+  const char* tok = dom->root->text;
+  while(isspace(*tok)){
+    ++tok;
   }
-  return dom->root->text;
+  bool quoted = false;
+  if(*tok == '"'){
+    quoted = true;
+    ++tok;
+  }
+  if(!*tok){
+    fprintf(stderr, "couldn't extract title [%s]\n", dom->root->text);
+    return -1;
+  }
+  const char* endtok = tok + 1;
+  while(*endtok){
+    if(!quoted){
+      if(isspace(*endtok)){
+        break;
+      }else if(*endtok == '"'){
+        quoted = true;
+        break;
+      }
+    }else{
+      if(*endtok == '"'){
+        quoted = false;
+        break;
+      }
+    }
+    ++endtok;
+  }
+  if(!*endtok){
+    fprintf(stderr, "couldn't extract title [%s]\n", dom->root->text);
+    return -1;
+  }
+  dom->title = strndup(tok, endtok - tok);
+  tok = endtok + 1;
+  if(!*tok){
+    fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
+    return -1;
+  }
+  if(!quoted){
+    while(isspace(*tok)){
+      ++tok;
+    }
+    quoted = false;
+    if(*tok == '"'){
+      quoted = true;
+      ++tok;
+    }
+    if(!*tok){
+      fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
+      return -1;
+    }
+  }
+  endtok = tok + 1;
+  while(*endtok){
+    if(!quoted){
+      if(isspace(*endtok)){
+        break;
+      }else if(*endtok == '"'){
+        quoted = true;
+        break;
+      }
+    }else{
+      if(*endtok == '"'){
+        quoted = false;
+        break;
+      }
+    }
+    ++endtok;
+  }
+  if(!*endtok){
+    fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
+    return -1;
+  }
+  dom->section = strndup(tok, endtok - tok);
+  return 0;
 }
 
 // extract the page structure.
@@ -349,7 +433,9 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           return -1;
         }
         if((dom->root->text = strndup((const char*)ws + 1, feol - (ws + 1))) == NULL){
-          free(dom->root);
+          return -1;
+        }
+        if(lex_title(dom)){
           return -1;
         }
       }
@@ -367,7 +453,8 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
 static int
 draw_content(struct ncplane* p){
   const pagedom* dom = ncplane_userptr(p);
-  // FIXME draw
+  ncplane_printf_aligned(p, 0, NCALIGN_LEFT, "%s(%s)", dom->title, dom->section);
+  ncplane_printf_aligned(p, 0, NCALIGN_RIGHT, "%s(%s)", dom->title, dom->section);
   return 0;
 }
 
@@ -415,7 +502,16 @@ static const char USAGE_TEXT[] = "(q)uit";
 static int
 draw_bar(struct ncplane* bar, pagedom* dom){
   ncplane_cursor_move_yx(bar, 0, 0);
-  ncplane_printf(bar, "%s %s", dom_get_title(dom), USAGE_TEXT);
+  ncplane_set_styles(bar, NCSTYLE_BOLD);
+  ncplane_putstr(bar, dom_get_title(dom));
+  ncplane_set_styles(bar, NCSTYLE_NONE);
+  ncplane_putchar(bar, '(');
+  ncplane_set_styles(bar, NCSTYLE_BOLD);
+  ncplane_putstr(bar, dom->section);
+  ncplane_set_styles(bar, NCSTYLE_NONE);
+  ncplane_putchar(bar, ')');
+  ncplane_set_styles(bar, NCSTYLE_ITALIC);
+  ncplane_putstr_aligned(bar, 0, NCALIGN_RIGHT, USAGE_TEXT);
   return 0;
 }
 
@@ -445,6 +541,8 @@ pagedom_destroy(pagedom* dom){
   destroy_trofftrie(dom->trie);
   domnode_destroy(dom->root);
   free(dom->root);
+  free(dom->title);
+  free(dom->version);
 }
 
 static struct ncplane*
@@ -463,7 +561,8 @@ create_bar(struct notcurses* nc, pagedom* dom){
   if(bar == NULL){
     return NULL;
   }
-  uint64_t barchan = NCCHANNELS_INITIALIZER(0, 0, 0, 0x26, 0xc2, 0x81);
+  uint64_t barchan = NCCHANNELS_INITIALIZER(0, 0, 0, 0x26, 0x62, 0x41);
+  ncplane_set_fg_rgb(bar, 0xffffff);
   if(ncplane_set_base(bar, " ", 0, barchan) != 1){
     ncplane_destroy(bar);
     return NULL;
