@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -55,6 +56,7 @@ static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
   struct libdeflate_decompressor* inflate = libdeflate_alloc_decompressor();
   if(inflate == NULL){
+    fprintf(stderr, "couldn't get libdeflate inflator\n");
     munmap(buf, *len);
     return NULL;
   }
@@ -64,6 +66,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
   munmap(buf, *len);
   libdeflate_free_decompressor(inflate);
   if(r != LIBDEFLATE_SUCCESS){
+    fprintf(stderr, "error inflating %"PRIuPTR" (%d)\n", *len, r);
     return NULL;
   }
   *len = ulen;
@@ -73,29 +76,27 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
 #include <zlib.h>
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
-  z_stream z = {
-    .zalloc = Z_NULL,
-    .zfree = Z_NULL,
-    .opaque = Z_NULL,
-    .next_in = buf,
-    .avail_in = *len,
-    .next_out = ubuf,
-    .avail_out = ulen,
-  };
-  int r = inflateInit(&z);
+  z_stream z = {};
+  int r = inflateInit2(&z, 16);
   if(r != Z_OK){
+    fprintf(stderr, "error getting zlib inflator (%d)\n", r);
     munmap(buf, *len);
     return NULL;
   }
+  z.next_in = buf;
+  z.avail_in = *len;
+  z.next_out = ubuf;
+  z.avail_out = ulen;
   r = inflate(&z, Z_FINISH);
   munmap(buf, *len);
   if(r != Z_STREAM_END){
+    fprintf(stderr, "error inflating (%d) (%s?)\n", r, z.msg);
     inflateEnd(&z);
     return NULL;
   }
   inflateEnd(&z);
   munmap(buf, *len);
-  return NULL;
+  return ubuf;
 }
 #endif
 
@@ -116,6 +117,7 @@ map_troff_data(int fd, size_t* len){
 #endif
                             MAP_PRIVATE, fd, 0);
   if(buf == MAP_FAILED){
+    fprintf(stderr, "error mapping %"PRIuPTR" (%s?)\n", *len, strerror(errno));
     return NULL;
   }
   if(buf[0] == 0x1f && buf[1] == 0x8b && buf[2] == 0x08){
@@ -131,6 +133,7 @@ map_troff_data(int fd, size_t* len){
     void* ubuf = mmap(NULL, (ulen + pgsize - 1) / pgsize * pgsize,
                       PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if(ubuf == MAP_FAILED){
+      fprintf(stderr, "error mapping %"PRIu32" (%s?)\n", ulen, strerror(errno));
       munmap(buf, *len);
       return NULL;
     }
@@ -149,6 +152,7 @@ get_troff_data(const char *arg, size_t* len){
   // FIXME we'll want to use the mandb. for now, require a full path.
   int fd = open(arg, O_RDONLY | O_CLOEXEC);
   if(fd < 0){
+    fprintf(stderr, "error opening %s (%s?)\n", arg, strerror(errno));
     return NULL;
   }
   unsigned char* buf = map_troff_data(fd, len);
@@ -484,6 +488,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           free(et);
           return -1;
         }
+        memset(dom->root, 0, sizeof(*dom->root));
         dom->root->ttype = node;
         dom->root->text = et;
         if(lex_title(dom)){
