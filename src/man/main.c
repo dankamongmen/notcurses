@@ -122,7 +122,12 @@ map_troff_data(int fd, size_t* len){
     // the last four bytes have the uncompressed length
     uint32_t ulen;
     memcpy(&ulen, buf + *len - 4, 4);
-    size_t pgsize = 4096; // FIXME
+    long sc = sysconf(_SC_PAGESIZE);
+    if(sc <= 0){
+      fprintf(stderr, "couldn't get page size\n");
+      return NULL;
+    }
+    size_t pgsize = sc;
     void* ubuf = mmap(NULL, (ulen + pgsize - 1) / pgsize * pgsize,
                       PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if(ubuf == MAP_FAILED){
