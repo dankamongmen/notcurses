@@ -56,11 +56,15 @@ Building on Windows requires [MSYS2](https://www.msys2.org/) in its
 64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
 and EXEs, though it does not use Visual Studio. Install build dependencies:
 
-`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-doctest mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-libdeflate mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ninja`
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-libdeflate mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-openimageio mingw-w64-ucrt-x86_64-toolchain`
+
+Note that on Windows, OpenImageIO is (at the moment) recommended over FFmpeg.
 
 If you only intend to build core Notcurses (without multimedia support), you
-can omit `mingw-w64-ucrt-x86_64-ffmpeg`. If you do not want to deflate Kitty
+can omit `mingw-w64-ucrt-x86_64-openimageio`. If you do not want to deflate Kitty
 graphics, you can omit 'mingw-w64-ucrt-x86_64-libdeflate'.
+
+You'll want to add `-DUSE_DOCTEST=off -DUSE_PANDOC=off` to your `cmake` invocation.
 
 ## Building
 
