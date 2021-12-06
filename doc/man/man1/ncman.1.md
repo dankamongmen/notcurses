@@ -23,6 +23,11 @@ ncman - Swank manual page browser
 
 files: Files to render.
 
+The following keypresses are recognized:
+
+* **Ctrl-L**: Redraw the screen.
+* **q**: Quit.
+
 # NOTES
 
 # BUGS

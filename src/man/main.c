@@ -247,9 +247,9 @@ trofftrie(void){
       }
       if(n->next[us] == NULL){
         if((n->next[us] = malloc(sizeof(*root))) == NULL){
-          memset(n->next[us], 0, sizeof(*root));
           goto err;
         }
+        memset(n->next[us], 0, sizeof(*root));
       }
       n = n->next[us];
     }
@@ -290,13 +290,14 @@ get_type(const struct troffnode* trie, const unsigned char** ws, size_t len){
   return trie->ttype;
 }
 
-// calculate the number of rows necessary to display the troff data,
-// assuming the specified width |dimx|.
+typedef struct pagedom {
+  char* title;
+} pagedom;
+
+// extract the page structure.
 static int
-troff_height(const struct troffnode* trie, unsigned dimx,
-             const unsigned char* map, size_t mlen){
-  // FIXME for now we assume infinitely wide lines for display
-  int lines = 0;
+troff_parse(const struct troffnode* trie, const unsigned char* map, size_t mlen,
+            pagedom* dom){
   const unsigned char* line = map;
   for(size_t off = 0 ; off < mlen ; ++off){
     const unsigned char* ws = line;
@@ -309,84 +310,100 @@ troff_height(const struct troffnode* trie, unsigned dimx,
       ++eol;
       --left;
     }
+    // functional end of line--doesn't include possible newline
+    const unsigned char* feol = eol;
+    if(left && *eol == '\n'){
+      --feol;
+    }
     if(node){
-      if(node->ttype != TROFF_FONT && node->ttype != TROFF_COMMENT){
-        ++lines;
+fprintf(stderr, "LTYPE: %d TTYPE: %d SYMBOL: %s\n", node->ltype, node->ttype, node->symbol);
+      if(node->ltype == LINE_TH){
+fprintf(stderr, "TITLE: %s\n", dom->title);
+        if(dom->title){
+          fprintf(stderr, "found a second title (was %s)\n", dom->title);
+          return -1;
+        }
+        if(ws == feol || ws + 1 == feol){
+          fprintf(stderr, "bogus empty title\n");
+          return -1;
+        }
+        if((dom->title = strndup((const char*)ws + 1, feol - (ws + 1))) == NULL){
+          return -1;
+        }
       }
     }
     off += eol - line;
     line = eol + 1;
   }
-  return lines;
+  return 0;
+}
+
+static int
+draw_content(struct ncplane* p, const unsigned char* map, size_t mlen){
+  struct troffnode* trie = ncplane_userptr(p);
+  (void)map;
+  (void)mlen;
+  // FIXME draw
+  return 0;
 }
 
 // we create a plane sized appropriately for the troff data. all we do
 // after that is move the plane up and down.
 static struct ncplane*
-render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen){
+render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
+             pagedom* dom){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct troffnode* trie = trofftrie();
   if(trie == NULL){
     return NULL;
   }
-  int rows = troff_height(trie, dimx, map, mlen);
+  // this is just an estimate
+  int rows = troff_parse(trie, map, mlen, dom);
   struct ncplane_options popts = {
     .rows = rows,
     .cols = dimx,
+    .userptr = trie,
   };
   struct ncplane* pman = ncplane_create(stdn, &popts);
-  // FIXME draw it
-  destroy_trofftrie(trie);
+  if(pman == NULL){
+    destroy_trofftrie(trie);
+    return NULL;
+  }
+  if(draw_content(pman, map, mlen)){
+    destroy_trofftrie(trie);
+    ncplane_destroy(pman);
+    return NULL;
+  }
   return pman;
 }
 
-static int
-manloop(struct notcurses* nc, const char* arg){
-  size_t len;
-  unsigned char* buf = get_troff_data(arg, &len);
-  if(buf == NULL){
-    return -1;
-  }
-  struct ncplane* page = render_troff(nc, buf, len);
-  if(page == NULL){
-    munmap(buf, len);
-    return -1;
-  }
-  uint32_t key;
-  do{
-    if(notcurses_render(nc)){
-      munmap(buf, len);
-      return -1;
-    }
-    ncinput ni;
-    key = notcurses_get(nc, NULL, &ni);
-    switch(key){
-      case 'q':
-        munmap(buf, len);
-        return 0;
-    }
-  }while(key != (uint32_t)-1);
-  munmap(buf, len);
-  return -1;
-}
+static const char USAGE_TEXT[] = "(q)uit";
 
-static const char USAGE_TEXT[] =
- "(q)uit";
+static int
+draw_bar(struct ncplane* bar, pagedom* dom){
+  ncplane_cursor_move_yx(bar, 0, 0);
+  ncplane_printf(bar, "%s %s", dom->title, USAGE_TEXT);
+  return 0;
+}
 
 static int
 resize_bar(struct ncplane* bar){
   unsigned dimy, dimx;
   ncplane_dim_yx(ncplane_parent_const(bar), &dimy, &dimx);
   ncplane_resize_simple(bar, 1, dimx);
-  ncplane_cursor_move_yx(bar, 0, 0);
-  ncplane_putstr(bar, USAGE_TEXT);
+  int r = draw_bar(bar, ncplane_userptr(bar));
   ncplane_move_yx(bar, dimy - 1, 0);
-  return 0;
+  return r;
 }
 
-static int
-ncman(struct notcurses* nc, const char* arg){
+static void
+pagedom_destroy(pagedom* dom){
+  free(dom->title);
+}
+
+static struct ncplane*
+create_bar(struct notcurses* nc, pagedom* dom){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
@@ -395,20 +412,83 @@ ncman(struct notcurses* nc, const char* arg){
     .rows = 1,
     .cols = dimx,
     .resizecb = resize_bar,
+    .userptr = dom,
   };
   struct ncplane* bar = ncplane_create(stdn, &nopts);
   if(bar == NULL){
-    return -1;
+    return NULL;
   }
   uint64_t barchan = NCCHANNELS_INITIALIZER(0, 0, 0, 0x26, 0xc2, 0x81);
   if(ncplane_set_base(bar, " ", 0, barchan) != 1){
-    return -1;
+    ncplane_destroy(bar);
+    return NULL;
   }
-  ncplane_putstr(bar, USAGE_TEXT);
+  if(draw_bar(bar, dom)){
+    ncplane_destroy(bar);
+    return NULL;
+  }
   if(notcurses_render(nc)){
-    return -1;
+    ncplane_destroy(bar);
+    return NULL;
   }
-  return manloop(nc, arg);
+  return bar;
+}
+
+static int
+manloop(struct notcurses* nc, const char* arg){
+  int ret = -1;
+  struct ncplane* page = NULL;
+  struct ncplane* bar = NULL;
+  pagedom dom = {};
+  size_t len;
+  unsigned char* buf = get_troff_data(arg, &len);
+  if(buf == NULL){
+    goto done;
+  }
+  page = render_troff(nc, buf, len, &dom);
+  if(page == NULL){
+    goto done;
+  }
+  bar = create_bar(nc, &dom);
+  if(bar == NULL){
+    goto done;
+  }
+  uint32_t key;
+  do{
+    if(notcurses_render(nc)){
+      goto done;
+    }
+    ncinput ni;
+    key = notcurses_get(nc, NULL, &ni);
+    switch(key){
+      case 'L':
+        if(ni.ctrl && !ni.alt){
+          notcurses_refresh(nc, NULL, NULL);
+        }
+        break;
+      case 'q':
+        ret = 0;
+        goto done;
+    }
+  }while(key != (uint32_t)-1);
+
+done:
+  if(page){
+    destroy_trofftrie(ncplane_userptr(page));
+    ncplane_destroy(page);
+  }
+  ncplane_destroy(bar);
+  if(buf){
+    munmap(buf, len);
+  }
+  pagedom_destroy(&dom);
+  return ret;
+}
+
+static int
+ncman(struct notcurses* nc, const char* arg){
+  int r = manloop(nc, arg);
+  return r;
 }
 
 int main(int argc, char** argv){
@@ -417,7 +497,6 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct notcurses_options nopts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
