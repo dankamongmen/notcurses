@@ -237,7 +237,6 @@ int sprixel_rescale(sprixel* spx, unsigned ncellpxy, unsigned ncellpxx){
       sprite_rebuild(ncplane_notcurses(spx->n), spx, y, x);
     }
   }
-  // FIXME prepare new tam entries
   ncplane* ncopy = spx->n;
   destroy_tam(spx->n);
   // spx->n->tam has been reset, so it will not be resized herein

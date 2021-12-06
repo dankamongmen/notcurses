@@ -807,8 +807,6 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
       return -1;
     }
     n->tam = tmptam;
-    // FIXME need to set up the entries based on new distribution for
-    // cell-pixel geometry change, and split across new rows
     if(newarea > oldarea){
       memset(n->tam + oldarea, 0, sizeof(*n->tam) * (newarea - oldarea));
     }
