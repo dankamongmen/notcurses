@@ -303,6 +303,7 @@ typedef struct pagenode {
 
 typedef struct pagedom {
   struct pagenode* root;
+  struct troffnode* trie;
 } pagedom;
 
 static const char*
@@ -315,8 +316,8 @@ dom_get_title(const pagedom* dom){
 
 // extract the page structure.
 static int
-troff_parse(const struct troffnode* trie, const unsigned char* map, size_t mlen,
-            pagedom* dom){
+troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
+  const struct troffnode* trie = dom->trie;
   const unsigned char* line = map;
   for(size_t off = 0 ; off < mlen ; ++off){
     const unsigned char* ws = line;
@@ -364,12 +365,20 @@ troff_parse(const struct troffnode* trie, const unsigned char* map, size_t mlen,
 }
 
 static int
-draw_content(struct ncplane* p, const unsigned char* map, size_t mlen){
-  struct troffnode* trie = ncplane_userptr(p);
-  (void)map;
-  (void)mlen;
+draw_content(struct ncplane* p){
+  const pagedom* dom = ncplane_userptr(p);
   // FIXME draw
   return 0;
+}
+
+static int
+resize_pman(struct ncplane* pman){
+  unsigned dimy, dimx;
+  ncplane_dim_yx(ncplane_parent_const(pman), &dimy, &dimx);
+  ncplane_resize_simple(pman, dimy - 1, dimx);
+  int r = draw_content(pman);
+  ncplane_move_yx(pman, 0, 0);
+  return r;
 }
 
 // we create a plane sized appropriately for the troff data. all we do
@@ -379,28 +388,22 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
              pagedom* dom){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  struct troffnode* trie = trofftrie();
-  if(trie == NULL){
-    return NULL;
-  }
   // this is just an estimate
-  if(troff_parse(trie, map, mlen, dom)){
-    destroy_trofftrie(trie);
+  if(troff_parse(map, mlen, dom)){
     return NULL;
   }
   // this is just an estimate
   struct ncplane_options popts = {
     .rows = dimy - 1,
     .cols = dimx,
-    .userptr = trie,
+    .userptr = dom,
+    .resizecb = resize_pman,
   };
   struct ncplane* pman = ncplane_create(stdn, &popts);
   if(pman == NULL){
-    destroy_trofftrie(trie);
     return NULL;
   }
-  if(draw_content(pman, map, mlen)){
-    destroy_trofftrie(trie);
+  if(draw_content(pman)){
     ncplane_destroy(pman);
     return NULL;
   }
@@ -439,6 +442,7 @@ domnode_destroy(pagenode* node){
 
 static void
 pagedom_destroy(pagedom* dom){
+  destroy_trofftrie(dom->trie);
   domnode_destroy(dom->root);
   free(dom->root);
 }
@@ -486,6 +490,10 @@ manloop(struct notcurses* nc, const char* arg){
   if(buf == NULL){
     goto done;
   }
+  dom.trie = trofftrie();
+  if(dom.trie == NULL){
+    goto done;
+  }
   page = render_troff(nc, buf, len, &dom);
   if(page == NULL){
     goto done;
@@ -515,7 +523,6 @@ manloop(struct notcurses* nc, const char* arg){
 
 done:
   if(page){
-    destroy_trofftrie(ncplane_userptr(page));
     ncplane_destroy(page);
   }
   ncplane_destroy(bar);
