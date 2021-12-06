@@ -54,6 +54,10 @@ parse_args(int argc, char** argv){
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
   struct libdeflate_decompressor* inflate = libdeflate_alloc_decompressor();
+  if(inflate == NULL){
+    munmap(buf, *len);
+    return NULL;
+  }
   size_t outbytes;
   enum libdeflate_result r;
   r = libdeflate_gzip_decompress(inflate, buf, *len, ubuf, ulen, &outbytes);
@@ -66,11 +70,30 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
   return ubuf;
 }
 #else // libz implementation
-#error libz not yet implemented, need libdeflate
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
+  z_stream z = {
+    .zalloc = Z_NULL,
+    .zfree = Z_NULL,
+    .opaque = Z_NULL,
+    .next_in = buf,
+    .avail_in = len,
+    .next_out = ubuf,
+    .avail_out = ulen,
+  };
+  int r = inflateInit(&z);
+  if(r != Z_OK){
+    munmap(buf, *len);
+    return NULL;
+  }
+  r = inflate(&z, Z_FLUSH);
   munmap(buf, *len);
-  (void)ulen; // FIXME
+  if(r != Z_STREAM_END){
+    inflateEnd(&z);
+    return NULL;
+  }
+  inflateEnd(&z);
+  munmap(buf, *len);
   return NULL;
 }
 #endif

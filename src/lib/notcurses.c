@@ -794,16 +794,33 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
   size_t fbsize = sizeof(nccell) * newarea;
-  nccell* fb = malloc(fbsize);
-  if(fb == NULL){
-    return -1;
+  // an important optimization is the case where nothing needs to be moved,
+  // true when either the keptarea is 0 or the old and new x dimensions are
+  // equal, and we're keeping the full x dimension, and any material we're
+  // keeping starts at the top. in this case, we try to realloc() and avoid
+  // any copying whatsoever (we otherwise incur at least one copy due to
+  // always using a new area). set realloced high in this event, so we don't
+  // free anything.
+  nccell* fb;
+  bool realloced = false;
+  if(keptarea == 0 || (cols == xlen && cols == keeplenx && keepy == 0)){
+    if((fb = realloc(n->fb, fbsize)) == NULL){
+      return -1;
+    }
+    realloced = true;
+  }else{
+    if((fb = malloc(fbsize)) == NULL){
+      return -1;
+    }
   }
   if(n->tam){
     loginfo("TAM realloc to %d entries\n", newarea);
     // FIXME first, free any disposed auxiliary vectors!
     tament* tmptam = realloc(n->tam, sizeof(*tmptam) * newarea);
     if(tmptam == NULL){
-      free(fb);
+      if(!realloced){
+        free(fb);
+      }
       return -1;
     }
     n->tam = tmptam;
@@ -831,50 +848,57 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   n->absy += keepy + yoff;
   n->absx += keepx + xoff;
 //fprintf(stderr, "absx: %d keepx: %d xoff: %d\n", n->absx, keepx, xoff);
-  if(keptarea == 0){ // keep nothing, resize/move only
+  if(keptarea == 0){ // keep nothing, resize/move only.
     // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
     // and keep it. perhaps we ought compact it?
     memset(fb, 0, sizeof(*fb) * newarea);
     egcpool_dump(&n->pool);
-    n->lenx = xlen;
-    n->leny = ylen;
-    free(preserved);
-    return resize_callbacks_children(n);
-  }
-  // we currently have maxy rows of maxx cells each. we will be keeping rows
-  // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1.
-  // anything else is zerod out. itery is the row we're writing *to*, and we
-  // must write to each (and every cell in each).
-  for(unsigned itery = 0 ; itery < ylen ; ++itery){
-    int truey = itery + n->absy;
-    int sourceoffy = truey - oldabsy;
+  }else if(realloced){
+    // the x dimensions are equal, and we're keeping across the width. only the
+    // y dimension changed. at worst, we need zero some out.
+    unsigned tozorch = (ylen - keepleny) * xlen;
+    if(tozorch){
+      unsigned zorchoff = keepleny * xlen;
+      memset(fb + zorchoff, 0, tozorch);
+    }
+  }else{
+    // we currently have maxy rows of maxx cells each. we will be keeping rows
+    // keepy..keepy + keepleny - 1 and columns keepx..keepx + keeplenx - 1.
+    // anything else is zerod out. itery is the row we're writing *to*, and we
+    // must write to each (and every cell in each).
+    for(unsigned itery = 0 ; itery < ylen ; ++itery){
+      int truey = itery + n->absy;
+      int sourceoffy = truey - oldabsy;
 //fprintf(stderr, "sourceoffy: %d keepy: %d ylen: %d\n", sourceoffy, keepy, ylen);
-    // if we have nothing copied to this line, zero it out in one go
-    if(sourceoffy < keepy || sourceoffy >= keepy + (int)keepleny){
+      // if we have nothing copied to this line, zero it out in one go
+      if(sourceoffy < keepy || sourceoffy >= keepy + (int)keepleny){
 //fprintf(stderr, "writing 0s to line %d of %d\n", itery, ylen);
-      memset(fb + (itery * xlen), 0, sizeof(*fb) * xlen);
-    }else{
-      int copyoff = itery * xlen; // our target at any given time
-      // we do have something to copy, and zero, one, or two regions to zero out
-      unsigned copied = 0;
-      if(xoff < 0){
-        memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
-        copyoff += -xoff;
-        copied += -xoff;
-      }
-      const int sourceidx = nfbcellidx(n, sourceoffy, keepx);
+        memset(fb + (itery * xlen), 0, sizeof(*fb) * xlen);
+      }else{
+        int copyoff = itery * xlen; // our target at any given time
+        // we do have something to copy, and zero, one, or two regions to zero out
+        unsigned copied = 0;
+        if(xoff < 0){
+          memset(fb + copyoff, 0, sizeof(*fb) * -xoff);
+          copyoff += -xoff;
+          copied += -xoff;
+        }
+        const int sourceidx = nfbcellidx(n, sourceoffy, keepx);
 //fprintf(stderr, "copying line %d (%d) to %d (%d)\n", sourceoffy, sourceidx, copyoff / xlen, copyoff);
-      memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
-      copyoff += keeplenx;
-      copied += keeplenx;
-      if(xlen > copied){
-        memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
+        memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
+        copyoff += keeplenx;
+        copied += keeplenx;
+        if(xlen > copied){
+          memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
+        }
       }
     }
   }
   n->lenx = xlen;
   n->leny = ylen;
-  free(preserved);
+  if(!realloced){
+    free(preserved);
+  }
   return resize_callbacks_children(n);
 }
 
