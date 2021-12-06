@@ -49,6 +49,7 @@ static struct ncplane* debug; // "debug info" modal popup
 
 #define MENUSTR_TOGGLE_HUD "Toggle HUD"
 #define MENUSTR_TOGGLE_PLOT "Toggle FPS plot"
+#define MENUSTR_REDRAW_SCREEN "Redraw the screen"
 #define MENUSTR_RESTART "Restart"
 #define MENUSTR_ABOUT "About"
 #define MENUSTR_DEBUG "Debug info"
@@ -270,6 +271,13 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     debug_toggle(nc);
     return true;
   }
+  if(tmpni.id == 'L' && !tmpni.alt && tmpni.ctrl){
+    if(menu){
+      ncmenu_rollup(menu);
+    }
+    notcurses_refresh(nc, NULL, NULL);
+    return true;
+  }
   if(tmpni.id == 'R' && !tmpni.alt && tmpni.ctrl){
     if(menu){
       ncmenu_rollup(menu);
@@ -297,6 +305,7 @@ struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = MENUSTR_TOGGLE_HUD, .shortcut = { .id = 'H', }, },
     { .desc = MENUSTR_TOGGLE_PLOT, .shortcut = { .id = 'P', }, },
+    { .desc = MENUSTR_REDRAW_SCREEN, .shortcut = { .id = 'L', .ctrl = true }, },
     { .desc = NULL, },
     { .desc = MENUSTR_RESTART, .shortcut = { .id = 'R', .ctrl = true, }, },
     { .desc = MENUSTR_QUIT, .shortcut = { .id = 'q', }, },

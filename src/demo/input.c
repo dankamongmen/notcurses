@@ -87,11 +87,7 @@ uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
           handoff = true;
         }
       }else{
-        if(id == 'L' && q->ni.ctrl){
-          notcurses_refresh(nc, NULL, NULL);
-        }else{
-          handoff = true;
-        }
+        handoff = true;
       }
     }
     if(handoff && ni){

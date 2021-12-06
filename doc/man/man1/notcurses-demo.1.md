@@ -111,6 +111,7 @@ The following keypresses are recognized (and are also available from the menu):
          with the mouse.
 * **P**: Toggle the FPS graph.
 * **Ctrl-R**: Restart the demo.
+* **Ctrl-L**: Redraw the screen.
 * **Alt-d**: Toggle a window with debugging information.
 * **q**: Quit.
 
