@@ -111,7 +111,10 @@ map_troff_data(int fd, size_t* len){
   }
   *len = sbuf.st_size;
   unsigned char* buf = mmap(NULL, *len, PROT_READ,
-                            MAP_PRIVATE | MAP_POPULATE, fd, 0);
+#ifdef MAP_POPULATE
+                            MAP_POPULATE |
+#endif
+                            MAP_PRIVATE, fd, 0);
   if(buf == MAP_FAILED){
     return NULL;
   }
