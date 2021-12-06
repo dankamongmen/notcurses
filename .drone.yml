@@ -96,6 +96,6 @@ steps:
     - export TERM=xterm
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off -DUSE_DOCTEST=off -DUSE_DEFLATE=off ..
     - make -j2
     - ctest --output-on-failure

@@ -78,7 +78,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
     .zfree = Z_NULL,
     .opaque = Z_NULL,
     .next_in = buf,
-    .avail_in = len,
+    .avail_in = *len,
     .next_out = ubuf,
     .avail_out = ulen,
   };
@@ -87,7 +87,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
     munmap(buf, *len);
     return NULL;
   }
-  r = inflate(&z, Z_FLUSH);
+  r = inflate(&z, Z_FINISH);
   munmap(buf, *len);
   if(r != Z_STREAM_END){
     inflateEnd(&z);
