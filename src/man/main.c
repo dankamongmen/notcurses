@@ -213,6 +213,7 @@ static const trofftype trofftypes[] = {
   TROFF_SYNOPSIS(OP) TROFF_SYNOPSIS(SY) TROFF_SYNOPSIS(YS)
 #undef TROFF_SYNOPSIS
   { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, },
+  { .ltype = LINE_UNKNOWN, .symbol = "br", .ttype = TROFF_UNKNOWN, },
 };
 
 // the troff trie is only defined on the 128 ascii values.
@@ -463,7 +464,7 @@ add_node(pagenode* pnode, char* text){
 
 static char*
 extract_text(const unsigned char* ws, const unsigned char* feol){
-  if(ws == feol || ws + 1 == feol){
+  if(ws == feol || ws == feol + 1){
     fprintf(stderr, "bogus empty title\n");
     return NULL;
   }
@@ -472,10 +473,6 @@ extract_text(const unsigned char* ws, const unsigned char* feol){
 
 static char*
 augment_text(pagenode* pnode, const unsigned char* ws, const unsigned char* feol){
-  if(ws == feol || ws + 1 == feol){
-    fprintf(stderr, "bogus empty text\n");
-    return NULL;
-  }
   const size_t slen = pnode->text ? strlen(pnode->text) + 1 : 0;
   char* tmp = realloc(pnode->text, slen + (feol - ws) + 2);
   if(tmp == NULL){
@@ -570,6 +567,15 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       }else if(node->ltype == LINE_PP){
         if(dom->root == NULL){
           fprintf(stderr, "paragraph transcends structure\n");
+          return -1;
+        }
+        if((current_para = add_node(current_para, NULL)) == NULL){
+          return -1;
+        }
+        current_para->ttype = node;
+      }else if(node->ltype == LINE_TH){
+        if(dom->root == NULL){
+          fprintf(stderr, "theorem transcends structure\n");
           return -1;
         }
         if((current_para = add_node(current_para, NULL)) == NULL){
