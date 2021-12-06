@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <notcurses/direct.h>
 #include "internal.h"
+#include "unixsig.h"
 
 sig_atomic_t sigcont_seen_for_render = 0;
 

@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <notcurses/direct.h>
 #include "compat/compat.h"
+#include "unixsig.h"
 #include "banner.h"
 
 #define ESC "\x1b"

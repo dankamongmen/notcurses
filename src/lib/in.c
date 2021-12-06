@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "automaton.h"
 #include "internal.h"
+#include "unixsig.h"
 #include "render.h"
 #include "in.h"
 
@@ -2161,6 +2162,7 @@ read_inputs_nblock(inputctx* ictx){
 
 static void*
 input_thread(void* vmarshall){
+  setup_alt_sig_stack();
   inputctx* ictx = vmarshall;
   if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
     ictx->failed = true;

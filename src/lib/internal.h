@@ -1510,14 +1510,6 @@ int get_tty_fd(FILE* ttyfp);
 // If you only want to check n < 4 channels, just duplicate one.
 bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br);
 
-int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
-                  int(*handler)(void*));
-int drop_signals(void* nc);
-
-// block a few signals for the duration of a write to the terminal.
-int block_signals(sigset_t* old_blocked_signals);
-int unblock_signals(const sigset_t* old_blocked_signals);
-
 // takes a signed starting coordinate (where -1 indicates the cursor's
 // position), and an unsigned vector (where 0 indicates "everything
 // remaining", i.e. to the right and below). returns 0 iff everything

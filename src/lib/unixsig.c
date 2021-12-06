@@ -50,6 +50,9 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static bool handling_winch;
 static bool handling_fatals;
 
+// alternate signal stack (per-thread; call setup_alt_sig_stack() to use)
+static stack_t alt_signal_stack;
+
 // saved signal actions, restored in drop_signals() FIXME make an array
 static struct sigaction old_winch;
 static struct sigaction old_cont;
@@ -104,6 +107,15 @@ int drop_signals(void* nc){
       sigaction(SIGTERM, &old_term, NULL);
       handling_fatals = false;
     }
+    if(alt_signal_stack.ss_sp){
+      alt_signal_stack.ss_flags = SS_DISABLE;
+      if(sigaltstack(&alt_signal_stack, NULL)){
+        if(errno != EPERM){
+          fprintf(stderr, "couldn't remove alternate signal stack (%s)\n", strerror(errno));
+        }
+      }
+      free(alt_signal_stack.ss_sp);
+    }
     ret = !atomic_compare_exchange_strong(&signal_nc, &expected, NULL);
   }
   pthread_mutex_unlock(&lock);
@@ -145,6 +157,16 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
   }
 }
 
+// the alternate signal stack is a thread property; any other threads we
+// create ought go ahead and install the same alternate signal stack.
+void setup_alt_sig_stack(void){
+  pthread_mutex_lock(&lock);
+  if(alt_signal_stack.ss_sp){
+    sigaltstack(&alt_signal_stack, NULL);
+  }
+  pthread_mutex_unlock(&lock);
+}
+
 // this both sets up our signal handlers (unless that behavior has been
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
@@ -171,7 +193,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     if(ret){
       atomic_store(&signal_nc, NULL);
       pthread_mutex_unlock(&lock);
-      fprintf(stderr, "Error installing term signal handler (%s)\n", strerror(errno));
+      fprintf(stderr, "error installing term signal handler (%s)\n", strerror(errno));
       return -1;
     }
     // we're not going to be restoring the old mask at exit, as who knows,
@@ -180,6 +202,17 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     handling_winch = true;
   }
   if(!no_quit_sigs){
+    alt_signal_stack.ss_size = SIGSTKSZ * 4;
+    alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
+    if(alt_signal_stack.ss_sp == NULL){
+      fprintf(stderr, "warning: couldn't create alternate signal stack (%s)\n", strerror(errno));
+    }else{
+      if(sigaltstack(&alt_signal_stack, NULL)){
+        fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)\n", strerror(errno));
+        free(alt_signal_stack.ss_sp);
+        alt_signal_stack.ss_sp = NULL;
+      }
+    }
     memset(&sa, 0, sizeof(sa));
     fatal_callback = handler;
     sa.sa_sigaction = fatal_handler;
@@ -191,7 +224,8 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     sigaddset(&sa.sa_mask, SIGQUIT);
     sigaddset(&sa.sa_mask, SIGSEGV);
     sigaddset(&sa.sa_mask, SIGTERM);
-    sa.sa_flags = SA_SIGINFO | SA_RESETHAND; // don't try fatal signals twice
+    // don't try to handle fatal signals twice, and use our alternative stack
+    sa.sa_flags = SA_ONSTACK | SA_SIGINFO | SA_RESETHAND;
     int ret = 0;
     ret |= sigaction(SIGABRT, &sa, &old_abrt);
     ret |= sigaction(SIGBUS, &sa, &old_bus);
@@ -210,7 +244,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     handling_fatals = true;
   }
   // we don't really want to go blocking SIGSEGV etc while we write, but
-  // we *do* temporarily block user-inititated signals.
+  // we *do* temporarily block user-initiated signals.
   sigaddset(&wblock_signals, SIGINT);
   sigaddset(&wblock_signals, SIGTERM);
   sigaddset(&wblock_signals, SIGQUIT);

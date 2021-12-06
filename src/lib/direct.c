@@ -9,6 +9,7 @@
 #include "visual-details.h"
 #include "notcurses/direct.h"
 #include "internal.h"
+#include "unixsig.h"
 
 // conform to the foreground and background channels of 'channels'
 static int
