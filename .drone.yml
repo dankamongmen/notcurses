@@ -92,7 +92,7 @@ steps:
 - name: gentoo
   image: dankamongmen/gentoo:2021-12-03a
   commands:
-    - export LANG=en_US.UTF-8
+    - export LANG=C.UTF-8
     - export TERM=xterm
     - mkdir build
     - cd build
