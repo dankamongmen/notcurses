@@ -184,66 +184,111 @@ struct troffnode {
   const trofftype *ttype;
 };
 
-// get the linetype from the leader terminating at |ws|. we are guaranteed to
-// have a period prior to |ws| within the commonly addressable area, so we
-// match backwards until that period.
-static ltypes
-get_type(const unsigned char* ws){
-  (void)ws;
-  return LINE_B; // FIXME
+static void
+destroy_trofftrie(struct troffnode* root){
+  if(root){
+    for(unsigned i = 0 ; i < sizeof(root->next) / sizeof(*root->next) ; ++i){
+      destroy_trofftrie(root->next[i]);
+    }
+    free(root);
+  }
+}
+
+// build a trie rooted at an implicit leading period.
+static struct troffnode*
+trofftrie(void){
+  struct troffnode* root = malloc(sizeof(*root));
+  if(root == NULL){
+    return NULL;
+  }
+  memset(root, 0, sizeof(*root));
+  for(size_t toff = 0 ; toff < sizeof(trofftypes) / sizeof(*trofftypes) ; ++toff){
+    const trofftype* t = &trofftypes[toff];
+    if(strlen(t->symbol) == 0){
+      continue;
+    }
+    struct troffnode* n = root;
+    for(const char* s = t->symbol ; *s ; ++s){
+      if(*s < 0){ // illegal symbol
+        fprintf(stderr, "illegal symbol: %s\n", t->symbol);
+        goto err;
+      }
+      unsigned char us = *s;
+      if(us > sizeof(root->next) / sizeof(*root->next)){ // illegal symbol
+        fprintf(stderr, "illegal symbol: %s\n", t->symbol);
+        goto err;
+      }
+      if(n->next[us] == NULL){
+        if((n->next[us] = malloc(sizeof(*root))) == NULL){
+          memset(n->next[us], 0, sizeof(*root));
+          goto err;
+        }
+      }
+      n = n->next[us];
+    }
+    if(n->ttype){ // duplicate command
+      fprintf(stderr, "duplicate command: %s %s\n", t->symbol, n->ttype->symbol);
+      goto err;
+    }
+    n->ttype = t;
+  }
+  return root;
+
+err:
+  destroy_trofftrie(root);
+  return NULL;
+}
+
+// lex the troffnode out from |ws|, where the troffnode is all text prior to
+// whitespace or a NUL. the byte following the troffnode is written back to
+// |ws|. if it is a valid troff command sequence, the node is returned;
+// NULL is otherwise returned. |len| ought be non-negative.
+static const trofftype*
+get_type(const struct troffnode* trie, const unsigned char** ws, size_t len){
+  if(**ws != '.'){
+    return NULL;
+  }
+  ++*ws;
+  --len;
+  while(len && !isspace(**ws) && **ws){
+    if(**ws > sizeof(trie->next) / sizeof(*trie->next)){ // illegal command
+      return NULL;
+    }
+    if((trie = trie->next[**ws]) == NULL){
+      return NULL;
+    }
+    ++*ws;
+    --len;
+  }
+  return trie->ttype;
 }
 
 // calculate the number of rows necessary to display the troff data,
 // assuming the specified width |dimx|.
 static int
-troff_height(unsigned dimx, const unsigned char* map, size_t mlen){
-  // FIXME for now we assume infinitely wide lines
+troff_height(const struct troffnode* trie, unsigned dimx,
+             const unsigned char* map, size_t mlen){
+  // FIXME for now we assume infinitely wide lines for display
   int lines = 0;
-  ltypes linetype = LINE_UNKNOWN;
-  enum {
-    GOT_NULL,    // line has started
-    GOT_DOT,     // got period to start line
-    GOT_LETTER,  // got letter following dot
-    GOT_SLASH,   // got slash following dot (possible comment)
-    GOT_INVALID, // line is bad
-  } state = GOT_NULL;
+  const unsigned char* line = map;
   for(size_t off = 0 ; off < mlen ; ++off){
-    if(map[off] == '\n'){
-      if(linetype != LINE_UNKNOWN && linetype != LINE_COMMENT){
+    const unsigned char* ws = line;
+    size_t left = mlen - off;
+    const trofftype* node = get_type(trie, &ws, left);
+    // find the end of this line
+    const unsigned char* eol = ws;
+    left -= (ws - line);
+    while(left && *eol != '\n' && *eol){
+      ++eol;
+      --left;
+    }
+    if(node){
+      if(node->ttype != TROFF_FONT && node->ttype != TROFF_COMMENT){
         ++lines;
       }
-      linetype = LINE_UNKNOWN;
-      state = GOT_NULL;
-    }else if(linetype == LINE_UNKNOWN){
-      if(state == GOT_NULL){
-        if(map[off] != '.'){
-          state = GOT_INVALID;
-        }else{
-          state = GOT_DOT;
-        }
-      }else if(state == GOT_DOT){
-        if(map[off] == '\\'){
-          state = GOT_SLASH;
-        }else if(!isalpha(map[off])){
-          state = GOT_INVALID;
-        }else{
-          state = GOT_LETTER;
-        }
-      }else if(state == GOT_LETTER){
-        if(isspace(map[off])){
-          linetype = get_type(map + off);
-        }
-      }else if(state == GOT_SLASH){
-        if(map[off] == '"'){
-          linetype = LINE_COMMENT;
-        }else{
-          state = GOT_INVALID;
-        }
-      }
     }
-  }
-  if(linetype != LINE_UNKNOWN && linetype != LINE_COMMENT){
-    ++lines;
+    off += eol - line;
+    line = eol + 1;
   }
   return lines;
 }
@@ -254,14 +299,18 @@ static struct ncplane*
 render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen){
   unsigned dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  int rows = troff_height(dimx, map, mlen);
-fprintf(stderr, "ROWS: %d\n", rows);
+  struct troffnode* trie = trofftrie();
+  if(trie == NULL){
+    return NULL;
+  }
+  int rows = troff_height(trie, dimx, map, mlen);
   struct ncplane_options popts = {
     .rows = rows,
     .cols = dimx,
   };
   struct ncplane* pman = ncplane_create(stdn, &popts);
   // FIXME draw it
+  destroy_trofftrie(trie);
   return pman;
 }
 
@@ -273,6 +322,10 @@ manloop(struct notcurses* nc, const char* arg){
     return -1;
   }
   struct ncplane* page = render_troff(nc, buf, len);
+  if(page == NULL){
+    munmap(buf, len);
+    return -1;
+  }
   uint32_t key;
   do{
     if(notcurses_render(nc)){
