@@ -290,9 +290,28 @@ get_type(const struct troffnode* trie, const unsigned char** ws, size_t len){
   return trie->ttype;
 }
 
+typedef struct pagenode {
+  char* text;
+  enum {
+    NODE_SECTION,
+    NODE_SUBSECTION,
+    NODE_PARAGRAPH,
+  } level;
+  struct pagenode* subs;
+  unsigned subcount;
+} pagenode;
+
 typedef struct pagedom {
-  char* title;
+  struct pagenode* root;
 } pagedom;
+
+static const char*
+dom_get_title(const pagedom* dom){
+  if(dom->root == NULL){
+    return NULL;
+  }
+  return dom->root->text;
+}
 
 // extract the page structure.
 static int
@@ -316,24 +335,30 @@ troff_parse(const struct troffnode* trie, const unsigned char* map, size_t mlen,
       --feol;
     }
     if(node){
-fprintf(stderr, "LTYPE: %d TTYPE: %d SYMBOL: %s\n", node->ltype, node->ttype, node->symbol);
       if(node->ltype == LINE_TH){
-fprintf(stderr, "TITLE: %s\n", dom->title);
-        if(dom->title){
-          fprintf(stderr, "found a second title (was %s)\n", dom->title);
+        if(dom_get_title(dom)){
+          fprintf(stderr, "found a second title (was %s)\n", dom_get_title(dom));
           return -1;
         }
         if(ws == feol || ws + 1 == feol){
           fprintf(stderr, "bogus empty title\n");
           return -1;
         }
-        if((dom->title = strndup((const char*)ws + 1, feol - (ws + 1))) == NULL){
+        if((dom->root = malloc(sizeof(*dom->root))) == NULL){
+          return -1;
+        }
+        if((dom->root->text = strndup((const char*)ws + 1, feol - (ws + 1))) == NULL){
+          free(dom->root);
           return -1;
         }
       }
     }
     off += eol - line;
     line = eol + 1;
+  }
+  if(dom_get_title(dom) == NULL){
+    fprintf(stderr, "no title found\n");
+    return -1;
   }
   return 0;
 }
@@ -359,9 +384,13 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
     return NULL;
   }
   // this is just an estimate
-  int rows = troff_parse(trie, map, mlen, dom);
+  if(troff_parse(trie, map, mlen, dom)){
+    destroy_trofftrie(trie);
+    return NULL;
+  }
+  // this is just an estimate
   struct ncplane_options popts = {
-    .rows = rows,
+    .rows = dimy - 1,
     .cols = dimx,
     .userptr = trie,
   };
@@ -383,7 +412,7 @@ static const char USAGE_TEXT[] = "(q)uit";
 static int
 draw_bar(struct ncplane* bar, pagedom* dom){
   ncplane_cursor_move_yx(bar, 0, 0);
-  ncplane_printf(bar, "%s %s", dom->title, USAGE_TEXT);
+  ncplane_printf(bar, "%s %s", dom_get_title(dom), USAGE_TEXT);
   return 0;
 }
 
@@ -398,8 +427,20 @@ resize_bar(struct ncplane* bar){
 }
 
 static void
+domnode_destroy(pagenode* node){
+  if(node){
+    free(node->text);
+    for(unsigned z = 0 ; z < node->subcount ; ++z){
+      domnode_destroy(&node->subs[z]);
+    }
+    free(node->subs);
+  }
+}
+
+static void
 pagedom_destroy(pagedom* dom){
-  free(dom->title);
+  domnode_destroy(dom->root);
+  free(dom->root);
 }
 
 static struct ncplane*
