@@ -250,6 +250,10 @@ for half blocks and quadrants.
 Ensure UTF-8 is being used for "Administrative language settings"
 (see [README.md](README.md)). Codepage 65001 ought be used.
 
+The Cascadia Code and Cascadia Mono fonts seem to work noticeably better
+than Consolas or Courier New, both of which have trouble with quadrants
+and Braille.
+
 ### 24-bit RGB
 
 Many terminals support one or another form of non-indexed color encoding (also
