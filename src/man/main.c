@@ -70,6 +70,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
   return ubuf;
 }
 #else // libz implementation
+#include <zlib.h>
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
   z_stream z = {
