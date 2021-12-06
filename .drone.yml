@@ -83,3 +83,19 @@ steps:
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
     - make -j2
     - ctest --output-on-failure
+---
+kind: pipeline
+type: docker
+name: gentoo
+
+steps:
+- name: gentoo
+  image: dankamongmen/gentoo:2021-12-03a
+  commands:
+    - export LANG=en_US.UTF-8
+    - export TERM=xterm
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
+    - make -j2
+    - ctest --output-on-failure
