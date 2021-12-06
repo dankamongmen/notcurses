@@ -106,8 +106,12 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND FFMpeg)
 elseif(${USE_OIIO})
+<<<<<<< HEAD
 pkg_check_modules(OPENIMAGEIO REQUIRED OpenImageIO>=2.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
+=======
+find_package(OpenImageIO 2.1 REQUIRED)
+>>>>>>> 8a2276978 ([CMake] restore find_package(OpenImageIO) #2431)
 endif()
 endif()
 
@@ -397,12 +401,12 @@ target_link_directories(notcurses-static
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
 elseif(${USE_OIIO})
-target_include_directories(notcurses PUBLIC "${OPENIMAGEIO_INCLUDE_DIRS}")
-target_include_directories(notcurses-static PUBLIC "${OPENIMAGEIO_STATIC_INCLUDE_DIRS}")
-target_link_libraries(notcurses PRIVATE "${OPENIMAGEIO_LIBRARIES}")
-target_link_libraries(notcurses-static PRIVATE ${OPENIMAGEIO_STATIC_LIBRARIES})
-target_link_directories(notcurses PRIVATE ${OPENIMAGEIO_LIBRARY_DIRS})
-target_link_directories(notcurses-static PRIVATE ${OPENIMAGEIO_STATIC_LIBRARY_DIRS})
+target_include_directories(notcurses PUBLIC "${OIIO_INCLUDE_DIRS}")
+target_include_directories(notcurses-static PUBLIC "${OIIO_STATIC_INCLUDE_DIRS}")
+target_link_libraries(notcurses PRIVATE OpenImageIO)
+target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
+target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
+target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
 ############################################################################
