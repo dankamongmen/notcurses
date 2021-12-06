@@ -371,9 +371,43 @@ manloop(struct notcurses* nc, const char* arg){
   return -1;
 }
 
+static const char USAGE_TEXT[] =
+ "(q)uit";
+
+static int
+resize_bar(struct ncplane* bar){
+  unsigned dimy, dimx;
+  ncplane_dim_yx(ncplane_parent_const(bar), &dimy, &dimx);
+  ncplane_resize_simple(bar, 1, dimx);
+  ncplane_cursor_move_yx(bar, 0, 0);
+  ncplane_putstr(bar, USAGE_TEXT);
+  ncplane_move_yx(bar, dimy - 1, 0);
+  return 0;
+}
+
 static int
 ncman(struct notcurses* nc, const char* arg){
-  // FIXME usage bar at bottom
+  unsigned dimy, dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane_options nopts = {
+    .y = dimy - 1,
+    .x = 0,
+    .rows = 1,
+    .cols = dimx,
+    .resizecb = resize_bar,
+  };
+  struct ncplane* bar = ncplane_create(stdn, &nopts);
+  if(bar == NULL){
+    return -1;
+  }
+  uint64_t barchan = NCCHANNELS_INITIALIZER(0, 0, 0, 0x26, 0xc2, 0x81);
+  if(ncplane_set_base(bar, " ", 0, barchan) != 1){
+    return -1;
+  }
+  ncplane_putstr(bar, USAGE_TEXT);
+  if(notcurses_render(nc)){
+    return -1;
+  }
   return manloop(nc, arg);
 }
 
