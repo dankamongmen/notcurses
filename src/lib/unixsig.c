@@ -115,6 +115,7 @@ int drop_signals(void* nc){
         }
       }
       free(alt_signal_stack.ss_sp);
+      alt_signal_stack.ss_sp = NULL;
     }
     ret = !atomic_compare_exchange_strong(&signal_nc, &expected, NULL);
   }
@@ -202,11 +203,12 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     handling_winch = true;
   }
   if(!no_quit_sigs){
-    alt_signal_stack.ss_size = SIGSTKSZ * 4;
     alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
     if(alt_signal_stack.ss_sp == NULL){
       fprintf(stderr, "warning: couldn't create alternate signal stack (%s)\n", strerror(errno));
     }else{
+      alt_signal_stack.ss_size = SIGSTKSZ * 4;
+      alt_signal_stack.ss_flags = 0;
       if(sigaltstack(&alt_signal_stack, NULL)){
         fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)\n", strerror(errno));
         free(alt_signal_stack.ss_sp);
