@@ -138,6 +138,7 @@ typedef enum {
 } ltypes;
 
 typedef enum {
+  TROFF_UNKNOWN,
   TROFF_COMMENT,
   TROFF_FONT,
   TROFF_STRUCTURE,
@@ -149,47 +150,38 @@ typedef enum {
 typedef struct {
   ltypes ltype;
   const char* symbol;
+  ttypes ttype;
 } trofftype;
 
+// all troff types start with a period, followed by one or two ASCII
+// characters.
 static const trofftype trofftypes[] = {
-  { .ltype = LINE_UNKNOWN, .symbol = "", },
-  { .ltype = LINE_COMMENT, .symbol = ".\\\"", },
-#define TROFF_FONT(x) { .ltype = LINE_##x, .symbol = "."#x, },
-  TROFF_FONT(B)
-  TROFF_FONT(BI)
-  TROFF_FONT(BR)
-  TROFF_FONT(I)
-  TROFF_FONT(IB)
-  TROFF_FONT(IR)
+  { .ltype = LINE_UNKNOWN, .symbol = "", .ttype = TROFF_UNKNOWN, },
+  { .ltype = LINE_COMMENT, .symbol = "\\\"", .ttype = TROFF_COMMENT, },
+#define TROFF_FONT(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_FONT, },
+  TROFF_FONT(B) TROFF_FONT(BI) TROFF_FONT(BR)
+  TROFF_FONT(I) TROFF_FONT(IB) TROFF_FONT(IR)
 #undef TROFF_FONT
-#define TROFF_STRUCTURE(x) { .ltype = LINE_##x, .symbol = "."#x, },
-  TROFF_STRUCTURE(EE)
-  TROFF_STRUCTURE(EX)
-  TROFF_STRUCTURE(RE)
-  TROFF_STRUCTURE(RS)
-  TROFF_STRUCTURE(SH)
-  TROFF_STRUCTURE(SS)
-  TROFF_STRUCTURE(TH)
+#define TROFF_STRUCTURE(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_STRUCTURE, },
+  TROFF_STRUCTURE(EE) TROFF_STRUCTURE(EX) TROFF_STRUCTURE(RE) TROFF_STRUCTURE(RS)
+  TROFF_STRUCTURE(SH) TROFF_STRUCTURE(SS) TROFF_STRUCTURE(TH)
 #undef TROFF_STRUCTURE
-#define TROFF_PARA(x) { .ltype = LINE_##x, .symbol = "."#x, },
-  TROFF_PARA(IP)
-  TROFF_PARA(LP)
-  TROFF_PARA(P)
-  TROFF_PARA(PP)
-  TROFF_PARA(TP)
-  TROFF_PARA(TQ)
+#define TROFF_PARA(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_PARAGRAPH, },
+  TROFF_PARA(IP) TROFF_PARA(LP) TROFF_PARA(P)
+  TROFF_PARA(PP) TROFF_PARA(TP) TROFF_PARA(TQ)
 #undef TROFF_PARA
-#define TROFF_HLINK(x) { .ltype = LINE_##x, .symbol = "."#x, },
-  TROFF_HLINK(ME)
-  TROFF_HLINK(MT)
-  TROFF_HLINK(UE)
-  TROFF_HLINK(UR)
+#define TROFF_HLINK(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_HYPERLINK, },
+  TROFF_HLINK(ME) TROFF_HLINK(MT) TROFF_HLINK(UE) TROFF_HLINK(UR)
 #undef TROFF_HLINK
-#define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = "."#x, },
-  TROFF_SYNOPSIS(OP)
-  TROFF_SYNOPSIS(SY)
-  TROFF_SYNOPSIS(YS)
+#define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_SYNOPSIS, },
+  TROFF_SYNOPSIS(OP) TROFF_SYNOPSIS(SY) TROFF_SYNOPSIS(YS)
 #undef TROFF_SYNOPSIS
+};
+
+// the troff trie is only defined on the 128 ascii values.
+struct troffnode {
+  struct troffnode* next[0x80];
+  const trofftype *ttype;
 };
 
 // get the linetype from the leader terminating at |ws|. we are guaranteed to
