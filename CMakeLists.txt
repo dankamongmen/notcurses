@@ -106,12 +106,7 @@ pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND FFMpeg)
 elseif(${USE_OIIO})
-<<<<<<< HEAD
-pkg_check_modules(OPENIMAGEIO REQUIRED OpenImageIO>=2.1)
-set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
-=======
 find_package(OpenImageIO 2.1 REQUIRED)
->>>>>>> 8a2276978 ([CMake] restore find_package(OpenImageIO) #2431)
 endif()
 endif()
 
