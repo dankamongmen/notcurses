@@ -400,6 +400,47 @@ lex_title(pagedom* dom){
     return -1;
   }
   dom->section = strndup(tok, endtok - tok);
+  tok = endtok + 1;
+  if(!*tok){
+    fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
+    return -1;
+  }
+  if(!quoted){
+    while(isspace(*tok)){
+      ++tok;
+    }
+    quoted = false;
+    if(*tok == '"'){
+      quoted = true;
+      ++tok;
+    }
+    if(!*tok){
+      fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
+      return -1;
+    }
+  }
+  endtok = tok + 1;
+  while(*endtok){
+    if(!quoted){
+      if(isspace(*endtok)){
+        break;
+      }else if(*endtok == '"'){
+        quoted = true;
+        break;
+      }
+    }else{
+      if(*endtok == '"'){
+        quoted = false;
+        break;
+      }
+    }
+    ++endtok;
+  }
+  if(!*endtok){
+    fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
+    return -1;
+  }
+  dom->version = strndup(tok, endtok - tok);
   return 0;
 }
 
@@ -514,7 +555,7 @@ draw_bar(struct ncplane* bar, pagedom* dom){
   ncplane_set_styles(bar, NCSTYLE_BOLD);
   ncplane_putstr(bar, dom->section);
   ncplane_set_styles(bar, NCSTYLE_NONE);
-  ncplane_putchar(bar, ')');
+  ncplane_printf(bar, ") %s", dom->version);
   ncplane_set_styles(bar, NCSTYLE_ITALIC);
   ncplane_putstr_aligned(bar, 0, NCALIGN_RIGHT, USAGE_TEXT);
   return 0;
