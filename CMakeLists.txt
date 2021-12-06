@@ -19,7 +19,7 @@ cmake_dependent_option(
   USE_DOCTEST "Build notcurses-tester with doctest" ON
   "BUILD_TESTING;USE_CPP" OFF
 )
-option(USE_DEFLATE "Use libdeflate for compression of Kitty graphics" ON)
+option(USE_DEFLATE "Use libdeflate instead of libz" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
@@ -167,6 +167,8 @@ endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
+
+# optional dependencies lacking pkg-config support
 if(${USE_DEFLATE})
 unset(HAVE_DEFLATE_H CACHE)
 check_include_file("libdeflate.h" HAVE_DEFLATE_H)
@@ -176,7 +178,11 @@ endif()
 find_library(libdeflate deflate REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libdeflate)
 set_package_properties(libdeflate PROPERTIES TYPE REQUIRED)
+else()
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
 endif()
+
 if(${USE_GPM}) # no pkgconfig from gpm
 unset(HAVE_GPM_H CACHE)
 check_include_file("gpm.h" HAVE_GPM_H)
@@ -187,8 +193,9 @@ find_library(gpm gpm REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libgpm)
 set_package_properties(libgpm PROPERTIES TYPE REQUIRED)
 endif()
-unset(HAVE_QRCODEGEN_H CACHE)
+
 if("${USE_QRCODEGEN}")
+unset(HAVE_QRCODEGEN_H CACHE)
 check_include_file("qrcodegen/qrcodegen.h" HAVE_QRCODEGEN_H)
 if(NOT "${HAVE_QRCODEGEN_H}")
   message(FATAL_ERROR "USE_QRCODEGEN is active, but couldn't find qrcodegen.h")
@@ -241,6 +248,7 @@ target_include_directories(notcurses-core
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${libdeflate_INCLUDE_DIRS}"
+    "${ZLIB_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   BEFORE
@@ -251,10 +259,12 @@ target_include_directories(notcurses-core-static
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${libdeflate_STATIC_INCLUDE_DIRS}"
+    "${ZLIB_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
     "${libdeflate}"
+    "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
@@ -266,6 +276,7 @@ target_link_libraries(notcurses-core
 target_link_libraries(notcurses-core-static
   PRIVATE
     "${libdeflate_STATIC_LIBRARIES}"
+    "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
@@ -278,11 +289,13 @@ target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
     "${libdeflate_LIBRARY_DIRS}"
+    "${ZLIB_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
     "${libdeflate_STATIC_LIBRARY_DIRS}"
+    "${ZLIB_STATIC_LIBRARY_DIRS}"
 )
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses-core PRIVATE qrcodegen)
