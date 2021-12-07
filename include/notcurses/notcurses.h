@@ -2359,6 +2359,15 @@ API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                         const char* text, size_t* bytes)
   __attribute__ ((nonnull (1, 4)));
 
+// Like ncplane_puttext(), we're going for an orderly presentation of (possibly
+// bulk) text. Unlike ncplane_puttext(), we're going to grow the plane as
+// necessary to present it. If the plane is scrolling, we'll grow the bottom
+// out; we'll otherwise grow out to the right. Either way, no actual scrolling
+// will occur.
+API int ncplane_growtext(struct ncplane* n, int y, ncalign_e align,
+                         const char* text, size_t* bytes)
+  __attribute__ ((nonnull (1, 4)));
+
 // Draw horizontal or vertical lines using the specified cell, starting at the
 // current cursor position. The cursor will end at the cell following the last
 // cell output (even, perhaps counter-intuitively, when drawing vertical

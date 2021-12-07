@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.1 (not yet released)
+  * Added `ncplane_growtext()`, which allows you to dump text to a plane
+    (ala `ncplane_puttext()`), and have it grow right along with you.
+
 * 3.0.0 (2021-12-01) **"In the A"**
   * Made the ABI/API changes that have been planned/collected during 2.x
     development. This primarily involved removing deprecated functions,

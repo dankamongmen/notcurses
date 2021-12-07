@@ -76,6 +76,8 @@ notcurses_output - output to ncplanes
 
 **int ncplane_puttext(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***text***, size_t* ***bytes***);**
 
+**int ncplane_growtext(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***text***, size_t* ***bytes***);**
+
 # DESCRIPTION
 
 These functions write EGCs (Extended Grapheme Clusters) to the specified
@@ -91,6 +93,7 @@ These functions write EGCs (Extended Grapheme Clusters) to the specified
 * **ncplane_vprintf()**: formatted output using **va_list**
 * **ncplane_printf()**: formatted output using variadic arguments
 * **ncplane_puttext()**: multi-line, line-broken, aligned text
+* **ncplane_growtext()**: **ncplane_growtext()** with an autogrowing plane
 
 All of these use the **ncplane**'s active styling, save **notcurses_putc()**,
 which uses the **nccell**'s styling. Functions accepting a single EGC expect a series
