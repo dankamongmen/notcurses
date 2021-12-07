@@ -1456,6 +1456,14 @@ of [Unicode Annex #14](http://www.unicode.org/reports/tr14/tr14-34.html).
 // determine whether the write completed by inspecting '*bytes'.
 int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                     const char* text, size_t* bytes);
+
+// Like ncplane_puttext(), we're going for an orderly presentation of (possibly
+// bulk) text. Unlike ncplane_puttext(), we're going to grow the plane as
+// necessary to present it. If the plane is scrolling, we'll grow the bottom
+// out; we'll otherwise grow out to the right. Either way, no actual scrolling
+// will occur.
+int ncplane_growtext(struct ncplane* n, int y, ncalign_e align,
+                     const char* text, size_t* bytes);
 ```
 
 Lines and boxes can be drawn, interpolating their colors between their two
