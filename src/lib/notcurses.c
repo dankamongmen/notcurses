@@ -511,7 +511,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   if(p == NULL){
     return NULL;
   }
-  p->scrolling = false;
+  p->scrolling = nopts->flags & NCPLANE_OPTION_VSCROLL;
   p->fixedbound = nopts->flags & NCPLANE_OPTION_FIXED;
   p->widget = NULL;
   p->wdestruct = NULL;
