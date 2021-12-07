@@ -1265,9 +1265,9 @@ API char* notcurses_at_yx(struct notcurses* nc, unsigned yoff, unsigned xoff,
   __attribute__ ((nonnull (1)));
 
 // Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
-#define NCPLANE_OPTION_HORALIGNED 0x0001ull
+#define NCPLANE_OPTION_HORALIGNED   0x0001ull
 // Vertical alignment relative to the parent plane. Use ncalign_e for 'y'.
-#define NCPLANE_OPTION_VERALIGNED 0x0002ull
+#define NCPLANE_OPTION_VERALIGNED   0x0002ull
 // Maximize relative to the parent plane, modulo the provided margins. The
 // margins are best-effort; the plane will always be at least 1 column by
 // 1 row. If the margins can be effected, the plane will be sized to all
@@ -1278,7 +1278,15 @@ API char* notcurses_at_yx(struct notcurses* nc, unsigned yoff, unsigned xoff,
 // If this plane is bound to a scrolling plane, it ought *not* scroll along
 // with the parent (it will still move with the parent, maintaining its
 // relative position, if the parent is moved to a new location).
-#define NCPLANE_OPTION_FIXED      0x0008ull
+#define NCPLANE_OPTION_FIXED        0x0008ull
+// Enable automatic growth of the plane to accommodate output. Creating a
+// plane with this flag is equivalent to immediately calling
+// ncplane_set_autogrow(p, true) following plane creation.
+#define NCPLANE_OPTION_AUTOGROW     0x0010ull
+// Enable vertical scrolling of the plane to accommodate output. Creating a
+// plane with this flag is equivalent to immediately calling
+// ncplane_set_scrolling(p, true) following plane creation.
+#define NCPLANE_OPTION_VSCROLL      0x0020ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -1380,10 +1388,19 @@ API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RE
 // All planes are created with scrolling disabled. Scrolling can be dynamically
 // controlled with ncplane_set_scrolling(). Returns true if scrolling was
 // previously enabled, or false if it was disabled.
-API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp)
+API bool ncplane_set_scrolling(struct ncplane* n, unsigned scrollp)
   __attribute__ ((nonnull (1)));
 
 API bool ncplane_scrolling_p(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+
+// By default, planes are created with autogrow disabled. Autogrow can be
+// dynamically controlled with ncplane_set_autogrow(). Returns true if
+// autogrow was previously enabled, or false if it was disabled.
+API bool ncplane_set_autogrow(struct ncplane* n, unsigned growp)
+  __attribute__ ((nonnull (1)));
+
+API bool ncplane_autogrow_p(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
 // Palette API. Some terminals only support 256 colors, but allow the full
@@ -2357,15 +2374,6 @@ ncplane_printf_stained(struct ncplane* n, const char* format, ...){
 // A newline at any point will move the cursor to the next row.
 API int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                         const char* text, size_t* bytes)
-  __attribute__ ((nonnull (1, 4)));
-
-// Like ncplane_puttext(), we're going for an orderly presentation of (possibly
-// bulk) text. Unlike ncplane_puttext(), we're going to grow the plane as
-// necessary to present it. If the plane is scrolling, we'll grow the bottom
-// out; we'll otherwise grow out to the right. Either way, no actual scrolling
-// will occur.
-API int ncplane_growtext(struct ncplane* n, int y, ncalign_e align,
-                         const char* text, size_t* bytes)
   __attribute__ ((nonnull (1, 4)));
 
 // Draw horizontal or vertical lines using the specified cell, starting at the

@@ -787,9 +787,9 @@ When an `ncplane` is no longer needed, free it with
 
 ```c
 // Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
-#define NCPLANE_OPTION_HORALIGNED 0x0001ull
+#define NCPLANE_OPTION_HORALIGNED   0x0001ull
 // Vertical alignment relative to the parent plane. Use ncalign_e for 'y'.
-#define NCPLANE_OPTION_VERALIGNED 0x0002ull
+#define NCPLANE_OPTION_VERALIGNED   0x0002ull
 // Maximize relative to the parent plane, modulo the provided margins. The
 // margins are best-effort; the plane will always be at least 1 column by
 // 1 row. If the margins can be effected, the plane will be sized to all
@@ -800,7 +800,15 @@ When an `ncplane` is no longer needed, free it with
 // If this plane is bound to a scrolling plane, it ought *not* scroll along
 // with the parent (it will still move with the parent, maintaining its
 // relative position, if the parent is moved to a new location).
-#define NCPLANE_OPTION_FIXED      0x0008ull
+#define NCPLANE_OPTION_FIXED        0x0008ull
+// Enable automatic growth of the plane to accommodate output. Creating a
+// plane with this flag is equivalent to immediately calling
+// ncplane_set_autogrow(p, true) following plane creation.
+#define NCPLANE_OPTION_AUTOGROW     0x0010ull
+// Enable vertical scrolling of the plane to accommodate output. Creating a
+// plane with this flag is equivalent to immediately calling
+// ncplane_set_scrolling(p, true) following plane creation.
+#define NCPLANE_OPTION_VSCROLL      0x0020ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -938,7 +946,10 @@ scrolling is enabled).
 // All planes are created with scrolling disabled. Scrolling can be dynamically
 // controlled with ncplane_set_scrolling(). Returns true if scrolling was
 // previously enabled, or false if it was disabled.
-bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+bool ncplane_set_scrolling(struct ncplane* n, unsigned scrollp);
+
+// Returns true iff the plane is scrolling.
+bool ncplane_scrolling_p(const struct ncplane* n);
 
 // Effect |r| scroll events on the plane |n|. Returns an error if |n| is not
 // a scrolling plane, and otherwise returns the number of lines scrolled.
@@ -1050,6 +1061,23 @@ void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
 // way, translate the absolute coordinates relative to 'n'. If the point is not
 // within 'n', these coordinates will not be within the dimensions of the plane.
 bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);
+```
+
+Normally, when text reaches the end of a plane (the horizontal end unless
+scrolling is enabled, and the vertical end otherwise), more cannot be written.
+If a plane is autogrowing, it will be enlarged to accommodate the extra text.
+If it is scrolling, it will be enlarged down; it will otherwise be enlarged
+right. Note that attempting to explicitly move the cursor outside the plane is
+still an error. The growth occurs when text is written, *not* when the cursor
+is moved.
+
+```c
+// By default, planes are created with autogrow disabled. Autogrow can be
+// dynamically controlled with ncplane_set_autogrow(). Returns true if
+// autogrow was previously enabled, or false if it was disabled.
+API bool ncplane_set_autogrow(struct ncplane* n, unsigned growp);
+
+API bool ncplane_autogrow_p(const struct ncplane* n);
 ```
 
 If a given cell's glyph is zero, or its foreground channel is fully transparent,

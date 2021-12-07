@@ -15,6 +15,8 @@ notcurses_plane - operations on ncplanes
 #define NCPLANE_OPTION_VERALIGNED   0x0002ull
 #define NCPLANE_OPTION_MARGINALIZED 0x0004ull
 #define NCPLANE_OPTION_FIXED        0x0008ull
+#define NCPLANE_OPTION_AUTOGROW     0x0010ull
+#define NCPLANE_OPTION_VSCROLL      0x0020ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -207,9 +209,13 @@ typedef struct ncplane_options {
 
 **int ncplane_erase_region(struct ncplane* ***n***, int ***ystart***, int ***xstart***, int ***ylen***, int ***xlen***);**
 
-**bool ncplane_set_scrolling(struct ncplane* ***n***, bool ***scrollp***);**
+**bool ncplane_set_scrolling(struct ncplane* ***n***, unsigned ***scrollp***);**
 
 **bool ncplane_scrolling_p(const struct ncplane* ***n***);**
+
+**bool ncplane_set_autogrow(struct ncplane* ***n***, unsigned ***growp***);**
+
+**bool ncplane_autogrow_p(const struct ncplane* ***n***);**
 
 **int ncplane_scrollup(struct ncplane* ***n***, int ***r***);**
 
@@ -436,9 +442,28 @@ other rows are moved up, the last row is cleared, and output begins at the
 beginning of the last row. This does not take place until output is generated
 (i.e. it is possible to fill a plane when scrolling is enabled).
 
+Creating a plane with the **NCPLANE_OPTION_VSCROLL** flag is equivalent to
+immediately calling **ncplane_set_scrolling** on that plane with an argument
+of **true**.
+
 By default, planes bound to a scrolling plane will scroll along with it, if
 they intersect the plane. This can be disabled by creating them with the
 **NCPLANE_OPTION_FIXED** flag.
+
+## Autogrow
+
+Normally, once output reaches the right boundary of a plane, it is impossible
+to place more output unless the cursor is first moved. If scrolling is
+enabled, the cursor will automatically move down and to the left in this case,
+but upon reaching the bottom right corner of the plane, it is impossible to
+place more output without a scrolling event. If autogrow is in play, the plane
+will automatically be enlarged to accommodate output. If scrolling is disabled,
+growth takes place to the right; it otherwise takes place at the bottom. The
+plane only grows in one dimension.
+
+Creating a plane with the **NCPLANE_OPTION_AUTOGROW** flag is equivalent to
+immediately calling **ncplane_set_autogrow** on that plane with an argument
+of **true**.
 
 ## Bitmaps
 

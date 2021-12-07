@@ -2822,7 +2822,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   return n;
 }
 
-bool ncplane_set_scrolling(ncplane* n, bool scrollp){
+bool ncplane_set_scrolling(ncplane* n, unsigned scrollp){
   bool old = n->scrolling;
   n->scrolling = scrollp;
   return old;
