@@ -568,6 +568,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
 static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
   ncplane_set_fchannel(p, n->ttype->channel);
+  size_t b = 0;
   switch(n->ttype->ltype){
     case LINE_TH:
       ncplane_set_styles(p, NCSTYLE_UNDERLINE);
@@ -576,7 +577,6 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
       ncplane_set_styles(p, NCSTYLE_NONE);
       break;
     case LINE_SH: // section heading
-      size_t b = 0;
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
       ncplane_set_styles(p, NCSTYLE_BOLD);
       ncplane_putstr(p, n->text);
