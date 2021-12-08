@@ -576,9 +576,9 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           return -1;
         }
         current_para->ttype = node;
-      }else if(node->ltype == LINE_TH){
+      }else if(node->ltype == LINE_TP){
         if(dom->root == NULL){
-          fprintf(stderr, "theorem transcends structure\n");
+          fprintf(stderr, "tagged paragraph transcends structure\n");
           return -1;
         }
         if((current_para = add_node(current_para, NULL)) == NULL){
@@ -631,6 +631,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
       ncplane_cursor_move_yx(p, -1, 0);
       break;
     case LINE_PP: // paragraph
+    case LINE_TP: // tagged paragraph
       if(n->text){
         ncplane_cursor_move_rel(p, 2, 0);
         size_t b = 0;
