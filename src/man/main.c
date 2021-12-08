@@ -683,6 +683,7 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
     .cols = dimx,
     .userptr = dom,
     .resizecb = resize_pman,
+    .flags = NCPLANE_OPTION_AUTOGROW | NCPLANE_OPTION_VSCROLL,
   };
   struct ncplane* pman = ncplane_create(stdn, &popts);
   if(pman == NULL){
