@@ -780,6 +780,7 @@ create_bar(struct notcurses* nc, pagedom* dom){
 
 static int
 manloop(struct notcurses* nc, const char* arg){
+  struct ncplane* stdn = notcurses_stdplane(nc);
   int ret = -1;
   struct ncplane* page = NULL;
   struct ncplane* bar = NULL;
@@ -823,8 +824,9 @@ manloop(struct notcurses* nc, const char* arg){
         }
         break;
       case 'j': case NCKEY_DOWN:
-        // FIXME when to stop?
-        ncplane_move_rel(page, -1, 0);
+        if(ncplane_y(page) + ncplane_dim_y(page) > ncplane_dim_y(stdn)){
+          ncplane_move_rel(page, -1, 0);
+        }
         break;
       case 'q':
         ret = 0;
