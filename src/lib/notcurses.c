@@ -1640,6 +1640,10 @@ void scroll_down(ncplane* n){
 //fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d scrolling: %u\n", n->y, n->x, n->leny, n->lenx, n->logrow, n->scrolling);
   n->x = 0;
   if(n->y == n->leny - 1){
+    if(n->autogrow){
+      ncplane_resize_simple(n, n->leny + 1, n->lenx);
+      return;
+    }
     if(n == notcurses_stdplane(ncplane_notcurses(n))){
       ncplane_pile(n)->scrolls++;
     }
@@ -1734,24 +1738,27 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // line. if scrolling is enabled, move to the next line if so. if x or y are
   // specified, we must always try to print at exactly that location, and
   // there's no need to check the present location in that dimension.
+  bool linesend = false;
   if(x < 0){
     // we checked x for all negatives, but only -1 is valid (our else clause is
     // predicated on a non-negative x).
     if(x == -1){
       if(n->x + cols - 1 >= n->lenx){
-        if(n->scrolling){
-          scroll_down(n);
-        }else if(n->autogrow){
-          // FIXME groooooow to the right
-        }else{
-          logerror("target x %d [%.*s] > length %d\n", n->x, bytes, egc, n->lenx);
-          return -1;
-        }
+        linesend = true;
       }
     }
   }else{
     if((unsigned)x + cols - 1 >= n->lenx){
-      logerror("no room for %d cols [%.*s] at length %d\n", cols, bytes, egc, n->lenx);
+      linesend = true;
+    }
+  }
+  if(linesend){
+    if(n->scrolling){
+      scroll_down(n);
+    }else if(n->autogrow){
+      ncplane_resize_simple(n, n->leny, n->lenx + cols);
+    }else{
+      logerror("target x %d [%.*s] > length %d\n", n->x, bytes, egc, n->lenx);
       return -1;
     }
   }
