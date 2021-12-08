@@ -352,6 +352,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // terminal to which we are talking. if we already know what we're talking
 // to, there's no point in sending them.
 #define IDQUERIES TRIDEVATTR \
+                  XTVERSION \
                   XTGETTCAP \
                   SECDEVATTR
 
@@ -414,11 +415,9 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
 // send any identification queries (we've already identified the terminal).
-// write DSRCPR as early as possible following SMCUP, so that it precedes any
-// query material that's bled onto stdin and echoed. if 'noaltscreen' is set,
-// do not send an smcup. if 'draininput' is set, do not send any keyboard
-// modifiers. sent XTVERSION first of all, since ConPTY passes that through to
-// the real terminal, and thus it takes a bit longer to get the response.
+// write DSRCPR as early as possible, so that it precedes any query material
+// that's bled onto stdin and echoed. if 'noaltscreen' is set, do not send
+// an smcup. if 'draininput' is set, do not send any keyboard modifiers.
 static int
 send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
                      unsigned draininput){
@@ -432,9 +431,9 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
       }
     }else{
       if(draininput){
-        queries = XTVERSION DSRCPR IDQUERIES DIRECTIVES;
+        queries = DSRCPR IDQUERIES DIRECTIVES;
       }else{
-        queries = XTVERSION DSRCPR IDQUERIES KKBDENTER DIRECTIVES;
+        queries = DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
       }
     }
   }else{
@@ -446,9 +445,9 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
       }
     }else{
       if(draininput){
-        queries = XTVERSION SMCUP DSRCPR IDQUERIES DIRECTIVES;
+        queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
       }else{
-        queries = XTVERSION SMCUP DSRCPR IDQUERIES KKBDENTER DIRECTIVES;
+        queries = SMCUP DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
       }
     }
   }
