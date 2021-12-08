@@ -112,6 +112,7 @@ typedef struct ncplane {
   int margin_b, margin_r;// bottom and right margins, stored for resize
   bool scrolling;        // is scrolling enabled? always disabled by default
   bool fixedbound;       // are we fixed relative to the parent's scrolling?
+  bool autogrow;         // do we grow to accommodate output?
 
   // we need to track any widget to which we are bound, so that (1) we don't
   // end up bound to two widgets and (2) we can clean them up on shutdown
