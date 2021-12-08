@@ -1739,11 +1739,14 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     // predicated on a non-negative x).
     if(x == -1){
       if(n->x + cols - 1 >= n->lenx){
-        if(!n->scrolling){
+        if(n->scrolling){
+          scroll_down(n);
+        }else if(n->autogrow){
+          // FIXME groooooow to the right
+        }else{
           logerror("target x %d [%.*s] > length %d\n", n->x, bytes, egc, n->lenx);
           return -1;
         }
-        scroll_down(n);
       }
     }
   }else{
@@ -1752,7 +1755,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
       return -1;
     }
   }
-  // explicit targets outside the plane will be rejected here.
+  // targets outside the plane will be rejected here.
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
