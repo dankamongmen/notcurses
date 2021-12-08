@@ -188,34 +188,40 @@ typedef struct {
   ltypes ltype;
   const char* symbol;
   ttypes ttype;
+  uint32_t channel;
 } trofftype;
 
 // all troff types start with a period, followed by one or two ASCII
 // characters.
 static const trofftype trofftypes[] = {
-  { .ltype = LINE_UNKNOWN, .symbol = "", .ttype = TROFF_UNKNOWN, },
-  { .ltype = LINE_COMMENT, .symbol = "\\\"", .ttype = TROFF_COMMENT, },
-#define TROFF_FONT(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_FONT, },
+  { .ltype = LINE_UNKNOWN, .symbol = "", .ttype = TROFF_UNKNOWN, .channel = 0, },
+  { .ltype = LINE_COMMENT, .symbol = "\\\"", .ttype = TROFF_COMMENT, .channel = 0, },
+#define TROFF_FONT(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_FONT, .channel = 0, },
   TROFF_FONT(B) TROFF_FONT(BI) TROFF_FONT(BR)
   TROFF_FONT(I) TROFF_FONT(IB) TROFF_FONT(IR)
 #undef TROFF_FONT
-#define TROFF_STRUCTURE(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_STRUCTURE, },
-  TROFF_STRUCTURE(EE) TROFF_STRUCTURE(EX) TROFF_STRUCTURE(RE) TROFF_STRUCTURE(RS)
-  TROFF_STRUCTURE(SH) TROFF_STRUCTURE(SS) TROFF_STRUCTURE(TH)
+#define TROFF_STRUCTURE(x, c) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_STRUCTURE, .channel = (c), },
+  TROFF_STRUCTURE(EE, 0)
+  TROFF_STRUCTURE(EX, 0)
+  TROFF_STRUCTURE(RE, 0)
+  TROFF_STRUCTURE(RS, 0)
+  TROFF_STRUCTURE(SH, NCCHANNEL_INITIALIZER(0x9b, 0x9b, 0xfc))
+  TROFF_STRUCTURE(SS, NCCHANNEL_INITIALIZER(0x6c, 0x6b, 0xfb))
+  TROFF_STRUCTURE(TH, NCCHANNEL_INITIALIZER(0xcb, 0xcb, 0xfd))
 #undef TROFF_STRUCTURE
-#define TROFF_PARA(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_PARAGRAPH, },
+#define TROFF_PARA(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_PARAGRAPH, .channel = 0, },
   TROFF_PARA(IP) TROFF_PARA(LP) TROFF_PARA(P)
   TROFF_PARA(PP) TROFF_PARA(TP) TROFF_PARA(TQ)
 #undef TROFF_PARA
-#define TROFF_HLINK(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_HYPERLINK, },
+#define TROFF_HLINK(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_HYPERLINK, .channel = 0, },
   TROFF_HLINK(ME) TROFF_HLINK(MT) TROFF_HLINK(UE) TROFF_HLINK(UR)
 #undef TROFF_HLINK
-#define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_SYNOPSIS, },
+#define TROFF_SYNOPSIS(x) { .ltype = LINE_##x, .symbol = #x, .ttype = TROFF_SYNOPSIS, .channel = 0, },
   TROFF_SYNOPSIS(OP) TROFF_SYNOPSIS(SY) TROFF_SYNOPSIS(YS)
 #undef TROFF_SYNOPSIS
-  { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, },
-  { .ltype = LINE_UNKNOWN, .symbol = "br", .ttype = TROFF_UNKNOWN, },
-  { .ltype = LINE_COMMENT, .symbol = "IX", .ttype = TROFF_COMMENT, },
+  { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, .channel = 0, },
+  { .ltype = LINE_UNKNOWN, .symbol = "br", .ttype = TROFF_UNKNOWN, .channel = 0, },
+  { .ltype = LINE_COMMENT, .symbol = "IX", .ttype = TROFF_COMMENT, .channel = 0, },
 };
 
 // the troff trie is only defined on the 128 ascii values.
@@ -561,6 +567,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
 
 static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
+  ncplane_set_fchannel(p, n->ttype->channel);
   switch(n->ttype->ltype){
     case LINE_TH:
       ncplane_set_styles(p, NCSTYLE_UNDERLINE);
