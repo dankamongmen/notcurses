@@ -213,7 +213,7 @@ triviz(struct ncplane* n, const wchar_t* w1, const wchar_t* w2, const wchar_t* w
        const wchar_t* wa, const wchar_t* wb, const wchar_t* wc,
        const wchar_t* wd, const wchar_t* we, const wchar_t* wf,
        const wchar_t* w10, const wchar_t* w11, const wchar_t* w12,
-       const wchar_t* w13, const wchar_t* w14){
+       const wchar_t* w13, const wchar_t* w14, const wchar_t* w15){
   wvizn(n, w1, 2);
   ncplane_putchar(n, ' ');
   wvizn(n, w2, 2);
@@ -232,22 +232,20 @@ triviz(struct ncplane* n, const wchar_t* w1, const wchar_t* w2, const wchar_t* w
   wvizn(n, w9, 2);
   wvizn(n, wa, 1);
   ncplane_putchar(n, ' ');
-  ncplane_putchar(n, ' ');
   wvizn(n, wb, 2);
   wvizn(n, wc, 1);
   ncplane_putchar(n, ' ');
   wvizn(n, wd, 2);
   wvizn(n, we, 1);
   ncplane_putchar(n, ' ');
-  ncplane_putchar(n, ' ');
   wvizn(n, wf, 2);
   wvizn(n, w10, 1);
   ncplane_putchar(n, ' ');
   wvizn(n, w11, 2);
   wvizn(n, w12, 1);
-  ncplane_putchar(n, ' ');
-  wviz(n, w13);
+  wvizn(n, w13, 3); // chess
   wviz(n, w14);
+  wviz(n, w15);
 }
 
 static void
@@ -288,14 +286,14 @@ unicodedumper(struct ncplane* n, const char* indent){
            NCCIRCULARARCSW, NCWHITETRIANGLESW, NCSHADETRIANGLESW, NCBLACKTRIANGLESW,
            NCBOXLIGHTW, &NCBOXLIGHTW[4], NCBOXHEAVYW, &NCBOXHEAVYW[4], NCBOXROUNDW,
            &NCBOXROUNDW[4], NCBOXDOUBLEW, &NCBOXDOUBLEW[4], NCBOXOUTERW, &NCBOXOUTERW[4],
-           L"⩘▵△▹▷▿▽◃◁", NCARROWW);
+           NCCHESSBLACK, L"⩘▵△▹▷▿▽◃◁", NCARROWW);
     vertviz(n, L'⎪', NCEIGHTHSR[2], NCEIGHTHSL[2], L'⎪', L"├─╨╫╨─┤┇⎜⎟");
     ncplane_printf(n, "%s╱╽╲ ", indent);
     triviz(n, &NCWHITESQUARESW[2], &NCWHITECIRCLESW[2], &NCDIAGONALSW[2], &NCDIAGONALSW[6],
            &NCCIRCULARARCSW[2], &NCWHITETRIANGLESW[2], &NCSHADETRIANGLESW[2], &NCBLACKTRIANGLESW[2],
            &NCBOXLIGHTW[2], &NCBOXLIGHTW[5], &NCBOXHEAVYW[2], &NCBOXHEAVYW[5], &NCBOXROUNDW[2],
            &NCBOXROUNDW[5], &NCBOXDOUBLEW[2], &NCBOXDOUBLEW[5], &NCBOXOUTERW[2], &NCBOXOUTERW[5],
-           L"⩗▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
+           &NCCHESSBLACK[3], L"⩗▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
     vertviz(n, L'⎪', NCEIGHTHSR[3], NCEIGHTHSL[3], L'⎪', L"╞═╤╬╤═╡┋⎜⎟");
     braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4],
                 L"╞╕╘╬╛╒╡┊⎜⎟");

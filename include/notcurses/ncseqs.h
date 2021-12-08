@@ -76,6 +76,10 @@ extern "C" {
 #define NCSEGDIGITS L"\U0001FBF0\U0001FBF1\U0001FBF2\U0001FBF3\U0001FBF4"\
                      "\U0001FBF5\U0001FBF6\U0001FBF7\U0001FBF8\U0001FBF9"
 
+// chess
+#define NCCHESSBLACK L"\u265f\u265c\u265e\u265d\u265b\u265a" // "♟♜♞♝♛♚"
+#define NCCHESSWHITE L"\u265f\u265c\u265e\u265d\u265b\u265a" // "♙♖♘♗♕♔"
+
 // argh
 #define NCBOXLIGHT  "┌┐└┘─│"
 #define NCBOXHEAVY  "┏┓┗┛━┃"
