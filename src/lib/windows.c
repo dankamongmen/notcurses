@@ -89,6 +89,21 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     return -1;
   }
   loginfo("verified Windows ConPTY\n");
+  // ConPTY intercepts most control sequences. It does pass through XTVERSION
+  // (for now), but since it responds to the DA1 itself, we usually get that
+  // prior to any XTVERSION response. We instead key off of mintty's pretty
+  // reliable use of TERM_PROGRAM and TERM_PROGRAM_VERSION.
+  const char* tp = getenv("TERM_PROGRAM");
+  if(tp){
+    if(strcmp(tp, "mintty") == 0){
+      const char* ver = getenv("TERM_PROGRAM_VERSION");
+      if(ver){
+        ti->version = strdup(ver);
+      }
+      loginfo("detected mintty %s\n", ti->version ? ti->version : "");
+      return TERMINAL_MINTTY;
+    }
+  }
   ti->qterm = TERMINAL_MSTERMINAL;
   return 0;
 }
