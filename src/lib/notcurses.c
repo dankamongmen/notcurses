@@ -1759,9 +1759,6 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  // FIXME scroll_down() always performs a virtual scroll of the plane, right?
-  // we don't need that unless we're at the bottom! is this right?!? FIXME
-  // FIXME note also the scroll_down() above--very fishy! FIXME
   if(*egc == '\n'){
     scroll_down(n);
   }
