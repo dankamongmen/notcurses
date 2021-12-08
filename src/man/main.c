@@ -405,7 +405,8 @@ lex_title(pagedom* dom){
   tok = endtok + 1;
   if(!*tok){
     fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-    return -1;
+    dom->version = strdup("");
+    return 0; // allow empty version
   }
   if(!quoted){
     while(isspace(*tok)){
@@ -418,7 +419,8 @@ lex_title(pagedom* dom){
     }
     if(!*tok){
       fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-      return -1;
+      dom->version = strdup("");
+      return 0; // allow empty version
     }
   }
   endtok = tok + 1;
@@ -440,7 +442,8 @@ lex_title(pagedom* dom){
   }
   if(!*endtok){
     fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-    return -1;
+    dom->version = strdup("");
+    return 0; // allow empty version
   }
   dom->version = strndup(tok, endtok - tok);
   return 0;
@@ -586,12 +589,12 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
     }else{
       if(current_para == NULL){
         fprintf(stderr, "free-floating text transcends para\n");
-        fprintf(stderr, "[%s]\n", line);
-        return -1;
-      }
-      char* et = augment_text(current_para, line, feol);
-      if(et == NULL){
-        return -1;
+        //fprintf(stderr, "[%s]\n", line);
+      }else{
+        char* et = augment_text(current_para, line, feol);
+        if(et == NULL){
+          return -1;
+        }
       }
     }
     off += eol - line;
