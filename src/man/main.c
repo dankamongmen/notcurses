@@ -215,6 +215,7 @@ static const trofftype trofftypes[] = {
 #undef TROFF_SYNOPSIS
   { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, },
   { .ltype = LINE_UNKNOWN, .symbol = "br", .ttype = TROFF_UNKNOWN, },
+  { .ltype = LINE_COMMENT, .symbol = "IX", .ttype = TROFF_COMMENT, },
 };
 
 // the troff trie is only defined on the 128 ascii values.
@@ -539,7 +540,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       }
     }else{
       if(current_para == NULL){
-        fprintf(stderr, "free-floating text transcends para\n");
+        //fprintf(stderr, "free-floating text transcends para\n");
         //fprintf(stderr, "[%s]\n", line);
       }else{
         char* et = augment_text(current_para, line, feol);
