@@ -14,11 +14,8 @@ ncplane_putline(ncplane* n, ncalign_e align, int cols, const char* text, size_t 
 static int
 puttext_advance_line(ncplane* n){
 //fprintf(stderr, "ADVANCING LINE FROM %d/%d\n", n->y, n->x);
-  if(n->scrolling){
+  if(n->scrolling || n->autogrow){
     scroll_down(n);
-    /*if(ncplane_putsimple_yx(n, -1, -1, '\n') < 0){
-      return -1;
-    }*/
   }else{
     // will fail on last line in the absence of scrolling, which is proper
     if(ncplane_cursor_move_yx(n, n->y + 1, 0)){

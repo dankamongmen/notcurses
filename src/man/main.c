@@ -576,14 +576,15 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
       ncplane_set_styles(p, NCSTYLE_NONE);
       break;
     case LINE_SH: // section heading
-      ncplane_cursor_move_rel(p, 2, 0);
+      size_t b = 0;
+      ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
       ncplane_set_styles(p, NCSTYLE_BOLD);
       ncplane_putstr(p, n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
       break;
     case LINE_SS: // subsection heading
-      ncplane_cursor_move_rel(p, 2, 0);
+      ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
       ncplane_set_styles(p, NCSTYLE_ITALIC);
       ncplane_printf(p, "    %s", n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
@@ -592,8 +593,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
     case LINE_PP: // paragraph
     case LINE_TP: // tagged paragraph
       if(n->text){
-        ncplane_cursor_move_rel(p, 2, 0);
-        size_t b = 0;
+        ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
         ncplane_puttext(p, -1, NCALIGN_LEFT, n->text, &b);
         ncplane_cursor_move_yx(p, -1, 0);
       }
