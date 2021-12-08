@@ -696,7 +696,7 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   return pman;
 }
 
-static const char USAGE_TEXT[] = "(q)uit";
+static const char USAGE_TEXT[] = "(k↑/j↓) (q)uit";
 
 static int
 draw_bar(struct ncplane* bar, pagedom* dom){
@@ -808,11 +808,23 @@ manloop(struct notcurses* nc, const char* arg){
     }
     ncinput ni;
     key = notcurses_get(nc, NULL, &ni);
+    if(ni.evtype == NCTYPE_RELEASE){
+      continue;
+    }
     switch(key){
       case 'L':
         if(ni.ctrl && !ni.alt){
           notcurses_refresh(nc, NULL, NULL);
         }
+        break;
+      case 'k': case NCKEY_UP:
+        if(ncplane_y(page)){
+          ncplane_move_rel(page, 1, 0);
+        }
+        break;
+      case 'j': case NCKEY_DOWN:
+        // FIXME when to stop?
+        ncplane_move_rel(page, -1, 0);
         break;
       case 'q':
         ret = 0;
