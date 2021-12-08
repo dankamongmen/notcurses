@@ -30,7 +30,7 @@ char* notcurses_data_dir(void){
   return val;
 
 err:
-  return NOTCURSES_SHARE; // fall back to build path
+  return strdup(NOTCURSES_SHARE); // fall back to build path
 }
 
 char* strndup(const char* str, size_t size){
