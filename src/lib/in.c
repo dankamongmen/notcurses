@@ -101,6 +101,11 @@ typedef struct inputctx {
 
   ipipe ipipes[2];
   ipipe readypipes[2]; // pipes[0]: poll()able fd indicating the presence of user input
+  // initially, initdata is non-NULL and initdata_complete is NULL. once we
+  // get DA1, initdata_complete is non-NULL (it is the same value as
+  // initdata). once we complete reading the input payload that the DA1 arrived
+  // in, initdata is set to NULL, and we broadcast availability. once it has
+  // been taken, both become NULL.
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
   bool failed;          // error initializing input automaton, abort
@@ -995,13 +1000,28 @@ xtsmgraphics_sixel_cb(inputctx* ictx){
 }
 
 static void
-handoff_initial_responses(inputctx* ictx){
+handoff_initial_responses_late(inputctx* ictx){
+  bool sig = false;
   pthread_mutex_lock(&ictx->ilock);
-  ictx->initdata_complete = ictx->initdata;
-  ictx->initdata = NULL;
+  if(ictx->initdata_complete && ictx->initdata){
+     ictx->initdata = NULL;
+     sig = true;
+  }
   pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
-  loginfo("handing off initial responses\n");
+  if(sig){
+    pthread_cond_broadcast(&ictx->icond);
+    loginfo("handing off initial responses\n");
+  }
+}
+
+
+// mark the initdata as complete, but don't yet broadcast it off.
+static void
+handoff_initial_responses_early(inputctx* ictx){
+  pthread_mutex_lock(&ictx->ilock);
+  // set initdata_complete, but don't clear initdata
+  ictx->initdata_complete = ictx->initdata;
+  pthread_mutex_unlock(&ictx->ilock);
 }
 
 // if XTSMGRAPHICS responses were provided, but DA1 didn't advertise sixel
@@ -1027,7 +1047,7 @@ da1_vt102_cb(inputctx* ictx){
     if(ictx->initdata->qterm != TERMINAL_ALACRITTY){
       scrub_sixel_responses(ictx->initdata);
     }
-    handoff_initial_responses(ictx);
+    handoff_initial_responses_early(ictx);
   }
   return 1;
 }
@@ -1037,7 +1057,7 @@ da1_cb(inputctx* ictx){
   loginfo("read primary device attributes\n");
   if(ictx->initdata){
     scrub_sixel_responses(ictx->initdata);
-    handoff_initial_responses(ictx);
+    handoff_initial_responses_early(ictx);
   }
   return 1;
 }
@@ -1074,7 +1094,7 @@ da1_attrs_cb(inputctx* ictx){
     if(!foundsixel){
       scrub_sixel_responses(ictx->initdata);
     }
-    handoff_initial_responses(ictx);
+    handoff_initial_responses_early(ictx);
   }
   free(attrlist);
   return 1;
@@ -1605,8 +1625,7 @@ free_inputctx(inputctx* i){
     if(i->initdata){
       free(i->initdata->version);
       free(i->initdata);
-    }
-    if(i->initdata_complete){
+    }else if(i->initdata_complete){
       free(i->initdata_complete->version);
       free(i->initdata_complete);
     }
@@ -1944,6 +1963,7 @@ process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
     *bufused -= consumed;
     offset += consumed;
   }
+  handoff_initial_responses_late(ictx);
   // move any leftovers to the front
   if(*bufused){
     memmove(buf, buf + offset, *bufused);
@@ -1986,6 +2006,7 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
     *bufused -= consumed;
     offset += consumed;
   }
+  handoff_initial_responses_late(ictx);
 }
 
 // walk the matching automaton from wherever we were.
@@ -2166,7 +2187,8 @@ input_thread(void* vmarshall){
   inputctx* ictx = vmarshall;
   if(prep_all_keys(ictx) || build_cflow_automaton(ictx)){
     ictx->failed = true;
-    handoff_initial_responses(ictx);
+    handoff_initial_responses_early(ictx);
+    handoff_initial_responses_late(ictx);
   }
   for(;;){
     read_inputs_nblock(ictx);
@@ -2438,7 +2460,7 @@ int notcurses_linesigs_enable(notcurses* n){
 struct initial_responses* inputlayer_get_responses(inputctx* ictx){
   struct initial_responses* iresp;
   pthread_mutex_lock(&ictx->ilock);
-  while(!ictx->initdata_complete){
+  while(ictx->initdata || !ictx->initdata_complete){
     pthread_cond_wait(&ictx->icond, &ictx->ilock);
   }
   iresp = ictx->initdata_complete;
