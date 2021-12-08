@@ -59,6 +59,10 @@ typedef struct ncselector_options {
 
 # DESCRIPTION
 
+A selector widget presents a list of items (possibly more than can be
+displayed at once). It facilitates a choice of zero or one item from the
+list.
+
 # NOTES
 
 The **ncplane** **n** provided to **ncselector_create** must not be **NULL**.

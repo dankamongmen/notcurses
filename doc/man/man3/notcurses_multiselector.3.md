@@ -51,6 +51,11 @@ typedef struct ncmultiselector_options {
 
 # DESCRIPTION
 
+A multiselector widget presents a list of items (possibly more than can be
+displayed at once). It facilitates a choice of zero, one, or multiple items
+from the list. Items can be selected and deselected before a final choice
+is made.
+
 # NOTES
 
 The **ncplane** **n** provided to **ncmultiselector_create** must not be
