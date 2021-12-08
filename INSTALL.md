@@ -16,13 +16,13 @@ There are no submodules. Dependencies are fairly minimal.
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libdeflate-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libdeflate-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
-list. If you do not want to deflate Kitty graphics, you can omit
-'libdeflate-dev'. If you don't want to generate QR codes, you can omit
-'libqrcodegen-dev'.
+list. `zlib1g-dev` can be substituted for `libdeflate-dev`; build with
+`-DUSE_DEFLATE=off` in this case. If you don't want to generate QR codes, you can
+omit 'libqrcodegen-dev'.
 
 If you want to build the Python wrappers, you'll also need:
 
@@ -32,12 +32,13 @@ If you want to build the Python wrappers, you'll also need:
 
 Install build dependencies:
 
-`dnf install cmake doctest-devel zlib-devel ncurses-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+`dnf install cmake doctest-devel libdeflate-devel ncurses-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
 RPM Fusion), you might want to use FFmpeg rather than OpenImageIO. If you don't
-want to generate QR codes, you can omit 'libqrcodegen-devel'.
+want to generate QR codes, you can omit 'libqrcodegen-devel'. `zlib-devel` can
+substitute for `libdeflate-devel`; build with `-DUSE_DEFLATE=off` in this case.
 
 ### FreeBSD / DragonFly BSD
 
@@ -47,8 +48,9 @@ Install build dependencies:
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `multimedia/ffmpeg`. If you do not want to deflate Kitty graphics,
-you can omit 'archivers/libdeflate'. If you don't want to generate QR codes,
-you can omit 'graphics/qr-code-generator'.
+you can omit 'archivers/libdeflate'; build with `-DUSE_DEFLATE=off` in this
+case. If you don't want to generate QR codes, you can omit
+'graphics/qr-code-generator'.
 
 ### Microsoft Windows
 
@@ -62,9 +64,12 @@ Note that on Windows, OpenImageIO is (at the moment) recommended over FFmpeg.
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `mingw-w64-ucrt-x86_64-openimageio`. If you do not want to deflate Kitty
-graphics, you can omit 'mingw-w64-ucrt-x86_64-libdeflate'.
+graphics, you can omit 'mingw-w64-ucrt-x86_64-libdeflate'; build with
+`-DUSE_DEFLATE=off` in this case.
 
 You'll want to add `-DUSE_DOCTEST=off -DUSE_PANDOC=off` to your `cmake` invocation.
+`notcurses-tester` does not currently work on Windows, and you probably don't want
+to build the UNIX-style documentation.
 
 ## Building
 
