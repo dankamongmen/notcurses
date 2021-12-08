@@ -513,6 +513,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   p->scrolling = nopts->flags & NCPLANE_OPTION_VSCROLL;
   p->fixedbound = nopts->flags & NCPLANE_OPTION_FIXED;
+  p->autogrow = nopts->flags & NCPLANE_OPTION_AUTOGROW;
   p->widget = NULL;
   p->wdestruct = NULL;
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
@@ -2830,6 +2831,20 @@ bool ncplane_set_scrolling(ncplane* n, unsigned scrollp){
 
 bool ncplane_scrolling_p(const ncplane* n){
   return n->scrolling;
+}
+
+bool ncplane_set_autogrow(ncplane* n, unsigned growp){
+  if(n == notcurses_stdplane_const(ncplane_notcurses_const(n))){
+    logerror("can't set the standard plane autogrow\n");
+    return false;
+  }
+  bool old = n->autogrow;
+  n->autogrow = growp;
+  return old;
+}
+
+bool ncplane_autogrow_p(const ncplane* n){
+  return n->autogrow;
 }
 
 // extract an integer, which must be non-negative, and followed by either a

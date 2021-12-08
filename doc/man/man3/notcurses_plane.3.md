@@ -459,7 +459,8 @@ but upon reaching the bottom right corner of the plane, it is impossible to
 place more output without a scrolling event. If autogrow is in play, the plane
 will automatically be enlarged to accommodate output. If scrolling is disabled,
 growth takes place to the right; it otherwise takes place at the bottom. The
-plane only grows in one dimension.
+plane only grows in one dimension. Autogrow cannot be enabled for the standard
+plane.
 
 Creating a plane with the **NCPLANE_OPTION_AUTOGROW** flag is equivalent to
 immediately calling **ncplane_set_autogrow** on that plane with an argument
