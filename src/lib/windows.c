@@ -98,10 +98,11 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
     if(strcmp(tp, "mintty") == 0){
       const char* ver = getenv("TERM_PROGRAM_VERSION");
       if(ver){
-        ti->version = strdup(ver);
+        ti->termversion = strdup(ver);
       }
-      loginfo("detected mintty %s\n", ti->version ? ti->version : "");
-      return TERMINAL_MINTTY;
+      loginfo("detected mintty %s\n", ti->termversion ? ti->termversion : "");
+      ti->qterm = TERMINAL_MINTTY;
+      return 0;
     }
   }
   ti->qterm = TERMINAL_MSTERMINAL;

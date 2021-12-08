@@ -1056,7 +1056,11 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
       goto err;
     }
-    ti->termversion = iresp->version; // takes ownership
+    if(ti->termversion){
+      free(iresp->version);
+    }else{
+      ti->termversion = iresp->version; // takes ownership
+    }
     if(iresp->appsync_supported){
       if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
         free(iresp);
