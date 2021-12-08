@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <wctype.h>
 #include <getopt.h>
 #include <inttypes.h>
 #include <sys/mman.h>
@@ -314,11 +315,51 @@ typedef struct pagedom {
   char* title;
   char* section;
   char* version;
+  char* footer;
+  char* header;
 } pagedom;
 
 static const char*
 dom_get_title(const pagedom* dom){
   return dom->title;
+}
+
+// get the next token. first, chew whitespace. then match a string of
+// iswgraph(), or a quoted string of iswprint(). return the number of
+// characters consumed, or -1 on error (no token, unterminated quote).
+// heap-copies the utf8 to *token on success.
+static int
+lex_next_token(const char* s, char** token){
+  mbstate_t ps = {};
+  wchar_t w;
+  size_t b, cur;
+  cur = 0;
+  bool inquote = false;
+  const char* tokstart = NULL;
+  while((b = mbrtowc(&w, s + cur, MB_CUR_MAX, &ps)) != (size_t)-1 && b != (size_t)-2){
+    if(tokstart){
+      if(b == 0 || (inquote && w == L'"') || (!inquote && iswspace(w))){
+        if(!tokstart || !*tokstart || *tokstart == '"'){
+          return -1;
+        }
+        *token = strndup(tokstart, cur - (tokstart - s));
+        return cur + b;
+      }
+    }else{
+      if(iswspace(w)){
+        cur += b;
+        continue;
+      }
+      if(w == '"'){
+        inquote = true;
+        tokstart = s + cur + b;
+      }else{
+        tokstart = s + cur;
+      }
+    }
+    cur += b;
+  }
+  return -1;
 }
 
 // take the newly-added title section, and extract the title, section, and
@@ -327,125 +368,35 @@ dom_get_title(const pagedom* dom){
 static int
 lex_title(pagedom* dom){
   const char* tok = dom->root->text;
-  while(isspace(*tok)){
-    ++tok;
-  }
-  bool quoted = false;
-  if(*tok == '"'){
-    quoted = true;
-    ++tok;
-  }
-  if(!*tok){
+  int b = lex_next_token(tok, &dom->title);
+  if(b < 0){
     fprintf(stderr, "couldn't extract title [%s]\n", dom->root->text);
     return -1;
   }
-  const char* endtok = tok + 1;
-  while(*endtok){
-    if(!quoted){
-      if(isspace(*endtok)){
-        break;
-      }else if(*endtok == '"'){
-        quoted = true;
-        break;
-      }
-    }else{
-      if(*endtok == '"'){
-        quoted = false;
-        break;
-      }
-    }
-    ++endtok;
-  }
-  if(!*endtok){
-    fprintf(stderr, "couldn't extract title [%s]\n", dom->root->text);
-    return -1;
-  }
-  dom->title = strndup(tok, endtok - tok);
-  tok = endtok + 1;
-  if(!*tok){
+  tok += b;
+  b = lex_next_token(tok, &dom->section);
+  if(b < 0){
     fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
     return -1;
   }
-  if(!quoted){
-    while(isspace(*tok)){
-      ++tok;
-    }
-    quoted = false;
-    if(*tok == '"'){
-      quoted = true;
-      ++tok;
-    }
-    if(!*tok){
-      fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
-      return -1;
-    }
+  tok += b;
+  b = lex_next_token(tok, &dom->version);
+  if(b < 0){
+    //fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
+    return 0;
   }
-  endtok = tok + 1;
-  while(*endtok){
-    if(!quoted){
-      if(isspace(*endtok)){
-        break;
-      }else if(*endtok == '"'){
-        quoted = true;
-        break;
-      }
-    }else{
-      if(*endtok == '"'){
-        quoted = false;
-        break;
-      }
-    }
-    ++endtok;
+  tok += b;
+  b = lex_next_token(tok, &dom->footer);
+  if(b < 0){
+    //fprintf(stderr, "couldn't extract footer [%s]\n", dom->root->text);
+    return 0;
   }
-  if(!*endtok){
-    fprintf(stderr, "couldn't extract section [%s]\n", dom->root->text);
-    return -1;
+  tok += b;
+  b = lex_next_token(tok, &dom->header);
+  if(b < 0){
+    //fprintf(stderr, "couldn't extract header [%s]\n", dom->root->text);
+    return 0;
   }
-  dom->section = strndup(tok, endtok - tok);
-  tok = endtok + 1;
-  if(!*tok){
-    fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-    dom->version = strdup("");
-    return 0; // allow empty version
-  }
-  if(!quoted){
-    while(isspace(*tok)){
-      ++tok;
-    }
-    quoted = false;
-    if(*tok == '"'){
-      quoted = true;
-      ++tok;
-    }
-    if(!*tok){
-      fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-      dom->version = strdup("");
-      return 0; // allow empty version
-    }
-  }
-  endtok = tok + 1;
-  while(*endtok){
-    if(!quoted){
-      if(isspace(*endtok)){
-        break;
-      }else if(*endtok == '"'){
-        quoted = true;
-        break;
-      }
-    }else{
-      if(*endtok == '"'){
-        quoted = false;
-        break;
-      }
-    }
-    ++endtok;
-  }
-  if(!*endtok){
-    fprintf(stderr, "couldn't extract version [%s]\n", dom->root->text);
-    dom->version = strdup("");
-    return 0; // allow empty version
-  }
-  dom->version = strndup(tok, endtok - tok);
   return 0;
 }
 
