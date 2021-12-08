@@ -57,7 +57,7 @@ TEST_CASE("Wide") {
     unsigned y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
-    CHECK(dimx - 1 == x);
+    CHECK(0 == x);
     CHECK(0 == notcurses_render(nc_));
   }
 

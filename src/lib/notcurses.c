@@ -654,7 +654,7 @@ void ncplane_home(ncplane* n){
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x < 0){
     if(x < -1){
-      logerror("Negative target x %d\n", x);
+      logerror("negative target x %d\n", x);
       return -1;
     }
   }else if((unsigned)x >= n->lenx){
@@ -665,7 +665,7 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   }
   if(y < 0){
     if(y < -1){
-      logerror("Negative target y %d\n", y);
+      logerror("negative target y %d\n", y);
       return -1;
     }
   }else if((unsigned)y >= n->leny){
@@ -1713,39 +1713,50 @@ static int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
   if(n->sprite){
-    logerror("Can't write [%s] to sprixelated plane\n", egc);
+    logerror("can't write [%s] to sprixelated plane\n", egc);
     return -1;
   }
   // reject any control character for output other than newline (and then only
   // on a scrolling plane).
   if(*egc == '\n'){
+    // if we're not scrolling, autogrow would be to the right (as opposed to
+    // down), and thus it still wouldn't apply to the case of a newline.
     if(!n->scrolling){
-      logerror("Rejecting newline on non-scrolling plane\n");
+      logerror("rejecting newline on non-scrolling plane\n");
       return -1;
     }
   }else if(is_control_egc((const unsigned char*)egc, bytes)){
-    logerror("Rejecting %dB control character\n", bytes);
+    logerror("rejecting %dB control character\n", bytes);
     return -1;
   }
   // check *before ncplane_cursor_move_yx()* whether we're past the end of the
   // line. if scrolling is enabled, move to the next line if so. if x or y are
-  // specified, we must always try to print at exactly that location.
-  if(x != -1){
-    if((unsigned)x + cols > n->lenx){
-      logerror("Target x %d + %d cols [%.*s] > length %d\n", x, cols, bytes, egc, n->lenx);
-      ncplane_cursor_move_yx(n, y, x); // update cursor, though
+  // specified, we must always try to print at exactly that location, and
+  // there's no need to check the present location in that dimension.
+  //
+  // check x for all negatives; only -1 is valid, but our else clause is
+  // predicated on a non-negative x.
+  if(x < 0){
+    if(n->x + cols - 1 >= n->lenx){
+      if(!n->scrolling){
+        logerror("target x %d [%.*s] > length %d\n", n->x, bytes, egc, n->lenx);
+        return -1;
+      }
+      scroll_down(n);
+    }
+  }else{
+    if((unsigned)x + cols - 1 >= n->lenx){
+      logerror("no room for %d cols [%.*s] at length %d\n", cols, bytes, egc, n->lenx);
       return -1;
     }
-  }else if(y == -1 && n->x + cols > n->lenx){
-    if(!n->scrolling){
-      logerror("No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
-      return -1;
-    }
-    scroll_down(n);
   }
+  // explicit targets outside the plane will be rejected here.
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
+  // FIXME scroll_down() always performs a virtual scroll of the plane, right?
+  // we don't need that unless we're at the bottom! is this right?!? FIXME
+  // FIXME note also the scroll_down() above--very fishy! FIXME
   if(*egc == '\n'){
     scroll_down(n);
   }

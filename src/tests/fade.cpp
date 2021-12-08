@@ -41,7 +41,6 @@ TEST_CASE("Fade") {
   unsigned dimy, dimx;
   ncplane_dim_yx(n_, &dimy, &dimx);
   nccell c = NCCELL_CHAR_INITIALIZER('*');
-  nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;
   CHECK(!ncplane_set_scrolling(n_, true));
   for(unsigned y = 0 ; y < dimy ; ++y){
