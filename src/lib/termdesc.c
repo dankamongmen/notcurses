@@ -361,6 +361,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // unlike most other queries, so send this first since it will take longer to be
 // answered. note the "\x1b]"; this is an Operating System Command, not CSI.
 #define DEFBGQ "\x1b]11;?\e\\"
+#define DEFFGQ "\x1b]10;?\e\\"
 
 // FIXME ought be using the u7 terminfo string here, if it exists. the great
 // thing is, if we get a response to this, we know we can use it for u7!
@@ -386,7 +387,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // request the cell geometry of the textual area
 #define GEOMCELL "\x1b[18t"
 
-#define DIRECTIVES DEFBGQ \
+#define DIRECTIVES DEFFGQ \
+                   DEFBGQ \
                    KKBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \

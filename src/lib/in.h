@@ -61,7 +61,9 @@ struct initial_responses {
   queried_terminals_e qterm;   // determined terminal
   unsigned kitty_graphics;     // kitty graphics supported
   uint32_t bg;                 // default background
+  uint32_t fg;                 // default foreground
   bool got_bg;                 // have we read default background?
+  bool got_fg;                 // have we read default foreground?
   bool rgb;                    // was RGB DirectColor advertised?
   int pixx;                    // screen geometry in pixels
   int pixy;                    // screen geometry in pixels

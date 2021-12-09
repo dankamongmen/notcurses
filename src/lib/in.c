@@ -1220,26 +1220,54 @@ decrpm_asu_cb(inputctx* ictx){
 }
 
 static int
+get_default_color(const char* str, uint32_t* color){
+  int r, g, b;
+  if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
+    // great! =]
+  }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
+    r /= 256;
+    g /= 256;
+    b /= 256;
+  }else{
+    logerror("couldn't extract rgb from %s\n", str);
+    return -1;
+  }
+  if(r < 0 || g < 0 || b < 0){
+    logerror("invalid colors %d %d %d\n", r, g, b);
+    return -1;
+  }
+  *color = (r << 16u) | (g << 8u) | b;
+  return 0;
+}
+
+static int
 bgdef_cb(inputctx* ictx){
   if(ictx->initdata){
     char* str = amata_next_string(&ictx->amata, "\x1b]11;rgb:");
     if(str == NULL){
       logerror("empty bg string\n");
     }else{
-      int r, g, b;
-      if(sscanf(str, "%02x/%02x/%02x", &r, &g, &b) == 3){
-        // great! =]
-      }else if(sscanf(str, "%04x/%04x/%04x", &r, &g, &b) == 3){
-        r /= 256;
-        g /= 256;
-        b /= 256;
-      }else{
-        logerror("couldn't extract rgb from %s\n", str);
-        r = g = b = 0;
+      if(get_default_color(str, &ictx->initdata->bg) == 0){
+        ictx->initdata->got_bg = true;
+        loginfo("default background 0x%06x\n", ictx->initdata->bg);
       }
-      ictx->initdata->bg = (r << 16u) | (g << 8u) | b;
-      ictx->initdata->got_bg = true;
-      loginfo("default background 0x%02x%02x%02x\n", r, g, b);
+      free(str);
+    }
+  }
+  return 2;
+}
+
+static int
+fgdef_cb(inputctx* ictx){
+  if(ictx->initdata){
+    char* str = amata_next_string(&ictx->amata, "\x1b]10;rgb:");
+    if(str == NULL){
+      logerror("empty fg string\n");
+    }else{
+      if(get_default_color(str, &ictx->initdata->fg) == 0){
+        ictx->initdata->got_fg = true;
+        loginfo("default foreground 0x%06x\n", ictx->initdata->fg);
+      }
       free(str);
     }
   }
@@ -1467,6 +1495,7 @@ build_cflow_automaton(inputctx* ictx){
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
     // a mystery to everyone!
+    { "]10;rgb:\\S", fgdef_cb, },
     { "]11;rgb:\\S", bgdef_cb, },
     { NULL, NULL, },
   }, *csi;
