@@ -565,6 +565,112 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   return 0;
 }
 
+// invoke ncplane_puttext() on the text starting at s and ending
+// (non-inclusive) at e.
+static int
+puttext(struct ncplane* p, const char* s, const char* e){
+  if(e <= s){
+//fprintf(stderr, "no text to print\n");
+    return 0; // no text to print
+  }
+  char* dup = strndup(s, e - s);
+  if(dup == NULL){
+    return -1;
+  }
+  size_t b = 0;
+  int r = ncplane_puttext(p, -1, NCALIGN_LEFT, dup, &b);
+  free(dup);
+  return r;
+}
+
+// paragraphs can have formatting information inline within their text. we
+// proceed until we find such an inline marker, print the text we've skipped,
+// set up the style, and continue.
+static int
+putpara(struct ncplane* p, const char* text){
+  size_t b = 0;
+  ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
+  // cur indicates where the current text to be displayed starts.
+  const char* cur = text;
+  uint16_t style = 0;
+  while(*cur){
+    b = 0;
+    // find the next style marker
+    bool inescape = false;
+    const char* textend = NULL; // one past where the text to print ends
+    // curend is where the text + style markings end
+    const char* curend;
+    for(curend = cur ; *curend ; ++curend){
+      if(*curend == '\\'){
+        if(inescape){ // escaped backslash
+          inescape = false;
+        }else{
+          inescape = true;
+        }
+      }else if(inescape){
+        if(*curend == 'f'){ // set font
+          textend = curend - 1; // account for backslash
+          if(*++curend != '['){
+            fprintf(stderr, "illegal font macro %s\n", curend);
+            return -1;
+          }
+          while(isalpha(*++curend)){
+            switch(toupper(*curend)){
+              case 'R': style = 0; break; // roman, default
+              case 'I': style |= NCSTYLE_ITALIC; break;
+              case 'B': style |= NCSTYLE_BOLD; break;
+              default:
+                fprintf(stderr, "illegal font macro %s\n", curend);
+                return -1;
+            }
+          }
+          if(*curend != ']'){
+            fprintf(stderr, "illegal font macro %s\n", curend);
+            return -1;
+          }
+          ++curend;
+          break;
+        }else if(*curend == '['){ // escaped sequence
+          textend = curend - 1; // account for backslash
+          static const struct {
+            const char* macro;
+            const char* tr;
+          } macros[] = {
+            { "aq]", "'", },
+            { "dq]", "\"", },
+            { NULL, NULL, }
+          };
+          ++curend;
+          const char* macend = NULL;
+          for(typeof(&*macros) m = macros ; m->tr ; ++m){
+            if(strncmp(curend, m->macro, strlen(m->macro)) == 0){
+              // FIXME emit thus far, write tr
+              macend = curend + strlen(m->macro);
+              break;
+            }
+          }
+          if(macend == NULL){
+            fprintf(stderr, "unknown macro %s\n", curend);
+            return -1;
+          }
+          curend = macend;
+          break;
+        }
+      }
+    }
+    if(textend == NULL){
+      textend = curend;
+    }
+    if(puttext(p, cur, textend) < 0){
+      return -1;
+    }
+    cur = curend;
+    ncplane_set_styles(p, style);
+  }
+  ncplane_cursor_move_yx(p, -1, 0);
+  return 0;
+}
+
 static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
   ncplane_set_fchannel(p, n->ttype->channel);
@@ -593,9 +699,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n){
     case LINE_PP: // paragraph
     case LINE_TP: // tagged paragraph
       if(n->text){
-        ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
-        ncplane_puttext(p, -1, NCALIGN_LEFT, n->text, &b);
-        ncplane_cursor_move_yx(p, -1, 0);
+        putpara(p, n->text);
       }
       break;
     default:
