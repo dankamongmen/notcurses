@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses_init - initialize a notcurses instance
+notcurses_init - initialize a Notcurses instance
 
 # SYNOPSIS
 
@@ -72,16 +72,16 @@ called to reset the terminal and free up resources.
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see
 **getenv(3)**), but a non-**NULL** value for **termtype** will override this
-(terminfo is not used on Microsoft Windows, and it is neither meaningful nor
-necessary to define **TERM** there). An invalid terminfo specification
+(terminfo is not used on Microsoft Windows, where it is neither meaningful nor
+necessary to define **TERM**). An invalid terminfo specification
 can lead to reduced performance, reduced display capabilities, and/or display
-errors. notcurses natively targets 24bpp/8bpc RGB color, and it is thus
+errors. Notcurses natively targets 24bpp/8bpc RGB color, and it is thus
 desirable to use a terminal with the **rgb** capability (e.g. xterm's
 **xterm-direct**). Colors will otherwise be quantized down to whatever the
 terminal supports.
 
 If the terminal advertises support for an "alternate screen" via the **smcup**
-terminfo capability, notcurses will employ it by default. This can be prevented
+terminfo capability, Notcurses will employ it by default. This can be prevented
 by setting **NCOPTION_NO_ALTERNATE_SCREEN** in ***flags***. Users tend to have
 strong opinions regarding the alternate screen, so it's often useful to expose
 this via a command-line option. When the alternate screen is not used, the
@@ -91,7 +91,7 @@ screen at startup without using the alternate screen). If the alternate screen
 is not available, the display will still be cleared without
 **NCOPTION_NO_ALTERNATE_SCREEN**.
 
-notcurses hides the cursor by default. It can be dynamically enabled, moved, or
+Notcurses hides the cursor by default. It can be dynamically enabled, moved, or
 disabled during execution via **notcurses_cursor_enable** and
 **notcurses_cursor_disable**. It will be hidden while updating the screen.
 The current location of the terminal cursor can be acquired with
@@ -162,7 +162,7 @@ zero. The following flags are defined:
 
 It is important to reset the terminal before exiting, whether terminating due
 to intended operation or a received signal. This is usually accomplished by
-explicitly calling **notcurses_stop(3)** during shutdown. For convenience, notcurses
+explicitly calling **notcurses_stop(3)** during shutdown. For convenience, Notcurses
 by default installs signal handlers for various signals which would typically
 result in process termination (see **signal(7)**). These signal handlers call
 **notcurses_stop(3)** for each **struct notcurses** in the process, and then propagate
@@ -176,8 +176,8 @@ done, the caller ought be sure to effect similar functionality themselves.
 ## Resize events
 
 **SIGWINCH** (SIGnal WINdow CHange) is delivered to the process when the terminal
-is resized. The default action is to ignore it (**SIG_IGN**). notcurses installs
-a handler for this signal. The handler causes notcurses to update its idea of
+is resized. The default action is to ignore it (**SIG_IGN**). Notcurses installs
+a handler for this signal. The handler causes Notcurses to update its idea of
 the terminal's size using **TIOCGWINSZ** (see **ioctl_tty(2)**), and generates an
 **NCKEY_RESIZE** input event (see **notcurses_input(3)**. This signal handler can be
 inhibited by setting **NCOPTION_NO_WINCH_SIGHANDLER** in **flags**. If this is
@@ -185,7 +185,7 @@ done, the caller should probably watch for the signal, and invoke
 **notcurses_refresh(3)** or **notcurses_render(3)** upon its receipt.
 
 A resize event does not invalidate any references returned earlier by
-notcurses. The content of any new screen area is undefined until the next call
+Notcurses. The content of any new screen area is undefined until the next call
 to **notcurses_render(3)**. This is true even if an existing **struct ncplane**
 (see **notcurses_plane(3)**) overlaps the new area, since the signal could
 arrive while the ncplanes are being modified. Signal handlers are quite
