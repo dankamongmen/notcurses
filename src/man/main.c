@@ -593,6 +593,7 @@ putpara(struct ncplane* p, const char* text){
   // cur indicates where the current text to be displayed starts.
   const char* cur = text;
   uint16_t style = 0;
+  const char* posttext = NULL;
   while(*cur){
     b = 0;
     // find the next style marker
@@ -644,7 +645,7 @@ putpara(struct ncplane* p, const char* text){
           const char* macend = NULL;
           for(typeof(&*macros) m = macros ; m->tr ; ++m){
             if(strncmp(curend, m->macro, strlen(m->macro)) == 0){
-              // FIXME emit thus far, write tr
+              posttext = m->tr;
               macend = curend + strlen(m->macro);
               break;
             }
@@ -663,6 +664,12 @@ putpara(struct ncplane* p, const char* text){
     }
     if(puttext(p, cur, textend) < 0){
       return -1;
+    }
+    if(posttext){
+      if(puttext(p, posttext, posttext + strlen(posttext)) < 0){
+        return -1;
+      }
+      posttext = NULL;
     }
     cur = curend;
     ncplane_set_styles(p, style);
