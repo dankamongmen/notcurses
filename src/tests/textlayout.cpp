@@ -653,6 +653,44 @@ TEST_CASE("TextLayout") {
     CHECK(0 == ncplane_destroy(sp));
   }
 
+  // test that multiple new lines are treated as such, both on the plane
+  // originally, and in any autogrown region.
+  SUBCASE("MultipleNewlines") {
+    struct ncplane_options nopts{};
+    nopts.rows = 3;
+    nopts.cols = 10;
+    nopts.flags = NCPLANE_OPTION_VSCROLL | NCPLANE_OPTION_AUTOGROW;
+    auto nn = ncplane_create(n_, &nopts);
+    REQUIRE(nn);
+    size_t b;
+    CHECK(0 == ncplane_puttext(nn, -1, NCALIGN_LEFT, "\n\n", &b));
+    unsigned y, x;
+    ncplane_cursor_yx(nn, &y, &x);
+    CHECK(2 == y);
+    CHECK(0 == x);
+    CHECK(3 == ncplane_puttext(nn, -1, NCALIGN_LEFT, "erp", &b));
+    ncplane_cursor_yx(nn, &y, &x);
+    CHECK(2 == y);
+    CHECK(3 == x);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_puttext(nn, -1, NCALIGN_LEFT, "\n", &b));
+    ncplane_cursor_yx(nn, &y, &x);
+    CHECK(3 == y);
+    CHECK(0 == x);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_puttext(nn, -1, NCALIGN_LEFT, "\n\n", &b));
+    ncplane_cursor_yx(nn, &y, &x);
+    CHECK(5 == y);
+    CHECK(0 == x);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(3 == ncplane_puttext(nn, -1, NCALIGN_LEFT, "erp\n", &b));
+    ncplane_cursor_yx(nn, &y, &x);
+    CHECK(6 == y);
+    CHECK(0 == x);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(nn));
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
