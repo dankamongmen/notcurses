@@ -18,7 +18,9 @@ auto testing_notcurses() -> struct notcurses* {
   // get loglevel from command line. enabling it by default leads to
   // more confusion than useful information, so leave it off by default.
   nopts.loglevel = cliloglevel;
-  nopts.flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_ALTERNATE_SCREEN;
+  nopts.flags = NCOPTION_SUPPRESS_BANNERS
+                | NCOPTION_NO_ALTERNATE_SCREEN
+                | NCOPTION_DRAIN_INPUT;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
 }
