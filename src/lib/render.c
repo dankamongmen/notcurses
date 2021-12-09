@@ -1726,7 +1726,7 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
-int notcurses_cursor_yx(notcurses* nc, int* y, int* x){
+int notcurses_cursor_yx(const notcurses* nc, int* y, int* x){
   *y = nc->rstate.y;
   *x = nc->rstate.x;
   return 0;

@@ -3637,7 +3637,7 @@ API int notcurses_cursor_enable(struct notcurses* nc, int y, int x)
   __attribute__ ((nonnull (1)));
 
 // Get the current location of the terminal's cursor, whether visible or not.
-API int notcurses_cursor_yx(struct notcurses* nc, int* y, int* x)
+API int notcurses_cursor_yx(const struct notcurses* nc, int* y, int* x)
   __attribute__ ((nonnull (1)));
 
 // Disable the hardware cursor. It is an error to call this while the

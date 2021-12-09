@@ -49,7 +49,7 @@ typedef struct notcurses_options {
 
 **int notcurses_cursor_enable(struct notcurses* ***nc***, int ***y***, int ***x***);**
 
-**int notcurses_cursor_yx(struct notcurses* ***nc***, int* ***y***, int* ***x***);**
+**int notcurses_cursor_yx(const struct notcurses* ***nc***, int* ***y***, int* ***x***);**
 
 **int notcurses_cursor_disable(struct notcurses* ***nc***);**
 

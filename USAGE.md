@@ -300,7 +300,7 @@ int notcurses_refresh(struct notcurses* n, unsigned* restrict y, unsigned* restr
 int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
 
 // Get the current location of the terminal's cursor, whether visible or not.
-int notcurses_cursor_yx(struct notcurses* nc, int* y, int* x);
+int notcurses_cursor_yx(const struct notcurses* nc, int* y, int* x);
 
 // Disable the hardware cursor. It is an error to call this while the
 // cursor is already disabled.
