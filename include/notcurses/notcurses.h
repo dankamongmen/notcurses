@@ -3639,8 +3639,7 @@ API int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg)
 // (unknown background). On success, returns 0, writing the RGB value to
 // 'bg' (if non-NULL) and setting 'bgtrans' high iff the background color
 // is treated as transparent.
-API int notcurses_default_background(const struct notcurses* nc,
-                                     uint32_t* bg, unsigned* bgtrans)
+API int notcurses_default_background(const struct notcurses* nc, uint32_t* bg)
   __attribute__ ((nonnull (1)));
 
 // Enable or disable the terminal's cursor, if supported, placing it at

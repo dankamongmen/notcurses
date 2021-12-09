@@ -1736,14 +1736,12 @@ int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg){
   return 0;
 }
 
-int notcurses_default_background(const struct notcurses* nc,
-                                 uint32_t* bg, unsigned* bgtrans){
+int notcurses_default_background(const struct notcurses* nc, uint32_t* bg){
   const tinfo* ti = &nc->tcache;
   if(ti->bg_collides_default & 0x80000000){
     logerror("default background could not be determined\n");
     return -1;
   }
-  *bgtrans = !!(ti->bg_collides_default & 0x01000000);
   *bg = ti->bg_collides_default & NC_BG_RGB_MASK;
   return 0;
 }

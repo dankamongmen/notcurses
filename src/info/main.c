@@ -376,17 +376,12 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   }else{
     ncplane_printf(n, "%sdefault fg 0x%06x ", indent, fg);
   }
-  unsigned bgtrans = 0;
   uint32_t bg = 0;
-  r = notcurses_default_background(ncplane_notcurses(n), &bg, &bgtrans);
+  r = notcurses_default_background(ncplane_notcurses(n), &bg);
   if(r){
     ncplane_printf(n, "no known default fg");
   }else{
-    if(bgtrans){
-      ncplane_printf(n, "default bg 0x%06x (trans)", bg);
-    }else{
-      ncplane_printf(n, "default bg 0x%06x", bg);
-    }
+    ncplane_printf(n, "default bg 0x%06x", bg);
   }
   finish_line(n);
   ncpixelimpl_e blit = notcurses_check_pixel_support(ncplane_notcurses(n));

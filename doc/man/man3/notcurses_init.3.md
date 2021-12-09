@@ -55,7 +55,7 @@ typedef struct notcurses_options {
 
 **int notcurses_default_foreground(const struct notcurses* ***nc***, uint32_t* ***fg***);**
 
-**int notcurses_default_background(const struct notcurses* ***nc***, uint32_t* ***bg***, unsigned* ***bgtrans***);**
+**int notcurses_default_background(const struct notcurses* ***nc***, uint32_t* ***bg***);**
 
 # DESCRIPTION
 
@@ -172,8 +172,7 @@ zero. The following flags are defined:
 
 **notcurses_default_foreground** returns the default foreground color, if it
 could be detected. **notcurses_default_background** returns the default
-background color, and whether the terminal treats it as transparent, if this
-could be detected.
+background color, if it could be detected.
 
 ## Fatal signals
 
