@@ -636,6 +636,8 @@ putpara(struct ncplane* p, const char* text){
           } macros[] = {
             { "aq]", "'", },
             { "dq]", "\"", },
+            { "rg]", "®", },
+            { "rs]", "\\", },
             { NULL, NULL, }
           };
           ++curend;
@@ -915,6 +917,7 @@ manloop(struct notcurses* nc, const char* arg){
           ncplane_move_rel(page, 1, 0);
         }
         break;
+      // we can move down iff our last line is beyond the visible area
       case 'j': case NCKEY_DOWN:
         if(ncplane_y(page) + ncplane_dim_y(page) > ncplane_dim_y(stdn)){
           ncplane_move_rel(page, -1, 0);
