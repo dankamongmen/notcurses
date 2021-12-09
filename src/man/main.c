@@ -690,7 +690,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
     case LINE_SH: // section heading
       if(strcmp(n->text, "NAME")){
         ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
-        ncplane_set_styles(p, NCSTYLE_BOLD);
+        ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_UNDERLINE);
         ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
         ncplane_set_styles(p, NCSTYLE_NONE);
         ncplane_cursor_move_yx(p, -1, 0);
@@ -699,7 +699,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       break;
     case LINE_SS: // subsection heading
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
-      ncplane_set_styles(p, NCSTYLE_ITALIC);
+      ncplane_set_styles(p, NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
       ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
@@ -713,7 +713,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
           putpara(p, n->text);
         }
       }else{
-        ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
+        ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_ITALIC);
         ncplane_set_fg_rgb(p, 0xff6a00);
         ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
         ncplane_set_fg_default(p);
@@ -783,7 +783,8 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   return pman;
 }
 
-static const char USAGE_TEXT[] = "(k↑/j↓) (q)uit";
+static const char USAGE_TEXT[] = "⎥b⇞k↑j↓f⇟⎢ (q)uit";
+static const char USAGE_TEXT_ASCII[] = "(bkjf) (q)uit";
 
 static int
 draw_bar(struct ncplane* bar, pagedom* dom){
@@ -797,7 +798,11 @@ draw_bar(struct ncplane* bar, pagedom* dom){
   ncplane_set_styles(bar, NCSTYLE_NONE);
   ncplane_printf(bar, ") %s", dom->version);
   ncplane_set_styles(bar, NCSTYLE_ITALIC);
-  ncplane_putstr_aligned(bar, 0, NCALIGN_RIGHT, USAGE_TEXT);
+  if(notcurses_canutf8(ncplane_notcurses(bar))){
+    ncplane_putstr_aligned(bar, 0, NCALIGN_RIGHT, USAGE_TEXT);
+  }else{
+    ncplane_putstr_aligned(bar, 0, NCALIGN_RIGHT, USAGE_TEXT_ASCII);
+  }
   return 0;
 }
 
@@ -915,7 +920,23 @@ manloop(struct notcurses* nc, const char* arg){
           ncplane_move_rel(page, -1, 0);
         }
         break;
-      case 'q':
+      case 'b': case NCKEY_PGUP:{
+        int newy = ncplane_y(page) + (int)ncplane_dim_y(stdn);
+        if(newy > 0){
+          newy = 0;
+        }
+        ncplane_move_yx(page, newy, 0);
+        break;
+      }case 'f': case NCKEY_PGDOWN:{
+        int newy = ncplane_y(page) - (int)ncplane_dim_y(stdn);
+        if(newy + ncplane_dim_y(page) < ncplane_dim_y(stdn)){
+          if((newy = ncplane_dim_y(stdn) - ncplane_dim_y(page)) > 0){
+            newy = 0;
+          }
+        }
+        ncplane_move_yx(page, newy, 0);
+        break;
+      }case 'q':
         ret = 0;
         goto done;
     }
