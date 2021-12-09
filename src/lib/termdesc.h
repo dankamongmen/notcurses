@@ -123,6 +123,9 @@ typedef struct tinfo {
   // 0xfexxxxxxx (unknown), 0x00RRGGBB (no collide), or 0x01RRGGBB (collides).
   uint32_t bg_collides_default;
 
+  // 0xffxxxxxxx (unknown), or 0x00RRGGBB (foreground)
+  uint32_t fg_default;
+
   // bitmap support. if we support bitmaps, pixel_implementation will be a
   // value other than NCPIXEL_NONE.
   ncpixelimpl_e pixel_implementation;

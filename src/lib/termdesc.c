@@ -857,6 +857,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   }
   *cursor_x = *cursor_y = -1;
   ti->bg_collides_default = 0xfe000000;
+  ti->fg_default = 0xff000000;
   ti->kbdlevel = UINT_MAX; // see comment in tinfo definition
   ti->qterm = TERMINAL_UNKNOWN;
   // we don't need a controlling tty for everything we do; allow a failure here
@@ -1108,6 +1109,9 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       // reset the 0xfe000000 we loaded during initialization. if we're
       // kitty, we'll add the 0x01000000 in during heuristics.
       ti->bg_collides_default = iresp->bg;
+    }
+    if(iresp->got_fg){
+      ti->fg_default = iresp->fg;
     }
     // kitty trumps sixel, when both are available
     if((kitty_graphics = iresp->kitty_graphics) == 0){

@@ -293,6 +293,11 @@ notcurses_term_dim_yx(const struct notcurses* n, unsigned* restrict rows,
 // current screen geometry is returned in 'y' and 'x', if they are not NULL.
 int notcurses_refresh(struct notcurses* n, unsigned* restrict y, unsigned* restrict x);
 
+// Get the default foreground color, if it is known. Returns -1 on error
+// (unknown foreground). On success, returns 0, writing the RGB value to
+// 'fg' (if non-NULL)
+int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg);
+
 // Get the default background color, if it is known. Returns -1 on error
 // (unknown background). On success, returns 0, writing the RGB value to
 // 'bg' (if non-NULL) and setting 'bgtrans' high iff the background color

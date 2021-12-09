@@ -1726,6 +1726,16 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
+int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg){
+  const tinfo* ti = &nc->tcache;
+  if(ti->fg_default & 0x80000000){
+    logerror("default foreground could not be determined\n");
+    return -1;
+  }
+  *fg = ti->fg_default & NC_BG_RGB_MASK;
+  return 0;
+}
+
 int notcurses_default_background(const struct notcurses* nc,
                                  uint32_t* bg, unsigned* bgtrans){
   const tinfo* ti = &nc->tcache;

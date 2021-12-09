@@ -369,18 +369,23 @@ display_logo(struct ncplane* n, const char* path){
 
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
+  uint32_t fg = 0;
+  int r = notcurses_default_foreground(ncplane_notcurses(n), &fg);
+  if(r){
+    ncplane_printf(n, "%sno known default fg ", indent);
+  }else{
+    ncplane_printf(n, "%sdefault fg 0x%06x ", indent, fg);
+  }
   unsigned bgtrans = 0;
   uint32_t bg = 0;
-  int r = notcurses_default_background(ncplane_notcurses(n), &bg, &bgtrans);
+  r = notcurses_default_background(ncplane_notcurses(n), &bg, &bgtrans);
   if(r){
-    ncplane_printf(n, "couldn't detect default background");
+    ncplane_printf(n, "no known default fg");
   }else{
     if(bgtrans){
-      ncplane_printf(n, "%sdefault background 0x%06lx considered transparent", indent,
-                    ti->bg_collides_default & 0xfffffful);
+      ncplane_printf(n, "default bg 0x%06x (trans)", bg);
     }else{
-      ncplane_printf(n, "%sdefault background 0x%06lx", indent,
-                    ti->bg_collides_default & 0xfffffful);
+      ncplane_printf(n, "default bg 0x%06x", bg);
     }
   }
   finish_line(n);

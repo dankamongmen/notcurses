@@ -3629,6 +3629,12 @@ ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncnmetric(val, NCBPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, 'i');
 }
 
+// Get the default foreground color, if it is known. Returns -1 on error
+// (unknown foreground). On success, returns 0, writing the RGB value to
+// 'fg' (if non-NULL)
+API int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg)
+  __attribute__ ((nonnull (1)));
+
 // Get the default background color, if it is known. Returns -1 on error
 // (unknown background). On success, returns 0, writing the RGB value to
 // 'bg' (if non-NULL) and setting 'bgtrans' high iff the background color
