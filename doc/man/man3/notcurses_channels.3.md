@@ -102,9 +102,9 @@ foreground channel and ***bchan*** as the background channel.
 
 # RETURN VALUES
 
-Functions returning `int` return -1 on failure, or 0 on success. Failure is
-always due to invalid inputs. Functions returning `bool` are predicates, and
-return the requested value. Functions returning `unsigned` forms return the
+Functions returning **int** return -1 on failure, or 0 on success. Failure is
+always due to invalid inputs. Functions returning **bool** are predicates, and
+return the requested value. Functions returning **unsigned** forms return the
 input, modified as requested.
 
 **ncchannels_reverse** inverts the color components of the two channels,
