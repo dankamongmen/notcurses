@@ -691,7 +691,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       if(strcmp(n->text, "NAME")){
         ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
         ncplane_set_styles(p, NCSTYLE_BOLD);
-        ncplane_putstr(p, n->text);
+        ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
         ncplane_set_styles(p, NCSTYLE_NONE);
         ncplane_cursor_move_yx(p, -1, 0);
         *wrotetext = true;
@@ -700,7 +700,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
     case LINE_SS: // subsection heading
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
       ncplane_set_styles(p, NCSTYLE_ITALIC);
-      ncplane_printf(p, "    %s", n->text);
+      ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
       *wrotetext = true;
@@ -714,7 +714,10 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
         }
       }else{
         ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
-        putpara(p, n->text);
+        ncplane_set_fg_rgb(p, 0xff6a00);
+        ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
+        ncplane_set_fg_default(p);
+        ncplane_set_styles(p, NCSTYLE_NONE);
       }
       *wrotetext = true;
       break;
