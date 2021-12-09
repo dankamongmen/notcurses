@@ -45,13 +45,13 @@ typedef struct notcurses_options {
 
 **void notcurses_version_components(int* ***major***, int* ***minor***, int* ***patch***, int* ***tweak***);**
 
-**int notcurses_lex_margins(const char* ***op***, notcurses_options* ***opts***);**
-
 **int notcurses_cursor_enable(struct notcurses* ***nc***, int ***y***, int ***x***);**
+
+**int notcurses_cursor_disable(struct notcurses* ***nc***);**
 
 **int notcurses_cursor_yx(const struct notcurses* ***nc***, int* ***y***, int* ***x***);**
 
-**int notcurses_cursor_disable(struct notcurses* ***nc***);**
+**int notcurses_lex_margins(const char* ***op***, notcurses_options* ***opts***);**
 
 # DESCRIPTION
 
@@ -71,7 +71,7 @@ called to reset the terminal and free up resources.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see
-**getenv(3)**), but a non-**NULL** value for **termtype** will override this
+**getenv(3)**), but a non-**NULL** value for ***termtype*** will override this
 (terminfo is not used on Microsoft Windows, where it is neither meaningful nor
 necessary to define **TERM**). An invalid terminfo specification
 can lead to reduced performance, reduced display capabilities, and/or display

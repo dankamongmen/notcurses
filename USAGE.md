@@ -299,12 +299,12 @@ int notcurses_refresh(struct notcurses* n, unsigned* restrict y, unsigned* restr
 // called while already visible to move the cursor.
 int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
 
-// Get the current location of the terminal's cursor, whether visible or not.
-int notcurses_cursor_yx(const struct notcurses* nc, int* y, int* x);
-
 // Disable the hardware cursor. It is an error to call this while the
 // cursor is already disabled.
 int notcurses_cursor_disable(struct notcurses* nc);
+
+// Get the current location of the terminal's cursor, whether visible or not.
+int notcurses_cursor_yx(const struct notcurses* nc, int* y, int* x);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
