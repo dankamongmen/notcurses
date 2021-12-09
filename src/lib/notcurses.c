@@ -1066,6 +1066,10 @@ ncpixelimpl_e notcurses_check_pixel_support(const notcurses* nc){
 // iff we're using UTF8, |utf8| will be set to 1. it is otherwise set to 0.
 __attribute__ ((nonnull (2))) static notcurses*
 notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* utf8){
+  if(fwide(fp, 0) > 0){
+    fprintf(stderr, "Error: output stream is wide-oriented\n");
+    return NULL;
+  }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){
     return ret;

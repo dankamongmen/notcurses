@@ -56,14 +56,22 @@ typedef struct notcurses_options {
 # DESCRIPTION
 
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
-mode. The **FILE** provided as ***fp*** must be writable, or **NULL** (if it
-is **NULL**, **stdout** will be used). If the **FILE** is not connected to a
-terminal, **/dev/tty** will be opened (if possible) for communication with
-the controlling terminal. The **struct notcurses_option** passed as ***opts***
-controls behavior. Passing a **NULL** ***opts*** is equivalent to passing an
-all-zero (default) ***opts***. A process can have only one Notcurses context
-active at a time; calling **notcurses_init** again before calling
-**notcurses_stop** will return **NULL**.
+mode, writing to some **FILE**. If the **FILE** provided as ***fp*** is
+**NULL**, **stdout** will be used. Whatever **FILE** is used must be writable,
+is ideally fully buffered, and must be byte-oriented (see **fwide(3)**).
+If the **FILE** is not connected to a terminal (for example when redirected to
+a file), **/dev/tty** will be opened (if possible) for communication with the
+controlling terminal. Most output (including all styling and coloring) is
+written to the **FILE**; only queries need be sent to a true terminal. If no
+terminal is available (for example when running as a daemon), defaults
+regarding such things as screen size and the palette are assumed.
+
+The **struct notcurses_option** passed as ***opts*** controls behavior.
+Passing a **NULL** ***opts*** is equivalent to passing an all-zero (default)
+***opts***. A process can have only one Notcurses context active at a time;
+calling **notcurses_init** again before calling **notcurses_stop** will
+return **NULL** (this is reliable even if called concurrently from two
+threads).
 
 On success, a pointer to a valid **struct notcurses** is returned. **NULL** is
 returned on failure. Before the process exits, **notcurses_stop(3)** should be
@@ -107,16 +115,16 @@ margins on all four sides. By default, all margins are zero, and thus rendering
 will be performed on the entirety of the viewing area. This is orthogonal to
 use of the alternate screen; using the alternate screen plus margins will see
 the full screen cleared, followed by rendering to a subregion. Inhibiting the
-alternate screen plus margins will see rendering to a subregion, with the screen
-outside this region not cleared. Margins are best-effort. Supplying any
-negative margin is an error. **notcurses_lex_margins** provides lexing a
-margin argument expression in one of two forms:
+alternate screen plus margins will render to a subregion, with the screen
+outside this region not cleared. Margins are best-effort.
+**notcurses_lex_margins** provides lexing a margin argument expression in one
+of two forms:
 
 * a single number, which will be applied to all sides, or
 * four comma-delimited numbers, applied to top, right, bottom, and left.
 
 To allow future options without requiring redefinition of the structure, the
-**flags** field is only a partially-defined bitfield. Undefined bits should be
+***flags*** field is only a partially-defined bitfield. Undefined bits should be
 zero. The following flags are defined:
 
 * **NCOPTION_INHIBIT_SETLOCALE**: Unless this flag is set, **notcurses_init**
@@ -260,6 +268,7 @@ rendered-mode programs:
 
 # SEE ALSO
 
+**fwide(3)**,
 **getenv(3)**,
 **setlocale(3)**,
 **termios(3)**,
