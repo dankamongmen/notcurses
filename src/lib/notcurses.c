@@ -1646,6 +1646,7 @@ void scroll_down(ncplane* n){
   if(n->y == n->leny - 1){
     if(n->autogrow){
       ncplane_resize_simple(n, n->leny + 1, n->lenx);
+      ncplane_cursor_move_yx(n, n->leny - 1, 0);
       return;
     }
     if(n == notcurses_stdplane(ncplane_notcurses(n))){
