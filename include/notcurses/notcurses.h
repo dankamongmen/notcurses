@@ -3629,6 +3629,14 @@ ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
   return ncnmetric(val, NCBPREFIXSTRLEN + 1, decimal, buf, omitdec, 1024, 'i');
 }
 
+// Get the default background color, if it is known. Returns -1 on error
+// (unknown background). On success, returns 0, writing the RGB value to
+// 'bg' (if non-NULL) and setting 'bgtrans' high iff the background color
+// is treated as transparent.
+API int notcurses_default_background(const struct notcurses* nc,
+                                     uint32_t* bg, unsigned* bgtrans)
+  __attribute__ ((nonnull (1)));
+
 // Enable or disable the terminal's cursor, if supported, placing it at
 // 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
 // It is an error if 'y', 'x' lies outside the standard plane. Can be

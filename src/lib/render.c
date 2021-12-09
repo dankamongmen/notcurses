@@ -1726,6 +1726,18 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
+int notcurses_default_background(const struct notcurses* nc,
+                                 uint32_t* bg, unsigned* bgtrans){
+  const tinfo* ti = &nc->tcache;
+  if(ti->bg_collides_default & 0x80000000){
+    logerror("default background could not be determined\n");
+    return -1;
+  }
+  *bgtrans = !!(ti->bg_collides_default & 0x01000000);
+  *bg = ti->bg_collides_default & NC_BG_RGB_MASK;
+  return 0;
+}
+
 int notcurses_cursor_yx(const notcurses* nc, int* y, int* x){
   *y = nc->rstate.y;
   *x = nc->rstate.x;

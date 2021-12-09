@@ -369,16 +369,19 @@ display_logo(struct ncplane* n, const char* path){
 
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
-  if(!(ti->bg_collides_default & 0x80000000)){
-    if(!(ti->bg_collides_default & 0x01000000)){
-      ncplane_printf(n, "%sdefault background 0x%06lx", indent,
-                    ti->bg_collides_default & 0xfffffful);
-    }else{
+  unsigned bgtrans = 0;
+  uint32_t bg = 0;
+  int r = notcurses_default_background(ncplane_notcurses(n), &bg, &bgtrans);
+  if(r){
+    ncplane_printf(n, "couldn't detect default background");
+  }else{
+    if(bgtrans){
       ncplane_printf(n, "%sdefault background 0x%06lx considered transparent", indent,
                     ti->bg_collides_default & 0xfffffful);
+    }else{
+      ncplane_printf(n, "%sdefault background 0x%06lx", indent,
+                    ti->bg_collides_default & 0xfffffful);
     }
-  }else{
-    ncplane_printf(n, "couldn't detect default background");
   }
   finish_line(n);
   ncpixelimpl_e blit = notcurses_check_pixel_support(ncplane_notcurses(n));

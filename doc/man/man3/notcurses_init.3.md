@@ -53,6 +53,8 @@ typedef struct notcurses_options {
 
 **int notcurses_lex_margins(const char* ***op***, notcurses_options* ***opts***);**
 
+**int notcurses_default_background(const struct notcurses* ***nc***, uint32_t* ***bg***, unsigned* ***bgtrans***);**
+
 # DESCRIPTION
 
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
@@ -166,6 +168,9 @@ zero. The following flags are defined:
     eventually prevent Notcurses from processing messages from the terminal. It
     will furthermore avoid wasting time processing useless input.
 
+**notcurses_default_background** returns the default background color, and
+whether the terminal treats it as transparent, if this could be detected.
+
 ## Fatal signals
 
 It is important to reset the terminal before exiting, whether terminating due
@@ -244,6 +249,9 @@ rendered mode to be used as a normal scrolling shell application.
 **notcurses_stop(3)**.
 
 **notcurses_cursor_disable** returns -1 if the cursor is already invisible.
+
+**notcurses_default_background** returns -1 if the default background color
+could not be detected.
 
 # ENVIRONMENT VARIABLES
 

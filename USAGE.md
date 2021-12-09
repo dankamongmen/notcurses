@@ -293,6 +293,13 @@ notcurses_term_dim_yx(const struct notcurses* n, unsigned* restrict rows,
 // current screen geometry is returned in 'y' and 'x', if they are not NULL.
 int notcurses_refresh(struct notcurses* n, unsigned* restrict y, unsigned* restrict x);
 
+// Get the default background color, if it is known. Returns -1 on error
+// (unknown background). On success, returns 0, writing the RGB value to
+// 'bg' (if non-NULL) and setting 'bgtrans' high iff the background color
+// is treated as transparent.
+int notcurses_default_background(const struct notcurses* nc,
+                                 uint32_t* bg, unsigned* bgtrans);
+
 // Enable or disable the terminal's cursor, if supported, placing it at
 // 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
 // It is an error if 'y', 'x' lies outside the standard plane. Can be

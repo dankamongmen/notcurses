@@ -8,6 +8,7 @@ rearrangements of Notcurses.
     and `ncplane_autogrow_p()` functions. When autogrow is enabled, the plane
     is automatically enlarged to accommodate output at its right (no scrolling)
     or bottom (scrolling enabled) boundaries.
+  * Added the new function `notcurses_default_background()`.
 
 * 3.0.0 (2021-12-01) **"In the A"**
   * Made the ABI/API changes that have been planned/collected during 2.x
