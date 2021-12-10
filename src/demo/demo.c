@@ -385,8 +385,6 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   bool failed = false;
   uint64_t totalbytes = 0;
   long unsigned totalframes = 0;
-  uint64_t totalrenderns = 0;
-  uint64_t totalwriteoutns = 0;
   ncplane_putchar(n, '\n');
   // FIXME this shouldn't be necessary, but without it, late in 2.4.x we
   // stopped printing the table header. see #2389.
@@ -461,8 +459,6 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
     }
     totalframes += results[i].stats.renders;
     totalbytes += results[i].stats.raster_bytes;
-    totalrenderns += results[i].stats.render_ns;
-    totalwriteoutns += results[i].stats.writeout_ns;
   }
   ncqprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   ncbprefix(totalbytes, 1, totalbuf, 0);
