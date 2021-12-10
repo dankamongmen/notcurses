@@ -78,6 +78,7 @@ struct initial_responses {
   char* version;               // version string, heap-allocated
   unsigned kbdlevel;           // enabled kitty keyboard functions
   ncpalette palette;           // palette entries
+  int maxpaletteread;          // maximum palette index read
 };
 
 // Blocking call. Waits until the input thread has processed all responses to

@@ -185,6 +185,7 @@ typedef struct tinfo {
   int default_cols;          // COLUMNS environment var / cols terminfo / 80
 
   ncpalette originalpalette; // palette as read from initial queries
+  int maxpaletteread;        // maximum palette entry read
   pthread_t gpmthread;       // thread handle for GPM watcher
   int gpmfd;                 // connection to GPM daemon
   char mouseproto;           // DECSET level (100x, '0', '2', '3')
