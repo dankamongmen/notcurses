@@ -14,10 +14,10 @@ include(FeatureSummary)
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
 option(USE_ASAN "Build with AddressSanitizer" OFF)
 option(USE_COVERAGE "Assess code coverage with llvm-cov/lcov" OFF)
-option(USE_CPP "Build C++ code" ON)
+option(USE_CXX "Build C++ code" ON)
 cmake_dependent_option(
   USE_DOCTEST "Build notcurses-tester with doctest" ON
-  "BUILD_TESTING;USE_CPP" OFF
+  "BUILD_TESTING;USE_CXX" OFF
 )
 option(USE_DEFLATE "Use libdeflate instead of libz" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
@@ -39,18 +39,18 @@ set(USE_OIIO OFF)
 if(${USE_MULTIMEDIA} STREQUAL "ffmpeg")
   set(USE_FFMPEG ON)
 elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
-  if(NOT ${USE_CPP})
-    message(FATAL_ERROR "USE_CPP must be on to use OpenImageIO.")
+  if(NOT ${USE_CXX})
+    message(FATAL_ERROR "USE_CXX must be on to use OpenImageIO.")
   endif()
   set(USE_OIIO ON)
 elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}').")
 endif()
 
-if(${USE_CPP})
+if(${USE_CXX})
   enable_language(CXX)
 endif()
-if(${USE_CPP})
+if(${USE_CXX})
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -69,7 +69,7 @@ if(${USE_COVERAGE})
   endif()
   # FIXME requires clang11+
   string(APPEND CMAKE_C_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
-  if(${USE_CPP})
+  if(${USE_CXX})
     if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
       message(FATAL_ERROR "USE_COVERAGE was on but CXX isn't clang++")
     endif()
@@ -405,7 +405,7 @@ target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
 ############################################################################
-if(${USE_CPP})
+if(${USE_CXX})
 # libnotcurses++ (C++ wrappers)
 set(NCPP_SOURCES
   src/libcpp/FDPlane.cc
@@ -535,7 +535,7 @@ foreach(f ${POCSRCS})
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
   )
 endforeach()
-if(${USE_CPP})
+if(${USE_CXX})
   file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
   foreach(f ${POCPPSRCS})
     get_filename_component(fe "${f}" NAME_WE)
@@ -603,7 +603,7 @@ target_link_libraries(notcurses-info
 
 ############################################################################
 # notcurses-input
-if(${USE_CPP})
+if(${USE_CXX})
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
@@ -687,7 +687,7 @@ file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
 file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 
 # all further binaries require multimedia and C++ support
-if(${USE_CPP})
+if(${USE_CXX})
 if(${USE_MULTIMEDIA} STREQUAL "none")
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncls.1.md")
   list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
@@ -731,7 +731,7 @@ endif()
 ############################################################################
 # testing
 if(${BUILD_TESTING})
-if(${USE_CPP})
+if(${USE_CXX})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp src/compat/*.c)
@@ -772,7 +772,7 @@ add_test(
   NAME notcurses-info
   COMMAND notcurses-info
 )
-if(${USE_CPP})
+if(${USE_CXX})
 add_test(
   NAME ncpp_build
   COMMAND ncpp_build
@@ -990,7 +990,7 @@ install(TARGETS ncneofetch DESTINATION bin)
 if(NOT WIN32)
 install(TARGETS ncman DESTINATION bin)
 endif()
-if(${USE_CPP})
+if(${USE_CXX})
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
@@ -1003,7 +1003,7 @@ LIST(APPEND INSTLIBS notcurses-core notcurses)
 if(${USE_STATIC})
 LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
 endif()
-if(${USE_CPP})
+if(${USE_CXX})
 LIST(APPEND INSTLIBS notcurses++)
 if(${USE_STATIC})
 LIST(APPEND INSTLIBS notcurses++-static)

@@ -281,6 +281,7 @@ If things break or seem otherwise lackluster, **please** consult the
   wrappers, nor can you build with the OpenImageIO multimedia backend (OIIO
   ships C++ headers). You'll be able to build the main library, though, as
   well as <code>notcurses-demo</code> (and maybe a few other binaries).
+  Use <code>-DUSE_CXX=off</code>.
 </details>
 
 <details>
