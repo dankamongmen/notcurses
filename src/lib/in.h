@@ -48,6 +48,7 @@ typedef enum {
     TERMINAL_ITERM,         // XTVERSION == 'iTerm2 [ver]'
     TERMINAL_TERMINOLOGY,   // TDA: "~~TY"
     TERMINAL_APPLE,         // Terminal.App, determined by TERM_PROGRAM + macOS
+    TERMINAL_RXVT,          // rxvt/urxvt, determined by TERM + UNIX
     TERMINAL_MSTERMINAL,    // Microsoft Windows Terminal
     TERMINAL_MINTTY,        // XTVERSION == 'mintty ver' MinTTY (Cygwin, MSYS2)
 } queried_terminals_e;
