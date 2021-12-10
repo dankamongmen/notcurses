@@ -998,6 +998,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   ti->bg_collides_default = 0xfe000000;
   ti->fg_default = 0xff000000;
   ti->kbdlevel = UINT_MAX; // see comment in tinfo definition
+  ti->maxpaletteread = -1;
   ti->qterm = TERMINAL_UNKNOWN;
   // we don't need a controlling tty for everything we do; allow a failure here
   ti->ttyfd = get_tty_fd(out);
@@ -1233,7 +1234,11 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->dimy = iresp->dimy;
       ti->dimx = iresp->dimx;
     }
-    memcpy(&ti->originalpalette, &iresp->palette, sizeof(ti->originalpalette));
+    if(iresp->maxpaletteread >= 0){
+      memcpy(ti->originalpalette.chans, iresp->palette.chans,
+             sizeof(*ti->originalpalette.chans) * (iresp->maxpaletteread + 1));
+      ti->maxpaletteread = iresp->maxpaletteread;
+    }
     if(iresp->rgb){
       ti->caps.rgb = true;
     }

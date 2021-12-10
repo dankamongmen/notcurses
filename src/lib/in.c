@@ -1285,6 +1285,9 @@ palette_cb(inputctx* ictx){
       logerror("empty palette string\n");
     }else{
       if(get_default_color(str, &ictx->initdata->palette.chans[idx]) == 0){
+        if((int)idx > ictx->initdata->maxpaletteread){
+          ictx->initdata->maxpaletteread = idx;
+        }
         loginfo("index %u 0x%06x\n", idx, ictx->initdata->palette.chans[idx]);
       }
       free(str);
@@ -1609,6 +1612,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                             i->initdata->qterm = ti->qterm;
                             i->initdata->cursory = -1;
                             i->initdata->cursorx = -1;
+                            i->initdata->maxpaletteread = -1;
                             i->iread = i->iwrite = i->ivalid = 0;
                             i->cread = i->cwrite = i->cvalid = 0;
                             i->initdata->kbdlevel = UINT_MAX;
