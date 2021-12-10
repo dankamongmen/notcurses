@@ -583,7 +583,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 == notcurses_render(nc_));
     char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\nWidgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
+    CHECK(0 == strcmp(line, "to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\nWidgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);
     CHECK(0 == ncplane_destroy(sp));
   }
