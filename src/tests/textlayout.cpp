@@ -570,20 +570,12 @@ TEST_CASE("TextLayout") {
       "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
       "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
       "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
-    struct ncplane_options nopts = {
-      .y = 0,
-      .x = 0,
-      .rows = READER_ROWS,
-      .cols = READER_COLS,
-      .userptr = nullptr,
-      .name = nullptr,
-      .resizecb = nullptr,
-      .flags = 0,
-      .margin_b = 0, .margin_r = 0,
-    };
+    struct ncplane_options nopts{};
+    nopts.rows = READER_ROWS;
+    nopts.cols = READER_COLS;
+    nopts.flags = NCPLANE_OPTION_VSCROLL;
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
-    ncplane_set_scrolling(sp, true);
     size_t bytes;
     ncplane_home(sp);
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, text, &bytes));
@@ -591,7 +583,7 @@ TEST_CASE("TextLayout") {
     CHECK(0 == notcurses_render(nc_));
     char* line = ncplane_contents(sp, 0, 0, 0, 0);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "to be selected from a list of n items. NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
+    CHECK(0 == strcmp(line, "descriptor, while NCSubproc spawns a subprocess and streams its output. A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\nWidgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others."));
     free(line);
     CHECK(0 == ncplane_destroy(sp));
   }
