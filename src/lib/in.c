@@ -1517,7 +1517,6 @@ build_cflow_automaton(inputctx* ictx){
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
     // a mystery to everyone!
-    { "]4;\\N;rgb:\\S", palette_cb, },
     { "]10;rgb:\\S", fgdef_cb, },
     { "]11;rgb:\\S", bgdef_cb, },
     { NULL, NULL, },
@@ -1528,6 +1527,17 @@ build_cflow_automaton(inputctx* ictx){
       return -1;
     }
     loginfo("added %p via %s\n", csi->fxn, csi->cflow);
+  }
+  if(ictx->ti->qterm == TERMINAL_RXVT){
+    if(inputctx_add_cflow(&ictx->amata, "]4;\\N;rgb:\\R", palette_cb)){
+      logerror("failed adding palette_cb\n");
+      return -1;
+    }
+  }else{
+    if(inputctx_add_cflow(&ictx->amata, "]4;\\N;rgb:\\S", palette_cb)){
+      logerror("failed adding palette_cb\n");
+      return -1;
+    }
   }
   return 0;
 }

@@ -121,7 +121,7 @@ esctrie_make_function(esctrie* e, triefunc fxn){
 }
 
 static esctrie*
-esctrie_make_string(automaton* a, esctrie* e){
+esctrie_make_string(automaton* a, esctrie* e, unsigned rxvtstyle){
   if(e->ntype == NODE_STRING){
     logerror("repeated string node\n");
     return NULL;
@@ -157,19 +157,29 @@ esctrie_make_string(automaton* a, esctrie* e){
     }
     e->trie[i] = esctrie_idx(a, newe);
   }
-  if((e->trie[0x07] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
-    return NULL;
+  if(rxvtstyle){ // ends with bare ESC, not BEL/ST
+    if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
+      return NULL;
+    }
+    e = esctrie_from_idx(a, e->trie[0x1b]);
+    e->ni.id = 0;
+    e->ntype = NODE_SPECIAL;
+  }else{
+    if((e->trie[0x07] = create_esctrie_node(a, NCKEY_INVALID)) == 0){
+      return NULL;
+    }
+    esctrie* term = esctrie_from_idx(a, e->trie[0x07]);
+    if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
+      return NULL;
+    }
+    e = esctrie_from_idx(a, e->trie[0x1b]);
+    e->trie['\\'] = esctrie_idx(a, term);
+    term->ni.id = 0;
+    term->ntype = NODE_SPECIAL;
+    e = term;
   }
-  esctrie* term = esctrie_from_idx(a, e->trie[0x07]);
-  if((e->trie[0x1b] = create_esctrie_node(a, 0)) == 0){
-    return NULL;
-  }
-  e = esctrie_from_idx(a, e->trie[0x1b]);
-  e->trie['\\'] = esctrie_idx(a, term);
-  term->ni.id = 0;
-  term->ntype = NODE_SPECIAL;
-  logdebug("made string: %u\n", esctrie_idx(a, term));
-  return term;
+  logdebug("made string: %u\n", esctrie_idx(a, e));
+  return e;
 }
 
 static esctrie*
@@ -420,9 +430,9 @@ insert_path(automaton* a, const char* seq){
         if(eptr == NULL){
           return NULL;
         }
-      }else if(c == 'S'){
+      }else if(c == 'S' || c == 'R'){
         // strings always end with ST ("\e\\") or at least ("\e")
-        if((eptr = esctrie_make_string(a, eptr)) == NULL){
+        if((eptr = esctrie_make_string(a, eptr, c == 'R')) == NULL){
           return NULL;
         }
         return eptr;
