@@ -874,6 +874,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     }
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
+  }else if(qterm == TERMINAL_RXVT){
+    termname = "RXVT";
   }else if(qterm == TERMINAL_APPLE){
     termname = "Terminal.app";
     // no quadrants, no sextants, no rgb, but it does have braille
@@ -972,6 +974,28 @@ macos_early_matches(void){
 }
 #endif
 
+#ifndef __APPLE__
+#ifndef __MINGW64__
+// rxvt has a deeply fucked up palette code implementation. its responses are
+// terminated with a bare ESC instead of BEL or ST, impossible to encode in
+// our automaton alongside the proper flow. its "oc" doesn't reset the palette,
+// meaning we must preserve and reload it ourselves. there's no way to identify
+// rxvt via query, so if we get it in TERM, set up our automaton for its fubar
+// replies, and don't bother sending any identification requests.
+static queried_terminals_e
+unix_early_matches(const char* term){
+  if(term == NULL){
+    return TERMINAL_UNKNOWN;
+  }
+  // urxvt likewise declares TERM=rxvt-whatever
+  if(strncmp(term, "rxvt", 4) == 0){
+    return TERMINAL_RXVT;
+  }
+  return TERMINAL_UNKNOWN;
+}
+#endif
+#endif
+
 // if |termtype| is not NULL, it is used to look up the terminfo database entry
 // via setupterm(). the value of the TERM environment variable is otherwise
 // (implicitly) used. some details are not exposed via terminfo, and we must
@@ -986,6 +1010,8 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats,
                          int lmargin, int tmargin, int rmargin, int bmargin,
                          unsigned draininput){
+  // if a specified termtype was provided in the notcurses_options, it was
+  // loaded into our environment at TERM.
   const char* termtype = getenv("TERM");
   int foolcursor_x, foolcursor_y;
   if(!cursor_x){
@@ -1016,13 +1042,16 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     logpanic("failed opening Windows ConPTY\n");
     return -1;
   }
-#elif defined(__linux__)
+#else
+  ti->qterm = unix_early_matches(termtype);
+#if defined(__linux__)
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
   if(is_linux_console(ti->ttyfd)){
     ti->qterm = TERMINAL_LINUX;
   }
+#endif
 #endif
   if(ti->ttyfd >= 0){
     if((ti->tpreserved = calloc(1, sizeof(*ti->tpreserved))) == NULL){
