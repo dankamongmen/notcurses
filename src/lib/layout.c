@@ -12,11 +12,15 @@ ncplane_putline(ncplane* n, ncalign_e align, int cols, const char* text, size_t 
 }
 
 static int
-puttext_advance_line(ncplane* n){
+puttext_advance_line(ncplane* n, unsigned truebreak){
 //fprintf(stderr, "ADVANCING LINE FROM %d/%d\n", n->y, n->x);
   if(n->scrolling || n->autogrow){
-    if(ncplane_putchar(n, '\n') < 1){
-      return -1;
+    if(truebreak){
+      if(ncplane_putchar(n, '\n') < 1){
+        return -1;
+      }
+    }else{
+      scroll_down(n);
     }
     return 0;
   }
@@ -82,7 +86,7 @@ puttext_line(ncplane* n, ncalign_e align, const char* text, size_t* bytes){
           return -1;
         }
       }
-      if(puttext_advance_line(n)){
+      if(puttext_advance_line(n, true)){
         return -1;
       }
       if(bytes){
@@ -134,7 +138,7 @@ puttext_line(ncplane* n, ncalign_e align, const char* text, size_t* bytes){
     colsreturn = cols;
   }
 //fprintf(stderr, "FELL OFF line %d after %d cols %dB returning %d\n", n->y, cols, b, colsreturn);
-  if(puttext_advance_line(n)){
+  if(puttext_advance_line(n, false)){
     return -1;
   }
   return colsreturn;
