@@ -794,6 +794,7 @@ update_palette(notcurses* nc, fbuf* f){
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
+        nc->touched_palette = true;
         ncchannel_rgb8(nc->palette.chans[damageidx], &r, &g, &b);
         // Need convert RGB values [0..256) to [0..1000], ugh
         // FIXME need handle HSL case also
