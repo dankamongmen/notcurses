@@ -15,14 +15,13 @@ static int
 puttext_advance_line(ncplane* n){
 //fprintf(stderr, "ADVANCING LINE FROM %d/%d\n", n->y, n->x);
   if(n->scrolling || n->autogrow){
-    scroll_down(n);
-  }else{
-    // will fail on last line in the absence of scrolling, which is proper
-    if(ncplane_cursor_move_yx(n, n->y + 1, 0)){
+    if(ncplane_putchar(n, '\n') < 1){
       return -1;
     }
+    return 0;
   }
-  return 0;
+  // will fail on last line in the absence of scrolling, which is proper
+  return ncplane_cursor_move_yx(n, n->y + 1, 0);
 }
 
 // put up to a line of text down at the current cursor position. returns the
