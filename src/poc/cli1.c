@@ -16,7 +16,6 @@ int main(void){
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_scrolling(stdn, true);
   ncinput ni;
-  int fd = notcurses_inputready_fd(nc);
   do{
     if(ncplane_putstr(stdn, "press any key\n") < 0){
       goto err;
@@ -27,7 +26,7 @@ int main(void){
     // just some pointless testing of notcurses_inputready_fd() here
 #ifndef __MINGW64__
     struct pollfd pfd = {
-      .fd = fd,
+      .fd = notcurses_inputready_fd(nc),
       .events = POLLIN,
     };
     while(poll(&pfd, 1, -1) <= 0){
