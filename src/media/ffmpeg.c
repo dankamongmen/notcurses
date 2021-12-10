@@ -296,7 +296,8 @@ force_rgba(ncvisual* n){
 // * avcodec_send_packet() returns EAGAIN if avcodec_receive_frame() needs
 //    be called to extract further frames; in this case, the packet ought
 //    be resubmitted once the existing frames are cleared.
-int ffmpeg_decode(ncvisual* n){
+static int
+ffmpeg_decode(ncvisual* n){
   if(n->details->fmtctx == NULL){ // not a file-backed ncvisual
     return -1;
   }
@@ -361,7 +362,8 @@ int ffmpeg_decode(ncvisual* n){
   return 0;
 }
 
-ncvisual_details* ffmpeg_details_init(void){
+static ncvisual_details*
+ffmpeg_details_init(void){
   ncvisual_details* deets = malloc(sizeof(*deets));
   if(deets){
     memset(deets, 0, sizeof(*deets));
@@ -375,7 +377,8 @@ ncvisual_details* ffmpeg_details_init(void){
   return deets;
 }
 
-ncvisual* ffmpeg_create(){
+static ncvisual*
+ffmpeg_create(){
   ncvisual* nc = malloc(sizeof(*nc));
   if(nc){
     memset(nc, 0, sizeof(*nc));
@@ -387,7 +390,8 @@ ncvisual* ffmpeg_create(){
   return nc;
 }
 
-ncvisual* ffmpeg_from_file(const char* filename){
+static ncvisual*
+ffmpeg_from_file(const char* filename){
   ncvisual* ncv = ffmpeg_create();
   if(ncv == NULL){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
@@ -472,9 +476,10 @@ err:
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                  ncstreamcb streamer, const struct ncvisual_options* vopts,
-                  void* curry){
+static int
+ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
+              ncstreamcb streamer, const struct ncvisual_options* vopts,
+              void* curry){
   int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -543,7 +548,8 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return ncerr;
 }
 
-int ffmpeg_decode_loop(ncvisual* ncv){
+static int
+ffmpeg_decode_loop(ncvisual* ncv){
   int r = ffmpeg_decode(ncv);
   if(r == 1){
     if(av_seek_frame(ncv->details->fmtctx, ncv->details->stream_index, 0, AVSEEK_FLAG_FRAME) < 0){
@@ -609,7 +615,8 @@ ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
 }
 
 // resize frame, converting to RGBA (if necessary) along the way
-int ffmpeg_resize(ncvisual* n, unsigned rows, unsigned cols){
+static int
+ffmpeg_resize(ncvisual* n, unsigned rows, unsigned cols){
   struct blitterargs bargs = {};
   int stride;
   void* data = ffmpeg_resize_internal(n, rows, &stride, cols, &bargs);
@@ -633,8 +640,9 @@ int ffmpeg_resize(ncvisual* n, unsigned rows, unsigned cols){
 }
 
 // rows/cols: scaled output geometry (pixels)
-int ffmpeg_blit(ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
-                const struct blitset* bset, const blitterargs* bargs){
+static int
+ffmpeg_blit(ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
+            const struct blitset* bset, const blitterargs* bargs){
   void* data;
   int stride = 0;
   data = ffmpeg_resize_internal(ncv, rows, &stride, cols, bargs);
@@ -652,7 +660,8 @@ int ffmpeg_blit(ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
   return ret;
 }
 
-void ffmpeg_details_seed(ncvisual* ncv){
+static void
+ffmpeg_details_seed(ncvisual* ncv){
   av_frame_unref(ncv->details->frame);
   memset(ncv->details->frame, 0, sizeof(*ncv->details->frame));
   ncv->details->frame->linesize[0] = ncv->rowstride;
@@ -661,7 +670,8 @@ void ffmpeg_details_seed(ncvisual* ncv){
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
 }
 
-int ffmpeg_log_level(int level){
+static int
+ffmpeg_log_level(int level){
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
     case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
@@ -678,13 +688,15 @@ int ffmpeg_log_level(int level){
   return AV_LOG_TRACE;
 }
 
-int ffmpeg_init(int logl){
+static int
+ffmpeg_init(int logl){
   av_log_set_level(ffmpeg_log_level(logl));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
 
-void ffmpeg_printbanner(fbuf* f){
+static void
+ffmpeg_printbanner(fbuf* f){
   fbuf_printf(f, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u avcodec %u.%u.%u" NL,
               LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
               LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
@@ -692,7 +704,8 @@ void ffmpeg_printbanner(fbuf* f){
               LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO);
 }
 
-void ffmpeg_details_destroy(ncvisual_details* deets){
+static void
+ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
@@ -705,7 +718,8 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   free(deets);
 }
 
-void ffmpeg_destroy(ncvisual* ncv){
+static void
+ffmpeg_destroy(ncvisual* ncv){
   if(ncv){
     ffmpeg_details_destroy(ncv->details);
     if(ncv->owndata){
