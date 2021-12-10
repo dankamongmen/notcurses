@@ -421,7 +421,7 @@ insert_path(automaton* a, const char* seq){
           return NULL;
         }
       }else if(c == 'S'){
-        // strings always end with ST ("\e\\")
+        // strings always end with ST ("\e\\") or at least ("\e")
         if((eptr = esctrie_make_string(a, eptr)) == NULL){
           return NULL;
         }

@@ -426,7 +426,7 @@ void sigwinch_handler(int signo);
 void init_lang(void);
 
 int reset_term_attributes(const tinfo* ti, fbuf* f);
-
+int reset_term_palette(const tinfo* ti, fbuf* f);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);
