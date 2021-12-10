@@ -879,7 +879,8 @@ nccell_load_ucs32(struct ncplane* n, nccell* c, uint32_t u){
     return -1;
   }
   uint32_t utf8asegc;
-  _Static_assert(WCHAR_MAX_UTF8BYTES == sizeof(utf8asegc));
+  _Static_assert(WCHAR_MAX_UTF8BYTES == sizeof(utf8asegc),
+                 "WCHAR_MAX_UTF8BYTES didn't equal sizeof(uint32_t)");
   memcpy(&utf8asegc, utf8, sizeof(utf8));
   return nccell_load_egc32(n, c, utf8asegc);
 }
