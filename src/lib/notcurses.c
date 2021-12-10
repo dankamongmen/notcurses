@@ -1189,6 +1189,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  if(ret->tcache.maxpaletteread > -1){
+    memcpy(ret->palette.chans, ret->tcache.originalpalette.chans,
+           sizeof(*ret->palette.chans) * (ret->tcache.maxpaletteread + 1));
+  }
   if((ret->flags & NCOPTION_PRESERVE_CURSOR) ||
       (!(ret->flags & NCOPTION_SUPPRESS_BANNERS))){
     // the u7 led the queries so that we would get a cursor position
