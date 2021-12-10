@@ -241,6 +241,9 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
     DEMO_RENDER(nc);
   }
   release_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
+  if(ret){
+    return ret;
+  }
   return gridinv_demo(nc, n);
 }
 

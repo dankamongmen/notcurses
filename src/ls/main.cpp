@@ -179,8 +179,8 @@ void ncls_thread(const lsContext* ctx) {
       std::cout << j.p << '\n';
       if(faken){
         ctx->nc.raster_image(faken, ctx->alignment);
+        std::cout << '\n';
       }
-      std::cout << '\n';
       pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);
