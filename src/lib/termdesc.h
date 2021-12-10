@@ -184,6 +184,7 @@ typedef struct tinfo {
   int default_rows;          // LINES environment var / lines terminfo / 24
   int default_cols;          // COLUMNS environment var / cols terminfo / 80
 
+  ncpalette originalpalette; // palette as read from initial queries
   pthread_t gpmthread;       // thread handle for GPM watcher
   int gpmfd;                 // connection to GPM daemon
   char mouseproto;           // DECSET level (100x, '0', '2', '3')
