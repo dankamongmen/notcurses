@@ -330,7 +330,7 @@ int input_demo(ncpp::NotCurses* nc) {
     if(r < 0x80){
       n->set_fg_rgb8(128, 250, 64);
       if(n->printf("ASCII: [0x%02x (%03d)] '%lc'", r, r,
-                   (wchar_t)(iswprint(r) ? r : printutf8(r))) < 0){
+                   (wint_t)(iswprint(r) ? r : printutf8(r))) < 0){
         break;
       }
     }else{
