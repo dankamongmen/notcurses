@@ -65,8 +65,10 @@ int reset_term_attributes(const tinfo* ti, fbuf* f){
 // attempt to restore the palette. if XT{PUSH,POP}COLORS is supported, use
 // XTPOPCOLORS. if we can program individual colors, and we read the palette,
 // reload it from our initial capture. otherwise, use "oc" if available; this
-// will blow away any preexisting palette in favor of the default.
-int reset_term_palette(const tinfo* ti, fbuf* f){
+// will blow away any preexisting palette in favor of the default. if we've
+// never touched the palette, don't bother trying to restore it (unless we're
+// using XTPOPCOLORS, since in that case we always used XTPUSHCOLORS).
+int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette){
   int ret = 0;
   const char* esc;
   if((esc = get_escape(ti, ESCAPE_RESTORECOLORS))){
@@ -74,8 +76,12 @@ int reset_term_palette(const tinfo* ti, fbuf* f){
     if(fbuf_emit(f, esc)){
       ret = -1;
     }
-  }else if(ti->caps.can_change_colors && ti->maxpaletteread > -1){
-fprintf(stderr, "CCC: %u %d\n", ti->caps.can_change_colors, ti->maxpaletteread);
+    return ret;
+  }
+  if(!touchedpalette){
+    return 0;
+  }
+  if(ti->caps.can_change_colors && ti->maxpaletteread > -1){
     loginfo("restoring saved palette (%d)\n", ti->maxpaletteread + 1);
     esc = get_escape(ti, ESCAPE_INITC);
     for(int z = 0 ; z < ti->maxpaletteread ; ++z){
@@ -116,7 +122,7 @@ notcurses_stop_minimal(void* vnc){
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
-  ret |= reset_term_palette(&nc->tcache, f);
+  ret |= reset_term_palette(&nc->tcache, f, nc->touched_palette);
   ret |= reset_term_attributes(&nc->tcache, f);
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;

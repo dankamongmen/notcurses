@@ -359,6 +359,7 @@ typedef struct notcurses {
   int loglevel;
   ncpalette palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
+  bool touched_palette; // have we ever changed a palette entry?
   uint64_t flags;  // copied from notcurses_options
 } notcurses;
 
@@ -426,7 +427,7 @@ void sigwinch_handler(int signo);
 void init_lang(void);
 
 int reset_term_attributes(const tinfo* ti, fbuf* f);
-int reset_term_palette(const tinfo* ti, fbuf* f);
+int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);
