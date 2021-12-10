@@ -74,6 +74,8 @@ typedef struct nccell {
 
 **int nccell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
 
+**int nccell_load_ucs32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***u***);**
+
 **char* nccell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
 **uint32_t nccell_bchannel(const nccell* ***c***);**
@@ -144,10 +146,12 @@ must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
 association is formed at the time of **nccell_load**, **nccell_prime**, or
 **nccell_duplicate**. All of these functions first call **nccell_release**, as
-do **nccell_load_egc32** and **nccell_load_char**. When done using a **nccell**
-entirely, call **nccell_release**. **ncplane_destroy** will free up the memory
-used by the **nccell**, but the backing egcpool has a maximum size of 16MiB,
-and failure to release **nccell**s can eventually block new output.
+do **nccell_load_egc32**, **nccell_load_char**, and **nccell_load_ucs32**.
+When done using a **nccell** entirely, call **nccell_release**.
+**ncplane_destroy** will free up the memory used by the **nccell**, but the
+backing egcpool has a maximum size of 16MiB, and failure to release **nccell**s
+can eventually block new output. Writing over an **ncplane**'s cells releases
+them automatically.
 
 **nccell_extended_gcluster** provides a nul-terminated handle to the EGC. This
 ought be considered invalidated by changes to the **nccell** or **egcpool**.

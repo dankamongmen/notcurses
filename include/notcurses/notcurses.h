@@ -19,6 +19,7 @@
 #ifdef __cplusplus
 extern "C" {
 #define RESTRICT
+#define _Static_assert(...)
 #else
 #define RESTRICT restrict
 #endif
@@ -552,6 +553,24 @@ ncchannels_set_bg_default(uint64_t* channels){
   return *channels;
 }
 
+// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
+#define WCHAR_MAX_UTF8BYTES 4
+
+// Returns the number of columns occupied by the longest valid prefix of a
+// multibyte (UTF-8) string. If an invalid character is encountered, -1 will be
+// returned, and the number of valid bytes and columns will be written into
+// *|validbytes| and *|validwidth| (assuming them non-NULL). If the entire
+// string is valid, *|validbytes| and *|validwidth| reflect the entire string.
+API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
+
+// input functions like notcurses_get() return ucs32-encoded uint32_t. convert
+// a series of uint32_t to utf8. result must be at least 4 bytes per input
+// uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
+// the number of bytes used is returned, or -1 if passed illegal ucs32, or too
+// small of a buffer.
+API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
+                                unsigned char* resultbuf, size_t buflen);
+
 // An nccell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
@@ -849,6 +868,20 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
   return nccell_load(n, c, gcluster);
+}
+
+// Load a UCS-32 codepoint into the nccell 'c'. Returns the number of bytes
+// used, or -1 on error.
+static inline int
+nccell_load_ucs32(struct ncplane* n, nccell* c, uint32_t u){
+  unsigned char utf8[WCHAR_MAX_UTF8BYTES];
+  if(notcurses_ucs32_to_utf8(&u, 1, utf8, sizeof(utf8)) < 0){
+    return -1;
+  }
+  uint32_t utf8asegc;
+  _Static_assert(WCHAR_MAX_UTF8BYTES == sizeof(utf8asegc));
+  memcpy(&utf8asegc, utf8, sizeof(utf8));
+  return nccell_load_egc32(n, c, utf8asegc);
 }
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself
@@ -1885,21 +1918,6 @@ API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
                                     unsigned* pxdimy, unsigned* pxdimx)
   __attribute__ ((nonnull (1)));
 
-// Returns the number of columns occupied by the longest valid prefix of a
-// multibyte (UTF-8) string. If an invalid character is encountered, -1 will be
-// returned, and the number of valid bytes and columns will be written into
-// *|validbytes| and *|validwidth| (assuming them non-NULL). If the entire
-// string is valid, *|validbytes| and *|validwidth| reflect the entire string.
-API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
-
-// input functions like notcurses_get() return ucs32-encoded uint32_t. convert
-// a series of uint32_t to utf8. result must be at least 4 bytes per input
-// uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
-// the number of bytes used is returned, or -1 if passed illegal ucs32, or too
-// small of a buffer.
-API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
-                                unsigned char* resultbuf, size_t buflen);
-
 // Return the offset into 'availu' at which 'u' ought be output given the
 // requirements of 'align'. Return -INT_MAX on invalid 'align'. Undefined
 // behavior on negative 'availu' or 'u'.
@@ -2012,9 +2030,6 @@ ncplane_putegc(struct ncplane* n, const char* gclust, size_t* sbytes){
 // of the plane will not be changed.
 API int ncplane_putegc_stained(struct ncplane* n, const char* gclust, size_t* sbytes)
   __attribute__ ((nonnull (1, 2)));
-
-// 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
-#define WCHAR_MAX_UTF8BYTES 4
 
 // generate a heap-allocated UTF-8 encoding of the wide string 'src'.
 ALLOC static inline char*

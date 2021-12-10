@@ -2135,6 +2135,20 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   return nccell_load(n, c, gcluster);
 }
 
+// Load a UCS-32 codepoint into the nccell 'c'. Returns the number of bytes
+// used, or -1 on error.
+static inline int
+nccell_load_ucs32(struct ncplane* n, nccell* c, uint32_t u){
+  unsigned char utf8[WCHAR_MAX_UTF8BYTES];
+  if(notcurses_ucs32_to_utf8(&u, 1, utf8, sizeof(utf8)) < 0){
+    return -1;
+  }
+  uint32_t utf8asegc;
+  _Static_assert(WCHAR_MAX_UTF8BYTES == sizeof(utf8asegc));
+  memcpy(&utf8asegc, utf8, sizeof(utf8));
+  return nccell_load_egc32(n, c, utf8asegc);
+}
+
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
 const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
