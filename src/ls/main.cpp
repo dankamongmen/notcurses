@@ -127,7 +127,7 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
   if(newdir >= 0){
     close(newdir);
   }
-  return 0;
+  return r;
 }
 
 int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
