@@ -857,7 +857,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   }else if(realloced){
     // the x dimensions are equal, and we're keeping across the width. only the
     // y dimension changed. at worst, we need zero some out.
-    unsigned tozorch = (ylen - keepleny) * xlen;
+    unsigned tozorch = (ylen - keepleny) * xlen * sizeof(*fb);
     if(tozorch){
       unsigned zorchoff = keepleny * xlen;
       memset(fb + zorchoff, 0, tozorch);
