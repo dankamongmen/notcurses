@@ -991,24 +991,20 @@ const char* notcurses_str_blitter(ncblitter_e blitfxn){
 
 int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->leny <= 0 || vopts->lenx <= 0){
+    logerror("invalid lenghts %u %u\n", vopts->leny, vopts->lenx);
+    return -1;
+  }
+  if(vopts->n == NULL){
+    logerror("prohibited null plane\n");
     return -1;
   }
   void* rdata = bgra_to_rgba(data, vopts->leny, &linesize, vopts->lenx, 0xff);
   if(rdata == NULL){
     return -1;
   }
-  struct ncvisual* ncv = ncvisual_from_rgba(rdata, vopts->leny, linesize, vopts->lenx);
-  if(ncv == NULL){
-    free(rdata);
-    return -1;
-  }
+  int r = ncblit_rgba(rdata, linesize, vopts);
   free(rdata);
-  if(ncvisual_blit(ncplane_notcurses(vopts->n), ncv, vopts) == NULL){
-    ncvisual_destroy(ncv);
-    return -1;
-  }
-  ncvisual_destroy(ncv);
-  return 0;
+  return r;
 }
 
 int ncblit_rgb_loose(const void* data, int linesize,
@@ -1040,46 +1036,24 @@ int ncblit_rgb_packed(const void* data, int linesize,
 }
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
-  if(vopts->flags > NCVISUAL_OPTION_BLEND){
-    fprintf(stderr, "Warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
-  }
-  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
+  if(vopts->leny <= 0 || vopts->lenx <= 0){
+    logerror("invalid lenghts %u %u\n", vopts->leny, vopts->lenx);
     return -1;
   }
-  struct ncplane* nc = vopts->n;
-  if(nc == NULL){
+  if(vopts->n == NULL){
+    logerror("prohibited null plane\n");
     return -1;
   }
-  int lenx = vopts->lenx;
-  int leny = vopts->leny;
-  int begy = vopts->begy;
-  int begx = vopts->begx;
-//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+  struct ncvisual* ncv = ncvisual_from_rgba(data, vopts->leny, linesize, vopts->lenx);
+  if(ncv == NULL){
     return -1;
   }
-  ncblitter_e blitfxn;
-  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitfxn = ncvisual_media_defblitter(ncplane_notcurses(nc), NCSCALE_NONE);
-  }else{
-    blitfxn = vopts->blitter;
-  }
-  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
-  const notcurses* notc = ncplane_notcurses(nc);
-  const struct blitset* bset = lookup_blitset(&notc->tcache, blitfxn, degrade);
-  if(bset == NULL){
+  if(ncvisual_blit(ncplane_notcurses(vopts->n), ncv, vopts) == NULL){
+    ncvisual_destroy(ncv);
     return -1;
   }
-  blitterargs bargs = {
-    .flags = vopts->flags,
-    .u = {
-      .cell = {
-        .placey = vopts->y,
-        .placex = vopts->x,
-      },
-    },
-  };
-  return bset->blit(nc, linesize, data, leny, lenx, &bargs);
+  ncvisual_destroy(ncv);
+  return 0;
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
