@@ -1275,6 +1275,26 @@ fgdef_cb(inputctx* ictx){
 }
 
 static int
+palette_cb(inputctx* ictx){
+  if(ictx->initdata){
+    unsigned idx = amata_next_numeric(&ictx->amata, "\x1b]4;", ';');
+    char* str = amata_next_string(&ictx->amata, "rgb:");
+    if(idx > NCPALETTESIZE){
+      logerror("invalid index %u\n", idx);
+    }else if(str == NULL){
+      logerror("empty palette string\n");
+    }else{
+      uint32_t color;
+      if(get_default_color(str, &color) == 0){
+        loginfo("index %u 0x%06x\n", idx, color);
+      }
+      free(str);
+    }
+  }
+  return 2;
+}
+
+static int
 extract_xtversion(inputctx* ictx, const char* str, char suffix){
   size_t slen = strlen(str);
   if(slen == 0){
@@ -1495,6 +1515,7 @@ build_cflow_automaton(inputctx* ictx){
     // OSC (\e_...ST)
     { "_G\\S", kittygraph_cb, },
     // a mystery to everyone!
+    { "]4;\\N;rgb:\\S", palette_cb, },
     { "]10;rgb:\\S", fgdef_cb, },
     { "]11;rgb:\\S", bgdef_cb, },
     { NULL, NULL, },
