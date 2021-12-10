@@ -1814,7 +1814,7 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
 // are terminal and stdin distinct for this inputctx?
 static inline bool
 ictx_independent_p(const inputctx* ictx){
-  return ictx->termfd >= 0; // FIXME does this hold on MSFT Terminal?
+  return ictx->termfd >= 0;
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
@@ -2032,14 +2032,14 @@ static void
 process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
-    logdebug("input %d/%d [0x%02x] (%c)\n", offset, *bufused, buf[offset],
-             isprint(buf[offset]) ? buf[offset] : ' ');
+    logdebug("input %d (%u)/%d [0x%02x] (%c)\n", offset, ictx->amata.used,
+             *bufused, buf[offset], isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
     if(buf[offset] == '\x1b'){
       consumed = process_escape(ictx, buf + offset, *bufused);
       if(consumed < 0){
         if(ictx->midescape){
-          if(offset + *bufused - consumed != sizeof(ictx->ibuf)){
+          if(*bufused != -consumed){
             // not at the end; treat it as input. no need to move between
             // buffers; simply ensure we process it as input, and don't mark
             // anything as consumed.
@@ -2093,6 +2093,9 @@ process_ibuf(inputctx* ictx){
       // move any leftovers to the front
       if(ictx->ibufvalid){
         memmove(ictx->ibuf, ictx->ibuf + valid - ictx->ibufvalid, ictx->ibufvalid);
+        if(ictx->amata.matchstart){
+          ictx->amata.matchstart = ictx->ibuf;
+        }
       }
     }
   }
