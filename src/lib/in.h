@@ -77,6 +77,7 @@ struct initial_responses {
   int sixelx;                  // maximum sixel width
   char* version;               // version string, heap-allocated
   unsigned kbdlevel;           // enabled kitty keyboard functions
+  ncpalette palette;           // palette entries
 };
 
 // Blocking call. Waits until the input thread has processed all responses to

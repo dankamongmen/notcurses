@@ -1279,14 +1279,13 @@ palette_cb(inputctx* ictx){
   if(ictx->initdata){
     unsigned idx = amata_next_numeric(&ictx->amata, "\x1b]4;", ';');
     char* str = amata_next_string(&ictx->amata, "rgb:");
-    if(idx > NCPALETTESIZE){
+    if(idx > sizeof(ictx->initdata->palette.chans) / sizeof(*ictx->initdata->palette.chans)){
       logerror("invalid index %u\n", idx);
     }else if(str == NULL){
       logerror("empty palette string\n");
     }else{
-      uint32_t color;
-      if(get_default_color(str, &color) == 0){
-        loginfo("index %u 0x%06x\n", idx, color);
+      if(get_default_color(str, &ictx->initdata->palette.chans[idx]) == 0){
+        loginfo("index %u 0x%06x\n", idx, ictx->initdata->palette.chans[idx]);
       }
       free(str);
     }

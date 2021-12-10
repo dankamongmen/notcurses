@@ -1233,6 +1233,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->dimy = iresp->dimy;
       ti->dimx = iresp->dimx;
     }
+    memcpy(&ti->originalpalette, &iresp->palette, sizeof(ti->originalpalette));
     if(iresp->rgb){
       ti->caps.rgb = true;
     }
