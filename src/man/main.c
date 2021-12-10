@@ -919,7 +919,7 @@ manloop(struct notcurses* nc, const char* arg){
         break;
       // we can move down iff our last line is beyond the visible area
       case 'j': case NCKEY_DOWN:
-        if(ncplane_y(page) + ncplane_dim_y(page) > ncplane_dim_y(stdn)){
+        if(ncplane_y(page) + ncplane_dim_y(page) >= ncplane_dim_y(stdn)){
           ncplane_move_rel(page, -1, 0);
         }
         break;
@@ -931,11 +931,9 @@ manloop(struct notcurses* nc, const char* arg){
         ncplane_move_yx(page, newy, 0);
         break;
       }case 'f': case NCKEY_PGDOWN:{
-        int newy = ncplane_y(page) - (int)ncplane_dim_y(stdn);
-        if(newy + ncplane_dim_y(page) < ncplane_dim_y(stdn)){
-          if((newy = ncplane_dim_y(stdn) - ncplane_dim_y(page)) > 0){
-            newy = 0;
-          }
+        int newy = ncplane_y(page) - (int)ncplane_dim_y(stdn) + 1;
+        if(newy + (int)ncplane_dim_y(page) < (int)ncplane_dim_y(stdn)){
+          newy += (int)ncplane_dim_y(stdn) - (newy + (int)ncplane_dim_y(page)) - 1;
         }
         ncplane_move_yx(page, newy, 0);
         break;
