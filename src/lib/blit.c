@@ -997,9 +997,18 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
   if(rdata == NULL){
     return -1;
   }
-  int r = ncblit_rgba(rdata, linesize, vopts);
+  struct ncvisual* ncv = ncvisual_from_rgba(rdata, vopts->leny, linesize, vopts->lenx);
+  if(ncv == NULL){
+    free(rdata);
+    return -1;
+  }
   free(rdata);
-  return r;
+  if(ncvisual_blit(ncplane_notcurses(vopts->n), ncv, vopts) == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  ncvisual_destroy(ncv);
+  return 0;
 }
 
 int ncblit_rgb_loose(const void* data, int linesize,
