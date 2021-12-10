@@ -59,8 +59,43 @@ int reset_term_attributes(const tinfo* ti, fbuf* f){
   if((esc = get_escape(ti, ESCAPE_SGR0)) && fbuf_emit(f, esc)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_OC)) && fbuf_emit(f, esc)){
-    ret = -1;
+  return ret;
+}
+
+// attempt to restore the palette. if XT{PUSH,POP}COLORS is supported, use
+// XTPOPCOLORS. if we can program individual colors, and we read the palette,
+// reload it from our initial capture. otherwise, use "oc" if available; this
+// will blow away any preexisting palette in favor of the default.
+int reset_term_palette(const tinfo* ti, fbuf* f){
+  int ret = 0;
+  const char* esc;
+  if((esc = get_escape(ti, ESCAPE_RESTORECOLORS))){
+    loginfo("restoring palette via xtpopcolors\n");
+    if(fbuf_emit(f, esc)){
+      ret = -1;
+    }
+  }else if(ti->caps.can_change_colors && ti->maxpaletteread > -1){
+fprintf(stderr, "CCC: %u %d\n", ti->caps.can_change_colors, ti->maxpaletteread);
+    loginfo("restoring saved palette (%d)\n", ti->maxpaletteread + 1);
+    esc = get_escape(ti, ESCAPE_INITC);
+    for(int z = 0 ; z < ti->maxpaletteread ; ++z){
+      unsigned r, g, b;
+      ncchannel_rgb8(ti->originalpalette.chans[z], &r, &g, &b);
+      // Need convert RGB values [0..256) to [0..1000], ugh
+      r = r * 1000 / 255;
+      g = g * 1000 / 255;
+      b = b * 1000 / 255;
+      if(fbuf_emit(f, tiparm(esc, z, r, g, b)) < 0){
+        return -1;
+      }
+    }
+  }else if((esc = get_escape(ti, ESCAPE_OC))){
+    loginfo("resetting palette\n");
+    if(fbuf_emit(f, esc)){
+      ret = -1;
+    }
+  }else{
+    logwarn("no method known to restore palette\n");
   }
   return ret;
 }
@@ -81,9 +116,7 @@ notcurses_stop_minimal(void* vnc){
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
-  if((esc = get_escape(&nc->tcache, ESCAPE_RESTORECOLORS)) && fbuf_emit(f, esc)){
-    ret = -1;
-  }
+  ret |= reset_term_palette(&nc->tcache, f);
   ret |= reset_term_attributes(&nc->tcache, f);
   if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && fbuf_emit(f, esc)){
     ret = -1;

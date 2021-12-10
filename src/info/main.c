@@ -379,7 +379,7 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   uint32_t bg = 0;
   r = notcurses_default_background(ncplane_notcurses(n), &bg);
   if(r){
-    ncplane_printf(n, "no known default fg");
+    ncplane_printf(n, "no known default bg");
   }else{
     ncplane_printf(n, "default bg 0x%06x", bg);
   }
