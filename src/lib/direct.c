@@ -843,6 +843,10 @@ ncdirect_stop_minimal(void* vnc){
         if(tty_emit(KKEYBOARD_POP, nc->tcache.ttyfd)){
           ret = -1;
         }
+      }else{
+        if(tty_emit(XTMODKEYSUNDO, nc->tcache.ttyfd)){
+          ret = -1;
+        }
       }
     }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
