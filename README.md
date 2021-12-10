@@ -338,12 +338,12 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
-  <summary>I'm getting strange and/or duplicate inputs in Kitty.</summary>
+  <summary>I'm getting strange and/or duplicate inputs in Kitty/foot.</summary>
   Notcurses supports Kitty's powerful
   <a href="https://sw.kovidgoyal.net/kitty/keyboard-protocol/">keyboard protocol</a>,
   which includes things like key release events and modifier keypresses by
-  themselves. This means, among other things, that a program in Kitty will
-  usually immediately get an <code>NC_ENTER</code> <code>NCTYPE_RELEASE</code>
+  themselves. This means, among other things, that a program in these terminals
+  will usually immediately get an <code>NC_ENTER</code> <code>NCTYPE_RELEASE</code>
   event, and each keypress will typically result in at least two inputs.
 </details>
 
