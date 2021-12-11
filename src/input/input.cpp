@@ -125,6 +125,7 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_EXIT:    return "exit";
     case NCKEY_PRINT:   return "print";
     case NCKEY_REFRESH: return "refresh";
+    case NCKEY_SEPARATOR: return "seperator";
     case NCKEY_CAPS_LOCK: return "caps lock";
     case NCKEY_SCROLL_LOCK: return "scroll lock";
     case NCKEY_NUM_LOCK: return "num lock";
