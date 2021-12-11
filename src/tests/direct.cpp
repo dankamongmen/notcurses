@@ -174,9 +174,10 @@ TEST_CASE("Direct") {
 
   CHECK(0 == ncdirect_stop(nc_));
 
-  // make sure that we can pass undefined flags and still create the ncdirect
+  // make sure that we can pass undefined flags and still create the ncdirect.
+  // we don't pass all 1s, or we turn on all logging, and run into trouble!
   SUBCASE("FutureFlags") {
-    auto fnc = ncdirect_init(NULL, stdout, ~0ULL);
+    auto fnc = ncdirect_init(NULL, stdout, NCDIRECT_OPTION_VERY_VERBOSE << 1u);
     REQUIRE(nullptr != fnc);
     CHECK(0 == ncdirect_stop(fnc));
   }
