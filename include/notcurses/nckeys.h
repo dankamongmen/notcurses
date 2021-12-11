@@ -108,6 +108,7 @@ extern "C" {
 #define NCKEY_EXIT      preterunicode(133)
 #define NCKEY_PRINT     preterunicode(134)
 #define NCKEY_REFRESH   preterunicode(135)
+#define NCKEY_SEPARATOR preterunicode(136)
 // these keys aren't generally available outside of the kitty protocol
 #define NCKEY_CAPS_LOCK    preterunicode(150)
 #define NCKEY_SCROLL_LOCK  preterunicode(151)

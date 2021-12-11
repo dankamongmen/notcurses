@@ -653,6 +653,7 @@ kitty_functional(uint32_t val){
       case 57413: val = '+'; break;
       case 57414: val = NCKEY_ENTER; break;
       case 57415: val = '='; break;
+      case 57416: val = NCKEY_SEPARATOR; break;
       case 57417: val = NCKEY_LEFT; break;
       case 57418: val = NCKEY_RIGHT; break;
       case 57419: val = NCKEY_UP; break;
