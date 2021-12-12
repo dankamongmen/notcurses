@@ -211,9 +211,9 @@ file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/*.c)
 file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
 add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC})
 if(${USE_STATIC})
-add_library(notcurses-core-static STATIC ${NCCORESRCS})
+add_library(notcurses-core-static STATIC ${NCCORESRCS} ${COMPATSRC})
 else()
-add_library(notcurses-core-static STATIC EXCLUDE_FROM_ALL ${NCCORESRCS})
+add_library(notcurses-core-static STATIC EXCLUDE_FROM_ALL ${NCCORESRCS} ${COMPATSRC})
 endif()
 # don't want these on freebsd/dragonfly/osx
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -266,7 +266,6 @@ target_link_libraries(notcurses-core
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
-    "${LIBRT}"
     "${unistring}"
     "${gpm}"
   PUBLIC
@@ -279,10 +278,8 @@ target_link_libraries(notcurses-core-static
     "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
-    "${LIBRT}"
     "${unistring}"
     "${gpm}"
-  PUBLIC
     Threads::Threads
     "${LIBRT_LIBRARIES}"
 )
@@ -308,9 +305,9 @@ endif()
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
-add_library(notcurses-static STATIC ${NCSRCS})
+add_library(notcurses-static STATIC ${NCSRCS} ${COMPATSRC})
 else()
-add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS})
+add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS} ${COMPATSRC})
 endif()
 set_target_properties(notcurses PROPERTIES
   VERSION ${PROJECT_VERSION}
