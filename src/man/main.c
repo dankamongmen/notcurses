@@ -172,6 +172,7 @@ typedef enum {
   LINE_TP, LINE_TQ,
   LINE_ME, LINE_MT, LINE_UE, LINE_UR,
   LINE_OP, LINE_SY, LINE_YS,
+  LINE_NF, LINE_FI,
 } ltypes;
 
 typedef enum {
@@ -181,7 +182,8 @@ typedef enum {
   TROFF_STRUCTURE,
   TROFF_PARAGRAPH,
   TROFF_HYPERLINK,
-  TROFF_SYNOPSIS
+  TROFF_SYNOPSIS,
+  TROFF_PREFORMATTED,
 } ttypes;
 
 typedef struct {
@@ -222,6 +224,8 @@ static const trofftype trofftypes[] = {
   { .ltype = LINE_UNKNOWN, .symbol = "hy", .ttype = TROFF_UNKNOWN, .channel = 0, },
   { .ltype = LINE_UNKNOWN, .symbol = "br", .ttype = TROFF_UNKNOWN, .channel = 0, },
   { .ltype = LINE_COMMENT, .symbol = "IX", .ttype = TROFF_COMMENT, .channel = 0, },
+  { .ltype = LINE_NF, .symbol = "nf", .ttype = TROFF_FONT, .channel = 0, },
+  { .ltype = LINE_FI, .symbol = "fi", .ttype = TROFF_FONT, .channel = 0, },
 };
 
 // the troff trie is only defined on the 128 ascii values.
@@ -456,6 +460,7 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   pagenode* current_section = NULL;
   pagenode* current_subsection = NULL;
   pagenode* current_para = NULL;
+  bool preformatted = false;
   for(size_t off = 0 ; off < mlen ; ++off){
     const unsigned char* ws = line;
     size_t left = mlen - off;
@@ -467,84 +472,14 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       ++eol;
       --left;
     }
-    // functional end of line--doesn't include possible newline
     const unsigned char* feol = eol;
-    if(left && *eol == '\n'){
-      --feol;
-    }
-    if(node){
-      if(node->ltype == LINE_TH){
-        if(dom_get_title(dom)){
-          fprintf(stderr, "found a second title (was %s)\n", dom_get_title(dom));
-          return -1;
-        }
-        char* et = extract_text(ws, feol);
-        if(et == NULL){
-          return -1;
-        }
-        if((dom->root = malloc(sizeof(*dom->root))) == NULL){
-          free(et);
-          return -1;
-        }
-        memset(dom->root, 0, sizeof(*dom->root));
-        dom->root->ttype = node;
-        dom->root->text = et;
-        if(lex_title(dom)){
-          return -1;
-        }
-        current_para = dom->root;
-      }else if(node->ltype == LINE_SH){
-        if(dom->root == NULL){
-          fprintf(stderr, "section transcends structure\n");
-          return -1;
-        }
-        char* et = extract_text(ws, feol);
-        if(et == NULL){
-          return -1;
-        }
-        if((current_section = add_node(dom->root, et)) == NULL){
-          free(et);
-          return -1;
-        }
-        current_section->ttype = node;
-        current_subsection = NULL;
-        current_para = current_section;
-      }else if(node->ltype == LINE_SS){
-        char* et = extract_text(ws, feol);
-        if(et == NULL){
-          return -1;
-        }
-        if(current_section == NULL){
-          fprintf(stderr, "subsection %s without section\n", et);
-          free(et);
-          return -1;
-        }
-        if((current_subsection = add_node(current_section, et)) == NULL){
-          free(et);
-          return -1;
-        }
-        current_subsection->ttype = node;
-        current_para = current_subsection;
-      }else if(node->ltype == LINE_PP){
-        if(dom->root == NULL){
-          fprintf(stderr, "paragraph transcends structure\n");
-          return -1;
-        }
-        if((current_para = add_node(current_para, NULL)) == NULL){
-          return -1;
-        }
-        current_para->ttype = node;
-      }else if(node->ltype == LINE_TP){
-        if(dom->root == NULL){
-          fprintf(stderr, "tagged paragraph transcends structure\n");
-          return -1;
-        }
-        if((current_para = add_node(current_para, NULL)) == NULL){
-          return -1;
-        }
-        current_para->ttype = node;
+    // functional end of line--doesn't include possible newline
+    if(!preformatted){
+      if(left && *eol == '\n'){
+        --feol;
       }
-    }else{
+    }
+    if(node == NULL){
       if(current_para == NULL){
         //fprintf(stderr, "free-floating text transcends para\n");
         //fprintf(stderr, "[%s]\n", line);
@@ -554,6 +489,82 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
           return -1;
         }
       }
+    }else if(node->ltype == LINE_NF){
+fprintf(stderr, "PREFORMAT BEGINS\n");
+      preformatted = true;
+    }else if(node->ltype == LINE_FI){
+fprintf(stderr, "PREFORMAT ENDS\n");
+      preformatted = false;
+    }else if(node->ltype == LINE_TH){
+      if(dom_get_title(dom)){
+        fprintf(stderr, "found a second title (was %s)\n", dom_get_title(dom));
+        return -1;
+      }
+      char* et = extract_text(ws, feol);
+      if(et == NULL){
+        return -1;
+      }
+      if((dom->root = malloc(sizeof(*dom->root))) == NULL){
+        free(et);
+        return -1;
+      }
+      memset(dom->root, 0, sizeof(*dom->root));
+      dom->root->ttype = node;
+      dom->root->text = et;
+      if(lex_title(dom)){
+        return -1;
+      }
+      current_para = dom->root;
+    }else if(node->ltype == LINE_SH){
+      if(dom->root == NULL){
+        fprintf(stderr, "section transcends structure\n");
+        return -1;
+      }
+      char* et = extract_text(ws, feol);
+      if(et == NULL){
+        return -1;
+      }
+      if((current_section = add_node(dom->root, et)) == NULL){
+        free(et);
+        return -1;
+      }
+      current_section->ttype = node;
+      current_subsection = NULL;
+      current_para = current_section;
+    }else if(node->ltype == LINE_SS){
+      char* et = extract_text(ws, feol);
+      if(et == NULL){
+        return -1;
+      }
+      if(current_section == NULL){
+        fprintf(stderr, "subsection %s without section\n", et);
+        free(et);
+        return -1;
+      }
+      if((current_subsection = add_node(current_section, et)) == NULL){
+        free(et);
+        return -1;
+      }
+      current_subsection->ttype = node;
+      current_para = current_subsection;
+    }else if(node->ltype == LINE_PP){
+      if(dom->root == NULL){
+        fprintf(stderr, "paragraph transcends structure\n");
+        return -1;
+      }
+      if((current_para = add_node(current_para, NULL)) == NULL){
+        return -1;
+      }
+      current_para->ttype = node;
+    }else if(node->ltype == LINE_TP){
+      if(dom->root == NULL){
+        fprintf(stderr, "tagged paragraph transcends structure\n");
+        return -1;
+      }
+      if((current_para = add_node(current_para, NULL)) == NULL){
+        return -1;
+      }
+      current_para->ttype = node;
     }
     off += eol - line;
     line = eol + 1;
@@ -617,6 +628,7 @@ putpara(struct ncplane* p, const char* text){
               case 'R': style = 0; break; // roman, default
               case 'I': style |= NCSTYLE_ITALIC; break;
               case 'B': style |= NCSTYLE_BOLD; break;
+              case 'C': break; // unsure! seems to be used with .nf/.fi
               default:
                 fprintf(stderr, "illegal font macro %s\n", curend);
                 return -1;
