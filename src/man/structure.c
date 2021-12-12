@@ -18,8 +18,9 @@ typedef struct docstructure {
 
 static int
 docstruct_callback(struct ncplane* n, void* curry, int i){
-  (void)n; // FIXME
-  (void)curry;
+  docnode* dn = curry;
+  ncplane_printf(n, "%p", dn);
+  ncplane_resize_simple(n, 1, ncplane_dim_x(n));
   (void)i;
   return 0;
 }
@@ -42,7 +43,7 @@ docstructure* docstructure_create(struct ncplane* n){
   if(p == NULL){
     return NULL;
   }
-  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x80, 0x80, 0x80);
+  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x99, 0xed, 0xc3);
   ncplane_set_base(p, "", 0, channels);
   nctree_options topts = {
     .nctreecb = docstruct_callback,

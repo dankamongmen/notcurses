@@ -619,26 +619,30 @@ putpara(struct ncplane* p, const char* text){
       }else if(inescape){
         if(*curend == 'f'){ // set font
           textend = curend - 1; // account for backslash
-          if(*++curend != '['){
-            fprintf(stderr, "illegal font macro %s\n", curend);
-            return -1;
+          bool bracketed = false;
+          if(*++curend == '['){
+            bracketed = true;
+            ++curend;
           }
-          while(isalpha(*++curend)){
+          while(isalpha(*curend)){
             switch(toupper(*curend)){
               case 'R': style = 0; break; // roman, default
               case 'I': style |= NCSTYLE_ITALIC; break;
               case 'B': style |= NCSTYLE_BOLD; break;
               case 'C': break; // unsure! seems to be used with .nf/.fi
               default:
-                fprintf(stderr, "illegal font macro %s\n", curend);
+                fprintf(stderr, "unknown font macro %s\n", curend);
                 return -1;
             }
+            ++curend;
           }
-          if(*curend != ']'){
-            fprintf(stderr, "illegal font macro %s\n", curend);
-            return -1;
+          if(bracketed){
+            if(*curend != ']'){
+              fprintf(stderr, "missing ']': %s\n", curend);
+              return -1;
+            }
+            ++curend;
           }
-          ++curend;
           break;
         }else if(*curend == '['){ // escaped sequence
           textend = curend - 1; // account for backslash
@@ -671,6 +675,10 @@ putpara(struct ncplane* p, const char* text){
             return -1;
           }
           curend = macend;
+          break;
+        }else{
+          inescape = false;
+          cur = curend++;
           break;
         }
         inescape = false;
@@ -737,6 +745,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       break;
     case LINE_PP: // paragraph
     case LINE_TP: // tagged paragraph
+    case LINE_IP: // indented paragraph
       if(*wrotetext){
         if(n->text){
           ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
