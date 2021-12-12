@@ -642,8 +642,8 @@ endif()
 ############################################################################
 # tfman
 if(NOT WIN32)
-file(GLOB tfmanSRCS CONFIGURE_DEPENDS src/man/*.c)
-add_executable(tfman ${tfmanSRCS} ${COMPATSRC})
+file(GLOB TFMANSRCS CONFIGURE_DEPENDS src/man/*.c)
+add_executable(tfman ${TFMANSRCS} ${COMPATSRC})
 target_compile_definitions(tfman
   PRIVATE
     _GNU_SOURCE
@@ -982,6 +982,7 @@ list(FILTER TESTDATA EXCLUDE REGEX ".*osp$")
 install(FILES ${TESTDATA} DESTINATION ${CMAKE_INSTALL_DATADIR}/notcurses)
 endif()
 
+list(FILTER MANPAGES1 EXCLUDE REGEX "tfman.1")
 install(FILES ${MANPAGES1} DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man1)
 install(FILES ${MANPAGES3} DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man3)
 file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
@@ -991,9 +992,9 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
-if(NOT WIN32)
-install(TARGETS tfman DESTINATION bin)
-endif()
+#if(NOT WIN32)
+#install(TARGETS tfman DESTINATION bin)
+#endif()
 if(${USE_CXX})
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
