@@ -139,7 +139,7 @@ find_package(Threads)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 # platform-specific logics
 if(WIN32)
-  set(LIBRT_LIBRARIES wsock32 ws2_32 Secur32)
+  set(LIBRT wsock32 ws2_32 Secur32)
 elseif(NOT APPLE)
   find_library(LIBM m REQUIRED)
   find_library(LIBRT rt REQUIRED)
@@ -270,7 +270,7 @@ target_link_libraries(notcurses-core
     "${gpm}"
   PUBLIC
     Threads::Threads
-    "${LIBRT_LIBRARIES}"
+    "${LIBRT}"
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
@@ -281,7 +281,7 @@ target_link_libraries(notcurses-core-static
     "${unistring}"
     "${gpm}"
     Threads::Threads
-    "${LIBRT_LIBRARIES}"
+    "${LIBRT}"
 )
 target_link_directories(notcurses-core
   PRIVATE
@@ -599,6 +599,7 @@ target_include_directories(notcurses-info
 target_link_libraries(notcurses-info
   PRIVATE
     notcurses
+    "${LIBRT}"
 )
 
 ############################################################################
@@ -616,6 +617,7 @@ target_include_directories(notcurses-input
 target_link_libraries(notcurses-input
   PRIVATE
     notcurses++
+    "${LIBRT}"
 )
 
 ############################################################################
@@ -633,6 +635,7 @@ target_include_directories(nctetris
 target_link_libraries(nctetris
   PRIVATE
     notcurses++
+    "${LIBRT}"
 )
 endif()
 
@@ -678,6 +681,7 @@ target_include_directories(ncneofetch
 target_link_libraries(ncneofetch
   PRIVATE
     notcurses
+    "${LIBRT}"
 )
 
 # documentation source, processed by pandoc into XHTML and man pages. declare
