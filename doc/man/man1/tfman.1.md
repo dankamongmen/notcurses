@@ -36,6 +36,9 @@ The following keypresses are recognized:
 
 # BUGS
 
+**tfman** does not currently (and is unlikely to ever) support the full
+**groff** macro language.
+
 # SEE ALSO
 
 **man(1)**,
