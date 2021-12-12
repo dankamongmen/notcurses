@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <notcurses/notcurses.h>
+#include "structure.h"
 #include "builddef.h"
 
 static void
@@ -328,6 +329,7 @@ typedef struct pagedom {
   char* version;
   char* footer;
   char* header;
+  struct docstructure* ds;
 } pagedom;
 
 static const char*
@@ -490,10 +492,8 @@ troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
         }
       }
     }else if(node->ltype == LINE_NF){
-fprintf(stderr, "PREFORMAT BEGINS\n");
       preformatted = true;
     }else if(node->ltype == LINE_FI){
-fprintf(stderr, "PREFORMAT ENDS\n");
       preformatted = false;
     }else if(node->ltype == LINE_TH){
       if(dom_get_title(dom)){
@@ -757,9 +757,13 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
 // scroll the entire plane. higher memory cost, longer initial latency,
 // very fast moves.
 static int
-draw_content(struct ncplane* p){
+draw_content(struct ncplane* stdn, struct ncplane* p){
   const pagedom* dom = ncplane_userptr(p);
   unsigned wrotetext = 0; // unused by us
+  struct docstructure* ds = docstructure_create(stdn);
+  if(ds == NULL){
+    return -1;
+  }
   return draw_domnode(p, dom, dom->root, &wrotetext);
 }
 
@@ -768,7 +772,8 @@ resize_pman(struct ncplane* pman){
   unsigned dimy, dimx;
   ncplane_dim_yx(ncplane_parent_const(pman), &dimy, &dimx);
   ncplane_resize_simple(pman, dimy - 1, dimx);
-  int r = draw_content(pman);
+  struct ncplane* stdn = notcurses_stdplane(ncplane_notcurses(pman));
+  int r = draw_content(stdn, pman);
   ncplane_move_yx(pman, 0, 0);
   return r;
 }
@@ -796,7 +801,7 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   if(pman == NULL){
     return NULL;
   }
-  if(draw_content(pman)){
+  if(draw_content(stdn, pman)){
     ncplane_destroy(pman);
     return NULL;
   }
@@ -855,6 +860,7 @@ pagedom_destroy(pagedom* dom){
   free(dom->title);
   free(dom->version);
   free(dom->section);
+  docstructure_free(dom->ds);
 }
 
 static struct ncplane*
