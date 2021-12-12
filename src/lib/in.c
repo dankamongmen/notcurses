@@ -1845,7 +1845,6 @@ static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   assert(ictx->amata.used < buflen);
   while(ictx->amata.used < buflen){
-fprintf(stderr, "AMATA USED: %u buflen: %d\n", ictx->amata.used, buflen);
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
@@ -1902,7 +1901,6 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
     // if we aren't certain, that's not a control sequence unless we're at
     // the end of the tbuf, in which case we really do try reading more. if
     // this was not a sequence, we'll catch it on the next read.
-fprintf(stderr, "ESCAPE PROC: %d %d %d MID: %u\n", *bufused, consumed, offset, ictx->midescape);
     if(consumed < 0){
       int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
       // if midescape is not set, the negative return means invalid escape. if
@@ -1927,7 +1925,6 @@ fprintf(stderr, "ESCAPE PROC: %d %d %d MID: %u\n", *bufused, consumed, offset, i
         break;
       }
     }
-fprintf(stderr, "TIME FOR BIG SUB %d - %d -> %d : %d\n", *bufused, consumed, *bufused - consumed, offset);
     *bufused -= consumed;
     offset += consumed;
     assert(0 <= *bufused);
@@ -2096,9 +2093,7 @@ process_ibuf(inputctx* ictx){
   if(ictx->tbufvalid){
     // we could theoretically do this in parallel with process_bulk, but it
     // hardly seems worthwhile without breaking apart the fetches of input.
-fprintf(stderr, "TBUFVALID: %u\n", ictx->tbufvalid);
     process_escapes(ictx, ictx->tbuf, &ictx->tbufvalid);
-fprintf(stderr, "TBUFVALIDPOST: %u\n", ictx->tbufvalid);
   }
   if(ictx->ibufvalid){
     if(ictx_independent_p(ictx)){
