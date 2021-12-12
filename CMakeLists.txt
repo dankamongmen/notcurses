@@ -637,15 +637,15 @@ target_link_libraries(nctetris
 endif()
 
 ############################################################################
-# ncman
+# tfman
 if(NOT WIN32)
-file(GLOB NCMANSRCS CONFIGURE_DEPENDS src/man/*.c)
-add_executable(ncman ${NCMANSRCS} ${COMPATSRC})
-target_compile_definitions(ncman
+file(GLOB tfmanSRCS CONFIGURE_DEPENDS src/man/*.c)
+add_executable(tfman ${tfmanSRCS} ${COMPATSRC})
+target_compile_definitions(tfman
   PRIVATE
     _GNU_SOURCE
 )
-target_include_directories(ncman
+target_include_directories(tfman
   BEFORE
   PRIVATE
     include
@@ -655,7 +655,7 @@ target_include_directories(ncman
     "${libdeflate_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
 )
-target_link_libraries(ncman
+target_link_libraries(tfman
   PRIVATE
     notcurses-core
     "${libdeflate}"
@@ -988,7 +988,7 @@ install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
 if(NOT WIN32)
-install(TARGETS ncman DESTINATION bin)
+install(TARGETS tfman DESTINATION bin)
 endif()
 if(${USE_CXX})
 install(TARGETS notcurses-input DESTINATION bin)

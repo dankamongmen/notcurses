@@ -140,7 +140,6 @@ others are external.
 
 Nine binaries are installed as part of Notcurses:
 * `ncls`: an `ls` that displays multimedia in the terminal
-* `ncman`: a fancy manual browser
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
 * `ncplayer`: renders visual media (images/videos)
 * `nctetris`: a tetris clone
@@ -148,6 +147,7 @@ Nine binaries are installed as part of Notcurses:
 * `notcurses-info`: detect and print terminal capabilities/diagnostics
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
+* `tfman`: a fancy manual browser
 
 To run `notcurses-demo` from a checkout, provide the `data` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base

@@ -1,18 +1,18 @@
-% ncman(1)
+% tfman(1)
 % nick black <nickblack@linux.com>
 % v3.0.0
 
 # NAME
 
-ncman - Swank manual page browser 
+tfman - Swank manual page browser 
 
 # SYNOPSIS
 
-**ncman** [**-h**] [**-V**] files
+**tfman** [**-h**] [**-V**] files
 
 # DESCRIPTION
 
-**ncman** displays manual pages ala **man(1)** using the Notcurses
+**tfman** displays manual pages ala **man(1)** using the Notcurses
 (**notcurses(3)**) terminal UI library.
 
 # OPTIONS
@@ -27,6 +27,10 @@ The following keypresses are recognized:
 
 * **Ctrl-L**: Redraw the screen.
 * **q**: Quit.
+* **k**/**up**: Move up by one line.
+* **b**/**pgup**: Move up by one page.
+* **j**/**down**: Move down by one line.
+* **f**/**pgdown**: Move down by one page.
 
 # NOTES
 

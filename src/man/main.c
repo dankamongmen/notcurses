@@ -32,7 +32,7 @@ parse_args(int argc, char** argv){
       case 'h': usage(argv0, stdout);
                 exit(EXIT_SUCCESS);
                 break;
-      case 'V': fprintf(stderr, "ncman version %s\n", notcurses_version());
+      case 'V': fprintf(stderr, "%s version %s\n", argv[0], notcurses_version());
                 exit(EXIT_SUCCESS);
                 break;
       default: usage(argv0, stderr);
@@ -956,7 +956,7 @@ done:
 }
 
 static int
-ncman(struct notcurses* nc, const char* arg){
+tfman(struct notcurses* nc, const char* arg){
   int r = manloop(nc, arg);
   return r;
 }
@@ -975,7 +975,7 @@ int main(int argc, char** argv){
   bool success;
   for(int i = 0 ; i < argc - nonopt ; ++i){
     success = false;
-    if(ncman(nc, argv[nonopt + i])){
+    if(tfman(nc, argv[nonopt + i])){
       break;
     }
     success = true;

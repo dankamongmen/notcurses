@@ -1829,11 +1829,10 @@ ictx_independent_p(const inputctx* ictx){
 }
 
 // try to lex a single control sequence off of buf. return the number of bytes
-// consumed if we do so, and -1 otherwise. buf is almost certainly *not*
-// NUL-terminated. if we are definitely *not* an escape, or we're unsure when
-// we run out of input, return the negated relevant number of bytes, setting
-// ictx->midescape if we're uncertain. we preserve a->used, a->state, etc.
-// across runs to avoid reprocessing.
+// consumed if we do so. otherwise, return the negative number of bytes
+// examined. set ictx->midescape if we're uncertain. we preserve a->used,
+// a->state, etc. across runs to avoid reprocessing. buf is almost certainly
+// *not* NUL-terminated.
 //
 // our rule is: an escape must arrive as a single unit to be interpreted as
 // an escape. this is most relevant for Alt+keypress (Esc followed by the
@@ -1846,6 +1845,7 @@ static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
   assert(ictx->amata.used < buflen);
   while(ictx->amata.used < buflen){
+fprintf(stderr, "AMATA USED: %u buflen: %d\n", ictx->amata.used, buflen);
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
     if(candidate >= 0x80){
@@ -1902,9 +1902,10 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
     // if we aren't certain, that's not a control sequence unless we're at
     // the end of the tbuf, in which case we really do try reading more. if
     // this was not a sequence, we'll catch it on the next read.
+fprintf(stderr, "ESCAPE PROC: %d %d %d MID: %u\n", *bufused, consumed, offset, ictx->midescape);
     if(consumed < 0){
       int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
-      // if midescape is not set, the negative return menas invalid escape. if
+      // if midescape is not set, the negative return means invalid escape. if
       // there was space available, we needn't worry about this escape having
       // been broken across distinct reads. in either case, replay it to the
       // bulk input buffer; our automaton will have been reset.
@@ -1919,15 +1920,17 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
           memcpy(ictx->ibuf + ictx->ibufvalid, buf + offset, available);
           ictx->ibufvalid += available;
         }
-        *bufused -= consumed;
         offset += consumed;
         ictx->midescape = 0;
+        *bufused -= consumed;
       }else{
         break;
       }
     }
+fprintf(stderr, "TIME FOR BIG SUB %d - %d -> %d : %d\n", *bufused, consumed, *bufused - consumed, offset);
     *bufused -= consumed;
     offset += consumed;
+    assert(0 <= *bufused);
   }
   // move any leftovers to the front; only happens if we fill output queue,
   // or ran out of input data mid-escape
@@ -2093,7 +2096,9 @@ process_ibuf(inputctx* ictx){
   if(ictx->tbufvalid){
     // we could theoretically do this in parallel with process_bulk, but it
     // hardly seems worthwhile without breaking apart the fetches of input.
+fprintf(stderr, "TBUFVALID: %u\n", ictx->tbufvalid);
     process_escapes(ictx, ictx->tbuf, &ictx->tbufvalid);
+fprintf(stderr, "TBUFVALIDPOST: %u\n", ictx->tbufvalid);
   }
   if(ictx->ibufvalid){
     if(ictx_independent_p(ictx)){
