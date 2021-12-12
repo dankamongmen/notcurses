@@ -299,12 +299,6 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(nccell_wide_right_p(targc)){
         continue;
       }
-      // if we encounter a newline (always a bare linefeed; Windows CRLF
-      // translation only matters for text stdio), we're done with this
-      // line *for this plane*.
-      if(targc->gcluster == '\n'){
-        break;
-      }
 
       if(nccell_fg_alpha(targc) > NCALPHA_OPAQUE){
         const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
