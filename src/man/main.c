@@ -701,13 +701,20 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
   ncplane_set_fchannel(p, n->ttype->channel);
   size_t b = 0;
   switch(n->ttype->ltype){
-    case LINE_TH: /*
+    case LINE_TH:
+      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_TITLE)){
+        return -1;
+      }
+      /*
       ncplane_set_styles(p, NCSTYLE_UNDERLINE);
       ncplane_printf_aligned(p, 0, NCALIGN_LEFT, "%s(%s)", dom->title, dom->section);
       ncplane_printf_aligned(p, 0, NCALIGN_RIGHT, "%s(%s)", dom->title, dom->section);
       ncplane_set_styles(p, NCSTYLE_NONE);
       */break;
     case LINE_SH: // section heading
+      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_SECTION)){
+        return -1;
+      }
       if(strcmp(n->text, "NAME")){
         ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
         ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_UNDERLINE);
@@ -718,6 +725,9 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       }
       break;
     case LINE_SS: // subsection heading
+      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_SUBSECTION)){
+        return -1;
+      }
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
       ncplane_set_styles(p, NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
       ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
