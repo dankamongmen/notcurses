@@ -656,6 +656,7 @@ putpara(struct ncplane* p, const char* text){
           curend = macend;
           break;
         }
+        inescape = false;
       }
     }
     if(textend == NULL){
