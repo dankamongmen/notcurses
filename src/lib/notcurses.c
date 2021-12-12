@@ -1877,7 +1877,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   // nccell_extended_gcluster(). so we must copy and free it.
   char* egc = nccell_strdup(n, c);
   if(egc == NULL){
-    logerror("coudln't duplicate cell\n");
+    logerror("couldn't duplicate cell\n");
     return -1;
   }
   int r = ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
