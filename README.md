@@ -544,6 +544,16 @@ If things break or seem otherwise lackluster, **please** consult the
 </details>
 
 <details>
+  <summary>How can I draw a large plane, and only make a portion of it visible?</summary>
+  The simplest way is probably to create a plane of the same dimensions immediately above
+  the plane, and keep a region of it transparent, and the rest opaque. If you want the visible
+  area to stay in the same place on the display, but the portion being seen to change, try
+  making a plane twice as large in each dimension as the original plane. Make the desired area
+  transparent, and the rest opaque. Now move the original plane behind this plane so that the
+  desired area lines up with the &ldquo;hole&rdquo;.
+</details>
+
+<details>
   <summary>Why no <code>NCSTYLE_REVERSE</code>?</summary>
   It would consume a precious bit. You can use <code>ncchannels_reverse()</code>
   to correctly invert fore- and background colors.

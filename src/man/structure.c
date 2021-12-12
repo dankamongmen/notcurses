@@ -29,10 +29,25 @@ docstructure* docstructure_create(struct ncplane* n){
   if(ds == NULL){
     return NULL;
   }
+  const int ROWS = 7;
+  const int COLDIV = 4;
+  ncplane_options nopts = {
+    .rows = ROWS,
+    .cols = ncplane_dim_x(n) / COLDIV,
+    .y = ncplane_dim_y(n) - ROWS,
+    .x = ncplane_dim_x(n) - (ncplane_dim_x(n) / COLDIV) - 1,
+    .flags = NCPLANE_OPTION_AUTOGROW, // autogrow to right
+  };
+  struct ncplane* p = ncplane_create(n, &nopts);
+  if(p == NULL){
+    return NULL;
+  }
+  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x80, 0x80, 0x80);
+  ncplane_set_base(p, "", 0, channels);
   nctree_options topts = {
     .nctreecb = docstruct_callback,
   };
-  if((ds->nct = nctree_create(n, &topts)) == NULL){
+  if((ds->nct = nctree_create(p, &topts)) == NULL){
     free(ds);
     return NULL;
   }
@@ -103,5 +118,8 @@ int docstructure_add(docstructure* ds, const char* title, int line,
     return -1;
   }
   ds->curpath[z] = addpath[z];
+  if(nctree_redraw(ds->nct)){
+    return -1;
+  }
   return 0;
 }
