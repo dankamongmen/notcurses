@@ -758,10 +758,10 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
 // very fast moves.
 static int
 draw_content(struct ncplane* stdn, struct ncplane* p){
-  const pagedom* dom = ncplane_userptr(p);
+  pagedom* dom = ncplane_userptr(p);
   unsigned wrotetext = 0; // unused by us
-  struct docstructure* ds = docstructure_create(stdn);
-  if(ds == NULL){
+  dom->ds = docstructure_create(stdn);
+  if(dom->ds == NULL){
     return -1;
   }
   return draw_domnode(p, dom, dom->root, &wrotetext);
