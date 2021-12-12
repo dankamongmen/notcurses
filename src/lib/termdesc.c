@@ -600,34 +600,48 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
   return 0;
 }
 
-int enter_alternate_screen(FILE* fp, tinfo* ti, unsigned flush, unsigned drain){
+int enter_alternate_screen(int fd, FILE* ttyfp, tinfo* ti, unsigned drain){
   if(ti->in_alt_screen){
     return 0;
+  }
+  const char* popcolors = get_escape(ti, ESCAPE_RESTORECOLORS);
+  if(popcolors){
+    if(term_emit(popcolors, ttyfp, true)){
+      return -1;
+    }
   }
   const char* smcup = get_escape(ti, ESCAPE_SMCUP);
   if(smcup == NULL){
     logerror("alternate screen is unavailable");
     return -1;
   }
-  if(term_emit(smcup, fp, false) < 0){
+  if(tty_emit(smcup, fd) < 0){
     return -1;
   }
   if(!drain){
     if(ti->kbdlevel){
-      if(term_emit(KKBDENTER, fp, flush)){
+      if(tty_emit(KKBDENTER, fd)){
         return -1;
       }
     }else{
-      if(term_emit(XTMODKEYS, fp, flush)){
+      if(tty_emit(XTMODKEYS, fd)){
         return -1;
       }
+    }
+  }
+  const char* pushcolors = get_escape(ti, ESCAPE_SAVECOLORS);
+  if(pushcolors){
+    if(term_emit(pushcolors, ttyfp, true)){
+      return -1;
     }
   }
   ti->in_alt_screen = true;
   return 0;
 }
 
-int leave_alternate_screen(FILE* fp, tinfo* ti, unsigned drain){
+// we need to send the palette push/pop to the bulk out (as that's where the
+// palette reprogramming happens), but rmcup+keyboard go to ttyfd.
+int leave_alternate_screen(int fd, FILE* fp, tinfo* ti, unsigned drain){
   if(!ti->in_alt_screen){
     return 0;
   }
@@ -638,27 +652,39 @@ int leave_alternate_screen(FILE* fp, tinfo* ti, unsigned drain){
   }
   if(!drain){
     if(ti->kbdlevel){
-      if(term_emit(KKEYBOARD_POP, fp, false)){
+      if(tty_emit(KKEYBOARD_POP, fd)){
         return -1;
       }
     }else{
-      if(term_emit(XTMODKEYSUNDO, fp, false)){
+      if(tty_emit(XTMODKEYSUNDO, fd)){
         return -1;
       }
     }
   }
-  if(term_emit(rmcup, fp, drain)){
+  const char* popcolors = get_escape(ti, ESCAPE_RESTORECOLORS);
+  if(popcolors){
+    if(term_emit(popcolors, fp, true)){
+      return -1;
+    }
+  }
+  if(tty_emit(rmcup, fd)){
     return -1;
   }
   if(!drain){
     if(ti->kbdlevel){
-      if(term_emit(KKBDENTER, fp, true)){
+      if(tty_emit(KKBDENTER, fd)){
         return -1;
       }
     }else{
-      if(term_emit(XTMODKEYS, fp, true)){
+      if(tty_emit(XTMODKEYS, fd)){
         return -1;
       }
+    }
+  }
+  const char* pushcolors = get_escape(ti, ESCAPE_SAVECOLORS);
+  if(pushcolors){
+    if(term_emit(popcolors, fp, true)){
+      return -1;
     }
   }
   ti->in_alt_screen = false;

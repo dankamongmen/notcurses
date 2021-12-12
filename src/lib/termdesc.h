@@ -335,8 +335,8 @@ term_emit(const char* seq, FILE* out, bool flush){
 }
 
 // |drain| is set iff we're draining input.
-int enter_alternate_screen(FILE* fp, tinfo* ti, unsigned flush, unsigned drain);
-int leave_alternate_screen(FILE* fp, tinfo* ti, unsigned drain);
+int enter_alternate_screen(int ttyfd, FILE* ttyfp, tinfo* ti, unsigned drain);
+int leave_alternate_screen(int ttyfd, FILE* ttyfp, tinfo* ti, unsigned drain);
 
 int cbreak_mode(tinfo* ti);
 
