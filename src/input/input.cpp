@@ -158,6 +158,8 @@ const char* nckeystr(char32_t spkey){
     case NCKEY_RSUPER: return "right super";
     case NCKEY_RHYPER: return "right hyper";
     case NCKEY_RMETA: return "right meta";
+    case NCKEY_L3SHIFT: return "level 3 shift";
+    case NCKEY_L5SHIFT: return "level 5 shift";
     case NCKEY_MOTION: return "mouse (no buttons pressed)";
     case NCKEY_BUTTON1: return "mouse (button 1)";
     case NCKEY_BUTTON2: return "mouse (button 2)";
