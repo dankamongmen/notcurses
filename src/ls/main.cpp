@@ -15,7 +15,7 @@
 #include <compat/compat.h>
 #include <ncpp/Direct.hh>
 #ifndef AT_NO_AUTOMOUNT
-#define AT_NO_AUTOMOUNT 0x800
+#define AT_NO_AUTOMOUNT 0  // not defined on freebsd and some older linux kernels
 #endif
 
 void usage(std::ostream& os, const char* name, int code){
