@@ -147,7 +147,6 @@ Nine binaries are installed as part of Notcurses:
 * `notcurses-info`: detect and print terminal capabilities/diagnostics
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
-* `tfman`: a fancy manual browser
 
 To run `notcurses-demo` from a checkout, provide the `data` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
