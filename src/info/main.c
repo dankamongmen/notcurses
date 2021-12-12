@@ -64,7 +64,7 @@ wvizn(struct ncplane* n, const wchar_t* wp, int nnn){
 }
 
 static int
-braille_viz(struct ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
+braille_viz(struct ncplane* n, wint_t l, const wchar_t* egcs, wchar_t r,
             const char* indent, const wchar_t* bounds, wchar_t r8, wchar_t l8,
             const wchar_t* trailer){
   ncplane_printf(n, "%s%lc", indent, l);
