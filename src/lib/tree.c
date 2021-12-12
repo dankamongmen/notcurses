@@ -129,10 +129,41 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
 }
 
 int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
-  // FIXME
-  (void)n;
-  (void)spec;
-  (void)add;
+  // it's illegal to pass an empty path for addition; one must pass { 0, UINT_MAX }
+  if(spec[0] == UINT_MAX){
+    logerror("invalid empty path\n");
+    return -1;
+  }
+  struct nctree_int_item* nii = &n->items;
+  const unsigned* p = spec;
+  unsigned depth = 0;
+  while(p[1] != UINT_MAX){ // we know p[1] isn't UINT_MAX
+    if(*p >= nii->subcount){
+      logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
+      return -1;
+    }
+    nii = &nii->subs[*p];
+    ++p;
+    ++depth;
+  }
+  if(*p >= nii->subcount){
+    logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
+    return -1;
+  }
+  struct nctree_int_item* tmparr = realloc(nii->subs, sizeof(*nii->subs) * (nii->subcount + 1));
+  if(tmparr == NULL){
+    return -1;
+  }
+  nii->subs = tmparr;
+  if(*p != ++nii->subcount){
+    memmove(&nii->subs[*p], &nii->subs[*p + 1], sizeof(*nii->subs) * (nii->subcount - *p));
+  }
+  nii->subs[*p].subs = NULL;
+  nii->subs[*p].subcount = 0;
+  nii->subs[*p].curry = NULL;
+  if(dup_tree_items(&nii->subs[*p], add->subs, add->subcount, depth, &n->maxdepth)){
+    return -1;
+  }
   return 0;
 }
 
@@ -141,8 +172,8 @@ int nctree_del(nctree* n, const unsigned* spec){
   nctree_int_item* nii = &n->items;
   const unsigned* p = spec;
   while(*p != UINT_MAX){
-    if(*p > nii->subcount){
-      logerror("invalid path element (%u > %u)\n", *p, nii->subcount);
+    if(*p >= nii->subcount){
+      logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
       return -1;
     }
     parent = nii;
