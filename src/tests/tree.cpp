@@ -16,30 +16,19 @@ TEST_CASE("Tree") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
-  // should be refused with a null items
-  SUBCASE("BadTreeNoItems") {
+  // trivial tree with null items
+  SUBCASE("TreeNoItems") {
     struct nctree_options opts = {
       .items = nullptr,
-      .count = 2,
+      .count = 0,
       .nctreecb = treecb,
       .indentcols = 0,
       .flags = 0,
     };
     auto treen = nctree_create(n_, &opts);
-    REQUIRE(nullptr == treen);
-  }
-
-  // should be refused with a zero count
-  SUBCASE("BadTreeNoCount") {
-    struct nctree_options opts = {
-      .items = {},
-      .count = 0,
-      .nctreecb = treecb,
-      .indentcols = 1,
-      .flags = 0,
-    };
-    auto treen = nctree_create(n_, &opts);
-    REQUIRE(nullptr == treen);
+    REQUIRE(treen);
+    CHECK(0 == notcurses_render(nc_));
+    nctree_destroy(treen);
   }
 
   nctree_item subs[] = {
