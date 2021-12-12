@@ -144,6 +144,8 @@ extern "C" {
 #define NCKEY_RSUPER       preterunicode(180)
 #define NCKEY_RHYPER       preterunicode(181)
 #define NCKEY_RMETA        preterunicode(182)
+#define NCKEY_L3SHIFT      preterunicode(183)
+#define NCKEY_L5SHIFT      preterunicode(184)
 // mouse events. We encode which button was pressed into the char32_t,
 // but position information is embedded in the larger ncinput event.
 #define NCKEY_MOTION    preterunicode(200) // no buttons pressed
