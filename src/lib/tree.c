@@ -196,6 +196,10 @@ nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
     logwarn("Passed invalid flags 0x%016" PRIx64 "\n", opts->flags);
   }
+  if(n == notcurses_stdplane(ncplane_notcurses(n))){
+    logerror("can't use the standard plane\n");
+    goto error;
+  }
   if(opts->nctreecb == NULL){
     logerror("Can't use NULL callback\n");
     goto error;

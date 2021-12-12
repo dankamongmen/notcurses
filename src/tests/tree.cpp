@@ -16,16 +16,24 @@ TEST_CASE("Tree") {
   REQUIRE(n_);
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
+  SUBCASE("RefuseStandardPlane") {
+    struct nctree_options opts{};
+    opts.nctreecb = treecb;
+    auto treen = nctree_create(n_, &opts);
+    REQUIRE(nullptr == treen);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   // trivial tree with null items
   SUBCASE("TreeNoItems") {
-    struct nctree_options opts = {
-      .items = nullptr,
-      .count = 0,
-      .nctreecb = treecb,
-      .indentcols = 0,
-      .flags = 0,
-    };
-    auto treen = nctree_create(n_, &opts);
+    struct ncplane_options nopts{};
+    nopts.rows = 7;
+    nopts.cols = 20;
+    auto p = ncplane_create(n_, &nopts);
+    REQUIRE(p);
+    struct nctree_options opts{};
+    opts.nctreecb = treecb;
+    auto treen = nctree_create(p, &opts);
     REQUIRE(treen);
     CHECK(0 == notcurses_render(nc_));
     nctree_destroy(treen);
@@ -520,6 +528,11 @@ TEST_CASE("Tree") {
   };
 
   SUBCASE("TraverseLongList") {
+    struct ncplane_options nopts{};
+    nopts.rows = 7;
+    nopts.cols = 20;
+    auto p = ncplane_create(n_, &nopts);
+    REQUIRE(p);
     struct nctree_options topts = {
       .items = &rads,
       .count = 1,
@@ -527,7 +540,7 @@ TEST_CASE("Tree") {
       .indentcols = 2,
       .flags = 0,
     };
-    struct nctree* tree = nctree_create(notcurses_stdplane(nc_), &topts);
+    struct nctree* tree = nctree_create(p, &topts);
     REQUIRE(nullptr != tree);
     CHECK(0 == notcurses_render(nc_));
     void* curry = nctree_focused(tree);
