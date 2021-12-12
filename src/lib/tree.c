@@ -159,7 +159,7 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
   if(*p != nii->subcount++){
     memmove(&nii->subs[*p], &nii->subs[*p + 1], sizeof(*nii->subs) * (nii->subcount - *p));
   }
-  if(p - spec >= n->maxdepth){
+  if((unsigned)(p - spec) >= n->maxdepth){
     unsigned max = p - spec + 1;
     unsigned* tmp = realloc(n->currentpath, sizeof(*n->currentpath) * (max + 1));
     if(tmp == NULL){
