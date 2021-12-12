@@ -69,9 +69,8 @@ Only one context can be active in a process at a time, whether direct mode
 ## Output
 
 All output is performed on **struct ncplane**s (see [Ncplanes][] below). Output
-is not visible until explicitly rendered via **notcurses_render(3)**. It is safe to
-output from multiple threads. Information on drawing functions is available at
-**notcurses_output(3)**.
+is not visible until explicitly rendered via **notcurses_render(3)**.
+Information on drawing functions is available at **notcurses_output(3)**.
 
 ## Input
 
