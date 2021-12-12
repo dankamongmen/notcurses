@@ -1337,25 +1337,33 @@ cell_set_fchannel(nccell* cl, uint32_t channel){
 // 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
 // since we can't blend default colors. Likewise, if 'c2' is a default color,
 // it will not be used (unless 'blends' is 0).
-//
-// Palette-indexed colors do not blend. Do not pass me palette-indexed channels!
 static inline unsigned
-channels_blend(unsigned c1, unsigned c2, unsigned* blends){
+channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends){
   if(ncchannel_alpha(c2) == NCALPHA_TRANSPARENT){
     return c1; // do *not* increment *blends
   }
   bool c2default = ncchannel_default_p(c2);
+  bool c2palette = ncchannel_palindex_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
-    if(ncchannel_default_p(c2)){
+    if(c2default){
       ncchannel_set_default(&c1);
+    }else if(c2palette){
+      ncchannel_set_palindex(&c1, ncchannel_palindex(c2));
     }else{
       ncchannel_set(&c1, c2 & NC_BG_RGB_MASK);
     }
     ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
   }else if(!c2default && !ncchannel_default_p(c1)){
     unsigned rsum, gsum, bsum;
-    ncchannel_rgb8(c2, &rsum, &gsum, &bsum);
+    if(c2palette){
+      uint32_t rgb = nc->palette.chans[ncchannel_palindex(c2)];
+      bsum = rgb & 0xff;
+      gsum = (rgb >> 8u) & 0xff;
+      rsum = (rgb >> 16u) & 0xff;
+    }else{
+      ncchannel_rgb8(c2, &rsum, &gsum, &bsum);
+    }
     rsum = (ncchannel_r(c1) * *blends + rsum) / (*blends + 1);
     gsum = (ncchannel_g(c1) * *blends + gsum) / (*blends + 1);
     bsum = (ncchannel_b(c1) * *blends + bsum) / (*blends + 1);
@@ -1368,13 +1376,13 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
 
 // do not pass palette-indexed channels!
 static inline uint64_t
-cell_blend_fchannel(nccell* cl, unsigned channel, unsigned* blends){
-  return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
+cell_blend_fchannel(notcurses* nc, nccell* cl, unsigned channel, unsigned* blends){
+  return cell_set_fchannel(cl, channels_blend(nc, cell_fchannel(cl), channel, blends));
 }
 
 static inline uint64_t
-cell_blend_bchannel(nccell* cl, unsigned channel, unsigned* blends){
-  return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
+cell_blend_bchannel(notcurses* nc, nccell* cl, unsigned channel, unsigned* blends){
+  return cell_set_bchannel(cl, channels_blend(nc, cell_bchannel(cl), channel, blends));
 }
 
 // a sprixel occupies the entirety of its associated plane, usually an entirely

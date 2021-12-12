@@ -305,25 +305,19 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         if(nccell_fg_default_p(vis)){
           vis = &p->basecell;
         }
-        if(nccell_fg_palindex_p(vis)){
-          if(nccell_fg_alpha(targc) == NCALPHA_TRANSPARENT){
-            nccell_set_fg_palindex(targc, nccell_fg_palindex(vis));
-          }
-        }else{
-          if(nccell_fg_alpha(vis) == NCALPHA_HIGHCONTRAST){
-            crender->s.highcontrast = true;
-            crender->s.hcfgblends = crender->s.fgblends;
-            crender->hcfg = cell_fchannel(targc);
-          }
-          unsigned fgblends = crender->s.fgblends;
-          cell_blend_fchannel(targc, cell_fchannel(vis), &fgblends);
-          crender->s.fgblends = fgblends;
-          // crender->highcontrast can only be true if we just set it, since we're
-          // about to set targc opaque based on crender->highcontrast (and this
-          // entire stanza is conditional on targc not being NCALPHA_OPAQUE).
-          if(crender->s.highcontrast){
-            nccell_set_fg_alpha(targc, NCALPHA_OPAQUE);
-          }
+        if(nccell_fg_alpha(vis) == NCALPHA_HIGHCONTRAST){
+          crender->s.highcontrast = true;
+          crender->s.hcfgblends = crender->s.fgblends;
+          crender->hcfg = cell_fchannel(targc);
+        }
+        unsigned fgblends = crender->s.fgblends;
+        cell_blend_fchannel(ncplane_notcurses(p), targc, cell_fchannel(vis), &fgblends);
+        crender->s.fgblends = fgblends;
+        // crender->highcontrast can only be true if we just set it, since we're
+        // about to set targc opaque based on crender->highcontrast (and this
+        // entire stanza is conditional on targc not being NCALPHA_OPAQUE).
+        if(crender->s.highcontrast){
+          nccell_set_fg_alpha(targc, NCALPHA_OPAQUE);
         }
       }
 
@@ -342,28 +336,16 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           if(nccell_bg_default_p(vis)){
             vis = &p->basecell;
           }
-          if(nccell_bg_palindex_p(vis)){
-            if(nccell_bg_alpha(targc) == NCALPHA_TRANSPARENT){
-              nccell_set_bg_palindex(targc, nccell_bg_palindex(vis));
-            }
-          }else{
-            unsigned bgblends = crender->s.bgblends;
-            cell_blend_bchannel(targc, cell_bchannel(vis), &bgblends);
-            crender->s.bgblends = bgblends;
-          }
+          unsigned bgblends = crender->s.bgblends;
+          cell_blend_bchannel(ncplane_notcurses(p), targc, cell_bchannel(vis), &bgblends);
+          crender->s.bgblends = bgblends;
         }else{ // use the local foreground; we're stacking blittings
           if(nccell_fg_default_p(vis)){
             vis = &p->basecell;
           }
-          if(nccell_fg_palindex_p(vis)){
-            if(nccell_bg_alpha(targc) == NCALPHA_TRANSPARENT){
-              nccell_set_bg_palindex(targc, nccell_fg_palindex(vis));
-            }
-          }else{
-            unsigned bgblends = crender->s.bgblends;
-            cell_blend_bchannel(targc, cell_fchannel(vis), &bgblends);
-            crender->s.bgblends = bgblends;
-          }
+          unsigned bgblends = crender->s.bgblends;
+          cell_blend_bchannel(ncplane_notcurses(p), targc, cell_fchannel(vis), &bgblends);
+          crender->s.bgblends = bgblends;
           crender->s.blittedquads = 0;
         }
       }
@@ -434,7 +416,7 @@ init_rvec(struct crender* rvec, int totalcells){
 // should be done at the end of rendering the cell, so that contrast is solved
 // against the real background.
 static inline void
-lock_in_highcontrast(const tinfo* ti, nccell* targc, struct crender* crender){
+lock_in_highcontrast(notcurses* nc, const tinfo* ti, nccell* targc, struct crender* crender){
   if(nccell_fg_alpha(targc) == NCALPHA_TRANSPARENT){
     nccell_set_fg_default(targc);
   }
@@ -447,10 +429,10 @@ lock_in_highcontrast(const tinfo* ti, nccell* targc, struct crender* crender){
       unsigned fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      uint32_t hchan = channels_blend(highcontrast(ti, bchan), fchan, &fgblends);
+      uint32_t hchan = channels_blend(nc, highcontrast(ti, bchan), fchan, &fgblends);
       cell_set_fchannel(targc, hchan);
       fgblends = crender->s.hcfgblends;
-      hchan = channels_blend(hchan, crender->hcfg, &fgblends);
+      hchan = channels_blend(nc, hchan, crender->hcfg, &fgblends);
       cell_set_fchannel(targc, hchan);
     }else{
       nccell_set_fg_rgb(targc, highcontrast(ti, cell_bchannel(targc)));
@@ -462,10 +444,10 @@ lock_in_highcontrast(const tinfo* ti, nccell* targc, struct crender* crender){
 // checking for and locking in high-contrast, checking for damage, and updating
 // 'lastframe' for any cells which are damaged.
 static inline void
-postpaint_cell(const tinfo* ti, nccell* lastframe, int dimx,
+postpaint_cell(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimx,
                struct crender* crender, egcpool* pool, int y, int* x){
   nccell* targc = &crender->c;
-  lock_in_highcontrast(ti, targc, crender);
+  lock_in_highcontrast(nc, ti, targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
@@ -515,12 +497,12 @@ postpaint_cell(const tinfo* ti, nccell* lastframe, int dimx,
 // FIXME can we not do the blend a single time here, if we track sums in
 //       paint()? tried this before and didn't get a win...
 static void
-postpaint(const tinfo* ti, nccell* lastframe, int dimy, int dimx,
+postpaint(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimy, int dimx,
           struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-      postpaint_cell(ti, lastframe, dimx, crender, pool, y, &x);
+      postpaint_cell(nc, ti, lastframe, dimx, crender, pool, y, &x);
     }
   }
 }
@@ -613,7 +595,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   assert(NULL == s);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   const struct tinfo* ti = &ncplane_notcurses_const(dst)->tcache;
-  postpaint(ti, rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
+  postpaint(ncplane_notcurses(dst), ti, rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
 //fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
   free(dst->fb);
   dst->fb = rendfb;
@@ -1540,7 +1522,7 @@ int ncpile_rasterize(ncplane* n){
   const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
   const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
   const struct tinfo* ti = &ncplane_notcurses_const(n)->tcache;
-  postpaint(ti, nc->lastframe, miny, minx, pile->crender, &nc->pool);
+  postpaint(nc, ti, nc->lastframe, miny, minx, pile->crender, &nc->pool);
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
   int bytes = notcurses_rasterize(nc, pile, &nc->rstate.f);
   // accepts -1 as an indication of failure
