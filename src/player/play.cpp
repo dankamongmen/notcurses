@@ -1,5 +1,6 @@
 #include <array>
 #include <memory>
+#include <cinttypes>
 #include <cstring>
 #include <cstdlib>
 #include <clocale>
