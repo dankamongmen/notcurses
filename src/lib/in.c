@@ -636,7 +636,7 @@ kitty_functional(uint32_t val){
       val = NCKEY_MEDIA_PLAY + val - 57428;
     }else if(val >= 57399 && val <= 57408){
       val = '0' + val - 57399;
-    }else if(val >= 57441 && val <= 57452){
+    }else if(val >= 57441 && val <= 57454){ // up through NCKEY_L5SHIFT
       val = NCKEY_LSHIFT + val - 57441;
     }else switch(val){
       case 57358: val = NCKEY_CAPS_LOCK; break;
