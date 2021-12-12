@@ -95,7 +95,7 @@ int docstructure_add(docstructure* ds, const char* title, int line,
   }
   addpath[z] = ds->curpath[z] + 1;
   addpath[z + 1] = UINT_MAX;
-  nctree_item nitem = {
+  struct nctree_item nitem = {
     .curry = dn,
   };
   if(nctree_add(ds->nct, addpath, &nitem)){

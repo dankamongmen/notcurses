@@ -3829,14 +3829,14 @@ API void ncmultiselector_destroy(struct ncmultiselector* n);
 // of the callback.
 
 // each item has a curry, and zero or more subitems.
-typedef struct nctree_item {
+struct nctree_item {
   void* curry;
   struct nctree_item* subs;
   unsigned subcount;
-} nctree_item;
+};
 
 typedef struct nctree_options {
-  const nctree_item* items; // top-level nctree_item array
+  const struct nctree_item* items; // top-level nctree_item array
   unsigned count;           // size of |items|
   int (*nctreecb)(struct ncplane*, void*, int); // item callback function
   int indentcols;           // columns to indent per level of hierarchy
@@ -3888,7 +3888,7 @@ API void* nctree_goto(struct nctree* n, const unsigned* spec, int* failspec);
 // Insert |add| into the nctree |n| at |spec|. The path up to the last element
 // must already exist. If an item already exists at the path, it will be moved
 // to make room for |add|.
-API int nctree_add(struct nctree* n, const unsigned* spec, const nctree_item* add)
+API int nctree_add(struct nctree* n, const unsigned* spec, const struct nctree_item* add)
   __attribute__ ((nonnull (1, 2, 3)));
 
 // Delete the item at |spec|, including any subitems.
