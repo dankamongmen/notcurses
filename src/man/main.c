@@ -79,7 +79,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
   z_stream z = {};
-  int r = inflateInit2(&z, 16);
+  int r = inflateInit2(&z, 15 | 16);
   if(r != Z_OK){
     fprintf(stderr, "error getting zlib inflator (%d)\n", r);
     munmap(buf, *len);
@@ -98,6 +98,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
   }
   inflateEnd(&z);
   munmap(buf, *len);
+  *len = ulen;
   return ubuf;
 }
 #endif
@@ -455,6 +456,7 @@ augment_text(pagenode* pnode, const unsigned char* ws, const unsigned char* feol
 }
 
 // extract the page structure.
+// FIXME we need to fuzz this, hard
 static int
 troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   const struct troffnode* trie = dom->trie;
