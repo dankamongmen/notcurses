@@ -469,7 +469,7 @@ load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logerror("dropping input 0x%08x\n", tni->id);
+    logwarn("dropping input 0x%08x\n", tni->id);
     inc_input_errors(ictx);
     send_synth_signal(synthsig);
     return;
@@ -1898,16 +1898,12 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
     int consumed = process_escape(ictx, buf + offset, *bufused);
-    // if we aren't certain, that's not a control sequence unless we're at
-    // the end of the tbuf, in which case we really do try reading more. if
-    // this was not a sequence, we'll catch it on the next read.
+    // negative |consumed| means either that we're not sure whether it's an
+    // escape, or it definitely is not.
     if(consumed < 0){
-      int tavailable = sizeof(ictx->tbuf) - (offset + *bufused - consumed);
-      // if midescape is not set, the negative return means invalid escape. if
-      // there was space available, we needn't worry about this escape having
-      // been broken across distinct reads. in either case, replay it to the
-      // bulk input buffer; our automaton will have been reset.
-      if(!ictx->midescape || tavailable){
+      // if midescape is not set, the negative return means invalid escape.
+      // replay it to the bulk input buffer; our automaton will have been reset.
+      if(!ictx->midescape){
         consumed = -consumed;
         int available = sizeof(ictx->ibuf) - ictx->ibufvalid;
         if(available){
@@ -1921,6 +1917,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
         offset += consumed;
         ictx->midescape = 0;
         *bufused -= consumed;
+        assert(0 <= *bufused);
       }else{
         break;
       }
