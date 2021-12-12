@@ -3877,12 +3877,23 @@ API void* nctree_next(struct nctree* n) __attribute__ ((nonnull (1)));
 // Change focus to the previous item.
 API void* nctree_prev(struct nctree* n) __attribute__ ((nonnull (1)));
 
-// Go to the item specified by the array |spec|, terminated by UINT_MAX. If
-// the spec is invalid, NULL is returned, and the depth of the first invalid
-// spec is written to *|failspec|. Otherwise, the true depth is written to
-// *|failspec|, and the curry is returned (|failspec| is necessary because the
-// curry could itself be NULL).
+// Go to the item specified by the array |spec| (a spec is a series of unsigned
+// values, each identifying a subelement in the hierarchy thus far, terminated
+// by UINT_MAX). If the spec is invalid, NULL is returned, and the depth of the
+// first invalid spec is written to *|failspec|. Otherwise, the true depth is
+// written to *|failspec|, and the curry is returned (|failspec| is necessary
+// because the curry could itself be NULL).
 API void* nctree_goto(struct nctree* n, const unsigned* spec, int* failspec);
+
+// Insert |add| into the nctree |n| at |spec|. The path up to the last element
+// must already exist. If an item already exists at the path, it will be moved
+// to make room for |add|.
+API int nctree_add(struct nctree* n, const unsigned* spec, const nctree_item* add)
+  __attribute__ ((nonnull (1, 2, 3)));
+
+// Delete the item at |spec|, including any subitems.
+API int nctree_del(struct nctree* n, const unsigned* spec)
+  __attribute__ ((nonnull (1, 2)));
 
 // Destroy the nctree.
 API void nctree_destroy(struct nctree* n);

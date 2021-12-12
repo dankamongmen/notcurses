@@ -44,16 +44,19 @@ typedef struct nctree_options {
 
 **void* nctree_prev(struct nctree* ***n***);**
 
-**void* nctree_goto(struct nctree* ***n***, const int* ***spec***, size_t ***specdepth***, int* ***failspec***);**
+**void* nctree_goto(struct nctree* ***n***, const int* ***path***, int* ***failpath***);**
+
+**int nctree_add(struct nctree* ***n***, const unsigned* ***path***, const nctree_item* ***add***);**
+
+**int nctree_del(struct nctree* ***n***, const unsigned* ***path***);**
 
 **void nctree_destroy(struct nctree* ***n***);**
 
 # DESCRIPTION
 
-**nctree**s organize static hierarchical items, and allow them to be browsed.
-Each item can have arbitrary subitems. Items can be collapsed and expanded.
-The display supports scrolling and searching. Items cannot be added or removed,
-however; they must be provided in their entirety at creation time.
+**nctree**s organize hierarchical items, and allow them to be browsed. Each
+item can have arbitrary subitems. Items can be collapsed and expanded.
+The display supports scrolling and searching.
 
 An **nctree** cannot be empty. **count** must be non-zero, and **items** must
 not be **NULL**. The callback function **nctreecb** must also be non-**NULL**.
@@ -72,6 +75,12 @@ is expanded in the callback, it will be shrunk back down by the widget. The
 is negative, the item is before the focused item; a positive parameter implies
 that the item follows the focused item; the focused item itself is passed zero.
 
+**nctree_goto**, **nctree_add**, and **nctree_del** all use the concept of a
+***path***. A path is an array of **unsigned** values, terminated by
+**UINT_MAX**, with each successive value indexing into the hierarchy thus far.
+The root node of the **nctree** thus always has a 2-element path of
+[0, **UINT_MAX**].
+
 # RETURN VALUES
 
 **nctree_create** returns **NULL** for invalid options. This includes a **NULL**
@@ -81,11 +90,23 @@ that the item follows the focused item; the focused item itself is passed zero.
 newly-focused item. **nctree_focused** returns the **curry** pointer from the
 already-focused item.
 
+**nctree_goto** returns the **curry** pointer from the newly-focused item. If
+***path*** is invalid, the first invalid hierarchy level is written to
+***failpath***, and **NULL** is returned. If ***path*** is valid, the value -1
+is written to ***failpath***. Since it is possible for a ***curry***
+pointer to be **NULL**, one should check ***failpath*** before assuming the
+operation failed.
+
+**nctree_add** and **nctree_del** both return -1 for an invalid ***path***, and
+0 otherwise.
+
 # NOTES
 
 **nctree** shares many properties with **notcurses_reel**. Unlike the latter,
-**nctree**s support arbitrary hierarchical levels, but they do not allow
-elements to come and go across the lifetime of the widget.
+**nctree**s support arbitrary hierarchical levels.
+
+**nctree** used to only handle static data, but **nctree_add** and
+**nctree_del** were added in Notcurses 3.0.1.
 
 # SEE ALSO
 
