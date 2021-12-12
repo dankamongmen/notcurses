@@ -14,7 +14,7 @@ typedef struct nctree {
   nctree_int_item* curitem; // item addressed by the path
   unsigned maxdepth;        // maximum hierarchy level
   unsigned* currentpath;    // array of |maxdepth|+1 elements, ended by UINT_MAX
-  int activerow;            // active row 0 <= activerow < dimy
+  int activerow;            // active row -1 <= activerow < dimy
   int indentcols;           // cols to indent per level
   uint64_t bchannels;       // border glyph channels
 } nctree;
@@ -81,10 +81,16 @@ goto_last_item(nctree* n){
 
 static void
 goto_first_item(nctree* n){
-  n->currentpath[0] = 0;
-  n->currentpath[1] = UINT_MAX;
-  n->curitem = &n->items.subs[0];
-  n->activerow = 0;
+  if(n->maxdepth == 0){
+    n->currentpath[0] = UINT_MAX;
+    n->curitem = NULL;
+    n->activerow = -1;
+  }else{
+    n->currentpath[0] = 0;
+    n->currentpath[1] = UINT_MAX;
+    n->curitem = &n->items.subs[0];
+    n->activerow = 0;
+  }
 }
 
 // the initial path ought point to the first item.
@@ -140,10 +146,6 @@ int nctree_del(struct nctree* n, const unsigned* spec){
 nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
     logwarn("Passed invalid flags 0x%016" PRIx64 "\n", opts->flags);
-  }
-  if(opts->count == 0 || opts->items == NULL){
-    logerror("Can't create empty tree\n");
-    goto error;
   }
   if(opts->nctreecb == NULL){
     logerror("Can't use NULL callback\n");
@@ -390,6 +392,9 @@ destroy_below(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
 // to hold n->maxdepth + 1 unsigneds.
 static int
 nctree_inner_redraw(nctree* n, unsigned* tmppath){
+  if(n->activerow < 0){
+    return 0;
+  }
   ncplane* ncp = n->items.ncp;
   if(ncplane_cursor_move_yx(ncp, n->activerow, 0)){
     return -1;
