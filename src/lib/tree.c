@@ -122,6 +122,21 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
   return ret;
 }
 
+int nctree_add(struct nctree* n, const unsigned* spec, const nctree_item* add){
+  // FIXME
+  (void)n;
+  (void)spec;
+  (void)add;
+  return 0;
+}
+
+int nctree_del(struct nctree* n, const unsigned* spec){
+  // FIXME
+  (void)n;
+  (void)spec;
+  return 0;
+}
+
 nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
     logwarn("Passed invalid flags 0x%016" PRIx64 "\n", opts->flags);
