@@ -146,7 +146,8 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
     ++p;
     ++depth;
   }
-  if(*p >= nii->subcount){
+  // this last one can be equal to subcount; we're placing it at the end
+  if(*p > nii->subcount){
     logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
     return -1;
   }
@@ -155,14 +156,30 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
     return -1;
   }
   nii->subs = tmparr;
-  if(*p != ++nii->subcount){
+  if(*p != nii->subcount++){
     memmove(&nii->subs[*p], &nii->subs[*p + 1], sizeof(*nii->subs) * (nii->subcount - *p));
+  }
+  if(p - spec >= n->maxdepth){
+    unsigned max = p - spec + 1;
+    unsigned* tmp = realloc(n->currentpath, sizeof(*n->currentpath) * (max + 1));
+    if(tmp == NULL){
+      return -1;
+    }
+    n->currentpath = tmp;
+    n->currentpath[max] = UINT_MAX;
+    n->maxdepth = max;
   }
   nii->subs[*p].subs = NULL;
   nii->subs[*p].subcount = 0;
   nii->subs[*p].curry = NULL;
+  nii->subs[*p].ncp = NULL;
   if(dup_tree_items(&nii->subs[*p], add->subs, add->subcount, depth, &n->maxdepth)){
     return -1;
+  }
+  if(n->activerow == -1){
+    n->activerow = 0;
+    n->curitem = &n->items;
+    n->currentpath[0] = 0;
   }
   return 0;
 }
@@ -188,6 +205,10 @@ int nctree_del(nctree* n, const unsigned* spec){
       memmove(&parent->subs[lastelem], &parent->subs[lastelem + 1],
               sizeof(*parent->subs) * (parent->subcount - lastelem));
     }
+  }
+  if(n->items.subcount == 0){
+    n->activerow = -1;
+    n->curitem = NULL;
   }
   return 0;
 }
@@ -353,7 +374,6 @@ tree_path_length(const unsigned* path){
 static int
 draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
                int* frontiert, int* frontierb, int distance){
-//fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
   if(!nii->ncp){
     const int startx = (tree_path_length(path) - 1) * n->indentcols;
     int ymin, ymax;
