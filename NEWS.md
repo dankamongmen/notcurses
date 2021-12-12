@@ -10,7 +10,7 @@ rearrangements of Notcurses.
     or bottom (scrolling enabled) boundaries.
   * Added `notcurses_default_background()` and `notcurses_default_foreground()`.
   * Added `nccell_load_ucs32()`.
-  * Added `nctree_add()` and `nctree_del()`.
+  * Added `nctree_add()` and `nctree_del()`. `nctree` is now dynamic.
 
 * 3.0.0 (2021-12-01) **"In the A"**
   * Made the ABI/API changes that have been planned/collected during 2.x
