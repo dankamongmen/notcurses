@@ -33,8 +33,8 @@ free_tree_items(nctree_int_item* iarray){
 // allocates a |count|-sized array of nctree_int_items, and fills |fill| in,
 // using |items|. updates |*maxdepth| when appropriate.
 static int
-dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, unsigned depth,
-               unsigned* maxdepth){
+dup_tree_items(nctree_int_item* fill, const struct nctree_item* items,
+               unsigned count, unsigned depth, unsigned* maxdepth){
   fill->subcount = count;
   // FIXME perhaps better to alloc a page at a time and take all items from
   // there, for better TLB performance?
@@ -128,7 +128,7 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
   return ret;
 }
 
-int nctree_add(struct nctree* n, const unsigned* spec, const nctree_item* add){
+int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
   // FIXME
   (void)n;
   (void)spec;
@@ -136,10 +136,28 @@ int nctree_add(struct nctree* n, const unsigned* spec, const nctree_item* add){
   return 0;
 }
 
-int nctree_del(struct nctree* n, const unsigned* spec){
-  // FIXME
-  (void)n;
-  (void)spec;
+int nctree_del(nctree* n, const unsigned* spec){
+  nctree_int_item* parent = NULL;
+  nctree_int_item* nii = &n->items;
+  const unsigned* p = spec;
+  while(*p != UINT_MAX){
+    if(*p > nii->subcount){
+      logerror("invalid path element (%u > %u)\n", *p, nii->subcount);
+      return -1;
+    }
+    parent = nii;
+    nii = &nii->subs[*p];
+    ++p;
+  }
+  free_tree_items(nii);
+  if(parent){
+    // parent can only be defined if we had at least one path element
+    unsigned lastelem = spec[-1];
+    if(lastelem != --parent->subcount){
+      memmove(&parent->subs[lastelem], &parent->subs[lastelem + 1],
+              sizeof(*parent->subs) * (parent->subcount - lastelem));
+    }
+  }
   return 0;
 }
 

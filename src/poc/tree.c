@@ -1,6 +1,6 @@
 #include "notcurses/notcurses.h"
 
-static nctree_item alphaUs[] = {
+static struct nctree_item alphaUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -80,13 +80,13 @@ static nctree_item alphaUs[] = {
   }
 };
 
-static nctree_item alphaU = {
+static struct nctree_item alphaU = {
   .subs = alphaUs,
   .subcount = sizeof(alphaUs) / sizeof(*alphaUs),
   .curry = "ɑ-emitting U",
 };
 
-static nctree_item doubleUs[] = {
+static struct nctree_item doubleUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -94,13 +94,13 @@ static nctree_item doubleUs[] = {
   }
 };
 
-static nctree_item doubleU = {
+static struct nctree_item doubleU = {
   .subs = doubleUs,
   .subcount = sizeof(doubleUs) / sizeof(*doubleUs),
   .curry = "ββ-emitting U",
 };
 
-static nctree_item doubleminusUs[] = {
+static struct nctree_item doubleminusUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -108,13 +108,13 @@ static nctree_item doubleminusUs[] = {
   }
 };
 
-static nctree_item doubleminusU = {
+static struct nctree_item doubleminusU = {
   .subs = doubleminusUs,
   .subcount = sizeof(doubleminusUs) / sizeof(*doubleminusUs),
   .curry = "β−β−-emitting U",
 };
 
-static nctree_item betaminusUs[] = {
+static struct nctree_item betaminusUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -130,7 +130,7 @@ static nctree_item betaminusUs[] = {
   }
 };
 
-static nctree_item betaminusPus[] = {
+static struct nctree_item betaminusPus[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -154,7 +154,7 @@ static nctree_item betaminusPus[] = {
   }
 };
 
-static nctree_item betaminus[] = {
+static struct nctree_item betaminus[] = {
   {
     .subs = betaminusUs,
     .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
@@ -166,7 +166,7 @@ static nctree_item betaminus[] = {
   },
 };
 
-static nctree_item betaplusUs[] = {
+static struct nctree_item betaplusUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -182,13 +182,13 @@ static nctree_item betaplusUs[] = {
   },
 };
 
-static nctree_item betaplus = {
+static struct nctree_item betaplus = {
   .subs = betaplusUs,
   .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
   .curry = "β-emitting U",
 };
 
-static nctree_item gammaUs[] = {
+static struct nctree_item gammaUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -224,13 +224,13 @@ static nctree_item gammaUs[] = {
   },
 };
 
-static nctree_item gammas = {
+static struct nctree_item gammas = {
   .subs = gammaUs,
   .subcount = sizeof(gammaUs) / sizeof(*gammaUs),
   .curry = "γ-emitting U",
 };
 
-static nctree_item sfissionUs[] = {
+static struct nctree_item sfissionUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -262,13 +262,13 @@ static nctree_item sfissionUs[] = {
   },
 };
 
-static nctree_item sfissions = {
+static struct nctree_item sfissions = {
   .subs = sfissionUs,
   .subcount = sizeof(sfissionUs) / sizeof(*sfissionUs),
   .curry = "spontaneously fissioning U",
 };
 
-static nctree_item ecaptureUs[] = {
+static struct nctree_item ecaptureUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -280,13 +280,13 @@ static nctree_item ecaptureUs[] = {
   },
 };
 
-static nctree_item ecaptures = {
+static struct nctree_item ecaptures = {
   .subs = ecaptureUs,
   .subcount = sizeof(ecaptureUs) / sizeof(*ecaptureUs),
   .curry = "electron capturing U",
 };
 
-static nctree_item cdecayUs[] = {
+static struct nctree_item cdecayUs[] = {
   {
     .subs = NULL,
     .subcount = 0,
@@ -306,13 +306,13 @@ static nctree_item cdecayUs[] = {
   },
 };
 
-static nctree_item cdecays = {
+static struct nctree_item cdecays = {
   .subs = cdecayUs,
   .subcount = sizeof(cdecayUs) / sizeof(*cdecayUs),
   .curry = "cluster decaying U",
 };
 
-static nctree_item radUs[] = {
+static struct nctree_item radUs[] = {
   {
     .subs = &alphaU,
     .subcount = 1,
@@ -352,7 +352,7 @@ static nctree_item radUs[] = {
   },
 };
 
-static nctree_item rads = {
+static struct nctree_item rads = {
   .subs = radUs,
   .subcount = sizeof(radUs) / sizeof(*radUs),
   .curry = "radiating isotopes",
