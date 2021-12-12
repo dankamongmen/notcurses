@@ -266,6 +266,7 @@ target_link_libraries(notcurses-core
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
+    "${LIBRT}"
     "${unistring}"
     "${gpm}"
   PUBLIC
@@ -278,6 +279,7 @@ target_link_libraries(notcurses-core-static
     "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
+    "${LIBRT}"
     "${unistring}"
     "${gpm}"
   PUBLIC
@@ -529,7 +531,7 @@ foreach(f ${POCSRCS})
     "${PROJECT_BINARY_DIR}/include"
   )
   target_link_libraries(${fe}
-    PRIVATE notcurses "${TERMINFO_LIBRARIES}" "${LIBM}"
+    PRIVATE notcurses "${TERMINFO_LIBRARIES}" "${LIBM}" "${LIBRT}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -546,7 +548,7 @@ if(${USE_CXX})
       "${PROJECT_BINARY_DIR}/include"
     )
     target_link_libraries(${fe}
-      PRIVATE notcurses++ "${TERMINFO_LIBRARIES}" "${LIBM}"
+      PRIVATE notcurses++ "${TERMINFO_LIBRARIES}" "${LIBM}" "${LIBRT}"
     )
     target_link_directories(${fe}
       PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -576,6 +578,7 @@ target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
     ${LIBM}
+    ${LIBRT}
     Threads::Threads
 )
 
