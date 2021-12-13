@@ -325,7 +325,7 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
     cols = &colsafe;
     colsafe = tcache->dimx;
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   struct winsize ws;
   if(tiocgwinsz(tcache->ttyfd, &ws)){
     return -1;
@@ -1039,7 +1039,7 @@ int ncplane_destroy_family(ncplane *ncp){
 // if that flag is set, we take the locale and encoding as we get them.
 void init_lang(void){
   char* setret;
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   if((setret = setlocale(LC_ALL, ".UTF8")) == NULL){
     logwarn("couldn't set LC_ALL to utf8\n");
   }
@@ -1054,7 +1054,7 @@ void init_lang(void){
     loginfo("LANG was explicitly set to %s, not changing locale\n", lang);
     return;
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if((setret = setlocale(LC_ALL, "")) == NULL){
     logwarn("setting locale based on LANG failed\n");
   }
@@ -1410,7 +1410,7 @@ int notcurses_stop(notcurses* nc){
     if(!(nc->flags & NCOPTION_SUPPRESS_BANNERS)){
       summarize_stats(nc);
     }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
     del_curterm(cur_term);
 #endif
     ret |= pthread_mutex_destroy(&nc->stats.lock);

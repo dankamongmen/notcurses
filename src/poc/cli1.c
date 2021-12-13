@@ -1,4 +1,4 @@
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #include <poll.h>
 #endif
 #include <notcurses/notcurses.h>
@@ -24,7 +24,7 @@ int main(void){
       goto err;
     }
     // just some pointless testing of notcurses_inputready_fd() here
-#ifndef __MINGW64__
+#ifndef __MINGW32__
     struct pollfd pfd = {
       .fd = notcurses_inputready_fd(nc),
       .events = POLLIN,

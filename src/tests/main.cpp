@@ -134,7 +134,7 @@ auto lang_and_term() -> void {
   }else{
     std::cout << "Running with LANG=" << lang << std::endl;
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   const char* term = getenv("TERM");
   // ubuntu's buildd sets TERM=unknown, fuck it, handle this atrocity
   if(term == nullptr || strcmp(term, "unknown") == 0){

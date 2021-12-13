@@ -14,7 +14,7 @@
 #include <langinfo.h>
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
-#elif !defined(__MINGW64__)
+#elif !defined(__MINGW32__)
 #include <langinfo.h>
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
@@ -83,7 +83,7 @@ static int
 fetch_env_vars(struct notcurses* nc, fetched_info* fi){
 #if defined(__APPLE__)
   fi->desktop = "Aqua";
-#elif defined(__MINGW64__)
+#elif defined(__MINGW32__)
   fi->desktop = "Metro";
 #else
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
@@ -118,7 +118,7 @@ fallback_cpuinfo(void){
 
 static int
 fetch_bsd_cpuinfo(fetched_info* fi){
-#if defined(__linux__) || defined(__gnu_hurd__) || defined(__MINGW64__)
+#if defined(__linux__) || defined(__gnu_hurd__) || defined(__MINGW32__)
   (void)fi;
 #else
   size_t len = sizeof(fi->core_count);
@@ -140,7 +140,7 @@ fetch_bsd_cpuinfo(fetched_info* fi){
 
 static int
 fetch_windows_cpuinfo(fetched_info* fi){
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   SYSTEM_INFO info = {0};
   GetSystemInfo(&info);
   switch(info.wProcessorArchitecture){
@@ -333,7 +333,7 @@ typedef enum {
 
 static ncneo_kernel_e
 get_kernel(fetched_info* fi){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   struct utsname uts;
   if(uname(&uts)){
     fprintf(stderr, "Failure invoking uname (%s)\n", strerror(errno));

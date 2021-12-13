@@ -856,7 +856,7 @@ ncdirect_stop_minimal(void* vnc){
     ret |= tcsetattr(nc->tcache.ttyfd, TCSANOW, nc->tcache.tpreserved);
   }
   ret |= ncdirect_flush(nc);
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   del_curterm(cur_term);
 #endif
   return ret;

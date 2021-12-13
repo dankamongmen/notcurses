@@ -19,7 +19,7 @@ extern "C" {
 #define TIMER_ABSTIME 1
 #endif
 
-#ifdef  __MINGW64__
+#ifdef  __MINGW32__
 static inline char
 path_separator(void){
   return '\\';
@@ -147,7 +147,7 @@ notcurses_data_path(const char* ddir, const char* f){
 #ifdef __cplusplus
 }
 #else
-#ifdef __MINGW64__
+#ifdef __MINGW32__
 char* strndup(const char* str, size_t size);
 #endif
 #endif

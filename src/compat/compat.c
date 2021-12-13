@@ -1,7 +1,7 @@
 #include "compat/compat.h"
 #include <builddef.h>
 #include <pthread.h>
-#ifdef  __MINGW64__
+#ifdef  __MINGW32__
 #include <string.h>
 #include <stdlib.h>
 #include <synchapi.h>
@@ -178,7 +178,7 @@ int pthread_condmonotonic_init(pthread_cond_t* cond){
   }
   // FIXME we need a solution for this on macos/windows
 #ifndef __APPLE__
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(pthread_condattr_setclock(&cat, CLOCK_MONOTONIC)){
     pthread_condattr_destroy(&cat);
     return -1;

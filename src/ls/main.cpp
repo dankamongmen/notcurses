@@ -96,7 +96,7 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
     return 0;
   }
   int newdir = -1;
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   newdir = openat(dirfd, p, O_DIRECTORY | O_CLOEXEC);
   if(newdir < 0){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
@@ -141,7 +141,7 @@ int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
 // true iff the path was directly listed on the command line.
 int handle_path(int dirfd, const std::string& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
     return -1;

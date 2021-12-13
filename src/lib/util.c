@@ -1,10 +1,10 @@
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #include <pwd.h>
 #include <unistd.h>
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
-#elif !defined(__MINGW64__)
+#elif !defined(__MINGW32__)
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
 #endif
@@ -33,7 +33,7 @@ int set_loglevel_from_env(ncloglevel_e* llptr){
 }
 
 char* notcurses_accountname(void){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   const char* un;
   if( (un = getenv("LOGNAME")) ){
     return strdup(un);
@@ -60,7 +60,7 @@ char* notcurses_accountname(void){
 }
 
 char* notcurses_hostname(void){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   char hostname[_POSIX_HOST_NAME_MAX + 1];
   if(gethostname(hostname, sizeof(hostname)) == 0){
     char* fqdn = strchr(hostname, '.');
@@ -80,7 +80,7 @@ char* notcurses_hostname(void){
 }
 
 char* notcurses_osversion(void){
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   // FIXME get version
   return strdup("Microsoft Windows");
 #else

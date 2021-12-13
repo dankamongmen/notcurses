@@ -42,7 +42,7 @@ typedef struct cursorloc {
   int y, x;             // 0-indexed cursor location
 } cursorloc;
 
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 typedef int ipipe;
 #else
 typedef HANDLE ipipe;
@@ -59,7 +59,7 @@ typedef struct inputctx {
                         //  own this descriptor, and must not close() it.
   int termfd;           // terminal fd: -1 with no controlling terminal, or
                         //  if stdin is a terminal, or on MSFT Terminal.
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   HANDLE stdinhandle;   // handle to input terminal for MSFT Terminal
 #endif
 
@@ -164,7 +164,7 @@ prep_xtmodkeys(inputctx* ictx){
 // load all known special keys from terminfo, and build the input sequence trie
 static int
 prep_special_keys(inputctx* ictx){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   static const struct {
     const char* tinfo;
     uint32_t key;
@@ -437,7 +437,7 @@ amata_next_string(automaton* amata, const char* prefix){
 static inline void
 send_synth_signal(int sig){
   if(sig){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
     raise(sig);
 #endif
   }
@@ -446,7 +446,7 @@ send_synth_signal(int sig){
 static void
 mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
     logwarn("error writing to pipe (%d) (%s)\n", pipes[1], strerror(errno));
 #else
@@ -1545,7 +1545,7 @@ build_cflow_automaton(inputctx* ictx){
 
 static void
 closepipe(ipipe p){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(p >= 0){
     close(p);
   }
@@ -1565,7 +1565,7 @@ endpipes(ipipe pipes[static 2]){
 // only linux and freebsd13+ have eventfd(), so we'll fall back to pipes sigh.
 static int
 getpipes(ipipe pipes[static 2]){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #ifndef __APPLE__
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
     logerror("couldn't get pipes (%s)\n", strerror(errno));
@@ -1631,7 +1631,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                             i->stats = stats;
                             i->ti = ti;
                             i->stdineof = 0;
-#ifdef __MINGW64__
+#ifdef __MINGW32__
                             i->stdinhandle = ti->inhandle;
 #endif
                             i->ibufvalid = 0;
@@ -2130,7 +2130,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     loginfo("nonblocking read to check for completion\n");
     ictx->midescape = 0;
   }
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   int timeoutms = nonblock ? 0 : -1;
   DWORD ncount = 0;
   HANDLE handles[2];
@@ -2191,7 +2191,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   sigdelset(&smask, SIGTHR);
 #endif
   int events;
-#if defined(__APPLE__) || defined(__MINGW64__)
+#if defined(__APPLE__) || defined(__MINGW32__)
   int timeoutms = nonblock ? 0 : -1;
   while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
 #else
@@ -2283,7 +2283,7 @@ int stop_inputlayer(tinfo* ti){
   int ret = 0;
   if(ti){
     // FIXME cancellation on shutdown does not yet work on windows #2192
-#ifndef __MINGW64__
+#ifndef __MINGW32__
     if(ti->ictx){
       loginfo("tearing down input thread\n");
       ret |= cancel_and_join("input", ti->ictx->tid, NULL);
@@ -2297,7 +2297,7 @@ int stop_inputlayer(tinfo* ti){
 }
 
 int inputready_fd(const inputctx* ictx){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   return ictx->readypipes[0];
 #else
   (void)ictx;
@@ -2363,7 +2363,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     sendsignal = true;
   }else{
     logtrace("draining event readiness pipe %d\n", ictx->ivalid);
-#ifndef __MINGW64__
+#ifndef __MINGW32__
     char c;
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
       // FIXME accelerate?
@@ -2444,7 +2444,7 @@ linesigs_disable(tinfo* ti){
   if(!ti->ictx->linesigs){
     logwarn("linedisc signals already disabled\n");
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(ti->ttyfd < 0){
     return 0;
   }
@@ -2484,7 +2484,7 @@ linesigs_enable(tinfo* ti){
   if(ti->ictx->linesigs){
     logwarn("linedisc signals already enabled\n");
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   if(ti->ttyfd < 0){
     return 0;
   }
