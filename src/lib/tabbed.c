@@ -146,8 +146,8 @@ nctab* nctab_prev(nctab* t){
 }
 
 nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
-  nctabbed_options zeroed = {};
-  ncplane_options nopts = {};
+  nctabbed_options zeroed = {0};
+  ncplane_options nopts = {0};
   unsigned nrows, ncols;
   nctabbed* nt = NULL;
   if(!topts){

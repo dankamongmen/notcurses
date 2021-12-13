@@ -805,7 +805,7 @@ ncplane* ncreel_plane(ncreel* nr){
 }
 
 ncreel* ncreel_create(ncplane* n, const ncreel_options* ropts){
-  ncreel_options zeroed = {};
+  ncreel_options zeroed = {0};
   ncreel* nr;
   if(!ropts){
     ropts = &zeroed;

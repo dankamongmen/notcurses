@@ -61,7 +61,7 @@ puttext_line(ncplane* n, ncalign_e align, const char* text, size_t* bytes){
   bytes_leading_ws = cols_leading_ws = 0;
   bytes_leading_break = cols_leading_break = 0;
   while(cols <= avail){    // we can print everything we've read, if desired
-    mbstate_t mbstate = {};
+    mbstate_t mbstate = {0};
     wchar_t w;
     const size_t consumed = mbrtowc(&w, text + b, MB_CUR_MAX, &mbstate);
     if(consumed == (size_t)-2 || consumed == (size_t)-1){

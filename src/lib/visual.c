@@ -14,7 +14,7 @@
 // set this pointer. all this machination exists to support building notcurses
 // (and running notcurses programs) without the need of heavy media engines.
 
-static ncvisual_implementation null_visual_implementation = {};
+static ncvisual_implementation null_visual_implementation = {0};
 
 ncvisual_implementation* visual_implementation = &null_visual_implementation;
 

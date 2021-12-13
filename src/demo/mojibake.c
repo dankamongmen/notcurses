@@ -3611,7 +3611,7 @@ unicode14(struct ncplane* title, int y){
 
 struct ncplane*
 makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
-  mbstate_t mbs = {};
+  mbstate_t mbs = {0};
   size_t count = mbsrtowcs(NULL, &emoji, 0, &mbs);
   if(count == (size_t)-1){
     fprintf(stderr, "couldn't convert %s\n", emoji);

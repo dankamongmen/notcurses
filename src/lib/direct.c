@@ -632,7 +632,7 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 static ncdirectv*
 ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
                        const struct ncvisual_options* vopts){
-  struct ncvisual_options defvopts = {};
+  struct ncvisual_options defvopts = {0};
   if(!vopts){
     vopts = &defvopts;
   }
@@ -711,7 +711,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     free_plane(ncdv);
     return NULL;
   }
-  blitterargs bargs = {};
+  blitterargs bargs = {0};
   bargs.flags = vopts->flags;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
@@ -743,7 +743,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   if(ncv == NULL){
     return NULL;
   }
-  struct ncvisual_options vopts = {};
+  struct ncvisual_options vopts = {0};
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
     return NULL;
@@ -832,7 +832,7 @@ static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = vnc;
   int ret = drop_signals(nc);
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f) == 0){
     ret |= reset_term_attributes(&nc->tcache, &f);
     ret |= fbuf_finalize(&f, stdout);
@@ -1148,7 +1148,7 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   uint32_t stylemask = n->stylemask | stylebits;
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }
@@ -1169,7 +1169,7 @@ uint16_t ncdirect_styles(const ncdirect* n){
 // turn off any specified stylebits
 int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }
@@ -1189,7 +1189,7 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   uint32_t stylemask = stylebits;
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }
@@ -1398,7 +1398,7 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }else{
     ncdirect_cursor_right(n, 1);
   }
-  mbstate_t ps = {};
+  mbstate_t ps = {0};
   size_t bytes;
   if((bytes = wcrtomb(hl, wchars[4], &ps)) == (size_t)-1){
     logerror("error converting %lc\n", wchars[4]);
@@ -1552,7 +1552,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     }
     if(lastid > -1){
       if(n->tcache.pixel_remove){
-        fbuf f = {};
+        fbuf f = {0};
         fbuf_init_small(&f);
         if(n->tcache.pixel_remove(lastid, &f)){
           fbuf_free(&f);

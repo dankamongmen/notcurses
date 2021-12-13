@@ -161,7 +161,7 @@ fprintf(stderr, "\n");
 // positions in |*upper| and |*lower|.
 static int
 jam_linux_consolefont(int fd, unsigned showglyphs, unsigned* upper, unsigned* lower){
-  struct console_font_op cfo = {};
+  struct console_font_op cfo = {0};
   cfo.op = KD_FONT_OP_GET;
   cfo.charcount = 512;
   cfo.data = malloc(128 * cfo.charcount);
@@ -221,7 +221,7 @@ fprintf(stderr, "Bper: %zu %d at %p\n", Bper(&cfo), i + o, g[o]);
 
 static int
 jam_linux_consolemap(int fd, unsigned upper, unsigned lower){
-  struct unimapdesc map = {};
+  struct unimapdesc map = {0};
   map.entry_ct = USHRT_MAX;
   map.entries = malloc(map.entry_ct * sizeof(struct unipair));
   if(ioctl(fd, GIO_UNIMAP, &map)){

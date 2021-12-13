@@ -617,7 +617,7 @@ ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
 // resize frame, converting to RGBA (if necessary) along the way
 static int
 ffmpeg_resize(ncvisual* n, unsigned rows, unsigned cols){
-  struct blitterargs bargs = {};
+  struct blitterargs bargs = {0};
   int stride;
   void* data = ffmpeg_resize_internal(n, rows, &stride, cols, &bargs);
   if(data == n->data){ // no change, return

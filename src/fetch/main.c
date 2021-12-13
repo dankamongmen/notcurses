@@ -141,7 +141,7 @@ fetch_bsd_cpuinfo(fetched_info* fi){
 static int
 fetch_windows_cpuinfo(fetched_info* fi){
 #ifdef __MINGW64__
-  SYSTEM_INFO info = {};
+  SYSTEM_INFO info = {0};
   GetSystemInfo(&info);
   switch(info.wProcessorArchitecture){
     case PROCESSOR_ARCHITECTURE_AMD64:
@@ -763,7 +763,7 @@ display_thread(void* vmarshal){
 
 static int
 ncneofetch(struct notcurses* nc){
-  fetched_info fi = {};
+  fetched_info fi = {0};
   ncneo_kernel_e kern = get_kernel(&fi);
   switch(kern){
     case NCNEO_LINUX:

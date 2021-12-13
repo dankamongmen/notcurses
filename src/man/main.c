@@ -78,7 +78,7 @@ map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t 
 #include <zlib.h>
 static unsigned char*
 map_gzipped_data(unsigned char* buf, size_t* len, unsigned char* ubuf, uint32_t ulen){
-  z_stream z = {};
+  z_stream z = {0};
   int r = inflateInit2(&z, 15 | 16);
   if(r != Z_OK){
     fprintf(stderr, "error getting zlib inflator (%d)\n", r);
@@ -344,7 +344,7 @@ dom_get_title(const pagedom* dom){
 // heap-copies the utf8 to *token on success.
 static int
 lex_next_token(const char* s, char** token){
-  mbstate_t ps = {};
+  mbstate_t ps = {0};
   wchar_t w;
   size_t b, cur;
   cur = 0;
@@ -923,7 +923,7 @@ manloop(struct notcurses* nc, const char* arg){
   int ret = -1;
   struct ncplane* page = NULL;
   struct ncplane* bar = NULL;
-  pagedom dom = {};
+  pagedom dom = {0};
   size_t len;
   unsigned char* buf = get_troff_data(arg, &len);
   if(buf == NULL){

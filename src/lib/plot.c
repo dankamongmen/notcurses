@@ -436,7 +436,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   if(ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy)){ \
     return NULL; \
   } \
-  ncplot_options zeroed = {}; \
+  ncplot_options zeroed = {0}; \
   if(!opts){ \
     opts = &zeroed; \
   } \
