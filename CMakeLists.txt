@@ -23,6 +23,7 @@ option(USE_DEFLATE "Use libdeflate instead of libz" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
+option(BUILD_BINARIES "Build binaries" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
@@ -45,6 +46,10 @@ elseif(${USE_MULTIMEDIA} STREQUAL "oiio")
   set(USE_OIIO ON)
 elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}').")
+endif()
+if (NOT BUILD_BINARIES AND USE_POC)
+  message(WARNING "Disabling USE_POC since BUILD_BINARIES=OFF")
+  set(USE_POC OFF)
 endif()
 
 if(${USE_CXX})
@@ -554,6 +559,13 @@ if(${USE_CXX})
 endif()
 endif()
 
+# documentation source, processed by pandoc into XHTML and man pages. declare
+# them here so that we can filter out man pages for binaries which aren't
+# going to be installed.
+file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
+file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
+
+if(BUILD_BINARIES)
 ############################################################################
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
@@ -684,11 +696,6 @@ target_link_libraries(ncneofetch
     "${LIBRT}"
 )
 
-# documentation source, processed by pandoc into XHTML and man pages. declare
-# them here so that we can filter out man pages for binaries which aren't
-# going to be installed.
-file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
-file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
 
 # all further binaries require multimedia and C++ support
 if(${USE_CXX})
@@ -731,6 +738,10 @@ target_link_libraries(ncplayer
 )
 endif()
 endif()
+else() 
+  # No binaries built
+  set(MANSOURCE1 "")
+endif() # BUILD_BINARIES
 
 ############################################################################
 # testing
@@ -989,6 +1000,7 @@ file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
 list(FILTER MARKDOWN EXCLUDE REGEX "INSTALL.md")
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
+if(BUILD_BINARIES)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
@@ -1003,6 +1015,7 @@ install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncplayer DESTINATION bin)
 endif()
 endif()
+endif() # BUILD_BINARIES
 
 LIST(APPEND INSTLIBS notcurses-core notcurses)
 if(${USE_STATIC})
