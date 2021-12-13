@@ -213,7 +213,7 @@ file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/*.c)
 
 ############################################################################
 # libnotcurses-core (core shared library, core static library)
-file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
+file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC})
 if(${USE_STATIC})
 add_library(notcurses-core-static STATIC ${NCCORESRCS} ${COMPATSRC})
@@ -408,6 +408,57 @@ target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
+############################################################################
+# libncsixel (sixel library built atop notcurses)
+file(GLOB NCSIXSRCS CONFIGURE_DEPENDS src/sixel/*.c)
+add_library(ncsixel SHARED ${NCSIXSRCS} ${COMPATSRC})
+if(${USE_STATIC})
+add_library(ncsixel-static STATIC ${NCSIXSRCS})
+else()
+add_library(ncsixel-static STATIC EXCLUDE_FROM_ALL ${NCSIXSRCS})
+endif()
+set_target_properties(ncsixel PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+set_target_properties(ncsixel-static PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  OUTPUT_NAME ncsixel
+)
+target_include_directories(ncsixel
+  BEFORE
+  PRIVATE
+    include
+    src
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+)
+target_include_directories(ncsixel-static
+  BEFORE
+  PRIVATE
+    include
+    src
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+)
+target_compile_definitions(ncsixel
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+target_compile_definitions(ncsixel-static
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+target_link_libraries(ncsixel
+  PUBLIC
+    notcurses
+)
+target_link_libraries(ncsixel-static
+  PUBLIC
+    notcurses-static
+)
 ############################################################################
 if(${USE_CXX})
 # libnotcurses++ (C++ wrappers)
