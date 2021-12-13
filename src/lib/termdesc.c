@@ -803,11 +803,16 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_SELFREF);
     }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
+      // XTPOPCOLORS didn't reliably work until a bugfix late in 0.23.1 (see
+      // https://github.com/kovidgoyal/kitty/issues/4351), so reprogram the
+      // font directly until we exceed that version.
+      if(compare_versions(ti->termversion, "0.23.1") > 0){
+        if(add_pushcolors_escapes(ti, tablelen, tableused)){
+          return -1;
+        }
+      }
     }else{
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
-    }
-    if(add_pushcolors_escapes(ti, tablelen, tableused)){
-      return -1;
     }
     // kitty SUM doesn't want long sequences, which is exactly where we use
     // it. remove support (we pick it up from queries).
