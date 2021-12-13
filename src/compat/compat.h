@@ -25,7 +25,7 @@ path_separator(void){
   return '\\';
 }
 #define NL "\r\n"
-#include <Lmcons.h>
+#include <lmcons.h>
 #include <winsock2.h>
 #define tcgetattr(x, y) (0)
 #define tcsetattr(x, y, z) (0)
