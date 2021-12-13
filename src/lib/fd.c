@@ -6,7 +6,7 @@
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."
 #endif
-#ifdef __MINGW64__
+#ifdef __MINGW32__
 #include <winsock2.h>
 #else
 #include <spawn.h>
@@ -46,7 +46,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
     pfds[1].events = NCPOLLEVENTS;
   }
   ssize_t r = 0;
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   while(poll(pfds, fdcount, -1) >= 0 || errno == EINTR){
 #else
   while(WSAPoll(pfds, fdcount, -1) >= 0){
@@ -147,7 +147,7 @@ int ncfdplane_destroy(ncfdplane* n){
   return ret;
 }
 
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 // get 2 pipes, and ensure they're both set to close-on-exec
 static int
 lay_pipes(int pipes[static 2]){
@@ -236,7 +236,7 @@ launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
 }
 #endif
 
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 // nuke the just-spawned process, and reap it. called before the subprocess
 // reader thread is launched (which otherwise reaps the subprocess).
 static int
@@ -349,7 +349,7 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
   if(opts->flags > 0){
     logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
   }
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
   if(ret == NULL){
@@ -404,7 +404,7 @@ int ncsubproc_destroy(ncsubproc* n){
   if(n){
     void* vret = NULL;
 //fprintf(stderr, "pid: %u pidfd: %d waittid: %u\n", n->pid, n->pidfd, n->waittid);
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #ifdef USING_PIDFD
     if(n->pidfd >= 0){
       loginfo("Sending SIGKILL to pidfd %d\n", n->pidfd);

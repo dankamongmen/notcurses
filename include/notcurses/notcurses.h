@@ -24,7 +24,7 @@ extern "C" {
 #define RESTRICT restrict
 #endif
 
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #define API __attribute__((visibility("default")))
 #else
 #define API __declspec(dllexport)

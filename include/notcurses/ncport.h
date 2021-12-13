@@ -10,7 +10,7 @@ extern "C" {
 // 32-bit values to little-endian (as used in the nccell gcluster field). This
 // ought be defined so that it's a a no-op on little-endian builds.
 
-#ifndef __MINGW64__                               // All but Windows
+#ifndef __MINGW32__                               // All but Windows
 #include <netinet/in.h>
 #endif
 
@@ -26,7 +26,7 @@ extern "C" {
 #define htole(x) (__bswap_32(htonl(x)))
 #define wcwidth(w) 1 // FIXME lol, no
 #define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no
-#elif defined(__MINGW64__)                        // Windows
+#elif defined(__MINGW32__)                        // Windows
 #include <string.h>
 #define wcwidth(w) 1 // FIXME lol, no
 #define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no

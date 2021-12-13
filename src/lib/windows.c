@@ -1,7 +1,7 @@
 #include "termdesc.h"
 #include "internal.h"
 #include "windows.h"
-#ifdef __MINGW64__
+#ifdef __MINGW32__
 // ti has been memset to all zeroes. windows configuration is static.
 int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   const struct wtermdesc {

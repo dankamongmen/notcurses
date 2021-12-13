@@ -500,7 +500,7 @@ scrub_stdplane(struct notcurses* nc){
 }
 
 int main(int argc, char** argv){
-#ifndef __MINGW64__
+#ifndef __MINGW32__
   sigset_t sigmask;
   // ensure SIGWINCH is delivered only to a thread doing input
   sigemptyset(&sigmask);

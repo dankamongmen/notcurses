@@ -194,7 +194,7 @@ typedef struct tinfo {
   char* linux_fb_dev;        // device corresponding to linux_fb_dev
   uint8_t* linux_fbuffer;    // mmap()ed framebuffer
   size_t linux_fb_len;       // size of map
-#elif defined(__MINGW64__)
+#elif defined(__MINGW32__)
   HANDLE inhandle;
   HANDLE outhandle;
 #endif

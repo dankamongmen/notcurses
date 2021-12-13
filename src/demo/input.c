@@ -151,7 +151,7 @@ int input_dispatcher(struct notcurses* nc){
   }
   // freebsd doesn't have eventfd :/ and apple doesn't even have pipe2() =[ =[
   // omg windows doesn't have pipe() fml FIXME
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #if defined(__APPLE__)
   if(pipe(input_pipefds)){
 #else

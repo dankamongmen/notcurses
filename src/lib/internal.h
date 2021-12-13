@@ -12,7 +12,7 @@ extern "C" {
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
 
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #define API __attribute__((visibility("default")))
 #else
 #define API __declspec(dllexport)
@@ -37,7 +37,7 @@ extern "C" {
 #include <stdbool.h>
 #include <inttypes.h>
 #include <unictype.h>
-#ifndef __MINGW64__
+#ifndef __MINGW32__
 #include <langinfo.h>
 #endif
 #include "lib/termdesc.h"
@@ -1818,10 +1818,10 @@ prefix_data(const char* base){
 // within unix, we can just use isatty(3). on windows, things work
 // differently. for a true Windows Terminal, we'll have HANDLE pointers
 // rather than file descriptors. in cygwin/msys2, isatty(3) always fails.
-// so for __MINGW64__, always return true. otherwise return isatty(fd).
+// so for __MINGW32__, always return true. otherwise return isatty(fd).
 static inline int
 tty_check(int fd){
-#ifdef __MINGW64__
+#ifdef __MINGW32__
   return _isatty(fd);
 #endif
   return isatty(fd);

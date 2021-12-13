@@ -6,7 +6,7 @@
 // primarily drive ownership off an atomic, safely used within a signal handler
 static void* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL);
 
-#ifdef __MINGW64__
+#ifdef __MINGW32__
 int block_signals(sigset_t* old_blocked_signals){
   (void)old_blocked_signals;
   return 0;
