@@ -56,7 +56,7 @@ int main(int argc, char** argv){
       fprintf(stderr, "Couldn't open %s (%s)\n", *argv, strerror(errno));
       goto done;
     }
-    ncfdplane_options nopts = {};
+    ncfdplane_options nopts = {0};
     struct ncfdplane* ncfp = ncfdplane_create(n, &nopts, fd, cb, eofcb);
     pthread_mutex_lock(&lock);
     while(!fddone){

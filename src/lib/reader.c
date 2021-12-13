@@ -24,7 +24,7 @@ void ncreader_destroy(ncreader* n, char** contents){
 }
 
 ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
-  ncreader_options zeroed = {};
+  ncreader_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }

@@ -694,7 +694,7 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
     logwarn("error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
     return -1;
   }
-  struct unimapdesc map = {};
+  struct unimapdesc map = {0};
   map.entry_ct = USHRT_MAX;
   totsize = map.entry_ct * sizeof(struct unipair);
   map.entries = malloc(totsize);
@@ -734,7 +734,7 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
   if(xpix == NULL){
     xpix = &fakex;
   }
-  struct fb_var_screeninfo fbi = {};
+  struct fb_var_screeninfo fbi = {0};
   if(ioctl(ti->linux_fb_fd, FBIOGET_VSCREENINFO, &fbi)){
     logerror("no framebuffer info from %s %d (%s?)\n", ti->linux_fb_dev,
              ti->linux_fb_fd, strerror(errno));

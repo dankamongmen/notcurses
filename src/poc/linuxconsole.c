@@ -85,7 +85,7 @@ explode_glyph_row(unsigned char** row, unsigned width){
 
 static int
 get_linux_consolefont(int fd, unsigned showglyphs){
-  struct console_font_op cfo = {};
+  struct console_font_op cfo = {0};
   cfo.op = KD_FONT_OP_GET;
   cfo.charcount = 512;
   cfo.width = 32;
@@ -130,7 +130,7 @@ get_linux_consolefont(int fd, unsigned showglyphs){
 
 static int
 get_linux_consolemap(int fd){
-  struct unimapdesc map = {};
+  struct unimapdesc map = {0};
   map.entry_ct = USHRT_MAX;
   map.entries = malloc(map.entry_ct * sizeof(struct unipair));
   if(ioctl(fd, GIO_UNIMAP, &map)){

@@ -375,7 +375,7 @@ resize_menu(ncplane* n){
 }
 
 ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
-  ncmenu_options zeroed = {};
+  ncmenu_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }

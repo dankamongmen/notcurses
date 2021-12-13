@@ -53,7 +53,7 @@ int main(int argc, char** argv){
   ++argv;
   struct ncplane* std = notcurses_stdplane(nc);
   ncplane_set_scrolling(std, true);
-  ncsubproc_options nopts = {};
+  ncsubproc_options nopts = {0};
   struct ncsubproc* nsproc = ncsubproc_createvp(std, &nopts, *argv,
                               (const char* const*)argv, cb, eofcb);
   if(nsproc == NULL){

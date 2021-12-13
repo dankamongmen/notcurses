@@ -119,7 +119,7 @@ ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
 
 ncfdplane* ncfdplane_create(ncplane* n, const ncfdplane_options* opts, int fd,
                             ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  ncfdplane_options zeroed = {};
+  ncfdplane_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }
@@ -339,7 +339,7 @@ static ncsubproc*
 ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
           const char* bin,  char* const arg[], char* const env[],
           ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn){
-  ncsubproc_options zeroed = {};
+  ncsubproc_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }

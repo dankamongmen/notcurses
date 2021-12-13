@@ -54,7 +54,7 @@ int main(int argc, char **argv){
     int i = 0;
     used = 0;
     while(*arg){
-      mbstate_t mbs = {};
+      mbstate_t mbs = {0};
       wchar_t w;
       size_t conv = mbrtowc(&w, arg, strlen(arg), &mbs);
       if(conv == (size_t)-1 || conv == (size_t)-2){

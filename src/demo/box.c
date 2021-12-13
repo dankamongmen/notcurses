@@ -237,7 +237,7 @@ int box_demo(struct notcurses* nc, uint64_t startns){
   struct timespec iterdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) * 3 / iters, &iterdelay);
   int bitmaps = notcurses_canopen_images(nc) && notcurses_check_pixel_support(nc);
-  struct ship ships[3] = {};
+  struct ship ships[3] = {0};
   if(bitmaps > 0){
     if(get_ships(nc, ships, sizeof(ships) / sizeof(*ships))){
       return -1;

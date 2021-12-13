@@ -404,7 +404,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
 // we need NCALPHA_TRANSPARENT
 static inline void
 init_rvec(struct crender* rvec, int totalcells){
-  struct crender c = {};
+  struct crender c = {0};
   nccell_set_fg_alpha(&c.c, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&c.c, NCALPHA_TRANSPARENT);
   for(int t = 0 ; t < totalcells ; ++t){
@@ -1423,7 +1423,7 @@ int notcurses_refresh(notcurses* nc, unsigned* restrict dimy, unsigned* restrict
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
-  ncpile p = {};
+  ncpile p = {0};
   p.dimy = nc->lfdimy;
   p.dimx = nc->lfdimx;
   const int count = p.dimy * p.dimx;
@@ -1450,7 +1450,7 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init(&f)){
     return -1;
   }
@@ -1659,7 +1659,7 @@ int ncdirect_set_bg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f){
 }
 
 int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }
@@ -1689,7 +1689,7 @@ int ncdirect_set_fg_rgb_f(ncdirect* nc, unsigned rgb, fbuf* f){
 }
 
 int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }
@@ -1739,7 +1739,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->cursory == y && nc->cursorx == x){
     return 0;
   }
-  fbuf f = {};
+  fbuf f = {0};
   if(fbuf_init_small(&f)){
     return -1;
   }

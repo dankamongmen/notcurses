@@ -20,7 +20,7 @@ int main(int argc, char** argv){
   }else if(argc == 2){
     file = argv[1];
   }
-  notcurses_options opts = {};
+  notcurses_options opts = {0};
   //opts.loglevel = NCLOGLEVEL_TRACE;
   opts.flags = NCOPTION_INHIBIT_SETLOCALE
                 | NCOPTION_NO_ALTERNATE_SCREEN
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  struct ncvisual_options vopts = {};
+  struct ncvisual_options vopts = {0};
   bool failed = false;
   struct ncvisual* ncv = ncvisual_from_file(file);
   if(!ncv){

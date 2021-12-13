@@ -2996,7 +2996,7 @@ int ncdirect_inputready_fd(ncdirect* n){
 static int
 get_blitter_egc_idx(const struct blitset* bset, const char* egc){
   wchar_t wc;
-  mbstate_t mbs = {};
+  mbstate_t mbs = {0};
   size_t sret = mbrtowc(&wc, egc, strlen(egc), &mbs);
   if(sret == (size_t)-1 || sret == (size_t)-2){
     return -1;
@@ -3178,7 +3178,7 @@ void nclog(const char* fmt, ...){
 }
 
 int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
-  mbstate_t ps = {};
+  mbstate_t ps = {0};
   const wchar_t** wset = &gclustarr;
   size_t mbytes = wcsrtombs(NULL, wset, 0, &ps);
   if(mbytes == (size_t)-1){

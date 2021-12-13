@@ -1866,7 +1866,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
       // off the initial node, which definitely has a valid ->trie, or we're
       // coming from a transition, where ictx->triepos->trie is checked below.
     }else{
-      ncinput ni = {};
+      ncinput ni = {0};
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
       logdebug("walk result on %u (%c): %d %u\n", candidate,
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
@@ -1969,7 +1969,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
     return 0; // need read more data; we don't have the complete character
   }
   wchar_t w;
-  mbstate_t mbstate = {};
+  mbstate_t mbstate = {0};
 //fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
   // FIXME how the hell does this work with 16-bit wchar_t?
   size_t r = mbrtowc(&w, (const char*)buf, cpointlen, &mbstate);

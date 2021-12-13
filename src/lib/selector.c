@@ -282,7 +282,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
     logerror("won't use the standard plane\n"); // would fail later on resize
     return NULL;
   }
-  ncselector_options zeroed = {};
+  ncselector_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }
@@ -887,7 +887,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     logerror("won't use the standard plane\n"); // would fail later on resize
     return NULL;
   }
-  ncmultiselector_options zeroed = {};
+  ncmultiselector_options zeroed = {0};
   if(!opts){
     opts = &zeroed;
   }

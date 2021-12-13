@@ -509,7 +509,7 @@ int main(int argc, char** argv){
 #endif
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
-  notcurses_options nopts = {};
+  notcurses_options nopts = {0};
   if((spec = handle_opts(argc, argv, &nopts, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
