@@ -261,7 +261,7 @@ trofftrie(void){
     }
     struct troffnode* n = root;
     for(const char* s = t->symbol ; *s ; ++s){
-      if(*s < 0){ // illegal symbol
+      if(*s <= 0){ // illegal symbol
         fprintf(stderr, "illegal symbol: %s\n", t->symbol);
         goto err;
       }
