@@ -1819,7 +1819,7 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
   }
   *bufused += r;
   space -= r;
-  loginfo("read %lldB from %d (%lluB left)\n", (long long)r, fd, (unsigned long long)space);
+  loginfo("read %" PRIdPTR "B from %d (%" PRIuPTR "B left)\n", r, fd, space);
 }
 
 // are terminal and stdin distinct for this inputctx?
