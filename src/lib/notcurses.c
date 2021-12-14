@@ -841,20 +841,29 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
   size_t fbsize = sizeof(nccell) * newarea;
-  // an important optimization is the case where nothing needs to be moved,
-  // true when either the keptarea is 0 or the old and new x dimensions are
-  // equal, and we're keeping the full x dimension, and any material we're
-  // keeping starts at the top. in this case, we try to realloc() and avoid
-  // any copying whatsoever (we otherwise incur at least one copy due to
-  // always using a new area). set realloced high in this event, so we don't
-  // free anything.
   nccell* fb;
-  bool realloced = false;
-  if(keptarea == 0 || (cols == xlen && cols == keeplenx && keepy == 0)){
+  // there are two cases worth optimizing:
+  //
+  // * nothing is kept. we malloc() a new cellmatrix, dump the EGCpool in
+  //    toto, and zero out the matrix. no copies, one memset.
+  // * old and new x dimensions match, and we're keeping the full width.
+  //    we release any cells we're about to lose, realloc() the cellmatrix,
+  //    and zero out any new cells. so long as the realloc() doesn't move
+  //    us, there are no copies, one memset, one iteration (since this is
+  //    most often due to autogrowth by a single line, the likelihood that
+  //    we remain where we are is pretty high).
+  // * otherwise, we malloc() a new cellmatrix, zero out any new cells,
+  //    copy over any reused cells, and release any lost cells. one
+  //    gigantic iteration.
+  // we might realloc instead of mallocing, in which case we NULL out
+  // |preserved|. it must otherwise be free()d at the end.
+  nccell* preserved = n->fb;
+  if(cols == xlen && cols == keeplenx && keepy){
     // we need release the cells that we're losing, lest we leak EGCpool
-    // memory. unfortunately, this means we mutate the plane on the error
-    // case...any solution would involve copying them out first.
-    if(n->leny > ylen){
+    // memory. unfortunately, this means we mutate the plane on the error case.
+    // any solution would involve copying them out first. we only do this if
+    // we're keeping some, as we otherwise drop the EGCpool in toto.
+    if(keptarea && n->leny > ylen){
       for(unsigned y = ylen ; y < n->leny ; ++y){
         for(unsigned x = 0 ; x < n->lenx ; ++x){
           nccell_release(n, ncplane_cell_ref_yx(n, y, x));
@@ -864,7 +873,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     if((fb = realloc(n->fb, fbsize)) == NULL){
       return -1;
     }
-    realloced = true;
+    preserved = NULL;
   }else{
     if((fb = malloc(fbsize)) == NULL){
       return -1;
@@ -875,7 +884,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     // FIXME first, free any disposed auxiliary vectors!
     tament* tmptam = realloc(n->tam, sizeof(*tmptam) * newarea);
     if(tmptam == NULL){
-      if(!realloced){
+      if(preserved){
         free(fb);
       }
       return -1;
@@ -892,12 +901,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   if(n->x >= xlen){
     n->x = xlen - 1;
   }
-  nccell* preserved = n->fb;
   pthread_mutex_lock(&nc->stats.lock);
-    ncplane_notcurses(n)->stats.s.fbbytes -= sizeof(*preserved) * (rows * cols);
+    ncplane_notcurses(n)->stats.s.fbbytes -= sizeof(*fb) * (rows * cols);
     ncplane_notcurses(n)->stats.s.fbbytes += fbsize;
   pthread_mutex_unlock(&nc->stats.lock);
-  n->fb = fb;
   const int oldabsy = n->absy;
   // go ahead and move. we can no longer fail at this point. but don't yet
   // resize, because n->len[xy] are used in fbcellidx() in the loop below. we
@@ -910,7 +917,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     // and keep it. perhaps we ought compact it?
     memset(fb, 0, sizeof(*fb) * newarea);
     egcpool_dump(&n->pool);
-  }else if(realloced){
+  }else if(!preserved){
     // the x dimensions are equal, and we're keeping across the width. only the
     // y dimension changed. if we grew, we need zero out the new cells (if we
     // shrunk, we already released the old cells prior to the realloc).
@@ -946,17 +953,18 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
         memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
         copyoff += keeplenx;
         copied += keeplenx;
-        if(xlen > copied){
-          memset(fb + copyoff, 0, sizeof(*fb) * (xlen - copied));
+        unsigned perline = xlen - copied;
+        for(unsigned x = copyoff ; x < n->lenx ; ++x){
+          nccell_release(n, ncplane_cell_ref_yx(n, sourceoffy, x));
         }
+        memset(fb + copyoff, 0, sizeof(*fb) * perline);
       }
     }
   }
+  n->fb = fb;
   n->lenx = xlen;
   n->leny = ylen;
-  if(!realloced){
-    free(preserved);
-  }
+  free(preserved);
   return resize_callbacks_children(n);
 }
 
