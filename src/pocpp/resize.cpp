@@ -16,7 +16,9 @@ int main(int argc, char** argv){
     file = argv[1];
   }
   notcurses_options opts{};
-  opts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
+  opts.flags = NCOPTION_INHIBIT_SETLOCALE
+               | NCOPTION_NO_ALTERNATE_SCREEN
+               | NCOPTION_DRAIN_INPUT;
   struct notcurses* nc;
   if((nc = notcurses_init(&opts, nullptr)) == nullptr){
     return EXIT_FAILURE;

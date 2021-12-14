@@ -45,7 +45,8 @@ auto stomper(NotCurses& nc, std::shared_ptr<Plane>& nn) -> int {
 auto main() -> int {
   setlocale(LC_ALL, "");
   notcurses_options nopts{};
-  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  nopts.flags = NCOPTION_INHIBIT_SETLOCALE
+                | NCOPTION_DRAIN_INPUT;
   NotCurses nc(nopts);
   std::shared_ptr<Plane> n(nc.get_stdplane());
 
