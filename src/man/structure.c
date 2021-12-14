@@ -20,7 +20,12 @@ static int
 docstruct_callback(struct ncplane* n, void* curry, int i){
   if(n){
     docnode* dn = curry;
-    ncplane_printf(n, "%s", dn->title);
+    uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x49, 0x9d, 0x63);
+    ncplane_set_base(n, "", 0, channels);
+    ncplane_set_fg_rgb(n, 0xffffff);
+    ncplane_erase(n);
+    //ncplane_putstr(n, dn->title);
+    ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, dn->title);
     ncplane_resize_simple(n, 1, ncplane_dim_x(n));
     (void)i;
   }
@@ -45,8 +50,6 @@ docstructure* docstructure_create(struct ncplane* n){
   if(p == NULL){
     return NULL;
   }
-  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x99, 0xed, 0xc3);
-  ncplane_set_base(p, "", 0, channels);
   nctree_options topts = {
     .nctreecb = docstruct_callback,
   };

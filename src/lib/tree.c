@@ -462,7 +462,6 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
   }else{
     ncplane_move_yx(nii->ncp, *frontierb, ncplane_x(nii->ncp));
   }
-logerror("cbfxn on %p\n", nii->curry);
   int ret = n->cbfxn(nii->ncp, nii->curry, distance);
   if(ret < 0){
     return -1;
