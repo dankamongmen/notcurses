@@ -111,6 +111,8 @@ int docstructure_add(docstructure* ds, const char* title, int line,
     if((addpath[z] = ds->curpath[z]) == UINT_MAX){
       ds->curpath[z] = 0;
       addpath[z] = 0;
+    }else if(z == level){
+      addpath[z] = ++ds->curpath[z];
     }
     ++z;
   }
