@@ -18,10 +18,12 @@ typedef struct docstructure {
 
 static int
 docstruct_callback(struct ncplane* n, void* curry, int i){
-  docnode* dn = curry;
-  ncplane_printf(n, "%p", dn);
-  ncplane_resize_simple(n, 1, ncplane_dim_x(n));
-  (void)i;
+  if(n){
+    docnode* dn = curry;
+    ncplane_printf(n, "%s", dn->title);
+    ncplane_resize_simple(n, 1, ncplane_dim_x(n));
+    (void)i;
+  }
   return 0;
 }
 
@@ -102,15 +104,14 @@ int docstructure_add(docstructure* ds, const char* title, int line,
     return -1;
   }
   unsigned z = 0;
-  while(z < level){
+  while(z <= level){
     if((addpath[z] = ds->curpath[z]) == UINT_MAX){
       ds->curpath[z] = 0;
       addpath[z] = 0;
     }
     ++z;
   }
-  addpath[z] = ds->curpath[z] + 1;
-  addpath[z + 1] = UINT_MAX;
+  addpath[z] = UINT_MAX;
   struct nctree_item nitem = {
     .curry = dn,
   };

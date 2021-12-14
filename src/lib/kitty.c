@@ -674,6 +674,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
     return -1;
   }
   deflateEnd(&zctx);
+  clen -= zctx.avail_out;
 #endif
   int ret;
   if(0 == clen){ // wasn't enough room; compressed data is larger than original

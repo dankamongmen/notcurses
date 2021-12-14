@@ -722,7 +722,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       ncplane_set_styles(p, NCSTYLE_NONE);
       */break;
     case LINE_SH: // section heading
-      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_SECTION)){
+      if(docstructure_add(dom->ds, n->text, ncplane_y(p), DOCSTRUCTURE_SECTION)){
         return -1;
       }
       if(strcmp(n->text, "NAME")){
@@ -735,7 +735,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       }
       break;
     case LINE_SS: // subsection heading
-      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_SUBSECTION)){
+      if(docstructure_add(dom->ds, n->text, ncplane_y(p), DOCSTRUCTURE_SUBSECTION)){
         return -1;
       }
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);

@@ -19,6 +19,36 @@ typedef struct nctree {
   uint64_t bchannels;       // border glyph channels
 } nctree;
 
+static void
+nctree_debug_path(const unsigned* path, const void* pr){
+  fprintf(stderr, "PATH ");
+  for(const unsigned* p = path ; *p != UINT_MAX ; ++p){
+    fprintf(stderr, "%03u ", *p);
+  }
+  fprintf(stderr, "%p\n", pr);
+}
+
+static void
+nctree_debug_internal(const nctree_int_item* nii, unsigned* path, unsigned depth){
+  if(depth){
+    nctree_debug_path(path, nii->curry);
+  }
+  for(unsigned z = 0 ; z < nii->subcount ; ++z){
+    path[depth] = z;
+    path[depth + 1] = UINT_MAX;
+    nctree_debug_internal(&nii->subs[z], path, depth + 1);
+  }
+  path[depth] = UINT_MAX;
+}
+
+__attribute__ ((unused)) static void
+nctree_debug(const nctree* n){
+  unsigned* path = malloc(sizeof(*path) * (n->maxdepth + 2));
+  path[0] = UINT_MAX;
+  nctree_debug_internal(&n->items, path, 0);
+  free(path);
+}
+
 // recursively free an array of nctree_int_item; nctree_int_item structs are
 // never individually free()d, just their innards
 static void
@@ -96,7 +126,7 @@ goto_first_item(nctree* n){
 // the initial path ought point to the first item.
 static int
 prep_initial_path(nctree* n, unsigned maxdepth){
-  n->currentpath = malloc(sizeof(*n->currentpath) * (maxdepth + 1));
+  n->currentpath = malloc(sizeof(*n->currentpath) * (maxdepth + 2));
   if(n->currentpath == NULL){
     return -1;
   }
@@ -128,16 +158,15 @@ nctree_inner_create(ncplane* n, const nctree_options* opts){
   return ret;
 }
 
-int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
-  // it's illegal to pass an empty path for addition; one must pass { 0, UINT_MAX }
-  if(spec[0] == UINT_MAX){
-    logerror("invalid empty path\n");
-    return -1;
-  }
-  struct nctree_int_item* nii = &n->items;
+// add the single item (*not* the hierarchy) of |add| at |spec|. the |spec|
+// must be valid along the path.
+// precondition: spec[0] != UINT_MAX
+static int
+nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
+                    const struct nctree_item* add){
   const unsigned* p = spec;
   unsigned depth = 0;
-  while(p[1] != UINT_MAX){ // we know p[1] isn't UINT_MAX
+  while(p[1] != UINT_MAX){ // we know p[0] isn't UINT_MAX
     if(*p >= nii->subcount){
       logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
       return -1;
@@ -146,6 +175,7 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
     ++p;
     ++depth;
   }
+  // we're at the node into which |add| ought be inserted
   // this last one can be equal to subcount; we're placing it at the end
   if(*p > nii->subcount){
     logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
@@ -156,12 +186,14 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
     return -1;
   }
   nii->subs = tmparr;
-  if(*p != nii->subcount++){
-    memmove(&nii->subs[*p], &nii->subs[*p + 1], sizeof(*nii->subs) * (nii->subcount - *p));
+  if(*p != nii->subcount){
+    memmove(&nii->subs[*p + 1], &nii->subs[*p],
+            sizeof(*nii->subs) * (nii->subcount - *p));
   }
+  ++nii->subcount;
   if((unsigned)(p - spec) >= n->maxdepth){
     unsigned max = p - spec + 1;
-    unsigned* tmp = realloc(n->currentpath, sizeof(*n->currentpath) * (max + 1));
+    unsigned* tmp = realloc(n->currentpath, sizeof(*n->currentpath) * (max + 2));
     if(tmp == NULL){
       return -1;
     }
@@ -171,15 +203,35 @@ int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
   }
   nii->subs[*p].subs = NULL;
   nii->subs[*p].subcount = 0;
-  nii->subs[*p].curry = NULL;
+  nii->subs[*p].curry = add->curry;
   nii->subs[*p].ncp = NULL;
-  if(dup_tree_items(&nii->subs[*p], add->subs, add->subcount, depth, &n->maxdepth)){
+  return 0;
+}
+
+int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
+  // it's illegal to pass an empty path for addition; one must pass { 0, UINT_MAX }
+  if(spec[0] == UINT_MAX){
+    logerror("invalid empty path\n");
+    return -1;
+  }
+  if(add->subs){
+    logerror("invalid subs %p\n", add->subs);
+    return -1;
+  }
+  if(add->subcount){
+    logerror("invalid subcount %u\n", add->subcount);
+    return -1;
+  }
+  if(nctree_add_internal(n, &n->items, spec, add)){
     return -1;
   }
   if(n->activerow == -1){
     n->activerow = 0;
-    n->curitem = &n->items;
+    n->curitem = &n->items.subs[0];
+    n->currentpath = malloc(sizeof(*n->currentpath) * 3);
     n->currentpath[0] = 0;
+    n->currentpath[1] = UINT_MAX;
+    n->maxdepth = 1;
   }
   return 0;
 }
@@ -410,6 +462,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
   }else{
     ncplane_move_yx(nii->ncp, *frontierb, ncplane_x(nii->ncp));
   }
+logerror("cbfxn on %p\n", nii->curry);
   int ret = n->cbfxn(nii->ncp, nii->curry, distance);
   if(ret < 0){
     return -1;
@@ -437,6 +490,7 @@ destroy_above(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
     if(nii->ncp){
       ncplane_destroy(nii->ncp);
       nii->ncp = NULL;
+logerror("cbfxn on %p\n", nii->curry);
       n->cbfxn(nii->ncp, nii->curry, distance);
     }
   }
@@ -455,6 +509,7 @@ destroy_below(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
     if(nii->ncp){
       ncplane_destroy(nii->ncp);
       nii->ncp = NULL;
+logerror("cbfxn on %p\n", nii->curry);
       n->cbfxn(nii->ncp, nii->curry, distance);
     }
   }
@@ -516,7 +571,7 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
 }
 
 int nctree_redraw(nctree* n){
-  unsigned* tmppath = malloc(sizeof(*tmppath) * (n->maxdepth + 1));
+  unsigned* tmppath = malloc(sizeof(*tmppath) * (n->maxdepth + 2));
   if(tmppath == NULL){
     return -1;
   }
