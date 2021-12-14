@@ -851,6 +851,16 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   nccell* fb;
   bool realloced = false;
   if(keptarea == 0 || (cols == xlen && cols == keeplenx && keepy == 0)){
+    // we need release the cells that we're losing, lest we leak EGCpool
+    // memory. unfortunately, this means we mutate the plane on the error
+    // case...any solution would involve copying them out first.
+    if(n->leny > ylen){
+      for(unsigned y = ylen ; y < n->leny ; ++y){
+        for(unsigned x = 0 ; x < n->lenx ; ++x){
+          nccell_release(n, ncplane_cell_ref_yx(n, y, x));
+        }
+      }
+    }
     if((fb = realloc(n->fb, fbsize)) == NULL){
       return -1;
     }
@@ -902,7 +912,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     egcpool_dump(&n->pool);
   }else if(realloced){
     // the x dimensions are equal, and we're keeping across the width. only the
-    // y dimension changed. at worst, we need zero some out.
+    // y dimension changed. if we grew, we need zero out the new cells (if we
+    // shrunk, we already released the old cells prior to the realloc).
     unsigned tozorch = (ylen - keepleny) * xlen * sizeof(*fb);
     if(tozorch){
       unsigned zorchoff = keepleny * xlen;
