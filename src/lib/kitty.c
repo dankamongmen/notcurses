@@ -2,6 +2,8 @@
 #include "base64.h"
 #ifdef USE_DEFLATE
 #include <libdeflate.h>
+#else
+#include <zlib.h>
 #endif
 
 // Kitty has its own bitmap graphics protocol, rather superior to DEC Sixel.
@@ -647,6 +649,31 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
     clen = libdeflate_zlib_compress(cmp, buf, blen, cbuf, blen);
   }
   libdeflate_free_compressor(cmp);
+#else
+  z_stream zctx = {0};
+  int z = deflateInit(&zctx, 2);
+  if(z != Z_OK){
+    logerror("couldn't get zlib context\n");
+    return -1;
+  }
+  clen = deflateBound(&zctx, blen);
+  cbuf = malloc(clen);
+  if(cbuf == NULL){
+    logerror("couldn't allocate %" PRIuPTR "B\n", clen);
+    deflateEnd(&zctx);
+    return -1;
+  }
+  zctx.avail_out = clen;
+  zctx.next_out = cbuf;
+  zctx.next_in = buf;
+  zctx.avail_in = blen;
+  z = deflate(&zctx, Z_FINISH);
+  if(z != Z_STREAM_END){
+    logerror("error %d deflating %" PRIuPTR "B -> %" PRIuPTR "B\n", z, blen, clen);
+    deflateEnd(&zctx);
+    return -1;
+  }
+  deflateEnd(&zctx);
 #endif
   int ret;
   if(0 == clen){ // wasn't enough room; compressed data is larger than original
