@@ -123,6 +123,7 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `DFSG_BUILD=off`: leave out all content considered non-free under the Debian Free
                     Software Guidelines
 * `BUILD_TESTING=on`: build test targets
+* `BUILD_EXECUTABLES=on`: build any executables (as opposed to libs)
 * `USE_ASAN=off`: build with AddressSanitizer
 * `USE_CXX=on`: build C++ code (requires a C++ compiler)
 * `USE_COVERAGE=off`: build coverage support (for developers, requires use of Clang)
