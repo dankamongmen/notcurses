@@ -121,12 +121,12 @@ typedef enum {
 
 // initialize a 32-bit channel pair with specified RGB
 #define NCCHANNEL_INITIALIZER(r, g, b) \
-  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + NC_BGDEFAULT_MASK)
+  (((uint32_t)(r) << 16u) + ((uint32_t)(g) << 8u) + (b) + NC_BGDEFAULT_MASK)
 
 // initialize a 64-bit channel pair with specified RGB fg/bg
 #define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
-  ((NCCHANNEL_INITIALIZER(fr, fg, fb) << 32ull) + \
-   (NCCHANNEL_INITIALIZER(br, bg, bb)))
+  ((NCCHANNEL_INITIALIZER((fr), (fg), (fb)) << 32ull) + \
+   (NCCHANNEL_INITIALIZER((br), (bg), (bb))))
 
 // These lowest-level functions manipulate a channel encodings directly. Users
 // will typically manipulate ncplanes' and nccells' channels through their
