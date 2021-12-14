@@ -858,13 +858,13 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
   // we might realloc instead of mallocing, in which case we NULL out
   // |preserved|. it must otherwise be free()d at the end.
   nccell* preserved = n->fb;
-  if(cols == xlen && cols == keeplenx && keepy){
+  if(cols == xlen && cols == keeplenx && keepleny && !keepy){
     // we need release the cells that we're losing, lest we leak EGCpool
     // memory. unfortunately, this means we mutate the plane on the error case.
     // any solution would involve copying them out first. we only do this if
     // we're keeping some, as we otherwise drop the EGCpool in toto.
-    if(keptarea && n->leny > ylen){
-      for(unsigned y = ylen ; y < n->leny ; ++y){
+    if(n->leny > keepleny){
+      for(unsigned y = keepleny ; y < n->leny ; ++y){
         for(unsigned x = 0 ; x < n->lenx ; ++x){
           nccell_release(n, ncplane_cell_ref_yx(n, y, x));
         }
