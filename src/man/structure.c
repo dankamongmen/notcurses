@@ -20,9 +20,9 @@ static int
 docstruct_callback(struct ncplane* n, void* curry, int i){
   if(n){
     docnode* dn = curry;
-    uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x49, 0x9d, 0x63);
-    ncplane_set_base(n, "", 0, channels);
-    ncplane_set_fg_rgb(n, 0xffffff);
+    uint64_t channels =
+      NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x49, (0x9d - 0x10 * i), 0x63);
+    ncplane_set_channels(n, channels);
     ncplane_erase(n);
     //ncplane_putstr(n, dn->title);
     ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, dn->title);

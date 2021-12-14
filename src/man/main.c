@@ -829,8 +829,8 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   return pman;
 }
 
-static const char USAGE_TEXT[] = "⎥b⇞k↑j↓f⇟⎢ (q)uit";
-static const char USAGE_TEXT_ASCII[] = "(bkjf) (q)uit";
+static const char USAGE_TEXT[] = "⎥⇆/s⎢⎥b⇞k↑↓j⇟f⎢ (q)uit";
+static const char USAGE_TEXT_ASCII[] = "(tab/s) (bkjf) (q)uit";
 
 static int
 draw_bar(struct ncplane* bar, pagedom* dom){
@@ -956,6 +956,12 @@ manloop(struct notcurses* nc, const char* arg){
         if(ni.ctrl && !ni.alt){
           notcurses_refresh(nc, NULL, NULL);
         }
+        break;
+      case 's':
+        // FIXME toggle structure browser visibility
+        break;
+      case NCKEY_TAB: case L'\u21c6':
+        // FIXME switch between browsers
         break;
       case 'k': case NCKEY_UP:
         if(ncplane_y(page)){
