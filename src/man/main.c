@@ -750,6 +750,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
     case LINE_IP: // indented paragraph
       if(*wrotetext){
         if(n->text){
+          ncplane_set_fg_rgb(p, 0xe0f0ff);
           ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
           putpara(p, n->text);
         }
@@ -822,6 +823,7 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   if(pman == NULL){
     return NULL;
   }
+  ncplane_set_base(pman, " ", 0, 0);
   if(draw_content(stdn, pman)){
     ncplane_destroy(pman);
     return NULL;
@@ -958,7 +960,7 @@ manloop(struct notcurses* nc, const char* arg){
         }
         break;
       case 's':
-        // FIXME toggle structure browser visibility
+        docstructure_toggle(page, bar, dom.ds);
         break;
       case NCKEY_TAB: case L'\u21c6':
         // FIXME switch between browsers

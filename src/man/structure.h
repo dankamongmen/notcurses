@@ -17,6 +17,8 @@ typedef enum {
 struct docstructure* docstructure_create(struct ncplane* n);
 void docstructure_free(struct docstructure* ds);
 
+void docstructure_toggle(struct ncplane* p, struct ncplane* b, struct docstructure *ds);
+
 // add the specified [sub]section to the document strucure. |line| refers to
 // the row on the display plane, *not* the line in the original content.
 int docstructure_add(struct docstructure* ds, const char* title, int line,

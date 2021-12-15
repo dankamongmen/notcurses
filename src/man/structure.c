@@ -14,6 +14,7 @@ typedef struct docstructure {
   struct nctree* nct;
   // one entry for each hierarchy level + terminator
   unsigned curpath[HIERARCHY_MAX + 1];
+  bool visible;
 } docstructure;
 
 static int
@@ -60,7 +61,20 @@ docstructure* docstructure_create(struct ncplane* n){
   for(unsigned z = 0 ; z < sizeof(ds->curpath) / sizeof(*ds->curpath) ; ++z){
     ds->curpath[z] = UINT_MAX;
   }
+  ds->visible = true;
   return ds;
+}
+
+// to show the structure menu, it ought be on top. otherwise, the page plane
+// ought be below the bar, which ought be on top.
+void docstructure_toggle(struct ncplane* p, struct ncplane* b, docstructure* ds){
+  if(!(ds->visible = !ds->visible)){
+    ncplane_move_top(p);
+    ncplane_move_top(b);
+  }else{
+    ncplane_move_bottom(p);
+    ncplane_move_bottom(notcurses_stdplane(ncplane_notcurses(p)));
+  }
 }
 
 void docstructure_free(docstructure* ds){

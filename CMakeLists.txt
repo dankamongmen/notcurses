@@ -738,9 +738,8 @@ target_link_libraries(ncplayer
 )
 endif()
 endif()
-else() 
-  # No binaries built
-  set(MANSOURCE1 "")
+else()
+set(MANSOURCE1 "") # no executables were built
 endif() # BUILD_EXECUTABLES
 
 ############################################################################
