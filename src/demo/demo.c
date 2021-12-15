@@ -317,6 +317,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
     fprintf(stderr, "Extra argument: %s\n", argv[optind + 1]);
     usage(*argv, EXIT_FAILURE);
   }
+  if(datadir == NULL){
+    datadir = notcurses_data_dir();
+  }
   const char* spec = argv[optind];
   return spec;
 }
