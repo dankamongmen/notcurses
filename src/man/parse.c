@@ -104,7 +104,7 @@ const trofftype* get_type(const struct troffnode* trie, const unsigned char** ws
   ++*ws;
   --len;
   while(len && !isspace(**ws) && **ws){
-    if(**ws > sizeof(trie->next) / sizeof(*trie->next)){ // illegal command
+    if(**ws >= sizeof(trie->next) / sizeof(*trie->next)){ // illegal command
       return NULL;
     }
     if((trie = trie->next[**ws]) == NULL){
