@@ -14,13 +14,14 @@
 
 static void
 usage(const char* argv0, FILE* o){
-  fprintf(o, "usage: %s [ -hV ] files\n", argv0);
+  fprintf(o, "usage: %s [ -hVq ] files\n", argv0);
   fprintf(o, " -h: print help and return success\n");
   fprintf(o, " -v: print version and return success\n");
+  fprintf(o, " -q: don't wait for any input\n");
 }
 
 static int
-parse_args(int argc, char** argv){
+parse_args(int argc, char** argv, unsigned* noui){
   const char* argv0 = *argv;
   int longindex;
   int c;
@@ -28,13 +29,15 @@ parse_args(int argc, char** argv){
     { .name = "help", .has_arg = 0, .flag = NULL, .val = 'h', },
     { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, }
   };
-  while((c = getopt_long(argc, argv, "hV", longopts, &longindex)) != -1){
+  while((c = getopt_long(argc, argv, "hVq", longopts, &longindex)) != -1){
     switch(c){
       case 'h': usage(argv0, stdout);
                 exit(EXIT_SUCCESS);
                 break;
       case 'V': fprintf(stderr, "%s version %s\n", argv[0], notcurses_version());
                 exit(EXIT_SUCCESS);
+                break;
+      case 'q': *noui = true;
                 break;
       default: usage(argv0, stderr);
                return -1;
@@ -517,7 +520,7 @@ create_bar(struct notcurses* nc, pagedom* dom){
 }
 
 static int
-manloop(struct notcurses* nc, const char* arg){
+manloop(struct notcurses* nc, const char* arg, unsigned noui){
   struct ncplane* stdn = notcurses_stdplane(nc);
   int ret = -1;
   struct ncplane* page = NULL;
@@ -540,11 +543,15 @@ manloop(struct notcurses* nc, const char* arg){
   if(bar == NULL){
     goto done;
   }
+  if(notcurses_render(nc)){
+    goto done;
+  }
+  if(noui){
+    ret = 0;
+    goto done;
+  }
   uint32_t key;
   do{
-    if(notcurses_render(nc)){
-      goto done;
-    }
     ncinput ni;
     key = notcurses_get(nc, NULL, &ni);
     if(ni.evtype == NCTYPE_RELEASE){
@@ -593,6 +600,9 @@ manloop(struct notcurses* nc, const char* arg){
     }
     int newy = ncplane_y(page);
     docstructure_move(dom.ds, newy);
+    if(notcurses_render(nc)){
+      goto done;
+    }
   }while(key != (uint32_t)-1);
 
 done:
@@ -608,18 +618,24 @@ done:
 }
 
 static int
-tfman(struct notcurses* nc, const char* arg){
-  int r = manloop(nc, arg);
+tfman(struct notcurses* nc, const char* arg, unsigned noui){
+  int r = manloop(nc, arg, noui);
   return r;
 }
 
 int main(int argc, char** argv){
-  int nonopt = parse_args(argc, argv);
+  unsigned noui = false;
+  int nonopt = parse_args(argc, argv, &noui);
   if(nonopt <= 0){
     return EXIT_FAILURE;
   }
-  struct notcurses_options nopts = {
-  };
+  struct notcurses_options nopts = {0};
+  if(noui){
+    nopts.flags |= NCOPTION_NO_ALTERNATE_SCREEN
+                   | NCOPTION_NO_CLEAR_BITMAPS
+                   | NCOPTION_PRESERVE_CURSOR
+                   | NCOPTION_DRAIN_INPUT;
+  }
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
@@ -627,7 +643,7 @@ int main(int argc, char** argv){
   bool success;
   for(int i = 0 ; i < argc - nonopt ; ++i){
     success = false;
-    if(tfman(nc, argv[nonopt + i])){
+    if(tfman(nc, argv[nonopt + i], noui)){
       break;
     }
     success = true;

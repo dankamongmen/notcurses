@@ -1,5 +1,5 @@
 #ifndef NOTCURSES_MAN_PARSE
-#define NOTCURSES_MAN_PRASE
+#define NOTCURSES_MAN_PARSE
 
 #ifdef __cplusplus
 extern "C" {
