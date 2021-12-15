@@ -561,7 +561,8 @@ ncchannels_set_bg_default(uint64_t* channels){
 // returned, and the number of valid bytes and columns will be written into
 // *|validbytes| and *|validwidth| (assuming them non-NULL). If the entire
 // string is valid, *|validbytes| and *|validwidth| reflect the entire string.
-API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
+API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth)
+  __attribute__ ((nonnull (1)));
 
 // input functions like notcurses_get() return ucs32-encoded uint32_t. convert
 // a series of uint32_t to utf8. result must be at least 4 bytes per input
@@ -569,7 +570,8 @@ API int ncstrwidth(const char* egcs, int* validbytes, int* validwidth);
 // the number of bytes used is returned, or -1 if passed illegal ucs32, or too
 // small of a buffer.
 API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
-                                unsigned char* resultbuf, size_t buflen);
+                                unsigned char* resultbuf, size_t buflen)
+  __attribute__ ((nonnull (1, 3)));
 
 // An nccell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
@@ -2019,7 +2021,8 @@ API int ncplane_putchar_stained(struct ncplane* n, char c)
 // On failure, -1 is returned. The number of bytes converted from gclust is
 // written to 'sbytes' if non-NULL.
 API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
-                          size_t* sbytes);
+                          size_t* sbytes)
+  __attribute__ ((nonnull (1, 4)));
 
 // Call ncplane_putegc_yx() at the current cursor location.
 static inline int
