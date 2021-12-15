@@ -144,7 +144,7 @@ find_package(Threads)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 # platform-specific logics
 if(WIN32)
-  set(LIBRT wsock32 ws2_32 Secur32)
+  set(LIBRT wsock32 ws2_32 secur32)
 elseif(NOT APPLE)
   find_library(LIBM m REQUIRED)
   find_library(LIBRT rt REQUIRED)
