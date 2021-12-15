@@ -56,7 +56,7 @@ jobs:
       - name: python wrappers (old)
         run: |
           python3 -m pip install --upgrade pip
-          pip install cffi pypandoc
+          pip3 install cffi pypandoc
           cd cffi
           python3 setup.py sdist build
           #sudo python3 setup.py install
