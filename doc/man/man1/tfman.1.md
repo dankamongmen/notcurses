@@ -8,7 +8,7 @@ tfman - Swank manual page browser
 
 # SYNOPSIS
 
-**tfman** [**-h**] [**-V**] files
+**tfman** [**-h**] [**-V**] [**-q**] files
 
 # DESCRIPTION
 
@@ -20,6 +20,8 @@ tfman - Swank manual page browser
 **-V**: Print the program name and version, and exit with success.
 
 **-h**: Print help information, and exit with success.
+
+**-q**: Don't wait for any input, and don't use the alternate screen.
 
 files: Files to render.
 
