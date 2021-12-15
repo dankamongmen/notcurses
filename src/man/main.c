@@ -584,7 +584,7 @@ manloop(struct notcurses* nc, const char* arg){
         ret = 0;
         goto done;
     }
-    unsigned newy = ncplane_y(page);
+    int newy = ncplane_y(page);
     docstructure_move(dom.ds, newy);
   }while(key != (uint32_t)-1);
 

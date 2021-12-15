@@ -8,14 +8,14 @@ typedef struct docnode {
   char* title;
   int line;
   docstruct_e level;
-  unsigned y;
+  int y;
 } docnode;
 
 typedef struct docstructure {
   struct nctree* nct;
-  // one entry for each hierarchy level + terminator
+  // one entry for each hierarchy level + terminator, only used during creation
   unsigned curpath[HIERARCHY_MAX + 1];
-  unsigned cury;
+  int cury;
   bool visible;
 } docstructure;
 
@@ -96,7 +96,7 @@ docnode_free(docnode* dn){
 }
 
 static docnode*
-docnode_create(const char* title, int line, docstruct_e level, unsigned y){
+docnode_create(const char* title, int line, docstruct_e level, int y){
   docnode* dn = malloc(sizeof(*dn));
   if(dn == NULL){
     return NULL;
@@ -107,14 +107,15 @@ docnode_create(const char* title, int line, docstruct_e level, unsigned y){
   }
   dn->level = level;
   dn->line = line;
-  dn->y = y;
+fprintf(stderr, "CREATE AT %d\n", y);
+  dn->y = -y;
   return dn;
 }
 
 // add the specified [sub]section to the document strucure. |line| refers to
 // the row on the display plane, *not* the line in the original content.
 int docstructure_add(docstructure* ds, const char* title, int line,
-                     docstruct_e level, unsigned y){
+                     docstruct_e level, int y){
   unsigned addpath[sizeof(ds->curpath) / sizeof(*ds->curpath)];
   if(level < 0 || (unsigned)level >= sizeof(addpath) / sizeof(*addpath) - 1){
     fprintf(stderr, "invalid level %d\n", level);
@@ -149,12 +150,25 @@ int docstructure_add(docstructure* ds, const char* title, int line,
   return 0;
 }
 
-int docstructure_move(docstructure* ds, unsigned newy){
-  // FIXME might need to do multiple moves!
+int docstructure_move(docstructure* ds, int newy){
+  docnode* pdn = NULL;
+  docnode* dn;
   if(newy > ds->cury){
-    nctree_prev(ds->nct);
+    while((dn = nctree_prev(ds->nct)) != pdn){
+      if(dn->y > newy){
+        dn = nctree_next(ds->nct);
+        break;
+      }
+      pdn = dn;
+    }
   }else if(newy < ds->cury){
-    nctree_next(ds->nct);
+    while((dn = nctree_next(ds->nct)) != pdn){
+      if(dn->y > newy){
+        dn = nctree_prev(ds->nct);
+        break;
+      }
+      pdn = dn;
+    }
   }
   ds->cury = newy;
   if(nctree_redraw(ds->nct)){

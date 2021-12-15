@@ -489,7 +489,6 @@ destroy_above(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
     if(nii->ncp){
       ncplane_destroy(nii->ncp);
       nii->ncp = NULL;
-logerror("cbfxn on %p\n", nii->curry);
       n->cbfxn(nii->ncp, nii->curry, distance);
     }
   }
@@ -508,7 +507,6 @@ destroy_below(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
     if(nii->ncp){
       ncplane_destroy(nii->ncp);
       nii->ncp = NULL;
-logerror("cbfxn on %p\n", nii->curry);
       n->cbfxn(nii->ncp, nii->curry, distance);
     }
   }
