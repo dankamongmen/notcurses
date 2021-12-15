@@ -292,7 +292,7 @@ putpara(struct ncplane* p, const char* text){
 
 static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
-             unsigned* wrotetext){
+             unsigned* wrotetext, unsigned* insubsec){
   ncplane_set_fchannel(p, n->ttype->channel);
   size_t b = 0;
   unsigned y;
@@ -331,6 +331,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       ncplane_set_styles(p, NCSTYLE_NONE);
       ncplane_cursor_move_yx(p, -1, 0);
       *wrotetext = true;
+      *insubsec = true;
       break;
     case LINE_PP: // paragraph
     case LINE_TP: // tagged paragraph
@@ -338,7 +339,12 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       if(*wrotetext){
         if(n->text){
           ncplane_set_fg_rgb(p, 0xe0f0ff);
-          ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
+          if(*insubsec){
+            ncplane_puttext(p, -1, NCALIGN_LEFT, "\n", &b);
+            *insubsec = false;
+          }else{
+            ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
+          }
           putpara(p, n->text);
         }
       }else{
@@ -355,7 +361,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       return 0; // FIXME
   }
   for(unsigned z = 0 ; z < n->subcount ; ++z){
-    if(draw_domnode(p, dom, &n->subs[z], wrotetext)){
+    if(draw_domnode(p, dom, &n->subs[z], wrotetext, insubsec)){
       return -1;
     }
   }
@@ -369,12 +375,13 @@ static int
 draw_content(struct ncplane* stdn, struct ncplane* p){
   pagedom* dom = ncplane_userptr(p);
   unsigned wrotetext = 0; // unused by us
+  unsigned insubsec = 0;
   docstructure_free(dom->ds);
   dom->ds = docstructure_create(stdn);
   if(dom->ds == NULL){
     return -1;
   }
-  return draw_domnode(p, dom, dom->root, &wrotetext);
+  return draw_domnode(p, dom, dom->root, &wrotetext, &insubsec);
 }
 
 static int
