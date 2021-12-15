@@ -2122,7 +2122,7 @@ ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s)
   ncstrwidth(s, &validbytes, &validwidth);
   int xpos = ncplane_halign(n, align, validwidth);
   if(xpos < 0){
-    return -1;
+    xpos = 0;
   }
   return ncplane_putstr_yx(n, y, xpos, s);
 }
@@ -2214,7 +2214,7 @@ ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
   int width = wcswidth(gclustarr, INT_MAX);
   int xpos = ncplane_halign(n, align, width);
   if(xpos < 0){
-    return -1;
+    xpos = 0;
   }
   return ncplane_putwstr_yx(n, y, xpos, gclustarr);
 }
