@@ -8,12 +8,14 @@ typedef struct docnode {
   char* title;
   int line;
   docstruct_e level;
+  unsigned y;
 } docnode;
 
 typedef struct docstructure {
   struct nctree* nct;
   // one entry for each hierarchy level + terminator
   unsigned curpath[HIERARCHY_MAX + 1];
+  unsigned cury;
   bool visible;
 } docstructure;
 
@@ -22,10 +24,10 @@ docstruct_callback(struct ncplane* n, void* curry, int i){
   if(n){
     docnode* dn = curry;
     uint64_t channels =
-      NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x49, (0x9d - 0x10 * i), 0x63);
+      NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x49,
+                             (0x9d - 0x8 * i), (0x9d + 0x8 * i));
     ncplane_set_channels(n, channels);
     ncplane_erase(n);
-    //ncplane_putstr(n, dn->title);
     ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, dn->title);
     ncplane_resize_simple(n, 1, ncplane_dim_x(n));
     (void)i;
@@ -62,6 +64,7 @@ docstructure* docstructure_create(struct ncplane* n){
     ds->curpath[z] = UINT_MAX;
   }
   ds->visible = true;
+  ds->cury = 0;
   return ds;
 }
 
@@ -93,7 +96,7 @@ docnode_free(docnode* dn){
 }
 
 static docnode*
-docnode_create(const char* title, int line, docstruct_e level){
+docnode_create(const char* title, int line, docstruct_e level, unsigned y){
   docnode* dn = malloc(sizeof(*dn));
   if(dn == NULL){
     return NULL;
@@ -104,19 +107,20 @@ docnode_create(const char* title, int line, docstruct_e level){
   }
   dn->level = level;
   dn->line = line;
+  dn->y = y;
   return dn;
 }
 
 // add the specified [sub]section to the document strucure. |line| refers to
 // the row on the display plane, *not* the line in the original content.
 int docstructure_add(docstructure* ds, const char* title, int line,
-                     docstruct_e level){
+                     docstruct_e level, unsigned y){
   unsigned addpath[sizeof(ds->curpath) / sizeof(*ds->curpath)];
   if(level < 0 || (unsigned)level >= sizeof(addpath) / sizeof(*addpath) - 1){
     fprintf(stderr, "invalid level %d\n", level);
     return -1;
   }
-  docnode* dn = docnode_create(title, line, level);
+  docnode* dn = docnode_create(title, line, level, y);
   if(dn == NULL){
     return -1;
   }
@@ -139,6 +143,20 @@ int docstructure_add(docstructure* ds, const char* title, int line,
     return -1;
   }
   ds->curpath[z] = addpath[z];
+  if(nctree_redraw(ds->nct)){
+    return -1;
+  }
+  return 0;
+}
+
+int docstructure_move(docstructure* ds, unsigned newy){
+  // FIXME might need to do multiple moves!
+  if(newy > ds->cury){
+    nctree_prev(ds->nct);
+  }else if(newy < ds->cury){
+    nctree_next(ds->nct);
+  }
+  ds->cury = newy;
   if(nctree_redraw(ds->nct)){
     return -1;
   }
