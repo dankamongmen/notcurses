@@ -46,10 +46,35 @@ struct troffnode {
   const trofftype *ttype;
 };
 
+typedef struct pagenode {
+  char* text;
+  const trofftype* ttype;
+  struct pagenode* subs;
+  unsigned subcount;
+} pagenode;
+
+typedef struct pagedom {
+  struct pagenode* root;
+  struct troffnode* trie;
+  char* title;
+  char* section;
+  char* version;
+  char* footer;
+  char* header;
+  struct docstructure* ds;
+} pagedom;
+
+static inline const char*
+dom_get_title(const pagedom* dom){
+  return dom->title;
+}
+
 const trofftype*
 get_type(const struct troffnode* trie, const unsigned char** ws, size_t len);
 
 struct troffnode* trofftrie(void);
+
+int troff_parse(const unsigned char* map, size_t mlen, pagedom* dom);
 
 void destroy_trofftrie(struct troffnode* root);
 
