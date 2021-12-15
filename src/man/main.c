@@ -351,11 +351,13 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
           putpara(p, n->text);
         }
       }else{
-        ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-        ncplane_set_fg_rgb(p, 0xff6a00);
-        ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
-        ncplane_set_fg_default(p);
-        ncplane_set_styles(p, NCSTYLE_NONE);
+        if(n->text){
+          ncplane_set_styles(p, NCSTYLE_BOLD | NCSTYLE_ITALIC);
+          ncplane_set_fg_rgb(p, 0xff6a00);
+          ncplane_putstr_aligned(p, -1, NCALIGN_CENTER, n->text);
+          ncplane_set_fg_default(p);
+          ncplane_set_styles(p, NCSTYLE_NONE);
+        }
       }
       *wrotetext = true;
       break;
