@@ -782,6 +782,7 @@ static int
 draw_content(struct ncplane* stdn, struct ncplane* p){
   pagedom* dom = ncplane_userptr(p);
   unsigned wrotetext = 0; // unused by us
+  docstructure_free(dom->ds);
   dom->ds = docstructure_create(stdn);
   if(dom->ds == NULL){
     return -1;
@@ -794,6 +795,7 @@ resize_pman(struct ncplane* pman){
   unsigned dimy, dimx;
   ncplane_dim_yx(ncplane_parent_const(pman), &dimy, &dimx);
   ncplane_resize_simple(pman, dimy - 1, dimx);
+  ncplane_erase(pman);
   struct ncplane* stdn = notcurses_stdplane(ncplane_notcurses(pman));
   int r = draw_content(stdn, pman);
   ncplane_move_yx(pman, 0, 0);
@@ -859,6 +861,7 @@ resize_bar(struct ncplane* bar){
   unsigned dimy, dimx;
   ncplane_dim_yx(ncplane_parent_const(bar), &dimy, &dimx);
   ncplane_resize_simple(bar, 1, dimx);
+  ncplane_erase(bar);
   int r = draw_bar(bar, ncplane_userptr(bar));
   ncplane_move_yx(bar, dimy - 1, 0);
   return r;

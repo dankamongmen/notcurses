@@ -43,7 +43,7 @@ docstructure* docstructure_create(struct ncplane* n){
   ncplane_options nopts = {
     .rows = ROWS,
     .cols = ncplane_dim_x(n) / COLDIV,
-    .y = ncplane_dim_y(n) - ROWS,
+    .y = ncplane_dim_y(n) - ROWS - 1,
     .x = ncplane_dim_x(n) - (ncplane_dim_x(n) / COLDIV) - 1,
     .flags = NCPLANE_OPTION_AUTOGROW, // autogrow to right
   };
