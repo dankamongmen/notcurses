@@ -354,4 +354,3 @@ int troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
   }
   return 0;
 }
-

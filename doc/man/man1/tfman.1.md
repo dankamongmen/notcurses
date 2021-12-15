@@ -23,6 +23,16 @@ tfman - Swank manual page browser
 
 files: Files to render.
 
+If successfully loaded and parsed, the top of the page will be visible.
+In the lower right corner is a listing of page sections. By default, the
+page browser is in use; press Tab to move between the page browser and
+the structure browser. Press 's' to toggle the structure browser's
+visibility.
+
+**tfman** can identify gzipped manual pages, and inflate them on the fly.
+
+# NOTES
+
 The following keypresses are recognized:
 
 * **Ctrl-L**: Redraw the screen.
@@ -31,8 +41,10 @@ The following keypresses are recognized:
 * **b**/**pgup**: Move up by one page.
 * **j**/**down**: Move down by one line.
 * **f**/**pgdown**: Move down by one page.
+* **s**: Toggle the structure browser's visibility.
+* **Tab**: Move between the page and structure browser.
 
-# NOTES
+The mouse wheel can also be used to move up and down within the active browser.
 
 # BUGS
 
