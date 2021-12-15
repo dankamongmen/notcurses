@@ -289,7 +289,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
         opts->flags |= NCOPTION_NO_ALTERNATE_SCREEN;
         break;
       case 'p':
-        datadir = optarg;
+        datadir = strdup(optarg);
         break;
       case 'd':{
         float f;
@@ -595,6 +595,7 @@ int main(int argc, char** argv){
   if(json && summary_json(json, spec, dimy, dimx)){
     return EXIT_FAILURE;
   }
+  free(datadir);
   return r ? EXIT_FAILURE : EXIT_SUCCESS;
 
 err:
