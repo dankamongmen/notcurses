@@ -107,7 +107,6 @@ docnode_create(const char* title, int line, docstruct_e level, int y){
   }
   dn->level = level;
   dn->line = line;
-fprintf(stderr, "CREATE AT %d\n", y);
   dn->y = -y;
   return dn;
 }
@@ -154,21 +153,21 @@ int docstructure_move(docstructure* ds, int newy){
   docnode* pdn = NULL;
   docnode* dn;
   if(newy > ds->cury){
-    dn = nctree_prev(ds->nct);
-    if(dn->y > newy){
-      dn = nctree_next(ds->nct);
-    }
-    /*while((dn = nctree_prev(ds->nct)) != pdn){
+    while((dn = nctree_prev(ds->nct)) != pdn){
+      if(dn->y > newy){
+        dn = nctree_next(ds->nct);
+        break;
+      }
       pdn = dn;
-    }*/
+    }
   }else if(newy < ds->cury){
-    dn = nctree_next(ds->nct);
-    if(dn->y < newy){
-      dn = nctree_prev(ds->nct);
-    }
-    /*while((dn = nctree_next(ds->nct)) != pdn){
+    while((dn = nctree_next(ds->nct)) != pdn){
+      if(dn->y < newy){
+        dn = nctree_prev(ds->nct);
+        break;
+      }
       pdn = dn;
-    }*/
+    }
   }
   ds->cury = newy;
   if(nctree_redraw(ds->nct)){
