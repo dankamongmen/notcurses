@@ -2,6 +2,8 @@
 #include <curses.h>
 #ifdef USE_DEFLATE
 #include <libdeflate.h>
+#else
+#include <zlib.h>
 #endif
 
 // only invoked without suppress banners flag. prints various warnings based on
@@ -64,8 +66,13 @@ int init_banner(const notcurses* nc, fbuf* f){
     const char* ncursesver = curses_version();
     const char* ncver = strchr(ncursesver, ' ');
     ncver = ncver ? ncver + 1 : ncursesver;
+#ifdef USE_DEFLATE
     fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo %s libdeflate %s GPM %s" NL,
                 nc->tcache.caps.colors, clreol,
+#else
+    fbuf_printf(f, "%u colors" NL "%s%s%s (%s)" NL "%sterminfo %s zlib %s GPM %s" NL,
+                nc->tcache.caps.colors, clreol,
+#endif
 #ifdef __clang__
             "", // name is contained in __VERSION__
 #else
@@ -89,7 +96,7 @@ int init_banner(const notcurses* nc, fbuf* f){
 #ifdef USE_DEFLATE
             LIBDEFLATE_VERSION_STRING,
 #else
-            "n/a",
+            ZLIB_VERSION,
 #endif
             gpm_version());
     fbuf_puts(f, clreol); // for ncvisual banner
