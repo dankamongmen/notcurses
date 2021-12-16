@@ -414,8 +414,9 @@ render_troff(struct notcurses* nc, const unsigned char* map, size_t mlen,
   }
   // this is just an estimate
   struct ncplane_options popts = {
-    .rows = dimy - 1,
+    .rows = dimy - 2,
     .cols = dimx,
+    .y = 1,
     .userptr = dom,
     .resizecb = resize_pman,
     .flags = NCPLANE_OPTION_AUTOGROW | NCPLANE_OPTION_VSCROLL,
@@ -572,7 +573,7 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         // FIXME switch between browsers
         break;
       case 'k': case NCKEY_UP:
-        if(ncplane_y(page)){
+        if(ncplane_y(page) < 1){
           ncplane_move_rel(page, 1, 0);
         }
         break;
@@ -584,8 +585,8 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         break;
       case 'b': case NCKEY_PGUP:{
         int newy = ncplane_y(page) + (int)ncplane_dim_y(stdn);
-        if(newy > 0){
-          newy = 0;
+        if(newy > 1){
+          newy = 1;
         }
         ncplane_move_yx(page, newy, 0);
         break;
