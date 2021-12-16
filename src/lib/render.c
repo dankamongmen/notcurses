@@ -173,7 +173,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
   sprixel* s = p->sprite;
   int dimy = s->dimy;
   int dimx = s->dimx;
-//fprintf(stderr, "STARTY: %d DIMY: %d dim(p): %d/%d dim(s): %d/%d\n", starty, dimy, ncplane_dim_y(p), ncplane_dim_x(p), s->dimy, s->dimx);
+//fprintf(stderr, "START: %d/%d DIM: %d/%d dim(p): %d/%d off: %d/%d DSTLEN %d/%d %p\n", starty, startx, dimy, dimx, ncplane_dim_y(p), ncplane_dim_x(p), offy, offx, dstleny, dstlenx, rvec);
   if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
     return;
   }
@@ -499,6 +499,7 @@ postpaint_cell(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimx,
 static void
 postpaint(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimy, int dimx,
           struct crender* rvec, egcpool* pool){
+//fprintf(stderr, "POSTPAINT BEGINS! %zu %p %d/%d\n", sizeof(*rvec), rvec, dimy, dimx);
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
@@ -1486,52 +1487,52 @@ int ncpile_render_to_file(ncplane* n, FILE* fp){
 // if |pgeo_changed|, the cell-pixel geometry for the pile has changed
 // since the last render, and thus all sprixels need be rescaled.
 static void
-ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
-                       unsigned pgeo_changed){
-//fprintf(stderr, "rendering %dx%d\n", leny, lenx);
-  ncpile* np = ncplane_pile(n);
-  ncplane* p = np->top;
+ncpile_render_internal(ncpile* p, unsigned pgeo_changed){
+  struct crender* rvec = p->crender;
+//fprintf(stderr, "rendering %dx%d\n", p->dimy, p->dimx);
+  ncplane* pl = p->top;
   sprixel* sprixel_list = NULL;
-  while(p){
-    paint(p, rvec, leny, lenx, 0, 0, &sprixel_list, pgeo_changed);
-    p = p->below;
+  while(pl){
+    paint(pl, rvec, p->dimy, p->dimx, 0, 0, &sprixel_list, pgeo_changed);
+    pl = pl->below;
   }
   if(sprixel_list){
-    if(np->sprixelcache){
+    if(p->sprixelcache){
       sprixel* s = sprixel_list;
       while(s->next){
         s = s->next;
       }
-      if( (s->next = np->sprixelcache) ){
-        np->sprixelcache->prev = s;
+      if( (s->next = p->sprixelcache) ){
+        p->sprixelcache->prev = s;
       }
     }
-    np->sprixelcache = sprixel_list;
+    p->sprixelcache = sprixel_list;
   }
 }
 
 int ncpile_rasterize(ncplane* n){
-  if(sigcont_seen_for_render){
-    sigcont_seen_for_render = 0;
-    notcurses_refresh(ncplane_notcurses(n), NULL, NULL);
-  }
   struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
-  const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
-  const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
   const struct tinfo* ti = &ncplane_notcurses_const(n)->tcache;
-  postpaint(nc, ti, nc->lastframe, miny, minx, pile->crender, &nc->pool);
+  postpaint(nc, ti, nc->lastframe, pile->dimy, pile->dimx, pile->crender, &nc->pool);
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
   int bytes = notcurses_rasterize(nc, pile, &nc->rstate.f);
-  // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   pthread_mutex_lock(&nc->stats.lock);
+    // accepts negative |bytes| as an indication of failure
     update_raster_bytes(&nc->stats.s, bytes);
     update_raster_stats(&rasterdone, &start, &nc->stats.s);
     update_write_stats(&writedone, &rasterdone, &nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
+  // we want to refresh if the screen geometry changed (or if we were just
+  // woken up from SIGSTOP), but we mustn't do so until after rasterizing
+  // the solved rvec, since this might result in a geometry update.
+  if(sigcont_seen_for_render){
+    sigcont_seen_for_render = 0;
+    notcurses_refresh(ncplane_notcurses(n), NULL, NULL);
+  }
   if(bytes < 0){
     return -1;
   }
@@ -1541,22 +1542,23 @@ int ncpile_rasterize(ncplane* n){
 // ensure the crender vector of 'n' is properly sized for 'n'->dimy x 'n'->dimx,
 // and initialize the rvec afresh for a new render.
 static int
-engorge_crender_vector(ncpile* n){
-  if(n->dimy <= 0 || n->dimx <= 0){
+engorge_crender_vector(ncpile* p){
+  if(p->dimy <= 0 || p->dimx <= 0){
     return -1;
   }
-  const size_t crenderlen = n->dimy * n->dimx; // desired size
+  const size_t crenderlen = p->dimy * p->dimx; // desired size
 //fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
-  if(crenderlen != n->crenderlen){
-    loginfo("Resizing rvec (%lu) for %p to %lu\n", (long unsigned)n->crenderlen, n, (long unsigned)crenderlen);
-    struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
+  if(crenderlen != p->crenderlen){
+    loginfo("resizing rvec (%" PRIuPTR ") for %p to %" PRIuPTR "\n",
+            p->crenderlen, p, crenderlen);
+    struct crender* tmp = realloc(p->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
     }
-    n->crender = tmp;
-    n->crenderlen = crenderlen;
+    p->crender = tmp;
+    p->crenderlen = crenderlen;
   }
-  init_rvec(n->crender, crenderlen);
+  init_rvec(p->crender, crenderlen);
   return 0;
 }
 
@@ -1577,7 +1579,7 @@ int ncpile_render(ncplane* n){
   if(engorge_crender_vector(pile)){
     return -1;
   }
-  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx, pgeo_changed);
+  ncpile_render_internal(pile, pgeo_changed);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->stats.lock);
     update_render_stats(&renderdone, &start, &nc->stats.s);
