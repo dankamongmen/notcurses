@@ -302,7 +302,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
   ncplane_cursor_yx(p, &y, NULL);
   switch(n->ttype->ltype){
     case LINE_TH:
-      if(docstructure_add(dom->ds, dom->title, ncplane_y(p), DOCSTRUCTURE_TITLE, y)){
+      if(docstructure_add(dom->ds, dom->title, y)){
         return -1;
       }
       /*
@@ -312,7 +312,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       ncplane_set_styles(p, NCSTYLE_NONE);
       */break;
     case LINE_SH: // section heading
-      if(docstructure_add(dom->ds, n->text, ncplane_y(p), DOCSTRUCTURE_SECTION, y)){
+      if(docstructure_add(dom->ds, n->text, y)){
         return -1;
       }
       if(strcmp(n->text, "NAME")){
@@ -325,7 +325,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
       }
       break;
     case LINE_SS: // subsection heading
-      if(docstructure_add(dom->ds, n->text, ncplane_y(p), DOCSTRUCTURE_SUBSECTION, y)){
+      if(docstructure_add(dom->ds, n->text, y)){
         return -1;
       }
       ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
@@ -555,6 +555,7 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
   }
   uint32_t key;
   do{
+    unsigned movedown = false;
     ncinput ni;
     key = notcurses_get(nc, NULL, &ni);
     if(ni.evtype == NCTYPE_RELEASE){
@@ -574,6 +575,7 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         break;
       case 'l': case NCKEY_RIGHT:
         // FIXME
+        movedown = true;
         break;
       case 'k': case NCKEY_UP:
         if(ncplane_y(page) < 1){
@@ -585,6 +587,7 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         if(ncplane_y(page) + ncplane_dim_y(page) >= ncplane_dim_y(stdn)){
           ncplane_move_rel(page, -1, 0);
         }
+        movedown = true;
         break;
       case 'b': case NCKEY_PGUP:{
         int newy = ncplane_y(page) + (int)ncplane_dim_y(stdn);
@@ -599,13 +602,14 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
           newy += (int)ncplane_dim_y(stdn) - (newy + (int)ncplane_dim_y(page)) - 1;
         }
         ncplane_move_yx(page, newy, 0);
+        movedown = true;
         break;
       }case 'q':
         ret = 0;
         goto done;
     }
     int newy = ncplane_y(page);
-    docstructure_move(dom.ds, newy);
+    docstructure_move(dom.ds, newy, movedown);
     if(notcurses_render(nc)){
       goto done;
     }
