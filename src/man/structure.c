@@ -2,8 +2,6 @@
 #include <notcurses/notcurses.h>
 #include "structure.h"
 
-#define HIERARCHY_MAX 3
-
 typedef struct docnode {
   char* title;
   int line;
@@ -12,27 +10,26 @@ typedef struct docnode {
 } docnode;
 
 typedef struct docstructure {
-  struct nctree* nct;
-  // one entry for each hierarchy level + terminator, only used during creation
-  unsigned curpath[HIERARCHY_MAX + 1];
-  int cury;
+  struct ncplane* n;
+  unsigned count;
+  char** strings;
   bool visible;
 } docstructure;
 
 static int
-docstruct_callback(struct ncplane* n, void* curry, int i){
-  if(n){
-    docnode* dn = curry;
-    uint64_t channels =
-      NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x49,
-                             (0x9d - 0x8 * i), (0x9d + 0x8 * i));
-    ncplane_set_channels(n, channels);
-    ncplane_erase(n);
-    ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, dn->title);
-    ncplane_resize_simple(n, 1, ncplane_dim_x(n));
-    (void)i;
-  }
+docbar_redraw(docstructure *dn){
+  ncplane_erase(dn->n);
+  // FIXME redraw
   return 0;
+}
+
+static int
+docbar_resize(struct ncplane* n){
+  unsigned width = ncplane_dim_x(ncplane_parent(n));
+  if(ncplane_resize_simple(n, 1, width)){
+    return -1;
+  }
+  return docbar_redraw(ncplane_userptr(n));
 }
 
 docstructure* docstructure_create(struct ncplane* n){
@@ -40,31 +37,24 @@ docstructure* docstructure_create(struct ncplane* n){
   if(ds == NULL){
     return NULL;
   }
-  const int ROWS = 7;
-  const int COLDIV = 4;
   ncplane_options nopts = {
-    .rows = ROWS,
-    .cols = ncplane_dim_x(n) / COLDIV,
-    .y = ncplane_dim_y(n) - ROWS - 1,
-    .x = ncplane_dim_x(n) - (ncplane_dim_x(n) / COLDIV) - 1,
-    .flags = NCPLANE_OPTION_AUTOGROW, // autogrow to right
+    .rows = 1,
+    .cols = ncplane_dim_x(n),
+    .y = 0,
+    .userptr = ds,
+    .resizecb = docbar_resize,
   };
   struct ncplane* p = ncplane_create(n, &nopts);
   if(p == NULL){
     return NULL;
   }
-  nctree_options topts = {
-    .nctreecb = docstruct_callback,
-  };
-  if((ds->nct = nctree_create(p, &topts)) == NULL){
-    free(ds);
-    return NULL;
-  }
-  for(unsigned z = 0 ; z < sizeof(ds->curpath) / sizeof(*ds->curpath) ; ++z){
-    ds->curpath[z] = UINT_MAX;
-  }
+  uint64_t channels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x06, 0x11, 0x2f);
+  ncplane_set_base(p, " ", 0, channels);
+  ds->n = p;
   ds->visible = true;
-  ds->cury = 0;
+  ds->count = 0;
+  ds->strings = NULL;
+  docbar_redraw(ds);
   return ds;
 }
 
@@ -82,7 +72,10 @@ void docstructure_toggle(struct ncplane* p, struct ncplane* b, docstructure* ds)
 
 void docstructure_free(docstructure* ds){
   if(ds){
-    nctree_destroy(ds->nct);
+    while(ds->count--){
+      free(ds->strings[ds->count]);
+    }
+    free(ds->strings);
     free(ds);
   }
 }
@@ -115,35 +108,25 @@ docnode_create(const char* title, int line, docstruct_e level, int y){
 // the row on the display plane, *not* the line in the original content.
 int docstructure_add(docstructure* ds, const char* title, int line,
                      docstruct_e level, int y){
-  unsigned addpath[sizeof(ds->curpath) / sizeof(*ds->curpath)];
-  if(level < 0 || (unsigned)level >= sizeof(addpath) / sizeof(*addpath) - 1){
-    fprintf(stderr, "invalid level %d\n", level);
-    return -1;
-  }
   docnode* dn = docnode_create(title, line, level, y);
   if(dn == NULL){
     return -1;
   }
-  unsigned z = 0;
-  while(z <= level){
-    if((addpath[z] = ds->curpath[z]) == UINT_MAX){
-      ds->curpath[z] = 0;
-      addpath[z] = 0;
-    }else if(z == level){
-      addpath[z] = ++ds->curpath[z];
-    }
-    ++z;
-  }
-  addpath[z] = UINT_MAX;
-  struct nctree_item nitem = {
-    .curry = dn,
-  };
-  if(nctree_add(ds->nct, addpath, &nitem)){
-    docnode_free(dn);
+  char* s = strdup(title);
+  if(s == NULL){
     return -1;
   }
-  ds->curpath[z] = addpath[z];
-  if(nctree_redraw(ds->nct)){
+  unsigned newcount = ds->count + 1;
+  char** newstr = realloc(ds->strings, newcount * sizeof(*ds->strings));
+  if(newstr == NULL){
+    docnode_free(dn);
+    free(s);
+    return -1;
+  }
+  ds->strings = newstr;
+  ds->strings[ds->count] = s;
+  ds->count = newcount;
+  if(docbar_redraw(ds)){
     return -1;
   }
   return 0;
@@ -152,6 +135,7 @@ int docstructure_add(docstructure* ds, const char* title, int line,
 int docstructure_move(docstructure* ds, int newy){
   docnode* pdn = NULL;
   docnode* dn;
+  /* FIXME
   if(newy > ds->cury){
     while((dn = nctree_prev(ds->nct)) != pdn){
       if(dn->y > newy){
@@ -170,7 +154,8 @@ int docstructure_move(docstructure* ds, int newy){
     }
   }
   ds->cury = newy;
-  if(nctree_redraw(ds->nct)){
+  */
+  if(docbar_redraw(ds)){
     return -1;
   }
   return 0;
