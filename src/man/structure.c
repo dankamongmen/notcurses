@@ -4,16 +4,17 @@
 
 typedef struct docnode {
   char* title;
-  int line;
-  docstruct_e level;
   int y;
 } docnode;
 
 typedef struct docstructure {
   struct ncplane* n;
   unsigned count;
-  char** strings;
+  docnode** nodes;
+  unsigned curnode;
+  int cury;
   bool visible;
+  bool movedown;     // our last move was down
 } docstructure;
 
 static int
@@ -53,7 +54,10 @@ docstructure* docstructure_create(struct ncplane* n){
   ds->n = p;
   ds->visible = true;
   ds->count = 0;
-  ds->strings = NULL;
+  ds->nodes = NULL;
+  ds->movedown = false;
+  ds->cury = 0;
+  ds->curnode = 0;
   docbar_redraw(ds);
   return ds;
 }
@@ -70,16 +74,6 @@ void docstructure_toggle(struct ncplane* p, struct ncplane* b, docstructure* ds)
   }
 }
 
-void docstructure_free(docstructure* ds){
-  if(ds){
-    while(ds->count--){
-      free(ds->strings[ds->count]);
-    }
-    free(ds->strings);
-    free(ds);
-  }
-}
-
 static void
 docnode_free(docnode* dn){
   if(dn){
@@ -88,8 +82,18 @@ docnode_free(docnode* dn){
   }
 }
 
+void docstructure_free(docstructure* ds){
+  if(ds){
+    while(ds->count--){
+      docnode_free(ds->nodes[ds->count]);
+    }
+    free(ds->nodes);
+    free(ds);
+  }
+}
+
 static docnode*
-docnode_create(const char* title, int line, docstruct_e level, int y){
+docnode_create(const char* title, int y){
   docnode* dn = malloc(sizeof(*dn));
   if(dn == NULL){
     return NULL;
@@ -98,33 +102,26 @@ docnode_create(const char* title, int line, docstruct_e level, int y){
     free(dn);
     return NULL;
   }
-  dn->level = level;
-  dn->line = line;
   dn->y = -y;
   return dn;
 }
 
 // add the specified [sub]section to the document strucure. |line| refers to
 // the row on the display plane, *not* the line in the original content.
-int docstructure_add(docstructure* ds, const char* title, int line,
-                     docstruct_e level, int y){
-  docnode* dn = docnode_create(title, line, level, y);
+int docstructure_add(docstructure* ds, const char* title, int y){
+fprintf(stderr, "Y/TITLE: %d %s\n", y, title);
+  docnode* dn = docnode_create(title, y);
   if(dn == NULL){
     return -1;
   }
-  char* s = strdup(title);
-  if(s == NULL){
-    return -1;
-  }
   unsigned newcount = ds->count + 1;
-  char** newstr = realloc(ds->strings, newcount * sizeof(*ds->strings));
-  if(newstr == NULL){
+  docnode** newdn = realloc(ds->nodes, newcount * sizeof(*ds->nodes));
+  if(newdn == NULL){
     docnode_free(dn);
-    free(s);
     return -1;
   }
-  ds->strings = newstr;
-  ds->strings[ds->count] = s;
+  ds->nodes = newdn;
+  ds->nodes[ds->count] = dn;
   ds->count = newcount;
   if(docbar_redraw(ds)){
     return -1;
@@ -132,9 +129,23 @@ int docstructure_add(docstructure* ds, const char* title, int line,
   return 0;
 }
 
-int docstructure_move(docstructure* ds, int newy){
+// returns corresponding y
+int docstructure_prev(docstructure* ds){
+  if(ds->curnode){
+  }
+  return 0;
+}
+
+int docstructure_next(docstructure* ds){
+  if(ds->curnode + 1 < ds->count){
+  }
+  return 0;
+}
+
+int docstructure_move(docstructure* ds, int newy, unsigned movedown){
   docnode* pdn = NULL;
   docnode* dn;
+  ds->movedown = movedown;
   /* FIXME
   if(newy > ds->cury){
     while((dn = nctree_prev(ds->nct)) != pdn){
@@ -153,8 +164,8 @@ int docstructure_move(docstructure* ds, int newy){
       pdn = dn;
     }
   }
-  ds->cury = newy;
   */
+  ds->cury = newy;
   if(docbar_redraw(ds)){
     return -1;
   }
