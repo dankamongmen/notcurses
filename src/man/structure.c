@@ -151,14 +151,16 @@ int docstructure_add(docstructure* ds, const char* title, int y){
 // returns corresponding y
 int docstructure_prev(docstructure* ds){
   if(ds->curnode){
+    --ds->curnode;
   }
-  return 0;
+  return ds->nodes[ds->curnode]->y;
 }
 
 int docstructure_next(docstructure* ds){
   if(ds->curnode + 1 < ds->count){
+    ++ds->curnode;
   }
-  return 0;
+  return ds->nodes[ds->curnode]->y;
 }
 
 int docstructure_move(docstructure* ds, int newy, unsigned movedown){
