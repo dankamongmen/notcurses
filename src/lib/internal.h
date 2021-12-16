@@ -255,12 +255,14 @@ typedef struct ncdirect {
 } ncdirect;
 
 // Extracellular state for a cell during the render process. There is one
-// crender per rendered cell, and they are initialized to all zeroes.
+// crender per rendered cell, and they are initialized to all zeroes. Be
+// careful with order here; padding can easily enlarge this struct from 40
+// to 48 bytes.
 struct crender {
+  nccell c;         // solution cell
   const ncplane *p; // source of glyph for this cell
-  nccell c;
-  uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
-  sprixel* sprixel;    // bitmap encountered during traversal
+  sprixel* sprixel; // bitmap encountered during traversal
+  uint32_t hcfg;    // fg channel prior to HIGHCONTRAST (need full channel)
   struct {
     // If the glyph we render is from an ncvisual, and has a transparent or
     // blended background, blitter stacking is in effect. This is a complicated
