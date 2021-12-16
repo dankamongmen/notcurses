@@ -18,9 +18,28 @@ typedef struct docstructure {
 } docstructure;
 
 static int
-docbar_redraw(docstructure *dn){
-  ncplane_erase(dn->n);
-  // FIXME redraw
+docbar_redraw(docstructure *ds){
+  ncplane_erase(ds->n);
+  for(unsigned c = ds->curnode ; c < ds->count ; ++c){
+    if(c == ds->curnode){
+      ncplane_set_styles(ds->n, NCSTYLE_BOLD);
+      ncplane_set_fg_rgb(ds->n, 0x00ffb0);
+    }
+    if(ncplane_putstr(ds->n, ds->nodes[c]->title) <= 0){
+      return 0;
+    }
+    ncplane_set_styles(ds->n, NCSTYLE_NONE);
+    ncplane_set_fg_rgb(ds->n, 0x00b0b0);
+    if(notcurses_canutf8(ncplane_notcurses(ds->n))){
+      if(ncplane_putstr(ds->n, " ∎ ") <= 0){
+        return 0;
+      }
+    }else{
+      if(ncplane_putstr(ds->n, " | ") <= 0){
+        return 0;
+      }
+    }
+  }
   return 0;
 }
 
@@ -49,8 +68,9 @@ docstructure* docstructure_create(struct ncplane* n){
   if(p == NULL){
     return NULL;
   }
-  uint64_t channels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x06, 0x11, 0x2f);
+  uint64_t channels = NCCHANNELS_INITIALIZER(0x0, 0xb0, 0xb0, 0x06, 0x11, 0x2f);
   ncplane_set_base(p, " ", 0, channels);
+  ncplane_set_channels(p, channels);
   ds->n = p;
   ds->visible = true;
   ds->count = 0;
@@ -109,7 +129,6 @@ docnode_create(const char* title, int y){
 // add the specified [sub]section to the document strucure. |line| refers to
 // the row on the display plane, *not* the line in the original content.
 int docstructure_add(docstructure* ds, const char* title, int y){
-fprintf(stderr, "Y/TITLE: %d %s\n", y, title);
   docnode* dn = docnode_create(title, y);
   if(dn == NULL){
     return -1;
