@@ -17,6 +17,7 @@ streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
         .cols = 18,
         .flags = NCPLANE_OPTION_HORALIGNED,
         .name = "pip",
+        .resizecb = ncplane_resize_placewithin,
       };
       marsh.pipopts.n = ncplane_create(vopts->n, &nopts);
       if(marsh.pipopts.n == NULL){
