@@ -82,8 +82,8 @@ Why use this non-standard library?
   and transparent regions. All APIs natively support 24-bit color, quantized
   down as necessary for the terminal.
 
-* Portable support for bitmapped graphics, whether using Sixel, Kitty, the iTerm2
-  protocol, or even the Linux framebuffer console.
+* Portable support for bitmapped graphics, using Sixel, Kitty,
+  and even the Linux framebuffer console.
 
 * Support for unambiguous [keyboard protocols](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 
