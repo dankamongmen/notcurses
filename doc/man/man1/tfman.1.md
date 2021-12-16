@@ -41,10 +41,11 @@ The following keypresses are recognized:
 * **q**: Quit.
 * **k**/**up**: Move up by one line.
 * **b**/**pgup**: Move up by one page.
+* **h**/**left**: Move up by one section.
 * **j**/**down**: Move down by one line.
 * **f**/**pgdown**: Move down by one page.
+* **l**/**right**: Move down by one section.
 * **s**: Toggle the structure browser's visibility.
-* **Tab**: Move between the page and structure browser.
 
 The mouse wheel can also be used to move up and down within the active browser.
 

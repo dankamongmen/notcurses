@@ -138,7 +138,7 @@ others are external.
 
 ## Included tools
 
-Nine binaries are installed as part of Notcurses:
+Nine executables are installed as part of Notcurses:
 * `ncls`: an `ls` that displays multimedia in the terminal
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
 * `ncplayer`: renders visual media (images/videos)
@@ -147,6 +147,7 @@ Nine binaries are installed as part of Notcurses:
 * `notcurses-info`: detect and print terminal capabilities/diagnostics
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
+* `tfman`: a swank manual browser
 
 To run `notcurses-demo` from a checkout, provide the `data` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
@@ -276,10 +277,10 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>We're paying by the electron, and have no C++ compiler. Can we still
   enjoy Notcurses goodness?</summary>
-  Some of it! You won't be able to build several binaries, nor the NCPP C++
+  Some of it! You won't be able to build several executables, nor the NCPP C++
   wrappers, nor can you build with the OpenImageIO multimedia backend (OIIO
   ships C++ headers). You'll be able to build the main library, though, as
-  well as <code>notcurses-demo</code> (and maybe a few other binaries).
+  well as <code>notcurses-demo</code> (and maybe a few other programs).
   Use <code>-DUSE_CXX=off</code>.
 </details>
 
