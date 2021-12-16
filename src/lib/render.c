@@ -444,8 +444,8 @@ lock_in_highcontrast(notcurses* nc, const tinfo* ti, nccell* targc, struct crend
 // checking for and locking in high-contrast, checking for damage, and updating
 // 'lastframe' for any cells which are damaged.
 static inline void
-postpaint_cell(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimx,
-               struct crender* crender, egcpool* pool, int y, int* x){
+postpaint_cell(notcurses* nc, const tinfo* ti, nccell* lastframe, unsigned dimx,
+               struct crender* crender, egcpool* pool, unsigned y, unsigned* x){
   nccell* targc = &crender->c;
   lock_in_highcontrast(nc, ti, targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
@@ -497,11 +497,11 @@ postpaint_cell(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimx,
 // FIXME can we not do the blend a single time here, if we track sums in
 //       paint()? tried this before and didn't get a win...
 static void
-postpaint(notcurses* nc, const tinfo* ti, nccell* lastframe, int dimy, int dimx,
-          struct crender* rvec, egcpool* pool){
+postpaint(notcurses* nc, const tinfo* ti, nccell* lastframe,
+          unsigned dimy, unsigned dimx, struct crender* rvec, egcpool* pool){
 //fprintf(stderr, "POSTPAINT BEGINS! %zu %p %d/%d\n", sizeof(*rvec), rvec, dimy, dimx);
-  for(int y = 0 ; y < dimy ; ++y){
-    for(int x = 0 ; x < dimx ; ++x){
+  for(unsigned y = 0 ; y < dimy ; ++y){
+    for(unsigned x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
       postpaint_cell(nc, ti, lastframe, dimx, crender, pool, y, &x);
     }
@@ -1514,7 +1514,7 @@ int ncpile_rasterize(ncplane* n){
   struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   ncpile* pile = ncplane_pile(n);
-  struct notcurses* nc = ncplane_notcurses(n);
+  struct notcurses* nc = ncpile_notcurses(pile);
   const struct tinfo* ti = &ncplane_notcurses_const(n)->tcache;
   postpaint(nc, ti, nc->lastframe, pile->dimy, pile->dimx, pile->crender, &nc->pool);
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
