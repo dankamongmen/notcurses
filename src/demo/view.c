@@ -4,6 +4,20 @@ static struct marshal {
   struct ncvisual_options pipopts;
 } marsh;
 
+#define PIPCOLUMNS 18
+
+static int
+pip_resize_cb(struct ncplane* n){
+  int absx = ncplane_abs_x(n);
+  int width = ncplane_dim_x(n);
+  int pwidth = ncplane_dim_x(ncplane_parent(n));
+  int pabsx = ncplane_abs_x(ncplane_parent(n));
+  if(absx + width == pabsx + pwidth){
+    return 0;
+  }
+  return ncplane_move_yx(n, 1, pabsx + pwidth - width);
+}
+
 // pip is non-NULL iff we can do pixel rendering
 static inline int
 streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
@@ -14,10 +28,10 @@ streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
         .y = 1,
         .x = NCALIGN_RIGHT,
         .rows = 12,
-        .cols = 18,
+        .cols = PIPCOLUMNS,
         .flags = NCPLANE_OPTION_HORALIGNED,
         .name = "pip",
-        .resizecb = ncplane_resize_placewithin,
+        .resizecb = pip_resize_cb,
       };
       marsh.pipopts.n = ncplane_create(vopts->n, &nopts);
       if(marsh.pipopts.n == NULL){
