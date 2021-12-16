@@ -555,7 +555,7 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
   }
   uint32_t key;
   do{
-    unsigned movedown = false;
+    int newy;
     ncinput ni;
     key = notcurses_get(nc, NULL, &ni);
     if(ni.evtype == NCTYPE_RELEASE){
@@ -571,45 +571,55 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         docstructure_toggle(page, bar, dom.ds);
         break;
       case 'h': case NCKEY_LEFT:
-        // FIXME
+        if((newy = docstructure_prev(dom.ds)) > 1){
+          newy = 1;
+        }
+        ncplane_move_yx(page, newy, 0);
+        docstructure_move(dom.ds, newy, false);
         break;
       case 'l': case NCKEY_RIGHT:
-        // FIXME
-        movedown = true;
+        newy = docstructure_next(dom.ds);
+        if(newy + (int)ncplane_dim_y(page) < (int)ncplane_dim_y(stdn)){
+          newy += (int)ncplane_dim_y(stdn) - (newy + (int)ncplane_dim_y(page)) - 1;
+        }
+        ncplane_move_yx(page, newy, 0);
+        docstructure_move(dom.ds, newy, true);
         break;
       case 'k': case NCKEY_UP:
         if(ncplane_y(page) < 1){
           ncplane_move_rel(page, 1, 0);
         }
+        newy = ncplane_y(page);
+        docstructure_move(dom.ds, newy, false);
         break;
       // we can move down iff our last line is beyond the visible area
       case 'j': case NCKEY_DOWN:
         if(ncplane_y(page) + ncplane_dim_y(page) >= ncplane_dim_y(stdn)){
           ncplane_move_rel(page, -1, 0);
         }
-        movedown = true;
+        newy = ncplane_y(page);
+        docstructure_move(dom.ds, newy, true);
         break;
       case 'b': case NCKEY_PGUP:{
-        int newy = ncplane_y(page) + (int)ncplane_dim_y(stdn);
+        newy = ncplane_y(page) + (int)ncplane_dim_y(stdn);
         if(newy > 1){
           newy = 1;
         }
         ncplane_move_yx(page, newy, 0);
+        docstructure_move(dom.ds, newy, false);
         break;
       }case 'f': case NCKEY_PGDOWN:{
-        int newy = ncplane_y(page) - (int)ncplane_dim_y(stdn) + 1;
+        newy = ncplane_y(page) - (int)ncplane_dim_y(stdn) + 1;
         if(newy + (int)ncplane_dim_y(page) < (int)ncplane_dim_y(stdn)){
           newy += (int)ncplane_dim_y(stdn) - (newy + (int)ncplane_dim_y(page)) - 1;
         }
         ncplane_move_yx(page, newy, 0);
-        movedown = true;
+        docstructure_move(dom.ds, newy, true);
         break;
       }case 'q':
         ret = 0;
         goto done;
     }
-    int newy = ncplane_y(page);
-    docstructure_move(dom.ds, newy, movedown);
     if(notcurses_render(nc)){
       goto done;
     }

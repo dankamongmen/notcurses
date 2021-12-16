@@ -20,6 +20,9 @@ int docstructure_add(struct docstructure* ds, const char* title, int y);
 // |movedown| ought be non-zero iff the move was down.
 int docstructure_move(struct docstructure* ds, int newy, unsigned movedown);
 
+int docstructure_prev(struct docstructure* ds);
+int docstructure_next(struct docstructure* ds);
+
 #ifdef __cplusplus
 }
 #endif
