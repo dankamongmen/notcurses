@@ -906,6 +906,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_RXVT){
+    ti->caps.braille = false;
     ti->caps.quadrants = true;
     termname = "RXVT";
   }else if(qterm == TERMINAL_APPLE){
