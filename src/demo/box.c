@@ -140,7 +140,7 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     .y = 30,//rand() % (ncplane_dim_y(notcurses_stdplane_const(nc)) - SHIPHEIGHT),
     .x = 30,//rand() % (ncplane_dim_x(notcurses_stdplane_const(nc)) - SHIPWIDTH),
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE,
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
   for(unsigned s = 0 ; s < shipcount ; ++s){
     if((ships[s].n = ncvisual_blit(nc, wmv, &vopts)) == NULL){
@@ -236,9 +236,8 @@ int box_demo(struct notcurses* nc, uint64_t startns){
   int iters = 100;
   struct timespec iterdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) * 3 / iters, &iterdelay);
-  int bitmaps = notcurses_canopen_images(nc) && notcurses_check_pixel_support(nc);
   struct ship ships[3] = {0};
-  if(bitmaps > 0){
+  if(notcurses_canopen_images(nc)){
     if(get_ships(nc, ships, sizeof(ships) / sizeof(*ships))){
       return -1;
     }
