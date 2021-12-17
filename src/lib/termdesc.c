@@ -548,8 +548,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
-#define SMCUP DECSET(SET_SMCUP) "\x1b[1;2r"
-#define RMCUP DECRST(SET_SMCUP) "\x1b[r"
+#define SMCUP DECSET(SET_SMCUP)
+#define RMCUP DECRST(SET_SMCUP)
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all).
