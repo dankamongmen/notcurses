@@ -1,7 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.1 (not yet released)
+* 3.0.2 (not yet released)
+  * Added `ncplane_cursor_y()` and `ncplane_cursor_x()`.
+
+* 3.0.1 (2021-12-14)
   * Added the `NCPLANE_OPTION_VSCROLL` flag. Creating an `ncplane` with this
     flag is equivalent to immediately calling `ncplane_set_scrolling(true)`.
   * Added the `NCPLANE_OPTION_AUTOGROW` flag and the `ncplane_set_autogrow()`

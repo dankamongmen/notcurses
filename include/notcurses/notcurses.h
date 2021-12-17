@@ -1981,6 +1981,20 @@ API void ncplane_home(struct ncplane* n)
 API void ncplane_cursor_yx(const struct ncplane* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
   __attribute__ ((nonnull (1)));
 
+static inline unsigned
+ncplane_cursor_y(const struct ncplane* n){
+  unsigned y;
+  ncplane_cursor_yx(n, &y, NULL);
+  return y;
+}
+
+static inline unsigned
+ncplane_cursor_x(const struct ncplane* n){
+  unsigned x;
+  ncplane_cursor_yx(n, NULL, &x);
+  return x;
+}
+
 // Get the current channels or attribute word for ncplane 'n'.
 API uint64_t ncplane_channels(const struct ncplane* n)
   __attribute__ ((nonnull (1)));

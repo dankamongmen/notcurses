@@ -135,6 +135,10 @@ typedef struct ncplane_options {
 
 **void ncplane_cursor_yx(const struct ncplane* ***n***, unsigned* restrict ***y***, unsigned* restrict ***x***);**
 
+**unsigned ncplane_cursor_y(const struct ncplane* ***n***);**
+
+**unsigned ncplane_cursor_x(const struct ncplane* ***n***);**
+
 **void ncplane_translate(const struct ncplane* ***src***, const struct ncplane* ***dst***, int* restrict ***y***, int* restrict ***x***);**
 
 **bool ncplane_translate_abs(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**

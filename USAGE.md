@@ -1262,6 +1262,20 @@ int ncplane_cursor_move_rel(struct ncplane* n, int y, int x);
 // Get the current position of the cursor within n. y and/or x may be NULL.
 void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 
+static inline unsigned
+ncplane_cursor_y(const struct ncplane* n){
+  unsigned y;
+  ncplane_cursor_yx(n, &y, NULL);
+  return y;
+}
+
+static inline unsigned
+ncplane_cursor_x(const struct ncplane* n){
+  unsigned x;
+  ncplane_cursor_yx(n, NULL, &x);
+  return x;
+}
+
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
