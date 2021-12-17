@@ -166,15 +166,19 @@ int docstructure_next(docstructure* ds){
 int docstructure_move(docstructure* ds, int newy, unsigned movedown){
   ds->movedown = movedown;
   if(movedown){
-    if(ds->curnode + 1 < ds->count){
+    while(ds->curnode + 1 < ds->count){
       if(newy < ds->nodes[ds->curnode + 1]->y){
         docstructure_next(ds);
+      }else{
+        break;
       }
     }
   }else{
-    if(ds->curnode){
+    while(ds->curnode){
       if(newy > ds->nodes[ds->curnode - 1]->y){
         docstructure_prev(ds);
+      }else{
+        break;
       }
     }
   }
