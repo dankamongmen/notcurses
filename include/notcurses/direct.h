@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+#ifdef NOTCURSES_FFI
+#define static API
+#endif
+
 #ifndef __MINGW32__
 #define API __attribute__((visibility("default")))
 #else
