@@ -94,6 +94,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
         nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
         nccell_set_fg_alpha(c, NCALPHA_TRANSPARENT);
         cell_set_blitquadrants(c, 0, 0, 0, 0);
+        nccell_release(nc, c);
       }else{
         nccell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         nccell_set_bg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
@@ -147,6 +148,7 @@ tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
         nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
         if(rgba_trans_q(rgbbase_up, transcolor) && rgba_trans_q(rgbbase_down, transcolor)){
           nccell_set_fg_alpha(c, NCALPHA_TRANSPARENT);
+          nccell_release(nc, c);
         }else if(rgba_trans_q(rgbbase_up, transcolor)){ // down has the color
           if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
@@ -498,6 +500,8 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
           return -1;
         }
         ++total;
+      }else{
+        nccell_release(nc, c);
       }
     }
   }
@@ -699,6 +703,8 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
           return -1;
         }
         ++total;
+      }else{
+        nccell_release(nc, c);
       }
     }
   }
