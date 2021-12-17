@@ -24,6 +24,7 @@ option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(BUILD_EXECUTABLES "Build executables" ON)
+option(BUILD_FFI_LIBRARY "Build ffi library (containing all symbols which are static inline)" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
@@ -407,6 +408,59 @@ target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
 target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
+
+#######################################
+# libnotcurses-ffi (ffi shared library)
+file(GLOB NCFFISRCS CONFIGURE_DEPENDS src/libffi/*.c src/libffi/*.cpp)
+add_library(notcurses-ffi SHARED ${NCFFISRCS})
+target_compile_options(notcurses-ffi PUBLIC -fkeep-inline-functions)
+target_compile_definitions(notcurses-ffi PUBLIC NOTCURSES_FFI)
+# don't want these on freebsd/dragonfly/osx
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+target_compile_definitions(notcurses-ffi
+  PUBLIC
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+endif()
+set_target_properties(notcurses-ffi PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+target_include_directories(notcurses-ffi
+  BEFORE
+  PRIVATE
+    include
+    src
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+    "${libdeflate_INCLUDE_DIRS}"
+    "${ZLIB_INCLUDE_DIRS}"
+)
+
+target_link_libraries(notcurses-ffi
+  PRIVATE
+    "${libdeflate}"
+    "${ZLIB_LIBRARIES}"
+    "${TERMINFO_LIBRARIES}"
+    "${LIBM}"
+    "${unistring}"
+    "${gpm}"
+    "notcurses-core"
+  PUBLIC
+    Threads::Threads
+    "${LIBRT}"
+)
+
+
+target_link_directories(notcurses-ffi
+  PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
+    "${libdeflate_LIBRARY_DIRS}"
+    "${ZLIB_LIBRARY_DIRS}"
+)
 
 ############################################################################
 if(${USE_CXX})
