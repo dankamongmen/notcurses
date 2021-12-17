@@ -483,6 +483,16 @@ namespace ncpp
 			get_cursor_yx (&y, &x);
 		}
 
+		unsigned cursor_y() const noexcept
+	  {
+			return ncplane_cursor_y(plane);
+		}
+
+		unsigned cursor_x() const noexcept
+	  {
+			return ncplane_cursor_x(plane);
+		}
+
 		int putc (const Cell &c) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncplane_putc (plane, c), -1);
