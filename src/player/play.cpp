@@ -161,7 +161,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                  float* timescale, ncscale_e* scalemode, ncblitter_e* blitter,
                  float* displaytime, bool* loop, bool* noninterp,
-                 uint32_t* transcolor)
+                 uint32_t* transcolor, bool* climode)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
@@ -219,6 +219,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                       | NCOPTION_NO_CLEAR_BITMAPS;
         *displaytime = 0;
         *quiet = true;
+        *climode = true;
         if(*loop || *timescale != 1.0){
           std::cerr << "-k cannot be used with -L or -d" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
@@ -300,7 +301,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                ncscale_e scalemode, ncblitter_e blitter,
                                bool quiet, bool loop,
                                double timescale, double displaytime,
-                               bool noninterp, uint32_t transcolor){
+                               bool noninterp, uint32_t transcolor,
+                               bool climode){
   unsigned dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   uint64_t transchan = 0;
@@ -321,7 +323,15 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     ncplane_move_bottom(n);
     struct ncvisual_options vopts{};
     int r;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+    if(!climode){
+      vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+      vopts.y = NCALIGN_CENTER;
+      vopts.x = NCALIGN_CENTER;
+    }else{
+      vopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
+      vopts.y = stdn->cursor_y();
+      vopts.x = stdn->cursor_x();
+    }
     if(noninterp){
       vopts.flags |= NCVISUAL_OPTION_NOINTERPOLATE;
     }
@@ -329,8 +339,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       vopts.flags |= NCVISUAL_OPTION_ADDALPHA;
     }
     vopts.transcolor = transcolor & 0xffffffull;
-    vopts.y = NCALIGN_CENTER;
-    vopts.x = NCALIGN_CENTER;
     vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
@@ -409,7 +417,8 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
                          ncblitter_e blitter, notcurses_options& ncopts,
                          bool quiet, bool loop,
                          double timescale, double displaytime,
-                         bool noninterp, uint32_t transcolor){
+                         bool noninterp, uint32_t transcolor,
+                         bool climode){
   // no -k, we're using full rendered mode (and the alternate screen).
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   if(quiet){
@@ -425,7 +434,7 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
     r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
                                    quiet, loop, timescale, displaytime,
-                                   noninterp, transcolor);
+                                   noninterp, transcolor, climode);
     if(!nc.stop()){
       return -1;
     }
@@ -452,12 +461,15 @@ auto main(int argc, char** argv) -> int {
   bool quiet = false;
   bool loop = false;
   bool noninterp = false;
+  bool climode = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
-                            &blitter, &displaytime, &loop, &noninterp, &transcolor);
+                            &blitter, &displaytime, &loop, &noninterp, &transcolor,
+                            &climode);
   // if -k was provided, we use CLI mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
-                          quiet, loop, timescale, displaytime, noninterp, transcolor)){
+                          quiet, loop, timescale, displaytime, noninterp,
+                          transcolor, climode)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
