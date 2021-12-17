@@ -184,6 +184,22 @@ puttext(struct ncplane* p, const char* s, const char* e){
   return r;
 }
 
+// try to identify a unicode macro in |macro|, and if so, update |end|. returns
+// a static buffer, so this is not threadsafe/reentrant.
+static const char*
+unicode_macro(const char* macro, const char** end){
+  unsigned long u;
+  u = strtoul(macro + 1, (char**)end, 16);
+  if(**end != ']'){
+    return NULL;
+  }
+  ++*end;
+  static char fill[5];
+  wint_t wu = u;
+  snprintf(fill, sizeof(fill), "%lc", wu);
+  return fill;
+}
+
 // paragraphs can have formatting information inline within their text. we
 // proceed until we find such an inline marker, print the text we've skipped,
 // set up the style, and continue.
@@ -261,8 +277,11 @@ putpara(struct ncplane* p, const char* text){
             }
           }
           if(macend == NULL){
-            fprintf(stderr, "unknown macro %s\n", curend);
-            return -1;
+            posttext = unicode_macro(curend, &macend);
+            if(posttext == NULL){
+              fprintf(stderr, "unknown macro %s\n", curend);
+              return -1;
+            }
           }
           curend = macend;
           break;
