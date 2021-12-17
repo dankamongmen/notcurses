@@ -101,13 +101,16 @@ int dragon_demo(struct notcurses* nc, uint64_t startns){
       .n = n,
       .y = 1,
       .scaling = NCSCALE_STRETCH,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
-    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    struct ncplane* dn = ncvisual_blit(nc, ncv, &vopts);
+    if(dn == NULL){
       ncvisual_destroy(ncv);
       return -1;
     }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
+    ncplane_destroy(dn);
   }while(lasttotal != r);
   ncvisual_destroy(ncv);
   return 0;
