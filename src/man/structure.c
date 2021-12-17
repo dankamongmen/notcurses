@@ -164,28 +164,20 @@ int docstructure_next(docstructure* ds){
 }
 
 int docstructure_move(docstructure* ds, int newy, unsigned movedown){
-  docnode* pdn = NULL;
-  docnode* dn;
   ds->movedown = movedown;
-  /* FIXME
-  if(newy > ds->cury){
-    while((dn = nctree_prev(ds->nct)) != pdn){
-      if(dn->y > newy){
-        dn = nctree_next(ds->nct);
-        break;
+  if(movedown){
+    if(ds->curnode + 1 < ds->count){
+      if(newy < ds->nodes[ds->curnode + 1]->y){
+        docstructure_next(ds);
       }
-      pdn = dn;
     }
-  }else if(newy < ds->cury){
-    while((dn = nctree_next(ds->nct)) != pdn){
-      if(dn->y < newy){
-        dn = nctree_prev(ds->nct);
-        break;
+  }else{
+    if(ds->curnode){
+      if(newy > ds->nodes[ds->curnode - 1]->y){
+        docstructure_prev(ds);
       }
-      pdn = dn;
     }
   }
-  */
   ds->cury = newy;
   if(docbar_redraw(ds)){
     return -1;
