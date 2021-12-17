@@ -367,6 +367,7 @@ draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
           }else{
             ncplane_puttext(p, -1, NCALIGN_LEFT, "\n\n", &b);
           }
+          ncplane_set_fg_alpha(p, NCALPHA_HIGHCONTRAST);
           putpara(p, n->text);
         }
       }else{
