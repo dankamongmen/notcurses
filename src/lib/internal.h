@@ -1353,16 +1353,14 @@ channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends){
     }else if(c2palette){
       ncchannel_set_palindex(&c1, ncchannel_palindex(c2));
     }else{
-      ncchannel_set(&c1, c2 & NC_BG_RGB_MASK);
+      ncchannel_set(&c1, ncchannel_rgb(c2));
     }
     ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
   }else if(!c2default && !ncchannel_default_p(c1)){
     unsigned rsum, gsum, bsum;
     if(c2palette){
-      uint32_t rgb = nc->palette.chans[ncchannel_palindex(c2)];
-      bsum = rgb & 0xff;
-      gsum = (rgb >> 8u) & 0xff;
-      rsum = (rgb >> 16u) & 0xff;
+      ncchannel_rgb8(nc->palette.chans[ncchannel_palindex(c2)],
+                     &rsum, &gsum, &bsum);
     }else{
       ncchannel_rgb8(c2, &rsum, &gsum, &bsum);
     }

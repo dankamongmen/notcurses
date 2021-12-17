@@ -25,6 +25,8 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t ncchannel_b(uint32_t ***channel***);**
 
+**uint32_t ncchannel_rgb(uint32_t ***channel***);**
+
 **uint32_t ncchannel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
 **int ncchannel_set_rgb8(uint32_t* ***channel***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**

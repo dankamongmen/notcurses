@@ -222,9 +222,16 @@ ncchannel_b(uint32_t channel){
   return (channel & 0x0000ffu);
 }
 
+// Extract the 24-bit RGB value from a 32-bit channel.
+// Only valid if ncchannel_rgb_p() would return true for the channel.
+static inline uint32_t
+ncchannel_rgb(uint32_t channel){
+  return channel & NC_BG_RGB_MASK;
+}
+
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 // Only valid if ncchannel_rgb_p() would return true for the channel.
-static inline unsigned
+static inline uint32_t
 ncchannel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
                unsigned* RESTRICT b){
   *r = ncchannel_r(channel);
@@ -404,13 +411,13 @@ ncchannels_bg_palindex(uint64_t channels){
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline uint32_t
 ncchannels_fg_rgb(uint64_t channels){
-  return ncchannels_fchannel(channels) & NC_BG_RGB_MASK;
+  return ncchannel_rgb(ncchannels_fchannel(channels));
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline uint32_t
 ncchannels_bg_rgb(uint64_t channels){
-  return ncchannels_bchannel(channels) & NC_BG_RGB_MASK;
+  return ncchannel_rgb(ncchannels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
