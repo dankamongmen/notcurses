@@ -21,7 +21,7 @@ static char *datadir;
 static int democount;
 static demoresult* results;
 
-static const char DEFAULT_DEMO[] = "ixetunchmdbkywjgarvlsfqzo";
+static const char DEFAULT_DEMO[] = "ixetunchdmbkywjgarvlsfqzo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise
