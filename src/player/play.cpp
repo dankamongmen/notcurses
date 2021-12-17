@@ -214,7 +214,11 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         }
         break;
       case 'k':{ // actually engages direct mode
-        opts.flags |= NCOPTION_NO_ALTERNATE_SCREEN;
+        opts.flags |= NCOPTION_NO_ALTERNATE_SCREEN
+                      | NCOPTION_PRESERVE_CURSOR
+                      | NCOPTION_NO_CLEAR_BITMAPS;
+        *displaytime = 0;
+        *quiet = true;
         if(*loop || *timescale != 1.0){
           std::cerr << "-k cannot be used with -L or -d" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
@@ -290,73 +294,6 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
     *blitter = NCBLIT_PIXEL;
   }
   return optind;
-}
-
-int perframe_direct(struct ncvisual* ncv, struct ncvisual_options* vopts,
-                    const struct timespec* abstime, void* vmarshal){
-  // FIXME probably want to reset cursor here?
-  (void)ncv;
-  (void)vopts;
-  (void)abstime;
-  (void)vmarshal;
-  return 0;
-}
-
-// argc/argv ought already be reduced to only the media arguments
-int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
-                       ncblitter_e blitter, int lmargin,
-                       bool noninterp, unsigned transcolor,
-                       ncloglevel_e loglevel){
-  uint64_t flags = loglevel > NCLOGLEVEL_ERROR ?
-                    loglevel > NCLOGLEVEL_WARNING ?
-                     NCDIRECT_OPTION_VERY_VERBOSE : NCDIRECT_OPTION_VERBOSE : 0;
-  Direct dm{nullptr, nullptr, flags};
-  if(!dm.canopen_images()){
-    std::cerr << "Notcurses was compiled without multimedia support\n";
-    return -1;
-  }
-  bool failed = false;
-  if(blitter == NCBLIT_PIXEL){
-    if(dm.check_pixel_support() <= 0){
-      blitter = NCBLIT_DEFAULT;
-    }
-  }
-  dm.cursor_disable();
-  for(auto i = 0 ; i < argc ; ++i){
-    // FIXME need to free faken
-    // FIXME we want to honor the different left and right margins, but that
-    // would require raster_image() knowing how far over we were starting for
-    // multiline cellular blittings...
-    ncpp::NCAlign a;
-    if(blitter == NCBLIT_PIXEL){
-      printf("%*.*s", lmargin, lmargin, "");
-      a = NCAlign::Left;
-    }else{
-      a = NCAlign::Center;
-    }
-    struct ncvisual_options vopts{};
-    vopts.blitter = blitter;
-    vopts.scaling = scalemode;
-    vopts.x = static_cast<int>(a);
-    vopts.flags = NCVISUAL_OPTION_HORALIGNED;
-    if(noninterp){
-      vopts.flags |= NCVISUAL_OPTION_NOINTERPOLATE;
-    }
-    if(transcolor){
-      vopts.flags |= NCVISUAL_OPTION_ADDALPHA;
-    }
-    vopts.transcolor = transcolor & 0xffffffull;
-    if(dm.streamfile(argv[i], perframe_direct, &vopts, NULL)){
-      failed = true;
-    }
-    unsigned y, x;
-    dm.get_cursor_yx(&y, &x);
-    if(x){
-      std::cout << std::endl;
-    }
-  }
-  dm.cursor_enable();
-  return failed ? -1 : 0;
 }
 
 int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
@@ -517,17 +454,10 @@ auto main(int argc, char** argv) -> int {
   bool noninterp = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &displaytime, &loop, &noninterp, &transcolor);
-  int r;
-  // if -k was provided, we now use direct mode rather than simply not using the
+  // if -k was provided, we use CLI mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
-  if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter,
-                           ncopts.margin_l, noninterp, transcolor, ncopts.loglevel);
-  }else{
-    r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
-                             quiet, loop, timescale, displaytime, noninterp, transcolor);
-  }
-  if(r){
+  if(rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
+                          quiet, loop, timescale, displaytime, noninterp, transcolor)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
