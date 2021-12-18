@@ -305,6 +305,9 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                bool climode){
   unsigned dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
+  if(climode){
+    stdn->set_scrolling(true);
+  }
   uint64_t transchan = 0;
   ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);
   ncchannels_set_bg_alpha(&transchan, NCALPHA_TRANSPARENT);
