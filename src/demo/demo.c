@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <stdatomic.h>
-#include <notcurses/direct.h>
 #include "demo.h"
 
 // (non-)ansi terminal definition-4-life
@@ -101,40 +100,51 @@ static struct {
 };
 
 static void
-usage_option(FILE* out, struct ncdirect* n, const char* op){
-  if(n) ncdirect_set_fg_rgb8(n, 0x80, 0x80, 0x80);
-  fprintf(out, " [ ");
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-  fprintf(out, "%s", op);
-  if(n) ncdirect_set_fg_rgb8(n, 0x80, 0x80, 0x80);
-  fprintf(out, " ] ");
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+usage_option(struct ncplane* n, const char* op){
+  ncplane_set_fg_rgb8(n, 0x80, 0x80, 0x80);
+  ncplane_printf(n, " [ ");
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
+  ncplane_printf(n, "%s", op);
+  ncplane_set_fg_rgb8(n, 0x80, 0x80, 0x80);
+  ncplane_printf(n, " ] ");
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
 }
 
 static void
-usage_expo(FILE* out, struct ncdirect* n, const char* op, const char* expo){
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-  fprintf(out, " %s: ", op);
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
-  fprintf(out, "%s\n", expo);
+usage_expo(struct ncplane* n, const char* op, const char* expo){
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
+  ncplane_printf(n, " %s: ", op);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_printf(n, "%s\n", expo);
 }
 
 static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
-  struct ncdirect* n = ncdirect_init(NULL, out, 0);
-  if(n) ncdirect_set_fg_rgb8(n, 0x00, 0xc0, 0xc0);
-  fprintf(out, "usage: ");
-  if(n) ncdirect_set_fg_rgb8(n, 0x80, 0xff, 0x80);
-  fprintf(out, "%s ", exe);
+  struct notcurses_options opts = {0};
+  opts.flags = NCOPTION_NO_ALTERNATE_SCREEN
+               | NCOPTION_DRAIN_INPUT
+               | NCOPTION_NO_CLEAR_BITMAPS
+               | NCOPTION_PRESERVE_CURSOR
+               | NCOPTION_SUPPRESS_BANNERS;
+  struct notcurses* nc = notcurses_init(&opts, out);
+  if(!nc){
+    exit(status);
+  }
+  struct ncplane* n = notcurses_stdplane(nc);
+  ncplane_set_scrolling(n, true);
+  ncplane_set_fg_rgb8(n, 0x00, 0xc0, 0xc0);
+  ncplane_putstr(n, "usage: ");
+  ncplane_set_fg_rgb8(n, 0x80, 0xff, 0x80);
+  ncplane_printf(n, "%s ", exe);
   const char* options[] = { "-hVkc", "-m margins", "-p path", "-l loglevel",
                             "-d mult", "-J jsonfile", "demospec",
                             NULL };
   for(const char** op = options ; *op ; ++op){
-    usage_option(out, n, *op);
+    usage_option(n, *op);
   }
-  fprintf(out, "\n\n");
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_putstr(n, "\n\n");
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
   const char* optexpo[] = {
     "-h|--help", "this message",
     "-V|--version", "print program name and version",
@@ -147,40 +157,41 @@ usage(const char* exe, int status){
   };
   for(const char** op = optexpo ; *op ; op += 2){
     const char* expo = op[1];
-    usage_expo(out, n, *op, expo);
+    usage_expo(n, *op, expo);
   }
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-  fprintf(out, " -l:");
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
-  fprintf(out, " logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-  fprintf(out, " -p:");
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
-  fprintf(out, " data file path (default: %s)\n", NOTCURSES_SHARE);
-  fprintf(out, "\nspecify demos via their first letter. repetitions are allowed.\n");
-  if(n) ncdirect_set_fg_rgb8(n, 0x80, 0xff, 0x80);
-  fprintf(out, " default spec: %s\n\n", DEFAULT_DEMO);
-  if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
+  ncplane_printf(n, " -l:");
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_printf(n, " logging level (%d: silent..%d: manic)\n", NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
+  ncplane_printf(n, " -p:");
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_printf(n, " data file path (default: %s)\n", NOTCURSES_SHARE);
+  ncplane_printf(n, "\nspecify demos via their first letter. repetitions are allowed.\n");
+  ncplane_set_fg_rgb8(n, 0x80, 0xff, 0x80);
+  ncplane_printf(n, " default spec: %s\n\n", DEFAULT_DEMO);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
   int printed = 0;
   for(size_t i = 0 ; i < sizeof(demos) / sizeof(*demos) ; ++i){
     if(demos[i].name){
       if(printed % 5 == 0){
-        fprintf(out, " ");
+        ncplane_printf(n, " ");
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
-      if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-      fprintf(out, "%lc ", *demos[i].name - 'a' + 0x24d0);
-      if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
-      fprintf(out, "%-*.*s", 8, 8, demos[i].name + 1);
+      ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
+      ncplane_printf(n, "%lc ", *demos[i].name - 'a' + 0x24d0);
+      ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+      ncplane_printf(n, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 5 == 0){
-        fprintf(out, "\n");
+        ncplane_printf(n, "\n");
       }
     }
   }
   if(printed % 5){
-    fprintf(out, "\n");
+    ncplane_printf(n, "\n");
   }
-  ncdirect_stop(n);
+  notcurses_render(nc);
+  notcurses_stop(nc);
   exit(status);
 }
 
