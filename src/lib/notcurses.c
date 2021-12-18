@@ -14,7 +14,6 @@
 #include <locale.h>
 #include <uniwbrk.h>
 #include <inttypes.h>
-#include <notcurses/direct.h>
 #include "compat/compat.h"
 #include "unixsig.h"
 #include "banner.h"
