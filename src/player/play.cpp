@@ -317,6 +317,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
   ncplane* n = nullptr;
+  ncplane* clin = nullptr;
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
@@ -326,15 +327,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     ncplane_move_bottom(n);
     struct ncvisual_options vopts{};
     int r;
-    if(!climode){
-      vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
-      vopts.y = NCALIGN_CENTER;
-      vopts.x = NCALIGN_CENTER;
-    }else{
-      vopts.flags |= NCVISUAL_OPTION_CHILDPLANE;
-      vopts.y = stdn->cursor_y();
-      vopts.x = stdn->cursor_x();
-    }
     if(noninterp){
       vopts.flags |= NCVISUAL_OPTION_NOINTERPOLATE;
     }
@@ -345,6 +337,27 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
+    if(!climode){
+      vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+      vopts.y = NCALIGN_CENTER;
+      vopts.x = NCALIGN_CENTER;
+    }else{
+      ncvgeom geom;
+      if(ncvisual_geom(nc, *ncv, &vopts, &geom)){
+        return -1;
+      }
+      struct ncplane_options cliopts{};
+      cliopts.y = stdn->cursor_y();
+      cliopts.x = stdn->cursor_x();
+      cliopts.rows = geom.rcelly;
+      cliopts.cols = geom.rcellx;
+      clin = ncplane_create(n, &cliopts);
+      if(!clin){
+        return -1;
+      }
+      vopts.n = clin;
+      ncplane_scrollup_child(*stdn, clin);
+    }
     ncplane_erase(n);
     do{
       struct marshal marsh = {
@@ -399,6 +412,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         }else{
           ncv->decode_loop();
         }
+        ncplane_destroy(clin);
       }
     }while(loop && r == 0);
     if(r < 0){ // positive is intentional abort
