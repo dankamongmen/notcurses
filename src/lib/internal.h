@@ -1340,36 +1340,45 @@ cell_set_fchannel(nccell* cl, uint32_t channel){
 // since we can't blend default colors. Likewise, if 'c2' is a default color,
 // it will not be used (unless 'blends' is 0).
 static inline unsigned
-channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends){
+channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends,
+               uint32_t defchan){
   if(ncchannel_alpha(c2) == NCALPHA_TRANSPARENT){
     return c1; // do *not* increment *blends
   }
-  bool c2default = ncchannel_default_p(c2);
-  bool c2palette = ncchannel_palindex_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
-    if(c2default){
+    if(ncchannel_default_p(c2)){
       ncchannel_set_default(&c1);
-    }else if(c2palette){
+    }else if(ncchannel_palindex_p(c2)){
       ncchannel_set_palindex(&c1, ncchannel_palindex(c2));
     }else{
       ncchannel_set(&c1, ncchannel_rgb(c2));
     }
-    ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
-  }else if(!c2default && !ncchannel_default_p(c1)){
-    unsigned rsum, gsum, bsum;
-    if(c2palette){
+  }else{
+    unsigned r1, g1, b1;
+    unsigned r2, g2, b2;
+    if(ncchannel_default_p(c2)){
+      ncchannel_rgb8(defchan, &r2, &g2, &b2);
+    }else if(ncchannel_palindex_p(c2)){
       ncchannel_rgb8(nc->palette.chans[ncchannel_palindex(c2)],
-                     &rsum, &gsum, &bsum);
+                     &r2, &g2, &b2);
     }else{
-      ncchannel_rgb8(c2, &rsum, &gsum, &bsum);
+      ncchannel_rgb8(c2, &r2, &g2, &b2);
     }
-    rsum = (ncchannel_r(c1) * *blends + rsum) / (*blends + 1);
-    gsum = (ncchannel_g(c1) * *blends + gsum) / (*blends + 1);
-    bsum = (ncchannel_b(c1) * *blends + bsum) / (*blends + 1);
-    ncchannel_set_rgb8(&c1, rsum, gsum, bsum);
-    ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
+    if(ncchannel_default_p(c1)){
+      ncchannel_rgb8(defchan, &r1, &g1, &b1);
+    }else if(ncchannel_palindex_p(c1)){
+      ncchannel_rgb8(nc->palette.chans[ncchannel_palindex(c1)],
+                     &r1, &g1, &b1);
+    }else{
+      ncchannel_rgb8(c1, &r1, &g1, &b1);
+    }
+    unsigned r = (r1 * *blends + r2) / (*blends + 1);
+    unsigned g = (g1 * *blends + g2) / (*blends + 1);
+    unsigned b = (b1 * *blends + b2) / (*blends + 1);
+    ncchannel_set_rgb8(&c1, r, g, b);
   }
+  ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
   ++*blends;
   return c1;
 }
@@ -1377,12 +1386,14 @@ channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends){
 // do not pass palette-indexed channels!
 static inline uint64_t
 cell_blend_fchannel(notcurses* nc, nccell* cl, unsigned channel, unsigned* blends){
-  return cell_set_fchannel(cl, channels_blend(nc, cell_fchannel(cl), channel, blends));
+  return cell_set_fchannel(cl, channels_blend(nc, cell_fchannel(cl),
+                           channel, blends, nc->tcache.fg_default));
 }
 
 static inline uint64_t
 cell_blend_bchannel(notcurses* nc, nccell* cl, unsigned channel, unsigned* blends){
-  return cell_set_bchannel(cl, channels_blend(nc, cell_bchannel(cl), channel, blends));
+  return cell_set_bchannel(cl, channels_blend(nc, cell_bchannel(cl),
+                           channel, blends, nc->tcache.bg_collides_default));
 }
 
 // a sprixel occupies the entirety of its associated plane, usually an entirely
