@@ -1174,8 +1174,8 @@ NcPlane_set_bg_default(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_set_fg_palindex(NcPlaneObject *self, PyObject *args)
 {
-    int idx = 0;
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &idx));
+    unsigned idx = 0;
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &idx));
     ncplane_set_fg_palindex(self->ncplane_ptr, idx);
 
     Py_RETURN_NONE;
@@ -1184,8 +1184,8 @@ NcPlane_set_fg_palindex(NcPlaneObject *self, PyObject *args)
 static PyObject *
 NcPlane_set_bg_palindex(NcPlaneObject *self, PyObject *args)
 {
-    int idx = 0;
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &idx));
+    unsigned idx = 0;
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &idx));
     ncplane_set_bg_palindex(self->ncplane_ptr, idx);
 
     Py_RETURN_NONE;

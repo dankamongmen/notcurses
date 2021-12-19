@@ -114,9 +114,9 @@ typedef struct nccell {
 
 **bool nccell_bg_default_p(const nccell* ***c***);**
 
-**int nccell_set_fg_palindex(nccell* ***cl***, int ***idx***);**
+**int nccell_set_fg_palindex(nccell* ***cl***, unsigned ***idx***);**
 
-**int nccell_set_bg_palindex(nccell* ***cl***, int ***idx***);**
+**int nccell_set_bg_palindex(nccell* ***cl***, unsigned ***idx***);**
 
 **uint32_t nccell_fg_palindex(const nccell* ***cl***);**
 
