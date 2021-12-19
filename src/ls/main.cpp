@@ -143,16 +143,9 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
     return -1;
   }
 #else
-  if(ctx.dereflinks){
-    if(lstat(path_join(pdir, p).c_str(), &st)){
-      std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
-      return -1;
-    }
-  }else{
-    if(stat(path_join(pdir, p).c_str(), &st)){
-      std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
-      return -1;
-    }
+  if(stat(path_join(pdir, p).c_str(), &st)){
+    std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
+    return -1;
   }
 #endif
   if((st.st_mode & S_IFMT) == S_IFDIR){
