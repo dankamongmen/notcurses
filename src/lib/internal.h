@@ -1335,10 +1335,10 @@ cell_set_fchannel(nccell* cl, uint32_t channel){
 }
 
 // Returns the result of blending two channels. 'blends' indicates how heavily
-// 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
-// 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,
-// since we can't blend default colors. Likewise, if 'c2' is a default color,
-// it will not be used (unless 'blends' is 0).
+// 'c1' ought be weighed. If 'blends' is 0 (indicating that 'c1' has not yet
+// been set), 'c1' will be entirely determined by 'c2'. Otherwise, the default
+// color is preserved if both are the default, palette color is preserved if
+// both are the same palette index, and the result is otherwise RGB.
 static inline unsigned
 channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends,
                uint32_t defchan){
@@ -1354,6 +1354,13 @@ channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends,
     }else{
       ncchannel_set(&c1, ncchannel_rgb(c2));
     }
+  }else if(ncchannel_default_p(c1) && ncchannel_default_p(c2)){
+    // do nothing, leave as default
+  // intentional bitwise AND on the first condition, to eliminate the
+  // dependency due to C's short-circuit evaluation
+  }else if((ncchannel_palindex_p(c1) & ncchannel_palindex_p(c2)) &&
+           ncchannel_palindex(c1) == ncchannel_palindex(c2)){
+    // do nothing, leave as palette
   }else{
     unsigned r1, g1, b1;
     unsigned r2, g2, b2;
