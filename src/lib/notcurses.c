@@ -1156,9 +1156,6 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     ret->margin_r = opts->margin_r;
     ret->loglevel = opts->loglevel;
   }
-  ret->last_pile = NULL;
-  ret->rstate.f.buf = NULL;
-  ret->lastframe = NULL;
   set_loglevel_from_env(&ret->loglevel);
   if(!(ret->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang();
@@ -1206,6 +1203,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     outfp = stdout;
   }
   unsigned utf8;
+  // ret comes out entirely zero-initialized
   notcurses* ret = notcurses_early_init(opts, outfp, &utf8);
   if(ret == NULL){
     return NULL;
