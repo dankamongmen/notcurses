@@ -166,7 +166,7 @@ usage(const char* exe, int status){
   ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
   ncplane_printf(n, " -p:");
   ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
-  ncplane_printf(n, " data file path (default: %s)\n", NOTCURSES_SHARE);
+  ncplane_printf(n, " data file path (default: %s)\n", notcurses_data_dir());
   ncplane_printf(n, "\nspecify demos via their first letter. repetitions are allowed.\n");
   ncplane_set_fg_rgb8(n, 0x80, 0xff, 0x80);
   ncplane_printf(n, " default spec: %s\n\n", DEFAULT_DEMO);
