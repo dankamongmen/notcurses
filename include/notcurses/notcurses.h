@@ -2711,7 +2711,7 @@ nccell_set_bg_rgb(nccell* c, uint32_t channel){
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
-nccell_set_bg_palindex(nccell* cl, int idx){
+nccell_set_bg_palindex(nccell* cl, unsigned idx){
   return ncchannels_set_bg_palindex(&cl->channels, idx);
 }
 
