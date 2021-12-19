@@ -104,7 +104,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
     r = mbrtowc(&wc, gcluster, MB_LEN_MAX, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
-      logerror("invalid UTF8: %s\n", gcluster);
+      logerror("invalid UTF8: %s", gcluster);
       return -1;
     }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
@@ -127,7 +127,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
         }
         cols = 1;
         if(iswcntrl(wc)){
-          logerror("prohibited or invalid unicode: 0x%08x\n", (unsigned)wc);
+          logerror("prohibited or invalid unicode: 0x%08x", (unsigned)wc);
           return -1;
         }
       }
@@ -239,32 +239,6 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
   free(duplicated);
   assert(false);
   return -1; // should never get here
-}
-
-// Run a consistency check on the offset; ensure it's a valid, non-empty EGC.
-static inline bool
-egcpool_check_validity(const egcpool* pool, int offset){
-  if(offset >= pool->poolsize){
-    fprintf(stderr, "offset 0x%06x greater than size (%d)\n", offset, pool->poolsize);
-    return false;
-  }
-  const char* egc = pool->pool + offset;
-  if(*egc == '\0'){
-    fprintf(stderr, "bad offset 0x%06x: empty\n", offset);
-    return false;
-  }
-  mbstate_t mbstate;
-  memset(&mbstate, 0, sizeof(mbstate));
-  do{
-    wchar_t wcs;
-    int r = mbrtowc(&wcs, egc, strlen(egc), &mbstate);
-    if(r < 0){
-      fprintf(stderr, "invalid utf8 at offset 0x%06x [%s]\n", offset, strerror(errno));
-      return false;
-    }
-    egc += r;
-  }while(*egc);
-  return true;
 }
 
 // remove the egc from the pool. start at offset, and zero out everything until

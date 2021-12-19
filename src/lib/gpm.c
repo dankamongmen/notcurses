@@ -17,10 +17,10 @@ gpmwatcher(void* vti){
   const int space = sizeof(cmdbuf) - 3;
   while(true){
     if(!Gpm_GetEvent(&gev)){
-      logerror("error reading from gpm daemon\n");
+      logerror("error reading from gpm daemon");
       continue;
     }
-    loginfo("got gpm event y=%hd x=%hd mod=%u butt=%u\n", gev.y, gev.x,
+    loginfo("got gpm event y=%hd x=%hd mod=%u butt=%u", gev.y, gev.x,
             (unsigned)gev.modifiers, (unsigned)gev.buttons);
     if(gev.y < 0 || gev.x < 0){
       logwarn("negative input %hd %hd", gev.x, gev.y);
@@ -29,7 +29,7 @@ gpmwatcher(void* vti){
     // gpm is 0-indexed, but we assume mice reports to be 1-indexed, as they
     // are in the XTerm protocols. no need to account for margins here.
     if(snprintf(cmdbuf + 3, space, "%hd;%hd;%hdM", 0, gev.x + 1, gev.y + 1) >= space){
-      logwarn("input overflowed %hd %hd\n", gev.x, gev.y);
+      logwarn("input overflowed %hd %hd", gev.x, gev.y);
       continue;
     }
     ncinput_shovel(ti->ictx, cmdbuf, strlen(cmdbuf));
@@ -45,16 +45,16 @@ int gpm_connect(tinfo* ti){
   gpmconn.minMod = 0;
   gpmconn.maxMod = 0; // allow shift+drag to be used for direct copy+paste
   if(Gpm_Open(&gpmconn, 0) == -1){
-    logerror("couldn't connect to gpm\n");
+    logerror("couldn't connect to gpm");
     return -1;
   }
   if(pthread_create(&ti->gpmthread, NULL, gpmwatcher, ti)){
-    logerror("couldn't spawn gpm thread\n");
+    logerror("couldn't spawn gpm thread");
     Gpm_Close();
     memset(&gpmconn, 0, sizeof(gpmconn));
     return -1;
   }
-  loginfo("connected to gpm on %d\n", gpm_fd);
+  loginfo("connected to gpm on %d", gpm_fd);
   return gpm_fd;
 }
 

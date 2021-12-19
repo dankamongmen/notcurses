@@ -337,7 +337,7 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
       if(pixels + posx > dimx){
         pixels = dimx - posx;
       }
-      /*logtrace("Copying %d (%d) from %p to %p %d/%d\n",
+      /*logtrace("copying %d (%d) from %p to %p %d/%d",
                pixels * 4, y,
                data + y * (rowstride / 4) + posx,
                a + (y - posy) * (pixels * 4),
@@ -409,7 +409,7 @@ kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
 // cell id with which we can delete it in O(1) for a rebuild. this
 // way, we needn't delete and redraw the entire sprixel.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
-  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  logdebug("wiping sprixel %u at %d/%d", s->id, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
@@ -431,7 +431,7 @@ int kitty_wipe_selfref(sprixel* s, int ycell, int xcell){
   const int tyx = xcell + ycell * s->dimx;
   int state = s->n->tam[tyx].state;
   void* auxvec = s->n->tam[tyx].auxvector;
-  logdebug("Wiping sprixel %u at %d/%d auxvec: %p state: %d\n", s->id, ycell, xcell, auxvec, state);
+  logdebug("wiping sprixel %u at %d/%d auxvec: %p state: %d", s->id, ycell, xcell, auxvec, state);
   fbuf* f = &s->glyph;
   if(kitty_blit_wipe_selfref(s, f, ycell, xcell)){
     return -1;
@@ -549,7 +549,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 }
 
 int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
-  loginfo("Committing Kitty graphic id %u\n", s->id);
+  loginfo("committing Kitty graphic id %u", s->id);
   int i;
   if(s->pxoffx || s->pxoffy){
     i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s,q=2\e\\", s->id,
@@ -640,7 +640,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
   // to compress; results per unit time fall off quickly after 2.
   struct libdeflate_compressor* cmp = libdeflate_alloc_compressor(2);
   if(cmp == NULL){
-    logerror("couldn't get libdeflate context\n");
+    logerror("couldn't get libdeflate context");
     return -1;
   }
   // if this allocation fails, just skip compression, no need to bail
@@ -653,13 +653,13 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
   z_stream zctx = {0};
   int z = deflateInit(&zctx, 2);
   if(z != Z_OK){
-    logerror("couldn't get zlib context\n");
+    logerror("couldn't get zlib context");
     return -1;
   }
   clen = deflateBound(&zctx, blen);
   cbuf = malloc(clen);
   if(cbuf == NULL){
-    logerror("couldn't allocate %" PRIuPTR "B\n", clen);
+    logerror("couldn't allocate %" PRIuPTR "B", clen);
     deflateEnd(&zctx);
     return -1;
   }
@@ -669,7 +669,7 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
   zctx.avail_in = blen;
   z = deflate(&zctx, Z_FINISH);
   if(z != Z_STREAM_END){
-    logerror("error %d deflating %" PRIuPTR "B -> %" PRIuPTR "B\n", z, blen, clen);
+    logerror("error %d deflating %" PRIuPTR "B -> %" PRIuPTR "B", z, blen, clen);
     deflateEnd(&zctx);
     return -1;
   }
@@ -678,10 +678,10 @@ deflate_buf(void* buf, fbuf* f, int dimy, int dimx){
 #endif
   int ret;
   if(0 == clen){ // wasn't enough room; compressed data is larger than original
-    loginfo("deflated in vain; using original %" PRIuPTR "B\n", blen);
+    loginfo("deflated in vain; using original %" PRIuPTR "B", blen);
     ret = encode_and_chunkify(f, buf, blen, 0);
   }else{
-    loginfo("deflated %" PRIuPTR "B to %" PRIuPTR "B\n", blen, clen);
+    loginfo("deflated %" PRIuPTR "B to %" PRIuPTR "B", blen, clen);
     ret = encode_and_chunkify(f, cbuf, clen, 1);
   }
   free(cbuf);
@@ -748,7 +748,7 @@ finalize_multiframe_selfref(sprixel* s, fbuf* f){
       }
     }
   }
-  loginfo("transitively wiped %d/%u\n", prewiped, s->dimy * s->dimx);
+  loginfo("transitively wiped %d/%u", prewiped, s->dimy * s->dimx);
   return 0;
 }
 
@@ -761,7 +761,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
                  tament* tam, int* parse_start, ncpixelimpl_e level){
   if(linesize % sizeof(*data)){
-    logerror("stride (%d) badly aligned\n", linesize);
+    logerror("stride (%d) badly aligned", linesize);
     return -1;
   }
   unsigned animated;
@@ -852,7 +852,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
                                     data, linesize, tam[tyx].auxvector,
                                     transcolor);
             if(tmp == NULL){
-              logerror("got a NULL auxvec at %d/%d\n", y, x);
+              logerror("got a NULL auxvec at %d/%d", y, x);
               goto err;
             }
             tam[tyx].auxvector = tmp;
@@ -860,7 +860,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
             if(tam[tyx].auxvector == NULL){
               tam[tyx].auxvector = malloc(sizeof(tam[tyx].state));
               if(tam[tyx].auxvector == NULL){
-                logerror("got a NULL auxvec at %d\n", tyx);
+                logerror("got a NULL auxvec at %d", tyx);
                 goto err;
               }
             }
@@ -956,7 +956,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
   return 0;
 
 err:
-  logerror("failed blitting kitty graphics\n");
+  logerror("failed blitting kitty graphics");
   cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
   free(buf);
   return -1;
@@ -975,7 +975,7 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   const int xstart = xcell * cellpxx;
   const int xlen = xstart + cellpxx > s->pixx ? s->pixx - xstart : cellpxx;
   const int ylen = ystart + cellpxy > s->pixy ? s->pixy - ystart : cellpxy;
-  logdebug("rematerializing %u at %d/%d (%dx%d)\n", s->id, ycell, xcell, ylen, xlen);
+  logdebug("rematerializing %u at %d/%d (%dx%d)", s->id, ycell, xcell, ylen, xlen);
   fbuf_printf(f, "\e_Ga=c,x=%d,y=%d,X=%d,Y=%d,w=%d,h=%d,i=%d,r=1,c=2,q=2;\x1b\\",
               xcell * cellpxx, ycell * cellpxy,
               xcell * cellpxx, ycell * cellpxy,
@@ -987,7 +987,7 @@ int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  logdebug("rebuilding sprixel %u %d at %d/%d\n", s->id, s->invalidated, ycell, xcell);
+  logdebug("rebuilding sprixel %u %d at %d/%d", s->id, s->invalidated, ycell, xcell);
   if(init_sprixel_animation(s)){
     return -1;
   }
@@ -1008,7 +1008,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   // FIXME this ought be factored out and shared with write_kitty_data()
-  logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * cellpxy, xcell * cellpxx);
+  logdebug("placing %d/%d at %d/%d", ylen, xlen, ycell * cellpxy, xcell * cellpxx);
   while(chunks--){
     if(totalout == 0){
       const int c = kitty_anim_auxvec_blitsource_p(s, auxvec) ? 2 : 1;
@@ -1145,7 +1145,7 @@ int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
 }
 
 int kitty_remove(int id, fbuf* f){
-  loginfo("Removing graphic %u\n", id);
+  loginfo("removing graphic %u", id);
   if(fbuf_printf(f, "\e_Ga=d,d=I,i=%d\e\\", id) < 0){
     return -1;
   }
@@ -1194,7 +1194,7 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     animated = true;
   }
   int ret = s->glyph.used;
-  logdebug("dumping %" PRIu64 "b for %u at %d %d\n", s->glyph.used, s->id, yoff, xoff);
+  logdebug("dumping %" PRIu64 "b for %u at %d %d", s->glyph.used, s->id, yoff, xoff);
   if(ret){
     if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
       ret = -1;
@@ -1211,7 +1211,7 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
   const int targy = s->n->absy;
   const int targx = s->n->absx;
-  logdebug("moving %u to %d %d\n", s->id, targy, targx);
+  logdebug("moving %u to %d %d", s->id, targy, targx);
   int ret = 0;
   if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff, s->n)){
     ret = -1;

@@ -92,7 +92,7 @@ void input_free_esctrie(automaton* a){
 static int
 esctrie_make_kleene(automaton* a, esctrie* e, unsigned follow, esctrie* term){
   if(e->ntype != NODE_SPECIAL){
-    logerror("can't make node type %d string\n", e->ntype);
+    logerror("can't make node type %d string", e->ntype);
     return -1;
   }
   for(unsigned i = 0 ; i < 0x80 ; ++i){
@@ -108,11 +108,11 @@ esctrie_make_kleene(automaton* a, esctrie* e, unsigned follow, esctrie* term){
 static int
 esctrie_make_function(esctrie* e, triefunc fxn){
   if(e->ntype != NODE_SPECIAL){
-    logerror("can't make node type %d function\n", e->ntype);
+    logerror("can't make node type %d function", e->ntype);
     return -1;
   }
   if(e->trie){
-    logerror("can't make followed function\n");
+    logerror("can't make followed function");
     return -1;
   }
   e->ntype = NODE_FUNCTION;
@@ -123,11 +123,11 @@ esctrie_make_function(esctrie* e, triefunc fxn){
 static esctrie*
 esctrie_make_string(automaton* a, esctrie* e, unsigned rxvtstyle){
   if(e->ntype == NODE_STRING){
-    logerror("repeated string node\n");
+    logerror("repeated string node");
     return NULL;
   }
   if(e->ntype != NODE_SPECIAL){
-    logerror("can't make node type %d string\n", e->ntype);
+    logerror("can't make node type %d string", e->ntype);
     return NULL;
   }
   for(int i = 0 ; i < 0x80 ; ++i){
@@ -135,7 +135,7 @@ esctrie_make_string(automaton* a, esctrie* e, unsigned rxvtstyle){
       continue;
     }
     if(e->trie[i]){
-      logerror("can't make %c-followed string\n", i);
+      logerror("can't make %c-followed string", i);
       return NULL;
     }
   }
@@ -178,7 +178,7 @@ esctrie_make_string(automaton* a, esctrie* e, unsigned rxvtstyle){
     term->ntype = NODE_SPECIAL;
     e = term;
   }
-  logdebug("made string: %u\n", esctrie_idx(a, e));
+  logdebug("made string: %u", esctrie_idx(a, e));
   return e;
 }
 
@@ -207,7 +207,7 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
   for(unsigned int i = 0 ; i < 0x80 ; ++i){
     if(i == follow){
       if(e->trie[i]){
-        logerror("drain terminator already registered\n");
+        logerror("drain terminator already registered");
         return NULL;
       }
       e->trie[follow] = esctrie_idx(a, term);
@@ -229,7 +229,7 @@ get_phi_node(automaton* a, esctrie* e){
   for(int i = '0' ; i <= '9' ; ++i){
     if( (targ = esctrie_from_idx(a, e->trie[i])) ){
       if(targ->ntype == NODE_NUMERIC){
-        logtrace("found existing phi node %u[%c]->%u\n", esctrie_idx(a, e), i, esctrie_idx(a, targ));
+        logtrace("found existing phi node %u[%c]->%u", esctrie_idx(a, e), i, esctrie_idx(a, targ));
         break;
       }else{
         ++nonphis;
@@ -241,7 +241,7 @@ get_phi_node(automaton* a, esctrie* e){
   // one, be sure to mark it numeric, and add all digit links back to itself.
   if(targ == NULL){
     if(nonphis == 10){
-      logerror("ten non-phi links from %u\n", esctrie_idx(a, e));
+      logerror("ten non-phi links from %u", esctrie_idx(a, e));
       return 0;
     }
     if((targ = esctrie_from_idx(a, create_esctrie_node(a, 0))) == 0){
@@ -278,19 +278,19 @@ get_eta_node(automaton* a, esctrie* phi, unsigned successor){
 static inline void
 add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
                       unsigned follow, unsigned eta){
-//logtrace("working with %u phi: %u follow: %u eta: %u\n", esctrie_idx(a, e), phi, follow, eta);
+//logtrace("working with %u phi: %u follow: %u eta: %u", esctrie_idx(a, e), phi, follow, eta);
   for(int i = '0' ; i <= '9' ; ++i){
     esctrie* chain = esctrie_from_idx(a, e->trie[i]);
     if(chain == NULL){
-      //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, phi);
+      //logdebug("linking %u[%d] to %u", esctrie_idx(a, e), i, phi);
       e->trie[i] = phi;
     }else if(chain->ntype == NODE_SPECIAL){
-//logdebug("propagating along %u[%c]\n", e->trie[i], i);
+//logdebug("propagating along %u[%c]", e->trie[i], i);
       add_phi_and_eta_chain(a, esctrie_from_idx(a, e->trie[i]), phi, follow, eta);
     }
   }
   if(e->trie[follow] == 0){
-    //logdebug("linking %u[%u] to %u\n", esctrie_idx(a, e), follow, eta);
+    //logdebug("linking %u[%u] to %u", esctrie_idx(a, e), follow, eta);
     e->trie[follow] = eta;
   }
 }
@@ -304,7 +304,7 @@ static inline void
 add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
                         int pfxlen, esctrie* phi, unsigned follow,
                         esctrie* eta, unsigned inphi){
-//logtrace("working with %u %d prefix [%*.*s]\n", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
+//logtrace("working with %u %d prefix [%*.*s]", esctrie_idx(a, e), pfxlen, pfxlen, pfxlen, prefix);
   // if pfxlen == 0, we found a match for our fixed prefix. start adding phi
   // links whereever we can. where we find chained numerics, add an eta link.
   if(pfxlen == 0){
@@ -316,14 +316,14 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
     ++prefix;
     --pfxlen;
     if(*prefix != 'N'){
-      logerror("illegal wildcard in prefix %c\n", *prefix);
+      logerror("illegal wildcard in prefix %c", *prefix);
       return;
     }
     ++prefix;
     --pfxlen;
     for(int i = '0' ; i <= '9' ; ++i){
       if(e->trie[i] == 0){
-        //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, esctrie_idx(a, phi));
+        //logdebug("linking %u[%d] to %u", esctrie_idx(a, e), i, esctrie_idx(a, phi));
         e->trie[i] = esctrie_idx(a, phi);
       }else{
         add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
@@ -334,7 +334,7 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
     if(inphi){
       for(int i = '0' ; i <= '9' ; ++i){
         if(e->trie[i] == 0){
-          //logdebug("linking %u[%d] to %u\n", esctrie_idx(a, e), i, esctrie_idx(a, phi));
+          //logdebug("linking %u[%d] to %u", esctrie_idx(a, e), i, esctrie_idx(a, phi));
           e->trie[i] = esctrie_idx(a, phi);
         }else if(e->trie[i] != esctrie_idx(a, e)){
           add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
@@ -377,7 +377,7 @@ add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
 static esctrie*
 link_numeric(automaton* a, const char* prefix, int pfxlen,
              esctrie* e, unsigned char follow){
-  logdebug("adding numeric with follow %c following %*.*s\n", follow, pfxlen, pfxlen, prefix);
+  logdebug("adding numeric with follow %c following %*.*s", follow, pfxlen, pfxlen, prefix);
   unsigned phiidx = get_phi_node(a, e);
   if(phiidx == 0){
     return NULL;
@@ -390,8 +390,8 @@ link_numeric(automaton* a, const char* prefix, int pfxlen,
   }
   phi = esctrie_from_idx(a, phiidx);
   esctrie* eta = esctrie_from_idx(a, etaidx);
-  logtrace("phi node: %u->%u\n", esctrie_idx(a, e), esctrie_idx(a, phi));
-  logtrace("eta node: %u philink[%c]: %u\n", esctrie_idx(a, eta), follow, phi->trie[follow]);
+  logtrace("phi node: %u->%u", esctrie_idx(a, e), esctrie_idx(a, phi));
+  logtrace("eta node: %u philink[%c]: %u", esctrie_idx(a, eta), follow, phi->trie[follow]);
   // eta is now bound to phi, and phi links something at all digits, but no
   // other links are guaranteed. walk the automaton, finding all possible
   // prefixes of φ (and linking to φ) and all possible prefixes of ή (and
@@ -414,7 +414,7 @@ insert_path(automaton* a, const char* seq){
   while( (c = *seq++) ){
     if(c == '\\'){
       if(inescape){
-        logerror("illegal escape: \\\n");
+        logerror("illegal escape: \\");
         return NULL;
       }
       inescape = true;
@@ -422,7 +422,7 @@ insert_path(automaton* a, const char* seq){
       if(c == 'N'){
         // a numeric must be followed by some terminator
         if(!*seq){
-          logerror("illegal numeric terminator\n");
+          logerror("illegal numeric terminator");
           return NULL;
         }
         c = *seq++;
@@ -439,7 +439,7 @@ insert_path(automaton* a, const char* seq){
       }else if(c == 'D'){ // drain (kleene closure)
         // a kleene must be followed by some terminator
         if(!*seq){
-          logerror("illegal kleene terminator\n");
+          logerror("illegal kleene terminator");
           return NULL;
         }
         c = *seq++;
@@ -448,7 +448,7 @@ insert_path(automaton* a, const char* seq){
           return NULL;
         }
       }else{
-        logerror("illegal escape: %u\n", c);
+        logerror("illegal escape: %u", c);
         return NULL;
       }
       inescape = false;
@@ -478,11 +478,11 @@ insert_path(automaton* a, const char* seq){
       }
       eptr = esctrie_from_idx(a, eidx);
       eptr = esctrie_from_idx(a, eptr->trie[c]);
-      logtrace("added fixed %c %u as %u\n", c, c, esctrie_idx(a, eptr));
+      logtrace("added fixed %c %u as %u", c, c, esctrie_idx(a, eptr));
     }
   }
   if(inescape){
-    logerror("illegal escape at end of line\n");
+    logerror("illegal escape at end of line");
     return NULL;
   }
   return eptr;
@@ -503,7 +503,7 @@ int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
 int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
                               unsigned shift, unsigned ctrl, unsigned alt){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    logerror("not an escape (0x%x)\n", special);
+    logerror("not an escape (0x%x)", special);
     return -1;
   }
   esctrie* eptr = insert_path(a, esc + 1);
@@ -514,7 +514,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
   if(eptr->ni.id){ // already had one here!
     if(eptr->ni.id != special){
-      logwarn("already added escape (got 0x%x, wanted 0x%x)\n", eptr->ni.id, special);
+      logwarn("already added escape (got 0x%x, wanted 0x%x)", eptr->ni.id, special);
     }
   }else{
     eptr->ni.id = special;
@@ -523,7 +523,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     eptr->ni.alt = alt;
     eptr->ni.y = 0;
     eptr->ni.x = 0;
-    logdebug("added 0x%08x to %u\n", special, esctrie_idx(a, eptr));
+    logdebug("added 0x%08x to %u", special, esctrie_idx(a, eptr));
   }
   return 0;
 }
@@ -535,7 +535,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
 int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
                    ncinput* ni){
   if(candidate >= 0x80){
-    logerror("eight-bit char %u in control sequence\n", candidate);
+    logerror("eight-bit char %u in control sequence", candidate);
     return -1;
   }
   esctrie* e = esctrie_from_idx(a, a->state);
@@ -566,7 +566,7 @@ int walk_automaton(automaton* a, struct inputctx* ictx, unsigned candidate,
       ni->alt = true;
       return 1;
     }
-    loginfo("unexpected transition on %u[%u]\n",
+    loginfo("unexpected transition on %u[%u]",
             esctrie_idx(a, e), candidate);
     return -1;
   }

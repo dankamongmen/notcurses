@@ -463,7 +463,7 @@ static inline int
 ncplane_set_widget(ncplane* n, void* w, void(*wdestruct)(void*)){
   if(n->widget){
     if(w){
-      logerror("plane is already bound to a widget\n");
+      logerror("plane is already bound to a widget");
       return -1;
     }
   }else if(w == NULL){
@@ -708,7 +708,7 @@ void sixelmap_free(struct sixelmap *s);
 static inline int
 sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //sprixel_debug(s, stderr);
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d", s->id, s->invalidated);
   return n->tcache.pixel_scrub(p, s);
 }
 
@@ -721,7 +721,7 @@ sprite_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     return 0;
   }
 //sprixel_debug(s, stderr);
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d", s->id, s->invalidated);
   return ti->pixel_draw(ti, p, s, f, yoff, xoff);
 }
 
@@ -731,7 +731,7 @@ static inline int
 sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x){
 //sprixel_debug(s, stderr);
   const tinfo* ti = &nc->tcache;
-  logdebug("sprixel %u state %d\n", s->id, s->invalidated);
+  logdebug("sprixel %u state %d", s->id, s->invalidated);
   if(s->invalidated == SPRIXEL_MOVED && ti->pixel_move){
     // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
@@ -787,7 +787,7 @@ destroy_tam(ncplane* p){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  logdebug("rebuilding %d %d/%d\n", s->id, ycell, xcell);
+  logdebug("rebuilding %d %d/%d", s->id, ycell, xcell);
   const int idx = s->dimx * ycell + xcell;
   int ret = 0;
   // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
@@ -1456,7 +1456,7 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
   // we allow newlines to be blitted into the pool, as they're picked up and
   // given special semantics by paint() and rasterization.
   if(*gcluster != '\n' && is_control_egc((const unsigned char*)gcluster, bytes)){
-    logerror("not loading control character %u\n", *(const unsigned char*)gcluster);
+    logerror("not loading control character %u", *(const unsigned char*)gcluster);
     return -1;
   }
   c->width = cols;
@@ -1551,14 +1551,14 @@ check_geometry_args(const ncplane* n, int y, int x,
   // handle the special -1 case for y/x, and reject other negatives
   if(y < 0){
     if(y != -1){
-      logerror("invalid y: %d\n", y);
+      logerror("invalid y: %d", y);
       return -1;
     }
     y = n->y;
   }
   if(x < 0){
     if(x != -1){
-      logerror("invalid x: %d\n", x);
+      logerror("invalid x: %d", x);
       return -1;
     }
     x = n->x;
@@ -1570,7 +1570,7 @@ check_geometry_args(const ncplane* n, int y, int x,
   unsigned ymax, xmax;
   ncplane_dim_yx(n, &ymax, &xmax);
   if(*ystart >= ymax || *xstart >= xmax){
-    logerror("invalid starting coordinates: %u/%u\n", *ystart, *xstart);
+    logerror("invalid starting coordinates: %u/%u", *ystart, *xstart);
     return -1;
   }
   // handle the special 0 case for ylen/xlen
@@ -1582,20 +1582,20 @@ check_geometry_args(const ncplane* n, int y, int x,
   }
   // ensure ylen/xlen are on-plane
   if(*ylen > ymax){
-    logerror("ylen > dimy %u > %u\n", *ylen, ymax);
+    logerror("ylen > dimy %u > %u", *ylen, ymax);
     return -1;
   }
   if(*xlen > xmax){
-    logerror("xlen > dimx %u > %u\n", *xlen, xmax);
+    logerror("xlen > dimx %u > %u", *xlen, xmax);
     return -1;
   }
   // ensure x + xlen and y + ylen are on-plane, without overflow
   if(ymax - *ylen < *ystart){
-    logerror("y + ylen > ymax %u + %u > %u\n", *ystart, *ylen, ymax);
+    logerror("y + ylen > ymax %u + %u > %u", *ystart, *ylen, ymax);
     return -1;
   }
   if(xmax - *xlen < *xstart){
-    logerror("x + xlen > xmax %u + %u > %u\n", *xstart, *xlen, xmax);
+    logerror("x + xlen > xmax %u + %u > %u", *xstart, *xlen, xmax);
     return -1;
   }
   return 0;
@@ -1835,10 +1835,10 @@ tty_check(int fd){
 static inline int
 cancel_and_join(const char* name, pthread_t tid, void** res){
   if(pthread_cancel(tid)){
-    logerror("couldn't cancel %s thread\n", name); // tid might have died
+    logerror("couldn't cancel %s thread", name); // tid might have died
   }
   if(pthread_join(tid, res)){
-    logerror("error joining %s thread\n", name);
+    logerror("error joining %s thread", name);
     return -1;
   }
   return 0;
@@ -1846,7 +1846,7 @@ cancel_and_join(const char* name, pthread_t tid, void** res){
 
 static inline int
 emit_scrolls(const tinfo* ti, int count, fbuf* f){
-  logdebug("emitting %d scrolls\n", count);
+  logdebug("emitting %d scrolls", count);
   if(count > 1){
     const char* indn = get_escape(ti, ESCAPE_INDN);
     if(indn){

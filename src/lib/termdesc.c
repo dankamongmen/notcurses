@@ -39,7 +39,7 @@ static void
 get_default_geometry(tinfo* ti){
   ti->default_rows = get_default_dimension("LINES", "lines", 24);
   ti->default_cols = get_default_dimension("COLUMNS", "cols", 80);
-  loginfo("default geometry: %d row%s, %d column%s\n",
+  loginfo("default geometry: %d row%s, %d column%s",
           ti->default_rows, ti->default_rows != 1 ? "s" : "",
           ti->default_cols, ti->default_cols != 1 ? "s" : "");
   ti->dimy = ti->default_rows;
@@ -593,7 +593,7 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
     }
   }
   size_t len = strlen(queries);
-  loginfo("sending %lluB\n", (unsigned long long)len);
+  loginfo("sending %lluB", (unsigned long long)len);
   if(blocking_write(fd, queries, len)){
     return -1;
   }
@@ -1069,10 +1069,10 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   ti->qterm = macos_early_matches();
 #elif defined(__MINGW32__)
   if(termtype){
-    logwarn("termtype (%s) ignored on windows\n", termtype);
+    logwarn("termtype (%s) ignored on windows", termtype);
   }
   if(prepare_windows_terminal(ti, &tablelen, &tableused)){
-    logpanic("failed opening Windows ConPTY\n");
+    logpanic("failed opening Windows ConPTY");
     return -1;
   }
 #else
@@ -1091,7 +1091,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       return -1;
     }
     if(tcgetattr(ti->ttyfd, ti->tpreserved)){
-      logpanic("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+      logpanic("couldn't preserve terminal state for %d (%s)", ti->ttyfd, strerror(errno));
       free(ti->tpreserved);
       return -1;
     }
@@ -1113,7 +1113,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   // machines, but they'll use the terminfo installed thereon (putty, etc.).
   int termerr;
   if(setupterm(termtype, ti->ttyfd, &termerr)){
-    logpanic("Terminfo error %d for [%s] (see terminfo(3ncurses))\n",
+    logpanic("terminfo error %d for [%s] (see terminfo(3ncurses))",
              termerr, termtype ? termtype : "");
     goto err;
   }
@@ -1189,7 +1189,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   }
   // verify that the terminal provides cursor addressing (absolute movement)
   if(ti->escindices[ESCAPE_CUP] == 0){
-    logpanic("Required terminfo capability 'cup' not defined\n");
+    logpanic("required terminfo capability 'cup' not defined");
     goto err;
   }
   if(ti->ttyfd >= 0){
@@ -1197,7 +1197,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     const char* smkx = get_escape(ti, ESCAPE_SMKX);
     if(smkx){
       if(tty_emit(tiparm(smkx), ti->ttyfd) < 0){
-        logpanic("Error enabling keypad transmit mode\n");
+        logpanic("error enabling keypad transmit mode");
         goto err;
       }
     }
@@ -1225,7 +1225,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       // if we're not using the standard smcup, our initial hardcoded use of it
       // presumably had no effect; warn the user.
       if(strcmp(smcup, SMCUP)){
-        logwarn("warning: non-standard smcup!\n");
+        logwarn("warning: non-standard smcup!");
       }
     }
   }else{
@@ -1411,18 +1411,18 @@ char* termdesc_longterm(const tinfo* ti){
 int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x){
   const char* u7 = get_escape(ti, ESCAPE_U7);
   if(u7 == NULL){
-    logwarn("No support in terminfo\n");
+    logwarn("no support in terminfo");
     return -1;
   }
   if(ti->ttyfd < 0){
-    logwarn("No valid path for cursor report\n");
+    logwarn("no valid path for cursor report");
     return -1;
   }
   int fd = ti->ttyfd;
   if(get_cursor_location(ti->ictx, u7, cursor_y, cursor_x)){
     return -1;
   }
-  loginfo("got a report from %d %d/%d\n", fd, *cursor_y, *cursor_x);
+  loginfo("got a report from %d %d/%d", fd, *cursor_y, *cursor_x);
   return 0;
 }
 
@@ -1430,11 +1430,11 @@ int tiocgwinsz(int fd, struct winsize* ws){
 #ifndef __MINGW32__
   int i = ioctl(fd, TIOCGWINSZ, ws);
   if(i < 0){
-    logerror("TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
+    logerror("TIOCGWINSZ failed on %d (%s)", fd, strerror(errno));
     return -1;
   }
   if(ws->ws_row <= 0 || ws->ws_col <= 0){
-    logerror("Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
+    logerror("bogon from TIOCGWINSZ on %d (%d/%d)",
              fd, ws->ws_row, ws->ws_col);
     return -1;
   }
@@ -1462,19 +1462,19 @@ int cbreak_mode(tinfo* ti){
   modtermios.c_lflag &= (~ECHO & ~ICANON);
   modtermios.c_iflag &= ~ICRNL;
   if(tcsetattr(ttyfd, TCSANOW, &modtermios)){
-    logerror("Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
+    logerror("error disabling echo / canonical on %d (%s)", ttyfd, strerror(errno));
     return -1;
   }
 #else
   // we don't yet have a way to take Cygwin/MSYS2 out of canonical mode FIXME.
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
-    logerror("error acquiring input mode\n");
+    logerror("error acquiring input mode");
     return -1;
   }
   mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
   if(!SetConsoleMode(ti->inhandle, mode)){
-    logerror("error setting input mode\n");
+    logerror("error setting input mode");
     return -1;
   }
 #endif
@@ -1486,9 +1486,9 @@ int putenv_term(const char* termname){
   #define ENVVAR "TERM"
   const char* oldterm = getenv(ENVVAR);
   if(oldterm){
-    logdebug("replacing %s value %s with %s\n", ENVVAR, oldterm, termname);
+    logdebug("replacing %s value %s with %s", ENVVAR, oldterm, termname);
   }else{
-    loginfo("provided %s value %s\n", ENVVAR, termname);
+    loginfo("provided %s value %s", ENVVAR, termname);
   }
   if(oldterm && strcmp(oldterm, termname) == 0){
     return 0;
@@ -1499,7 +1499,7 @@ int putenv_term(const char* termname){
   }
   int c = putenv(buf);
   if(c){
-    logerror("couldn't export %s\n", buf);
+    logerror("couldn't export %s", buf);
   }
   free(buf);
   return c;

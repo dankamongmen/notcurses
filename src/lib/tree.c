@@ -168,7 +168,7 @@ nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
   unsigned depth = 0;
   while(p[1] != UINT_MAX){ // we know p[0] isn't UINT_MAX
     if(*p >= nii->subcount){
-      logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
+      logerror("invalid path element (%u >= %u)", *p, nii->subcount);
       return -1;
     }
     nii = &nii->subs[*p];
@@ -178,7 +178,7 @@ nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
   // we're at the node into which |add| ought be inserted
   // this last one can be equal to subcount; we're placing it at the end
   if(*p > nii->subcount){
-    logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
+    logerror("invalid path element (%u >= %u)", *p, nii->subcount);
     return -1;
   }
   struct nctree_int_item* tmparr = realloc(nii->subs, sizeof(*nii->subs) * (nii->subcount + 1));
@@ -211,15 +211,15 @@ nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
 int nctree_add(nctree* n, const unsigned* spec, const struct nctree_item* add){
   // it's illegal to pass an empty path for addition; one must pass { 0, UINT_MAX }
   if(spec[0] == UINT_MAX){
-    logerror("invalid empty path\n");
+    logerror("invalid empty path");
     return -1;
   }
   if(add->subs){
-    logerror("invalid subs %p\n", add->subs);
+    logerror("invalid subs %p", add->subs);
     return -1;
   }
   if(add->subcount){
-    logerror("invalid subcount %u\n", add->subcount);
+    logerror("invalid subcount %u", add->subcount);
     return -1;
   }
   if(nctree_add_internal(n, &n->items, spec, add)){
@@ -242,7 +242,7 @@ int nctree_del(nctree* n, const unsigned* spec){
   const unsigned* p = spec;
   while(*p != UINT_MAX){
     if(*p >= nii->subcount){
-      logerror("invalid path element (%u >= %u)\n", *p, nii->subcount);
+      logerror("invalid path element (%u >= %u)", *p, nii->subcount);
       return -1;
     }
     parent = nii;
@@ -267,23 +267,23 @@ int nctree_del(nctree* n, const unsigned* spec){
 
 nctree* nctree_create(ncplane* n, const nctree_options* opts){
   if(opts->flags){
-    logwarn("Passed invalid flags 0x%016" PRIx64 "\n", opts->flags);
+    logwarn("passed invalid flags 0x%016" PRIx64, opts->flags);
   }
   if(n == notcurses_stdplane(ncplane_notcurses(n))){
-    logerror("can't use the standard plane\n");
+    logerror("can't use the standard plane");
     goto error;
   }
   if(opts->nctreecb == NULL){
-    logerror("Can't use NULL callback\n");
+    logerror("can't use NULL callback");
     goto error;
   }
   if(opts->indentcols < 0){
-    logerror("Can't indent negative columns\n");
+    logerror("can't indent negative columns");
     goto error;
   }
   nctree* ret = nctree_inner_create(n, opts);
   if(ret == NULL){
-    logerror("Couldn't prepare nctree\n");
+    logerror("couldn't prepare nctree");
     goto error;
   }
   return ret;

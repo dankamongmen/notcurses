@@ -380,11 +380,11 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     opts = &zeroed;
   }
   if(opts->sectioncount <= 0 || !opts->sections){
-    logerror("Invalid %d-ary section information\n", opts->sectioncount);
+    logerror("invalid %d-ary section information", opts->sectioncount);
     return NULL;
   }
   if(opts->flags >= (NCMENU_OPTION_HIDING << 1u)){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
   unsigned totalheight = 1;
   unsigned totalwidth = 2; // start with two-character margin on the left
@@ -435,7 +435,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     }
     free(ret);
   }
-  logerror("Error creating ncmenu\n");
+  logerror("error creating ncmenu");
   return NULL;
 }
 
@@ -454,7 +454,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   if(sectionidx < 0 || sectionidx >= n->sectioncount){
-    logerror("Unrolled invalid sectionidx %d\n", sectionidx);
+    logerror("unrolled invalid sectionidx %d", sectionidx);
     return -1;
   }
   if(n->sections[sectionidx].enabled_item_count <= 0){

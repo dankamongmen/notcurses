@@ -55,7 +55,7 @@ ncvisual* ncvisual_from_file(const char* filename){
   }
   ncvisual* n = visual_implementation->visual_from_file(filename);
   if(n == NULL){
-    logerror("error loading %s\n", filename);
+    logerror("error loading %s", filename);
   }
   return n;
 }
@@ -68,7 +68,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   }
   int ret = visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
   if(ret < 0){
-    logerror("error streaming media\n");
+    logerror("error streaming media");
   }
   return ret;
 }
@@ -209,7 +209,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
                         unsigned* outy, unsigned* outx,
                         int* placey, int* placex){
   if(ti == NULL && n == NULL){
-    logerror("got NULL for both sources\n");
+    logerror("got NULL for both sources");
     return -1;
   }
   struct ncvisual_options fakevopts;
@@ -219,21 +219,21 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   }
   // check basic vopts preconditions
   if(vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
-    logwarn("warning: unknown ncvisual options %016" PRIx64 "\n", vopts->flags);
+    logwarn("warning: unknown ncvisual options %016" PRIx64, vopts->flags);
   }
   if((vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
-    logerror("requested child plane with NULL n\n");
+    logerror("requested child plane with NULL n");
     return -1;
   }
   if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror("bad x %d for horizontal alignment\n", vopts->x);
+      logerror("bad x %d for horizontal alignment", vopts->x);
       return -1;
     }
   }
   if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
     if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
-      logerror("bad y %d for vertical alignment\n", vopts->y);
+      logerror("bad y %d for vertical alignment", vopts->y);
       return -1;
     }
   }
@@ -249,7 +249,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   // determine our blitter
   *bset = rgba_blitter(ti, vopts);
   if(!*bset){
-    logerror("couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+    logerror("couldn't get a blitter for %d", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
   const ncpile* p = vopts->n ? ncplane_pile_const(vopts->n) : NULL;
@@ -273,13 +273,13 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   geom->leny = vopts->leny;
   *placey = vopts->y;
   *placex = vopts->x;
-  logdebug("vis %ux%u+%ux%u %p\n", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
+  logdebug("vis %ux%u+%ux%u %p", geom->begy, geom->begx, geom->leny, geom->lenx, n->data);
   if(n->data == NULL){
-    logerror("no data in visual\n");
+    logerror("no data in visual");
     return -1;
   }
   if(geom->begx >= n->pixx || geom->begy >= n->pixy){
-    logerror("visual too large %u > %d or %u > %d\n", geom->begy, n->pixy, geom->begx, n->pixx);
+    logerror("visual too large %u > %d or %u > %d", geom->begy, n->pixy, geom->begx, n->pixx);
     return -1;
   }
   if(geom->lenx == 0){ // 0 means "to the end"; use all available source material
@@ -289,11 +289,11 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->leny = n->pixy - geom->begy;
   }
   if(geom->lenx <= 0 || geom->leny <= 0){ // no need to draw zero-size object, exit
-    logerror("zero-size object %d %d\n", geom->leny, geom->lenx);
+    logerror("zero-size object %d %d", geom->leny, geom->lenx);
     return -1;
   }
   if(geom->begx + geom->lenx > n->pixx || geom->begy + geom->leny > n->pixy){
-    logerror("geometry too large %d > %d or %d > %d\n", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
+    logerror("geometry too large %d > %d or %d > %d", geom->begy + geom->leny, n->pixy, geom->begx + geom->lenx, n->pixx);
     return -1;
   }
   if((*bset)->geom == NCBLIT_PIXEL){
@@ -301,37 +301,37 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       // FIXME does this work from direct mode?
       if(vopts->n == notcurses_stdplane_const(ncplane_notcurses_const(vopts->n))){
         if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
-          logerror("won't blit bitmaps to the standard plane\n");
+          logerror("won't blit bitmaps to the standard plane");
           return -1;
         }
       }
       if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-        logerror("non-origin y placement %d for sprixel\n", vopts->y);
+        logerror("non-origin y placement %d for sprixel", vopts->y);
         return -1;
       }
       if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
-        logerror("non-origin x placement %d for sprixel\n", vopts->x);
+        logerror("non-origin x placement %d for sprixel", vopts->x);
         return -1;
       }
       if(vopts->pxoffy >= geom->cdimy){
-        logerror("pixel y-offset %d too tall for cell %d\n", vopts->pxoffy, geom->cdimy);
+        logerror("pixel y-offset %d too tall for cell %d", vopts->pxoffy, geom->cdimy);
         return -1;
       }
       if(vopts->pxoffx >= geom->cdimx){
-        logerror("pixel x-offset %d too wide for cell %d\n", vopts->pxoffx, geom->cdimx);
+        logerror("pixel x-offset %d too wide for cell %d", vopts->pxoffx, geom->cdimx);
         return -1;
       }
       if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
         // FIXME clamp to sprixel limits
         unsigned rows = ((geom->leny + geom->cdimy - 1) / geom->cdimy) + !!vopts->pxoffy;
         if(rows > ncplane_dim_y(vopts->n)){
-          logerror("sprixel too tall %d for plane %d\n", geom->leny + vopts->pxoffy,
+          logerror("sprixel too tall %d for plane %d", geom->leny + vopts->pxoffy,
                    ncplane_dim_y(vopts->n) * geom->cdimy);
           return -1;
         }
         unsigned cols = ((geom->lenx + geom->cdimx - 1) / geom->cdimx) + !!vopts->pxoffx;
         if(cols > ncplane_dim_x(vopts->n)){
-          logerror("sprixel too wide %d for plane %d\n", geom->lenx + vopts->pxoffx,
+          logerror("sprixel too wide %d for plane %d", geom->lenx + vopts->pxoffx,
                    ncplane_dim_x(vopts->n) * geom->cdimx);
           return -1;
         }
@@ -366,7 +366,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
         *disppixx = geom->lenx + vopts->pxoffx;
         *disppixy = geom->leny + vopts->pxoffy;
       }
-      logdebug("pixel prescale: %d %d %d %d\n", n->pixy, n->pixx, *disppixy, *disppixx);
+      logdebug("pixel prescale: %d %d %d %d", n->pixy, n->pixx, *disppixy, *disppixx);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         clamp_to_sixelmax(ti, disppixy, disppixx, outy, scaling);
         scale_visual(n, disppixy, disppixx);
@@ -381,14 +381,14 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
       *disppixx -= vopts->pxoffx;
       *disppixy -= vopts->pxoffy;
     }
-    logdebug("pblit: %dx%d ← %dx%d of %d/%d stride %u @%dx%d %p %u\n", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, geom->cdimx);
+    logdebug("pblit: %dx%d ← %dx%d of %d/%d stride %u @%dx%d %p %u", *disppixy, *disppixx, geom->begy, geom->begx, n->pixy, n->pixx, n->rowstride, *placey, *placex, n->data, geom->cdimx);
     geom->rpixy = *disppixy;
     geom->rpixx = *disppixx;
     geom->rcellx = *outx / geom->cdimx + !!(*outx % geom->cdimx);
     geom->rcelly = *outy / geom->cdimy + !!(*outy % geom->cdimy);
   }else{ // cellblit
     if(vopts->pxoffx || vopts->pxoffy){
-      logerror("pixel offsets cannot be used with cell blitting\n");
+      logerror("pixel offsets cannot be used with cell blitting");
       return -1;
     }
     unsigned dispcols, disprows;
@@ -441,7 +441,7 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     geom->rcellx = dispcols / geom->scalex + !!(dispcols % geom->scalex);
     geom->rcelly = disprows / geom->scaley + !!(disprows % geom->scaley);
   }
-  logdebug("rgeom: %d %d %d %d @ %d/%d (%d on %p)\n", geom->rcelly, geom->rcellx,
+  logdebug("rgeom: %d %d %d %d @ %d/%d (%d on %p)", geom->rcelly, geom->rcellx,
            geom->rpixy, geom->rpixx, *placey, *placex, (*bset)->geom, vopts->n);
   return 0;
 }
@@ -714,13 +714,13 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   int bboffy = 0;
   int bboffx = 0;
   if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
-    logerror("Couldn't find a bounding box\n");
+    logerror("couldn't find a bounding box");
     return -1;
   }
   int bbarea;
   bbarea = rotate_bounding_box(stheta, ctheta, &bby, &bbx, &bboffy, &bboffx);
   if(bbarea <= 0){
-    logerror("Couldn't rotate the visual (%d, %d, %d, %d)\n", bby, bbx, bboffy, bboffx);
+    logerror("couldn't rotate the visual (%d, %d, %d, %d)", bby, bbx, bboffy, bboffx);
     return -1;
   }
   int bbcentx = bbx, bbcenty = bby;
@@ -772,7 +772,7 @@ pad_for_image(size_t stride, int cols){
 
 ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
-    logerror("Rowstride %d not a multiple of 4\n", rowstride);
+    logerror("rowstride %d not a multiple of 4", rowstride);
     return NULL;
   }
   ncvisual* ncv = ncvisual_create();
@@ -832,7 +832,7 @@ ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
 ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
                                   int cols, int alpha){
   if(rowstride % 4){
-    logerror("Rowstride %d not a multiple of 4\n", rowstride);
+    logerror("rowstride %d not a multiple of 4", rowstride);
     return NULL;
   }
   ncvisual* ncv = ncvisual_create();
@@ -894,11 +894,11 @@ ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
                                int cols, int palsize, int pstride,
                                const uint32_t* palette){
   if(rowstride % pstride){
-    logerror("bad pstride (%d) for rowstride (%d)\n", pstride, rowstride);
+    logerror("bad pstride (%d) for rowstride (%d)", pstride, rowstride);
     return NULL;
   }
   if(palsize > 256 || palsize <= 0){
-    logerror("palettes size (%d) is unsupported\n", palsize);
+    logerror("palettes size (%d) is unsupported", palsize);
     return NULL;
   }
   ncvisual* ncv = ncvisual_create();
@@ -917,7 +917,7 @@ ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
         if(palidx >= palsize){
           free(data);
           ncvisual_destroy(ncv);
-          logerror("invalid palette idx %d >= %d\n", palidx, palsize);
+          logerror("invalid palette idx %d >= %d", palidx, palsize);
           return NULL;
         }
         uint32_t src = palette[palidx];
@@ -975,7 +975,7 @@ ncplane* ncvisual_render_cells(ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex,
                                ncvgeom* geom, ncplane* n,
                                uint64_t flags, uint32_t transcolor){
-  logdebug("cblit: rows/cols: %dx%d plane: %d/%d pix: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n), geom->rpixy, geom->rpixx);
+  logdebug("cblit: rows/cols: %dx%d plane: %d/%d pix: %d/%d", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n), geom->rpixy, geom->rpixx);
   blitterargs bargs;
   bargs.transcolor = transcolor;
   bargs.begy = geom->begy;
@@ -1012,7 +1012,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
                                 int placey, int placex, const ncvgeom* geom,
                                 ncplane* n, uint64_t flags, uint32_t transcolor,
                                 int pxoffy, int pxoffx){
-  logdebug("pblit: rows/cols: %dx%d plane: %d/%d\n", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
+  logdebug("pblit: rows/cols: %dx%d plane: %d/%d", geom->rcelly, geom->rcellx, ncplane_dim_y(n), ncplane_dim_x(n));
   const tinfo* ti = &nc->tcache;
   blitterargs bargs;
   bargs.transcolor = transcolor;
@@ -1101,7 +1101,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     memset(&fakevopts, 0, sizeof(fakevopts));
     vopts = &fakevopts;
   }
-  loginfo("inblit %dx%d %d@%d %dx%d @ %dx%d %p\n", ncv->pixy, ncv->pixx, vopts->y, vopts->x,
+  loginfo("inblit %dx%d %d@%d %dx%d @ %dx%d %p", ncv->pixy, ncv->pixx, vopts->y, vopts->x,
           vopts->leny, vopts->lenx, vopts->begy, vopts->begx, vopts->n);
   ncvgeom geom;
   const struct blitset* bset;
@@ -1138,7 +1138,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
       nopts.y = vopts->y;
     }
-    loginfo("placing new plane: %d/%d @ %d/%d 0x%016" PRIx64 "\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
+    loginfo("placing new plane: %d/%d @ %d/%d 0x%016" PRIx64, nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
     if(n == NULL){
       n = ncpile_create(nc, &nopts);
     }else{
@@ -1150,7 +1150,7 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
     placey = 0;
     placex = 0;
   }
-  logdebug("blit to plane %p at %d/%d geom %dx%d\n", n, ncplane_abs_y(n), ncplane_abs_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
+  logdebug("blit to plane %p at %d/%d geom %dx%d", n, ncplane_abs_y(n), ncplane_abs_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
   if(geom.blitter != NCBLIT_PIXEL){
     n = ncvisual_render_cells(ncv, bset, placey, placex,
                               &geom, n, vopts->flags, transcolor);
@@ -1219,11 +1219,11 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
 
 int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x, uint32_t pixel){
   if(y >= n->pixy){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   if(x >= n->pixx){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   n->data[y * (n->rowstride / 4) + x] = pixel;
@@ -1232,11 +1232,11 @@ int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x, uint32_t p
 
 int ncvisual_at_yx(const ncvisual* n, unsigned y, unsigned x, uint32_t* pixel){
   if(y >= n->pixy){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   if(x >= n->pixx){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   *pixel = n->data[y * (n->rowstride / 4) + x];
@@ -1304,11 +1304,11 @@ err:
 
 int ncvisual_polyfill_yx(ncvisual* n, unsigned y, unsigned x, uint32_t rgba){
   if(y >= n->pixy){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   if(x >= n->pixx){
-    logerror("invalid coordinates %u/%u\n", y, x);
+    logerror("invalid coordinates %u/%u", y, x);
     return -1;
   }
   uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];

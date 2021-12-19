@@ -29,7 +29,7 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
     opts = &zeroed;
   }
   if(opts->flags > NCREADER_OPTION_CURSOR){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr == NULL){
@@ -216,7 +216,7 @@ int ncreader_move_down(ncreader* n){
 int ncreader_write_egc(ncreader* n, const char* egc){
   const int cols = ncstrwidth(egc, NULL, NULL);
   if(cols < 0){
-    logerror("Fed illegal UTF-8 [%s]\n", egc);
+    logerror("fed illegal UTF-8 [%s]", egc);
     return -1;
   }
   if(n->textarea->x >= n->textarea->lenx - cols){

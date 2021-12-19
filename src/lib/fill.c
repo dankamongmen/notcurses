@@ -80,7 +80,7 @@ err:
 int ncplane_polyfill_yx(ncplane* n, int ystart, int xstart, const nccell* c){
   if(ystart < 0){
     if(ystart != -1){
-      logerror("invalid y: %d\n", ystart);
+      logerror("invalid y: %d", ystart);
       return -1;
     }
     ystart = n->y;
@@ -88,14 +88,14 @@ int ncplane_polyfill_yx(ncplane* n, int ystart, int xstart, const nccell* c){
   unsigned y = ystart;
   if(xstart < 0){
     if(xstart != -1){
-      logerror("invalid x: %d\n", xstart);
+      logerror("invalid x: %d", xstart);
       return -1;
     }
     xstart = n->x;
   }
   unsigned x = xstart;
   if(y >= n->leny || x >= n->lenx){
-    logerror("invalid start: %u/%u (%u/%u)\n", y, x, n->leny, n->lenx);
+    logerror("invalid start: %u/%u (%u/%u)", y, x, n->leny, n->lenx);
     return -1;
   }
   const nccell* cur = &n->fb[nfbcellidx(n, y, x)];
@@ -122,19 +122,19 @@ check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
      ncchannel_default_p(bl) || ncchannel_default_p(br)){
     if(!(ncchannel_default_p(ul) && ncchannel_default_p(ur) &&
          ncchannel_default_p(bl) && ncchannel_default_p(br))){
-      logerror("some (not all) channels were defaults\n");
+      logerror("some (not all) channels were defaults");
       return true;
     }
   }
   if(ncchannel_alpha(ul) != ncchannel_alpha(ur) ||
      ncchannel_alpha(ur) != ncchannel_alpha(bl) ||
      ncchannel_alpha(bl) != ncchannel_alpha(br)){
-    logerror("channel alphas didn't match\n");
+    logerror("channel alphas didn't match");
     return true;
   }
   if(ncchannel_palindex_p(ul) || ncchannel_palindex_p(bl) ||
      ncchannel_palindex_p(br) || ncchannel_palindex_p(ur)){
-    logerror("can't blend palette-indexed color\n");
+    logerror("can't blend palette-indexed color");
     return true;
   }
   return false;
@@ -179,7 +179,7 @@ calc_highgradient(nccell* c, uint32_t ul, uint32_t ur, uint32_t ll,
 int ncplane_gradient2x1(ncplane* n, int y, int x, unsigned ylen, unsigned xlen,
                         uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr){
   if(!notcurses_canutf8(ncplane_notcurses(n))){
-    logerror("highdef gradients require utf8\n");
+    logerror("highdef gradients require utf8");
     return -1;
   }
   if(check_gradient_channel_args(ul, ur, ll, lr)){
@@ -191,7 +191,7 @@ int ncplane_gradient2x1(ncplane* n, int y, int x, unsigned ylen, unsigned xlen,
   }
   if(xlen == 1){
     if(ul != ur || ll != lr){
-      logerror("horizontal channel variation in single column\n");
+      logerror("horizontal channel variation in single column");
       return -1;
     }
   }
@@ -237,18 +237,18 @@ int ncplane_gradient(ncplane* n, int y, int x, unsigned ylen, unsigned xlen,
   if(ylen == 1){
     if(xlen == 1){
       if(ul != ur || ur != br || br != bl){
-        logerror("channel variation in 1x1 area\n");
+        logerror("channel variation in 1x1 area");
         return -1;
       }
     }else{
       if(ul != bl || ur != br){
-        logerror("vertical channel variation in single row\n");
+        logerror("vertical channel variation in single row");
         return -1;
       }
     }
   }else if(xlen == 1){
     if(ul != ur || bl != br){
-      logerror("horizontal channel variation in single column\n");
+      logerror("horizontal channel variation in single column");
       return -1;
     }
   }
@@ -327,7 +327,7 @@ rotate_channels(ncplane* src, const nccell* c, uint32_t* fchan, uint32_t* bchan)
     *bchan = *fchan;
     return 0;
   }
-  logerror("Invalid EGC for rotation [%s]\n", egc);
+  logerror("invalid EGC for rotation [%s]", egc);
   return -1;
 }
 

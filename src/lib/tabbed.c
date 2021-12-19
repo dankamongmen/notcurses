@@ -93,10 +93,10 @@ void nctabbed_ensure_selected_header_visible(nctabbed* nt){
 static bool
 nctabbed_validate_opts(const nctabbed_options* opts){
   if(opts->flags > NCTABBED_OPTION_BOTTOM){
-    logwarn("Provided unsupported flags 0x%016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags 0x%016" PRIx64, opts->flags);
   }
   if(opts->sepchan && !opts->separator){
-    logwarn("Provided non-zero separator channel when separator is NULL")
+    logwarn("provided non-zero separator channel when separator is NULL")
   }
   return true;
 }
@@ -235,7 +235,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
   nctab* t;
   if(after && before){
     if(after->next != before || before->prev != after){
-      logerror("bad before (%p) / after (%p) spec\n", before, after);
+      logerror("bad before (%p) / after (%p) spec", before, after);
       return NULL;
     }
   }else if(!after && !before){
@@ -305,11 +305,11 @@ int nctabbed_del(nctabbed* nt, nctab* t){
 int nctab_move(nctabbed* nt __attribute__ ((unused)), nctab* t, nctab* after, nctab* before){
   if(after && before){
     if(after->prev != before || before->next != after){
-      logerror("bad before (%p) / after (%p) spec\n", before, after);
+      logerror("bad before (%p) / after (%p) spec", before, after);
       return -1;
     }
   }else if(!after && !before){
-    logerror("bad before (%p) / after (%p) spec\n", before, after);
+    logerror("bad before (%p) / after (%p) spec", before, after);
     return -1;
   }
   // bad things would happen
