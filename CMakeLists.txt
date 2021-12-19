@@ -971,6 +971,10 @@ configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
 )
+configure_file(tools/notcurses-ffi.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses-ffi.pc
+  @ONLY
+)
 configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
@@ -1040,6 +1044,11 @@ install(FILES
 )
 
 install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses-ffi.pc
+  DESTINATION ${PKGCONFIG_DIR}
+)
+
+install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   DESTINATION ${PKGCONFIG_DIR}
 )
@@ -1075,7 +1084,7 @@ endif()
 endif()
 endif() # BUILD_EXECUTABLES
 
-LIST(APPEND INSTLIBS notcurses-core notcurses)
+LIST(APPEND INSTLIBS notcurses-core notcurses notcurses-ffi)
 if(${USE_STATIC})
 LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
 endif()
