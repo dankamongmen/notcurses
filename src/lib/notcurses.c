@@ -1496,11 +1496,11 @@ int ncplane_set_bg_alpha(ncplane *n, int alpha){
   return ncchannels_set_bg_alpha(&n->channels, alpha);
 }
 
-int ncplane_set_fg_palindex(ncplane* n, int idx){
+int ncplane_set_fg_palindex(ncplane* n, unsigned idx){
   return ncchannels_set_fg_palindex(&n->channels, idx);
 }
 
-int ncplane_set_bg_palindex(ncplane* n, int idx){
+int ncplane_set_bg_palindex(ncplane* n, unsigned idx){
   return ncchannels_set_bg_palindex(&n->channels, idx);
 }
 

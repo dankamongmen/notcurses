@@ -79,15 +79,15 @@ notcurses_channels - operations on notcurses channels
 
 **bool ncchannel_palindex_p(uint32_t ***channel***);**
 
-**int ncchannel_set_palindex(uint32_t* ***channel***, int ***idx***);**
+**int ncchannel_set_palindex(uint32_t* ***channel***, unsigned ***idx***);**
 
 **unsigned ncchannels_fg_palindex(uint64_t ***channels***);**
 
 **unsigned ncchannels_bg_palindex(uint64_t ***channels***);**
 
-**int ncchannels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
+**int ncchannels_set_fg_palindex(uint64_t* ***channels***, unsigned ***idx***);**
 
-**int ncchannels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
+**int ncchannels_set_bg_palindex(uint64_t* ***channels***, unsigned ***idx***);**
 
 **uint64_t ncchannels_combine(uint32_t ***fchan***, uint32_t ***bchan***);**
 

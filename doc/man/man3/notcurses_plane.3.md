@@ -183,9 +183,9 @@ typedef struct ncplane_options {
 
 **int ncplane_set_bg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
 
-**int ncplane_set_fg_palindex(struct ncplane* ***n***, int ***idx***);**
+**int ncplane_set_fg_palindex(struct ncplane* ***n***, unsigned ***idx***);**
 
-**int ncplane_set_bg_palindex(struct ncplane* ***n***, int ***idx***);**
+**int ncplane_set_bg_palindex(struct ncplane* ***n***, unsigned ***idx***);**
 
 **uint16_t ncplane_styles(const struct ncplane* ***n***);**
 

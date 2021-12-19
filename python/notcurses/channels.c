@@ -166,9 +166,9 @@ static PyObject *
 python_ncchannel_set_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long ncchannel = {0};
-    int idx = {0};
+    unsigned int idx = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ki", &ncchannel, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kI", &ncchannel, &idx));
 
     uint32_t ncchannel_fixed_size = (uint32_t)ncchannel;
 
@@ -398,9 +398,9 @@ static PyObject *
 python_ncchannels_set_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long ncchannels = {0};
-    int idx = {0};
+    unsigned int idx = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Ki", &ncchannels, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &ncchannels, &idx));
 
     uint64_t ncchannels_fixed_size = (uint64_t)ncchannels;
 
@@ -473,9 +473,9 @@ static PyObject *
 python_ncchannels_set_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long ncchannels = {0};
-    int idx = {0};
+    unsigned int idx = {0};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Ki", &ncchannels, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &ncchannels, &idx));
 
     uint64_t ncchannels_fixed_size = (uint64_t)ncchannels;
 

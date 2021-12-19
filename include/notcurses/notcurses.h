@@ -182,10 +182,10 @@ ncchannel_palindex(uint32_t channel){
 }
 
 // Mark the channel as using the specified palette color. It is an error if
-// the index is negative, or greater than NCPALETTESIZE. Alpha is set opaque.
+// the index is greater than NCPALETTESIZE. Alpha is set opaque.
 static inline int
-ncchannel_set_palindex(uint32_t* channel, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
+ncchannel_set_palindex(uint32_t* channel, unsigned idx){
+  if(idx >= NCPALETTESIZE){
     return -1;
   }
   ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
@@ -453,7 +453,7 @@ ncchannels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
 }
 
 static inline int
-ncchannels_set_fg_palindex(uint64_t* channels, int idx){
+ncchannels_set_fg_palindex(uint64_t* channels, unsigned idx){
   uint32_t channel = ncchannels_fchannel(*channels);
   if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
@@ -496,7 +496,7 @@ ncchannels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
-ncchannels_set_bg_palindex(uint64_t* channels, int idx){
+ncchannels_set_bg_palindex(uint64_t* channels, unsigned idx){
   uint32_t channel = ncchannels_bchannel(*channels);
   if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
@@ -2679,7 +2679,7 @@ nccell_set_fg_rgb(nccell* c, uint32_t channel){
 // Set the cell's foreground palette index, set the foreground palette index
 // bit, set it foreground-opaque, and clear the foreground default color bit.
 static inline int
-nccell_set_fg_palindex(nccell* cl, int idx){
+nccell_set_fg_palindex(nccell* cl, unsigned idx){
   return ncchannels_set_fg_palindex(&cl->channels, idx);
 }
 
@@ -2843,8 +2843,8 @@ API void ncplane_set_bg_default(struct ncplane* n);
 
 // Set the ncplane's foreground palette index, set the foreground palette index
 // bit, set it foreground-opaque, and clear the foreground default color bit.
-API int ncplane_set_fg_palindex(struct ncplane* n, int idx);
-API int ncplane_set_bg_palindex(struct ncplane* n, int idx);
+API int ncplane_set_fg_palindex(struct ncplane* n, unsigned idx);
+API int ncplane_set_bg_palindex(struct ncplane* n, unsigned idx);
 
 // Set the alpha parameters for ncplane 'n'.
 API int ncplane_set_fg_alpha(struct ncplane* n, int alpha);
@@ -3468,16 +3468,13 @@ ncpixel_set_b(uint32_t* pixel, unsigned b){
 
 // Construct a libav-compatible ABGR pixel, clipping at [0, 255).
 static inline uint32_t
-ncpixel(int r, int g, int b){
+ncpixel(unsigned r, unsigned g, unsigned b){
   uint32_t pixel = 0;
   ncpixel_set_a(&pixel, 0xff);
-  if(r < 0) r = 0;
   if(r > 255) r = 255;
   ncpixel_set_r(&pixel, r);
-  if(g < 0) g = 0;
   if(g > 255) g = 255;
   ncpixel_set_g(&pixel, g);
-  if(b < 0) b = 0;
   if(b > 255) b = 255;
   ncpixel_set_b(&pixel, b);
   return pixel;
