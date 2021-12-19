@@ -179,7 +179,7 @@ usage(const char* exe, int status){
       }
       // U+24D0: CIRCLED LATIN SMALL LETTER A
       ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x80);
-      ncplane_printf(n, "%lc ", *demos[i].name - 'a' + 0x24d0);
+      ncplane_printf(n, "%lc ", (wint_t)(*demos[i].name - 'a' + 0x24d0));
       ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
       ncplane_printf(n, "%-*.*s", 8, 8, demos[i].name + 1);
       if(++printed % 5 == 0){
