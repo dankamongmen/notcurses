@@ -78,7 +78,7 @@ int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette){
   int ret = 0;
   const char* esc;
   if((esc = get_escape(ti, ESCAPE_RESTORECOLORS))){
-    loginfo("restoring palette via xtpopcolors\n");
+    loginfo("restoring palette via xtpopcolors");
     if(fbuf_emit(f, esc)){
       ret = -1;
     }
@@ -88,7 +88,7 @@ int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette){
     return 0;
   }
   if(ti->caps.can_change_colors && ti->maxpaletteread > -1){
-    loginfo("restoring saved palette (%d)\n", ti->maxpaletteread + 1);
+    loginfo("restoring saved palette (%d)", ti->maxpaletteread + 1);
     esc = get_escape(ti, ESCAPE_INITC);
     for(int z = 0 ; z < ti->maxpaletteread ; ++z){
       unsigned r, g, b;
@@ -102,12 +102,12 @@ int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette){
       }
     }
   }else if((esc = get_escape(ti, ESCAPE_OC))){
-    loginfo("resetting palette\n");
+    loginfo("resetting palette");
     if(fbuf_emit(f, esc)){
       ret = -1;
     }
   }else{
-    logwarn("no method known to restore palette\n");
+    logwarn("no method known to restore palette");
   }
   return ret;
 }
@@ -169,7 +169,7 @@ notcurses_stop_minimal(void* vnc){
       }
     }
   }
-  logdebug("restored terminal, returning %d\n", ret);
+  logdebug("restored terminal, returning %d", ret);
   return ret;
 }
 
@@ -213,20 +213,20 @@ char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
   if(y < 0){
     if(y != -1){
-      logerror("invalid y: %d\n", y);
+      logerror("invalid y: %d", y);
       return NULL;
     }
     y = n->y;
   }
   if(x < 0){
     if(x != -1){
-      logerror("invalid x: %d\n", x);
+      logerror("invalid x: %d", x);
       return NULL;
     }
     x = n->x;
   }
   if((unsigned)y >= n->leny || (unsigned)x >= n->lenx){
-    logerror("invalid coordinates: %d/%d\n", y, x);
+    logerror("invalid coordinates: %d/%d", y, x);
     return NULL;
   }
   const nccell* yx = &n->fb[nfbcellidx(n, y, x)];
@@ -260,20 +260,20 @@ int ncplane_at_cursor_cell(ncplane* n, nccell* c){
 int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
   if(y < 0){
     if(y != -1){
-      logerror("invalid y: %d\n", y);
+      logerror("invalid y: %d", y);
       return -1;
     }
     y = n->y;
   }
   if(x < 0){
     if(x != -1){
-      logerror("invalid x: %d\n", x);
+      logerror("invalid x: %d", x);
       return -1;
     }
     x = n->x;
   }
   if((unsigned)y >= n->leny || (unsigned)x >= n->lenx){
-    logerror("invalid coordinates: %d/%d\n", y, x);
+    logerror("invalid coordinates: %d/%d", y, x);
     return -1;
   }
   nccell* targ = ncplane_cell_ref_yx(n, y, x);
@@ -467,9 +467,9 @@ void free_plane(ncplane* p){
       void (*wdestruct)(void*) = p->wdestruct;
       p->widget = NULL;
       p->wdestruct = NULL;
-      logdebug("calling widget destructor %p(%p)\n", wdestruct, w);
+      logdebug("calling widget destructor %p(%p)", wdestruct, w);
       wdestruct(w);
-      logdebug("got the widget\n");
+      logdebug("got the widget");
     }
     if(p->sprite){
       sprixel_hide(p->sprite);
@@ -533,22 +533,22 @@ make_ncpile(notcurses* nc, ncplane* n){
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
   if(nopts->flags >= (NCPLANE_OPTION_FIXED << 1u)){
-    logwarn("provided unsupported flags %016" PRIx64 "\n", nopts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, nopts->flags);
   }
   if(nopts->flags & NCPLANE_OPTION_HORALIGNED || nopts->flags & NCPLANE_OPTION_VERALIGNED){
     if(n == NULL){
-      logerror("alignment requires a parent plane\n");
+      logerror("alignment requires a parent plane");
       return NULL;
     }
   }
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     if(nopts->rows != 0 || nopts->cols != 0){
-      logerror("geometry specified with margins (r=%d, c=%d)\n",
+      logerror("geometry specified with margins (r=%d, c=%d)",
                nopts->rows, nopts->cols);
       return NULL;
     }
   }else if(nopts->rows <= 0 || nopts->cols <= 0){
-    logerror("won't create denormalized plane (r=%d, c=%d)\n",
+    logerror("won't create denormalized plane (r=%d, c=%d)",
              nopts->rows, nopts->cols);
     return NULL;
   }
@@ -582,7 +582,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   size_t fbsize = sizeof(*p->fb) * (p->leny * p->lenx);
   if((p->fb = malloc(fbsize)) == NULL){
-    logerror("error allocating cellmatrix (r=%d, c=%d)\n",
+    logerror("error allocating cellmatrix (r=%d, c=%d)",
              p->leny, p->lenx);
     free(p);
     return NULL;
@@ -655,7 +655,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
       pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
-  loginfo("created new %dx%d plane \"%s\" @ %dx%d\n",
+  loginfo("created new %dx%d plane \"%s\" @ %dx%d",
           p->leny, p->lenx, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
@@ -700,28 +700,28 @@ void ncplane_home(ncplane* n){
 int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x < 0){
     if(x < -1){
-      logerror("negative target x %d\n", x);
+      logerror("negative target x %d", x);
       return -1;
     }
   }else if((unsigned)x >= n->lenx){
-    logerror("target x %d >= width %u\n", x, n->lenx);
+    logerror("target x %d >= width %u", x, n->lenx);
     return -1;
   }else{
     n->x = x;
   }
   if(y < 0){
     if(y < -1){
-      logerror("negative target y %d\n", y);
+      logerror("negative target y %d", y);
       return -1;
     }
   }else if((unsigned)y >= n->leny){
-    logerror("target y %d >= height %u\n", y, n->leny);
+    logerror("target y %d >= height %u", y, n->leny);
     return -1;
   }else{
     n->y = y;
   }
   if(cursor_invalid_p(n)){
-    logerror("invalid cursor following move (%d/%d)\n", n->y, n->x);
+    logerror("invalid cursor following move (%d/%d)", n->y, n->x);
     return -1;
   }
   return 0;
@@ -729,10 +729,10 @@ int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 
 int ncplane_cursor_move_rel(ncplane* n, int y, int x){
   if((int)n->y + y == -1){
-    logerror("invalid target y -1\n");
+    logerror("invalid target y -1");
     return -1;
   }else if((int)n->x + x == -1){
-    logerror("invalid target x -1\n");
+    logerror("invalid target x -1");
     return -1;
   }else return ncplane_cursor_move_yx(n, n->y + y, n->x + x);
 }
@@ -794,37 +794,37 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int yoff, int xoff,
                             unsigned ylen, unsigned xlen){
   if(keepy < 0 || keepx < 0){ // can't start at negative origin
-    logerror("can't retain negative offset %dx%d\n", keepy, keepx);
+    logerror("can't retain negative offset %dx%d", keepy, keepx);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    logerror("can't retain null dimension %dx%d\n", keepleny, keeplenx);
+    logerror("can't retain null dimension %dx%d", keepleny, keeplenx);
     return -1;
   }
   // can't be smaller than keep length
   if(ylen < keepleny){
-    logerror("can't map in y dimension: %u < %d\n", ylen, keepleny);
+    logerror("can't map in y dimension: %u < %d", ylen, keepleny);
     return -1;
   }
   if(xlen < keeplenx){
-    logerror("can't map in x dimension: %u < %d\n", xlen, keeplenx);
+    logerror("can't map in x dimension: %u < %d", xlen, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror("can't achieve meaningless size %ux%u\n", ylen, xlen);
+    logerror("can't achieve meaningless size %ux%u", ylen, xlen);
     return -1;
   }
   unsigned rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   if(keepleny + keepy > rows){
-    logerror("can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
+    logerror("can't keep %d@%d rows from %d", keepleny, keepy, rows);
     return -1;
   }
   if(keeplenx + keepx > cols){
-    logerror("can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
+    logerror("can't keep %d@%d cols from %d", keeplenx, keepx, cols);
     return -1;
   }
-  loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
       rows == ylen && cols == xlen){
     return 0;
@@ -879,7 +879,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
     }
   }
   if(n->tam){
-    loginfo("TAM realloc to %d entries\n", newarea);
+    loginfo("tam realloc to %d entries", newarea);
     // FIXME first, free any disposed auxiliary vectors!
     tament* tmptam = realloc(n->tam, sizeof(*tmptam) * newarea);
     if(tmptam == NULL){
@@ -984,11 +984,11 @@ int ncplane_destroy(ncplane* ncp){
     return 0;
   }
   if(ncplane_notcurses(ncp)->stdplane == ncp){
-    logerror("Won't destroy standard plane\n");
+    logerror("won't destroy standard plane");
     return -1;
   }
 //notcurses_debug(ncplane_notcurses(ncp), stderr);
-  loginfo("Destroying %dx%d plane \"%s\" @ %dx%d\n",
+  loginfo("destroying %dx%d plane \"%s\" @ %dx%d",
           ncp->leny, ncp->lenx, ncp->name ? ncp->name : NULL, ncp->absy, ncp->absx);
   int ret = 0;
   // dissolve our binding from behind (->bprev is either NULL, or its
@@ -1034,7 +1034,7 @@ int ncplane_destroy_family(ncplane *ncp){
     return 0;
   }
   if(ncplane_notcurses(ncp)->stdplane == ncp){
-    logerror("Won't destroy standard plane\n");
+    logerror("won't destroy standard plane");
     return -1;
   }
   int ret = 0;
@@ -1059,7 +1059,7 @@ void init_lang(void){
   char* setret;
 #ifdef __MINGW32__
   if((setret = setlocale(LC_ALL, ".UTF8")) == NULL){
-    logwarn("couldn't set LC_ALL to utf8\n");
+    logwarn("couldn't set LC_ALL to utf8");
   }
 #endif
   const char* encoding = nl_langinfo(CODESET);
@@ -1069,23 +1069,23 @@ void init_lang(void){
   const char* lang = getenv("LANG");
   // if LANG was explicitly set to C/POSIX, life sucks, roll with it
   if(lang && (!strcmp(lang, "C") || !strcmp(lang, "POSIX"))){
-    loginfo("LANG was explicitly set to %s, not changing locale\n", lang);
+    loginfo("LANG was explicitly set to %s, not changing locale", lang);
     return;
   }
 #ifndef __MINGW32__
   if((setret = setlocale(LC_ALL, "")) == NULL){
-    logwarn("setting locale based on LANG failed\n");
+    logwarn("setting locale based on LANG failed");
   }
 #endif
   encoding = nl_langinfo(CODESET);
   if(encoding && !strcmp(encoding, "UTF-8")){
-    loginfo("Set locale from LANG; client should call setlocale(2)!\n");
+    loginfo("set locale from LANG; client should call setlocale(2)!");
     return;
   }
   setlocale(LC_CTYPE, "C.UTF-8");
   encoding = nl_langinfo(CODESET);
   if(encoding && !strcmp(encoding, "UTF-8")){
-    loginfo("Forced UTF-8 encoding; client should call setlocale(2)!\n");
+    loginfo("forced UTF-8 encoding; client should call setlocale(2)!");
     return;
   }
 }
@@ -1131,7 +1131,7 @@ ncpixelimpl_e notcurses_check_pixel_support(const notcurses* nc){
 __attribute__ ((nonnull (2))) static notcurses*
 notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* utf8){
   if(fwide(fp, 0) > 0){
-    fprintf(stderr, "Error: output stream is wide-oriented\n");
+    fprintf(stderr, "error: output stream is wide-oriented");
     return NULL;
   }
   notcurses* ret = malloc(sizeof(*ret));
@@ -1141,7 +1141,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
   memset(ret, 0, sizeof(*ret));
   if(opts){
     if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
-      fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
+      fprintf(stderr, "warning: unknown Notcurses options %016" PRIu64, opts->flags);
     }
     if(opts->termtype){
       if(putenv_term(opts->termtype)){
@@ -1169,7 +1169,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     if(encoding && (strcmp(encoding, "ANSI_X3.4-1968") &&
                           strcmp(encoding, "US-ASCII") &&
                           strcmp(encoding, "ASCII"))){
-      fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
+      fprintf(stderr, "encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n did you call setlocale()?\n",
               encoding ? encoding : "none found");
       free(ret);
       return NULL;
@@ -1181,12 +1181,12 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
   ret->ttyfp = fp;
   egcpool_init(&ret->pool);
   if(ret->loglevel > NCLOGLEVEL_TRACE || ret->loglevel < NCLOGLEVEL_SILENT){
-    fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
+    fprintf(stderr, "invalid loglevel %d", ret->loglevel);
     free(ret);
     return NULL;
   }
   if(recursive_lock_init(&ret->pilelock)){
-    fprintf(stderr, "Couldn't initialize pile mutex\n");
+    fprintf(stderr, "couldn't initialize pile mutex");
     free(ret);
     return NULL;
   }
@@ -1263,7 +1263,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     if(*cursory < 0 || *cursorx < 0){
       unsigned cy, cx;
       if(locate_cursor(&ret->tcache, &cy, &cx)){
-        logwarn("couldn't preserve cursor\n");
+        logwarn("couldn't preserve cursor");
       }else{
         *cursory = cy;
         *cursorx = cx;
@@ -1284,7 +1284,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
-    logpanic("Couldn't create the initial plane (bad margins?)\n");
+    logpanic("couldn't create the initial plane (bad margins?)");
     goto err;
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
@@ -1342,7 +1342,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   return ret;
 
 err:
-  logpanic("Alas, you will not be going to space today.\n");
+  logpanic("alas, you will not be going to space today.");
   notcurses_stop_minimal(ret);
   fbuf_free(&ret->rstate.f);
   if(ret->tcache.ttyfd >= 0 && ret->tcache.tpreserved){
@@ -1365,7 +1365,7 @@ ncpile_drop(notcurses* nc, ncpile** pile){
   ncplane* p = (*pile)->top;
   while(p){
     ncplane* tmp = p->below;
-    logdebug("killing plane %p, next is %p\n", p, tmp);
+    logdebug("killing plane %p, next is %p", p, tmp);
     if(nc->stdplane != p){
       free_plane(p);
     }else{
@@ -1384,7 +1384,7 @@ ncpile_drop(notcurses* nc, ncpile** pile){
 
 // drop all piles and all planes, save the standard plane and its pile
 void notcurses_drop_planes(notcurses* nc){
-  logdebug("we have some planes\n");
+  logdebug("we have some planes");
   pthread_mutex_lock(&nc->pilelock);
   ncpile* p = ncplane_pile(nc->stdplane);
   ncpile* p0 = p;
@@ -1392,11 +1392,11 @@ void notcurses_drop_planes(notcurses* nc){
     ncpile_drop(nc, &p);
   }while(p0 != p);
   pthread_mutex_unlock(&nc->pilelock);
-  logdebug("all planes dropped\n");
+  logdebug("all planes dropped");
 }
 
 int notcurses_stop(notcurses* nc){
-  logdebug("stopping notcurses\n");
+  logdebug("stopping notcurses");
 //notcurses_debug(nc, stderr);
   int ret = 0;
   if(nc){
@@ -1412,9 +1412,7 @@ int notcurses_stop(notcurses* nc){
     }
     if(nc->stdplane){
       notcurses_drop_planes(nc);
-      logdebug("say goodbye to the standard plane\n");
       free_plane(nc->stdplane);
-      logdebug("get outta here\n");
     }
     if(nc->tcache.ttyfd >= 0){
       ret |= close(nc->tcache.ttyfd);
@@ -1738,11 +1736,11 @@ void scroll_down(ncplane* n){
 
 int ncplane_scrollup(ncplane* n, int r){
   if(!ncplane_scrolling_p(n)){
-    logerror("can't scroll %d on non-scrolling plane\n", r);
+    logerror("can't scroll %d on non-scrolling plane", r);
     return -1;
   }
   if(r < 0){
-    logerror("can't scroll %d lines\n", r);
+    logerror("can't scroll %d lines", r);
     return -1;
   }
   while(r-- > 0){
@@ -1756,11 +1754,11 @@ int ncplane_scrollup(ncplane* n, int r){
 // is fixed. Returns the number of scrolling events otherwise (might be 0).
 int ncplane_scrollup_child(ncplane* n, const ncplane* child){
   if(ncplane_parent_const(child) != n){
-    logerror("not a child of specified plane\n");
+    logerror("not a child of specified plane");
     return -1;
   }
   if(child->fixedbound){
-    logerror("child plane is fixed\n");
+    logerror("child plane is fixed");
     return -1;
   }
   int parend = ncplane_abs_y(n) + ncplane_dim_y(n) - 1; // where parent ends
@@ -1789,7 +1787,7 @@ static int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
   if(n->sprite){
-    logerror("can't write [%s] to sprixelated plane\n", egc);
+    logerror("can't write [%s] to sprixelated plane", egc);
     return -1;
   }
   // reject any control character for output other than newline (and then only
@@ -1798,11 +1796,11 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     // if we're not scrolling, autogrow would be to the right (as opposed to
     // down), and thus it still wouldn't apply to the case of a newline.
     if(!n->scrolling){
-      logerror("rejecting newline on non-scrolling plane\n");
+      logerror("rejecting newline on non-scrolling plane");
       return -1;
     }
   }else if(is_control_egc((const unsigned char*)egc, bytes)){
-    logerror("rejecting %dB control character\n", bytes);
+    logerror("rejecting %dB control character", bytes);
     return -1;
   }
   // check *before ncplane_cursor_move_yx()* whether we're past the end of the
@@ -1829,7 +1827,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     }else if(n->autogrow){
       ncplane_resize_simple(n, n->leny, n->lenx + cols);
     }else{
-      logerror("target x %d [%.*s] > length %d\n", n->x, bytes, egc, n->lenx);
+      logerror("target x %d [%.*s] > length %d", n->x, bytes, egc, n->lenx);
       return -1;
     }
   }
@@ -1893,7 +1891,7 @@ int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   // nccell_extended_gcluster(). so we must copy and free it.
   char* egc = nccell_strdup(n, c);
   if(egc == NULL){
-    logerror("couldn't duplicate cell\n");
+    logerror("couldn't duplicate cell");
     return -1;
   }
   int r = ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
@@ -2062,7 +2060,7 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
                          uint64_t c1, uint64_t c2){
   if(len <= 0){
-    logerror("passed invalid length %u\n", len);
+    logerror("passed invalid length %u", len);
     return -1;
   }
   unsigned ur, ug, ub;
@@ -2118,7 +2116,7 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
 int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
                          uint64_t c1, uint64_t c2){
   if(len <= 0){
-    logerror("passed invalid length %u\n", len);
+    logerror("passed invalid length %u", len);
     return -1;
   }
   unsigned ur, ug, ub;
@@ -2185,18 +2183,18 @@ int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < yoff + 1){
-    logerror("ystop (%u) insufficient for yoff (%d)\n", ystop, yoff);
+    logerror("ystop (%u) insufficient for yoff (%d)", ystop, yoff);
     return -1;
   }
   if(xstop < xoff + 1){
-    logerror("xstop (%u) insufficient for xoff (%d)\n", xstop, xoff);
+    logerror("xstop (%u) insufficient for xoff (%d)", xstop, xoff);
     return -1;
   }
   unsigned ymax, xmax;
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
   if(xstop >= xmax || ystop >= ymax){
-    logerror("Boundary (%ux%u) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
+    logerror("boundary (%ux%u) beyond plane (%dx%d)", ystop, xstop, ymax, xmax);
     return -1;
   }
   unsigned edges;
@@ -2365,7 +2363,7 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 
 // special case of ncplane_erase_region()
 void ncplane_erase(ncplane* n){
-  loginfo("erasing %dx%d plane\n", n->leny, n->lenx);
+  loginfo("erasing %dx%d plane", n->leny, n->lenx);
   if(n->sprite){
     sprixel_hide(n->sprite);
     destroy_tam(n);
@@ -2393,11 +2391,11 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     xstart = n->x;
   }
   if(ystart < 0 || xstart < 0){
-    logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
+    logerror("illegal start of erase (%d, %d)", ystart, xstart);
     return -1;
   }
   if(ystart >= (int)ncplane_dim_y(n) || xstart >= (int)ncplane_dim_x(n)){
-    logerror("Illegal start of erase (%d, %d)\n", ystart, xstart);
+    logerror("illegal start of erase (%d, %d)", ystart, xstart);
     return -1;
   }
   if(xlen < 0){
@@ -2436,7 +2434,7 @@ int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen)
     n->x = tmpx;
     return 0;
   }
-  loginfo("erasing %d/%d - %d/%d\n", ystart, xstart, ystart + ylen, xstart + xlen);
+  loginfo("erasing %d/%d - %d/%d", ystart, xstart, ystart + ylen, xstart + xlen);
   for(int y = ystart ; y < ystart + ylen ; ++y){
     for(int x = xstart ; x < xstart + xlen ; ++x){
       nccell_release(n, &n->fb[nfbcellidx(n, y, x)]);
@@ -2596,7 +2594,7 @@ int ncplane_resize_placewithin(ncplane* n){
   int ret = 0;
   if(absy + ncplane_dim_y(n) > ncplane_dim_y(n->boundto)){
     const int dy = (absy + ncplane_dim_y(n)) - ncplane_dim_y(n->boundto);
-    logdebug("moving up %d\n", dy);
+    logdebug("moving up %d", dy);
     if(ncplane_move_rel(n, -dy, 0)){
       ret = -1;
     }
@@ -2604,7 +2602,7 @@ int ncplane_resize_placewithin(ncplane* n){
   }
   if(absx + ncplane_dim_x(n) > ncplane_dim_x(n->boundto)){
     const int dx = ncplane_dim_x(n->boundto) - (absx + ncplane_dim_x(n));
-    logdebug("moving left %d\n", dx);
+    logdebug("moving left %d", dx);
     if(ncplane_move_rel(n, 0, dx)){
       ret = -1;
     }
@@ -2613,7 +2611,7 @@ int ncplane_resize_placewithin(ncplane* n){
   // this will prefer upper-left material if the child plane is larger than
   // the parent. we might want a smarter rule, one based on origin?
   if(absy < 0){
-    logdebug("moving down %d\n", -absy);
+    logdebug("moving down %d", -absy);
     // we're at least partially above our parent
     if(ncplane_move_rel(n, -absy, 0)){
       ret = -1;
@@ -2621,7 +2619,7 @@ int ncplane_resize_placewithin(ncplane* n){
     absy = ncplane_abs_y(n);
   }
   if(absx < 0){
-    logdebug("moving right %d\n", -absx);
+    logdebug("moving right %d", -absx);
     // we're at least partially to the left of our parent
     if(ncplane_move_rel(n, 0, -absx)){
       ret = -1;
@@ -2657,7 +2655,7 @@ int ncplane_resize_marginalized(ncplane* n){
   }
   int targy = maxy - n->margin_b;
   int targx = maxx - n->margin_b;
-  loginfo("marg %d/%d, pdim %d/%d, move %d/%d\n", n->margin_b, n->margin_r, maxy, maxx, targy, targx);
+  loginfo("marg %d/%d, pdim %d/%d, move %d/%d", n->margin_b, n->margin_r, maxy, maxx, targy, targx);
   return ncplane_move_yx(n, targy, targx);
 }
 
@@ -2675,11 +2673,11 @@ int ncplane_resize_maximize(ncplane* n){
 int ncplane_resize_realign(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
   if(parent == n){
-    logerror("Can't realign a root plane\n");
+    logerror("can't realign a root plane");
     return 0;
   }
   if(n->halign == NCALIGN_UNALIGNED && n->valign == NCALIGN_UNALIGNED){
-    logerror("Passed a non-aligned plane\n");
+    logerror("passed a non-aligned plane");
     return -1;
   }
   int xpos = ncplane_x(n);
@@ -2702,11 +2700,11 @@ int ncplane_resize_realign(ncplane* n){
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   const notcurses* nc = ncplane_notcurses_const(n);
   if(n == nc->stdplane){
-    logerror("won't reparent standard plane\n");
+    logerror("won't reparent standard plane");
     return NULL; // can't reparent standard plane
   }
   if(n->boundto == newparent){
-    loginfo("won't reparent plane to itself\n");
+    loginfo("won't reparent plane to itself");
     return n; // don't return error, just a no-op
   }
 //notcurses_debug(ncplane_notcurses(n), stderr);
@@ -2854,7 +2852,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   const unsigned ocellpxx = ncplane_pile(n)->cellpxx;
   n->boundto = newparent;
   if(n == n->boundto){ // we're a new root plane
-    logdebug("reparenting new root plane %p\n", n);
+    logdebug("reparenting new root plane %p", n);
     unsplice_zaxis_recursive(n);
     n->bnext = NULL;
     n->bprev = NULL;
@@ -2913,7 +2911,7 @@ bool ncplane_scrolling_p(const ncplane* n){
 
 bool ncplane_set_autogrow(ncplane* n, unsigned growp){
   if(n == notcurses_stdplane_const(ncplane_notcurses_const(n))){
-    logerror("can't set the standard plane autogrow\n");
+    logerror("can't set the standard plane autogrow");
     return false;
   }
   bool old = n->autogrow;
@@ -2932,11 +2930,11 @@ lex_ulong(const char* op, unsigned* i, char** endptr){
   errno = 0;
   long l = strtol(op, endptr, 10);
   if(l < 0 || (l == LONG_MAX && errno == ERANGE) || (l > INT_MAX)){
-    fprintf(stderr, "Invalid margin: %s\n", op);
+    fprintf(stderr, "invalid margin: %s", op);
     return -1;
   }
   if((**endptr != ',' && **endptr) || *endptr == op){
-    fprintf(stderr, "Invalid margin: %s\n", op);
+    fprintf(stderr, "invalid margin: %s", op);
     return -1;
   }
   *i = l;
@@ -3047,16 +3045,16 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
     return NULL;
   }
   if(blit == NCBLIT_PIXEL){ // FIXME extend this to support sprixels
-    logerror("pixel blitter %d not yet supported\n", blit);
+    logerror("pixel blitter %d not yet supported", blit);
     return NULL;
   }
   if(blit == NCBLIT_DEFAULT){
-    logerror("must specify exact blitter, not NCBLIT_DEFAULT\n");
+    logerror("must specify exact blitter, not NCBLIT_DEFAULT");
     return NULL;
   }
   const struct blitset* bset = lookup_blitset(&ncur->tcache, blit, false);
   if(bset == NULL){
-    logerror("blitter %d invalid in current environment\n", blit);
+    logerror("blitter %d invalid in current environment", blit);
     return NULL;
   }
 //fprintf(stderr, "ALLOCATING %u %d %d %p\n", 4u * lenx * leny * 2, leny, lenx, bset);
@@ -3198,7 +3196,7 @@ int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   const wchar_t** wset = &gclustarr;
   size_t mbytes = wcsrtombs(NULL, wset, 0, &ps);
   if(mbytes == (size_t)-1){
-    logerror("error converting wide string\n");
+    logerror("error converting wide string");
     return -1;
   }
   ++mbytes;

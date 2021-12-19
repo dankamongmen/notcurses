@@ -47,24 +47,24 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
   ti->inhandle = GetStdHandle(STD_INPUT_HANDLE);
   ti->outhandle = GetStdHandle(STD_OUTPUT_HANDLE);
   if(ti->inhandle == INVALID_HANDLE_VALUE){
-    logerror("couldn't get input handle\n");
+    logerror("couldn't get input handle");
     return -1;
   }
   if(ti->outhandle == INVALID_HANDLE_VALUE){
-    logerror("couldn't get output handle\n");
+    logerror("couldn't get output handle");
     return -1;
   }
   if(!SetConsoleOutputCP(CP_UTF8)){
-    logerror("couldn't set output page to utf8\n");
+    logerror("couldn't set output page to utf8");
     return -1;
   }
   if(!SetConsoleCP(CP_UTF8)){
-    logerror("couldn't set input page to utf8\n");
+    logerror("couldn't set input page to utf8");
     return -1;
   }
   DWORD inmode;
   if(!GetConsoleMode(ti->inhandle, &inmode)){
-    logerror("couldn't get input console mode\n");
+    logerror("couldn't get input console mode");
     return -1;
   }
   // we don't explicitly disable ENABLE_ECHO_INPUT and ENABLE_LINE_INPUT
@@ -74,7 +74,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
             | ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS
             | ENABLE_WINDOW_INPUT | ENABLE_VIRTUAL_TERMINAL_INPUT;
   if(!SetConsoleMode(ti->inhandle, inmode)){
-    logerror("couldn't set input console mode\n");
+    logerror("couldn't set input console mode");
     return -1;
   }
   // if we're a true Windows Terminal, SetConsoleMode() ought succeed.
@@ -85,10 +85,10 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
                      | ENABLE_VIRTUAL_TERMINAL_PROCESSING
                      | DISABLE_NEWLINE_AUTO_RETURN
                      | ENABLE_LVB_GRID_WORLDWIDE)){
-    logerror("couldn't set output console mode\n");
+    logerror("couldn't set output console mode");
     return -1;
   }
-  loginfo("verified Windows ConPTY\n");
+  loginfo("verified Windows ConPTY");
   // ConPTY intercepts most control sequences. It does pass through XTVERSION
   // (for now), but since it responds to the DA1 itself, we usually get that
   // prior to any XTVERSION response. We instead key off of mintty's pretty
@@ -100,7 +100,7 @@ int prepare_windows_terminal(tinfo* ti, size_t* tablelen, size_t* tableused){
       if(ver){
         ti->termversion = strdup(ver);
       }
-      loginfo("detected mintty %s\n", ti->termversion ? ti->termversion : "");
+      loginfo("detected mintty %s", ti->termversion ? ti->termversion : "");
       ti->qterm = TERMINAL_MINTTY;
       return 0;
     }

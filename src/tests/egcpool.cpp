@@ -230,7 +230,6 @@ TEST_CASE("EGCpoolLong" * doctest::skip(true)) {
       }
       REQUIRE(loc == total);
       total += r + 1;
-      CHECK(egcpool_check_validity(&pool_, loc));
       CHECK((1u << 25) > loc);
       if(++wcs == 0x9fa5){
         wcs = 0x4e00;

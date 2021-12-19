@@ -229,11 +229,11 @@ fbuf_emit(fbuf* f, const char* esc){
 static inline void
 fbuf_free(fbuf* f){
   if(f){
-//    logdebug("Releasing from %" PRIu32 "B (%" PRIu32 "B)\n", f->size, f->used);
+//    logdebug("Releasing from %" PRIu32 "B (%" PRIu32 "B)", f->size, f->used);
     if(f->buf){
 #if __linux__
       if(munmap(f->buf, f->size)){
-        //logwarn("Error unmapping alloc (%s)\n", strerror(errno));
+        //logwarn("Error unmapping alloc (%s)", strerror(errno));
       }
 #else
       free(f->buf);
@@ -255,7 +255,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
     ssize_t w = write(fd, buf + written, buflen - written);
     if(w < 0){
       if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR && errno != EBUSY){
-        logerror("Error writing out data on %d (%s)\n", fd, strerror(errno));
+        logerror("Error writing out data on %d (%s)", fd, strerror(errno));
         return -1;
       }
     }else{

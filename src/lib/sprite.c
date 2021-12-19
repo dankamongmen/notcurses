@@ -5,7 +5,7 @@
 static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(const sprixel* s, FILE* out){
-  fprintf(out, "Sprixel %d (%p) %" PRIu64 "B %dx%d (%dx%d) @%d/%d state: %d\n",
+  fprintf(out, "sprixel %d (%p) %" PRIu64 "B %dx%d (%dx%d) @%d/%d state: %d\n",
           s->id, s, s->glyph.used, s->dimy, s->dimx, s->pixy, s->pixx,
           s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
           s->invalidated);
@@ -37,7 +37,7 @@ void sprixel_debug(const sprixel* s, FILE* out){
 // doesn't splice us out of any lists, just frees
 void sprixel_free(sprixel* s){
   if(s){
-    loginfo("Destroying sprixel %u\n", s->id);
+    loginfo("destroying sprixel %u", s->id);
     if(s->n){
       s->n->sprite = NULL;
     }
@@ -87,7 +87,7 @@ void sprixel_hide(sprixel* s){
   }
   // otherwise, it'll be killed in the next rendering cycle.
   if(s->invalidated != SPRIXEL_HIDE){
-    loginfo("Marking sprixel %u hidden\n", s->id);
+    loginfo("marking sprixel %u hidden", s->id);
     s->invalidated = SPRIXEL_HIDE;
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);
@@ -191,7 +191,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0;
   }
-  logdebug("wiping %p %d %d/%d\n", s->n->tam, idx, ycell, xcell);
+  logdebug("wiping %p %d %d/%d", s->n->tam, idx, ycell, xcell);
   int r = nc->tcache.pixel_wipe(s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
@@ -224,7 +224,7 @@ int sprite_init(const tinfo* t, int fd){
 
 int sprixel_rescale(sprixel* spx, unsigned ncellpxy, unsigned ncellpxx){
   assert(spx->n);
-  loginfo("rescaling -> %ux%u\n", ncellpxy, ncellpxx);
+  loginfo("rescaling -> %ux%u", ncellpxy, ncellpxx);
   // FIXME need adjust for sixel (scale_height)
   int nrows = (spx->pixy + (ncellpxy - 1)) / ncellpxy;
   int ncols = (spx->pixx + (ncellpxx - 1)) / ncellpxx;

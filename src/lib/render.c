@@ -132,7 +132,7 @@ void nccell_release(ncplane* n, nccell* c){
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
-    logerror("Failed duplicating cell\n");
+    logerror("failed duplicating cell");
     return -1;
   }
   return 0;
@@ -517,66 +517,66 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
   if(dsty < 0){
     if(dsty != -1){
-      logerror("invalid dsty %d\n", dsty);
+      logerror("invalid dsty %d", dsty);
       return -1;
     }
     dsty = dst->y;
   }
   if(dstx < 0){
     if(dstx != -1){
-      logerror("invalid dstx %d\n", dstx);
+      logerror("invalid dstx %d", dstx);
       return -1;
     }
     dstx = dst->x;
   }
   if((unsigned)dsty >= dst->leny || (unsigned)dstx >= dst->lenx){
-    logerror("dest origin %u/%u ≥ dest dimensions %d/%d\n",
+    logerror("dest origin %u/%u ≥ dest dimensions %d/%d",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
   if(begsrcy < 0){
     if(begsrcy != -1){
-      logerror("invalid begsrcy %d\n", begsrcy);
+      logerror("invalid begsrcy %d", begsrcy);
       return -1;
     }
     begsrcy = src->y;
   }
   if(begsrcx < 0){
     if(begsrcx != -1){
-      logerror("invalid begsrcx %d\n", begsrcx);
+      logerror("invalid begsrcx %d", begsrcx);
       return -1;
     }
     begsrcx = src->x;
   }
   if((unsigned)begsrcy >= src->leny || (unsigned)begsrcx >= src->lenx){
-    logerror("source origin %u/%u ≥ source dimensions %d/%d\n",
+    logerror("source origin %u/%u ≥ source dimensions %d/%d",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
   if(leny == 0){
     if((leny = src->leny - begsrcy) == 0){
-      logerror("source area was zero height\n");
+      logerror("source area was zero height");
       return -1;
     }
   }
   if(lenx == 0){
     if((lenx = src->lenx - begsrcx) == 0){
-      logerror("source area was zero width\n");
+      logerror("source area was zero width");
       return -1;
     }
   }
   if(dst->leny - leny < (unsigned)dsty || dst->lenx - lenx < (unsigned)dstx){
-    logerror("dest len %u/%u ≥ dest dimensions %d/%d\n",
+    logerror("dest len %u/%u ≥ dest dimensions %d/%d",
              leny, lenx, dst->leny, dst->lenx);
     return -1;
   }
   if(src->leny - leny < (unsigned)begsrcy || src->lenx - lenx < (unsigned)begsrcx){
-    logerror("source len %u/%u ≥ source dimensions %d/%d\n",
+    logerror("source len %u/%u ≥ source dimensions %d/%d",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
   if(src->sprite || dst->sprite){
-    logerror("can't merge sprixel planes\n");
+    logerror("can't merge sprixel planes");
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
@@ -584,7 +584,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror("error allocating render state for %ux%u\n", leny, lenx);
+    logerror("error allocating render state for %ux%u", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -889,7 +889,7 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
   while( (s = *parent) ){
-    loginfo("Phase 1 sprixel %u state %d loc %d/%d\n", s->id,
+    loginfo("phase 1 sprixel %u state %d loc %d/%d", s->id,
             s->invalidated, s->n ? s->n->absy : -1, s->n ? s->n->absx : -1);
     if(s->invalidated == SPRIXEL_QUIESCENT){
       if(p != nc->last_pile){
@@ -985,7 +985,7 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
   if(scrolls == 0){
     return 0;
   }
-  logdebug("order-%d scroll\n", scrolls);
+  logdebug("order-%d scroll", scrolls);
   /*if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= scrolls;
     if(p->nc->rstate.logendy < 0){
@@ -1270,7 +1270,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
 // desired; in this case, a SUM footer is present at the end of the buffer.
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
-  logdebug("pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
+  logdebug("pile %p ymax: %d xmax: %d", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
@@ -1280,16 +1280,16 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   }
   int scrolls = p->scrolls;
   p->scrolls = 0;
-  logdebug("Sprixel phase 1\n");
+  logdebug("sprixel phase 1");
   int64_t sprixelbytes = clean_sprixels(nc, p, f, scrolls);
   if(sprixelbytes < 0){
     return -1;
   }
-  logdebug("Glyph phase 1\n");
+  logdebug("glyph phase 1");
   if(rasterize_core(nc, p, f, 0)){
     return -1;
   }
-  logdebug("Sprixel phase 2\n");
+  logdebug("sprixel phase 2");
   int64_t rasprixelbytes = rasterize_sprixels(nc, p, f);
   if(rasprixelbytes < 0){
     return -1;
@@ -1298,7 +1298,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   pthread_mutex_lock(&nc->stats.lock);
     nc->stats.s.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->stats.lock);
-  logdebug("Glyph phase 2\n");
+  logdebug("glyph phase 2");
   if(rasterize_core(nc, p, f, 1)){
     return -1;
   }
@@ -1550,7 +1550,7 @@ engorge_crender_vector(ncpile* p){
   const size_t crenderlen = p->dimy * p->dimx; // desired size
 //fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
   if(crenderlen != p->crenderlen){
-    loginfo("resizing rvec (%" PRIuPTR ") for %p to %" PRIuPTR "\n",
+    loginfo("resizing rvec (%" PRIuPTR ") for %p to %" PRIuPTR,
             p->crenderlen, p, crenderlen);
     struct crender* tmp = realloc(p->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
@@ -1621,15 +1621,15 @@ pool_egc_copy(const egcpool* e, const nccell* c){
 
 char* notcurses_at_yx(notcurses* nc, unsigned yoff, unsigned xoff, uint16_t* stylemask, uint64_t* channels){
   if(nc->lastframe == NULL){
-    logerror("haven't yet rendered\n");
+    logerror("haven't yet rendered");
     return NULL;
   }
   if(yoff >= nc->lfdimy){
-    logerror("invalid coordinates: %u/%u\n", yoff, xoff);
+    logerror("invalid coordinates: %u/%u", yoff, xoff);
     return NULL;
   }
   if(xoff >= nc->lfdimx){
-    logerror("invalid coordinates: %u/%u\n", yoff, xoff);
+    logerror("invalid coordinates: %u/%u", yoff, xoff);
     return NULL;
   }
   const nccell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
@@ -1709,7 +1709,7 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
 int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg){
   const tinfo* ti = &nc->tcache;
   if(ti->fg_default & 0x80000000){
-    logerror("default foreground could not be determined\n");
+    logerror("default foreground could not be determined");
     return -1;
   }
   *fg = ti->fg_default & NC_BG_RGB_MASK;
@@ -1719,7 +1719,7 @@ int notcurses_default_foreground(const struct notcurses* nc, uint32_t* fg){
 int notcurses_default_background(const struct notcurses* nc, uint32_t* bg){
   const tinfo* ti = &nc->tcache;
   if(ti->bg_collides_default & 0x80000000){
-    logerror("default background could not be determined\n");
+    logerror("default background could not be determined");
     return -1;
   }
   *bg = ti->bg_collides_default & NC_BG_RGB_MASK;
@@ -1734,7 +1734,7 @@ int notcurses_cursor_yx(const notcurses* nc, int* y, int* x){
 
 int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(y < 0 || x < 0){
-    logerror("Illegal cursor placement: %d, %d\n", y, x);
+    logerror("illegal cursor placement: %d, %d", y, x);
     return -1;
   }
   // if we're already at the demanded location, we must already be visible, and
@@ -1768,7 +1768,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
 
 int notcurses_cursor_disable(notcurses* nc){
   if(nc->cursorx < 0 || nc->cursory < 0){
-    logerror("Cursor is not enabled\n");
+    logerror("cursor is not enabled");
     return -1;
   }
   const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);

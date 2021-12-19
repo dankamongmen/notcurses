@@ -997,11 +997,11 @@ const char* notcurses_str_blitter(ncblitter_e blitfxn){
 
 int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->leny <= 0 || vopts->lenx <= 0){
-    logerror("invalid lengths %u %u\n", vopts->leny, vopts->lenx);
+    logerror("invalid lengths %u %u", vopts->leny, vopts->lenx);
     return -1;
   }
   if(vopts->n == NULL){
-    logerror("prohibited null plane\n");
+    logerror("prohibited null plane");
     return -1;
   }
   void* rdata = bgra_to_rgba(data, vopts->leny, &linesize, vopts->lenx, 0xff);
@@ -1043,11 +1043,11 @@ int ncblit_rgb_packed(const void* data, int linesize,
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->leny <= 0 || vopts->lenx <= 0){
-    logerror("invalid lengths %u %u\n", vopts->leny, vopts->lenx);
+    logerror("invalid lengths %u %u", vopts->leny, vopts->lenx);
     return -1;
   }
   if(vopts->n == NULL){
-    logerror("prohibited null plane\n");
+    logerror("prohibited null plane");
     return -1;
   }
   struct ncvisual* ncv = ncvisual_from_rgba(data, vopts->leny, linesize, vopts->lenx);

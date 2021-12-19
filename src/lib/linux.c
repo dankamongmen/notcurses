@@ -162,7 +162,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int fbcon_draw(const tinfo* ti, sprixel* s, int y, int x){
-  logdebug("id %" PRIu32 " dest %d/%d\n", s->id, y, x);
+  logdebug("id %" PRIu32 " dest %d/%d", s->id, y, x);
   int wrote = 0;
   const int cellpxy = ncplane_pile(s->n) ? ncplane_pile(s->n)->cellpxy : ti->cellpxy;
   const int cellpxx = ncplane_pile(s->n) ? ncplane_pile(s->n)->cellpxx : ti->cellpxx;
@@ -197,7 +197,7 @@ void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows){
   if(cellpxy < 1){
     return;
   }
-  logdebug("scrolling %d\n", rows);
+  logdebug("scrolling %d", rows);
   const int rowbytes = cellpxx * p->dimx * 4;
   const int totalrows = cellpxy * p->dimy;
   int srows = rows * cellpxy; // number of pixel rows being scrolled
@@ -330,7 +330,7 @@ shim_lower_eighths(struct console_font_op* cfo, unsigned idx, int eighths){
 // add UCS2 codepoint |w| to |map| for font idx |fidx|
 static int
 add_to_map(struct unimapdesc* map, wchar_t w, unsigned fidx){
-  logdebug("adding mapping U+%04x -> %03u\n", w, fidx);
+  logdebug("adding mapping U+%04x -> %03u", w, fidx);
   struct unipair* tmp = realloc(map->entries, sizeof(*map->entries) * (map->entry_ct + 1));
   if(tmp == NULL){
     return -1;
@@ -389,7 +389,7 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
     for(unsigned idx = 0 ; idx < map->entry_ct ; ++idx){
       for(size_t widx = 0 ; widx < wcslen(s->ws) ; ++widx){
         if(map->entries[idx].unicode == s->ws[widx]){
-          logtrace("found desired character U+%04x -> %03u\n",
+          logtrace("found desired character U+%04x -> %03u",
                    map->entries[idx].unicode, map->entries[idx].fontpos);
           found[widx] = true;
           if(fontidx == -1){
@@ -409,7 +409,7 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
         }
       }
     }else{
-      logwarn("couldn't find any glyphs for set %zu\n", sidx);
+      logwarn("couldn't find any glyphs for set %zu", sidx);
     }
     free(found);
   }
@@ -417,10 +417,10 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
     return 0;
   }
   if(ioctl(fd, PIO_UNIMAP, map)){
-    logwarn("error setting kernel unicode map (%s)\n", strerror(errno));
+    logwarn("error setting kernel unicode map (%s)", strerror(errno));
     return -1;
   }
-  loginfo("added %d kernel unicode mapping%s\n",
+  loginfo("added %d kernel unicode mapping%s",
           toadd, toadd == 1 ? "" : "s");
   return 0;
 }
@@ -496,7 +496,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
       for(size_t s = 0 ; s < sizeof(half) / sizeof(*half) ; ++s){
         if(map->entries[i].unicode == half[s].w){
-          logdebug("found %lc at fontidx %u\n", half[s].w, i);
+          logdebug("found %lc at fontidx %u", half[s].w, i);
           half[s].found = true;
           ++halvesfound;
           break;
@@ -504,7 +504,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
       }
       for(size_t s = 0 ; s < sizeof(quads) / sizeof(*quads) ; ++s){
         if(map->entries[i].unicode == quads[s].w){
-          logdebug("found %lc at fontidx %u\n", quads[s].w, i);
+          logdebug("found %lc at fontidx %u", quads[s].w, i);
           quads[s].found = true;
           ++numfound;
           break;
@@ -512,7 +512,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
       }
       for(size_t s = 0 ; s < sizeof(eighths) / sizeof(*eighths) ; ++s){
         if(map->entries[i].unicode == eighths[s].w){
-          logdebug("found %lc at fontidx %u\n", eighths[s].w, i);
+          logdebug("found %lc at fontidx %u", eighths[s].w, i);
           eighths[s].found = true;
           ++numfound;
           break;
@@ -524,12 +524,12 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     *halfblocks = true;
   }
   if(numfound + halvesfound == (sizeof(half) + sizeof(quads) + sizeof(eighths)) / sizeof(*quads)){
-    logdebug("all %zu desired glyphs were already present\n", numfound);
+    logdebug("all %zu desired glyphs were already present", numfound);
     *quadrants = true;
     return 0;
   }
   if(no_font_changes){
-    logdebug("not reprogramming kernel font per request\n");
+    logdebug("not reprogramming kernel font per request");
     return 0;
   }
   int added = 0;
@@ -544,12 +544,12 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
         }
       }
       if(candidate == 0){
-        logwarn("ran out of replaceable glyphs for U+%04lx\n", (long)half[s].w);
+        logwarn("ran out of replaceable glyphs for U+%04lx", (long)half[s].w);
         // FIXME maybe don't want to error out here?
         return -1;
       }
       if(shim_quad_block(cfo, candidate, half[s].qbits)){
-        logwarn("error replacing glyph for U+%04lx at %u\n", (long)half[s].w, candidate);
+        logwarn("error replacing glyph for U+%04lx at %u", (long)half[s].w, candidate);
         return -1;
       }
       if(add_to_map(map, half[s].w, candidate)){
@@ -566,12 +566,12 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
         }
       }
       if(candidate == 0){
-        logwarn("ran out of replaceable glyphs for U+%04lx\n", (long)quads[s].w);
+        logwarn("ran out of replaceable glyphs for U+%04lx", (long)quads[s].w);
         // FIXME maybe don't want to error out here?
         return -1;
       }
       if(shim_quad_block(cfo, candidate, quads[s].qbits)){
-        logwarn("error replacing glyph for U+%04lx at %u\n", (long)quads[s].w, candidate);
+        logwarn("error replacing glyph for U+%04lx at %u", (long)quads[s].w, candidate);
         return -1;
       }
       if(add_to_map(map, quads[s].w, candidate)){
@@ -588,11 +588,11 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
         }
       }
       if(candidate == 0){
-        logwarn("ran out of replaceable glyphs for U+%04lx\n", (long)eighths[s].w);
+        logwarn("ran out of replaceable glyphs for U+%04lx", (long)eighths[s].w);
         return -1;
       }
       if(shim_lower_eighths(cfo, candidate, eighths[s].qbits)){
-        logwarn("error replacing glyph for U+%04lx at %u\n", (long)eighths[s].w, candidate);
+        logwarn("error replacing glyph for U+%04lx at %u", (long)eighths[s].w, candidate);
         return -1;
       }
       if(add_to_map(map, eighths[s].w, candidate)){
@@ -602,7 +602,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     }
   }
   if(halvesadded == 0 && added == 0){
-    loginfo("didn't replace any glyphs, not calling ioctl\n");
+    loginfo("didn't replace any glyphs, not calling ioctl");
     return 0;
   }
   struct framebuffer_copy fbdup;
@@ -611,12 +611,12 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
   }
   cfo->op = KD_FONT_OP_SET;
   if(ioctl(fd, KDFONTOP, cfo)){
-    logwarn("error programming kernel font (%s)\n", strerror(errno));
+    logwarn("error programming kernel font (%s)", strerror(errno));
     kill_fbcopy(&fbdup);
     return -1;
   }
   if(ioctl(fd, PIO_UNIMAP, map)){
-    logwarn("error setting kernel unicode map (%s)\n", strerror(errno));
+    logwarn("error setting kernel unicode map (%s)", strerror(errno));
     kill_fbcopy(&fbdup);
     return -1;
   }
@@ -627,7 +627,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     *quadrants = true;
   }
   added += halvesadded;
-  loginfo("successfully added %d kernel font glyph%s via %d\n", added, added == 1 ? "" : "s", ti->linux_fb_fd);
+  loginfo("successfully added %d kernel font glyph%s via %d", added, added == 1 ? "" : "s", ti->linux_fb_fd);
   if(ti->linux_fb_fd < 0){ // console doesn't imply framebuffer
     kill_fbcopy(&fbdup);
     return 0;
@@ -638,7 +638,7 @@ program_block_drawing_chars(tinfo* ti, int fd, struct console_font_op* cfo,
     return -1;
   }
   if(pixely != fbdup.pixely || pixelx != fbdup.pixelx || ti->linux_fb_len != fbdup.maplen){
-    logwarn("framebuffer changed size, not reblitting\n");
+    logwarn("framebuffer changed size, not reblitting");
   }else{
     memcpy(ti->linux_fbuffer, fbdup.map, fbdup.maplen);
   }
@@ -651,20 +651,20 @@ reprogram_linux_font(tinfo* ti, int fd, struct console_font_op* cfo,
                      struct unimapdesc* map, unsigned no_font_changes,
                      bool* halfblocks, bool* quadrants){
   if(ioctl(fd, KDFONTOP, cfo)){
-    logwarn("error reading Linux kernelfont (%s)\n", strerror(errno));
+    logwarn("error reading Linux kernelfont (%s)", strerror(errno));
     return -1;
   }
-  loginfo("kernel font size (glyphcount): %u\n", cfo->charcount);
-  loginfo("kernel font character geometry: %ux%u\n", cfo->width, cfo->height);
+  loginfo("kernel font size (glyphcount): %u", cfo->charcount);
+  loginfo("kernel font character geometry: %ux%u", cfo->width, cfo->height);
   if(cfo->charcount > 512){
-    logwarn("warning: kernel returned excess charcount\n");
+    logwarn("warning: kernel returned excess charcount");
     return -1;
   }
   if(ioctl(fd, GIO_UNIMAP, map)){
-    logwarn("error reading Linux unimap (%s)\n", strerror(errno));
+    logwarn("error reading Linux unimap (%s)", strerror(errno));
     return -1;
   }
-  loginfo("kernel unimap size: %u/%u\n", map->entry_ct, USHRT_MAX);
+  loginfo("kernel unimap size: %u/%u", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
   // do want to ensure they map to something plausible...this doesn't reset
   // the framebuffer, even if we do some reprogramming.
@@ -691,7 +691,7 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
   size_t totsize = 128 * cfo.charcount; // FIXME enough?
   cfo.data = malloc(totsize);
   if(cfo.data == NULL){
-    logwarn("error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
+    logwarn("error acquiring %zub for font descriptors (%s)", totsize, strerror(errno));
     return -1;
   }
   struct unimapdesc map = {0};
@@ -699,7 +699,7 @@ int reprogram_console_font(tinfo* ti, unsigned no_font_changes,
   totsize = map.entry_ct * sizeof(struct unipair);
   map.entries = malloc(totsize);
   if(map.entries == NULL){
-    logwarn("error acquiring %zub for Unicode font map (%s)\n", totsize, strerror(errno));
+    logwarn("error acquiring %zub for Unicode font map (%s)", totsize, strerror(errno));
     free(cfo.data);
     return -1;
   }
@@ -719,10 +719,10 @@ bool is_linux_console(int fd){
   }
   int mode;
   if(ioctl(fd, KDGETMODE, &mode)){
-    logdebug("not a Linux console (no KDGETMODE)\n");
+    logdebug("not a Linux console (no KDGETMODE)");
     return false;
   }
-  loginfo("verified Linux console, mode %d\n", mode);
+  loginfo("verified Linux console, mode %d", mode);
   return true;
 }
 
@@ -736,11 +736,11 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
   }
   struct fb_var_screeninfo fbi = {0};
   if(ioctl(ti->linux_fb_fd, FBIOGET_VSCREENINFO, &fbi)){
-    logerror("no framebuffer info from %s %d (%s?)\n", ti->linux_fb_dev,
+    logerror("no framebuffer info from %s %d (%s?)", ti->linux_fb_dev,
              ti->linux_fb_fd, strerror(errno));
     return -1;
   }
-  loginfo("linux %s geometry: %dx%d\n", ti->linux_fb_dev, fbi.yres, fbi.xres);
+  loginfo("linux %s geometry: %dx%d", ti->linux_fb_dev, fbi.yres, fbi.xres);
   *ypix = fbi.yres;
   *xpix = fbi.xres;
   size_t len = *ypix * *xpix * fbi.bits_per_pixel / 8;
@@ -753,11 +753,11 @@ int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
     ti->linux_fbuffer = mmap(NULL, len, PROT_READ|PROT_WRITE,
                              MAP_SHARED, ti->linux_fb_fd, 0);
     if(ti->linux_fbuffer == MAP_FAILED){
-      logerror("couldn't map %zuB on %s (%s?)\n", len, ti->linux_fb_dev, strerror(errno));
+      logerror("couldn't map %zuB on %s (%s?)", len, ti->linux_fb_dev, strerror(errno));
       return -1;
     }
     ti->linux_fb_len = len;
-    loginfo("mapped %zuB on %s\n", len, ti->linux_fb_dev);
+    loginfo("mapped %zuB on %s", len, ti->linux_fb_dev);
   }
   return 0;
 }
@@ -766,10 +766,10 @@ bool is_linux_framebuffer(tinfo* ti){
   // FIXME there might be multiple framebuffers present; how do we determine
   // which one is ours?
   const char* dev = "/dev/fb0";
-  loginfo("checking for Linux framebuffer at %s\n", dev);
+  loginfo("checking for Linux framebuffer at %s", dev);
   int fd = open(dev, O_RDWR | O_CLOEXEC);
   if(fd < 0){
-    logdebug("couldn't open framebuffer device %s\n", dev);
+    logdebug("couldn't open framebuffer device %s", dev);
     return false;
   }
   ti->linux_fb_fd = fd;

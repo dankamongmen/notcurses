@@ -155,9 +155,9 @@ prep_xtmodkeys(inputctx* ictx){
                                  k->shift, k->ctrl, k->alt)){
       return -1;
     }
-    logdebug("added %u\n", k->key);
+    logdebug("added %u", k->key);
   }
-  loginfo("added all xtmodkeys\n");
+  loginfo("added all xtmodkeys");
   return 0;
 }
 
@@ -330,21 +330,21 @@ prep_special_keys(inputctx* ictx){
   for(k = keys ; k->tinfo ; ++k){
     char* seq = tigetstr(k->tinfo);
     if(seq == NULL || seq == (char*)-1){
-      loginfo("no terminfo declaration for %s\n", k->tinfo);
+      loginfo("no terminfo declaration for %s", k->tinfo);
       continue;
     }
     if(seq[0] != NCKEY_ESC || strlen(seq) < 2){ // assume ESC prefix + content
-      logwarn("invalid escape: %s (0x%x)\n", k->tinfo, k->key);
+      logwarn("invalid escape: %s (0x%x)", k->tinfo, k->key);
       continue;
     }
     if(inputctx_add_input_escape(&ictx->amata, seq, k->key, k->shift, k->ctrl, k->alt)){
       return -1;
     }
-    logdebug("support for terminfo's %s: %s\n", k->tinfo, seq);
+    logdebug("support for terminfo's %s: %s", k->tinfo, seq);
   }
   const char* bs = tigetstr("kbs");
   if(bs == NULL){
-    logwarn("no backspace key was defined\n");
+    logwarn("no backspace key was defined");
   }else{
     if(bs[0] == NCKEY_ESC){
       if(inputctx_add_input_escape(&ictx->amata, bs, NCKEY_BACKSPACE, 0, 0, 0)){
@@ -372,7 +372,7 @@ amata_next_kleene(automaton* amata, const char* prefix, char follow){
   char c;
   while( (c = *prefix++) ){
     if(*amata->matchstart != c){
-      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
+      logerror("matchstart didn't match prefix (%c vs %c)", c, *amata->matchstart);
       return NULL;
     }
     ++amata->matchstart;
@@ -402,7 +402,7 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
   char c;
   while( (c = *prefix++) ){
     if(*amata->matchstart != c){
-      logerror("matchstart didn't match prefix (%c vs %c)\n", c, *amata->matchstart);
+      logerror("matchstart didn't match prefix (%c vs %c)", c, *amata->matchstart);
       return 0;
     }
     ++amata->matchstart;
@@ -412,7 +412,7 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
   while(isdigit(*amata->matchstart)){
     int addend = *amata->matchstart - '0';
     if((UINT_MAX - addend) / 10 < ret){
-      logerror("overflow: %u * 10 + %u > %u\n", ret, addend, UINT_MAX);
+      logerror("overflow: %u * 10 + %u > %u", ret, addend, UINT_MAX);
     }
     ret *= 10;
     ret += addend;
@@ -420,7 +420,7 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
   }
   char candidate = *amata->matchstart++;
   if(candidate != follow){
-    logerror("didn't see follow (%c vs %c)\n", candidate, follow);
+    logerror("didn't see follow (%c vs %c)", candidate, follow);
     return 0;
   }
   return ret;
@@ -448,14 +448,14 @@ mark_pipe_ready(ipipe pipes[static 2]){
   char sig = 1;
 #ifndef __MINGW32__
   if(write(pipes[1], &sig, sizeof(sig)) != 1){
-    logwarn("error writing to pipe (%d) (%s)\n", pipes[1], strerror(errno));
+    logwarn("error writing to pipe (%d) (%s)", pipes[1], strerror(errno));
 #else
   DWORD wrote;
   if(!WriteFile(pipes[1], &sig, sizeof(sig), &wrote, NULL) || wrote != sizeof(sig)){
-    logwarn("error writing to pipe\n");
+    logwarn("error writing to pipe");
 #endif
   }else{
-    loginfo("wrote to readiness pipe\n");
+    loginfo("wrote to readiness pipe");
   }
 }
 
@@ -469,7 +469,7 @@ load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logwarn("dropping input 0x%08x\n", tni->id);
+    logwarn("dropping input 0x%08x", tni->id);
     inc_input_errors(ictx);
     send_synth_signal(synthsig);
     return;
@@ -501,15 +501,15 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   y -= (1 + ictx->tmargin);
   // convert from 1- to 0-indexing, and account for margins
   if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %ld/%ld\n", y, x);
+    logwarn("dropping click in margins %ld/%ld", y, x);
     return;
   }
   if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
-    logwarn("dropping click in margins %ld/%ld\n", y, x);
+    logwarn("dropping click in margins %ld/%ld", y, x);
     return;
   }
   if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
-    logwarn("dropping click in margins %ld/%ld\n", y, x);
+    logwarn("dropping click in margins %ld/%ld", y, x);
     return;
   }
   ncinput tni = {
@@ -571,7 +571,7 @@ cursor_location_cb(inputctx* ictx){
   }
   if(ictx->cvalid == ictx->csize){
     pthread_mutex_unlock(&ictx->clock);
-    logwarn("dropping cursor location report %u/%u\n", y, x);
+    logwarn("dropping cursor location report %u/%u", y, x);
     inc_input_errors(ictx);
   }else{
     cursorloc* cloc = &ictx->csrs[ictx->cwrite];
@@ -583,7 +583,7 @@ cursor_location_cb(inputctx* ictx){
     ++ictx->cvalid;
     pthread_mutex_unlock(&ictx->clock);
     pthread_cond_broadcast(&ictx->ccond);
-    loginfo("cursor location: %u/%u\n", y, x);
+    loginfo("cursor location: %u/%u", y, x);
   }
   return 2;
 }
@@ -598,15 +598,15 @@ geom_cb(inputctx* ictx){
       ictx->initdata->pixy = y;
       ictx->initdata->pixx = x;
     }
-    loginfo("pixel geom report %d/%d\n", y, x);
+    loginfo("pixel geom report %d/%d", y, x);
   }else if(kind == 8){ // cell geometry
     if(ictx->initdata){
       ictx->initdata->dimy = y;
       ictx->initdata->dimx = x;
     }
-    loginfo("cell geom report %d/%d\n", y, x);
+    loginfo("cell geom report %d/%d", y, x);
   }else{
-    logerror("invalid geom report type: %d\n", kind);
+    logerror("invalid geom report type: %d", kind);
     return -1;
   }
   return 2;
@@ -616,7 +616,7 @@ static void
 xtmodkey(inputctx* ictx, int val, int mods){
   assert(mods >= 0);
   assert(val > 0);
-  logdebug("v/m %d %d\n", val, mods);
+  logdebug("v/m %d %d", val, mods);
   ncinput tni = {
     .id = val,
     .evtype = NCTYPE_UNKNOWN,
@@ -680,7 +680,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   assert(evtype >= 0);
   assert(mods >= 0);
   assert(val > 0);
-  logdebug("v/m/e %d %d %d\n", val, mods, evtype);
+  logdebug("v/m/e %d %d %d", val, mods, evtype);
   ncinput tni = {
     .id = kitty_functional(val),
     .shift = mods && !!((mods - 1) & 0x1),
@@ -964,7 +964,7 @@ kitty_keyboard_cb(inputctx* ictx){
   if(ictx->initdata){
     ictx->initdata->kbdlevel = level;
   }
-  loginfo("kitty keyboard protocol level %u\n", level);
+  loginfo("kitty keyboard protocol level %u", level);
   return 2;
 }
 
@@ -983,7 +983,7 @@ xtsmgraphics_cregs_cb(inputctx* ictx){
   if(ictx->initdata){
     ictx->initdata->color_registers = pv;
   }
-  loginfo("sixel color registers: %d\n", pv);
+  loginfo("sixel color registers: %d", pv);
   return 2;
 }
 
@@ -996,7 +996,7 @@ xtsmgraphics_sixel_cb(inputctx* ictx){
     ictx->initdata->sixelx = width;
     ictx->initdata->sixely = height;
   }
-  loginfo("max sixel geometry: %dx%d\n", height, width);
+  loginfo("max sixel geometry: %dx%d", height, width);
   return 2;
 }
 
@@ -1011,7 +1011,7 @@ handoff_initial_responses_late(inputctx* ictx){
   pthread_mutex_unlock(&ictx->ilock);
   if(sig){
     pthread_cond_broadcast(&ictx->icond);
-    loginfo("handing off initial responses\n");
+    loginfo("handing off initial responses");
   }
 }
 
@@ -1030,7 +1030,7 @@ handoff_initial_responses_early(inputctx* ictx){
 static inline void
 scrub_sixel_responses(struct initial_responses* idata){
   if(idata->color_registers || idata->sixelx || idata->sixely){
-    logwarn("answered XTSMGRAPHICS, but no sixel in DA1\n");
+    logwarn("answered XTSMGRAPHICS, but no sixel in DA1");
     idata->color_registers = 0;
     idata->sixelx = 0;
     idata->sixely = 0;
@@ -1043,7 +1043,7 @@ scrub_sixel_responses(struct initial_responses* idata){
 // so, iff we've determined we're alacritty, don't scrub out Sixel details.
 static int
 da1_vt102_cb(inputctx* ictx){
-  loginfo("read primary device attributes\n");
+  loginfo("read primary device attributes");
   if(ictx->initdata){
     if(ictx->initdata->qterm != TERMINAL_ALACRITTY){
       scrub_sixel_responses(ictx->initdata);
@@ -1055,7 +1055,7 @@ da1_vt102_cb(inputctx* ictx){
 
 static int
 da1_cb(inputctx* ictx){
-  loginfo("read primary device attributes\n");
+  loginfo("read primary device attributes");
   if(ictx->initdata){
     scrub_sixel_responses(ictx->initdata);
     handoff_initial_responses_early(ictx);
@@ -1065,10 +1065,10 @@ da1_cb(inputctx* ictx){
 
 static int
 da1_attrs_cb(inputctx* ictx){
-  loginfo("read primary device attributes\n");
+  loginfo("read primary device attributes");
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[?", ';');
   char* attrlist = amata_next_kleene(&ictx->amata, "", 'c');
-  logdebug("DA1: %u [%s]\n", val, attrlist);
+  logdebug("DA1: %u [%s]", val, attrlist);
   if(ictx->initdata){
     int foundsixel = 0;
     unsigned curattr = 0;
@@ -1109,19 +1109,19 @@ da2_screen_cb(inputctx* ictx){
     return 2;
   }
   if(ictx->initdata->qterm != TERMINAL_UNKNOWN){
-    logwarn("already identified term (%d)\n", ictx->initdata->qterm);
+    logwarn("already identified term (%d)", ictx->initdata->qterm);
     return 2;
   }
   unsigned ver = amata_next_numeric(&ictx->amata, "\x1b[>83;", ';');
   if(ver < 10000){
-    logwarn("version %u doesn't look like GNU screen\n", ver);
+    logwarn("version %u doesn't look like GNU screen", ver);
     return 2;
   }
   char verstr[9]; // three two-digit components plus two delims
   int s = snprintf(verstr, sizeof(verstr), "%u.%02u.%02u",
                    ver / 10000, ver / 100 % 100, ver % 100);
   if(s < 0 || (unsigned)s >= sizeof(verstr)){
-    logwarn("bad screen version %u\n", ver);
+    logwarn("bad screen version %u", ver);
     return 2;
   }
   ictx->initdata->version = strdup(verstr);
@@ -1133,7 +1133,7 @@ da2_screen_cb(inputctx* ictx){
 // version, and to ascertain the version of old, pre-XTVERSION XTerm.
 static int
 da2_cb(inputctx* ictx){
-  loginfo("read secondary device attributes\n");
+  loginfo("read secondary device attributes");
   if(ictx->initdata == NULL){
     return 2;
   }
@@ -1150,7 +1150,7 @@ da2_cb(inputctx* ictx){
       char ver[8];
       int s = snprintf(ver, sizeof(ver), "%u", pv);
       if(s < 0 || (unsigned)s >= sizeof(ver)){
-        logerror("bad version: %u\n", pv);
+        logerror("bad version: %u", pv);
       }else{
         ictx->initdata->version = strdup(ver);
       }
@@ -1161,14 +1161,14 @@ da2_cb(inputctx* ictx){
   // identify Alacritty. If we've got any other version information, don't
   // use this. use the second parameter (Pv).
   if(ictx->initdata->qterm != TERMINAL_UNKNOWN || ictx->initdata->version){
-    loginfo("termtype was %d %s, not alacritty\n", ictx->initdata->qterm,
+    loginfo("termtype was %d %s, not alacritty", ictx->initdata->qterm,
             ictx->initdata->version);
     return 2;
   }
   // if a termname was manually supplied in setup, it was written to the env
   const char* termname = getenv("TERM");
   if(termname == NULL || strstr(termname, "alacritty") == NULL){
-    loginfo("termname was [%s], probably not alacritty\n",
+    loginfo("termname was [%s], probably not alacritty",
             termname ? termname : "unset");
     return 2;
   }
@@ -1183,7 +1183,7 @@ da2_cb(inputctx* ictx){
   char* buf = malloc(13);
   if(buf){
     sprintf(buf, "%d.%d.%d", maj, min, patch);
-    loginfo("might be alacritty %s\n", buf);
+    loginfo("might be alacritty %s", buf);
     ictx->initdata->version = buf;
     ictx->initdata->qterm = TERMINAL_ALACRITTY;
   }
@@ -1194,14 +1194,14 @@ da2_cb(inputctx* ictx){
 static int
 da3_cb(inputctx* ictx){
   if(ictx->initdata){
-    loginfo("read ternary device attributes\n");
+    loginfo("read ternary device attributes");
   }
   return 2;
 }
 
 static int
 kittygraph_cb(inputctx* ictx){
-  loginfo("kitty graphics message\n");
+  loginfo("kitty graphics message");
   if(ictx->initdata){
     ictx->initdata->kitty_graphics = 1;
   }
@@ -1211,7 +1211,7 @@ kittygraph_cb(inputctx* ictx){
 static int
 decrpm_asu_cb(inputctx* ictx){
   unsigned ps = amata_next_numeric(&ictx->amata, "\x1b[?2026;", '$');
-  loginfo("received decrpm 2026 %u\n", ps);
+  loginfo("received decrpm 2026 %u", ps);
   if(ps == 2){
     if(ictx->initdata){
       ictx->initdata->appsync_supported = 1;
@@ -1230,11 +1230,11 @@ get_default_color(const char* str, uint32_t* color){
     g /= 256;
     b /= 256;
   }else{
-    logerror("couldn't extract rgb from %s\n", str);
+    logerror("couldn't extract rgb from %s", str);
     return -1;
   }
   if(r < 0 || g < 0 || b < 0){
-    logerror("invalid colors %d %d %d\n", r, g, b);
+    logerror("invalid colors %d %d %d", r, g, b);
     return -1;
   }
   *color = (r << 16u) | (g << 8u) | b;
@@ -1246,11 +1246,11 @@ bgdef_cb(inputctx* ictx){
   if(ictx->initdata){
     char* str = amata_next_string(&ictx->amata, "\x1b]11;rgb:");
     if(str == NULL){
-      logerror("empty bg string\n");
+      logerror("empty bg string");
     }else{
       if(get_default_color(str, &ictx->initdata->bg) == 0){
         ictx->initdata->got_bg = true;
-        loginfo("default background 0x%06x\n", ictx->initdata->bg);
+        loginfo("default background 0x%06x", ictx->initdata->bg);
       }
       free(str);
     }
@@ -1263,11 +1263,11 @@ fgdef_cb(inputctx* ictx){
   if(ictx->initdata){
     char* str = amata_next_string(&ictx->amata, "\x1b]10;rgb:");
     if(str == NULL){
-      logerror("empty fg string\n");
+      logerror("empty fg string");
     }else{
       if(get_default_color(str, &ictx->initdata->fg) == 0){
         ictx->initdata->got_fg = true;
-        loginfo("default foreground 0x%06x\n", ictx->initdata->fg);
+        loginfo("default foreground 0x%06x", ictx->initdata->fg);
       }
       free(str);
     }
@@ -1281,15 +1281,15 @@ palette_cb(inputctx* ictx){
     unsigned idx = amata_next_numeric(&ictx->amata, "\x1b]4;", ';');
     char* str = amata_next_string(&ictx->amata, "rgb:");
     if(idx > sizeof(ictx->initdata->palette.chans) / sizeof(*ictx->initdata->palette.chans)){
-      logerror("invalid index %u\n", idx);
+      logerror("invalid index %u", idx);
     }else if(str == NULL){
-      logerror("empty palette string\n");
+      logerror("empty palette string");
     }else{
       if(get_default_color(str, &ictx->initdata->palette.chans[idx]) == 0){
         if((int)idx > ictx->initdata->maxpaletteread){
           ictx->initdata->maxpaletteread = idx;
         }
-        loginfo("index %u 0x%06x\n", idx, ictx->initdata->palette.chans[idx]);
+        loginfo("index %u 0x%06x", idx, ictx->initdata->palette.chans[idx]);
       }
       free(str);
     }
@@ -1301,7 +1301,7 @@ static int
 extract_xtversion(inputctx* ictx, const char* str, char suffix){
   size_t slen = strlen(str);
   if(slen == 0){
-    logwarn("empty version in xtversion\n");
+    logwarn("empty version in xtversion");
     return -1;
   }
   if(suffix){
@@ -1311,7 +1311,7 @@ extract_xtversion(inputctx* ictx, const char* str, char suffix){
     --slen;
   }
   if(slen == 0){
-    logwarn("empty version in xtversion\n");
+    logwarn("empty version in xtversion");
     return -1;
   }
   ictx->initdata->version = strndup(str, slen);
@@ -1325,7 +1325,7 @@ xtversion_cb(inputctx* ictx){
   }
   char* xtversion = amata_next_string(&ictx->amata, "\x1bP>|");
   if(xtversion == NULL){
-    logwarn("empty xtversion\n");
+    logwarn("empty xtversion");
     return 2; // don't replay as input
   }
   static const struct {
@@ -1347,7 +1347,7 @@ xtversion_cb(inputctx* ictx){
   for(xtv = xtvers ; xtv->prefix ; ++xtv){
     if(strncmp(xtversion, xtv->prefix, strlen(xtv->prefix)) == 0){
       if(extract_xtversion(ictx, xtversion + strlen(xtv->prefix), xtv->suffix) == 0){
-        loginfo("found terminal type %d version %s\n", xtv->term, ictx->initdata->version);
+        loginfo("found terminal type %d version %s", xtv->term, ictx->initdata->version);
         ictx->initdata->qterm = xtv->term;
       }else{
         free(xtversion);
@@ -1357,7 +1357,7 @@ xtversion_cb(inputctx* ictx){
     }
   }
   if(xtv->prefix == NULL){
-    logwarn("unknown xtversion [%s]\n", xtversion);
+    logwarn("unknown xtversion [%s]", xtversion);
   }
   free(xtversion);
   return 2;
@@ -1370,7 +1370,7 @@ tcap_cb(inputctx* ictx){
   if(str == NULL){
     return 2;
   }
-  loginfo("xtgettcap [%s]\n", str);
+  loginfo("xtgettcap [%s]", str);
   if(ictx->initdata == NULL){
     free(str);
     return 2;
@@ -1403,14 +1403,14 @@ tcap_cb(inputctx* ictx){
             ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
           }
         }else{
-          logdebug("unknown terminal name %s\n", tn);
+          logdebug("unknown terminal name %s", tn);
         }
       }
     }else if(strncasecmp(s, "524742=", 7) == 0){
-      loginfo("got rgb (%s)\n", s);
+      loginfo("got rgb (%s)", s);
       ictx->initdata->rgb = true;
     }else{
-      logdebug("unknown capability=val %s\n", str);
+      logdebug("unknown capability=val %s", str);
     }
     if((s = strchr(s, ';')) == NULL){
       break;
@@ -1425,7 +1425,7 @@ static int
 tda_cb(inputctx* ictx){
   char* str = amata_next_string(&ictx->amata, "\x1bP!|");
   if(str == NULL){
-    logwarn("empty ternary device attribute\n");
+    logwarn("empty ternary device attribute");
     return 2; // don't replay
   }
   if(ictx->initdata && ictx->initdata->qterm == TERMINAL_UNKNOWN){
@@ -1436,7 +1436,7 @@ tda_cb(inputctx* ictx){
     }else if(strcmp(str, "464F4F54") == 0){ // "FOOT"
       ictx->initdata->qterm = TERMINAL_FOOT;
     }
-    loginfo("got TDA: %s, terminal type %d\n", str, ictx->initdata->qterm);
+    loginfo("got TDA: %s, terminal type %d", str, ictx->initdata->qterm);
   }
   free(str);
   return 2;
@@ -1524,19 +1524,19 @@ build_cflow_automaton(inputctx* ictx){
   }, *csi;
   for(csi = csis ; csi->cflow ; ++csi){
     if(inputctx_add_cflow(&ictx->amata, csi->cflow, csi->fxn)){
-      logerror("failed adding %p via %s\n", csi->fxn, csi->cflow);
+      logerror("failed adding %p via %s", csi->fxn, csi->cflow);
       return -1;
     }
-    loginfo("added %p via %s\n", csi->fxn, csi->cflow);
+    loginfo("added %p via %s", csi->fxn, csi->cflow);
   }
   if(ictx->ti->qterm == TERMINAL_RXVT){
     if(inputctx_add_cflow(&ictx->amata, "]4;\\N;rgb:\\R", palette_cb)){
-      logerror("failed adding palette_cb\n");
+      logerror("failed adding palette_cb");
       return -1;
     }
   }else{
     if(inputctx_add_cflow(&ictx->amata, "]4;\\N;rgb:\\S", palette_cb)){
-      logerror("failed adding palette_cb\n");
+      logerror("failed adding palette_cb");
       return -1;
     }
   }
@@ -1568,28 +1568,28 @@ getpipes(ipipe pipes[static 2]){
 #ifndef __MINGW32__
 #ifndef __APPLE__
   if(pipe2(pipes, O_CLOEXEC | O_NONBLOCK)){
-    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    logerror("couldn't get pipes (%s)", strerror(errno));
     return -1;
   }
 #else
   if(pipe(pipes)){
-    logerror("couldn't get pipes (%s)\n", strerror(errno));
+    logerror("couldn't get pipes (%s)", strerror(errno));
     return -1;
   }
   if(set_fd_cloexec(pipes[0], 1, NULL) || set_fd_nonblocking(pipes[0], 1, NULL)){
-    logerror("couldn't prep pipe[0] (%s)\n", strerror(errno));
+    logerror("couldn't prep pipe[0] (%s)", strerror(errno));
     endpipes(pipes);
     return -1;
   }
   if(set_fd_cloexec(pipes[1], 1, NULL) || set_fd_nonblocking(pipes[1], 1, NULL)){
-    logerror("couldn't prep pipe[1] (%s)\n", strerror(errno));
+    logerror("couldn't prep pipe[1] (%s)", strerror(errno));
     endpipes(pipes);
     return -1;
   }
 #endif
 #else // windows
   if(!CreatePipe(&pipes[0], &pipes[1], NULL, BUFSIZ)){
-    logerror("couldn't get pipes\n");
+    logerror("couldn't get pipes");
     return -1;
   }
 #endif
@@ -1644,7 +1644,7 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                             i->bmargin = bmargin;
                             i->drain = drain;
                             i->failed = false;
-                            logdebug("input descriptors: %d/%d\n", i->stdinfd, i->termfd);
+                            logdebug("input descriptors: %d/%d", i->stdinfd, i->termfd);
                             return i;
                           }
                         }
@@ -1725,7 +1725,7 @@ prep_kitty_special_keys(inputctx* ictx){
       return -1;
     }
   }
-  loginfo("added all kitty special keys\n");
+  loginfo("added all kitty special keys");
   return 0;
 }
 
@@ -1774,9 +1774,9 @@ prep_windows_special_keys(inputctx* ictx){
                                  k->shift, k->ctrl, k->alt)){
       return -1;
     }
-    logdebug("added %s %u\n", k->esc, k->key);
+    logdebug("added %s %u", k->esc, k->key);
   }
-  loginfo("added all windows special keys\n");
+  loginfo("added all windows special keys");
   return 0;
 }
 
@@ -1808,9 +1808,9 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
   ssize_t r = read(fd, buf + *bufused, space);
   if(r <= 0){
     if(r < 0){
-      logwarn("couldn't read from %d (%s)\n", fd, strerror(errno));
+      logwarn("couldn't read from %d (%s)", fd, strerror(errno));
     }else{
-      logwarn("got EOF on %d\n", fd);
+      logwarn("got EOF on %d", fd);
       if(goteof){
         *goteof = 1;
       }
@@ -1819,7 +1819,7 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
   }
   *bufused += r;
   space -= r;
-  loginfo("read %" PRIdPTR "B from %d (%" PRIuPTR "B left)\n", r, fd, space);
+  loginfo("read %" PRIdPTR "B from %d (%" PRIuPTR "B left)", r, fd, space);
 }
 
 // are terminal and stdin distinct for this inputctx?
@@ -1856,7 +1856,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     if(candidate == NCKEY_ESC && !ictx->amata.instring){
       ictx->amata.matchstart = buf + ictx->amata.used - 1;
       ictx->amata.state = ictx->amata.escapes;
-      logtrace("initialized automaton to %u\n", ictx->amata.state);
+      logtrace("initialized automaton to %u", ictx->amata.state);
       ictx->amata.used = 1;
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
@@ -1868,7 +1868,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     }else{
       ncinput ni = {0};
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
-      logdebug("walk result on %u (%c): %d %u\n", candidate,
+      logdebug("walk result on %u (%c): %d %u", candidate,
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
@@ -1910,7 +1910,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
           if(available > consumed){
             available = consumed;
           }
-          logwarn("replaying %dB of %dB to ibuf\n", available, consumed);
+          logwarn("replaying %dB of %dB to ibuf", available, consumed);
           memcpy(ictx->ibuf + ictx->ibufvalid, buf + offset, available);
           ictx->ibufvalid += available;
         }
@@ -1945,7 +1945,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
   memset(ni, 0, sizeof(*ni));
   const int cpointlen = utf8_codepoint_length(*buf);
   if(cpointlen <= 0){
-    logwarn("invalid UTF8 initiator on input (0x%02x)\n", *buf);
+    logwarn("invalid UTF8 initiator on input (0x%02x)", *buf);
     return -1;
   }else if(cpointlen == 1){ // pure ascii can't show up mid-utf8-character
     if(buf[0] == 0x7f || buf[0] == 0x8){ // ASCII del, treated as backspace
@@ -1965,7 +1965,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
     return 1;
   }
   if(cpointlen > buflen){
-    logwarn("utf8 character (%dB) broken across read\n", cpointlen);
+    logwarn("utf8 character (%dB) broken across read", cpointlen);
     return 0; // need read more data; we don't have the complete character
   }
   wchar_t w;
@@ -1974,7 +1974,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
   // FIXME how the hell does this work with 16-bit wchar_t?
   size_t r = mbrtowc(&w, (const char*)buf, cpointlen, &mbstate);
   if(r == (size_t)-1 || r == (size_t)-2){
-    logerror("invalid utf8 prefix (%dB) on input\n", cpointlen);
+    logerror("invalid utf8 prefix (%dB) on input", cpointlen);
     return -1;
   }
   ni->id = w;
@@ -1988,7 +1988,7 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
     pthread_mutex_unlock(&ictx->ilock);
-    logwarn("blocking on input output queue (%d+%d)\n", ictx->ivalid, buflen);
+    logwarn("blocking on input output queue (%d+%d)", ictx->ivalid, buflen);
     return 0;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -2040,7 +2040,7 @@ static void
 process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
-    logdebug("input %d (%u)/%d [0x%02x] (%c)\n", offset, ictx->amata.used,
+    logdebug("input %d (%u)/%d [0x%02x] (%c)", offset, ictx->amata.used,
              *bufused, buf[offset], isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
     if(buf[offset] == '\x1b'){
@@ -2112,7 +2112,7 @@ process_ibuf(inputctx* ictx){
 int ncinput_shovel(inputctx* ictx, const void* buf, int len){
   process_melange(ictx, buf, &len);
   if(len){
-    logwarn("dropping %d byte%s\n", len, len == 1 ? "" : "s");
+    logwarn("dropping %d byte%s", len, len == 1 ? "" : "s");
     inc_input_errors(ictx);
   }
   return 0;
@@ -2123,11 +2123,11 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
 // are set high iff they are ready for reading, and otherwise cleared.
 static int
 block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
-  logtrace("blocking on input availability\n");
+  logtrace("blocking on input availability");
   *rtfd = *rifd = 0;
   unsigned nonblock = ictx->midescape;
   if(nonblock){
-    loginfo("nonblocking read to check for completion\n");
+    loginfo("nonblocking read to check for completion");
     ictx->midescape = 0;
   }
 #ifdef __MINGW32__
@@ -2168,7 +2168,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     }
   }
   if(pfdcount == 0){
-    loginfo("output queues full; blocking on ipipes\n");
+    loginfo("output queues full; blocking on ipipes");
     pfds[pfdcount].fd = ictx->ipipes[0];
     pfds[pfdcount].events = inevents;
     pfds[pfdcount].revents = 0;
@@ -2180,7 +2180,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
-  logtrace("waiting on %d fds (ibuf: %u/%"PRIuPTR")\n", pfdcount, ictx->ibufvalid, sizeof(ictx->ibuf));
+  logtrace("waiting on %d fds (ibuf: %u/%"PRIuPTR")", pfdcount, ictx->ibufvalid, sizeof(ictx->ibuf));
   sigset_t smask;
   sigfillset(&smask);
   sigdelset(&smask, SIGCONT);
@@ -2200,14 +2200,14 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
 #endif
     if(errno == EINTR){
-      loginfo("interrupted by signal\n");
+      loginfo("interrupted by signal");
       return resize_seen;
     }else if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
-      logerror("error polling (%s)\n", strerror(errno));
+      logerror("error polling (%s)", strerror(errno));
       return -1;
     }
   }
-  loginfo("poll returned %d\n", events);
+  loginfo("poll returned %d", events);
   pfdcount = 0;
   while(events){
     if(pfds[pfdcount].revents){
@@ -2221,7 +2221,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     }
     ++pfdcount;
   }
-  loginfo("got events: %c%c\n", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i');
+  loginfo("got events: %c%c", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i');
   return events;
 #endif
 }
@@ -2275,7 +2275,7 @@ int init_inputlayer(tinfo* ti, FILE* infp, int lmargin, int tmargin,
     return -1;
   }
   ti->ictx = ictx;
-  loginfo("spun up input thread\n");
+  loginfo("spun up input thread");
   return 0;
 }
 
@@ -2285,7 +2285,7 @@ int stop_inputlayer(tinfo* ti){
     // FIXME cancellation on shutdown does not yet work on windows #2192
 #ifndef __MINGW32__
     if(ti->ictx){
-      loginfo("tearing down input thread\n");
+      loginfo("tearing down input thread");
       ret |= cancel_and_join("input", ti->ictx->tid, NULL);
       ret |= set_fd_nonblocking(ti->ictx->stdinfd, ti->stdio_blocking_save, NULL);
       free_inputctx(ti->ictx);
@@ -2301,7 +2301,7 @@ int inputready_fd(const inputctx* ictx){
   return ictx->readypipes[0];
 #else
   (void)ictx;
-  logerror("readiness descriptor unavailable on windows\n");
+  logerror("readiness descriptor unavailable on windows");
   return -1;
 #endif
 }
@@ -2310,7 +2310,7 @@ static inline uint32_t
 internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   uint32_t id;
   if(ictx->drain){
-    logerror("input is being drained\n");
+    logerror("input is being drained");
     if(ni){
       memset(ni, 0, sizeof(*ni));
       ni->id = (uint32_t)-1;
@@ -2321,7 +2321,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   while(!ictx->ivalid){
     if(ictx->stdineof){
       pthread_mutex_unlock(&ictx->ilock);
-      logwarn("read eof on stdin\n");
+      logwarn("read eof on stdin");
       if(ni){
         memset(ni, 0, sizeof(*ni));
         ni->id = NCKEY_EOF;
@@ -2362,7 +2362,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   if(ictx->ivalid-- == ictx->isize){
     sendsignal = true;
   }else{
-    logtrace("draining event readiness pipe %d\n", ictx->ivalid);
+    logtrace("draining event readiness pipe %d", ictx->ivalid);
 #ifndef __MINGW32__
     char c;
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
@@ -2442,7 +2442,7 @@ int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x
 static int
 linesigs_disable(tinfo* ti){
   if(!ti->ictx->linesigs){
-    logwarn("linedisc signals already disabled\n");
+    logwarn("linedisc signals already disabled");
   }
 #ifndef __MINGW32__
   if(ti->ttyfd < 0){
@@ -2450,28 +2450,28 @@ linesigs_disable(tinfo* ti){
   }
   struct termios tios;
   if(tcgetattr(ti->ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+    logerror("Couldn't preserve terminal state for %d (%s)", ti->ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag &= ~ISIG;
   if(tcsetattr(ti->ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", ti->ttyfd, strerror(errno));
+    logerror("Error disabling signals on %d (%s)", ti->ttyfd, strerror(errno));
     return -1;
   }
 #else
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
-    logerror("error acquiring input mode\n");
+    logerror("error acquiring input mode");
     return -1;
   }
   mode &= ~ENABLE_PROCESSED_INPUT;
   if(!SetConsoleMode(ti->inhandle, mode)){
-    logerror("error setting input mode\n");
+    logerror("error setting input mode");
     return -1;
   }
 #endif
   ti->ictx->linesigs = 0;
-  loginfo("disabled line discipline signals\n");
+  loginfo("disabled line discipline signals");
   return 0;
 }
 
@@ -2482,7 +2482,7 @@ int notcurses_linesigs_disable(notcurses* nc){
 static int
 linesigs_enable(tinfo* ti){
   if(ti->ictx->linesigs){
-    logwarn("linedisc signals already enabled\n");
+    logwarn("linedisc signals already enabled");
   }
 #ifndef __MINGW32__
   if(ti->ttyfd < 0){
@@ -2490,28 +2490,28 @@ linesigs_enable(tinfo* ti){
   }
   struct termios tios;
   if(tcgetattr(ti->ttyfd, &tios)){
-    logerror("Couldn't preserve terminal state for %d (%s)\n", ti->ttyfd, strerror(errno));
+    logerror("couldn't preserve terminal state for %d (%s)", ti->ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag |= ISIG;
   if(tcsetattr(ti->ttyfd, TCSANOW, &tios)){
-    logerror("Error disabling signals on %d (%s)\n", ti->ttyfd, strerror(errno));
+    logerror("error disabling signals on %d (%s)", ti->ttyfd, strerror(errno));
     return -1;
   }
 #else
   DWORD mode;
   if(!GetConsoleMode(ti->inhandle, &mode)){
-    logerror("error acquiring input mode\n");
+    logerror("error acquiring input mode");
     return -1;
   }
   mode |= ENABLE_PROCESSED_INPUT;
   if(!SetConsoleMode(ti->inhandle, mode)){
-    logerror("error setting input mode\n");
+    logerror("error setting input mode");
     return -1;
   }
 #endif
   ti->ictx->linesigs = 1;
-  loginfo("enabled line discipline signals\n");
+  loginfo("enabled line discipline signals");
   return 0;
 }
 
@@ -2531,7 +2531,7 @@ struct initial_responses* inputlayer_get_responses(inputctx* ictx){
   ictx->initdata_complete = NULL;
   pthread_mutex_unlock(&ictx->ilock);
   if(ictx->failed){
-    logpanic("aborting after automaton construction failure\n");
+    logpanic("aborting after automaton construction failure");
     free(iresp);
     return NULL;
   }

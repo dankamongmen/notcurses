@@ -94,7 +94,7 @@ ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
                           ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn,
                           bool thread){
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
   ncfdplane* ret = malloc(sizeof(*ret));
   if(ret == NULL){
@@ -194,7 +194,7 @@ launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
   p = syscall(__NR_clone3, &clargs, sizeof(clargs));
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
-      logerror("Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
+      logerror("couldn't dup() %d (%s)", pipes[1], strerror(errno));
       exit(EXIT_FAILURE);
     }
     if(env){
@@ -206,13 +206,13 @@ launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
     }
     exit(EXIT_FAILURE);
   }else if(p < 0){
-    logwarn("clone3() failed (%s), using posix_spawn()\n", strerror(errno));
+    logwarn("clone3() failed (%s), using posix_spawn()", strerror(errno));
   }
 #endif
   if(p < 0){
     posix_spawn_file_actions_t factions;
     if(posix_spawn_file_actions_init(&factions)){
-      logerror("couldn't initialize spawn file actions\n");
+      logerror("couldn't initialize spawn file actions");
       return -1;
     }
     posix_spawn_file_actions_adddup2(&factions, pipes[1], STDOUT_FILENO);
@@ -224,7 +224,7 @@ launch_pipe_process(int* pipefd, int* pidfd, unsigned usepath,
       r = posix_spawn(&p, bin, &factions, NULL, arg, env);
     }
     if(r){
-      logerror("posix_spawn %s failed (%s)\n", bin, strerror(errno));
+      logerror("posix_spawn %s failed (%s)", bin, strerror(errno));
     }
     posix_spawn_file_actions_destroy(&factions);
   }
@@ -347,7 +347,7 @@ ncexecvpe(ncplane* n, const ncsubproc_options* opts, unsigned usepath,
     return NULL;
   }
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
 #ifndef __MINGW32__
   int fd = -1;
@@ -407,7 +407,7 @@ int ncsubproc_destroy(ncsubproc* n){
 #ifndef __MINGW32__
 #ifdef USING_PIDFD
     if(n->pidfd >= 0){
-      loginfo("Sending SIGKILL to pidfd %d\n", n->pidfd);
+      loginfo("sending SIGKILL to pidfd %d", n->pidfd);
       if(syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0)){
         kill(n->pid, SIGKILL);
       }
@@ -415,7 +415,7 @@ int ncsubproc_destroy(ncsubproc* n){
 #else
     pthread_mutex_lock(&n->lock);
     if(!n->waited){
-      loginfo("Sending SIGKILL to PID %d\n", n->pid);
+      loginfo("sending SIGKILL to PID %d", n->pid);
       kill(n->pid, SIGKILL);
     }
     pthread_mutex_unlock(&n->lock);
@@ -456,12 +456,12 @@ int get_tty_fd(FILE* ttyfp){
   int fd = -1;
   if(ttyfp){
     if((fd = fileno(ttyfp)) < 0){
-      logwarn("no file descriptor was available in outfp %p\n", ttyfp);
+      logwarn("no file descriptor was available in outfp %p", ttyfp);
     }else{
       if(tty_check(fd)){
         fd = dup(fd);
       }else{
-        loginfo("fd %d is not a TTY\n", fd);
+        loginfo("fd %d is not a TTY", fd);
         fd = -1;
       }
     }
@@ -469,17 +469,17 @@ int get_tty_fd(FILE* ttyfp){
   if(fd < 0){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC | O_NOCTTY);
     if(fd < 0){
-      loginfo("couldn't open /dev/tty (%s)\n", strerror(errno));
+      loginfo("couldn't open /dev/tty (%s)", strerror(errno));
     }else{
       if(!tty_check(fd)){
-        loginfo("file descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
+        loginfo("file descriptor for /dev/tty (%d) is not actually a TTY", fd);
         close(fd);
         fd = -1;
       }
     }
   }
   if(fd >= 0){
-    loginfo("returning TTY fd %d\n", fd);
+    loginfo("returning TTY fd %d", fd);
   }
   return fd;
 }

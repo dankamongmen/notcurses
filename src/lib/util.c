@@ -24,11 +24,11 @@ int set_loglevel_from_env(ncloglevel_e* llptr){
   char* endl;
   long l = strtol(ll, &endl, 10);
   if(l < NCLOGLEVEL_PANIC || l > NCLOGLEVEL_TRACE){
-    logpanic("Illegal NOTCURSES_LOGLEVEL: %s\n", ll);
+    logpanic("illegal NOTCURSES_LOGLEVEL: %s", ll);
     return -1;
   }
   *llptr = l;
-  loginfo("Got loglevel from environment: %ld\n", l);
+  loginfo("got loglevel from environment: %ld", l);
   return 0;
 }
 
@@ -51,7 +51,7 @@ char* notcurses_accountname(void){
     return NULL;
   }
   if(!GetUserNameExA(NameSamCompatible, un, &unlen)){
-    logerror("couldn't get user name\n");
+    logerror("couldn't get user name");
     free(un);
     return NULL;
   }
@@ -96,7 +96,7 @@ char* notcurses_osversion(void){
 #else
   struct utsname uts;
   if(uname(&uts)){
-    logerror("failure invoking uname (%s)\n", strerror(errno));
+    logerror("failure invoking uname (%s)", strerror(errno));
     return NULL;
   }
   const size_t nlen = strlen(uts.sysname);

@@ -279,7 +279,7 @@ void ncselector_destroy(ncselector* n, char** item){
 
 ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   if(n == notcurses_stdplane(ncplane_notcurses(n))){
-    logerror("won't use the standard plane\n"); // would fail later on resize
+    logerror("won't use the standard plane"); // would fail later on resize
     return NULL;
   }
   ncselector_options zeroed = {0};
@@ -288,7 +288,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   unsigned itemcount = 0;
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
   if(opts->items){
     for(const struct ncselector_item* i = opts->items ; i->option ; ++i){
@@ -301,7 +301,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   memset(ns, 0, sizeof(*ns));
   if(opts->defidx && opts->defidx >= itemcount){
-    logerror("default index %u too large (%u items)\n", opts->defidx, itemcount);
+    logerror("default index %u too large (%u items)", opts->defidx, itemcount);
     goto freeitems;
   }
   ns->title = opts->title ? strdup(opts->title) : NULL;
@@ -884,7 +884,7 @@ ncmultiselector_dim_yx(const ncmultiselector* n, unsigned* ncdimy, unsigned* ncd
 
 ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_options* opts){
   if(n == notcurses_stdplane(ncplane_notcurses(n))){
-    logerror("won't use the standard plane\n"); // would fail later on resize
+    logerror("won't use the standard plane"); // would fail later on resize
     return NULL;
   }
   ncmultiselector_options zeroed = {0};
@@ -892,7 +892,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     opts = &zeroed;
   }
   if(opts->flags > 0){
-    logwarn("Provided unsupported flags %016" PRIx64 "\n", opts->flags);
+    logwarn("provided unsupported flags %016" PRIx64, opts->flags);
   }
   unsigned itemcount = 0;
   if(opts->items){

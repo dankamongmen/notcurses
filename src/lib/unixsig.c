@@ -37,7 +37,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
   // don't register ourselves if we don't intend to set up signal handlers
   // we expect NULL (nothing registered), and want to register nc
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, vnc)){
-    logpanic("%p is already registered for signals (provided %p)\n", expected, vnc);
+    logpanic("%p is already registered for signals (provided %p)", expected, vnc);
     return -1;
   }
   return 0;
@@ -113,7 +113,7 @@ int drop_signals(void* nc){
       alt_signal_stack.ss_flags = SS_DISABLE;
       if(sigaltstack(&alt_signal_stack, NULL)){
         if(errno != EPERM){
-          fprintf(stderr, "couldn't remove alternate signal stack (%s)\n", strerror(errno));
+          fprintf(stderr, "couldn't remove alternate signal stack (%s)", strerror(errno));
         }
       }
       free(alt_signal_stack.ss_sp);
@@ -123,7 +123,7 @@ int drop_signals(void* nc){
   }
   pthread_mutex_unlock(&lock);
   if(ret){
-    fprintf(stderr, "Signals weren't registered for %p (had %p)\n", nc, expected);
+    fprintf(stderr, "signals weren't registered for %p (had %p)", nc, expected);
   }
   // we might not have established any handlers in setup_signals(); always
   // return 0 here, for now...
@@ -181,7 +181,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
   // don't register ourselves if we don't intend to set up signal handlers
   // we expect NULL (nothing registered), and want to register nc
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
-    loginfo("%p is already registered for signals (provided %p)\n", expected, nc);
+    fprintf(stderr, "%p is already registered for signals (provided %p)" NL, expected, nc);
     return -1;
   }
   pthread_mutex_lock(&lock);
@@ -196,7 +196,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     if(ret){
       atomic_store(&signal_nc, NULL);
       pthread_mutex_unlock(&lock);
-      fprintf(stderr, "error installing term signal handler (%s)\n", strerror(errno));
+      fprintf(stderr, "error installing term signal handler (%s)" NL, strerror(errno));
       return -1;
     }
     // we're not going to be restoring the old mask at exit, as who knows,
@@ -207,12 +207,12 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
   if(!no_quit_sigs){
     alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
     if(alt_signal_stack.ss_sp == NULL){
-      fprintf(stderr, "warning: couldn't create alternate signal stack (%s)\n", strerror(errno));
+      fprintf(stderr, "warning: couldn't create alternate signal stack (%s)" NL, strerror(errno));
     }else{
       alt_signal_stack.ss_size = SIGSTKSZ * 4;
       alt_signal_stack.ss_flags = 0;
       if(sigaltstack(&alt_signal_stack, NULL)){
-        fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)\n", strerror(errno));
+        fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)" NL, strerror(errno));
         free(alt_signal_stack.ss_sp);
         alt_signal_stack.ss_sp = NULL;
       }
@@ -242,7 +242,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     if(ret){
       atomic_store(&signal_nc, NULL);
       pthread_mutex_unlock(&lock);
-      fprintf(stderr, "Error installing fatal signal handlers (%s)\n", strerror(errno));
+      fprintf(stderr, "error installing fatal signal handlers (%s)" NL, strerror(errno));
       return -1;
     }
     handling_fatals = true;
