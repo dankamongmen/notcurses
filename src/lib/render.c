@@ -428,10 +428,12 @@ lock_in_highcontrast(notcurses* nc, const tinfo* ti, nccell* targc, struct crend
       unsigned fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      uint32_t hchan = channels_blend(nc, highcontrast(ti, bchan), fchan, &fgblends);
+      uint32_t hchan = channels_blend(nc, highcontrast(ti, bchan), fchan,
+                                      &fgblends, nc->tcache.fg_default);
       cell_set_fchannel(targc, hchan);
       fgblends = crender->s.hcfgblends;
-      hchan = channels_blend(nc, hchan, crender->hcfg, &fgblends);
+      hchan = channels_blend(nc, hchan, crender->hcfg, &fgblends,
+                             nc->tcache.fg_default);
       cell_set_fchannel(targc, hchan);
     }else{
       nccell_set_fg_rgb(targc, highcontrast(ti, cell_bchannel(targc)));
