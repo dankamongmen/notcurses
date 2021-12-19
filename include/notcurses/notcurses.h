@@ -2908,7 +2908,7 @@ API void ncfadectx_free(struct ncfadectx* nctx);
 // have loaded before the error are nccell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+nccells_load_box(struct ncplane* n, uint16_t styles, uint64_t channels,
                  nccell* ul, nccell* ur, nccell* ll, nccell* lr,
                  nccell* hl, nccell* vl, const char* gclusters){
   int ulen;
