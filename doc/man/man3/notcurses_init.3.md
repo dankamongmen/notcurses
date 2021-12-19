@@ -280,6 +280,13 @@ rendered-mode programs:
 * **-k** ought be mapped to **NCOPTION_NO_ALTERNATE_SCREEN**.
 * Ctrl+L ought be mapped to **notcurses_refresh(3)**.
 
+# BUGS
+
+The introductory diagnostics are not currently emitted when the alternate
+screen is used. They ought be printed to the regular screen before entering
+the alternate screen. They are displayed normally when
+**NCOPTION_NO_ALTERNATE_SCREEN** is used.
+
 # SEE ALSO
 
 **fwide(3)**,
