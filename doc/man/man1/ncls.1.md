@@ -21,7 +21,7 @@ ncls - List paths with rendering of multimedia
 
 **-l**: use a long listing format.
 
-**-L**: when showing file information for a symbolic link, show information for  the file the link references rather than for the link itself.
+**-L**: dereference symbolic links
 
 **-R**: list subdirectories recursively.
 

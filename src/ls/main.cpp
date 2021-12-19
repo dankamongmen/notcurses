@@ -71,9 +71,7 @@ struct lsContext {
 int handle_path(int dirfd, const std::string& dir, const char* p, const lsContext& ctx, bool toplevel);
 
 // handle a single inode of arbitrary type
-int handle_inode(const std::string& dir, const char* p, const struct stat* st, const lsContext& ctx){
-  (void)st; // FIXME handle symlink (dereflinks)
-  (void)ctx; // FIXME handle symlink (dereflinks)
+int handle_inode(const std::string& dir, const char* p){
   pthread_mutex_lock(&mtx);
   work.emplace(job{dir, p});
   pthread_mutex_unlock(&mtx);
@@ -85,12 +83,12 @@ int handle_inode(const std::string& dir, const char* p, const struct stat* st, c
 // otherwise, if |ctx->recursedirs| or |toplevel| is set, we will recurse,
 // passing false for toplevel (but preserving |ctx|).
 int handle_dir(int dirfd, const std::string& pdir, const char* p,
-               const struct stat* st, const lsContext& ctx, bool toplevel){
+               const lsContext& ctx, bool toplevel){
   if(ctx.directories){
-    return handle_inode(pdir, p, st, ctx);
+    return handle_inode(pdir, p);
   }
   if(!ctx.recursedirs && !toplevel){
-    return handle_inode(pdir, p, st, ctx);
+    return handle_inode(pdir, p);
   }
   if((strcmp(p, ".") == 0 || strcmp(p, "..") == 0) && !toplevel){
     return 0;
@@ -130,36 +128,42 @@ int handle_dir(int dirfd, const std::string& pdir, const char* p,
   return r;
 }
 
-int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
-  (void)p;
-  (void)st;
-  (void)ctx; // FIXME dereference and rerun on target
-  return 0;
-}
-
 // handle some path |p|, either absolute or relative to |dirfd|. |toplevel| is
-// true iff the path was directly listed on the command line.
+// true iff the path was directly listed on the command line. we rely on lstat()
+// and fstatat() to resolve symbolic links for us.
 int handle_path(int dirfd, const std::string& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
 #ifndef __MINGW32__
-  if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
+  int flags = AT_NO_AUTOMOUNT;
+  if(!ctx.dereflinks){
+    flags |= AT_SYMLINK_NOFOLLOW;
+  }
+  if(fstatat(dirfd, p, &st, flags)){
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
     return -1;
   }
 #else
-  if(stat(path_join(pdir, p).c_str(), &st)){
-    std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
-    return -1;
+  if(ctx.dereflinks){
+    if(lstat(path_join(pdir, p).c_str(), &st)){
+      std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
+      return -1;
+    }
+  }else{
+    if(stat(path_join(pdir, p).c_str(), &st)){
+      std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
+      return -1;
+    }
   }
 #endif
   if((st.st_mode & S_IFMT) == S_IFDIR){
-    return handle_dir(dirfd, pdir, p, &st, ctx, toplevel);
+    return handle_dir(dirfd, pdir, p, ctx, toplevel);
   }else if((st.st_mode & S_IFMT) == S_IFLNK){
-    if(toplevel && ctx.dereflinks){
-      return handle_deref(p, &st, ctx);
-    }
+    pthread_mutex_lock(&outmtx);
+    std::cout << path_join(pdir, p) << '\n';
+    pthread_mutex_unlock(&outmtx);
+    return 0;
   }
-  return handle_inode(pdir, p, &st, ctx);
+  return handle_inode(pdir, p);
 }
 
 // return long-term return code
