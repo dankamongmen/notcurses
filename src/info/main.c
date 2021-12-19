@@ -507,7 +507,7 @@ int main(int argc, const char** argv){
   tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
   unicodedumper(stdn, indent);
-  char* path = prefix_data("notcurses.png");
+  char* path = notcurses_data_path(NULL, "notcurses.png");
   if(path){
     display_logo(stdn, path); // let it fail
     free(path);

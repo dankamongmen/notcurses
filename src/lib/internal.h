@@ -1818,21 +1818,6 @@ typedef struct ncvisual_implementation {
 // populated by libnotcurses.so if linked with multimedia
 API extern ncvisual_implementation* visual_implementation;
 
-// prepend base with the Notcurses data directory as configured.
-static inline char*
-prefix_data(const char* base){
-  // need a byte for each of directory separator and nul terminator
-  const size_t dlen = strlen(NOTCURSES_SHARE);
-  size_t len = dlen + strlen(base) + 2;
-  char* path = (char*)malloc(len); // cast for C++ includers
-  if(path){
-    memcpy(path, NOTCURSES_SHARE, dlen);
-    path[dlen] = path_separator();
-    strcpy(path + dlen + 1, base);
-  }
-  return path;
-}
-
 // within unix, we can just use isatty(3). on windows, things work
 // differently. for a true Windows Terminal, we'll have HANDLE pointers
 // rather than file descriptors. in cygwin/msys2, isatty(3) always fails.
