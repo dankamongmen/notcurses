@@ -47,22 +47,6 @@
 //
 // https://sw.kovidgoyal.net/kitty/graphics-protocol.html
 
-// convert a base64 character into its equivalent integer 0..63
-static inline int
-b64idx(char b64){
-  if(b64 >= 'A' && b64 <= 'Z'){
-    return b64 - 'A';
-  }else if(b64 >= 'a' && b64 <= 'z'){
-    return b64 - 'a' + 26;
-  }else if(b64 >= '0' && b64 <= '9'){
-    return b64 - '0' + 52;
-  }else if(b64 == '+'){
-    return 62;
-  }else{
-    return 63;
-  }
-}
-
 // null out part of a triplet (a triplet is 3 pixels, which map to 12 bytes, which map to
 // 16 bytes when base64 encoded). skip the initial |skip| pixels, and null out a maximum
 // of |max| pixels after that. returns the number of pixels nulled out. |max| must be
