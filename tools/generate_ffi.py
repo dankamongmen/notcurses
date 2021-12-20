@@ -21,6 +21,7 @@ def generate_ffi(notcurses_dir):
         f.write("// This file is auto generated from tools/generate_ffi.py\n")
         f.write("#include <notcurses/notcurses.h>\n")
         f.write("#include <notcurses/direct.h>\n\n")
+        f.write("#include <notcurses/nckeys.h>\n\n")
 
         for line in lines:
             line = line.replace("RESTRICT", "restrict")

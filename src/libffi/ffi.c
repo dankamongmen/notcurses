@@ -2,6 +2,7 @@
 // This file is auto generated from tools/generate_ffi.py
 #include <notcurses/notcurses.h>
 #include <notcurses/direct.h>
+#include <notcurses/nckeys.h>
 
 bool nccapability_canchangecolor(const nccapabilities* caps);
 bool nccell_bg_default_p(const nccell* cl);
