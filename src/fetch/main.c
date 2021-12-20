@@ -762,6 +762,9 @@ display_thread(void* vmarshal){
       return NULL;
     }
   }
+  unsigned nl;
+  ncplane_cursor_yx(notcurses_stdplane(m->nc), &nl, NULL);
+  m->nextline = nl;
   return NULL;
 }
 
