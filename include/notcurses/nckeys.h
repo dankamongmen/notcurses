@@ -5,6 +5,17 @@
 extern "C" {
 #endif
 
+#ifdef NOTCURSES_FFI
+#define static API
+#endif
+
+#ifndef __MINGW32__
+#define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
 // Synthesized input events, i.e. any input event we can report that isn't
 // representative of some Unicode. This covers both keyboard and mouse events,
 // as well as signals and even window events.
