@@ -258,6 +258,10 @@ linux_ncneofetch(fetched_info* fi){
       // from redhat-lsb-core package
       .logofile = "/usr/share/pixmaps/fedora-logo.png",
     }, {
+      .name = "ubuntu",
+      // package source? FIXME
+      .logofile = "/usr/share/unity/icons/launcher_bfb.png",
+    }, {
       .name = NULL,
       .logofile = NULL,
     },
@@ -699,7 +703,7 @@ neologo_present(struct notcurses* nc, const char* nlogo){
   ncplane_set_fg_default(n);
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   if(notcurses_canopen_images(nc)){
-    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(no image file is known for your distro)\n");
+    ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(no bitmap is known for your distro)\n");
   }else{
     ncplane_putstr_aligned(n, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)\n");
   }
