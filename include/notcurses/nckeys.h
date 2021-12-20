@@ -1,6 +1,9 @@
 #ifndef NOTCURSES_NCKEYS
 #define NOTCURSES_NCKEYS
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
