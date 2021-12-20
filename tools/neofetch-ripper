@@ -118,6 +118,7 @@ if [ -n "$DONE" ] ; then
 	for k in "${!KEYSSEEN[@]}" ; do
 		echo "  { \"$k\", $k },"
 	done
+	echo "  { \"ubuntu\", \"ubuntu_old\" },"
 	echo "  { NULL, NULL }"
 	echo "};"
 	echo

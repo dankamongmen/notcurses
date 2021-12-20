@@ -949,6 +949,7 @@ const struct neofetch_art ncarts[] = {
   { "openEuler", openEuler },
   { "GNOME", GNOME },
   { "SmartOS", SmartOS },
+  { "ubuntu", ubuntu_old },
   { NULL, NULL }
 };
 
