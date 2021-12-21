@@ -49,7 +49,7 @@ except ImportError:
 
 setup(
     name="notcurses",
-    version="3.0.1",
+    version="3.0.2",
     packages=['notcurses'],
     scripts=['notcurses-pydemo', 'ncdirect-pydemo'],
     package_dir={'': 'src'},

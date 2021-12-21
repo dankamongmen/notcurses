@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.2 (not yet released)
+* 3.0.2 (2021-12-21)
   * Added `ncplane_cursor_y()` and `ncplane_cursor_x()`.
 
 * 3.0.1 (2021-12-14)
