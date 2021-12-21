@@ -167,6 +167,7 @@ create_tam(int rows, int cols){
   return tam;
 }
 
+int sprite_init(const struct tinfo* t, int fd);
 int sixel_wipe(sprixel* s, int ycell, int xcell);
 // nulls out a cell from a kitty bitmap via changing the alpha value
 // throughout to 0. the same trick doesn't work on sixel, but there we
@@ -183,9 +184,9 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
-int sixel_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+int sixel_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
-int kitty_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+int kitty_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
 int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
@@ -208,8 +209,8 @@ int kitty_blit_selfref(struct ncplane* nc, int linesize, const void* data,
                        int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
-int fbcon_draw(const tinfo* ti, sprixel* s, int yoff, int xoff);
-void fbcon_scroll(const struct ncpile* p, tinfo* ti, int rows);
+int fbcon_draw(const struct tinfo* ti, sprixel* s, int yoff, int xoff);
+void fbcon_scroll(const struct ncpile* p, struct tinfo* ti, int rows);
 void sixel_refresh(const struct ncpile* p, sprixel* s);
 
 // takes ownership of s on success.

@@ -3632,10 +3632,12 @@ have only one frame), until it returns `NCERR_EOF`:
 // Open a visual at 'file', extracting a codec and parameters.
 struct ncvisual* ncvisual_from_file(const char* file);
 
-
 // extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
 int ncvisual_decode(struct ncvisual* nc);
+
+// Convert a sixel escape into an RGBA vector.
+uint32_t* ncsixel_as_rgba(const char *s, unsigned leny, unsigned lenx);
 ```
 
 ### Pixels

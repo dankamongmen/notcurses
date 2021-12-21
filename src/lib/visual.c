@@ -80,7 +80,7 @@ ncplane* ncvisual_subtitle_plane(ncplane* parent, const ncvisual* ncv){
   return visual_implementation->visual_subtitle(parent, ncv);
 }
 
-int ncvisual_blit_internal(ncvisual* ncv, int rows, int cols, ncplane* n,
+int ncvisual_blit_internal(const ncvisual* ncv, int rows, int cols, ncplane* n,
                            const struct blitset* bset, const blitterargs* barg){
   if(!(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
     if(visual_implementation->visual_blit){

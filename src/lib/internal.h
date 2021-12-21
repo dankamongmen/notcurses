@@ -390,12 +390,6 @@ typedef struct blitterargs {
   } u;
 } blitterargs;
 
-// scaledy and scaledx are output geometry from scaling; data is output data
-// from scaling. we might actually need more pixels due to framing concerns,
-// in which case just assume transparent input pixels where needed.
-typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
-                         int scaledy, int scaledx, const blitterargs* bargs);
-
 // a system for rendering RGBA pixels as text glyphs or sixel/kitty bitmaps
 struct blitset {
   ncblitter_e geom;
@@ -693,7 +687,6 @@ void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel.
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
-int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, fbuf* f);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
@@ -1077,7 +1070,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncvisual to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-int ncvisual_blit_internal(struct ncvisual* ncv, int rows, int cols,
+int ncvisual_blit_internal(const struct ncvisual* ncv, int rows, int cols,
                            ncplane* n, const struct blitset* bset,
                            const blitterargs* bargs);
 
@@ -1794,8 +1787,8 @@ create_polyfill_op(int y, int x, struct topolyfill** stck){
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(fbuf* f);
-  int (*visual_blit)(struct ncvisual* ncv, unsigned rows, unsigned cols, ncplane* n,
-                     const struct blitset* bset, const blitterargs* barg);
+  int (*visual_blit)(const struct ncvisual* ncv, unsigned rows, unsigned cols,
+                     ncplane* n, const struct blitset* bset, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the
