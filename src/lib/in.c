@@ -2091,6 +2091,7 @@ process_ibuf(inputctx* ictx){
     // we could theoretically do this in parallel with process_bulk, but it
     // hardly seems worthwhile without breaking apart the fetches of input.
     process_escapes(ictx, ictx->tbuf, &ictx->tbufvalid);
+    handoff_initial_responses_late(ictx);
   }
   if(ictx->ibufvalid){
     if(ictx_independent_p(ictx)){
