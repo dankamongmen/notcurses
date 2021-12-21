@@ -459,6 +459,29 @@ target_link_libraries(ncsixel-static
   PUBLIC
     notcurses-static
 )
+file(GLOB SIXELANALYZERSRC CONFIGURE DEPENDS src/sixelanalyzer/*.c)
+add_executable(sixelanalyzer ${SIXELANALYZERSRC})
+target_compile_definitions(sixelanalyzer
+  PRIVATE
+    _GNU_SOURCE
+)
+target_include_directories(sixelanalyzer
+  BEFORE
+  PRIVATE
+    include
+    src
+    "${TERMINFO_INCLUDE_DIRS}"
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(sixelanalyzer
+  PRIVATE
+    ncsixel
+    ${LIBM}
+    ${LIBRT}
+    Threads::Threads
+)
+
 ############################################################################
 if(${USE_CXX})
 # libnotcurses++ (C++ wrappers)
@@ -1059,6 +1082,7 @@ if(BUILD_EXECUTABLES)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
+install(TARGETS sixelanalyzer DESTINATION bin)
 if(NOT WIN32)
 install(TARGETS tfman DESTINATION bin)
 endif()
