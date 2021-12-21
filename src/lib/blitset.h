@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "blit.h"
+
 // number of pixels that map to a single cell, height-wise
 static inline int
 encoding_y_scale(const tinfo* tcache, const struct blitset* bset) {
@@ -49,8 +51,6 @@ ncplot_defblitter(const notcurses* nc){
   }
   return NCBLIT_1x1;
 }
-
-void set_pixel_blitter(ncblitter blitfxn);
 
 #ifdef __cplusplus
 }

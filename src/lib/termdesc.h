@@ -13,6 +13,8 @@ extern "C" {
 #include <pthread.h>
 #include <stdbool.h>
 #include <notcurses/notcurses.h>
+#include "sprite.h"
+#include "blit.h"
 #include "fbuf.h"
 #include "in.h"
 

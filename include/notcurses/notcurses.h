@@ -4492,6 +4492,10 @@ API ALLOC char* notcurses_hostname(void);
 // Returns a heap-allocated copy of human-readable OS name and version.
 API ALLOC char* notcurses_osversion(void);
 
+// Convert a sixel escape into an RGBA vector.
+API ALLOC uint32_t* ncsixel_as_rgba(const char *s, unsigned leny, unsigned lenx)
+  __attribute__ ((nonnull (1)));
+
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // newline-delimited, and subject to change. It includes geometry of all
 // planes, from all piles. No line has more than 80 columns' worth of output.

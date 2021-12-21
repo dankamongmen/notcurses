@@ -409,80 +409,6 @@ target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
 ############################################################################
-# libncsixel (sixel library built atop notcurses)
-file(GLOB NCSIXSRCS CONFIGURE_DEPENDS src/sixel/*.c)
-add_library(ncsixel SHARED ${NCSIXSRCS} ${COMPATSRC})
-if(${USE_STATIC})
-add_library(ncsixel-static STATIC ${NCSIXSRCS})
-else()
-add_library(ncsixel-static STATIC EXCLUDE_FROM_ALL ${NCSIXSRCS})
-endif()
-set_target_properties(ncsixel PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-)
-set_target_properties(ncsixel-static PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  OUTPUT_NAME ncsixel
-)
-target_include_directories(ncsixel
-  BEFORE
-  PRIVATE
-    include
-    src
-    "${CMAKE_REQUIRED_INCLUDES}"
-    "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIRS}"
-)
-target_include_directories(ncsixel-static
-  BEFORE
-  PRIVATE
-    include
-    src
-    "${CMAKE_REQUIRED_INCLUDES}"
-    "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIRS}"
-)
-target_compile_definitions(ncsixel
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-target_compile_definitions(ncsixel-static
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-target_link_libraries(ncsixel
-  PUBLIC
-    notcurses
-)
-target_link_libraries(ncsixel-static
-  PUBLIC
-    notcurses-static
-)
-file(GLOB SIXELANALYZERSRC CONFIGURE DEPENDS src/sixelanalyzer/*.c)
-add_executable(sixelanalyzer ${SIXELANALYZERSRC})
-target_compile_definitions(sixelanalyzer
-  PRIVATE
-    _GNU_SOURCE
-)
-target_include_directories(sixelanalyzer
-  BEFORE
-  PRIVATE
-    include
-    src
-    "${TERMINFO_INCLUDE_DIRS}"
-    "${CMAKE_REQUIRED_INCLUDES}"
-    "${PROJECT_BINARY_DIR}/include"
-)
-target_link_libraries(sixelanalyzer
-  PRIVATE
-    ncsixel
-    ${LIBM}
-    ${LIBRT}
-    Threads::Threads
-)
-
-############################################################################
 if(${USE_CXX})
 # libnotcurses++ (C++ wrappers)
 set(NCPP_SOURCES
@@ -1082,7 +1008,6 @@ if(BUILD_EXECUTABLES)
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
-install(TARGETS sixelanalyzer DESTINATION bin)
 if(NOT WIN32)
 install(TARGETS tfman DESTINATION bin)
 endif()
