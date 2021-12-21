@@ -47,6 +47,28 @@
 //
 // https://sw.kovidgoyal.net/kitty/graphics-protocol.html
 
+// get the first alpha from the triplet
+static inline uint8_t
+triplet_alpha1(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0x4]);
+  uint8_t c2 = b64idx(triplet[0x5]);
+  return (c1 << 2u) | ((c2 & 0x30) >> 4);
+}
+
+static inline uint8_t
+triplet_alpha2(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0x9]);
+  uint8_t c2 = b64idx(triplet[0xA]);
+  return ((c1 & 0xf) << 4u) | ((c2 & 0x3c) >> 2);
+}
+
+static inline uint8_t
+triplet_alpha3(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0xE]);
+  uint8_t c2 = b64idx(triplet[0xF]);
+  return ((c1 & 0x3) << 6u) | c2;
+}
+
 // null out part of a triplet (a triplet is 3 pixels, which map to 12 bytes, which map to
 // 16 bytes when base64 encoded). skip the initial |skip| pixels, and null out a maximum
 // of |max| pixels after that. returns the number of pixels nulled out. |max| must be
@@ -70,29 +92,6 @@
 // E: B3(4..7), A3(0..1)
 // F: A3(2..7)
 // so we will only ever zero out bytes 4, 5, 9, A, E, and F
-
-// get the first alpha from the triplet
-static inline uint8_t
-triplet_alpha1(const char* triplet){
-  uint8_t c1 = b64idx(triplet[0x4]);
-  uint8_t c2 = b64idx(triplet[0x5]);
-  return (c1 << 2u) | ((c2 & 0x30) >> 4);
-}
-
-static inline uint8_t
-triplet_alpha2(const char* triplet){
-  uint8_t c1 = b64idx(triplet[0x9]);
-  uint8_t c2 = b64idx(triplet[0xA]);
-  return ((c1 & 0xf) << 4u) | ((c2 & 0x3c) >> 2);
-}
-
-static inline uint8_t
-triplet_alpha3(const char* triplet){
-  uint8_t c1 = b64idx(triplet[0xE]);
-  uint8_t c2 = b64idx(triplet[0xF]);
-  return ((c1 & 0x3) << 6u) | c2;
-}
-
 static inline int
 kitty_null(char* triplet, int skip, int max, int pleft, uint8_t* auxvec){
 //fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
