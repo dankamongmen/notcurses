@@ -7,6 +7,7 @@ extern "C" {
 
 #include <ctype.h>
 #include <stdlib.h>
+#include "logging.h"
 
 uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
 #define MAXCOLORS 65535
@@ -23,6 +24,9 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
   }
   // first we skip the header
   while(*sx != '#'){
+    if(!*sx){
+      return NULL;
+    }
     ++sx;
   }
   // now we build the color table (form: #Pc;Pu;Px;Py;Pz). data starts with
