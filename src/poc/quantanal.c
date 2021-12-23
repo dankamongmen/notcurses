@@ -23,7 +23,20 @@ int main(int argc, char** argv){
       fprintf(stderr, "error opening %s\n", *argv);
       return EXIT_FAILURE;
     }
-    // FIXME render ncv to plane
+    struct ncplane* ncp = ncplane_dup(stdn, NULL);
+    if(ncp == NULL){
+      notcurses_stop(nc);
+      return EXIT_FAILURE;
+    }
+    struct ncvisual_options vopts = {0};
+    vopts.n = ncp;
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+      notcurses_stop(nc);
+      fprintf(stderr, "error rendering %s\n", *argv);
+      return EXIT_FAILURE;
+    }
     // FIXME acquire sixel as s
     char* s = strdup("");
     unsigned leny = 0, lenx = 0; // FIXME
@@ -40,6 +53,7 @@ int main(int argc, char** argv){
     ncvisual_destroy(ncv);
     ncplane_set_fg_rgb(stdn, 0x03ac13);
     ncplane_printf(stdn, "done with %s.\n", *argv);
+    ncplane_destroy(ncp);
     notcurses_render(nc);
   }
   return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
