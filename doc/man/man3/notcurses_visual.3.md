@@ -121,7 +121,7 @@ typedef struct ncvgeom {
 
 **int ncplane_qrcode(struct ncplane* ***n***, unsigned* ***ymax***, unsigned* ***xmax***, const void* ***data***, size_t ***len***)**
 
-**uint32_t* ncsixel_as_rgba(const char* ***s***, unsigned ***leny***, unsigned ***lenx***);**
+**struct ncvisual* ncvisual_from_sixel(const char* ***s***, unsigned ***leny***, unsigned ***lenx***);**
 
 # DESCRIPTION
 

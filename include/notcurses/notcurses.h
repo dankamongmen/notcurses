@@ -3153,6 +3153,10 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                unsigned leny, unsigned lenx)
   __attribute__ ((nonnull (1)));
 
+// Construct an ncvisual from a nul-terminated Sixel control sequence.
+API ALLOC struct ncvisual* ncvisual_from_sixel(const char* s, unsigned leny, unsigned lenx)
+  __attribute__ ((nonnull (1)));
+
 #define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND         0x0002ull // use NCALPHA_BLEND with visual
 #define NCVISUAL_OPTION_HORALIGNED    0x0004ull // x is an alignment, not absolute
@@ -4491,10 +4495,6 @@ API ALLOC char* notcurses_hostname(void);
 
 // Returns a heap-allocated copy of human-readable OS name and version.
 API ALLOC char* notcurses_osversion(void);
-
-// Convert a sixel escape into an RGBA vector.
-API ALLOC uint32_t* ncsixel_as_rgba(const char *s, unsigned leny, unsigned lenx)
-  __attribute__ ((nonnull (1)));
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // newline-delimited, and subject to change. It includes geometry of all

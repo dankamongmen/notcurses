@@ -3382,6 +3382,9 @@ struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
 struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
                                       int rowstride, int cols, int palsize,
                                       int pstride, const uint32_t* palette);
+
+// Construct an ncvisual from a nul-terminated Sixel control sequence.
+struct ncvisual* ncvisual_from_sixel(const char* s, unsigned leny, unsigned lenx);
 ```
 
 `ncvisual`s can also be loaded from the contents of a plane:
@@ -3635,9 +3638,6 @@ struct ncvisual* ncvisual_from_file(const char* file);
 // extract the next frame from an ncvisual. returns NCERR_EOF on end of file,
 // and NCERR_SUCCESS on success, otherwise some other NCERR.
 int ncvisual_decode(struct ncvisual* nc);
-
-// Convert a sixel escape into an RGBA vector.
-uint32_t* ncsixel_as_rgba(const char *s, unsigned leny, unsigned lenx);
 ```
 
 ### Pixels
