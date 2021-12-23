@@ -131,6 +131,16 @@ typedef enum {
 // eventually preventing Notcurses from processing terminal messages.
 #define NCOPTION_DRAIN_INPUT         0x0100
 
+// Prepare the standard plane in scrolling mode, useful for CLIs. This is
+// equivalent to calling ncplane_set_scrolling(notcurses_stdplane(nc), true).
+#define NCOPTION_SCROLLING           0x0200ull
+
+// "CLI mode" is just setting these four options.
+#define NCOPTION_CLI_MODE (NCOPTION_NO_ALTERNATE_SCREEN \
+                           |NCOPTION_NO_CLEAR_BITMAPS \
+                           |NCOPTION_PRESERVE_CURSOR \
+                           |NCOPTION_SCROLLING)
+
 // Configuration for notcurses_init().
 typedef struct notcurses_options {
   // The name of the terminfo database entry describing this terminal. If NULL,

@@ -814,6 +814,12 @@ add_test(
   COMMAND rgbbg
 )
 LIST(APPEND TESTBINS notcurses-info sgr-direct sgr-full rgb rgbbg)
+if(${USE_QRCODEGEN})
+add_test(
+  NAME qrcode
+  COMMAND qrcode
+)
+endif()
 set_tests_properties(
   ${TESTBINS} PROPERTIES RUN_SERIAL TRUE
 )

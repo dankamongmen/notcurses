@@ -20,6 +20,12 @@ notcurses_init - initialize a Notcurses instance
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
 #define NCOPTION_DRAIN_INPUT         0x0100ull
+#define NCOPTION_SCROLLING           0x0200ull
+
+#define NCOPTION_CLI_MODE (NCOPTION_NO_ALTERNATE_SCREEN \
+                           |NCOPTION_NO_CLEAR_BITMAPS \
+                           |NCOPTION_PRESERVE_CURSOR \
+                           |NCOPTION_SCROLLING)
 
 typedef enum {
   NCLOGLEVEL_SILENT,  // print nothing once fullscreen service begins
@@ -169,6 +175,16 @@ zero. The following flags are defined:
     intend to process input, pass this flag. Otherwise, input can buffer up, and
     eventually prevent Notcurses from processing messages from the terminal. It
     will furthermore avoid wasting time processing useless input.
+
+* **NCOPTION_SCROLLING**: Enable scrolling on the standard plane. This is
+    equivalent to calling **ncplane_set_scrolling(stdn, true)** on some
+    standard plane ***stdn***.
+
+**NCOPTION_CLI_MODE** is provided as an alias for the bitwise OR of
+**NCOPTION_SCROLLING**, **NCOPTION_NO_ALTERNATE_SCREEN**,
+**NCOPTION_PRESERVE_CURSOR**, and **NCOPTION_NO_CLEAR_BITMAPS**. If
+writing a CLI, it is recommended to use **NCOPTION_CLI_MODE** rather
+than explicitly listing these options.
 
 **notcurses_default_foreground** returns the default foreground color, if it
 could be detected. **notcurses_default_background** returns the default

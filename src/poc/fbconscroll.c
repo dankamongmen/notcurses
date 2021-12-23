@@ -14,11 +14,9 @@ int main(int argc, char** argv){
     }
   }
   struct notcurses_options nopts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN
-             | NCOPTION_NO_CLEAR_BITMAPS
+    .flags = NCOPTION_CLI_MODE
              | NCOPTION_SUPPRESS_BANNERS
              | NCOPTION_NO_FONT_CHANGES
-             | NCOPTION_PRESERVE_CURSOR
              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
@@ -27,7 +25,6 @@ int main(int argc, char** argv){
   }
   unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_set_scrolling(n, true);
   for(int i = 0 ; i < rows ; ++i){
     int r;
     if((r = ncplane_putchar(n, '\n')) != 0){

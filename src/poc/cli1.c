@@ -5,16 +5,13 @@
 
 int main(void){
   struct notcurses_options nopts = {
-    .flags = NCOPTION_PRESERVE_CURSOR |
-             NCOPTION_NO_CLEAR_BITMAPS |
-             NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_CLI_MODE,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
-  ncplane_set_scrolling(stdn, true);
   ncinput ni;
   do{
     if(ncplane_putstr(stdn, "press any key, q to quit\n") < 0){

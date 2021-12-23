@@ -122,17 +122,14 @@ static void
 usage(const char* exe, int status){
   FILE* out = status == EXIT_SUCCESS ? stdout : stderr;
   struct notcurses_options opts = {0};
-  opts.flags = NCOPTION_NO_ALTERNATE_SCREEN
+  opts.flags = NCOPTION_CLI_MODE
                | NCOPTION_DRAIN_INPUT
-               | NCOPTION_NO_CLEAR_BITMAPS
-               | NCOPTION_PRESERVE_CURSOR
                | NCOPTION_SUPPRESS_BANNERS;
   struct notcurses* nc = notcurses_init(&opts, out);
   if(!nc){
     exit(status);
   }
   struct ncplane* n = notcurses_stdplane(nc);
-  ncplane_set_scrolling(n, true);
   ncplane_set_fg_rgb8(n, 0x00, 0xc0, 0xc0);
   ncplane_putstr(n, "usage: ");
   ncplane_set_fg_rgb8(n, 0x80, 0xff, 0x80);

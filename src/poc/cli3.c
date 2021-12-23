@@ -1,6 +1,7 @@
 #include <notcurses/notcurses.h>
 
 int main(void){
+  // explicitly want alternate screen, so no NCOPTION_CLI_MODE
   struct notcurses_options opts = {
     .flags = NCOPTION_PRESERVE_CURSOR |
              NCOPTION_NO_CLEAR_BITMAPS |

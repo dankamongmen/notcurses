@@ -3,6 +3,11 @@ rearrangements of Notcurses.
 
 * 3.0.2 (2021-12-21)
   * Added `ncplane_cursor_y()` and `ncplane_cursor_x()`.
+  * Added `NCOPTION_SCROLLING`, equivalent to calling
+    `ncplane_set_scrolling(true)` on the standard plane.
+  * Added `NCOPTION_CLI_MODE`, an alias for the bitwise OR of
+    `NCOPTION_SCROLLING`, `NCOPTION_NO_CLEAR_BITMAPS`,
+    `NCOPTION_NO_ALTERNATE_SCREEN`, and `NCOPTION_PRESERVE_CURSOR`.
 
 * 3.0.1 (2021-12-14)
   * Added the `NCPLANE_OPTION_VSCROLL` flag. Creating an `ncplane` with this

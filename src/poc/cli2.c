@@ -2,9 +2,7 @@
 
 int main(void){
   struct notcurses_options opts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN |
-             NCOPTION_PRESERVE_CURSOR |
-             NCOPTION_NO_CLEAR_BITMAPS |
+    .flags = NCOPTION_CLI_MODE |
              NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);

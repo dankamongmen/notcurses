@@ -6,9 +6,8 @@ int main(void){
   setlocale(LC_ALL, "");
   notcurses_options nopts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE
-             | NCOPTION_NO_ALTERNATE_SCREEN
-             | NCOPTION_DRAIN_INPUT
-             | NCOPTION_PRESERVE_CURSOR,
+             | NCOPTION_CLI_MODE
+             | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
@@ -17,7 +16,6 @@ int main(void){
   unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   wchar_t wc = 0x4e00;
-  ncplane_set_scrolling(n, true);
   ncplane_set_styles(n, NCSTYLE_BOLD);
   ncplane_putstr(n, "This program is *not* indicative of real scrolling speed.\n");
   ncplane_set_styles(n, NCSTYLE_NONE);

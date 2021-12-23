@@ -310,9 +310,7 @@ int main(int argc, char* const * argv){
   }
   std::vector<std::thread> threads;
   struct notcurses_options nopts{};
-  nopts.flags |= NCOPTION_PRESERVE_CURSOR
-                | NCOPTION_NO_ALTERNATE_SCREEN
-                | NCOPTION_NO_CLEAR_BITMAPS
+  nopts.flags |= NCOPTION_CLI_MODE
                 | NCOPTION_SUPPRESS_BANNERS
                 | NCOPTION_DRAIN_INPUT;
   lsContext ctx = {
@@ -329,7 +327,6 @@ int main(int argc, char* const * argv){
   if((ctx.nc = notcurses_init(&nopts, nullptr)) == nullptr){
     return EXIT_FAILURE;
   }
-  ncplane_set_scrolling(notcurses_stdplane(ctx.nc), true);
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));

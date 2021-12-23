@@ -1140,7 +1140,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
   }
   memset(ret, 0, sizeof(*ret));
   if(opts){
-    if(opts->flags >= (NCOPTION_DRAIN_INPUT << 1u)){
+    if(opts->flags >= (NCOPTION_SCROLLING << 1u)){
       fprintf(stderr, "warning: unknown Notcurses options %016" PRIu64, opts->flags);
     }
     if(opts->termtype){
@@ -1286,6 +1286,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     logpanic("couldn't create the initial plane (bad margins?)");
     goto err;
+  }
+  if(ret->flags & NCOPTION_SCROLLING){
+    ncplane_set_scrolling(ret->stdplane, true);
   }
   reset_term_attributes(&ret->tcache, &ret->rstate.f);
   const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);

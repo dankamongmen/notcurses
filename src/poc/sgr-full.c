@@ -4,9 +4,8 @@
 
 int main(void){
   struct notcurses_options nopts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN
+    .flags = NCOPTION_CLI_MODE
              | NCOPTION_SUPPRESS_BANNERS
-             | NCOPTION_PRESERVE_CURSOR
              | NCOPTION_DRAIN_INPUT,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
@@ -15,7 +14,6 @@ int main(void){
   }
   unsigned dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_set_scrolling(n, true);
   // FIXME do full permutations?
   ncplane_set_styles(n, NCSTYLE_NONE);
   ncplane_putstr(n, "a ═ none\n");
