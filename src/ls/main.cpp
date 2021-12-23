@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <compat/compat.h>
-#include <ncpp/Direct.hh>
+#include <ncpp/NotCurses.hh>
 #ifndef AT_NO_AUTOMOUNT
 #define AT_NO_AUTOMOUNT 0  // not defined on freebsd and some older linux kernels
 #endif
@@ -58,7 +58,7 @@ bool keep_working;     // set false when we're done so threads die
 
 // context as configured on the command line
 struct lsContext {
-  ncpp::Direct nc;
+  ncpp::NotCurses nc;
   bool longlisting;
   bool recursedirs;
   bool directories;
@@ -170,14 +170,17 @@ void ncls_thread(const lsContext* ctx) {
       job j = work.front();
       work.pop();
       pthread_mutex_unlock(&mtx);
+      struct ncvisual_options vopts{};
+      vopts.blitter = ctx->blitter;
+      vopts.scaling = ctx->scaling;
       auto s = path_join(j.dir, j.p);
-      auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, ctx->scaling, 0, 0);
+      auto ncv = ncvisual_from_file(s.c_str());
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
-      if(faken){
-        ctx->nc.raster_image(faken, ctx->alignment);
-        std::cout << '\n';
+      if(ncv){
+        // FIXME
       }
+      ncvisual_destroy(ncv);
       pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);
@@ -281,8 +284,13 @@ int main(int argc, char* const * argv){
     procs = 8;
   }
   std::vector<std::thread> threads;
+  struct notcurses_options nopts{};
+  nopts.flags |= NCOPTION_PRESERVE_CURSOR
+                | NCOPTION_NO_ALTERNATE_SCREEN
+                | NCOPTION_NO_CLEAR_BITMAPS
+                | NCOPTION_SUPPRESS_BANNERS;
   lsContext ctx = {
-    ncpp::Direct(),
+    ncpp::NotCurses(nopts, nullptr),
     longlisting,
     recursedirs,
     directories,
@@ -291,7 +299,6 @@ int main(int argc, char* const * argv){
     blitter,
     scale,
   };
-  ctx.nc.cursor_disable();
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));
