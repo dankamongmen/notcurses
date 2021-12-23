@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <compat/compat.h>
-#include <ncpp/NotCurses.hh>
+#include <notcurses/notcurses.h>
 #ifndef AT_NO_AUTOMOUNT
 #define AT_NO_AUTOMOUNT 0  // not defined on freebsd and some older linux kernels
 #endif
@@ -67,7 +67,7 @@ struct lsContext {
   // too large for the visual area, we'll instead use NCSCALE_SCALE_HIRES. if
   // a scaling is specified, we use that no matter what.
   bool default_scaling;
-  ncpp::NCAlign alignment;
+  ncalign_e alignment;
   ncblitter_e blitter;
   ncscale_e scaling;
 };
@@ -237,7 +237,7 @@ int main(int argc, char* const * argv){
   bool recursedirs = false;
   bool longlisting = false;
   bool dereflinks = false;
-  ncpp::NCAlign alignment = ncpp::NCAlign::Right;
+  ncalign_e alignment = NCALIGN_RIGHT;
   ncblitter_e blitter = NCBLIT_PIXEL;
   ncscale_e scale = NCSCALE_NONE;
   const struct option opts[] = {
@@ -256,11 +256,11 @@ int main(int argc, char* const * argv){
         exit(EXIT_SUCCESS);
       case 'a':
         if(strcasecmp(optarg, "left") == 0){
-          alignment = ncpp::NCAlign::Left;
+          alignment = NCALIGN_LEFT;
         }else if(strcasecmp(optarg, "right") == 0){
-          alignment = ncpp::NCAlign::Right;
+          alignment = NCALIGN_RIGHT;
         }else if(strcasecmp(optarg, "center") == 0){
-          alignment = ncpp::NCAlign::Center;
+          alignment = NCALIGN_CENTER;
         }else{
           std::cerr << "Unknown alignment type: " << optarg << "\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);
