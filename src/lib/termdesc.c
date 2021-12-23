@@ -1328,7 +1328,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->sixel_maxx = iresp->sixelx;
     }
     if(iresp->rectangular_edits){
-      if(grow_esc_table(ti, "\x1b[6n", ESCAPE_DECERA, &tablelen, &tableused)){
+      if(grow_esc_table(ti, "\x1b[%p1%d;%p2%d;%p3%d;$z", ESCAPE_DECERA, &tablelen, &tableused)){
         goto err;
       }
     }
