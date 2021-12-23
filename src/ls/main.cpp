@@ -63,6 +63,10 @@ struct lsContext {
   bool recursedirs;
   bool directories;
   bool dereflinks;
+  // if we're using default scaling, we try to use NCSCALE_NONE, but if we're
+  // too large for the visual area, we'll instead use NCSCALE_SCALE_HIRES. if
+  // a scaling is specified, we use that no matter what.
+  bool default_scaling;
   ncpp::NCAlign alignment;
   ncblitter_e blitter;
   ncscale_e scaling;
@@ -161,7 +165,8 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
 
 // return long-term return code
 void ncls_thread(const lsContext* ctx) {
-  ncplane* stdn = notcurses_stdplane(ctx->nc);
+  unsigned dimy, dimx;
+  ncplane* stdn = notcurses_stddim_yx(ctx->nc, &dimy, &dimx);
   while(true){
     pthread_mutex_lock(&mtx);
     while(work.empty() && keep_working){
@@ -178,6 +183,13 @@ void ncls_thread(const lsContext* ctx) {
         struct ncvisual_options vopts{};
         vopts.blitter = ctx->blitter;
         vopts.scaling = ctx->scaling;
+        if(ctx->default_scaling){
+          struct ncvgeom geom;
+          ncvisual_geom(ctx->nc, ncv, &vopts, &geom);
+          if(geom.rcellx > dimx || geom.rcelly > dimy){
+            vopts.scaling = NCSCALE_SCALE_HIRES;
+          }
+        }
         ncp = ncvisual_blit(ctx->nc, ncv, &vopts);
       }
       ncvisual_destroy(ncv);
@@ -188,8 +200,13 @@ void ncls_thread(const lsContext* ctx) {
         ncplane_move_yx(ncp, ncplane_cursor_y(stdn), ncplane_cursor_x(stdn));
         ncplane_scrollup_child(stdn, ncp);
         notcurses_render(ctx->nc);
+        ncplane_cursor_move_yx(stdn, ncplane_dim_y(ncp) + ncplane_y(ncp), 0);
+        ncplane_putchar(stdn, '\n');
+        notcurses_render(ctx->nc);
       }
       pthread_mutex_unlock(&outmtx);
+      // FIXME don't delete plane right now, or we wipe it, but we can't keep
+      // them all open forevermore! free *any we have scrolled off*.
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);
       return;
@@ -215,15 +232,14 @@ int list_paths(const char* const * argv, const lsContext& ctx){
 }
 
 int main(int argc, char* const * argv){
+  bool default_scaling = true;
   bool directories = false;
   bool recursedirs = false;
   bool longlisting = false;
   bool dereflinks = false;
   ncpp::NCAlign alignment = ncpp::NCAlign::Right;
   ncblitter_e blitter = NCBLIT_PIXEL;
-  // FIXME use NCSCALE_NONE by default unless it's hella big, in which case go
-  // ahead and use NCSCALE_SCALE_HIRES. this makes small images too big. =[
-  ncscale_e scale = NCSCALE_SCALE_HIRES;
+  ncscale_e scale = NCSCALE_NONE;
   const struct option opts[] = {
     { "align", 1, nullptr, 'a' },
     { "blitter", 1, nullptr, 'b' },
@@ -263,6 +279,7 @@ int main(int argc, char* const * argv){
                     << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
+        default_scaling = false;
         break;
       case 'd':
         directories = true;
@@ -296,13 +313,15 @@ int main(int argc, char* const * argv){
   nopts.flags |= NCOPTION_PRESERVE_CURSOR
                 | NCOPTION_NO_ALTERNATE_SCREEN
                 | NCOPTION_NO_CLEAR_BITMAPS
-                | NCOPTION_SUPPRESS_BANNERS;
+                | NCOPTION_SUPPRESS_BANNERS
+                | NCOPTION_DRAIN_INPUT;
   lsContext ctx = {
     nullptr,
     longlisting,
     recursedirs,
     directories,
     dereflinks,
+    default_scaling,
     alignment,
     blitter,
     scale,

@@ -3211,7 +3211,7 @@ typedef struct ncvgeom {
   unsigned cdimy, cdimx;   // terminal cell geometry when this was calculated
   unsigned rpixy, rpixx;   // rendered pixel geometry (per visual_options)
   unsigned rcelly, rcellx; // rendered cell geometry (per visual_options)
-  unsigned scaley, scalex; // pixels per filled cell (scale == c for bitmaps)
+  unsigned scaley, scalex; // source pixels per filled cell
   unsigned begy, begx;     // upper-left corner of used region
   unsigned leny, lenx;     // geometry of used region
   unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
