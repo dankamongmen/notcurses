@@ -229,6 +229,15 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_
     logerror("invalid coordinates: %d/%d", y, x);
     return NULL;
   }
+  if(n->sprite){
+    if(stylemask){
+      *stylemask = 0;
+    }
+    if(channels){
+      *channels = 0;
+    }
+    return strdup(n->sprite->glyph.buf);
+  }
   const nccell* yx = &n->fb[nfbcellidx(n, y, x)];
   // if we're the right side of a wide glyph, we return the main glyph
   if(nccell_wide_right_p(yx)){
@@ -258,6 +267,10 @@ int ncplane_at_cursor_cell(ncplane* n, nccell* c){
 }
 
 int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
+  if(n->sprite){
+    logerror("invoked on a sprixel plane");
+    return -1;
+  }
   if(y < 0){
     if(y != -1){
       logerror("invalid y: %d", y);
