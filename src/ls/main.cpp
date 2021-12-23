@@ -180,6 +180,7 @@ void ncls_thread(const lsContext* ctx) {
         vopts.scaling = ctx->scaling;
         ncp = ncvisual_blit(ctx->nc, ncv, &vopts);
       }
+      ncvisual_destroy(ncv);
       pthread_mutex_lock(&outmtx);
       ncplane_printf(stdn, "%s\n", j.p.c_str());
       if(ncp){
@@ -187,9 +188,7 @@ void ncls_thread(const lsContext* ctx) {
         ncplane_move_yx(ncp, ncplane_cursor_y(stdn), ncplane_cursor_x(stdn));
         ncplane_scrollup_child(stdn, ncp);
         notcurses_render(ctx->nc);
-        ncplane_destroy(ncp);
       }
-      ncvisual_destroy(ncv);
       pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);
