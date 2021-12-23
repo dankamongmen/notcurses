@@ -45,7 +45,6 @@ The next five lines describe properties of the terminal environment:
   * af: Foreground color can be set
   * ab: Background color can be set
   * sum: Synchronized Update Mode is supported
-  * cup: Arbitrary cursor moves
   * vpa: Cursor can be moved to an absolute vertical coordinate
   * hpa: Cursor can be moved to an absolute horizontal coordinate
   * sgr0: Styling can be reset via a single escape
@@ -53,6 +52,7 @@ The next five lines describe properties of the terminal environment:
   * fgop: Foreground can be reset via a single escape
   * bgop: Background can be reset via a single escape
   * bce: The back-color-erase property is in play
+  * rect: Rectangular editing is available
 
 * The second line is more of the same:
   * bold: Boldface is available
@@ -75,9 +75,11 @@ The next five lines describe properties of the terminal environment:
   * vid: Video can be decoded
   * indn: Multiple-line scrolling is available
   * gpm: Connection is established to the GPM server
+  * kbd: The Kitty keyboard protocol is in use
 
 * The fourth line indicates the default background color, and whether that
-  color is treated as transparent.
+  color is treated as transparent by the terminal (only **kitty** is known
+  to do this), and the default foreground color.
 
 * The fifth line describes the available bitmap graphics. If Sixels are
   available, the maximum number of color registers and maximum Sixel
@@ -85,6 +87,9 @@ The next five lines describe properties of the terminal environment:
   reported. If the Kitty graphics protocol is detected, that will be reported
   with "rgba graphics are available"; if Kitty's animation support is also
   present, that will be reported with "rgba pixel animation support".
+
+To the right of this material is the Notcurses homepage's URI, and the
+Notcurses logo (the latter only if bitmap graphics are available).
 
 The final eleven lines, only printed when in a UTF8 locale, show various
 Unicode glyphs. The first four lines include the quadrant, sextant, and

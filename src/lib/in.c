@@ -1082,6 +1082,8 @@ da1_attrs_cb(inputctx* ictx){
           if(ictx->initdata->color_registers <= 0){
             ictx->initdata->color_registers = 256;
           }
+        }else if(curattr == 28){
+          ictx->initdata->rectangular_edits = true;
         }
         curattr = 0;
       }
@@ -1091,6 +1093,8 @@ da1_attrs_cb(inputctx* ictx){
       if(ictx->initdata->color_registers <= 0){
         ictx->initdata->color_registers = 256;
       }
+    }else if(curattr == 28){
+      ictx->initdata->rectangular_edits = true;
     }
     if(!foundsixel){
       scrub_sixel_responses(ictx->initdata);

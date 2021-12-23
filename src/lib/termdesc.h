@@ -84,6 +84,7 @@ typedef enum {
   ESCAPE_ESUM,     // End Synchronized Update Mode
   ESCAPE_SAVECOLORS,    // XTPUSHCOLORS (push palette/fg/bg)
   ESCAPE_RESTORECOLORS, // XTPOPCOLORS  (pop palette/fg/bg)
+  ESCAPE_DECERA,   // rectangular erase
   ESCAPE_MAX
 } escape_e;
 

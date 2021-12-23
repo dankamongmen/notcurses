@@ -66,6 +66,7 @@ struct initial_responses {
   bool got_bg;                 // have we read default background?
   bool got_fg;                 // have we read default foreground?
   bool rgb;                    // was RGB DirectColor advertised?
+  bool rectangular_edits;      // were rectangular edits advertised?
   int pixx;                    // screen geometry in pixels
   int pixy;                    // screen geometry in pixels
   int dimx;                    // screen geometry in cells

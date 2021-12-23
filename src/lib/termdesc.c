@@ -1327,6 +1327,11 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       ti->sixel_maxy = iresp->sixely;
       ti->sixel_maxx = iresp->sixelx;
     }
+    if(iresp->rectangular_edits){
+      if(grow_esc_table(ti, "\x1b[6n", ESCAPE_DECERA, &tablelen, &tableused)){
+        goto err;
+      }
+    }
     free(iresp);
     if(nocbreak){
       // FIXME do this in input later, upon signaling completion?

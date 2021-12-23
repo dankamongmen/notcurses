@@ -422,7 +422,6 @@ tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF));
   tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB));
   tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM));
-  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP));
   tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA));
   tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA));
   tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0));
@@ -430,6 +429,7 @@ tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP));
   tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP));
   tinfo_debug_cap(n, "bce", ti->bce);
+  tinfo_debug_cap(n, "rect", get_escape(ti, ESCAPE_DECERA));
   finish_line(n);
 }
 
