@@ -181,7 +181,7 @@ void ncls_thread(const lsContext* ctx) {
         ncp = ncvisual_blit(ctx->nc, ncv, &vopts);
       }
       pthread_mutex_lock(&outmtx);
-      std::cout << j.p << '\n';
+      ncplane_printf(stdn, "%s\n", j.p.c_str());
       if(ncp){
         ncplane_reparent(ncp, stdn);
         ncplane_move_yx(ncp, ncplane_cursor_y(stdn), ncplane_cursor_x(stdn));
