@@ -17,23 +17,25 @@ int main(void){
   ncplane_set_scrolling(stdn, true);
   ncinput ni;
   do{
-    if(ncplane_putstr(stdn, "press any key\n") < 0){
+    if(ncplane_putstr(stdn, "press any key, q to quit\n") < 0){
       goto err;
     }
     if(notcurses_render(nc)){
       goto err;
     }
-    // just some pointless testing of notcurses_inputready_fd() here
+    do{
+      // just some pointless testing of notcurses_inputready_fd() here
 #ifndef __MINGW32__
-    struct pollfd pfd = {
-      .fd = notcurses_inputready_fd(nc),
-      .events = POLLIN,
-    };
-    while(poll(&pfd, 1, -1) <= 0){
-    }
+      struct pollfd pfd = {
+        .fd = notcurses_inputready_fd(nc),
+        .events = POLLIN,
+      };
+      while(poll(&pfd, 1, -1) <= 0){
+      }
 #endif
-    notcurses_get_blocking(nc, &ni);
-  }while(ni.evtype == NCTYPE_RELEASE || ni.id != 'q');
+      notcurses_get_blocking(nc, &ni);
+    }while(ni.evtype == NCTYPE_RELEASE);
+  }while(ni.id != 'q');
   if(notcurses_render(nc)){
     goto err;
   }

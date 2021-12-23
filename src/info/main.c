@@ -502,6 +502,8 @@ int main(int argc, const char** argv){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  ncplane_set_fg_alpha(stdn, NCALPHA_HIGHCONTRAST);
+  ncplane_set_fg_rgb(stdn, 0xffffff);
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
