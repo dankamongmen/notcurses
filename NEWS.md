@@ -8,7 +8,7 @@ rearrangements of Notcurses.
   * Added `NCOPTION_CLI_MODE`, an alias for the bitwise OR of
     `NCOPTION_SCROLLING`, `NCOPTION_NO_CLEAR_BITMAPS`,
     `NCOPTION_NO_ALTERNATE_SCREEN`, and `NCOPTION_PRESERVE_CURSOR`.
-  * Added `ncsixel_as_rgba()`.
+  * Added `ncvisual_from_sixel()`.
 
 * 3.0.1 (2021-12-14)
   * Added the `NCPLANE_OPTION_VSCROLL` flag. Creating an `ncplane` with this

@@ -3,6 +3,7 @@
 #include "builddef.h"
 #include "visual-details.h"
 #include "internal.h"
+#include "sixel.h"
 
 // ncvisual core code has a basic implementation in libnotcurses-core, and can
 // be augmented with a "multimedia engine" -- currently FFmpeg or OpenImageIO,
@@ -793,6 +794,17 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);
   }
+  return ncv;
+}
+
+ncvisual* ncvisual_from_sixel(const char* s, unsigned leny, unsigned lenx){
+  uint32_t* rgba = ncsixel_as_rgba(s, leny, lenx);
+  if(rgba == NULL){
+    logerror("failed converting sixel to rgba");
+    return NULL;
+  }
+  ncvisual* ncv = ncvisual_from_rgba(rgba, leny, lenx * sizeof(*rgba), lenx);
+  free(rgba);
   return ncv;
 }
 

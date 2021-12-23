@@ -11,12 +11,12 @@ extern "C" {
 uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
 #define MAXCOLORS 65535
   // cast is necessary for c++ callers
-  uint32_t* rgba = (typeof rgba)malloc(sizeof(*rgba) * leny * lenx);
+  uint32_t* rgba = (uint32_t*)malloc(sizeof(*rgba) * leny * lenx);
   if(rgba == NULL){
     return NULL;
   }
   // cast is necessary for c++ callers
-  uint32_t* colors = (typeof colors)malloc(sizeof(*colors) * MAXCOLORS);
+  uint32_t* colors = (uint32_t*)malloc(sizeof(*colors) * MAXCOLORS);
   if(colors == NULL){
     free(rgba);
     return NULL;
