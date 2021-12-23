@@ -17,7 +17,7 @@ def generate_ffi(notcurses_dir):
     lines.sort()
 
     with open(os.path.join(notcurses_dir, "src", "libffi", "ffi.c"), 'w') as f:
-        f.write("// Cointains all inline functions in include/notcurses/*.h\n")
+        f.write("// Contains all inline functions in include/notcurses/*.h\n")
         f.write("// This file is auto generated from tools/generate_ffi.py\n")
         f.write("#include <notcurses/notcurses.h>\n")
         f.write("#include <notcurses/direct.h>\n\n")
