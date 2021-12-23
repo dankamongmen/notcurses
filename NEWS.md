@@ -9,6 +9,8 @@ rearrangements of Notcurses.
     `NCOPTION_SCROLLING`, `NCOPTION_NO_CLEAR_BITMAPS`,
     `NCOPTION_NO_ALTERNATE_SCREEN`, and `NCOPTION_PRESERVE_CURSOR`.
   * Added `ncvisual_from_sixel()`.
+  * The control sequence corresponding to a pixel-blitted `ncvisual()`
+    can be retrieved by using `ncplane_at_yx()` on the sprixel plane.
 
 * 3.0.1 (2021-12-14)
   * Added the `NCPLANE_OPTION_VSCROLL` flag. Creating an `ncplane` with this

@@ -1,8 +1,10 @@
+#include <inttypes.h>
 #include <notcurses/notcurses.h>
+#include <compat/compat.h>
 
 int main(int argc, char** argv){
   if(argc < 2){
-    fprintf(stderr, "usage: %s images...\n", *argv);
+    fprintf(stderr, "usage: %s images..." NL, *argv);
     return EXIT_FAILURE;
   }
   struct notcurses_options opts = {0};
@@ -20,7 +22,7 @@ int main(int argc, char** argv){
     struct ncvisual* ncv = ncvisual_from_file(*argv);
     if(ncv == NULL){
       notcurses_stop(nc);
-      fprintf(stderr, "error opening %s\n", *argv);
+      fprintf(stderr, "error opening %s" NL, *argv);
       return EXIT_FAILURE;
     }
     struct ncplane* ncp = ncplane_dup(stdn, NULL);
@@ -34,16 +36,25 @@ int main(int argc, char** argv){
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       notcurses_stop(nc);
-      fprintf(stderr, "error rendering %s\n", *argv);
+      fprintf(stderr, "error rendering %s" NL, *argv);
       return EXIT_FAILURE;
     }
-    // FIXME acquire sixel as s
-    char* s = strdup("");
+    char* s;
+    if((s = ncplane_at_yx(ncp, 0, 0, NULL, NULL)) == NULL){
+      notcurses_stop(nc);
+      fprintf(stderr, "error retrieving sixel for %s" NL, *argv);
+      return EXIT_FAILURE;
+    }
+    ncplane_set_fg_rgb(stdn, 0x74b72e);
+    size_t slen = strlen(s);
+    ncplane_printf(stdn, " control sequence: %" PRIuPTR " byte%s\n",
+                   slen, slen == 1 ? "" : "s");
+    notcurses_render(nc);
     unsigned leny = 0, lenx = 0; // FIXME
     struct ncvisual* quantncv = ncvisual_from_sixel(s, leny, lenx);
     if(quantncv == NULL){
       notcurses_stop(nc);
-      fprintf(stderr, "error loading %zuB sixel\n", strlen(s));
+      fprintf(stderr, "error loading %" PRIuPTR "B sixel" NL, slen);
       free(s);
       return EXIT_FAILURE;
     }

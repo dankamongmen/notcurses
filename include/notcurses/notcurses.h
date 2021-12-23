@@ -1876,18 +1876,22 @@ API int ncplane_scrollup_child(struct ncplane* n, const struct ncplane* child)
 // characters, spaces, half blocks, and full blocks. The plane must have
 // an even number of columns. Use the ncvisual rotation for a more
 // flexible approach.
-API int ncplane_rotate_cw(struct ncplane* n);
-API int ncplane_rotate_ccw(struct ncplane* n);
+API int ncplane_rotate_cw(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
+API int ncplane_rotate_ccw(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
 // stylemask and channels are written to 'stylemask' and 'channels', respectively.
-API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
+API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels)
+  __attribute__ ((nonnull (1)));
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed. Returns the number
 // of bytes in the EGC, or -1 on error.
-API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
+API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c)
+  __attribute__ ((nonnull (1, 2)));
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
 // NULL on error. This EGC must be free()d by the caller. The stylemask and
@@ -1895,16 +1899,20 @@ API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
 // represents how the cell will be used during rendering, and thus integrates
 // any base cell where appropriate. If called upon the secondary columns of a
 // wide glyph, the EGC will be returned (i.e. this function does not distinguish
-// between the primary and secondary columns of a wide glyph).
+// between the primary and secondary columns of a wide glyph). If called on a
+// sprixel plane, its control sequence is returned for all valid locations.
 API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
-                        uint16_t* stylemask, uint64_t* channels);
+                        uint16_t* stylemask, uint64_t* channels)
+  __attribute__ ((nonnull (1)));
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed. Returns the number of
 // bytes in the EGC, or -1 on error. Unlike ncplane_at_yx(), when called upon
 // the secondary columns of a wide glyph, the return can be distinguished from
-// the primary column (nccell_wide_right_p(c) will return true).
-API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
+// the primary column (nccell_wide_right_p(c) will return true). It is an
+// error to call this on a sprixel plane (unlike ncplane_at_yx()).
+API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c)
+  __attribute__ ((nonnull (1, 4)));
 
 // Create a flat string from the EGCs of the selected region of the ncplane
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
@@ -1912,20 +1920,24 @@ API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // 'lenx' can be specified as 0 to go through the boundary of the plane.
 // -1 can be specified for 'begx'/'begy' to use the current cursor location.
 API char* ncplane_contents(struct ncplane* n, int begy, int begx,
-                           unsigned leny, unsigned lenx);
+                           unsigned leny, unsigned lenx)
+  __attribute__ ((nonnull (1)));
 
 // Manipulate the opaque user pointer associated with this plane.
 // ncplane_set_userptr() returns the previous userptr after replacing
 // it with 'opaque'. the others simply return the userptr.
-API void* ncplane_set_userptr(struct ncplane* n, void* opaque);
-API void* ncplane_userptr(struct ncplane* n);
+API void* ncplane_set_userptr(struct ncplane* n, void* opaque)
+  __attribute__ ((nonnull (1)));
+API void* ncplane_userptr(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Find the center coordinate of a plane, preferring the top/left in the
 // case of an even number of rows/columns (in such a case, there will be one
 // more cell to the bottom/right of the center than the top/left). The
 // center is then modified relative to the plane's origin.
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
-                            int* RESTRICT x);
+                            int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the

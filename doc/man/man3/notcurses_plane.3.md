@@ -375,6 +375,10 @@ secondary column of a wide glyph with **ncplane_at_yx_cell** will fill in
 the **nccell** argument such that **nccell_extended_gcluster(3)** returns an
 empty string, and **nccell_wide_right_p(3)** returns **true**.
 
+If **ncplane_at_yx** is invoked upon a sprixel plane, the control sequence will
+be returned for any valid coordinates (note that this may be quite large).
+This does not apply to **ncplane_at_yx_cell**, which will return an error.
+
 **ncplane_set_name** sets the plane's name, freeing any old name. ***name***
 may be **NULL**. **ncplane_set_name** duplicates the provided name internally.
 
