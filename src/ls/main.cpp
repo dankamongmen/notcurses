@@ -58,7 +58,7 @@ bool keep_working;     // set false when we're done so threads die
 
 // context as configured on the command line
 struct lsContext {
-  ncpp::NotCurses nc;
+  struct notcurses *nc;
   bool longlisting;
   bool recursedirs;
   bool directories;
@@ -161,6 +161,7 @@ int handle_path(int dirfd, const std::string& pdir, const char* p, const lsConte
 
 // return long-term return code
 void ncls_thread(const lsContext* ctx) {
+  ncplane* stdn = notcurses_stdplane(ctx->nc);
   while(true){
     pthread_mutex_lock(&mtx);
     while(work.empty() && keep_working){
@@ -170,15 +171,23 @@ void ncls_thread(const lsContext* ctx) {
       job j = work.front();
       work.pop();
       pthread_mutex_unlock(&mtx);
-      struct ncvisual_options vopts{};
-      vopts.blitter = ctx->blitter;
-      vopts.scaling = ctx->scaling;
       auto s = path_join(j.dir, j.p);
       auto ncv = ncvisual_from_file(s.c_str());
+      struct ncplane* ncp = nullptr;
+      if(ncv){
+        struct ncvisual_options vopts{};
+        vopts.blitter = ctx->blitter;
+        vopts.scaling = ctx->scaling;
+        ncp = ncvisual_blit(ctx->nc, ncv, &vopts);
+      }
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
-      if(ncv){
-        // FIXME
+      if(ncp){
+        ncplane_reparent(ncp, stdn);
+        ncplane_move_yx(ncp, ncplane_cursor_y(stdn), ncplane_cursor_x(stdn));
+        ncplane_scrollup_child(stdn, ncp);
+        notcurses_render(ctx->nc);
+        ncplane_destroy(ncp);
       }
       ncvisual_destroy(ncv);
       pthread_mutex_unlock(&outmtx);
@@ -290,7 +299,7 @@ int main(int argc, char* const * argv){
                 | NCOPTION_NO_CLEAR_BITMAPS
                 | NCOPTION_SUPPRESS_BANNERS;
   lsContext ctx = {
-    ncpp::NotCurses(nopts, nullptr),
+    nullptr,
     longlisting,
     recursedirs,
     directories,
@@ -299,6 +308,10 @@ int main(int argc, char* const * argv){
     blitter,
     scale,
   };
+  if((ctx.nc = notcurses_init(&nopts, nullptr)) == nullptr){
+    return EXIT_FAILURE;
+  }
+  ncplane_set_scrolling(notcurses_stdplane(ctx.nc), true);
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));
@@ -312,5 +325,5 @@ int main(int argc, char* const * argv){
     t.join();
     --procs;
   }
-  return EXIT_SUCCESS;
+  return notcurses_stop(ctx.nc) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
