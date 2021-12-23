@@ -2,6 +2,7 @@
 #include "lib/visual-details.h"
 #include <vector>
 #include <iostream>
+#include "lib/sixel.h"
 
 /*
 void print_bmap(const std::vector<uint32_t> rgba, int pixy, int pixx){
