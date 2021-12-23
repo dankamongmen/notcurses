@@ -34,6 +34,18 @@ int main(int argc, char** argv){
     vopts.n = ncp;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    struct ncvgeom geom;
+    if(ncvisual_geom(nc, ncv, &vopts, &geom)){
+      notcurses_stop(nc);
+      fprintf(stderr, "error geometrizing %s" NL, *argv);
+      return EXIT_FAILURE;
+    }
+    ncplane_set_fg_rgb(stdn, 0x5dbb63);
+    ncplane_printf(stdn, " source pixels: %ux%u\n", geom.pixy, geom.pixx);
+    ncplane_set_fg_rgb(stdn, 0x03c04a);
+    unsigned rgbabytes = 4 * geom.rpixy * geom.rpixx;
+    ncplane_printf(stdn, " rendered: %ux%u %uB\n", geom.rpixy, geom.rpixx, rgbabytes);
+    notcurses_render(nc);
     if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       notcurses_stop(nc);
       fprintf(stderr, "error rendering %s" NL, *argv);
@@ -47,10 +59,12 @@ int main(int argc, char** argv){
     }
     ncplane_set_fg_rgb(stdn, 0x74b72e);
     size_t slen = strlen(s);
-    ncplane_printf(stdn, " control sequence: %" PRIuPTR " byte%s\n",
-                   slen, slen == 1 ? "" : "s");
+    ncplane_printf(stdn, " control sequence: %" PRIuPTR " byte%s (%.4g%%)\n",
+                   slen, slen == 1 ? "" : "s", (double)slen * 100 / rgbabytes);
+    ncplane_reparent(ncp, ncp);
     notcurses_render(nc);
-    unsigned leny = 0, lenx = 0; // FIXME
+    unsigned leny = geom.rpixy;
+    unsigned lenx = geom.rpixx;
     struct ncvisual* quantncv = ncvisual_from_sixel(s, leny, lenx);
     if(quantncv == NULL){
       notcurses_stop(nc);
