@@ -4,11 +4,11 @@ libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
-Description: TUI library for modern terminal emulators (ffi support)
+Description: TUI library for modern terminal emulators (ffi library)
 Version: @PROJECT_VERSION@
 
 Requires: notcurses-ffi
 Requires.private:
 Libs: -L${libdir} -lnotcurses-ffi
-Libs.private: -lstdc++
+Libs.private: -lunistring -lm
 Cflags: -I${includedir}
