@@ -6,6 +6,9 @@ static void
 compare(const struct ncvisual* n1, const struct ncvisual* n2,
         const ncvgeom* geom, struct notcurses* nc){
   struct ncplane* stdn = notcurses_stdplane(nc);
+  uint64_t rdelta = 0;
+  uint64_t gdelta = 0;
+  uint64_t bdelta = 0;
   unsigned ly = geom->rpixy;
   unsigned lx = geom->rpixx;
   for(unsigned y = 0 ; y < ly ; ++y){
@@ -16,11 +19,35 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
         fprintf(stderr, "error getting pixel at %u/%u\n", y, x);
         return;
       }
+      // three component differences for current pixel
+      int rd, gd, bd;
+      rd = ncpixel_r(p0) - ncpixel_r(p1);
+      gd = ncpixel_g(p0) - ncpixel_g(p1);
+      bd = ncpixel_b(p0) - ncpixel_b(p1);
+      if(rd < 0){
+        rd = -rd;
+      }
+      if(gd < 0){
+        gd = -gd;
+      }
+      if(bd < 0){
+        bd = -bd;
+      }
+      rdelta += rd;
+      gdelta += gd;
+      bdelta += bd;
     }
     ncplane_printf_yx(stdn, -1, 1, "%08u pixels analyzed", (y + 1) * lx);
+    ncplane_printf(stdn, " Δr %"PRIu64" Δg %"PRIu64" Δb %"PRIu64,
+                  rdelta, gdelta, bdelta);
     notcurses_render(nc);
   }
   ncplane_putchar(stdn, '\n');
+  double p = lx * ly;
+  ncplane_printf(stdn, " %gpx Δr %"PRIu64" (%.03g) Δg %"PRIu64" (%.03g) Δb %"PRIu64 " (%.03g)\n",
+                 p, rdelta, rdelta / p, gdelta, gdelta / p, bdelta, bdelta / p);
+  ncplane_printf(stdn, " avg diff per pixel: %.03g\n", (rdelta + gdelta + bdelta) / p);
+  notcurses_render(nc);
 }
 
 int main(int argc, char** argv){
@@ -29,7 +56,9 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct notcurses_options opts = {0};
-  opts.flags = NCOPTION_CLI_MODE | NCOPTION_DRAIN_INPUT;
+  opts.flags = NCOPTION_CLI_MODE
+               | NCOPTION_DRAIN_INPUT
+               | NCOPTION_SUPPRESS_BANNERS;
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
