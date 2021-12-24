@@ -330,7 +330,7 @@ unicodedumper(struct ncplane* n, const char* indent){
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     ncplane_stain(n, y - 16, 0, 16, 80, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
-    ncplane_cursor_move_yx(n, y - 12, 54);
+    ncplane_cursor_move_yx(n, y - 12, 55);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
@@ -354,7 +354,7 @@ display_logo(struct ncplane* n, const char* path){
   struct ncvisual_options vopts = {
     .n = n,
     .y = y - 3,
-    .x = 54,
+    .x = 55,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_NODEGRADE,
   };
