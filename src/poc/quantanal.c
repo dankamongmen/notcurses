@@ -93,9 +93,14 @@ int main(int argc, char** argv){
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     struct ncvgeom geom;
     if(ncvisual_geom(nc, ncv, &vopts, &geom)){
-      notcurses_stop(nc);
-      fprintf(stderr, "error geometrizing %s" NL, *argv);
-      return EXIT_FAILURE;
+      ncplane_set_fg_rgb(stdn, 0xd16002);
+      ncplane_printf(stdn, " Image too large, scaling to display\n");
+      vopts.scaling = NCSCALE_STRETCH;
+      if(ncvisual_geom(nc, ncv, &vopts, &geom)){
+        notcurses_stop(nc);
+        fprintf(stderr, "error geometrizing %s" NL, *argv);
+        return EXIT_FAILURE;
+      }
     }
     ncplane_set_fg_rgb(stdn, 0x5dbb63);
     ncplane_printf(stdn, " source pixels: %ux%u\n", geom.pixy, geom.pixx);
