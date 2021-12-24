@@ -2,6 +2,27 @@
 #include <notcurses/notcurses.h>
 #include <compat/compat.h>
 
+static void
+compare(const struct ncvisual* n1, const struct ncvisual* n2,
+        const ncvgeom* geom, struct notcurses* nc){
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  unsigned ly = geom->rpixy;
+  unsigned lx = geom->rpixx;
+  for(unsigned y = 0 ; y < ly ; ++y){
+    for(unsigned x = 0 ; x < lx ; ++x){
+      uint32_t p0, p1;
+      if(ncvisual_at_yx(n1, y, x, &p0) ||
+         ncvisual_at_yx(n2, y, x, &p1)){
+        fprintf(stderr, "error getting pixel at %u/%u\n", y, x);
+        return;
+      }
+    }
+    ncplane_printf_yx(stdn, -1, 1, "%08u pixels analyzed", (y + 1) * lx);
+    notcurses_render(nc);
+  }
+  ncplane_putchar(stdn, '\n');
+}
+
 int main(int argc, char** argv){
   if(argc < 2){
     fprintf(stderr, "usage: %s images..." NL, *argv);
@@ -79,7 +100,7 @@ int main(int argc, char** argv){
       return EXIT_FAILURE;
     }
     free(s);
-    // FIXME compare ncv and quantncv
+    compare(ncv, quantncv, &geom, nc);
     ncvisual_destroy(quantncv);
     ncvisual_destroy(ncv);
     ncplane_set_fg_rgb(stdn, 0x03ac13);
