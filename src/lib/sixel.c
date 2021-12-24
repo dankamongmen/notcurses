@@ -669,22 +669,19 @@ write_rle(int* printed, int color, fbuf* f, int seenrle, unsigned char crle,
 
 static inline int
 write_sixel_intro(fbuf* f, sixel_p2_e p2, int leny, int lenx){
-  int r = fbuf_puts(f, "\x1bP0;");
+  int rr, r = fbuf_puts(f, "\x1bP0;");
   if(r < 0){
     return -1;
   }
-  int rr = fbuf_putint(f, p2);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, p2)) < 0){
     return -1;
   }
   r += rr;
-  rr = fbuf_puts(f, ";0q\"1;1;");
-  if(rr < 0){
+  if((rr = fbuf_puts(f, ";0q\"1;1;")) < 0){
     return -1;
   }
   r += rr;
-  rr = fbuf_putint(f, lenx);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, lenx)) < 0){
     return -1;
   }
   r += rr;
@@ -692,8 +689,7 @@ write_sixel_intro(fbuf* f, sixel_p2_e p2, int leny, int lenx){
     return -1;
   }
   ++r;
-  rr = fbuf_putint(f, leny);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, leny)) < 0){
     return -1;
   }
   r += rr;
@@ -703,23 +699,20 @@ write_sixel_intro(fbuf* f, sixel_p2_e p2, int leny, int lenx){
 // write a single color register. rc/gc/bc are on [0..100].
 static inline int
 write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
-  int r = 0;
+  int rr, r = 0;
   if(fbuf_putc(f, '#') != 1){
     return -1;
   }
   ++r;
-  int rr = fbuf_putint(f, idx);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, idx)) < 0){
     return -1;
   }
   r += rr;
-  rr = fbuf_puts(f, ";2;");
-  if(rr < 0){
+  if((rr = fbuf_puts(f, ";2;")) < 0){
     return -1;
   }
   r += rr;
-  rr = fbuf_putint(f, rc);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, rc)) < 0){
     return -1;
   }
   r += rr;
@@ -727,8 +720,7 @@ write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
     return -1;
   }
   ++r;
-  rr = fbuf_putint(f, gc);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, gc)) < 0){
     return -1;
   }
   r += rr;
@@ -736,8 +728,7 @@ write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
     return -1;
   }
   ++r;
-  rr = fbuf_putint(f, bc);
-  if(rr < 0){
+  if((rr = fbuf_putint(f, bc)) < 0){
     return -1;
   }
   r += rr;

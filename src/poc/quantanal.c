@@ -45,7 +45,7 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
   }
   ncplane_putchar(stdn, '\n');
   double p = lx * ly;
-  ncplane_printf(stdn, " %gpx Δr %"PRIu64" (%.03g) Δg %"PRIu64" (%.03g) Δb %"PRIu64 " (%.03g)\n",
+  ncplane_printf(stdn, " %.0fpx Δr %"PRIu64" (%.03g) Δg %"PRIu64" (%.03g) Δb %"PRIu64 " (%.03g)\n",
                  p, rdelta, rdelta / p, gdelta, gdelta / p, bdelta, bdelta / p);
   ncplane_printf(stdn, " avg diff per pixel: %.03g\n", (rdelta + gdelta + bdelta) / p);
   notcurses_render(nc);
@@ -95,6 +95,7 @@ int main(int argc, char** argv){
     if(ncvisual_geom(nc, ncv, &vopts, &geom)){
       ncplane_set_fg_rgb(stdn, 0xd16002);
       ncplane_printf(stdn, " Image too large, scaling to display\n");
+      notcurses_render(nc);
       vopts.scaling = NCSCALE_STRETCH;
       if(ncvisual_geom(nc, ncv, &vopts, &geom)){
         notcurses_stop(nc);
