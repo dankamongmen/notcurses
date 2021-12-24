@@ -36,6 +36,7 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
       rdelta += rd;
       gdelta += gd;
       bdelta += bd;
+//fprintf(stderr, "0x%08x 0x%08x\n", p0, p1);
     }
     ncplane_printf_yx(stdn, -1, 1, "%08u pixels analyzed", (y + 1) * lx);
     ncplane_printf(stdn, " Δr %"PRIu64" Δg %"PRIu64" Δb %"PRIu64,

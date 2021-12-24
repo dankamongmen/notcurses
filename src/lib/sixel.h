@@ -88,6 +88,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       if(';' != *(sx++)){
         goto err;
       }
+      r = r * 255 / 100;
       int g = 0;
       do{
         g *= 10;
@@ -97,24 +98,26 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       if(';' != *(sx++)){
         goto err;
       }
+      g = g * 255 / 100;
       int b = 0;
       do{
         b *= 10;
         b += *sx - '0';
         ++sx;
       }while(isdigit(*sx));
-      uint32_t rgb = htole(0xff000000 + (r << 16u) * 255 / 100 + (g << 8u) * 255 / 100 + b * 255 / 100);
-//std::cerr << "Got color " << color << ": " << r << "/" << g << "/" << b << std::endl;
+      b = b * 255 / 100;
+      ncpixel_set_a(&colors[color], 0xff);
+      ncpixel_set_rgb8(&colors[color], r, g, b);
+//fprintf(stderr, "Got color %d: 0x%08x %u %u %u\n", color, colors[color], r, g, b);
       if(color >= MAXCOLORS){
         goto err;
       }
-      colors[color] = rgb;
       state = STATE_WANT_HASH;
       --sx;
     }
     // read until we hit next colorspec
     if(state == STATE_WANT_DATA){
-//std::cerr << "Character " << *sx << std::endl;
+//fprintf(stderr, "Character %c\n", *sx);
       if(*sx == '#'){
         state = STATE_WANT_HASH;
         --sx;
