@@ -13,7 +13,13 @@ int main(int argc, char** argv){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  // FIXME check pixel blitting type
+  ncpixelimpl_e blit = notcurses_check_pixel_support(nc);
+  if(blit != NCPIXEL_SIXEL){
+    notcurses_stop(nc);
+    fprintf(stderr, "needed pixel blit type %d (sixel), got %d\n",
+                    NCPIXEL_SIXEL, blit);
+    return EXIT_FAILURE;
+  }
   struct ncplane* stdn = notcurses_stdplane(nc);
   while(*++argv){
     ncplane_set_fg_rgb(stdn, 0xf9d71c);
