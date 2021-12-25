@@ -418,7 +418,7 @@ update_rmatrix(unsigned char* rmatrix, int txyidx, const tament* tam){
   }
 }
 
-// no mattter the input palette, we can always get a maximum of 64 colors if we
+// no matter the input palette, we can always get a maximum of 64 colors if we
 // mask at 0xc0 on each component (this partitions each component into 4 chunks,
 // and 4 * 4 * 4 -> 64). so this will never overflow our color register table
 // (assumed to have at least 256 registers). at each color, we store a pixel

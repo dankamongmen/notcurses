@@ -28,6 +28,7 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
   uint64_t bdelta = 0;
   unsigned ly = geom->rpixy;
   unsigned lx = geom->rpixx;
+  ncplane_set_fg_rgb(stdn, 0x03c04a);
   for(unsigned y = 0 ; y < ly ; ++y){
     for(unsigned x = 0 ; x < lx ; ++x){
       uint32_t p0, p1;
@@ -128,10 +129,9 @@ int main(int argc, char** argv){
       }
     }
     ncplane_set_fg_rgb(stdn, 0x5dbb63);
-    ncplane_printf(stdn, " source pixels: %ux%u\n", geom.pixy, geom.pixx);
-    ncplane_set_fg_rgb(stdn, 0x03c04a);
     unsigned rgbabytes = 4 * geom.rpixy * geom.rpixx;
-    ncplane_printf(stdn, " rendered: %ux%u %uB\n", geom.rpixy, geom.rpixx, rgbabytes);
+    ncplane_printf(stdn, " source pixels: %ux%u rendered: %ux%u %uB\n",
+                   geom.pixy, geom.pixx, geom.rpixy, geom.rpixx, rgbabytes);
     notcurses_render(nc);
     if(ncvisual_blit(nc, ncv, &vopts) == NULL){
       notcurses_stop(nc);
@@ -168,7 +168,7 @@ int main(int argc, char** argv){
     uint64_t t0 = timespec_to_ns(&start);
     uint64_t t1 = timespec_to_ns(&end);
     ncplane_set_fg_rgb(stdn, 0x03ac13);
-    ncplane_printf(stdn, "done with %s in %.3gms.\n", *argv, (t1 - t0) / 1000000.0);
+    ncplane_printf(stdn, "done with %s in %.3fms.\n", *argv, (t1 - t0) / 1000000.0);
     ncplane_destroy(ncp);
     notcurses_render(nc);
   }
