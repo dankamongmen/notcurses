@@ -173,7 +173,7 @@ directly:
 * [Differences from](doc/CURSES.md) Curses and adapting Curses programs.
 
 If you (understandably) want to avoid the large Pandoc stack, but still enjoy
-manual page goodness, I publish a tarball with generated man/XHTML along with
+manual pages, I publish a tarball with generated man/XHTML along with
 each release. Download it, and install the contents as you deem fit.
 
 ## Environment notes
@@ -253,8 +253,8 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
    with Notcurses?</summary>
-   Yes! Use the <code>NCOPTION_CLI_MODE</code> flags (an alias for several
-   other flags; see <a href="https://notcurses.com/notcurses_init.3.html"><code>notcurses_init(1)</code></a>
+   Yes! Use the <code>NCOPTION_CLI_MODE</code> flag (an alias for several
+   real flags; see <a href="https://notcurses.com/notcurses_init.3.html"><code>notcurses_init(1)</code></a>
    for more information). You still must explicitly render.
 </details>
 
