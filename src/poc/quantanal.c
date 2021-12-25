@@ -2,9 +2,26 @@
 #include <notcurses/notcurses.h>
 #include <compat/compat.h>
 
+static char*
+colorbuf(void){
+  return calloc(1u << 24u, 1);
+}
+
+static uint32_t
+count_colors(uint32_t pixel, char* buf, uint32_t colors){
+  if(buf[pixel & 0xffffffu] == 0){
+    buf[pixel & 0xffffffu] = 1;
+    return colors + 1;
+  }
+  return colors;
+}
+
 static void
 compare(const struct ncvisual* n1, const struct ncvisual* n2,
         const ncvgeom* geom, struct notcurses* nc){
+  uint32_t co0 = 0, co1 = 0;
+  char* cbuf0 = colorbuf();
+  char* cbuf1 = colorbuf();
   struct ncplane* stdn = notcurses_stdplane(nc);
   uint64_t rdelta = 0;
   uint64_t gdelta = 0;
@@ -19,6 +36,8 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
         fprintf(stderr, "error getting pixel at %u/%u\n", y, x);
         return;
       }
+      co0 = count_colors(p0, cbuf0, co0);
+      co1 = count_colors(p1, cbuf1, co1);
       // three component differences for current pixel
       int rd, gd, bd;
       rd = ncpixel_r(p0) - ncpixel_r(p1);
@@ -44,11 +63,14 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
     notcurses_render(nc);
   }
   ncplane_putchar(stdn, '\n');
+  ncplane_printf(stdn, " Colors: %"PRIu32" vs %"PRIu32"\n", co0, co1);
   double p = lx * ly;
   ncplane_printf(stdn, " %.0fpx Δr %"PRIu64" (%.03g) Δg %"PRIu64" (%.03g) Δb %"PRIu64 " (%.03g)\n",
                  p, rdelta, rdelta / p, gdelta, gdelta / p, bdelta, bdelta / p);
   ncplane_printf(stdn, " avg diff per pixel: %.03g\n", (rdelta + gdelta + bdelta) / p);
   notcurses_render(nc);
+  free(cbuf0);
+  free(cbuf1);
 }
 
 int main(int argc, char** argv){
@@ -90,7 +112,7 @@ int main(int argc, char** argv){
     struct ncvisual_options vopts = {0};
     vopts.n = ncp;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_NOINTERPOLATE;
     struct ncvgeom geom;
     if(ncvisual_geom(nc, ncv, &vopts, &geom)){
       ncplane_set_fg_rgb(stdn, 0xd16002);
