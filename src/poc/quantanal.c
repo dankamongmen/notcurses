@@ -95,6 +95,8 @@ int main(int argc, char** argv){
   }
   struct ncplane* stdn = notcurses_stdplane(nc);
   while(*++argv){
+    struct timespec start;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     ncplane_set_fg_rgb(stdn, 0xf9d71c);
     ncplane_printf(stdn, "analyzing %s...\n", *argv);
     notcurses_render(nc);
@@ -161,8 +163,12 @@ int main(int argc, char** argv){
     compare(ncv, quantncv, &geom, nc);
     ncvisual_destroy(quantncv);
     ncvisual_destroy(ncv);
+    struct timespec end;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    uint64_t t0 = timespec_to_ns(&start);
+    uint64_t t1 = timespec_to_ns(&end);
     ncplane_set_fg_rgb(stdn, 0x03ac13);
-    ncplane_printf(stdn, "done with %s.\n", *argv);
+    ncplane_printf(stdn, "done with %s in %.3gms.\n", *argv, (t1 - t0) / 1000000.0);
     ncplane_destroy(ncp);
     notcurses_render(nc);
   }
