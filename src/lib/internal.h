@@ -642,8 +642,10 @@ ncpile_debug(const ncpile* p, fbuf* f){
     fbuf_printf(f, "%04d off y: %3d x: %3d geom y: %3u x: %3u curs y: %3u x: %3u %p %.4s\n",
                 planeidx, n->absy, n->absx, n->leny, n->lenx, n->y, n->x, n, n->name);
     if(n->boundto || n->bnext || n->bprev || n->blist){
-      fbuf_printf(f, " bound %p ← %p → %p binds %p\n",
-                  n->boundto, n->bprev, n->bnext, n->blist);
+      fbuf_printf(f, " bound %p %s %p %s %p binds %p\n",
+                  n->boundto, notcurses_canutf8(ncpile_notcurses_const(p)) ? "←" : "<",
+                  n->bprev, notcurses_canutf8(ncpile_notcurses_const(p)) ? "→" : ">",
+                  n->bnext, n->blist);
     }
     if(n->bprev && (*n->bprev != n)){
       fbuf_printf(f, " WARNING: expected *->bprev %p, got %p\n", n, *n->bprev);
