@@ -43,20 +43,28 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
   unsigned y = 0;
   unsigned rle = 1;
   while(*sx){
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
     if(*sx == '\e'){
       break;
     }
     if(state == STATE_WANT_HASH){
-      if('#' != *sx){
+      if(*sx == '-'){
+        x = 0;
+        y += 6;
+      }else if('#' == *sx){
+        state = STATE_WANT_COLOR;
+      }else{
+//fprintf(stderr, "EXPECTED OCTOTHORPE, got %u\n", *sx);
         goto err;
       }
-      state = STATE_WANT_COLOR;
     }else if(state == STATE_WANT_COLOR){
       if(!isdigit(*sx)){
+//fprintf(stderr, "EXPECTED digit, got %u\n", *sx);
         goto err;
       }
       color = 0;
       do{
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
         color *= 10;
         color += *sx - '0';
         ++sx;
@@ -74,11 +82,15 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }
     }else if(state == STATE_WANT_COLORSPACE){
       if('2' != *(sx++)){
+//fprintf(stderr, "EXPECTED '2', got %u\n", *sx);
         goto err;
       }
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       if(';' != *(sx++)){
+//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
         goto err;
       }
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       int r = 0;
       do{
         r *= 10;
@@ -86,8 +98,10 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
+//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
         goto err;
       }
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       r = r * 255 / 100;
       int g = 0;
       do{
@@ -96,8 +110,10 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
+//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
         goto err;
       }
+//fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       g = g * 255 / 100;
       int b = 0;
       do{
