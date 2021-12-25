@@ -253,10 +253,9 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>Can I write a CLI program (scrolling, fits in with the shell, etc.)
    with Notcurses?</summary>
-   Yes! Use the flags <code>NCOPTION_NO_ALTERNATE_SCREEN</code>,
-   <code>NCOPTION_NO_CLEAR_BITMAPS</code>, and <code>NCOPTION_PRESERVE_CURSOR</code>,
-   and call <code>ncplane_set_scrolling()</code> on the standard plane. You
-   still must explicitly render.
+   Yes! Use the <code>NCOPTION_CLI_MODE</code> flags (an alias for several
+   other flags; see <a href="https://notcurses.com/notcurses_init.3.html"><code>notcurses_init(1)</code></a>
+   for more information). You still must explicitly render.
 </details>
 
 <details>
