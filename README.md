@@ -117,7 +117,7 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
-* (runtime) Linux 5.3+, FreeBSD 11+, DragonFly BSD 5.9+, Windows 10 v1093+, or macOS 11.4+
+* (runtime) Linux 2.6+, FreeBSD 11+, DragonFly BSD 5.9+, Windows 10 v1093+, or macOS 11.4+
 
 More information on building and installation is available in [INSTALL.md](INSTALL.md).
 
@@ -294,8 +294,7 @@ If things break or seem otherwise lackluster, **please** consult the
 <details>
   <summary>Does it work with hardware terminals?</summary>
   With the correct <code>TERM</code> value, many hardware terminals are
-  supported. The VT100 is sadly unsupported due to its extensive need for
-  delays. In general, if the terminfo database entry indicates mandatory
+  supported. In general, if the terminfo database entry indicates mandatory
   delays, Notcurses will not currently support that terminal properly. It's
   known that Notcurses can drive the VT320 and VT340, including Sixel graphics
   on the latter.
