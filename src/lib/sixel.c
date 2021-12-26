@@ -150,11 +150,9 @@ debug_color_table(const sixeltable* st){
     unsigned char* crec = st->map->table + CENTSIZE * z;
     int didx = ctable_to_dtable(crec);
     const cdetails* d = &st->deets[didx];
-    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u (%u/%u/%u) lo %u/%u/%u (%u/%u/%u)\n", z, didx, d->count,
+    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u lo %u/%u/%u\n", z, didx, d->count,
             d->hi[0], d->hi[1], d->hi[2],
-            d->hi[0] & 0xe0, d->hi[1] & 0xe0, d->hi[2] & 0xe0,
-            d->lo[0], d->lo[1], d->lo[2],
-            d->lo[0] & 0xe0, d->lo[1] & 0xe0, d->lo[2] & 0xe0);
+            d->lo[0], d->lo[1], d->lo[2]);
   }
 }
 
@@ -176,10 +174,10 @@ ss(unsigned rgb, unsigned char mask){
 }
 
 static inline void
-break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, unsigned char mask){
-  comps[0] = ss(ncpixel_r(rgba), mask);
-  comps[1] = ss(ncpixel_g(rgba), mask);
-  comps[2] = ss(ncpixel_b(rgba), mask);
+break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, uint32_t mask){
+  comps[0] = ss(ncpixel_r(rgba), (mask & 0xff0000u) >> 16);
+  comps[1] = ss(ncpixel_g(rgba), (mask & 0xff00u) >> 8);
+  comps[2] = ss(ncpixel_b(rgba), (mask & 0xffu));
 //fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
 }
 
@@ -307,7 +305,7 @@ scrub_color_table(sprixel* s){
         unsigned txyidx = y * s->dimx + x;
         sprixcell_e state = s->n->tam[txyidx].state;
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
-//fprintf(stderr, "POSTEXRACT WIPE %d/%d\n", y, x);
+//fprintf(stderr, "POSTEXTRACT WIPE %d/%d\n", y, x);
           sixel_wipe(s, y, x);
         }
       }
@@ -331,7 +329,7 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
     do{
       i = l + (r - l) / 2;
       const unsigned char* cmpie = stab->map->table + i * CENTSIZE;
-fprintf(stderr, " %u/%u/%u %u/%u/%u L %d R %d m %d\n", comps[0], comps[1], comps[2], cmpie[0], cmpie[1], cmpie[2], l, r, i);
+//fprintf(stderr, " %u/%u/%u %u/%u/%u L %d R %d m %d\n", comps[0], comps[1], comps[2], cmpie[0], cmpie[1], cmpie[2], l, r, i);
       int cmp = memcmp(cmpie, comps, RGBSIZE);
       if(cmp == 0){
         return ctable_to_dtable(cmpie);
@@ -341,7 +339,7 @@ fprintf(stderr, " %u/%u/%u %u/%u/%u L %d R %d m %d\n", comps[0], comps[1], comps
       }else{ // key is smaller
         r = i - 1;
       }
-fprintf(stderr, " BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
+//fprintf(stderr, " BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
     }while(l <= r);
     if(r < 0){
       i = 0;
@@ -354,7 +352,7 @@ fprintf(stderr, " BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
       return -1;
     }
     if(i < stab->map->colors){
-fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
+//fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
       memmove(stab->map->table + (i + 1) * CENTSIZE,
               stab->map->table + i * CENTSIZE,
               (stab->map->colors - i) * CENTSIZE);
@@ -458,7 +456,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int begy = bargs->begy;
   const int cdimy = bargs->u.pixel.cellpxy;
   const int cdimx = bargs->u.pixel.cellpxx;
-  unsigned char mask = 0xc0;
+  const uint32_t mask = 0xe0c0e0;
   int pos = 0; // pixel position
   unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
@@ -526,14 +524,14 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);
         int didx = find_color(stab, comps);
-fprintf(stderr, "DEETS %d %u %u %u (orig %u/%u/%u)\n", didx, comps[0], comps[1], comps[2], ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
+//fprintf(stderr, "DEETS %d %u %u %u (orig %u/%u/%u)\n", didx, comps[0], comps[1], comps[2], ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
         if(didx < 0){
 //fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
           return -1;
         }
         stab->map->data[didx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
         update_deets(*rgb, &stab->deets[didx]);
-debug_color_table(stab);
+//debug_color_table(stab);
 //fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->map->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
       }
@@ -568,7 +566,7 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
           if(srcsixels[sixel] & (1u << (sy - visy))){
             const uint32_t* pixel = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
             unsigned char comps[RGBSIZE];
-            break_sixel_comps(comps, *pixel, 0xff);
+            break_sixel_comps(comps, *pixel, 0xffffff);
             if(comps[0] > rgb[0] || comps[1] > rgb[1] || comps[2] > rgb[2]){
               dstsixels[sixel] |= (1u << (sy - visy));
               srcsixels[sixel] &= ~(1u << (sy - visy));
@@ -633,7 +631,7 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
 static void
 refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
                    int leny, int lenx, sixeltable* stab){
-debug_color_table(stab);
+//debug_color_table(stab);
   while(stab->map->colors < stab->colorregs){
     bool refined = false;
     int tmpcolors = stab->map->colors; // force us to come back through
@@ -641,11 +639,11 @@ debug_color_table(stab);
       unsigned char* crec = stab->map->table + CENTSIZE * i;
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
-fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
+//fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
       if(deets->count > leny * lenx / stab->colorregs){
         if(refine_color(data, linesize, begy, begx, leny, lenx, stab, i)){
           if(stab->map->colors == stab->colorregs){
-fprintf(stderr, "filled table!\n");
+//fprintf(stderr, "filled table!\n");
             break;
           }
           refined = true;
