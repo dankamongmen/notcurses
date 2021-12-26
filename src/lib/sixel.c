@@ -576,19 +576,19 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
   int bdelt = deets->hi[2] - deets->lo[2];
   unsigned char rgbmax[3] = { deets->hi[0], deets->hi[1], deets->hi[2] };
   if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
-    if(gdelt < 3){
+    if(gdelt < 2){
       return 0;
     }
 //fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[1], deets->lo[1], deets->count);
     rgbmax[1] = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
   }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
-    if(rdelt < 3){
+    if(rdelt < 2){
       return 0;
     }
 //fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[0], deets->lo[0], deets->count);
     rgbmax[0] = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
   }else{ // split on blue
-    if(bdelt < 3){
+    if(bdelt < 2){
       return 0;
     }
 //fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[2], deets->lo[2], deets->count);
