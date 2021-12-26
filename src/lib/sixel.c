@@ -2,7 +2,8 @@
 #include "fbuf.h"
 
 #define RGBSIZE 3
-#define CENTSIZE (RGBSIZE + 1) // size of a color table entry
+// size of a color table entry: three components and a dtable index
+#define CENTSIZE (RGBSIZE + 1)
 
 // we set P2 based on whether there is any transparency in the sixel. if not,
 // use SIXEL_P2_ALLOPAQUE (0), for faster drawing in certain terminals.
@@ -49,8 +50,11 @@ sixel_auxiliary_vector(const sprixel* s){
 typedef struct sixelmap {
   int colors;
   int sixelcount;
+  // for each color, for each sixel (stack of six), the representation
   unsigned char* data;  // |colors| x |sixelcount|-byte arrays
+  // for each color, the components and an index into the dtable
   unsigned char* table; // |colors| x CENTSIZE: components + dtable index
+  sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixelmap;
 
 // whip up an all-zero sixelmap for the specified pixel geometry and color
@@ -60,6 +64,7 @@ static sixelmap*
 sixelmap_create(int cregs, int dimy, int dimx){
   sixelmap* ret = malloc(sizeof(*ret));
   if(ret){
+    ret->p2 = SIXEL_P2_ALLOPAQUE,
     ret->sixelcount = sixelcount(dimy, dimx);
     if(ret->sixelcount){
       size_t dsize = sizeof(*ret->data) * cregs * ret->sixelcount;
@@ -117,18 +122,33 @@ void sixelmap_free(sixelmap *s){
 typedef struct cdetails {
   int64_t sums[3];   // sum of components of all matching original colors
   int32_t count;     // count of pixels matching
-  char hi[RGBSIZE];  // highest sixelspace components we've seen
-  char lo[RGBSIZE];  // lowest sixelspace color we've seen
+  unsigned char hi[RGBSIZE];  // highest sixelspace components we've seen
+  unsigned char lo[RGBSIZE];  // lowest sixelspace color we've seen
 } cdetails;
 
-// second pass: construct data for extracted colors over the sixels
+// second pass: construct data for extracted colors over the sixels. the
+// map will be persisted in the sprixel; the remainder is lost.
 typedef struct sixeltable {
   sixelmap* map;        // copy of palette indices / transparency bits
-  // FIXME keep these internal to palette extraction; finalize there
   cdetails* deets;      // |colorregs| cdetails structures
   int colorregs;
-  sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixeltable;
+
+static inline int
+ctable_to_dtable(const unsigned char* ctable){
+  return ctable[3]; // * 256 + ctable[4];
+}
+
+static void
+debug_color_table(const sixeltable* st){
+  for(int z = 0 ; z < st->map->colors ; ++z){
+    const cdetails* d = &st->deets[z];
+    unsigned char* crec = st->map->table + CENTSIZE * z;
+    int didx = ctable_to_dtable(crec);
+    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u lo %u/%u/%u\n", z, didx, d->count,
+            d->hi[0], d->hi[1], d->hi[2], d->lo[0], d->lo[1], d->lo[2]);
+  }
+}
 
 // the P2 parameter on a sixel specifies how unspecified pixels are drawn.
 // if P2 is 1, unspecified pixels are transparent. otherwise, they're drawn
@@ -153,11 +173,6 @@ break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, unsigned c
   comps[1] = ss(ncpixel_g(rgba), mask);
   comps[2] = ss(ncpixel_b(rgba), mask);
 //fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
-}
-
-static inline int
-ctable_to_dtable(const unsigned char* ctable){
-  return ctable[3]; // * 256 + ctable[4];
 }
 
 static inline void
@@ -455,7 +470,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
             }else if(tam[txyidx].state == SPRIXCELL_OPAQUE_SIXEL){
               tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
             }
-            stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+            stab->map->p2 = SIXEL_P2_TRANS; // even one forces P2=1
           }else{
             if(firstpix){
               update_rmatrix(rmatrix, txyidx, tam);
@@ -481,7 +496,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
             }
             tam[txyidx].state = SPRIXCELL_ANNIHILATED;
           }
-          stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+          stab->map->p2 = SIXEL_P2_TRANS; // even one forces P2=1
         }
         if(lastrow){
           bool lastcol = visx + 1 >= begx + lenx;
@@ -500,12 +515,14 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);
         int c = find_color(stab, comps);
+fprintf(stderr, "FOUND COLOR %d %u %u %u (orig 0x%08x)\n", c, comps[0], comps[1], comps[2], *rgb);
         if(c < 0){
 //fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
           return -1;
         }
         stab->map->data[c * stab->map->sixelcount + pos] |= (1u << (sy - visy));
         update_deets(*rgb, &stab->deets[c]);
+debug_color_table(stab);
 //fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->map->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
       }
@@ -558,13 +575,15 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
 }
 
 // relax segment |coloridx|. we must have room for a new color. we find the
-// biggest component gap, and split our color entry in half there. we know
-// the elements can't go into any preexisting color entry, so the only
+// biggest component gap, and split our color entry between lo and hi there.
+// we know the elements can't go into any preexisting color entry, so the only
 // choices are staying where they are, or going to the new one. "unzip" the
 // sixels from the data table by looking back to the sources and classifying
 // them in one or the other centry. rebuild our sums, sixels, hi/lo, and
 // counts as we do so. anaphase, baybee! target always gets the upper range.
 // returns 1 if we did a refinement, 0 otherwise.
+// it's important to use the lo and hi because those correspond to real colors
+// from the image, whereas an average might not apply to anything.
 static int
 refine_color(const uint32_t* data, int linesize, int begy, int begx,
              int leny, int lenx, sixeltable* stab, int color){
@@ -603,6 +622,7 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
 static void
 refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
                    int leny, int lenx, sixeltable* stab){
+debug_color_table(stab);
   while(stab->map->colors < stab->colorregs){
     bool refined = false;
     int tmpcolors = stab->map->colors; // force us to come back through
@@ -610,11 +630,11 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
       unsigned char* crec = stab->map->table + CENTSIZE * i;
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
-//fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
+fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
       if(deets->count > leny * lenx / stab->colorregs){
         if(refine_color(data, linesize, begy, begx, leny, lenx, stab, i)){
           if(stab->map->colors == stab->colorregs){
-  //fprintf(stderr, "filled table!\n");
+fprintf(stderr, "filled table!\n");
             break;
           }
           refined = true;
@@ -740,12 +760,12 @@ write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
 // future reencodings. |leny| and |lenx| are output pixel geometry.
 // returns the number of bytes written, so it can be stored at *parse_start.
 static int
-write_sixel_header(fbuf* f, int leny, int lenx, const sixeltable* stab, sixel_p2_e p2){
+write_sixel_header(fbuf* f, int leny, int lenx, const sixeltable* stab){
   if(leny % 6){
     return -1;
   }
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  int r = write_sixel_intro(f, p2, leny, lenx);
+  int r = write_sixel_intro(f, stab->map->p2, leny, lenx);
   if(r < 0){
     return -1;
   }
@@ -821,9 +841,8 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 // constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
 // are output geometry.
 static int
-write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab,
-            int* parse_start, sixel_p2_e p2){
-  *parse_start = write_sixel_header(f, outy, outx, stab, p2);
+write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab, int* parse_start){
+  *parse_start = write_sixel_header(f, outy, outx, stab);
   if(*parse_start < 0){
     return -1;
   }
@@ -856,8 +875,8 @@ sixel_reblit(sprixel* s){
     return -1;
   }
   fbuf_free(&s->glyph);
-  // FIXME update P2 if necessary
   memcpy(&s->glyph, &f, sizeof(f));
+  change_p2(s->glyph.buf, s->smap->p2);
   return 0;
 }
 
@@ -880,10 +899,10 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs,
   int outy = leny;
   if(leny % 6){
     outy += 6 - (leny % 6);
-    stab->p2 = SIXEL_P2_TRANS;
+    stab->map->p2 = SIXEL_P2_TRANS;
   }
   // calls fclose() on success
-  if(write_sixel(&f, outy, lenx, stab, &parse_start, stab->p2)){
+  if(write_sixel(&f, outy, lenx, stab, &parse_start)){
     fbuf_free(&f);
     return -1;
   }
@@ -912,7 +931,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     .map = sixelmap_create(colorregs, leny - bargs->begy, lenx - bargs->begx),
     .deets = malloc(colorregs * sizeof(cdetails)),
     .colorregs = colorregs,
-    .p2 = SIXEL_P2_ALLOPAQUE,
   };
   if(stable.deets == NULL || stable.map == NULL){
     sixelmap_free(stable.map);
