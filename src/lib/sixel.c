@@ -47,15 +47,35 @@ sixel_auxiliary_vector(const sprixel* s){
 // be kept in the sprixel. when first encoding, data and table each have an
 // entry for every color register; call sixelmap_trim() when done to cut them
 // down to the actual number of colors used.
+// table is much smaller than data, so we move minimal data when we need to
+// insert into the color table. they're sorted by memcmp() order over the
+// components.
 typedef struct sixelmap {
   int colors;
   int sixelcount;
-  // for each color, for each sixel (stack of six), the representation
+  // for each color, for each sixel (stack of six), the representation.
+  // these are d-indexed.
   unsigned char* data;  // |colors| x |sixelcount|-byte arrays
-  // for each color, the components and an index into the dtable
+  // for each color, the components and a dindex.
+  // these are c-indexed.
   unsigned char* table; // |colors| x CENTSIZE: components + dtable index
   sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixelmap;
+
+typedef struct cdetails {
+  int64_t sums[3];   // sum of components of all matching original colors
+  int32_t count;     // count of pixels matching
+  unsigned char hi[RGBSIZE];  // highest sixelspace components we've seen
+  unsigned char lo[RGBSIZE];  // lowest sixelspace color we've seen
+} cdetails;
+
+// second pass: construct data for extracted colors over the sixels. the
+// map will be persisted in the sprixel; the remainder is lost.
+typedef struct sixeltable {
+  sixelmap* map;        // copy of palette indices / transparency bits
+  cdetails* deets;      // |colorregs| cdetails structures
+  int colorregs;        // *available* color registers
+} sixeltable;
 
 // whip up an all-zero sixelmap for the specified pixel geometry and color
 // register count. we might not use all the available color registers; call
@@ -119,21 +139,6 @@ void sixelmap_free(sixelmap *s){
   }
 }
 
-typedef struct cdetails {
-  int64_t sums[3];   // sum of components of all matching original colors
-  int32_t count;     // count of pixels matching
-  unsigned char hi[RGBSIZE];  // highest sixelspace components we've seen
-  unsigned char lo[RGBSIZE];  // lowest sixelspace color we've seen
-} cdetails;
-
-// second pass: construct data for extracted colors over the sixels. the
-// map will be persisted in the sprixel; the remainder is lost.
-typedef struct sixeltable {
-  sixelmap* map;        // copy of palette indices / transparency bits
-  cdetails* deets;      // |colorregs| cdetails structures
-  int colorregs;
-} sixeltable;
-
 static inline int
 ctable_to_dtable(const unsigned char* ctable){
   return ctable[3]; // * 256 + ctable[4];
@@ -142,11 +147,14 @@ ctable_to_dtable(const unsigned char* ctable){
 static void
 debug_color_table(const sixeltable* st){
   for(int z = 0 ; z < st->map->colors ; ++z){
-    const cdetails* d = &st->deets[z];
     unsigned char* crec = st->map->table + CENTSIZE * z;
     int didx = ctable_to_dtable(crec);
-    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u lo %u/%u/%u\n", z, didx, d->count,
-            d->hi[0], d->hi[1], d->hi[2], d->lo[0], d->lo[1], d->lo[2]);
+    const cdetails* d = &st->deets[didx];
+    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u (%u/%u/%u) lo %u/%u/%u (%u/%u/%u)\n", z, didx, d->count,
+            d->hi[0], d->hi[1], d->hi[2],
+            d->hi[0] & 0xe0, d->hi[1] & 0xe0, d->hi[2] & 0xe0,
+            d->lo[0], d->lo[1], d->lo[2],
+            d->lo[0] & 0xe0, d->lo[1] & 0xe0, d->lo[2] & 0xe0);
   }
 }
 
@@ -310,27 +318,30 @@ scrub_color_table(sprixel* s){
 
 // returns the index at which the provided color can be found *in the
 // dtable*, possibly inserting it into the ctable. returns -1 if the
-// color is not in the table and the table is full.
+// color is not in the table and the table is full. returns the proper
+// dtable index (*not* color index) otherwise.
 static int
 find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
   int i;
   if(stab->map->colors){
     int l, r;
+    // binary search over memcmp()-ordered color table
     l = 0;
     r = stab->map->colors - 1;
     do{
       i = l + (r - l) / 2;
-//fprintf(stderr, "%02x%02x%02x L %d R %d m %d\n", comps[0], comps[1], comps[2], l, r, i);
-      int cmp = memcmp(stab->map->table + i * CENTSIZE, comps, RGBSIZE);
+      const unsigned char* cmpie = stab->map->table + i * CENTSIZE;
+fprintf(stderr, " %u/%u/%u %u/%u/%u L %d R %d m %d\n", comps[0], comps[1], comps[2], cmpie[0], cmpie[1], cmpie[2], l, r, i);
+      int cmp = memcmp(cmpie, comps, RGBSIZE);
       if(cmp == 0){
-        return ctable_to_dtable(stab->map->table + i * CENTSIZE);
+        return ctable_to_dtable(cmpie);
       }
       if(cmp < 0){
         l = i + 1;
       }else{ // key is smaller
         r = i - 1;
       }
-//fprintf(stderr, "BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
+fprintf(stderr, " BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
     }while(l <= r);
     if(r < 0){
       i = 0;
@@ -343,7 +354,7 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
       return -1;
     }
     if(i < stab->map->colors){
-//fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
+fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
       memmove(stab->map->table + (i + 1) * CENTSIZE,
               stab->map->table + i * CENTSIZE,
               (stab->map->colors - i) * CENTSIZE);
@@ -514,14 +525,14 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         }
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);
-        int c = find_color(stab, comps);
-fprintf(stderr, "FOUND COLOR %d %u %u %u (orig 0x%08x)\n", c, comps[0], comps[1], comps[2], *rgb);
-        if(c < 0){
+        int didx = find_color(stab, comps);
+fprintf(stderr, "DEETS %d %u %u %u (orig %u/%u/%u)\n", didx, comps[0], comps[1], comps[2], ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
+        if(didx < 0){
 //fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
           return -1;
         }
-        stab->map->data[c * stab->map->sixelcount + pos] |= (1u << (sy - visy));
-        update_deets(*rgb, &stab->deets[c]);
+        stab->map->data[didx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
+        update_deets(*rgb, &stab->deets[didx]);
 debug_color_table(stab);
 //fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->map->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
