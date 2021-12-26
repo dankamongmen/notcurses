@@ -1129,6 +1129,9 @@ recursive_lock_init(pthread_mutex_t *lock){
 }
 
 ncpixelimpl_e notcurses_check_pixel_support(const notcurses* nc){
+  if(nc->tcache.cellpxy == 0 || nc->tcache.cellpxx == 0){
+    return NCPIXEL_NONE;
+  }
   return nc->tcache.pixel_implementation;
 }
 

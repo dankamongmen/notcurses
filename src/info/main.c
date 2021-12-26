@@ -341,9 +341,6 @@ static int
 display_logo(struct ncplane* n, const char* path){
   unsigned cpixy, cpixx;
   ncplane_pixel_geom(n, NULL, NULL, &cpixy, &cpixx, NULL, NULL);
-  if(cpixy == 0 || cpixx == 0){
-    return -1;
-  }
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
     return -1;
