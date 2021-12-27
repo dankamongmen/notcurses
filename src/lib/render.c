@@ -1035,6 +1035,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
         bytesemitted += r;
         nc->rstate.y = -1;
         nc->rstate.x = -1;
+        ++nc->stats.s.sprixelemissions;
       }
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
