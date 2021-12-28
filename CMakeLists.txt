@@ -525,7 +525,6 @@ set(NCPP_COMPILE_OPTIONS
   -fno-strict-aliasing
   -ffunction-sections
   -fno-rtti
-  -fpic
   )
 
 set(NCPP_COMPILE_DEFINITIONS_PUBLIC
@@ -535,22 +534,44 @@ set(NCPP_COMPILE_DEFINITIONS_PUBLIC
 target_compile_options(notcurses++
   PRIVATE
   ${NCPP_COMPILE_OPTIONS}
+  -fPIC
   )
+
+target_compile_options(notcurses-core
+  PRIVATE
+    -fPIC
+)
+
+target_compile_options(notcurses-core-static
+  PRIVATE
+    -fPIE
+)
+
+target_compile_options(notcurses
+  PRIVATE
+    -fPIC
+)
+
+target_compile_options(notcurses-static
+  PRIVATE
+    -fPIE
+)
 
 target_compile_options(notcurses++-static
   PRIVATE
   ${NCPP_COMPILE_OPTIONS}
-  )
+  -fPIE
+)
 
 target_compile_definitions(notcurses++
   PUBLIC
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-  )
+)
 
 target_compile_definitions(notcurses++-static
   PUBLIC
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-  )
+)
 
 file(GLOB NOTCURSES_HEADERS
   CONFIGURE_DEPENDS
