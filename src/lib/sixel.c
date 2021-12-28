@@ -144,7 +144,7 @@ ctable_to_dtable(const unsigned char* ctable){
   return ctable[3]; // * 256 + ctable[4];
 }
 
-static void
+__attribute__ ((unused)) static void
 debug_color_table(const sixeltable* st){
   for(int z = 0 ; z < st->map->colors ; ++z){
     unsigned char* crec = st->map->table + CENTSIZE * z;
