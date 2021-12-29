@@ -120,20 +120,18 @@ To set the C compiler, export `CC`. To set the C++ compiler, export `CXX`. The
 `CMAKE_BUILD_TYPE` CMake variable can be defined to any of its standard values,
 but must be `Debug` for use of `USE_COVERAGE`.
 
-* `DFSG_BUILD=off`: leave out all content considered non-free under the Debian Free
-                    Software Guidelines
-* `BUILD_TESTING=on`: build test targets
-* `BUILD_EXECUTABLES=on`: build any executables (as opposed to libs)
-* `USE_ASAN=off`: build with AddressSanitizer
-* `USE_CXX=on`: build C++ code (requires a C++ compiler)
-* `USE_COVERAGE=off`: build coverage support (for developers, requires use of Clang)
-* `USE_DOCTEST=on`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
-  * `USE_DOCTEST=on` requires `USE_CXX=on`
-* `USE_DOXYGEN=off`: build interlinked HTML documentation with Doxygen
-* `USE_GPM=off`: build GPM console mouse support via libgpm
-* `USE_MULTIMEDIA=ffmpeg`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
+* `DFSG_BUILD`: leave out all content considered non-free under the Debian Free Software Guidelines (default `off`)
+* `BUILD_TESTING`: build test targets (default `on`)
+* `BUILD_EXECUTABLES`: build executables (in addition to libs) (default `on`)
+* `USE_ASAN`: build with AddressSanitizer (default `off`)
+* `USE_CXX`: build C++ code (requires a C++ compiler) (default `on`)
+* `USE_COVERAGE`: build coverage support (for developers, requires use of Clang) (default `off`)
+* `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING` and `USE_CXX` (default `on`)
+* `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen (default `off`)
+* `USE_GPM`: build GPM console mouse support via libgpm (default `off`)
+* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none (default `ffmpeg`)
   * `oiio` cannot be used with `USE_CXX=off`
-* `USE_PANDOC=on`: build man pages with pandoc
-* `USE_POC=on`: build small, uninstalled proof-of-concept binaries
-* `USE_QRCODEGEN=off`: build qrcode support via libqrcodegen
-* `USE_STATIC=on`: build static libraries (in addition to shared ones)
+* `USE_PANDOC`: build man pages with pandoc (default `on`)
+* `USE_POC`: build small, uninstalled proof-of-concept binaries (default `on`)
+* `USE_QRCODEGEN`: build qrcode support via libqrcodegen (default `off`)
+* `USE_STATIC`: build static libraries (in addition to shared ones) (default `on`)
