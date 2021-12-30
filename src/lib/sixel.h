@@ -26,6 +26,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
   // transparent line (the only possible colorless line).
   while(*sx != '#' && *sx != '-'){
     if(!*sx){
+      logerror("expected octothorpe/hyphen, got eol\n");
       return NULL;
     }
     ++sx;
