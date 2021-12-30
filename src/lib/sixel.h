@@ -1,5 +1,5 @@
-#ifndef NOTCURSES_SIXEL
-#define NOTCURSES_SIXEL
+#ifndef NOTCURSES_LIB_SIXEL
+#define NOTCURSES_LIB_SIXEL
 
 #ifdef __cplusplus
 extern "C" {
