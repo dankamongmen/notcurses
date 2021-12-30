@@ -2,6 +2,52 @@
 #include "fbuf.h"
 
 #define RGBSIZE 3
+
+// three original (unscaled) RGB components plus a population count
+typedef struct qsample {
+  unsigned char comps[3];
+  uint32_t pop;
+} qsample;
+
+// lowest sample for each node
+typedef struct qnode {
+  qsample q;
+} qnode;
+
+#define QNODECOUNT (1lu << 12)
+
+// create+zorch an array of 4096 qnodes. this is 12 bits per index
+// (down from 24); we use 4/5/3 bits of the original 8/8/8.
+static qnode*
+alloc_qnodes(void){
+  // don't technically need to clear the components, as we could
+  // check the pop, but it's hidden under the compulsory cache misses.
+  return calloc(QNODECOUNT, sizeof(qnode));
+}
+
+// insert a color from the source image into the octree. we take 5
+// from the green component, 4 from the red, and 3 from the blue,
+// sending them to RGB (saving a shift on green).
+static void
+insert_color(qnode* qtree, uint32_t pixel, uint32_t* colors){
+  const unsigned r = ncpixel_r(pixel);
+  const unsigned g = ncpixel_g(pixel);
+  const unsigned b = ncpixel_b(pixel);
+  const unsigned key = ((r & 0xf0) << 4u) | (g & 0xf8) | ((b & 0xe0) >> 5u);
+  qnode* q = &qtree[key];
+  if(q->q.pop++ == 0){
+    q->q.comps[0] = r;
+    q->q.comps[1] = g;
+    q->q.comps[2] = b;
+    ++*colors;
+fprintf(stderr, "NEW KEY: 0x%03x %u %u\n", key, key, b & 0xe0);
+  }else if(r < q->q.comps[0] && g < q->q.comps[1] && b < q->q.comps[2]){
+    q->q.comps[0] = r;
+    q->q.comps[1] = g;
+    q->q.comps[2] = b;
+  }
+}
+
 // size of a color table entry: three components and a dtable index
 #define CENTSIZE (RGBSIZE + 1)
 
@@ -453,6 +499,12 @@ static inline int
 extract_color_table(const uint32_t* data, int linesize, int cols,
                     int leny, int lenx, sixeltable* stab,
                     tament* tam, const blitterargs* bargs){
+  uint64_t pixels = 0;
+  uint32_t octets = 0;
+  qnode* q = alloc_qnodes();
+  if(q == NULL){
+    return -1;
+  }
   const int begx = bargs->begx;
   const int begy = bargs->begy;
   const int cdimy = bargs->u.pixel.cellpxy;
@@ -522,6 +574,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           continue;
         }
+        insert_color(q, *rgb, &octets);
+        ++pixels;
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);
         int didx = find_color(stab, comps);
@@ -539,6 +593,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
       ++pos;
     }
   }
+  loginfo("octree got %"PRIu32" entries on %"PRIu64" pixels", octets, pixels);
   return 0;
 }
 
