@@ -9,15 +9,16 @@
 #include <sys/stat.h>
 
 const char* datadir = notcurses_data_dir();
-// NCLOGLEVEL_INFO for initial testing framework creation. we then switch to
-// command line-specified loglevel, _SILENT if none specified.
-ncloglevel_e cliloglevel = NCLOGLEVEL_INFO;
+
+// we define loglevel for any use of logging in internal header files.
+// note that this has no bearing on the library's true inner loglevel!
+ncloglevel_e loglevel;
 
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
   // get loglevel from command line. enabling it by default leads to
   // more confusion than useful information, so leave it off by default.
-  nopts.loglevel = cliloglevel;
+  nopts.loglevel = loglevel;
   nopts.flags = NCOPTION_SUPPRESS_BANNERS
                 | NCOPTION_NO_ALTERNATE_SCREEN
                 | NCOPTION_DRAIN_INPUT;
@@ -48,7 +49,7 @@ static void
 handle_opts(const char** argv){
   // now that we've spun up one testing framework, switch to _SILENT unless
   // something else has been provided on the command line.
-  cliloglevel = NCLOGLEVEL_SILENT;
+  loglevel = NCLOGLEVEL_SILENT;
   bool inarg = false;
   while(*argv){
     if(inarg){
@@ -57,9 +58,33 @@ handle_opts(const char** argv){
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
     }else if(strncmp(*argv, "-l", 2) == 0){ // just require -l
-      cliloglevel = NCLOGLEVEL_TRACE;
+      char* eol;
+      long ll = strtol(*argv + 2, &eol, 0);
+      if(ll < NCLOGLEVEL_SILENT || ll > NCLOGLEVEL_TRACE){
+        std::cerr << "illegal loglevel: " << *argv + 2 << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      if(*eol){
+        std::cerr << "illegal loglevel: " << *argv + 2 << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      std::cout << "got loglevel " << ll << std::endl;
+      loglevel = static_cast<ncloglevel_e>(ll);
     }
     ++argv;
+  }
+  auto nc = testing_notcurses();
+  if(!nc){
+    std::cerr << "Couldn't create notcurses testing framework" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  unsigned dimy, dimx;
+  notcurses_stddim_yx(nc, &dimy, &dimx);
+  std::cout << "Detected cell geometry: " << dimx << 'x' << dimy << std::endl;
+  notcurses_stop(nc);
+  if(dimx < 50 || dimy < 24){ // minimum assumed geometry
+    std::cerr << "Terminal was too small for tests (minimum 50x24)" << std::endl;
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -143,19 +168,6 @@ auto lang_and_term() -> void {
   }
   std::cout << "Running with TERM=" << term << std::endl;
 #endif
-  auto nc = testing_notcurses();
-  if(!nc){
-    std::cerr << "Couldn't create notcurses testing framework" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  unsigned dimy, dimx;
-  notcurses_stddim_yx(nc, &dimy, &dimx);
-  std::cout << "Detected cell geometry: " << dimx << 'x' << dimy << std::endl;
-  notcurses_stop(nc);
-  if(dimx < 50 || dimy < 24){ // minimum assumed geometry
-    std::cerr << "Terminal was too small for tests (minimum 50x24)" << std::endl;
-    exit(EXIT_FAILURE);
-  }
 }
 
 auto main(int argc, const char **argv) -> int {

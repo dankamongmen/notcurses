@@ -3203,13 +3203,6 @@ void ncplane_center_abs(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
   }
 }
 
-void nclog(const char* fmt, ...){
-  va_list va;
-  va_start(va, fmt);
-  vfprintf(stderr, fmt, va);
-  va_end(va);
-}
-
 int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   mbstate_t ps = {0};
   const wchar_t** wset = &gclustarr;

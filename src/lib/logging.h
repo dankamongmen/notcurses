@@ -5,10 +5,16 @@
 extern "C" {
 #endif
 
-void nclog(const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));
-
 // logging
-extern int loglevel;
+extern ncloglevel_e loglevel;
+
+static inline void
+nclog(const char* fmt, ...){
+  va_list va;
+  va_start(va, fmt);
+  vfprintf(stderr, fmt, va);
+  va_end(va);
+}
 
 #define logpanic(fmt, ...) do{ \
   if(loglevel >= NCLOGLEVEL_PANIC){ \
