@@ -182,10 +182,24 @@ fbuf_puts(fbuf* f, const char* s){
 
 static inline int
 fbuf_putint(fbuf* f, int n){
-  if(fbuf_grow(f, 10)){ // 32-bit int might require up to 10 digits
+  if(fbuf_grow(f, 20)){ // 64-bit int might require up to 20 digits
     return -1;
   }
   uint64_t r = snprintf(f->buf + f->used, f->size - f->used, "%d", n);
+  if(r > f->size - f->used){
+    assert(r <= f->size - f->used);
+    return -1; // FIXME grow?
+  }
+  f->used += r;
+  return r;
+}
+
+static inline int
+fbuf_putuint(fbuf* f, int n){
+  if(fbuf_grow(f, 20)){ // 64-bit int might require up to 20 digits
+    return -1;
+  }
+  uint64_t r = snprintf(f->buf + f->used, f->size - f->used, "%u", n);
   if(r > f->size - f->used){
     assert(r <= f->size - f->used);
     return -1; // FIXME grow?
