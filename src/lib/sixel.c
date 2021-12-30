@@ -29,9 +29,10 @@ sixelcount(int dimy, int dimx){
 static inline uint8_t*
 sixel_auxiliary_vector(const sprixel* s){
   int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
-  uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
+  size_t slen = pixels * 2;
+  uint8_t* ret = malloc(slen);
   if(ret){
-    memset(ret, 0, sizeof(*ret) * pixels);
+    memset(ret, 0, slen);
   }
   return ret;
 }
