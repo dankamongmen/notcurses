@@ -539,6 +539,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    KKBDQUERY \
                    SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
+                   "\x1b[?1;3;1024S" /* try to set 1024 cregs */ \
                    KITTYQUERY \
                    CREGSXTSM \
                    GEOMXTSM \
@@ -559,14 +560,13 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define SMCUP DECSET(SET_SMCUP)
 #define RMCUP DECRST(SET_SMCUP)
 
-// we send an XTSMGRAPHICS to set up 256 color registers (the most we can
-// currently take advantage of; we need at least 64 to use sixel at all).
-// maybe that works, maybe it doesn't. then query both color registers
-// and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
-// send any identification queries (we've already identified the terminal).
-// write DSRCPR as early as possible, so that it precedes any query material
-// that's bled onto stdin and echoed. if 'noaltscreen' is set, do not send
-// an smcup. if 'draininput' is set, do not send any keyboard modifiers.
+// we send an XTSMGRAPHICS to set up 256 (or ideally 1024) color registers.
+// maybe that works, maybe it doesn't. then query both color registers and
+// geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't send
+// any identification queries (we've already identified the terminal). write
+// DSRCPR as early as possible, so that it precedes any query material that's
+// bled onto stdin and echoed. if 'noaltscreen' is set, do not send an smcup.
+// if 'draininput' is set, do not send any keyboard modifiers.
 static int
 send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
                      unsigned draininput){
@@ -1365,12 +1365,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     if(kitty_graphics){
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
     }
-    // our current sixel quantization algorithm requires at least 64 color
-    // registers. we make use of no more than 256. this needs to happen
-    // after heuristics, since the choice of sixel_init() depends on it.
-    if(ti->color_registers >= 64){
-      setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
-    }
+    setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
   }
   return 0;
 

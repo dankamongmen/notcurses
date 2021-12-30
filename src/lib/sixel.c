@@ -1,3 +1,4 @@
+#include <math.h>
 #include "internal.h"
 #include "fbuf.h"
 
@@ -5,14 +6,41 @@
 
 // three original (unscaled) RGB components plus a population count
 typedef struct qsample {
-  unsigned char comps[3];
+  unsigned char comps[RGBSIZE];
   uint32_t pop;
 } qsample;
 
-// lowest sample for each node
+// lowest samples for each node. maybe we do low/high in the future, who knows?
 typedef struct qnode {
   qsample q;
+  // cidx plays two roles. during merge, we select the active set, and extract
+  // them (since they'll be sorted, we can't operate directly on the octree).
+  // here, we use cidx to map back to the initial octree entry, as we need
+  // update them (from the active set) at the end of merging. afterwards, the
+  // high bit indicates that it was chosen, and the cidx is a valid index into
+  // the final color table. it is otherwise a link to the merged qnode.
+  // FIXME combine these once more, but for now to keep it easy, we have two.
+  // qlink links back into the octree.
+  uint16_t qlink;
+  uint16_t cidx;
 } qnode;
+
+// have we been chosen for the color table?
+static inline bool
+chosen_p(const qnode* q){
+  return q->cidx & 0x8000u;
+}
+
+static inline unsigned
+make_chosen(unsigned cidx){
+  return cidx |= 0x8000u;
+}
+
+// get the cidx without the chosen bit
+static inline unsigned
+qidx(const qnode* q){
+  return q->cidx & ~0x8000u;
+}
 
 #define QNODECOUNT (1lu << 12)
 
@@ -25,6 +53,11 @@ alloc_qnodes(void){
   return calloc(QNODECOUNT, sizeof(qnode));
 }
 
+static inline unsigned
+color_key(unsigned r, unsigned g, unsigned b){
+  return ((r & 0xf0) << 4u) | (g & 0xf8) | ((b & 0xe0) >> 5u);
+}
+
 // insert a color from the source image into the octree. we take 5
 // from the green component, 4 from the red, and 3 from the blue,
 // sending them to RGB (saving a shift on green).
@@ -33,23 +66,41 @@ insert_color(qnode* qtree, uint32_t pixel, uint32_t* colors){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
   const unsigned b = ncpixel_b(pixel);
-  const unsigned key = ((r & 0xf0) << 4u) | (g & 0xf8) | ((b & 0xe0) >> 5u);
+  const unsigned key = color_key(r, g, b);
   qnode* q = &qtree[key];
   if(q->q.pop++ == 0){
     q->q.comps[0] = r;
     q->q.comps[1] = g;
     q->q.comps[2] = b;
     ++*colors;
-fprintf(stderr, "NEW KEY: 0x%03x %u %u\n", key, key, b & 0xe0);
   }else if(r < q->q.comps[0] && g < q->q.comps[1] && b < q->q.comps[2]){
     q->q.comps[0] = r;
     q->q.comps[1] = g;
     q->q.comps[2] = b;
   }
+//fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
 }
 
-// size of a color table entry: three components and a dtable index
-#define CENTSIZE (RGBSIZE + 1)
+// resolve the input color to a color table index following any postprocessing
+// of the octree.
+static unsigned
+find_color(const qnode* qtree, uint32_t pixel){
+  const unsigned r = ncpixel_r(pixel);
+  const unsigned g = ncpixel_g(pixel);
+  const unsigned b = ncpixel_b(pixel);
+  const unsigned key = color_key(r, g, b);
+  const qnode* q = &qtree[key];
+  while(!chosen_p(q)){
+//fprintf(stderr, "qidx[%u (0x%08x)]: %u\n", key, pixel, qidx(q));
+    const qnode* newq = &qtree[qidx(q)];
+    assert(newq != q);
+    q = newq;
+  }
+  return qidx(q);
+}
+
+// size of a color table entry: just the three components
+#define CENTSIZE (RGBSIZE)
 
 // we set P2 based on whether there is any transparency in the sixel. if not,
 // use SIXEL_P2_ALLOPAQUE (0), for faster drawing in certain terminals.
@@ -68,17 +119,16 @@ sixelcount(int dimy, int dimx){
 }
 
 // create an auxiliary vector suitable for a Sixel sprixcell, and zero it out.
-// there are two bytes per pixel in the cell: a contiguous set of palette
-// indices (yet another reason that we work with 256 colors), and a contiguous
-// set of two-value transparencies (these could be folded down to bits from
-// bytes, saving 7/8 of the space FIXME).
+// there are three bytes per pixel in the cell: a contiguous set of 16-bit
+// palette indices, and a contiguous set of two-value transparencies (these
+// could be folded down to bits from bytes, saving 7/8 of the space FIXME).
 static inline uint8_t*
 sixel_auxiliary_vector(const sprixel* s){
   int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
-  size_t slen = pixels * 2;
+  size_t slen = pixels * 3;
   uint8_t* ret = malloc(slen);
   if(ret){
-    memset(ret, 0, slen);
+    memset(ret, 0, sizeof(slen));
   }
   return ret;
 }
@@ -91,91 +141,41 @@ sixel_auxiliary_vector(const sprixel* s){
 // these sixels in O(1), and then at display time we recreate the encoded
 // bitmap in one go if necessary. we could just wipe and restore directly using
 // the encoded form, but it's a tremendous pain in the ass. this sixelmap will
-// be kept in the sprixel. when first encoding, data and table each have an
-// entry for every color register; call sixelmap_trim() when done to cut them
-// down to the actual number of colors used.
-// table is much smaller than data, so we move minimal data when we need to
-// insert into the color table. they're sorted by memcmp() order over the
-// components.
+// be kept in the sprixel.
+// for initial quantization we fill out a static 5-level octree. we then merge
+// (and in the future, maybe relax) as necessary to converge upon the number of
+// color registers. once we've settled on the colors, we run the pixels through
+// the octree again to build up the sixelmap.
 typedef struct sixelmap {
   int colors;
   int sixelcount;
+  // FIXME we ought be able to combine these under the new scheme
   // for each color, for each sixel (stack of six), the representation.
-  // these are d-indexed.
   unsigned char* data;  // |colors| x |sixelcount|-byte arrays
   // for each color, the components and a dindex.
-  // these are c-indexed.
-  unsigned char* table; // |colors| x CENTSIZE: components + dtable index
+  unsigned char* table; // |colors| x CENTSIZE: components
   sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixelmap;
-
-typedef struct cdetails {
-  int64_t sums[3];   // sum of components of all matching original colors
-  int32_t count;     // count of pixels matching
-  unsigned char hi[RGBSIZE];  // highest sixelspace components we've seen
-  unsigned char lo[RGBSIZE];  // lowest sixelspace color we've seen
-} cdetails;
 
 // second pass: construct data for extracted colors over the sixels. the
 // map will be persisted in the sprixel; the remainder is lost.
 typedef struct sixeltable {
   sixelmap* map;        // copy of palette indices / transparency bits
-  cdetails* deets;      // |colorregs| cdetails structures
   int colorregs;        // *available* color registers
 } sixeltable;
 
-// whip up an all-zero sixelmap for the specified pixel geometry and color
-// register count. we might not use all the available color registers; call
-// sixelmap_trim() to release any unused memory once done encoding.
+// whip up a sixelmap sans data for the specified pixel geometry and color
+// register count.
 static sixelmap*
-sixelmap_create(int cregs, int dimy, int dimx){
+sixelmap_create(int dimy, int dimx){
   sixelmap* ret = malloc(sizeof(*ret));
   if(ret){
     ret->p2 = SIXEL_P2_ALLOPAQUE;
     ret->sixelcount = sixelcount(dimy, dimx);
-    if(ret->sixelcount){
-      size_t dsize = sizeof(*ret->data) * cregs * ret->sixelcount;
-      ret->data = malloc(dsize);
-      if(ret->data){
-        size_t tsize = CENTSIZE * cregs;
-        ret->table = malloc(tsize);
-        if(ret->table){
-          memset(ret->table, 0, tsize);
-          memset(ret->data, 0, dsize);
-          ret->colors = 0;
-          return ret;
-        }
-        free(ret->data);
-      }
-    }
-    free(ret);
+    ret->data = NULL;
+    ret->table = NULL;
   }
-  return NULL;
-}
-
-// trims s->data down to the number of colors actually used (as opposed to the
-// number of color registers available).
-static int
-sixelmap_trim(sixelmap* s){
-  if(s->colors == 0){
-    free(s->table);
-    s->table = NULL;
-    free(s->data);
-    s->data = NULL;
-    return 0;
-  }
-  size_t dsize = sizeof(*s->data) * s->colors * s->sixelcount;
-  unsigned char* tmp = realloc(s->data, dsize);
-  if(tmp == NULL){
-    return -1;
-  }
-  s->data = tmp;
-  size_t tsize = CENTSIZE * s->colors;
-  if((tmp = realloc(s->table, tsize)) == NULL){
-    return -1;
-  }
-  s->table = tmp;
-  return 0;
+  return ret;
 }
 
 void sixelmap_free(sixelmap *s){
@@ -183,23 +183,6 @@ void sixelmap_free(sixelmap *s){
     free(s->table);
     free(s->data);
     free(s);
-  }
-}
-
-static inline int
-ctable_to_dtable(const unsigned char* ctable){
-  return ctable[3]; // * 256 + ctable[4];
-}
-
-__attribute__ ((unused)) static void
-debug_color_table(const sixeltable* st){
-  for(int z = 0 ; z < st->map->colors ; ++z){
-    unsigned char* crec = st->map->table + CENTSIZE * z;
-    int didx = ctable_to_dtable(crec);
-    const cdetails* d = &st->deets[didx];
-    fprintf(stderr, "[%03d->%d] %"PRId32" hi %u/%u/%u lo %u/%u/%u\n", z, didx, d->count,
-            d->hi[0], d->hi[1], d->hi[2],
-            d->lo[0], d->lo[1], d->lo[2]);
   }
 }
 
@@ -214,27 +197,6 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
-// take (8-bit rgb value & mask) to sixelspace [0..100]
-static inline char
-ss(unsigned rgb, unsigned char mask){
-  return (rgb & mask) * 100 / 255;
-}
-
-static inline void
-break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, uint32_t mask){
-  comps[0] = ss(ncpixel_r(rgba), (mask & 0xff0000u) >> 16);
-  comps[1] = ss(ncpixel_g(rgba), (mask & 0xff00u) >> 8);
-  comps[2] = ss(ncpixel_b(rgba), (mask & 0xffu));
-//fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
-}
-
-static inline void
-dtable_to_ctable(int dtable, unsigned char* ctable){
-  ctable[3] = dtable;
-  /*ctable[3] = dtable / 256;
-  ctable[4] = dtable % 256;*/
-}
-
 // wipe the color from startx to endx, from starty to endy. returns 1 if any
 // pixels were actually wiped.
 static inline int
@@ -242,10 +204,9 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
            int startx, int endx, int starty, int endy, int dimx,
            int cellpixy, int cellpixx, uint8_t* auxvec){
   int wiped = 0;
-  int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
   // offset into map->data where our color starts
-  int coff = smap->sixelcount * didx;
-//fprintf(stderr, "didx: %d sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", didx, smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
+  int coff = smap->sixelcount * color;
+//fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
   // we're going to repurpose starty as "starting row of this band", so keep it
   // around as originy for auxvecidx computations
   int originy = starty;
@@ -361,93 +322,6 @@ scrub_color_table(sprixel* s){
   return 0;
 }
 
-// returns the index at which the provided color can be found *in the
-// dtable*, possibly inserting it into the ctable. returns -1 if the
-// color is not in the table and the table is full. returns the proper
-// dtable index (*not* color index) otherwise.
-static int
-find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
-  int i;
-  if(stab->map->colors){
-    int l, r;
-    // binary search over memcmp()-ordered color table
-    l = 0;
-    r = stab->map->colors - 1;
-    do{
-      i = l + (r - l) / 2;
-      const unsigned char* cmpie = stab->map->table + i * CENTSIZE;
-//fprintf(stderr, " %u/%u/%u %u/%u/%u L %d R %d m %d\n", comps[0], comps[1], comps[2], cmpie[0], cmpie[1], cmpie[2], l, r, i);
-      int cmp = memcmp(cmpie, comps, RGBSIZE);
-      if(cmp == 0){
-        return ctable_to_dtable(cmpie);
-      }
-      if(cmp < 0){
-        l = i + 1;
-      }else{ // key is smaller
-        r = i - 1;
-      }
-//fprintf(stderr, " BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
-    }while(l <= r);
-    if(r < 0){
-      i = 0;
-    }else if(l == stab->map->colors){
-      i = stab->map->colors;
-    }else{
-      i = l;
-    }
-    if(stab->map->colors == stab->colorregs){
-      return -1;
-    }
-    if(i < stab->map->colors){
-//fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
-      memmove(stab->map->table + (i + 1) * CENTSIZE,
-              stab->map->table + i * CENTSIZE,
-              (stab->map->colors - i) * CENTSIZE);
-    }
-  }else{
-    i = 0;
-  }
-//fprintf(stderr, "NEW COLOR CONCAT %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
-  memcpy(stab->map->table + i * CENTSIZE, comps, RGBSIZE);
-  dtable_to_ctable(stab->map->colors, stab->map->table + i * CENTSIZE);
-  ++stab->map->colors;
-  return stab->map->colors - 1;
-  //return ctable_to_dtable(stab->map->table + i * CENTSIZE);
-}
-
-static void
-update_deets(uint32_t rgb, cdetails* deets){
-  unsigned char comps[RGBSIZE];
-  deets->sums[0] += ncpixel_r(rgb);
-  deets->sums[1] += ncpixel_g(rgb);
-  deets->sums[2] += ncpixel_b(rgb);
-  comps[0] = ss(ncpixel_r(rgb), 0xff);
-  comps[1] = ss(ncpixel_g(rgb), 0xff);
-  comps[2] = ss(ncpixel_b(rgb), 0xff);
-  if(deets->count == 0){
-    deets->lo[0] = deets->hi[0] = comps[0];
-    deets->lo[1] = deets->hi[1] = comps[1];
-    deets->lo[2] = deets->hi[2] = comps[2];
-  }else{
-    if(deets->hi[0] < comps[0]){
-      deets->hi[0] = comps[0];
-    }else if(deets->lo[0] > comps[0]){
-      deets->lo[0] = comps[0];
-    }
-    if(deets->hi[1] < comps[1]){
-      deets->hi[1] = comps[1];
-    }else if(deets->lo[1] > comps[1]){
-      deets->lo[1] = comps[1];
-    }
-    if(deets->hi[2] < comps[2]){
-      deets->hi[2] = comps[2];
-    }else if(deets->lo[2] > comps[2]){
-      deets->lo[2] = comps[2];
-    }
-  }
-  ++deets->count;
-}
-
 // goes through the needs_refresh matrix, and damages cells needing refreshing.
 void sixel_refresh(const ncpile* p, sprixel* s){
   if(s->needs_refresh == NULL){
@@ -489,12 +363,143 @@ update_rmatrix(unsigned char* rmatrix, int txyidx, const tament* tam){
   }
 }
 
-// no matter the input palette, we can always get a maximum of 64 colors if we
-// mask at 0xc0 on each component (this partitions each component into 4 chunks,
-// and 4 * 4 * 4 -> 64). so this will never overflow our color register table
-// (assumed to have at least 256 registers). at each color, we store a pixel
-// count, and a sum of all three channels. in addition, we track whether we've
-// seen at least two colors in the chunk.
+static int
+qnodecmp(const void* q0, const void* q1){
+  const qnode* qa = q0;
+  const qnode* qb = q1;
+  return qa->q.pop < qb->q.pop ? -1 : qa->q.pop == qb->q.pop ? 0 : 1;
+}
+
+// from the initial set of QNODECOUNT qnodes, extract the number of active
+// ones -- our initial (reduced) color count -- and sort. heap allocation.
+// precondition: colors > 0
+static qnode*
+get_active_set(qnode* q, uint32_t colors){
+  qnode* act = malloc(sizeof(*act) * colors);
+  unsigned targidx = 0;
+  // filter the initial qnodes for pop != 0
+  for(unsigned z = 0 ; z < QNODECOUNT && targidx < colors ; ++z){
+    if(q[z].q.pop){
+      memcpy(&act[targidx], &q[z], sizeof(*act));
+      // link it back to the original node's position in the octree
+      act[targidx].qlink = z;
+      ++targidx;
+    }
+  }
+  qsort(act, colors, sizeof(*act), qnodecmp); 
+  return act;
+}
+
+// we must reduce the number of colors until we're using less than or equal
+// to the number of color registers.
+static inline int
+merge_color_table(qnode* q, uint32_t* colors, uint32_t colorregs){
+  if(*colors == 0){
+    return 0;
+  }
+  qnode* qactive = get_active_set(q, *colors);
+  if(qactive == NULL){
+    return -1;
+  }
+  // assign color table entries to the most popular colors. use the lowest
+  // color table entries for the most popular ones, as they're the shortest
+  // (this is not necessarily an optimizing huristic, but it'll do for now).
+  unsigned cidx = 0;
+//fprintf(stderr, "colors: %u cregs: %u\n", *colors, colorregs);
+  for(int z = *colors - 1 ; z >= 0 ; --z){
+    if(*colors >= colorregs){
+      if(cidx == colorregs){
+        break; // we just ran out of color registers
+      }
+    }
+    qactive[z].cidx = make_chosen(cidx);
+    ++cidx;
+  }
+  // tend to those which couldn't get a color table entry.
+  // FIXME for now they all go to the most popular. this must change.
+  for(unsigned z = 0 ; z < *colors ; ++z){
+    q[qactive[z].qlink].cidx = qactive[z].cidx;
+    if(!chosen_p(&q[qactive[z].qlink])){
+      q[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
+//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
+    }
+  }
+  if(*colors > colorregs){
+    *colors = colorregs;
+  }
+  free(qactive); // FIXME probably want to preserve for relaxation
+  return 0;
+}
+
+// convert rgb [0..255] to sixel [0..100]
+static inline unsigned
+ss(unsigned c){
+  return round(c * 100.0 / 255);
+}
+
+static inline void
+load_color_table(const qnode* qtree, uint32_t colors, unsigned char* table){
+  uint32_t loaded = 0;
+  for(unsigned z = 0 ; z < QNODECOUNT && loaded < colors ; ++z){
+    const qnode* q = &qtree[z];
+    if(chosen_p(q)){
+      table[CENTSIZE * qidx(q) + 0] = ss(q->q.comps[0]);
+      table[CENTSIZE * qidx(q) + 1] = ss(q->q.comps[1]);
+      table[CENTSIZE * qidx(q) + 2] = ss(q->q.comps[2]);
+      ++loaded;
+    }
+  }
+//fprintf(stderr, "loaded: %u colors: %u\n", loaded, colors);
+  assert(loaded == colors);
+}
+
+// we have converged upon colorregs in the octree. we now run over the pixels
+// once again, and get the actual final color table entries.
+static inline int
+build_data_table(qnode* q, uint32_t colors, sixeltable* stab, const uint32_t* data,
+                 int linesize, int begy, int begx, int leny, int lenx,
+                 uint32_t transcolor){
+  if(stab->map->sixelcount == 0){
+    logerror("no sixels");
+    return -1;
+  }
+  // FIXME merge these two
+  size_t dsize = sizeof(*stab->map->data) * colors * stab->map->sixelcount;
+  stab->map->data = malloc(dsize);
+  if(stab->map->data == NULL){
+    return -1;
+  }
+  size_t tsize = CENTSIZE * colors;
+  stab->map->table = malloc(tsize);
+  if(stab->map->table == NULL){
+    free(stab->map->data);
+    return -1;
+  }
+  load_color_table(q, colors, stab->map->table);
+  memset(stab->map->data, 0, dsize);
+  stab->map->colors = colors;
+  // FIXME fill in color table from q
+  int pos = 0;
+  for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
+    for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
+      for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
+        const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
+        if(rgba_trans_p(*rgb, transcolor)){
+          continue;
+        }
+        int cidx = find_color(q, *rgb);
+        stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
+      }
+      ++pos;
+    }
+  }
+  return 0;
+}
+
+// we have a 4096-element array that takes the 4-5-3 MSBs from the RGB
+// comoponents. once it's complete, we might need to either merge some
+// chunks, or expand them, converging towards the available number of
+// color registers.
 static inline int
 extract_color_table(const uint32_t* data, int linesize, int cols,
                     int leny, int lenx, sixeltable* stab,
@@ -509,7 +514,6 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int begy = bargs->begy;
   const int cdimy = bargs->u.pixel.cellpxy;
   const int cdimx = bargs->u.pixel.cellpxx;
-  const uint32_t mask = 0xe0c0e0;
   int pos = 0; // pixel position
   unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
@@ -576,141 +580,20 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         }
         insert_color(q, *rgb, &octets);
         ++pixels;
-        unsigned char comps[RGBSIZE];
-        break_sixel_comps(comps, *rgb, mask);
-        int didx = find_color(stab, comps);
-//fprintf(stderr, "DEETS %d %u %u %u (orig %u/%u/%u)\n", didx, comps[0], comps[1], comps[2], ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
-        if(didx < 0){
-//fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
-          return -1;
-        }
-        stab->map->data[didx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
-        update_deets(*rgb, &stab->deets[didx]);
-//debug_color_table(stab);
-//fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->map->sixelcount + pos]);
-//fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
       }
       ++pos;
     }
   }
   loginfo("octree got %"PRIu32" entries on %"PRIu64" pixels", octets, pixels);
+  if(merge_color_table(q, &octets, stab->colorregs)){
+    return -1;
+  }
+  if(build_data_table(q, octets, stab, data, linesize, begy, begx, leny, lenx,
+                      bargs->transcolor)){
+    return -1;
+  }
+  loginfo("final palette: %u/%u colors\n", octets, stab->colorregs);
   return 0;
-}
-
-// run through the sixels matching color |src|, going to color |stab->colors|,
-// keeping those under |r||g||b|, and putting those above it into the new
-// color. rebuilds both sixel groups and color details.
-static void
-unzip_color(const uint32_t* data, int linesize, int begy, int begx,
-            int leny, int lenx, sixeltable* stab, int src,
-            unsigned char rgb[static 3]){
-  unsigned char* tcrec = stab->map->table + CENTSIZE * stab->map->colors;
-  dtable_to_ctable(stab->map->colors, tcrec);
-  cdetails* targdeets = stab->deets + stab->map->colors;
-  unsigned char* crec = stab->map->table + CENTSIZE * src;
-  int didx = ctable_to_dtable(crec);
-  cdetails* deets = stab->deets + didx;
-  unsigned char* srcsixels = stab->map->data + stab->map->sixelcount * didx;
-  unsigned char* dstsixels = stab->map->data + stab->map->sixelcount * stab->map->colors;
-//fprintf(stderr, "counts: src: %d dst: %d src: %p dst: %p\n", deets->count, targdeets->count, srcsixels, dstsixels);
-  int sixel = 0;
-  memset(deets, 0, sizeof(*deets));
-  for(int visy = begy ; visy < (begy + leny) ; visy += 6){
-    for(int visx = begx ; visx < (begx + lenx) ; visx += 1, ++sixel){
-      if(srcsixels[sixel]){
-        for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
-          if(srcsixels[sixel] & (1u << (sy - visy))){
-            const uint32_t* pixel = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
-            unsigned char comps[RGBSIZE];
-            break_sixel_comps(comps, *pixel, 0xffffff);
-            if(comps[0] > rgb[0] || comps[1] > rgb[1] || comps[2] > rgb[2]){
-              dstsixels[sixel] |= (1u << (sy - visy));
-              srcsixels[sixel] &= ~(1u << (sy - visy));
-              update_deets(*pixel, targdeets);
-//fprintf(stderr, "%u/%u/%u comps: [%u/%u/%u]\n", r, g, b, comps[0], comps[1], comps[2]);
-//fprintf(stderr, "match sixel %d %u %u\n", sixel, srcsixels[sixel], 1u << (sy - visy));
-            }else{
-              update_deets(*pixel, deets);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// relax segment |coloridx|. we must have room for a new color. we find the
-// biggest component gap, and split our color entry between lo and hi there.
-// we know the elements can't go into any preexisting color entry, so the only
-// choices are staying where they are, or going to the new one. "unzip" the
-// sixels from the data table by looking back to the sources and classifying
-// them in one or the other centry. rebuild our sums, sixels, hi/lo, and
-// counts as we do so. anaphase, baybee! target always gets the upper range.
-// returns 1 if we did a refinement, 0 otherwise.
-// it's important to use the lo and hi because those correspond to real colors
-// from the image, whereas an average might not apply to anything.
-static int
-refine_color(const uint32_t* data, int linesize, int begy, int begx,
-             int leny, int lenx, sixeltable* stab, int color){
-  unsigned char* crec = stab->map->table + CENTSIZE * color;
-  int didx = ctable_to_dtable(crec);
-  cdetails* deets = stab->deets + didx;
-  int rdelt = deets->hi[0] - deets->lo[0];
-  int gdelt = deets->hi[1] - deets->lo[1];
-  int bdelt = deets->hi[2] - deets->lo[2];
-  unsigned char rgbmax[3] = { deets->hi[0], deets->hi[1], deets->hi[2] };
-  if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
-    if(gdelt < 2){
-      return 0;
-    }
-//fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[1], deets->lo[1], deets->count);
-    rgbmax[1] = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
-  }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
-    if(rdelt < 2){
-      return 0;
-    }
-//fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[0], deets->lo[0], deets->count);
-    rgbmax[0] = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
-  }else{ // split on blue
-    if(bdelt < 2){
-      return 0;
-    }
-//fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d (pop: %d)\n", color, stab->map->colors, deets->hi[2], deets->lo[2], deets->count);
-    rgbmax[2] = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
-  }
-  unzip_color(data, linesize, begy, begx, leny, lenx, stab, color, rgbmax);
-  ++stab->map->colors;
-  return 1;
-}
-
-// relax the details down into free color registers
-static void
-refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                   int leny, int lenx, sixeltable* stab){
-//debug_color_table(stab);
-  while(stab->map->colors < stab->colorregs){
-    bool refined = false;
-    int tmpcolors = stab->map->colors; // force us to come back through
-    for(int i = 0 ; i < tmpcolors ; ++i){
-      unsigned char* crec = stab->map->table + CENTSIZE * i;
-      int didx = ctable_to_dtable(crec);
-      cdetails* deets = stab->deets + didx;
-//fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
-      if(deets->count > leny * lenx / stab->colorregs){
-        if(refine_color(data, linesize, begy, begx, leny, lenx, stab, i)){
-          if(stab->map->colors == stab->colorregs){
-//fprintf(stderr, "filled table!\n");
-            break;
-          }
-          refined = true;
-        }
-      }
-    }
-    if(!refined){ // no more possible work
-      break;
-    }
-  }
-  // we're full!
 }
 
 // Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
@@ -825,26 +708,19 @@ write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
 // future reencodings. |leny| and |lenx| are output pixel geometry.
 // returns the number of bytes written, so it can be stored at *parse_start.
 static int
-write_sixel_header(fbuf* f, int leny, int lenx, const sixeltable* stab){
+write_sixel_header(fbuf* f, int leny, int lenx, const sixelmap* smap){
   if(leny % 6){
     return -1;
   }
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  int r = write_sixel_intro(f, stab->map->p2, leny, lenx);
+  int r = write_sixel_intro(f, smap->p2, leny, lenx);
   if(r < 0){
     return -1;
   }
-  for(int i = 0 ; i < stab->map->colors ; ++i){
-    const unsigned char* rgb = stab->map->table + i * CENTSIZE;
-    int idx = ctable_to_dtable(rgb);
-    int count = stab->deets[idx].count;
-//fprintf(stderr, "RGB: %3u(%d) %3u(%d) %3u(%d) DT: %d SUMS: %3ld %3ld %3ld COUNT: %d\n", rgb[0], ss(rgb[0], 0xff), rgb[1], ss(rgb[1], 0xff), rgb[2], ss(rgb[2], 0xff), idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
+  for(int i = 0 ; i < smap->colors ; ++i){
+    const unsigned char* rgb = smap->table + i * CENTSIZE;
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
-    // we emit the average of the actual sums rather than the RGB clustering
-    // point, as it can be (and usually is) much more accurate.
-    int rr = write_sixel_creg(f, i, (stab->deets[idx].sums[0] * 100 / count / 255),
-                              (stab->deets[idx].sums[1] * 100 / count / 255),
-                              (stab->deets[idx].sums[2] * 100 / count / 255));
+    int rr = write_sixel_creg(f, i, rgb[0], rgb[1], rgb[2]);
     if(rr < 0){
       return -1;
     }
@@ -861,24 +737,23 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
     for(int i = 0 ; i < map->colors ; ++i){
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
-      int idx = ctable_to_dtable(map->table + i * CENTSIZE);
       int printed = 0;
       for(int m = p ; m < map->sixelcount && m < p + lenx ; ++m){
-//fprintf(stderr, "%d ", idx * map->sixelcount + m);
-//fputc(map->data[idx * map->sixelcount + m] + 63, stderr);
+//fprintf(stderr, "%d ", i * map->sixelcount + m);
+//fputc(map->data[i * map->sixelcount + m] + 63, stderr);
         if(seenrle){
-          if(map->data[idx * map->sixelcount + m] == crle){
+          if(map->data[i * map->sixelcount + m] == crle){
             ++seenrle;
           }else{
             if(write_rle(&printed, i, f, seenrle, crle, &needclosure)){
               return -1;
             }
             seenrle = 1;
-            crle = map->data[idx * map->sixelcount + m];
+            crle = map->data[i * map->sixelcount + m];
           }
         }else{
           seenrle = 1;
-          crle = map->data[idx * map->sixelcount + m];
+          crle = map->data[i * map->sixelcount + m];
         }
       }
       if(crle){
@@ -907,7 +782,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 // are output geometry.
 static int
 write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab, int* parse_start){
-  *parse_start = write_sixel_header(f, outy, outx, stab);
+  *parse_start = write_sixel_header(f, outy, outx, stab->map);
   if(*parse_start < 0){
     return -1;
   }
@@ -977,8 +852,6 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs,
     fbuf_free(&f);
     return -1;
   }
-  // we're keeping the buf remnants
-  sixelmap_trim(stab->map);
   s->smap = stab->map;
   return 1;
 }
@@ -988,29 +861,20 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs,
 int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs){
   int colorregs = bargs->u.pixel.colorregs;
-  if(colorregs > 256){
-    colorregs = 256;
-  }
-  assert(colorregs >= 64);
   sixeltable stable = {
-    .map = sixelmap_create(colorregs, leny - bargs->begy, lenx - bargs->begx),
-    .deets = malloc(colorregs * sizeof(cdetails)),
+    .map = sixelmap_create(leny - bargs->begy, lenx - bargs->begx),
     .colorregs = colorregs,
   };
-  if(stable.deets == NULL || stable.map == NULL){
+  if(stable.map == NULL){
     sixelmap_free(stable.map);
-    free(stable.deets);
     return -1;
   }
-  // stable.table doesn't need initializing; we start from the bottom
-  memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
   typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
   rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
   if(rmatrix == NULL){
     sixelmap_free(stable.map);
-    free(stable.deets);
     return -1;
   }
   bargs->u.pixel.spx->needs_refresh = rmatrix;
@@ -1019,16 +883,13 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     free(bargs->u.pixel.spx->needs_refresh);
     bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(stable.map);
-    free(stable.deets);
     return -1;
   }
-  refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   // takes ownership of sixelmap on success
   int r = sixel_blit_inner(leny, lenx, &stable, bargs, n->tam);
   if(r < 0){
     sixelmap_free(stable.map);
   }
-  free(stable.deets);
   scrub_color_table(bargs->u.pixel.spx);
   return r;
 }
@@ -1162,12 +1023,11 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
       int trans = auxvec[cellpxx * cellpxy + auxvecidx];
       if(!trans){
         int color = auxvec[auxvecidx];
-        int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
-        int coff = smap->sixelcount * didx;
+        int coff = smap->sixelcount * color;
         int band = y / 6;
         int boff = coff + band * s->pixx;
         int xoff = boff + x;
-//fprintf(stderr, "DIDX: %d %d/%d band: %d coff: %d boff: %d rebuild %d/%d with color %d from %d %p xoff: %d\n", didx, ycell, xcell, band, coff, boff, y, x, color, auxvecidx, auxvec, xoff);
+//fprintf(stderr, "%d/%d band: %d coff: %d boff: %d rebuild %d/%d with color %d from %d %p xoff: %d\n", ycell, xcell, band, coff, boff, y, x, color, auxvecidx, auxvec, xoff);
         s->smap->data[xoff] |= (1u << (y % 6));
       }else{
         ++transparent;
@@ -1193,7 +1053,7 @@ int sixel_shutdown(fbuf* f){
 }
 
 uint8_t* sixel_trans_auxvec(const ncpile* p){
-  const size_t slen = 2 * p->cellpxy * p->cellpxx;
+  const size_t slen = 3 * p->cellpxy * p->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);
