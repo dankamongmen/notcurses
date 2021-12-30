@@ -1244,11 +1244,11 @@ int ncvisual_set_yx(const struct ncvisual* n, unsigned y, unsigned x, uint32_t p
 
 int ncvisual_at_yx(const ncvisual* n, unsigned y, unsigned x, uint32_t* pixel){
   if(y >= n->pixy){
-    logerror("invalid coordinates %u/%u", y, x);
+    logerror("invalid coordinates %u/%u (%d/%d)", y, x, n->pixy, n->pixx);
     return -1;
   }
   if(x >= n->pixx){
-    logerror("invalid coordinates %u/%u", y, x);
+    logerror("invalid coordinates %u/%u (%d/%d)", y, x, n->pixy, n->pixx);
     return -1;
   }
   *pixel = n->data[y * (n->rowstride / 4) + x];

@@ -1293,7 +1293,7 @@ palette_cb(inputctx* ictx){
         if((int)idx > ictx->initdata->maxpaletteread){
           ictx->initdata->maxpaletteread = idx;
         }
-        loginfo("index %u 0x%06x", idx, ictx->initdata->palette.chans[idx]);
+        logverbose("index %u 0x%06x", idx, ictx->initdata->palette.chans[idx]);
       }
       free(str);
     }

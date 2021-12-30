@@ -16,7 +16,7 @@ count_colors(uint32_t pixel, char* buf, uint32_t colors){
   return colors;
 }
 
-static void
+static int
 compare(const struct ncvisual* n1, const struct ncvisual* n2,
         const ncvgeom* geom, struct notcurses* nc){
   uint32_t co0 = 0, co1 = 0;
@@ -34,8 +34,8 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
       uint32_t p0, p1;
       if(ncvisual_at_yx(n1, y, x, &p0) ||
          ncvisual_at_yx(n2, y, x, &p1)){
-        fprintf(stderr, "error getting pixel at %u/%u\n", y, x);
-        return;
+        fprintf(stderr, "error getting pixel at %u/%u (%u/%u)\n", y, x, ly, lx);
+        return -1;
       }
       co0 = count_colors(p0, cbuf0, co0);
       co1 = count_colors(p1, cbuf1, co1);
@@ -72,6 +72,7 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
   notcurses_render(nc);
   free(cbuf0);
   free(cbuf1);
+  return 0;
 }
 
 int main(int argc, char** argv){
@@ -115,7 +116,7 @@ int main(int argc, char** argv){
     struct ncvisual_options vopts = {0};
     vopts.n = ncp;
     vopts.blitter = NCBLIT_PIXEL;
-    vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_NOINTERPOLATE;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     struct ncvgeom geom;
     if(ncvisual_geom(nc, ncv, &vopts, &geom)){
       ncplane_set_fg_rgb(stdn, 0xd16002);
@@ -160,7 +161,11 @@ int main(int argc, char** argv){
       return EXIT_FAILURE;
     }
     free(s);
-    compare(ncv, quantncv, &geom, nc);
+    if(compare(ncv, quantncv, &geom, nc)){
+      notcurses_stop(nc);
+      fprintf(stderr, "error comparing sixels" NL);
+      return EXIT_FAILURE;
+    }
     ncvisual_destroy(quantncv);
     ncvisual_destroy(ncv);
     struct timespec end;

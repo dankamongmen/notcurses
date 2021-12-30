@@ -12,18 +12,19 @@ extern "C" {
 uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
 #define MAXCOLORS 65535
   // cast is necessary for c++ callers
-  uint32_t* rgba = (uint32_t*)malloc(sizeof(*rgba) * leny * lenx);
+  uint32_t* rgba = (uint32_t*)calloc(leny * lenx, sizeof(*rgba));
   if(rgba == NULL){
     return NULL;
   }
   // cast is necessary for c++ callers
-  uint32_t* colors = (uint32_t*)malloc(sizeof(*colors) * MAXCOLORS);
+  uint32_t* colors = (uint32_t*)calloc(MAXCOLORS, sizeof(*colors));
   if(colors == NULL){
     free(rgba);
     return NULL;
   }
-  // first we skip the header
-  while(*sx != '#'){
+  // first we skip the header. it ends in either a color declaration, or a
+  // transparent line (the only possible colorless line).
+  while(*sx != '#' && *sx != '-'){
     if(!*sx){
       return NULL;
     }
@@ -54,12 +55,12 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }else if('#' == *sx){
         state = STATE_WANT_COLOR;
       }else{
-//fprintf(stderr, "EXPECTED OCTOTHORPE, got %u\n", *sx);
+        logerror("expected octothorpe, got %u\n", *sx);
         goto err;
       }
     }else if(state == STATE_WANT_COLOR){
       if(!isdigit(*sx)){
-//fprintf(stderr, "EXPECTED digit, got %u\n", *sx);
+        logerror("expected digit, got %u\n", *sx);
         goto err;
       }
       color = 0;
@@ -82,12 +83,12 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }
     }else if(state == STATE_WANT_COLORSPACE){
       if('2' != *(sx++)){
-//fprintf(stderr, "EXPECTED '2', got %u\n", *sx);
+        logerror("expected '2', got %u\n", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       if(';' != *(sx++)){
-//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u\n", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -98,7 +99,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
-//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u\n", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -110,7 +111,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
-//fprintf(stderr, "EXPECTED semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u\n", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -146,6 +147,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
           ++sx;
         }while(isdigit(*sx));
         if(2 >= rle){
+          logerror("bad rle %d", rle);
           goto err;
         }
         --sx;
@@ -157,7 +159,15 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         y += 6;
         state = STATE_WANT_HASH;
       }else{
-//std::cerr << "RLE: " << rle << " pos: " << y << "*" << x << std::endl;
+//fprintf(stderr, "RLE: %d pos: %d x %d\n", rle, y, x);
+        if(y + 6 > (leny + 5) / 6 * 6){
+          logerror("too many rows %d + 6 > %d", y, (leny + 5) / 6 * 6);
+          goto err;
+        }
+        if(x + rle > lenx){
+          logerror("invalid rle %d + %d > %d", x, rle, lenx);
+          goto err;
+        }
         for(unsigned xpos = x ; xpos < x + rle ; ++xpos){
           for(unsigned ypos = y ; ypos < y + 6 ; ++ypos){
             if((*sx - 63) & (1u << (ypos - y))){
