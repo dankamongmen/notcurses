@@ -85,7 +85,7 @@ static sixelmap*
 sixelmap_create(int cregs, int dimy, int dimx){
   sixelmap* ret = malloc(sizeof(*ret));
   if(ret){
-    ret->p2 = SIXEL_P2_ALLOPAQUE,
+    ret->p2 = SIXEL_P2_ALLOPAQUE;
     ret->sixelcount = sixelcount(dimy, dimx);
     if(ret->sixelcount){
       size_t dsize = sizeof(*ret->data) * cregs * ret->sixelcount;
