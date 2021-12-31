@@ -178,15 +178,19 @@ int kitty_wipe(sprixel* s, int ycell, int xcell);
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
 int kitty_wipe_selfref(sprixel* s, int ycell, int xcell);
 // wipes out a cell by changing the alpha value throughout the PNG cell to 0.
+int iterm_wipe(sprixel* s, int ycell, int xcell);
 int fbcon_wipe(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_selfref(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int sixel_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
 int kitty_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
+               fbuf* f, int yoff, int xoff);
+int iterm_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
 int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
@@ -202,6 +206,8 @@ int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit(struct ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const struct blitterargs* bargs);
+int iterm_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const struct blitterargs* bargs);
