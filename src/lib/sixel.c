@@ -962,6 +962,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   assert(n->tam);
   if(extract_color_table(data, linesize, cols, leny, lenx, &stable, n->tam, bargs)){
     free(bargs->u.pixel.spx->needs_refresh);
+    bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(stable.map);
     free(stable.deets);
     return -1;
