@@ -74,6 +74,7 @@ TEST_CASE("Direct") {
     }
   }
 
+  /*
 #ifndef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("VisualDisabled"){
     CHECK(!ncdirect_canopen_images(nc_));
@@ -171,6 +172,7 @@ TEST_CASE("Direct") {
     }
   }
 #endif
+  */
 
   CHECK(0 == ncdirect_stop(nc_));
 
