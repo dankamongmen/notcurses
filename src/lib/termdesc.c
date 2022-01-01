@@ -1362,10 +1362,13 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
+    // color_registers was only assigned if kitty_graphics were unavailable
+    if(ti->color_registers > 0){
+      setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
+    }
     if(kitty_graphics){
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
     }
-    setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
   }
   return 0;
 
