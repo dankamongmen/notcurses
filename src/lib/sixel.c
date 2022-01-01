@@ -19,11 +19,28 @@ typedef struct qnode {
   // update them (from the active set) at the end of merging. afterwards, the
   // high bit indicates that it was chosen, and the cidx is a valid index into
   // the final color table. it is otherwise a link to the merged qnode.
+  // during initial filtering, qlink determines whether a node has fractured:
+  // if qlink is non-zero, it is a one-biased index to an onode.
   // FIXME combine these once more, but for now to keep it easy, we have two.
   // qlink links back into the octree.
   uint16_t qlink;
   uint16_t cidx;
 } qnode;
+
+// an octree-style node, used for fractures.
+typedef struct onode {
+  qnode* q[8];
+} onode;
+
+typedef struct qstate {
+  qnode* qnodes;
+  onode* onodes;
+  unsigned dynnodes_free;
+  unsigned dynnodes_total;
+  unsigned onodes_free;
+  unsigned onodes_total;
+} qstate;
+
 
 // have we been chosen for the color table?
 static inline bool
@@ -44,56 +61,152 @@ qidx(const qnode* q){
 
 #define QNODECOUNT (1lu << 12)
 
-// create+zorch an array of 4096 qnodes. this is 12 bits per index
-// (down from 24); we use 4/5/3 bits of the original 8/8/8.
-static qnode*
-alloc_qnodes(void){
+// create+zorch an array of QNODECOUNT qnodes. this is 12 bits per index
+// (down from 24); we use 4/5/3 bits of the original 8/8/8 (see color_key()).
+// in addition, at the end we allocate |colorregs| qnodes, to be used
+// dynamically in "fracturing". the original QNODECOUNT nodes are a static
+// 5-level octree, flattened into an array; the latter are used as an actual
+// octree.
+static int
+alloc_qstate(unsigned colorregs, qstate* qs){
+  if((qs->qnodes = malloc((QNODECOUNT + colorregs) * sizeof(qnode))) == NULL){
+    return -1;
+  }
+  qs->onodes_total = colorregs / 2 * sizeof(*qs->onodes);
+  if((qs->onodes = malloc(qs->onodes_total)) == NULL){
+    free(qs->qnodes);
+    return -1;
+  }
+  qs->onodes_free = qs->onodes_total;
   // don't technically need to clear the components, as we could
   // check the pop, but it's hidden under the compulsory cache misses.
-  return calloc(QNODECOUNT, sizeof(qnode));
+  // we only initialize the static nodes, not the dynamic ones--we know
+  // when we pull a dynamic one that it needs its popcount initialized.
+  memset(qs->qnodes, 0, sizeof(qnode) * QNODECOUNT);
+  qs->dynnodes_free = colorregs;
+  qs->dynnodes_total = qs->dynnodes_free;
+  return 0;
 }
 
+// free internals of qstate object
+static void
+free_qstate(qstate *qs){
+  if(qs){
+    loginfo("freeing qstate");
+    free(qs->qnodes);
+    free(qs->onodes);
+  }
+}
+
+// we take 5 from the green component, 4 from the red, and 3 from the blue,
+// sending them to RGB (saving a shift on green).
 static inline unsigned
 color_key(unsigned r, unsigned g, unsigned b){
   return ((r & 0xf0) << 4u) | (g & 0xf8) | ((b & 0xe0) >> 5u);
 }
 
-// insert a color from the source image into the octree. we take 5
-// from the green component, 4 from the red, and 3 from the blue,
-// sending them to RGB (saving a shift on green).
+// we have 4-3-5 left from the initial key extraction. we'll now take a
+// secondary three-bit key of 1R, 1G, and 1B, sending them to GRB (and
+// thus once again saving a shift on green).
+static inline unsigned
+secondary_key(unsigned r, unsigned g, unsigned b){
+  return ((r & 0x08) >> 2u) | (g & 0x04) | ((b & 0x10) >> 4u);
+}
+
+// convert rgb [0..255] to sixel [0..100]
+static inline unsigned
+ss(unsigned c){
+  return round(c * 100.0 / 255);
+}
+
+// insert a color from the source image into the octree.
 static void
-insert_color(qnode* qtree, uint32_t pixel, uint32_t* colors){
+insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
   const unsigned b = ncpixel_b(pixel);
   const unsigned key = color_key(r, g, b);
-  qnode* q = &qtree[key];
-  if(q->q.pop++ == 0){
+  assert(key < QNODECOUNT);
+  qnode* q = &qs->qnodes[key];
+  const unsigned skey = secondary_key(r, g, b);
+  assert(skey < 8);
+  if(q->q.pop++ == 0){ // previously-unused node
     q->q.comps[0] = r;
     q->q.comps[1] = g;
     q->q.comps[2] = b;
     ++*colors;
-  }else if(r < q->q.comps[0] && g < q->q.comps[1] && b < q->q.comps[2]){
-    q->q.comps[0] = r;
-    q->q.comps[1] = g;
-    q->q.comps[2] = b;
+    return;
   }
+  onode* o;
+  // it's not a fractured node, but it's been used. check to see if we
+  // match the secondary key of what's here.
+  if(q->qlink == 0){
+    unsigned skeynat = secondary_key(q->q.comps[0], ss(q->q.comps[1]), ss(q->q.comps[2]));
+    if(skey == skeynat){
+      ++q->q.pop; // pretty good match
+      return;
+    }
+    // we want to fracture. if we have no onodes, though, we can't.
+    // we also need at least one dynamic qnode. note that this means we might
+    // open an onode just to fail to insert our current lookup; that's fine;
+    // it's a symmetry between creation and extension.
+    if(qs->dynnodes_free == 0 || qs->onodes_free == 0){
+      ++q->q.pop; // not a great match, but we're already scattered
+      return;
+    }
+    // get the next free onode and zorch it out
+    o = qs->onodes + qs->onodes_total - qs->onodes_free;
+    memset(o, 0, sizeof(*o));
+    // get the next free dynnode and assign it to o, account for dnode
+    o->q[skeynat] = &qs->qnodes[QNODECOUNT + qs->dynnodes_total - qs->dynnodes_free];
+    --qs->dynnodes_free;
+    // copy over our own details
+    memcpy(o->q[skeynat], q, sizeof(*q));
+    // set qlink to one-biased index of the onode, and account for onode
+    q->qlink = qs->onodes_total - qs->onodes_free + 1;
+    --qs->onodes_free;
+    // reset our own population count
+    q->q.pop = 0;
+  }else{
+    // the node has already been fractured
+    o = qs->onodes + (q->qlink - 1);
+  }
+  if(o->q[skey]){
+    // our subnode is already present, huzzah. increase its popcount.
+    ++o->q[skey]->q.pop;
+    return;
+  }
+  // we try otherwise to insert ourselves into o. this requires a free dynnode.
+  if(qs->dynnodes_free == 0){
+    // whoops! no room in the inn, mother mary. throw this sample away.
+    return;
+  }
+  // get the next free dynnode and assign it to o, account for dnode
+  o->q[skey] = &qs->qnodes[QNODECOUNT + qs->dynnodes_total - qs->dynnodes_free];
+  --qs->dynnodes_free;
+  o->q[skey]->q.pop = 1;
+  o->q[skey]->q.comps[0] = r;
+  o->q[skey]->q.comps[1] = g;
+  o->q[skey]->q.comps[2] = b;
+  ++*colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
 }
 
 // resolve the input color to a color table index following any postprocessing
 // of the octree.
-static unsigned
-find_color(const qnode* qtree, uint32_t pixel){
+static int
+find_color(const qstate* qs, uint32_t pixel){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
   const unsigned b = ncpixel_b(pixel);
   const unsigned key = color_key(r, g, b);
-  const qnode* q = &qtree[key];
+  const qnode* q = &qs->qnodes[key];
   while(!chosen_p(q)){
-//fprintf(stderr, "qidx[%u (0x%08x)]: %u\n", key, pixel, qidx(q));
-    const qnode* newq = &qtree[qidx(q)];
-    assert(newq != q);
+    const qnode* newq = &qs->qnodes[qidx(q)];
+    if(newq == q){
+      logerror("invalid qidx %u for pixel 0x%08x key %u", qidx(q), pixel, key);
+      return -1;
+    }
     q = newq;
   }
   return qidx(q);
@@ -374,13 +487,15 @@ qnodecmp(const void* q0, const void* q1){
 // ones -- our initial (reduced) color count -- and sort. heap allocation.
 // precondition: colors > 0
 static qnode*
-get_active_set(qnode* q, uint32_t colors){
+get_active_set(qstate* qs, uint32_t colors){
   qnode* act = malloc(sizeof(*act) * colors);
   unsigned targidx = 0;
   // filter the initial qnodes for pop != 0
-  for(unsigned z = 0 ; z < QNODECOUNT && targidx < colors ; ++z){
-    if(q[z].q.pop){
-      memcpy(&act[targidx], &q[z], sizeof(*act));
+  unsigned total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
+//fprintf(stderr, "TOTAL IS %u WITH %u COLORS\n", total, colors);
+  for(unsigned z = 0 ; z < total && targidx < colors ; ++z){
+    if(qs->qnodes[z].q.pop){
+      memcpy(&act[targidx], &qs->qnodes[z], sizeof(*act));
       // link it back to the original node's position in the octree
       act[targidx].qlink = z;
       ++targidx;
@@ -393,11 +508,11 @@ get_active_set(qnode* q, uint32_t colors){
 // we must reduce the number of colors until we're using less than or equal
 // to the number of color registers.
 static inline int
-merge_color_table(qnode* q, uint32_t* colors, uint32_t colorregs){
+merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
   if(*colors == 0){
     return 0;
   }
-  qnode* qactive = get_active_set(q, *colors);
+  qnode* qactive = get_active_set(qs, *colors);
   if(qactive == NULL){
     return -1;
   }
@@ -418,9 +533,9 @@ merge_color_table(qnode* q, uint32_t* colors, uint32_t colorregs){
   // tend to those which couldn't get a color table entry.
   // FIXME for now they all go to the most popular. this must change.
   for(unsigned z = 0 ; z < *colors ; ++z){
-    q[qactive[z].qlink].cidx = qactive[z].cidx;
-    if(!chosen_p(&q[qactive[z].qlink])){
-      q[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
+    qs->qnodes[qactive[z].qlink].cidx = qactive[z].cidx;
+    if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
+      qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
 //fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
     }
   }
@@ -431,17 +546,12 @@ merge_color_table(qnode* q, uint32_t* colors, uint32_t colorregs){
   return 0;
 }
 
-// convert rgb [0..255] to sixel [0..100]
-static inline unsigned
-ss(unsigned c){
-  return round(c * 100.0 / 255);
-}
-
 static inline void
-load_color_table(const qnode* qtree, uint32_t colors, unsigned char* table){
+load_color_table(const qstate* qs, uint32_t colors, unsigned char* table){
   uint32_t loaded = 0;
-  for(unsigned z = 0 ; z < QNODECOUNT && loaded < colors ; ++z){
-    const qnode* q = &qtree[z];
+  unsigned total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
+  for(unsigned z = 0 ; z < total && loaded < colors ; ++z){
+    const qnode* q = &qs->qnodes[z];
     if(chosen_p(q)){
       table[CENTSIZE * qidx(q) + 0] = ss(q->q.comps[0]);
       table[CENTSIZE * qidx(q) + 1] = ss(q->q.comps[1]);
@@ -456,7 +566,7 @@ load_color_table(const qnode* qtree, uint32_t colors, unsigned char* table){
 // we have converged upon colorregs in the octree. we now run over the pixels
 // once again, and get the actual final color table entries.
 static inline int
-build_data_table(qnode* q, uint32_t colors, sixeltable* stab, const uint32_t* data,
+build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* data,
                  int linesize, int begy, int begx, int leny, int lenx,
                  uint32_t transcolor){
   if(stab->map->sixelcount == 0){
@@ -473,13 +583,15 @@ build_data_table(qnode* q, uint32_t colors, sixeltable* stab, const uint32_t* da
   stab->map->table = malloc(tsize);
   if(stab->map->table == NULL){
     free(stab->map->data);
+    stab->map->data = NULL;
     return -1;
   }
-  load_color_table(q, colors, stab->map->table);
+  load_color_table(qs, colors, stab->map->table);
   memset(stab->map->data, 0, dsize);
   stab->map->colors = colors;
   // FIXME fill in color table from q
   int pos = 0;
+//fprintf(stderr, "BUILDING DATA TABLE\n");
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
@@ -487,7 +599,14 @@ build_data_table(qnode* q, uint32_t colors, sixeltable* stab, const uint32_t* da
         if(rgba_trans_p(*rgb, transcolor)){
           continue;
         }
-        int cidx = find_color(q, *rgb);
+        int cidx = find_color(qs, *rgb);
+        if(cidx < 0){
+          free(stab->map->table);
+          stab->map->table = NULL;
+          free(stab->map->data);
+          stab->map->data = NULL;
+          return -1;
+        }
         stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
       }
       ++pos;
@@ -506,8 +625,9 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
                     tament* tam, const blitterargs* bargs){
   uint64_t pixels = 0;
   uint32_t octets = 0;
-  qnode* q = alloc_qnodes();
-  if(q == NULL){
+  qstate qs;
+  if(alloc_qstate(bargs->u.pixel.colorregs, &qs)){
+    logerror("couldn't allocate qstate");
     return -1;
   }
   const int begx = bargs->begx;
@@ -578,24 +698,24 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           continue;
         }
-        insert_color(q, *rgb, &octets);
+        insert_color(&qs, *rgb, &octets);
         ++pixels;
       }
       ++pos;
     }
   }
   loginfo("octree got %"PRIu32" entries on %"PRIu64" pixels", octets, pixels);
-  if(merge_color_table(q, &octets, stab->colorregs)){
-    free(q);
+  if(merge_color_table(&qs, &octets, stab->colorregs)){
+    free_qstate(&qs);
     return -1;
   }
-  if(build_data_table(q, octets, stab, data, linesize, begy, begx, leny, lenx,
+  if(build_data_table(&qs, octets, stab, data, linesize, begy, begx, leny, lenx,
                       bargs->transcolor)){
-    free(q);
+    free_qstate(&qs);
     return -1;
   }
-  loginfo("final palette: %u/%u colors\n", octets, stab->colorregs);
-  free(q);
+  loginfo("final palette: %u/%u colors", octets, stab->colorregs);
+  free_qstate(&qs);
   return 0;
 }
 
