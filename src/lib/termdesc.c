@@ -623,6 +623,17 @@ int enter_alternate_screen(int fd, FILE* ttyfp, tinfo* ti, unsigned drain){
     logerror("alternate screen is unavailable");
     return -1;
   }
+  if(!drain){
+    if(ti->kbdlevel){
+      if(tty_emit(KKEYBOARD_POP, fd)){
+        return -1;
+      }
+    }else{
+      if(tty_emit(XTMODKEYSUNDO, fd)){
+        return -1;
+      }
+    }
+  }
   if(tty_emit(smcup, fd) < 0){
     return -1;
   }
