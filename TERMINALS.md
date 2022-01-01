@@ -103,6 +103,21 @@ relies on the font. Patches to correct/complete this table are very welcome!
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
 atop the common GNOME [VTE ("Virtual TErminal")](https://gitlab.gnome.org/GNOME/vte) library.
 
+### XTerm
+
+XTerm is extensively configurable. I recommend the following settings, assuming
+a compatible build:
+
+```
+xterm*directColor: true
+XTerm*allowTcapOps: true
+XTerm*disallowedTcapOps:
+XTerm*decGraphicsID: 340
+XTerm*decTerminalID: 420
+XTerm*numColorRegisters: 256
+XTerm*sixelScrolling: true
+```
+
 ### Kitty
 
 Kitty has some interesting, atypical behaviors. Foremost among these is that
