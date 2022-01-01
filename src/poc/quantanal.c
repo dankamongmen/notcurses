@@ -37,6 +37,9 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
         fprintf(stderr, "error getting pixel at %u/%u (%u/%u)\n", y, x, ly, lx);
         return -1;
       }
+      if(ncpixel_a(p0) < 192 || ncpixel_a(p1) < 192){
+        continue;
+      }
       co0 = count_colors(p0, cbuf0, co0);
       co1 = count_colors(p1, cbuf1, co1);
       // three component differences for current pixel
