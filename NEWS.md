@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.3 (2022-01-02)
+  * No user-visible changes to the API, but Sixel quantization has been
+    rewritten. It is now substantially faster, though quality has gone
+    down for some images. I'll be working on bringing it back for 3.0.4.
+
 * 3.0.2 (2021-12-21)
   * Added `ncplane_cursor_y()` and `ncplane_cursor_x()`.
   * Added `NCOPTION_SCROLLING`, equivalent to calling
