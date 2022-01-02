@@ -411,6 +411,7 @@ endif()
 
 #######################################
 # libnotcurses-ffi (ffi shared library)
+if(${BUILD_FFI_LIBRARY})
 file(GLOB NCFFISRCS CONFIGURE_DEPENDS src/libffi/*.c src/libffi/*.cpp)
 add_library(notcurses-ffi SHARED ${NCFFISRCS})
 target_compile_options(notcurses-ffi PUBLIC -fkeep-inline-functions)
@@ -454,13 +455,13 @@ target_link_libraries(notcurses-ffi
     "${LIBRT}"
 )
 
-
 target_link_directories(notcurses-ffi
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
     "${libdeflate_LIBRARY_DIRS}"
     "${ZLIB_LIBRARY_DIRS}"
 )
+endif()
 
 ############################################################################
 if(${USE_CXX})
@@ -992,6 +993,8 @@ configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
 )
+
+if(${BUILD_FFI_LIBRARY})
 configure_file(tools/notcurses-ffi.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-ffi.pc
   @ONLY
@@ -1000,6 +1003,7 @@ configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
 )
+endif()
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
@@ -1064,10 +1068,12 @@ install(FILES
   DESTINATION ${PKGCONFIG_DIR}
 )
 
+if(${BUILD_FFI_LIBRARY})
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-ffi.pc
   DESTINATION ${PKGCONFIG_DIR}
 )
+endif()
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
@@ -1105,7 +1111,9 @@ endif()
 endif()
 endif() # BUILD_EXECUTABLES
 
+if(${BUILD_FFI_LIBRARY})
 LIST(APPEND INSTLIBS notcurses-core notcurses notcurses-ffi)
+endif()
 if(${USE_STATIC})
 LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
 endif()
