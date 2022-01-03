@@ -29,13 +29,13 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
   unsigned ly = geom->rpixy;
   unsigned lx = geom->rpixx;
   ncplane_set_fg_rgb(stdn, 0x03c04a);
+  double p = 0;
   for(unsigned y = 0 ; y < ly ; ++y){
     for(unsigned x = 0 ; x < lx ; ++x){
       uint32_t p0, p1;
       if(ncvisual_at_yx(n1, y, x, &p0) ||
          ncvisual_at_yx(n2, y, x, &p1)){
-        fprintf(stderr, "error getting pixel at %u/%u (%u/%u)\n", y, x, ly, lx);
-        return -1;
+        continue;
       }
       if(ncpixel_a(p0) < 192 || ncpixel_a(p1) < 192){
         continue;
@@ -59,6 +59,7 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
       rdelta += rd;
       gdelta += gd;
       bdelta += bd;
+      ++p;
 //fprintf(stderr, "0x%08x 0x%08x\n", p0, p1);
     }
     ncplane_printf_yx(stdn, -1, 1, "%08u pixels analyzed", (y + 1) * lx);
@@ -68,7 +69,6 @@ compare(const struct ncvisual* n1, const struct ncvisual* n2,
   }
   ncplane_putchar(stdn, '\n');
   ncplane_printf(stdn, " Colors: %"PRIu32" vs %"PRIu32"\n", co0, co1);
-  double p = lx * ly;
   ncplane_printf(stdn, " %.0fpx Δr %"PRIu64" (%.03g) Δg %"PRIu64" (%.03g) Δb %"PRIu64 " (%.03g)\n",
                  p, rdelta, rdelta / p, gdelta, gdelta / p, bdelta, bdelta / p);
   ncplane_printf(stdn, " avg diff per pixel: %.03g\n", (rdelta + gdelta + bdelta) / p);
