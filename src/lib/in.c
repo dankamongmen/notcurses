@@ -672,6 +672,7 @@ xtmodkey(inputctx* ictx, int val, int mods){
   if(mods >= 9 && mods <= 16){
     tni.modifiers |= NCKEY_MOD_META;
   }
+  // FIXME 9..16 indicate Meta
   load_ncinput(ictx, &tni, 0);
 }
 
