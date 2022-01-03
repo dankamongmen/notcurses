@@ -999,11 +999,11 @@ configure_file(tools/notcurses-ffi.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-ffi.pc
   @ONLY
 )
+endif()
 configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
 )
-endif()
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
@@ -1112,8 +1112,9 @@ endif()
 endif() # BUILD_EXECUTABLES
 
 if(${BUILD_FFI_LIBRARY})
-LIST(APPEND INSTLIBS notcurses-core notcurses notcurses-ffi)
+LIST(APPEND INSTLIBS notcurses-ffi)
 endif()
+LIST(APPEND INSTLIBS notcurses-core notcurses)
 if(${USE_STATIC})
 LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
 endif()
