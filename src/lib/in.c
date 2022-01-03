@@ -621,15 +621,19 @@ xtmodkey(inputctx* ictx, int val, int mods){
     .id = val,
     .evtype = NCTYPE_UNKNOWN,
   };
-  if(mods == 2 || mods == 4 || mods == 6 || mods == 8){
+  if(mods == 2 || mods == 4 || mods == 6 || mods == 8 || mods == 10
+      || mods == 12 || mods == 14 || mods == 16){
     tni.shift = 1;
   }
-  if(mods == 5 || mods == 6 || mods == 7 || mods == 8){
+  if(mods == 5 || mods == 6 || mods == 7 || mods == 8 ||
+      (mods >= 13 && mods <= 16)){
     tni.ctrl = 1;
   }
-  if(mods == 3 || mods == 4 || mods == 7 || mods == 8){
+  if(mods == 3 || mods == 4 || mods == 7 || mods == 8 || mods == 11
+      || mods == 12 || mods == 15 || mods == 16){
     tni.alt = 1;
   }
+  // FIXME 9..16 indicate Meta
   load_ncinput(ictx, &tni, 0);
 }
 
