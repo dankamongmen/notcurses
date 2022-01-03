@@ -130,21 +130,19 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   qnode* q = &qs->qnodes[key];
   const unsigned skey = secondary_key(r, g, b);
   assert(skey < 8);
-  if(q->q.pop++ == 0){ // previously-unused node
+  if(q->q.pop == 0 && q->qlink == 0){ // previously-unused node
     q->q.comps[0] = r;
     q->q.comps[1] = g;
     q->q.comps[2] = b;
+    q->q.pop = 1;
     ++*colors;
     return;
   }
   onode* o;
   // it's not a fractured node, but it's been used. check to see if we
   // match the secondary key of what's here.
-if(key == 3172){
-  fprintf(stderr, "DAMNIT 3172 %u %u %p\n", q->qlink, q->q.pop, q);
-}
   if(q->qlink == 0){
-    unsigned skeynat = secondary_key(q->q.comps[0], ss(q->q.comps[1]), ss(q->q.comps[2]));
+    unsigned skeynat = secondary_key(q->q.comps[0], q->q.comps[1], q->q.comps[2]);
     if(skey == skeynat){
       ++q->q.pop; // pretty good match
       return;
@@ -197,9 +195,6 @@ if(key == 3172){
   o->q[skey]->cidx = 0;
   ++*colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
-if(key == 3172){
-  fprintf(stderr, "END 3172 %u %u %p\n", q->qlink, q->q.pop, q);
-}
 }
 
 // resolve the input color to a color table index following any postprocessing
@@ -510,7 +505,7 @@ get_active_set(qstate* qs, uint32_t colors){
   unsigned targidx = 0;
   // filter the initial qnodes for pop != 0
   unsigned total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
-//fprintf(stderr, "TOTAL IS %u WITH %u COLORS\n", total, colors);
+fprintf(stderr, "TOTAL IS %u WITH %u COLORS\n", total, colors);
   for(unsigned z = 0 ; z < total && targidx < colors ; ++z){
     if(qs->qnodes[z].q.pop){
       memcpy(&act[targidx], &qs->qnodes[z], sizeof(*act));
@@ -556,7 +551,7 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
 //fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
     if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
       qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
-//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
+fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
     }
   }
   if(*colors > colorregs){
