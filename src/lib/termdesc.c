@@ -492,7 +492,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // set modifyFunctionKeys (2) if supported, allowing us to disambiguate
 // function keys when used with modifiers. set modifyOtherKeys (4) if
 // supported. these ought follow keyboard push and precede kitty keyboard.
-#define XTMODKEYS "\x1b[>2;1m\x1b[>4;1m"
+#define XTMODKEYS "\x1b[>2;1m\x1b[>4;2m"
 
 // these queries can hopefully uniquely and unquestionably identify the
 // terminal to which we are talking. if we already know what we're talking

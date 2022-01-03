@@ -621,8 +621,14 @@ xtmodkey(inputctx* ictx, int val, int mods){
     .id = val,
     .evtype = NCTYPE_UNKNOWN,
   };
-  if(mods == 5){
+  if(mods == 2 || mods == 4 || mods == 6 || mods == 8){
+    tni.shift = 1;
+  }
+  if(mods == 5 || mods == 6 || mods == 7 || mods == 8){
     tni.ctrl = 1;
+  }
+  if(mods == 3 || mods == 4 || mods == 7 || mods == 8){
+    tni.alt = 1;
   }
   load_ncinput(ictx, &tni, 0);
 }
