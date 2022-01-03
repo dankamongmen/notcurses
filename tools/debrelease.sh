@@ -36,7 +36,7 @@ gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz
 git push --tags
 dpkg-buildpackage --build=source
 cd ..
-export TERM=xterm-256color && sudo pbuilder build *dsc
+export TERM=xterm-256color && sudo pbuilder build notcurses*dsc
 cd -
 git push
 rm debian/files
