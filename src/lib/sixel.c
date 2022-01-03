@@ -188,6 +188,8 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   o->q[skey]->q.comps[0] = r;
   o->q[skey]->q.comps[1] = g;
   o->q[skey]->q.comps[2] = b;
+  o->q[skey]->qlink = 0;
+  o->q[skey]->cidx = 0;
   ++*colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
 }
@@ -255,8 +257,8 @@ sixel_auxiliary_vector(const sprixel* s){
 // bitmap in one go if necessary. we could just wipe and restore directly using
 // the encoded form, but it's a tremendous pain in the ass. this sixelmap will
 // be kept in the sprixel.
-// for initial quantization we fill out a static 5-level octree. we then merge
-// (and in the future, maybe relax) as necessary to converge upon the number of
+// for initial quantization we fill out a static 5-level octree, with a sixth
+// dynamic level. we then merge as necessary to converge upon the number of
 // color registers. once we've settled on the colors, we run the pixels through
 // the octree again to build up the sixelmap.
 typedef struct sixelmap {
@@ -497,6 +499,7 @@ get_active_set(qstate* qs, uint32_t colors){
     if(qs->qnodes[z].q.pop){
       memcpy(&act[targidx], &qs->qnodes[z], sizeof(*act));
       // link it back to the original node's position in the octree
+//fprintf(stderr, "LINKING %u to %u\n", targidx, z);
       act[targidx].qlink = z;
       ++targidx;
     }
@@ -534,6 +537,7 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
   // FIXME for now they all go to the most popular. this must change.
   for(unsigned z = 0 ; z < *colors ; ++z){
     qs->qnodes[qactive[z].qlink].cidx = qactive[z].cidx;
+//fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
     if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
       qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
 //fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
@@ -542,7 +546,7 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
   if(*colors > colorregs){
     *colors = colorregs;
   }
-  free(qactive); // FIXME probably want to preserve for relaxation
+  free(qactive);
   return 0;
 }
 
