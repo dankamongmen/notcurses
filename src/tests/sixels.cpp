@@ -65,6 +65,7 @@ TEST_CASE("Sixels") {
     vopts.n = n_;
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_CHILDPLANE;
+    vopts.scaling = NCSCALE_STRETCH;
     auto newn = ncvisual_blit(nc_, ncv, &vopts);
     REQUIRE(nullptr != newn);
     auto rgbold = ncsixel_as_rgba(newn->sprite->glyph.buf, newn->sprite->pixy, newn->sprite->pixx);
