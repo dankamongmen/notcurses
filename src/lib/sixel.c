@@ -140,6 +140,9 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   onode* o;
   // it's not a fractured node, but it's been used. check to see if we
   // match the secondary key of what's here.
+if(key == 3172){
+  fprintf(stderr, "DAMNIT 3172 %u %u %p\n", q->qlink, q->q.pop, q);
+}
   if(q->qlink == 0){
     unsigned skeynat = secondary_key(q->q.comps[0], ss(q->q.comps[1]), ss(q->q.comps[2]));
     if(skey == skeynat){
@@ -151,6 +154,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
     // open an onode just to fail to insert our current lookup; that's fine;
     // it's a symmetry between creation and extension.
     if(qs->dynnodes_free == 0 || qs->onodes_free == 0){
+//fprintf(stderr, "NO FREE ONES %u\n", key);
       ++q->q.pop; // not a great match, but we're already scattered
       return;
     }
@@ -178,6 +182,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   }
   // we try otherwise to insert ourselves into o. this requires a free dynnode.
   if(qs->dynnodes_free == 0){
+//fprintf(stderr, "NO DYNFREE %u\n", key);
     // whoops! no room in the inn, mother mary. throw this sample away.
     return;
   }
@@ -192,6 +197,9 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   o->q[skey]->cidx = 0;
   ++*colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
+if(key == 3172){
+  fprintf(stderr, "END 3172 %u %u %p\n", q->qlink, q->q.pop, q);
+}
 }
 
 // resolve the input color to a color table index following any postprocessing
@@ -203,6 +211,14 @@ find_color(const qstate* qs, uint32_t pixel){
   const unsigned b = ncpixel_b(pixel);
   const unsigned key = color_key(r, g, b);
   const qnode* q = &qs->qnodes[key];
+  if(q->qlink && q->q.pop == 0){
+    unsigned skey = secondary_key(r, g, b);
+    if(qs->onodes[q->qlink].q[skey]){
+      q = qs->onodes[q->qlink].q[skey];
+    }else{
+      fprintf(stderr, "OH NOOOOOOOOOO\n"); // FIXME find one
+    }
+  }
   while(!chosen_p(q)){
     const qnode* newq = &qs->qnodes[qidx(q)];
     if(newq == q){
