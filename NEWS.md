@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.4 (not yet released)
+  * We now use level 2 of `XTMODKEYS`, providing better differentiation
+    of keyboard modifiers.
+
 * 3.0.3 (2022-01-02)
   * No user-visible changes to the API, but Sixel quantization has been
     rewritten. It is now substantially faster, though quality has gone
