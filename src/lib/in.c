@@ -166,7 +166,6 @@ prep_xtmodkeys(inputctx* ictx){
   }, *k;
   for(k = keys ; k->esc ; ++k){
     if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
-                                 k->shift, k->ctrl, k->alt,
                                  k->modifiers)){
       return -1;
     }
@@ -355,7 +354,7 @@ prep_special_keys(inputctx* ictx){
     unsigned modifiers = (k->shift ? NCKEY_MOD_SHIFT : 0)
                        | (k->alt ? NCKEY_MOD_ALT : 0)
                        | (k->ctrl ? NCKEY_MOD_CTRL : 0);
-    if(inputctx_add_input_escape(&ictx->amata, seq, k->key, k->shift, k->ctrl, k->alt, modifiers)){
+    if(inputctx_add_input_escape(&ictx->amata, seq, k->key, modifiers)){
       return -1;
     }
     logdebug("support for terminfo's %s: %s", k->tinfo, seq);
@@ -365,7 +364,7 @@ prep_special_keys(inputctx* ictx){
     logwarn("no backspace key was defined");
   }else{
     if(bs[0] == NCKEY_ESC){
-      if(inputctx_add_input_escape(&ictx->amata, bs, NCKEY_BACKSPACE, 0, 0, 0, 0)){
+      if(inputctx_add_input_escape(&ictx->amata, bs, NCKEY_BACKSPACE, 0)){
         return -1;
       }
     }else{
@@ -1753,24 +1752,22 @@ prep_kitty_special_keys(inputctx* ictx){
   static const struct {
     const char* esc;
     uint32_t key;
-    bool shift, ctrl, alt;
     unsigned modifiers;
   } keys[] = {
     { .esc = "\x1b[P", .key = NCKEY_F01, },
     { .esc = "\x1b[Q", .key = NCKEY_F02, },
     { .esc = "\x1b[R", .key = NCKEY_F03, },
     { .esc = "\x1b[S", .key = NCKEY_F04, },
-    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE, .shift = 1,
+    { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE,
       .modifiers = NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE, .alt = 1,
+    { .esc = "\x1b[127;3u", .key = NCKEY_BACKSPACE,
       .modifiers = NCKEY_MOD_ALT, },
-    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE, .ctrl = 1,
+    { .esc = "\x1b[127;5u", .key = NCKEY_BACKSPACE,
       .modifiers = NCKEY_MOD_CTRL, },
     { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
-                                 k->shift, k->ctrl, k->alt, k->modifiers)){
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key, k->modifiers)){
       return -1;
     }
   }
@@ -1788,20 +1785,19 @@ prep_windows_special_keys(inputctx* ictx){
   static const struct {
     const char* esc;
     uint32_t key;
-    bool shift, ctrl, alt;
     unsigned modifiers;
   } keys[] = {
     { .esc = "\x1b[A", .key = NCKEY_UP, },
     { .esc = "\x1b[B", .key = NCKEY_DOWN, },
     { .esc = "\x1b[C", .key = NCKEY_RIGHT, },
     { .esc = "\x1b[D", .key = NCKEY_LEFT, },
-    { .esc = "\x1b[1;5A", .key = NCKEY_UP, .ctrl = 1,
+    { .esc = "\x1b[1;5A", .key = NCKEY_UP,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN, .ctrl = 1,
+    { .esc = "\x1b[1;5B", .key = NCKEY_DOWN,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT, .ctrl = 1,
+    { .esc = "\x1b[1;5C", .key = NCKEY_RIGHT,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT, .ctrl = 1,
+    { .esc = "\x1b[1;5D", .key = NCKEY_LEFT,
       .modifiers = NCKEY_MOD_CTRL, },
     { .esc = "\x1b[H", .key = NCKEY_HOME, },
     { .esc = "\x1b[F", .key = NCKEY_END, },
@@ -1824,9 +1820,7 @@ prep_windows_special_keys(inputctx* ictx){
     { .esc = NULL, .key = 0, },
   }, *k;
   for(k = keys ; k->esc ; ++k){
-    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key,
-                                 k->shift, k->ctrl, k->alt,
-                                 k->modifiers)){
+    if(inputctx_add_input_escape(&ictx->amata, k->esc, k->key, k->modifiers)){
       return -1;
     }
     logdebug("added %s %u", k->esc, k->key);
