@@ -479,7 +479,7 @@ mark_pipe_ready(ipipe pipes[static 2]){
 static void
 load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
   inc_input_events(ictx);
-  if(ictx->drain){
+  if(ictx->drain || ictx->stdineof){
     send_synth_signal(synthsig);
     return;
   }
