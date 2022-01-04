@@ -216,6 +216,12 @@ nckey_supppuab_p(uint32_t w){
   return w >= 0x100000 && w <= 0x10fffd; // 65,534 codepoints
 }
 
+// modifiers bitmask
+#define NCKEY_MOD_SHIFT 1
+#define NCKEY_MOD_CTRL  2
+#define NCKEY_MOD_ALT   4
+#define NCKEY_MOD_META  8
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

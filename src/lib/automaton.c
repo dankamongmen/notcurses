@@ -501,7 +501,8 @@ int inputctx_add_cflow(automaton* a, const char* seq, triefunc fxn){
 
 // multiple input escapes might map to the same input
 int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
-                              unsigned shift, unsigned ctrl, unsigned alt){
+                              unsigned shift, unsigned ctrl, unsigned alt,
+                              unsigned modifiers){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
     logerror("not an escape (0x%x)", special);
     return -1;
@@ -523,6 +524,7 @@ int inputctx_add_input_escape(automaton* a, const char* esc, uint32_t special,
     eptr->ni.alt = alt;
     eptr->ni.y = 0;
     eptr->ni.x = 0;
+    eptr->ni.modifiers = modifiers;
     logdebug("added 0x%08x to %u", special, esctrie_idx(a, eptr));
   }
   return 0;

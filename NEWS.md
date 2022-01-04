@@ -4,6 +4,8 @@ rearrangements of Notcurses.
 * 3.0.4 (not yet released)
   * We now use level 2 of `XTMODKEYS`, providing better differentiation
     of keyboard modifiers.
+  * Added `ncinput_shift_p()`, `ncinput_alt_p()`, `ncinput_ctrl_p()`,
+    and `ncinput_meta_p()` to test for various modifiers in `ncinput`s.
 
 * 3.0.3 (2022-01-02)
   * No user-visible changes to the API, but Sixel quantization has been
