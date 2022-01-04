@@ -29,6 +29,7 @@ typedef struct ncinput {
     EVTYPE_RELEASE,
   } evtype;
   int ypx, xpx;    // pixel offsets within cell, -1 for undefined
+  unsigned modifiers;
 } ncinput;
 
 #define NCMICE_NO_EVENTS     0
@@ -61,6 +62,14 @@ typedef struct ncinput {
 **int notcurses_linesigs_disable(struct notcurses* ***n***);**
 
 **int notcurses_linesigs_enable(struct notcurses* ***n***);**
+
+**bool ncinput_shift_p(const struct ncinput* ***n***);**
+
+**bool ncinput_ctrl_p(const struct ncinput* ***n***);**
+
+**bool ncinput_alt_p(const struct ncinput* ***n***);**
+
+**bool ncinput_meta_p(const struct ncinput* ***n***);**
 
 # DESCRIPTION
 
@@ -99,6 +108,10 @@ input (though not necessarily the same input event).
 **SUSP**, and **DSUSP** into **SIGINT**, **SIGQUIT**, and **SIGTSTP**. These
 conversions are enabled by default. **notcurses_linesigs_enable** undoes this
 action, but signals in the interim are permanently lost.
+
+**ncinput_shift_p**, **ncinput_ctrl_p**, **ncinput_alt_p**, and
+**ncinput_meta_p** test ***n*** to see if the relevant modifier is set.
+This is preferably to directly accessing the struct members.
 
 ## Mice
 
@@ -188,10 +201,14 @@ for input readiness. Instead, use the file descriptor returned by
 Notcurses (it is possible that future versions will process input in their own
 contexts).
 
+The full list of synthesized events is available in **<notcurses/nckeys.h>**.
+
+In API4, the various **bool** modifier fields will go away, and these statuses
+will be merged into the ***modifiers*** bitmask. You are encouraged to use
+**ncinput_shift_p** and friends to future-proof your code.
+
 When support is detected, the Kitty keyboard disambiguation protocol will be
 requested. This eliminates most of the **BUGS** mentioned below.
-
-The full list of synthesized events is available in **<notcurses/nckeys.h>**.
 
 # BUGS
 

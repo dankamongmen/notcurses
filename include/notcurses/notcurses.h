@@ -1133,6 +1133,7 @@ nckey_mouse_p(uint32_t r){
 // An input event. Cell coordinates are currently defined only for mouse
 // events. It is not guaranteed that we can set the modifiers for a given
 // ncinput. We encompass single Unicode codepoints, not complete EGCs.
+// FIXME for abi4, combine the bools into |modifiers|
 typedef struct ncinput {
   uint32_t id;       // Unicode codepoint or synthesized NCKEY event
   int y, x;          // y/x cell coordinate of event, -1 for undefined
@@ -1147,8 +1148,29 @@ typedef struct ncinput {
     NCTYPE_REPEAT,
     NCTYPE_RELEASE,
   } evtype;
+  unsigned modifiers;// bitmask over NCMOD_META
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
+
+static inline bool
+ncinput_shift_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_SHIFT);
+}
+
+static inline bool
+ncinput_ctrl_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_CTRL);
+}
+
+static inline bool
+ncinput_alt_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_ALT);
+}
+
+static inline bool
+ncinput_meta_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_META);
+}
 
 // compare two ncinput structs for data equality.
 static inline bool

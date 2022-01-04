@@ -35,7 +35,8 @@ void input_free_esctrie(automaton *a);
 
 int inputctx_add_input_escape(automaton* a, const char* esc,
                               uint32_t special, unsigned shift,
-                              unsigned ctrl, unsigned alt);
+                              unsigned ctrl, unsigned alt,
+                              unsigned modifiers);
 
 int inputctx_add_cflow(automaton* a, const char* csi, triefunc fxn)
   __attribute__ ((nonnull (1, 2)));

@@ -328,8 +328,12 @@ int input_demo(ncpp::NotCurses* nc) {
       break;
     }
     n->set_fg_rgb8(0xd0, 0xd0, 0xd0);
-    n->printf("%c%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c',
-              ni.shift ? 'S' : 's', evtype_to_char(&ni));
+    n->printf("%c%c%c%c%c ",
+              ncinput_alt_p(&ni) ? 'A' : 'a',
+              ncinput_ctrl_p(&ni) ? 'C' : 'c',
+              ncinput_shift_p(&ni) ? 'S' : 's',
+              ncinput_meta_p(&ni) ? 'M' : 'm',
+              evtype_to_char(&ni));
     if(r < 0x80){
       n->set_fg_rgb8(128, 250, 64);
       if(n->printf("ASCII: [0x%02x (%03d)] '%lc'", r, r,
