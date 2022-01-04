@@ -13,8 +13,8 @@
 #include "demo.h"
 
 // (non-)ansi terminal definition-4-life
-static const int MIN_SUPPORTED_ROWS = 24;
-static const int MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
+static const unsigned MIN_SUPPORTED_ROWS = 24;
+static const unsigned MIN_SUPPORTED_COLS = 76; // allow a bit of margin, sigh
 
 static char *datadir;
 static int democount;

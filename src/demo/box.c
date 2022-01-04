@@ -223,7 +223,7 @@ int box_demo(struct notcurses* nc, uint64_t startns){
   int y = 1, x = 0;
   ncplane_dim_yx(n, &ylen, &xlen);
   --ylen;
-  while(ylen - y >= targy && xlen - x >= targx){
+  while((int)ylen - y >= targy && (int)xlen - x >= targx){
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
@@ -255,7 +255,7 @@ int box_demo(struct notcurses* nc, uint64_t startns){
     ncplane_dim_yx(n, &ylen, &xlen);
     --ylen;
     move_ships(nc, ships, sizeof(ships) / sizeof(*ships));
-    while(ylen - y >= targy && xlen - x >= targx){
+    while((int)ylen - y >= targy && (int)xlen - x >= targx){
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }
