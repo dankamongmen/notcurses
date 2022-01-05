@@ -1,5 +1,10 @@
 // Populated by CMake; not installed
+
+// if we're a DFSG build, we leave out references to certain demos
 #cmakedefine DFSG_BUILD
+
+// if we're an ASAN build, we don't use sigaltstack() ourselves
+#cmakedefine USE_ASAN
 #cmakedefine USE_DEFLATE
 #cmakedefine USE_GPM
 #cmakedefine USE_QRCODEGEN

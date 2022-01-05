@@ -205,6 +205,10 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     handling_winch = true;
   }
   if(!no_quit_sigs){
+// AddressSanitizer doesn't want us to use sigaltstack(). we could force everyone
+// to export ASAN_OPTIONS=use_sigaltstack=0, or just not fuck with the alternate
+// signal stack when built with ASAN.
+#ifndef USE_ASAN
     alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
     if(alt_signal_stack.ss_sp == NULL){
       fprintf(stderr, "warning: couldn't create alternate signal stack (%s)" NL, strerror(errno));
@@ -217,6 +221,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
         alt_signal_stack.ss_sp = NULL;
       }
     }
+#endif
     memset(&sa, 0, sizeof(sa));
     fatal_callback = handler;
     sa.sa_sigaction = fatal_handler;
