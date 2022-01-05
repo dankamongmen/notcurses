@@ -32,7 +32,7 @@ int main(void){
 #endif
       notcurses_get_blocking(nc, &ni);
     }while(ni.evtype == NCTYPE_RELEASE);
-  }while(ni.id != 'q');
+  }while(ni.id != 'q' && ni.id != NCKEY_EOF);
   if(notcurses_render(nc)){
     goto err;
   }
