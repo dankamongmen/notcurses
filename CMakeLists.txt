@@ -871,6 +871,14 @@ add_test(
   NAME ncpp_build_exceptions
   COMMAND ncpp_build_exceptions
 )
+add_test(
+  NAME input-devnull
+  COMMAND sh -c "notcurses-input < /dev/null"
+)
+add_test(
+  NAME input-self
+  COMMAND sh -c "notcurses-input < notcurses-input"
+)
 LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions)
 endif()
 add_test(
