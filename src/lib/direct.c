@@ -973,7 +973,11 @@ int ncdirect_stop(ncdirect* nc){
 char* ncdirect_readline(ncdirect* n, const char* prompt){
   const char* u7 = get_escape(&n->tcache, ESCAPE_U7);
   if(!u7){ // we probably *can*, but it would be a pita; screw it
-    logerror("can't readline without u7\n");
+    logerror("can't readline without u7");
+    return NULL;
+  }
+  if(n->eof){
+    logerror("already got EOF");
     return NULL;
   }
   if(fprintf(n->ttyfp, "%s", prompt) < 0){
@@ -1005,15 +1009,18 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
     }
-    if(id == NCKEY_EOF || id == NCKEY_ENTER){
+    if(id == NCKEY_EOF || id == NCKEY_ENTER || (ncinput_ctrl_p(&ni) && id == 'd')){
       if(id == NCKEY_ENTER){
         if(fputc('\n', n->ttyfp) < 0){
           free(str);
           return NULL;
         }
-      }else if(wused == 1){ // NCKEY_EOF without input returns NULL
-        free(str);
-        return NULL;
+      }else{
+        n->eof = 1;
+        if(wused == 1){ // NCKEY_EOF without input returns NULL
+          free(str);
+          return NULL;
+        }
       }
       char* ustr = ncwcsrtombs(str);
       free(str);
