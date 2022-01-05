@@ -13,14 +13,15 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_STATIC=off -DUSE_GPM=on -DUSE_QRCODEGEN=on -DDFSG_BUILD=on
     - make -j2
-    - ./notcurses-info
-    - ctest --output-on-failure
-    - make install
-    - ldconfig
-    - cd ../cffi
-    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
-    - env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
+    - env NOTCURSES_LOGLEVEL=7 ./notcurses-input < notcurses-input
+      #- ./notcurses-info
+      #- ctest --output-on-failure
+      #- make install
+      #- ldconfig
+      #- cd ../cffi
+      #- LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
+      #- env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
+      #- env LD_LIBRARY_PATH=/usr/local/lib ./ncdirect-pydemo > /dev/null
 ---
 kind: pipeline
 type: docker
