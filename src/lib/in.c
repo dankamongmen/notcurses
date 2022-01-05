@@ -476,6 +476,9 @@ mark_pipe_ready(ipipe pipes[static 2]){
   }
 }
 
+// shove the assembled input |tni| into the input queue (if there's room,
+// and we're not draining, and we haven't hit EOF). send any synthesized
+// signal as the last thing we do.
 static void
 load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
   inc_input_events(ictx);
@@ -500,6 +503,8 @@ load_ncinput(inputctx* ictx, const ncinput *tni, int synthsig){
     ictx->iwrite = 0;
   }
   ++ictx->ivalid;
+  // FIXME we don't always need to write here; write if ictx->ivalid was 0, and
+  // also write *from the client context* if we empty the input buffer there..?
   mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
@@ -2292,8 +2297,13 @@ read_inputs_nblock(inputctx* ictx){
   // now read bulk, possibly with term escapes intermingled within (if there
   // was not a distinct terminal source).
   if(rifd){
+    unsigned eof = ictx->stdineof;
     read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
                       &ictx->ibufvalid, &ictx->stdineof);
+    if(!eof && ictx->stdineof){
+      // we hit EOF; write an event to the readiness fd
+      mark_pipe_ready(ictx->readypipes);
+    }
   }
 }
 
