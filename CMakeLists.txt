@@ -871,16 +871,23 @@ add_test(
   NAME ncpp_build_exceptions
   COMMAND ncpp_build_exceptions
 )
+# provide an empty source
 add_test(
   NAME input-devnull
   COMMAND sh -c "./notcurses-input < /dev/null"
 )
+# provide a binary file
 add_test(
-  NAME input-self
+  NAME input-binary
   COMMAND sh -c "./notcurses-input < notcurses-input"
 )
+# provide an ASCII file
+add_test(
+  NAME input-text
+  COMMAND sh -c "./notcurses-input < ${CMAKE_CURRENT_LIST_FILE}"
+)
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS notcurses-input)
-LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-self)
+LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-binary input-text)
 endif()
 add_test(
   NAME sgr-direct
