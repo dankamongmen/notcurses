@@ -13,7 +13,9 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_STATIC=off -DUSE_GPM=on -DUSE_QRCODEGEN=on -DDFSG_BUILD=on
     - make -j2
+    - ./notcurses-input < /dev/null
     - env NOTCURSES_LOGLEVEL=7 ./notcurses-input < notcurses-input
+    - ./notcurses-input < notcurses-input
       #- ./notcurses-info
       #- ctest --output-on-failure
       #- make install

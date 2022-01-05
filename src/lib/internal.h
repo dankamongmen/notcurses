@@ -252,6 +252,7 @@ typedef struct ncdirect {
   uint16_t stylemask;        // current styles
   uint64_t flags;            // copied in ncdirect_init() from param
   ncsharedstats stats;       // stats! not as broadly used as in notcurses
+  unsigned eof;              // have we seen EOF on stdin?
 } ncdirect;
 
 // Extracellular state for a cell during the render process. There is one

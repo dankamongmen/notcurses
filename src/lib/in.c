@@ -2303,6 +2303,7 @@ read_inputs_nblock(inputctx* ictx){
     if(!eof && ictx->stdineof){
       // we hit EOF; write an event to the readiness fd
       mark_pipe_ready(ictx->readypipes);
+      pthread_cond_broadcast(&ictx->icond);
     }
   }
 }
@@ -2380,7 +2381,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     return (uint32_t)-1;
   }
   pthread_mutex_lock(&ictx->ilock);
+fprintf(stderr, "IVALID: %u EOF: %u IREAD: %u\n", ictx->ivalid, ictx->stdineof, ictx->iread);
   while(!ictx->ivalid){
+fprintf(stderr, "WHILE IVALID: %u EOF: %u IREAD: %u\n", ictx->ivalid, ictx->stdineof, ictx->iread);
     if(ictx->stdineof){
       pthread_mutex_unlock(&ictx->ilock);
       logwarn("read eof on stdin");
@@ -2391,7 +2394,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       return NCKEY_EOF;
     }
     if(ts == NULL){
+fprintf(stderr, "WAITING\n");
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
+fprintf(stderr, "DONE WAITING\n");
     }else{
       int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
       if(r == ETIMEDOUT){
@@ -2411,6 +2416,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     }
   }
   id = ictx->inputs[ictx->iread].id;
+fprintf(stderr, "GOT ID 0x%08x IREAD: %u\n", id, ictx->iread);
   if(ni){
     memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
     if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){
@@ -2470,7 +2476,15 @@ int notcurses_getvec(notcurses* n, const struct timespec* absdl,
 }
 
 uint32_t ncdirect_get(ncdirect* n, const struct timespec* absdl, ncinput* ni){
-  return internal_get(n->tcache.ictx, absdl, ni);
+  if(n->eof){
+    logerror("already got EOF");
+    return -1;
+  }
+  uint32_t r = internal_get(n->tcache.ictx, absdl, ni);
+  if(r == NCKEY_EOF){
+    n->eof = 1;
+  }
+  return r;
 }
 
 int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x){
