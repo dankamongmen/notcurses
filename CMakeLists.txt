@@ -873,13 +873,14 @@ add_test(
 )
 add_test(
   NAME input-devnull
-  COMMAND sh -c "notcurses-input < /dev/null"
+  COMMAND sh -c "./notcurses-input < /dev/null"
 )
 add_test(
   NAME input-self
-  COMMAND sh -c "notcurses-input < notcurses-input"
+  COMMAND sh -c "./notcurses-input < notcurses-input"
 )
-LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS notcurses-input)
+LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-self)
 endif()
 add_test(
   NAME sgr-direct
