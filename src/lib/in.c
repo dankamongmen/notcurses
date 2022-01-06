@@ -2381,9 +2381,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     return (uint32_t)-1;
   }
   pthread_mutex_lock(&ictx->ilock);
-fprintf(stderr, "IVALID: %u EOF: %u IREAD: %u\n", ictx->ivalid, ictx->stdineof, ictx->iread);
   while(!ictx->ivalid){
-fprintf(stderr, "WHILE IVALID: %u EOF: %u IREAD: %u\n", ictx->ivalid, ictx->stdineof, ictx->iread);
     if(ictx->stdineof){
       pthread_mutex_unlock(&ictx->ilock);
       logwarn("read eof on stdin");
@@ -2394,9 +2392,7 @@ fprintf(stderr, "WHILE IVALID: %u EOF: %u IREAD: %u\n", ictx->ivalid, ictx->stdi
       return NCKEY_EOF;
     }
     if(ts == NULL){
-fprintf(stderr, "WAITING\n");
       pthread_cond_wait(&ictx->icond, &ictx->ilock);
-fprintf(stderr, "DONE WAITING\n");
     }else{
       int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
       if(r == ETIMEDOUT){
@@ -2416,7 +2412,6 @@ fprintf(stderr, "DONE WAITING\n");
     }
   }
   id = ictx->inputs[ictx->iread].id;
-fprintf(stderr, "GOT ID 0x%08x IREAD: %u\n", id, ictx->iread);
   if(ni){
     memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
     if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){

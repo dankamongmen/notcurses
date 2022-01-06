@@ -874,12 +874,12 @@ add_test(
 # provide an empty source
 add_test(
   NAME input-devnull
-  COMMAND sh -c "./notcurses-input < /dev/null"
+  COMMAND sh -c "./notcurses-input -v < /dev/null"
 )
 # provide a binary file
 add_test(
   NAME input-binary
-  COMMAND sh -c "./notcurses-input < notcurses-input"
+  COMMAND sh -c "./notcurses-input -v < notcurses-input"
 )
 # provide an ASCII file
 add_test(
