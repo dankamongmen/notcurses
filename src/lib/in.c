@@ -1532,10 +1532,12 @@ build_cflow_automaton(inputctx* ictx){
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;3;S", NULL, }, // iterm2 negative cregs XTSMGRAPHICS
     { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;3S", NULL, }, // negative pixels XTSMGRAPHICS
+    { "[?2;3;S", NULL, }, // iterm2 negative pixels XTSMGRAPHICS
     { "[?2;3;0S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?6c", da1_vt102_cb, },   // CSI ? 6 c ("VT102")
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
