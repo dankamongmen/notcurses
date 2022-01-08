@@ -521,6 +521,9 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // least Konsole and Terminal.app fail to consume it =[.
 #define SUMQUERY "\x1b[?2026$p"
 
+// check for mouse mode 1016, pixel-based reports
+#define PIXELMOUSEQUERY "\x1b[?1016$p"
+
 // XTSMGRAPHICS query for the number of color registers.
 #define CREGSXTSM "\x1b[?2;1;0S"
 
@@ -538,6 +541,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    DEFBGQ \
                    KKBDQUERY \
                    SUMQUERY \
+                   PIXELMOUSEQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    "\x1b[?1;3;1024S" /* try to set 1024 cregs */ \
                    KITTYQUERY \
