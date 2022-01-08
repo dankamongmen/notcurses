@@ -1148,8 +1148,6 @@ da1_attrs_cb(inputctx* ictx){
       }
     }else if(curattr == 28){
       ictx->initdata->rectangular_edits = true;
-    }else if(curattr == 29){
-      ictx->initdata->pixelmice = true;
     }
     if(!foundsixel){
       scrub_sixel_responses(ictx->initdata);
@@ -1263,6 +1261,18 @@ kittygraph_cb(inputctx* ictx){
   loginfo("kitty graphics message");
   if(ictx->initdata){
     ictx->initdata->kitty_graphics = 1;
+  }
+  return 2;
+}
+
+static int
+decrpm_pixelmice(inputctx* ictx){
+  unsigned ps = amata_next_numeric(&ictx->amata, "\x1b[?1016;", '$');
+  loginfo("received decrpm 1016 %u", ps);
+  if(ps == 2){
+    if(ictx->initdata){
+      ictx->initdata->pixelmice = 1;
+    }
   }
   return 2;
 }
@@ -1545,6 +1555,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[1;\\N:\\NF", kitty_cb_end, },
     { "[1;\\N:\\NH", kitty_cb_home, },
     { "[?\\Nu", kitty_keyboard_cb, },
+    { "[?1016;\\N$y", decrpm_pixelmice, },
     { "[?2026;\\N$y", decrpm_asu_cb, },
     { "[\\N;\\NR", cursor_location_cb, },
     { "[?1;1S", NULL, }, // negative cregs XTSMGRAPHICS
