@@ -94,22 +94,22 @@ qidx(const qnode* q){
 // octree.
 static int
 alloc_qstate(unsigned colorregs, qstate* qs){
-  if((qs->qnodes = malloc((QNODECOUNT + colorregs) * sizeof(qnode))) == NULL){
+  qs->dynnodes_free = colorregs;
+  qs->dynnodes_total = qs->dynnodes_free;
+  if((qs->qnodes = malloc((QNODECOUNT + qs->dynnodes_total) * sizeof(qnode))) == NULL){
     return -1;
   }
-  qs->onodes_total = colorregs / 2 * sizeof(*qs->onodes);
-  if((qs->onodes = malloc(qs->onodes_total)) == NULL){
+  qs->onodes_free = colorregs / 8;
+  qs->onodes_total = qs->onodes_free;
+  if((qs->onodes = malloc(qs->onodes_total * sizeof(*qs->onodes))) == NULL){
     free(qs->qnodes);
     return -1;
   }
-  qs->onodes_free = qs->onodes_total;
   // don't technically need to clear the components, as we could
   // check the pop, but it's hidden under the compulsory cache misses.
   // we only initialize the static nodes, not the dynamic ones--we know
   // when we pull a dynamic one that it needs its popcount initialized.
   memset(qs->qnodes, 0, sizeof(qnode) * QNODECOUNT);
-  qs->dynnodes_free = colorregs;
-  qs->dynnodes_total = qs->dynnodes_free;
   return 0;
 }
 
@@ -163,6 +163,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
     }
     // get the next free onode and zorch it out
     o = qs->onodes + qs->onodes_total - qs->onodes_free;
+//fprintf(stderr, "o: %p obase: %p %u\n", o, qs->onodes, qs->onodes_total - qs->onodes_free);
     memset(o, 0, sizeof(*o));
     // get the next free dynnode and assign it to o, account for dnode
     o->q[skeynat] = &qs->qnodes[QNODECOUNT + qs->dynnodes_total - qs->dynnodes_free];
@@ -186,6 +187,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   // we try otherwise to insert ourselves into o. this requires a free dynnode.
   if(qs->dynnodes_free == 0){
 //fprintf(stderr, "NO DYNFREE %u\n", key);
+    // FIXME won't find it in find_color() -- need to do something!
     // whoops! no room in the inn, mother mary. throw this sample away.
     return;
   }
@@ -216,8 +218,8 @@ find_color(const qstate* qs, uint32_t pixel){
     if(qs->onodes[q->qlink - 1].q[skey]){
       q = qs->onodes[q->qlink - 1].q[skey];
     }else{
-      fprintf(stderr, "OH NOOOOOOOOOO %u:%u\n", key, skey); // FIXME find one
-abort();
+      fprintf(stderr, "OH NOOOOOOOOOO %u:%u QLINK: %u\n", key, skey, q->qlink); // FIXME find one
+      return -1;
     }
   }
   while(!chosen_p(q)){
@@ -524,9 +526,10 @@ get_active_set(qstate* qs, uint32_t colors){
       const struct onode* o = &qs->onodes[qs->qnodes[z].qlink - 1];
       // FIXME i don't think we need the second conditional? in a perfect world?
       for(unsigned s = 0 ; s < 8 && targidx < colors ; ++s){
+//fprintf(stderr, "o: %p qlink: %u\n", o, qs->qnodes[z].qlink - 1);
         if(o->q[s]){
           memcpy(&act[targidx], o->q[s], sizeof(*act));
-//fprintf(stderr, "O-LINKING %u to %ld\n", targidx, o->q[s] - qs->qnodes);
+//fprintf(stderr, "O-LINKING %u to %ld[%u]\n", targidx, o->q[s] - qs->qnodes, s);
           act[targidx].qlink = o->q[s] - qs->qnodes;
           ++targidx;
         }
