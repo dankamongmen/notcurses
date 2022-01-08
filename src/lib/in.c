@@ -482,10 +482,24 @@ mark_pipe_ready(ipipe pipes[static 2]){
 // any lowercase letter with its uppercase form, to maintain compatibility with
 // other input methods.
 static void
-load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
+load_ncinput(inputctx* ictx, ncinput *tni){
+  int synth = 0;
+  if(tni->modifiers == NCKEY_MOD_CTRL){ // exclude all other modifiers
+    if(ictx->linesigs){
+      if(isalpha(tni->id)){
+        if(toupper(tni->id) == 'C'){
+          synth = SIGINT;
+        }else if(toupper(tni->id) == 'Z'){
+          synth = SIGSTOP;
+        }
+      }else if(tni->id == '\\'){
+        synth = SIGQUIT;
+      }
+    }
+  }
   inc_input_events(ictx);
   if(ictx->drain || ictx->stdineof){
-    send_synth_signal(synthsig);
+    send_synth_signal(synth);
     return;
   }
   if(tni->modifiers & (NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT)){
@@ -502,7 +516,7 @@ load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
     pthread_mutex_unlock(&ictx->ilock);
     logwarn("dropping input 0x%08x", tni->id);
     inc_input_errors(ictx);
-    send_synth_signal(synthsig);
+    send_synth_signal(synth);
     return;
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
@@ -519,7 +533,7 @@ load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
   mark_pipe_ready(ictx->readypipes);
   pthread_mutex_unlock(&ictx->ilock);
   pthread_cond_broadcast(&ictx->icond);
-  send_synth_signal(synthsig);
+  send_synth_signal(synth);
 }
 
 static void
@@ -547,7 +561,7 @@ pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
   }
   ni->y = y;
   ni->x = x;
-  load_ncinput(ictx, ni, 0);
+  load_ncinput(ictx, ni);
 }
 
 // ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
@@ -613,7 +627,7 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   tni.y = y;
   tni.ypx = -1;
   tni.xpx = -1;
-  load_ncinput(ictx, &tni, 0);
+  load_ncinput(ictx, &tni);
 }
 
 static int
@@ -711,7 +725,7 @@ xtmodkey(inputctx* ictx, int val, int mods){
   if(mods >= 9 && mods <= 16){
     tni.modifiers |= NCKEY_MOD_META;
   }
-  load_ncinput(ictx, &tni, 0);
+  load_ncinput(ictx, &tni);
 }
 
 static uint32_t
@@ -763,7 +777,6 @@ kitty_functional(uint32_t val){
 
 static void
 kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
-  int synth = 0;
   assert(evtype >= 0);
   assert(mods >= 0);
   assert(val > 0);
@@ -787,15 +800,6 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
     tni.modifiers |= NCKEY_MOD_META;
   }
   // FIXME decode remaining modifiers super, hyper, caps_lock, num_lock
-  if(tni.modifiers == NCKEY_MOD_CTRL){ // exclude all other modifiers
-    if(tni.id == 'c'){
-      synth = SIGINT;
-    }else if(tni.id == '\\'){
-      synth = SIGQUIT;
-    }else if(tni.id == 'z'){
-      synth = SIGSTOP;
-    }
-  }
   switch(evtype){
     case 1:
       tni.evtype = NCTYPE_PRESS;
@@ -810,7 +814,7 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
       tni.evtype = NCTYPE_UNKNOWN;
       break;
   }
-  load_ncinput(ictx, &tni, synth);
+  load_ncinput(ictx, &tni);
 }
 
 static int
@@ -1991,7 +1995,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
-          load_ncinput(ictx, &ni, 0);
+          load_ncinput(ictx, &ni);
         }
         ictx->amata.used = 0;
         return used;
@@ -2196,14 +2200,14 @@ process_ibuf(inputctx* ictx){
     ncinput tni = {
       .id = NCKEY_RESIZE,
     };
-    load_ncinput(ictx, &tni, 0);
+    load_ncinput(ictx, &tni);
     resize_seen = 0;
   }
   if(cont_seen){
     ncinput tni = {
       .id = NCKEY_SIGNAL,
     };
-    load_ncinput(ictx, &tni, 0);
+    load_ncinput(ictx, &tni);
     cont_seen = 0;
   }
   if(ictx->tbufvalid){
