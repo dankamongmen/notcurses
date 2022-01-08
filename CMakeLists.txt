@@ -884,7 +884,7 @@ add_test(
 # provide an ASCII file
 add_test(
   NAME input-text
-  COMMAND sh -c "./notcurses-input < ${CMAKE_CURRENT_LIST_FILE}"
+  COMMAND sh -c "./notcurses-input < ${CMAKE_SOURCE_DIR}/COPYRIGHT"
 )
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS notcurses-input)
 LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-binary input-text)
