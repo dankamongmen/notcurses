@@ -1,11 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.4 (not yet released)
+* 3.0.4 (2022-01-08)
   * We now use level 2 of `XTMODKEYS`, providing better differentiation
-    of keyboard modifiers.
+    of keyboard modifiers. We now unpack the Meta modifier.
   * Added `ncinput_shift_p()`, `ncinput_alt_p()`, `ncinput_ctrl_p()`,
     and `ncinput_meta_p()` to test for various modifiers in `ncinput`s.
+  * When support is advertised, the 1016 mouse protocol will be used
+    to provide pixel-level detail. See the `{yx}px` fields of `ncinput`.
 
 * 3.0.3 (2022-01-02)
   * No user-visible changes to the API, but Sixel quantization has been

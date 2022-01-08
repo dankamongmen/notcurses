@@ -1,6 +1,6 @@
 % notcurses-info(1)
 % nick black <nickblack@linux.com>
-% v3.0.3
+% v3.0.4
 
 # NAME
 

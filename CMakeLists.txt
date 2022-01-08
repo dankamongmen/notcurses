@@ -1,6 +1,6 @@
 # 3.14.0 introduced NAME_WLE
 cmake_minimum_required(VERSION 3.14.0)
-project(notcurses VERSION 3.0.3
+project(notcurses VERSION 3.0.4
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C)
