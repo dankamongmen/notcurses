@@ -86,12 +86,14 @@ qidx(const qnode* q){
 
 #define QNODECOUNT 1000
 
-// create+zorch an array of QNODECOUNT qnodes. this is 12 bits per index
-// (down from 24); we use 4/5/3 bits of the original 8/8/8 (see color_key()).
-// in addition, at the end we allocate |colorregs| qnodes, to be used
+// create+zorch an array of QNODECOUNT qnodes. this is 1000 entries covering
+// 1000 sixel colors each (we pretend 100 doesn't exist, working on [0..99],
+// heh). in addition, at the end we allocate |colorregs| qnodes, to be used
 // dynamically in "fracturing". the original QNODECOUNT nodes are a static
-// 5-level octree, flattened into an array; the latter are used as an actual
-// octree.
+// octree, flattened into an array; the latter are used as an actual octree.
+// we must have 8 dynnodes available for every onode we create, or we can run
+// into a situation where we don't have an available dynnode
+// (see insert_color()).
 static int
 alloc_qstate(unsigned colorregs, qstate* qs){
   qs->dynnodes_free = colorregs;
@@ -99,7 +101,7 @@ alloc_qstate(unsigned colorregs, qstate* qs){
   if((qs->qnodes = malloc((QNODECOUNT + qs->dynnodes_total) * sizeof(qnode))) == NULL){
     return -1;
   }
-  qs->onodes_free = colorregs / 8;
+  qs->onodes_free = qs->dynnodes_total / 8;
   qs->onodes_total = qs->onodes_free;
   if((qs->onodes = malloc(qs->onodes_total * sizeof(*qs->onodes))) == NULL){
     free(qs->qnodes);
@@ -124,7 +126,7 @@ free_qstate(qstate *qs){
 }
 
 // insert a color from the source image into the octree.
-static void
+static int
 insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
@@ -140,7 +142,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
     q->q.comps[2] = b;
     q->q.pop = 1;
     ++*colors;
-    return;
+    return 0;
   }
   onode* o;
   // it's not a fractured node, but it's been used. check to see if we
@@ -150,7 +152,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
     qnode_keys(q->q.comps[0], q->q.comps[1], q->q.comps[2], &skeynat);
     if(skey == skeynat){
       ++q->q.pop; // pretty good match
-      return;
+      return 0;
     }
     // we want to fracture. if we have no onodes, though, we can't.
     // we also need at least one dynamic qnode. note that this means we might
@@ -159,7 +161,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
     if(qs->dynnodes_free == 0 || qs->onodes_free == 0){
 //fprintf(stderr, "NO FREE ONES %u\n", key);
       ++q->q.pop; // not a great match, but we're already scattered
-      return;
+      return 0;
     }
     // get the next free onode and zorch it out
     o = qs->onodes + qs->onodes_total - qs->onodes_free;
@@ -182,14 +184,14 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   if(o->q[skey]){
     // our subnode is already present, huzzah. increase its popcount.
     ++o->q[skey]->q.pop;
-    return;
+    return 0;
   }
   // we try otherwise to insert ourselves into o. this requires a free dynnode.
   if(qs->dynnodes_free == 0){
 //fprintf(stderr, "NO DYNFREE %u\n", key);
-    // FIXME won't find it in find_color() -- need to do something!
-    // whoops! no room in the inn, mother mary. throw this sample away.
-    return;
+    // this should never happen, because we always ought have 8 dynnodes for
+    // every possible onode.
+    return -1;
   }
   // get the next free dynnode and assign it to o, account for dnode
   o->q[skey] = &qs->qnodes[QNODECOUNT + qs->dynnodes_total - qs->dynnodes_free];
@@ -202,6 +204,7 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   o->q[skey]->cidx = 0;
   ++*colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
+  return 0;
 }
 
 // resolve the input color to a color table index following any postprocessing
@@ -736,7 +739,10 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           continue;
         }
-        insert_color(&qs, *rgb, &octets);
+        if(insert_color(&qs, *rgb, &octets)){
+          free_qstate(&qs);
+          return -1;
+        }
         ++pixels;
       }
       ++pos;
