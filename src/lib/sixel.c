@@ -546,6 +546,12 @@ get_active_set(qstate* qs, uint32_t colors){
   return act;
 }
 
+// FIXME for now they all go to the most popular. this must change.
+static inline unsigned
+choose_alternate_color(qnode* active, uint32_t colors){
+  return active[colors - 1].qlink - 1;
+}
+
 // we must reduce the number of colors until we're using less than or equal
 // to the number of color registers.
 static inline int
@@ -572,12 +578,11 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
     ++cidx;
   }
   // tend to those which couldn't get a color table entry.
-  // FIXME for now they all go to the most popular. this must change.
   for(unsigned z = 0 ; z < *colors ; ++z){
     qs->qnodes[qactive[z].qlink].cidx = qactive[z].cidx;
 //fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
     if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
-      qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink - 1;
+      qs->qnodes[qactive[z].qlink].cidx = choose_alternate_color(qactive, *colors);
 //fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
     }
   }
