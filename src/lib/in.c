@@ -478,8 +478,8 @@ mark_pipe_ready(ipipe pipes[static 2]){
 
 // shove the assembled input |tni| into the input queue (if there's room, and
 // we're not draining, and we haven't hit EOF). send any synthesized signal as
-// the last thing we do. if Ctrl is among the modifiers, we replace any
-// lowercase letter with its uppercase form, to maintain compatibility with
+// the last thing we do. if Ctrl or Shift are among the modifiers, we replace
+// any lowercase letter with its uppercase form, to maintain compatibility with
 // other input methods.
 static void
 load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
@@ -488,9 +488,9 @@ load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
     send_synth_signal(synthsig);
     return;
   }
-  if(tni->modifiers & NCKEY_MOD_CTRL){
-    // when ctrl is used with an ASCII (0..127) lowercase letter, we always
-    // supply the capitalized form, to maintain compatibility among solutions
+  if(tni->modifiers & (NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT)){
+    // when ctrl/shift are used with an ASCII (0..127) lowercase letter, always
+    // supply the capitalized form, to maintain compatibility among solutions.
     if(tni->id < 0x7f){
       if(islower(tni->id)){
         tni->id = toupper(tni->id);
