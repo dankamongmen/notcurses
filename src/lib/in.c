@@ -2062,6 +2062,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
 // if we don't have that much data, return 0 and read more. if we determine
 // an error, return -1 to consume 1 byte, restarting the UTF8 lex on the next
 // byte. on a valid UTF8 character, set up the ncinput and return its length.
+// FIXME probably want most of this in load_ncinput()
 static int
 process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni){
   assert(1 <= buflen);
@@ -2108,28 +2109,14 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
 // sticks that into the bulk queue.
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
-  pthread_mutex_lock(&ictx->ilock);
-  if(ictx->ivalid == ictx->isize){
-    pthread_mutex_unlock(&ictx->ilock);
-    logwarn("blocking on input output queue (%d+%d)", ictx->ivalid, buflen);
-    return 0;
-  }
-  ncinput* ni = ictx->inputs + ictx->iwrite;
-  int r = process_input(ictx, buf, buflen, ni);
+  ncinput ni;
+  int r = process_input(ictx, buf, buflen, &ni);
   if(r > 0){
-    inc_input_events(ictx);
-    if(!ictx->drain){
-      if(++ictx->iwrite == ictx->isize){
-        ictx->iwrite = 0;
-      }
-      ++ictx->ivalid;
-    }
+    load_ncinput(ictx, &ni);
   }else if(r < 0){
     inc_input_errors(ictx);
     r = 1; // we want to consume a single byte, upstairs
   }
-  pthread_mutex_unlock(&ictx->ilock);
-  pthread_cond_broadcast(&ictx->icond);
   return r;
 }
 
