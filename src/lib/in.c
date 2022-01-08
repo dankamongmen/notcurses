@@ -522,14 +522,9 @@ load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
   send_synth_signal(synthsig);
 }
 
-// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
-// SGR (1006) mouse encoding, so use the final character to determine release
-// ('M' for click, 'm' for release).
 static void
-mouse_click(inputctx* ictx, unsigned release, char follow){
-  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[<", ';');
-  long x = amata_next_numeric(&ictx->amata, "", ';');
-  long y = amata_next_numeric(&ictx->amata, "", follow);
+pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
+  // FIXME change over to pixels!
   x -= (1 + ictx->lmargin);
   y -= (1 + ictx->tmargin);
   // convert from 1- to 0-indexing, and account for margins
@@ -545,11 +540,26 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
     logwarn("dropping click in margins %ld/%ld", y, x);
     return;
   }
+  // FIXME set y, x, ypx, xpx
+  load_ncinput(ictx, ni, 0);
+}
+
+// ictx->numeric, ictx->p3, and ictx->p2 have the two parameters. we're using
+// SGR (1006) mouse encoding, so use the final character to determine release
+// ('M' for click, 'm' for release).
+static void
+mouse_click(inputctx* ictx, unsigned release, char follow){
+  unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[<", ';');
+  long x = amata_next_numeric(&ictx->amata, "", ';');
+  long y = amata_next_numeric(&ictx->amata, "", follow);
   ncinput tni = {
     .ctrl = mods & 0x10,
     .alt = mods & 0x08,
     .shift = mods & 0x04,
   };
+  tni.modifiers = (tni.shift ? NCKEY_MOD_SHIFT : 0)
+                  | (tni.ctrl ? NCKEY_MOD_CTRL : 0)
+                  | (tni.alt ? NCKEY_MOD_ALT : 0);
   // SGR mouse reporting: lower two bits signify base button + {0, 1, 2} press
   // and no button pressed/release/{3}. bit 5 indicates motion. bits 6 and 7
   // select device groups: 64 is buttons 4--7, 128 is 8--11. a pure motion
@@ -560,8 +570,6 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   }else{
     tni.evtype = NCTYPE_PRESS;
   }
-  tni.x = x;
-  tni.y = y;
   if(mods % 4 == 3){
     tni.id = NCKEY_MOTION;
     tni.evtype = NCTYPE_RELEASE;
@@ -574,6 +582,28 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
       tni.id = NCKEY_BUTTON8 + (mods % 4);
     }
   }
+  if(ictx->ti->pixelmice){
+    return pixelmouse_click(ictx, &tni, y, x);
+  }
+  x -= (1 + ictx->lmargin);
+  y -= (1 + ictx->tmargin);
+  // convert from 1- to 0-indexing, and account for margins
+  if(x < 0 || y < 0){ // click was in margins, drop it
+    logwarn("dropping click in margins %ld/%ld", y, x);
+    return;
+  }
+  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
+    logwarn("dropping click in margins %ld/%ld", y, x);
+    return;
+  }
+  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
+    logwarn("dropping click in margins %ld/%ld", y, x);
+    return;
+  }
+  tni.x = x;
+  tni.y = y;
+  tni.ypx = -1;
+  tni.xpx = -1;
   load_ncinput(ictx, &tni, 0);
 }
 
