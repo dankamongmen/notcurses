@@ -576,7 +576,7 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
     qs->qnodes[qactive[z].qlink].cidx = qactive[z].cidx;
 //fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
     if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
-      qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
+      qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink - 1;
 //fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
     }
   }
