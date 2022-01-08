@@ -524,9 +524,14 @@ load_ncinput(inputctx* ictx, ncinput *tni, int synthsig){
 
 static void
 pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
-  // FIXME change over to pixels!
-  x -= (1 + ictx->lmargin);
-  y -= (1 + ictx->tmargin);
+  --x;
+  --y;
+  ni->ypx = y % ictx->ti->cellpxy;
+  ni->xpx = x % ictx->ti->cellpxx;
+  y /= ictx->ti->cellpxy;
+  x /= ictx->ti->cellpxx;
+  x -= ictx->lmargin;
+  y -= ictx->tmargin;
   // convert from 1- to 0-indexing, and account for margins
   if(x < 0 || y < 0){ // click was in margins, drop it
     logwarn("dropping click in margins %ld/%ld", y, x);
@@ -540,7 +545,8 @@ pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
     logwarn("dropping click in margins %ld/%ld", y, x);
     return;
   }
-  // FIXME set y, x, ypx, xpx
+  ni->y = y;
+  ni->x = x;
   load_ncinput(ictx, ni, 0);
 }
 
@@ -583,6 +589,9 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
     }
   }
   if(ictx->ti->pixelmice){
+    if(ictx->ti->cellpxx == 0){
+      logerror("pixelmouse but no pixel info");
+    }
     return pixelmouse_click(ictx, &tni, y, x);
   }
   x -= (1 + ictx->lmargin);
