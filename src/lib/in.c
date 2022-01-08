@@ -1657,6 +1657,11 @@ build_cflow_automaton(inputctx* ictx){
       logerror("failed adding palette_cb");
       return -1;
     }
+    // handle old-style contour responses, though we can't make use of them
+    if(inputctx_add_cflow(&ictx->amata, "]4;rgb:\\S", palette_cb)){
+      logerror("failed adding palette_cb");
+      return -1;
+    }
   }
   return 0;
 }
