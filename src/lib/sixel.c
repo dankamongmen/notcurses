@@ -586,13 +586,16 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   }
   loginfo("octree got %"PRIu32" entries on %"PRIu64" pixels", octets, pixels);
   if(merge_color_table(q, &octets, stab->colorregs)){
+    free(q);
     return -1;
   }
   if(build_data_table(q, octets, stab, data, linesize, begy, begx, leny, lenx,
                       bargs->transcolor)){
+    free(q);
     return -1;
   }
   loginfo("final palette: %u/%u colors\n", octets, stab->colorregs);
+  free(q);
   return 0;
 }
 
