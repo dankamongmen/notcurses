@@ -4,13 +4,15 @@
 
 #define RGBSIZE 3
 
-// three original (unscaled) RGB components plus a population count
+// three scaled sixel [0..100x3] components plus a population count.
 typedef struct qsample {
   unsigned char comps[RGBSIZE];
   uint32_t pop;
 } qsample;
 
-// lowest samples for each node. maybe we do low/high in the future, who knows?
+// lowest samples for each node. first-order nodes track 1000 points in
+// sixelspace (10x10x10). there are eight possible second-order nodes from a
+// fractured first-order node, covering 125 points each (5x5x5).
 typedef struct qnode {
   qsample q;
   // cidx plays two roles. during merge, we select the active set, and extract
@@ -27,10 +29,33 @@ typedef struct qnode {
   uint16_t cidx;
 } qnode;
 
-// an octree-style node, used for fractures.
+// an octree-style node, used for fractured first-order nodes. the first
+// bit is whether we're on the top or bottom of the R, then G, then B.
 typedef struct onode {
   qnode* q[8];
 } onode;
+
+// convert rgb [0..255] to sixel [0..99]
+static inline unsigned
+ss(unsigned c){
+  return round(c * 99.0 / 255);
+}
+
+// get the keys for an rgb point. the returned value is on [0..999], and maps
+// to a static qnode. the second value is on [0..7], and maps within the
+// fractured onode (if necessary).
+static inline unsigned
+qnode_keys(unsigned r, unsigned g, unsigned b, unsigned *skey){
+  unsigned ssr = ss(r);
+  unsigned ssg = ss(g);
+  unsigned ssb = ss(b);
+  unsigned ret = ssr / 10 * 100 + ssg / 10 * 10 + ssb / 10;
+  *skey = (((ssr % 10) / 5) << 2u) +
+          (((ssg % 10) / 5) << 1u) +
+          ((ssb % 10) / 5);
+//fprintf(stderr, "0x%02x 0x%02x 0x%02x %02u %02u %02u %u %u\n", r, g, b, ssr, ssg, ssb, ret, *skey);
+  return ret;
+}
 
 typedef struct qstate {
   qnode* qnodes;
@@ -59,7 +84,7 @@ qidx(const qnode* q){
   return q->cidx & ~0x8000u;
 }
 
-#define QNODECOUNT (1lu << 12)
+#define QNODECOUNT 1000
 
 // create+zorch an array of QNODECOUNT qnodes. this is 12 bits per index
 // (down from 24); we use 4/5/3 bits of the original 8/8/8 (see color_key()).
@@ -98,38 +123,17 @@ free_qstate(qstate *qs){
   }
 }
 
-// we take 5 from the green component, 4 from the red, and 3 from the blue,
-// sending them to RGB (saving a shift on green).
-static inline unsigned
-color_key(unsigned r, unsigned g, unsigned b){
-  return ((r & 0xf0) << 4u) | (g & 0xf8) | ((b & 0xe0) >> 5u);
-}
-
-// we have 4-3-5 left from the initial key extraction. we'll now take a
-// secondary three-bit key of 1R, 1G, and 1B, sending them to GRB (and
-// thus once again saving a shift on green).
-static inline unsigned
-secondary_key(unsigned r, unsigned g, unsigned b){
-  return ((r & 0x08) >> 2u) | (g & 0x04) | ((b & 0x10) >> 4u);
-}
-
-// convert rgb [0..255] to sixel [0..100]
-static inline unsigned
-ss(unsigned c){
-  return round(c * 100.0 / 255);
-}
-
 // insert a color from the source image into the octree.
 static void
 insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
   const unsigned b = ncpixel_b(pixel);
-  const unsigned key = color_key(r, g, b);
+  unsigned skey;
+  const unsigned key = qnode_keys(r, g, b, &skey);
   assert(key < QNODECOUNT);
-  qnode* q = &qs->qnodes[key];
-  const unsigned skey = secondary_key(r, g, b);
   assert(skey < 8);
+  qnode* q = &qs->qnodes[key];
   if(q->q.pop == 0 && q->qlink == 0){ // previously-unused node
     q->q.comps[0] = r;
     q->q.comps[1] = g;
@@ -142,7 +146,8 @@ insert_color(qstate* qs, uint32_t pixel, uint32_t* colors){
   // it's not a fractured node, but it's been used. check to see if we
   // match the secondary key of what's here.
   if(q->qlink == 0){
-    unsigned skeynat = secondary_key(q->q.comps[0], q->q.comps[1], q->q.comps[2]);
+    unsigned skeynat;
+    qnode_keys(q->q.comps[0], q->q.comps[1], q->q.comps[2], &skeynat);
     if(skey == skeynat){
       ++q->q.pop; // pretty good match
       return;
@@ -204,14 +209,15 @@ find_color(const qstate* qs, uint32_t pixel){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
   const unsigned b = ncpixel_b(pixel);
-  const unsigned key = color_key(r, g, b);
+  unsigned skey;
+  const unsigned key = qnode_keys(r, g, b, &skey);
   const qnode* q = &qs->qnodes[key];
   if(q->qlink && q->q.pop == 0){
-    unsigned skey = secondary_key(r, g, b);
-    if(qs->onodes[q->qlink].q[skey]){
-      q = qs->onodes[q->qlink].q[skey];
+    if(qs->onodes[q->qlink - 1].q[skey]){
+      q = qs->onodes[q->qlink - 1].q[skey];
     }else{
-      fprintf(stderr, "OH NOOOOOOOOOO\n"); // FIXME find one
+      fprintf(stderr, "OH NOOOOOOOOOO %u:%u\n", key, skey); // FIXME find one
+abort();
     }
   }
   while(!chosen_p(q)){
@@ -505,17 +511,31 @@ get_active_set(qstate* qs, uint32_t colors){
   unsigned targidx = 0;
   // filter the initial qnodes for pop != 0
   unsigned total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
-fprintf(stderr, "TOTAL IS %u WITH %u COLORS\n", total, colors);
+//fprintf(stderr, "TOTAL IS %u WITH %u COLORS\n", total, colors);
   for(unsigned z = 0 ; z < total && targidx < colors ; ++z){
+//fprintf(stderr, "EXTRACT? [%04u] pop %u\n", z, qs->qnodes[z].q.pop);
     if(qs->qnodes[z].q.pop){
       memcpy(&act[targidx], &qs->qnodes[z], sizeof(*act));
       // link it back to the original node's position in the octree
 //fprintf(stderr, "LINKING %u to %u\n", targidx, z);
       act[targidx].qlink = z;
       ++targidx;
+    }else if(qs->qnodes[z].qlink){
+      const struct onode* o = &qs->onodes[qs->qnodes[z].qlink - 1];
+      // FIXME i don't think we need the second conditional? in a perfect world?
+      for(unsigned s = 0 ; s < 8 && targidx < colors ; ++s){
+        if(o->q[s]){
+          memcpy(&act[targidx], o->q[s], sizeof(*act));
+//fprintf(stderr, "O-LINKING %u to %ld\n", targidx, o->q[s] - qs->qnodes);
+          act[targidx].qlink = o->q[s] - qs->qnodes;
+          ++targidx;
+        }
+      }
     }
   }
-  qsort(act, colors, sizeof(*act), qnodecmp); 
+//fprintf(stderr, "targidx: %u colors: %u\n", targidx, colors);
+  assert(targidx == colors);
+  qsort(act, colors, sizeof(*act), qnodecmp);
   return act;
 }
 
@@ -551,7 +571,7 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
 //fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
     if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
       qs->qnodes[qactive[z].qlink].cidx = qactive[*colors - 1].qlink;
-fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
+//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
     }
   }
   if(*colors > colorregs){
