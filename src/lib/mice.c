@@ -40,7 +40,14 @@ int mouse_setup(tinfo* ti, unsigned eventmask){
 // Sets the shift-escape option, allowing shift+mouse to override the standard
 // mouse protocol (mainly so copy-and-paste can still be performed).
 #define XTSHIFTESCAPE "\x1b[>1s"
-  char mousecmd[] = XTSHIFTESCAPE "\x1b[?100x;" SET_SGR_MOUSE_PROT "x";
+  char* mousecmd;
+  if(ti->pixelmice){
+    static char m[] = XTSHIFTESCAPE "\x1b[?100x;" SET_PIXEL_MOUSE_PROT "x";
+    mousecmd = m;
+  }else{
+    static char m[] = XTSHIFTESCAPE "\x1b[?100x;" SET_SGR_MOUSE_PROT "x";
+    mousecmd = m;
+  }
   mousecmd[11] = ti->mouseproto;
   mousecmd[17] = command;
   if(command == 'l'){
