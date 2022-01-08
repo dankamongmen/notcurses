@@ -1148,6 +1148,8 @@ da1_attrs_cb(inputctx* ictx){
       }
     }else if(curattr == 28){
       ictx->initdata->rectangular_edits = true;
+    }else if(curattr == 29){
+      ictx->initdata->pixelmice = true;
     }
     if(!foundsixel){
       scrub_sixel_responses(ictx->initdata);

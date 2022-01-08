@@ -79,7 +79,8 @@ The next five lines describe properties of the terminal environment:
 
 * The fourth line indicates the default background color, and whether that
   color is treated as transparent by the terminal (only **kitty** is known
-  to do this), and the default foreground color.
+  to do this), and the default foreground color. **pmouse** indicates
+  whether pixel-precise mouse events are supported.
 
 * The fifth line describes the available bitmap graphics. If Sixels are
   available, the maximum number of color registers and maximum Sixel

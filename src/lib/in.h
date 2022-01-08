@@ -81,6 +81,7 @@ struct initial_responses {
   unsigned kbdlevel;           // enabled kitty keyboard functions
   ncpalette palette;           // palette entries
   int maxpaletteread;          // maximum palette index read
+  bool pixelmice;              // have we pixel-based mice events?
 };
 
 // Blocking call. Waits until the input thread has processed all responses to

@@ -383,6 +383,7 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   }else{
     ncplane_printf(n, "default bg 0x%06x", bg);
   }
+  tinfo_debug_cap(n, " pmouse", ti->pixelmice);
   finish_line(n);
   ncpixelimpl_e blit = notcurses_check_pixel_support(ncplane_notcurses(n));
   switch(blit){

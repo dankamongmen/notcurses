@@ -192,6 +192,7 @@ typedef struct tinfo {
   pthread_t gpmthread;       // thread handle for GPM watcher
   int gpmfd;                 // connection to GPM daemon
   char mouseproto;           // DECSET level (100x, '0', '2', '3')
+  bool pixelmice;            // we support pixel-accuracy for mice
 #ifdef __linux__
   int linux_fb_fd;           // linux framebuffer device fd
   char* linux_fb_dev;        // device corresponding to linux_fb_dev
