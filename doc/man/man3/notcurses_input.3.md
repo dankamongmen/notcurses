@@ -207,17 +207,17 @@ In API4, the various **bool** modifier fields will go away, and these statuses
 will be merged into the ***modifiers*** bitmask. You are encouraged to use
 **ncinput_shift_p** and friends to future-proof your code.
 
-When support is detected, the Kitty keyboard disambiguation protocol will be
-requested. This eliminates most of the **BUGS** mentioned below.
-
 # BUGS
 
-The Shift key is not indicated in conjunction with typical Unicode text.
-If e.g. Shift is used to generate a capital letter 'A', ***id*** will equal 'A',
-and ***shift*** will be **false**. Similarly, when Ctrl is pressed along with a
-letter, the letter will currently always be reported in its uppercase form.
-E.g., if Shift, Ctrl, and 'a' are all pressed, this is indistinguishable from
-Ctrl and 'A'.
+Notcurses attempts to use the XTMODKEYS and Kitty keyboard disambiguation
+protocols. When supported, they eliminate most of these issues.
+
+The Shift key is traditionally not indicated in conjunction with typical
+Unicode text. If e.g. Shift is used to generate a capital letter 'A', ***id***
+will equal 'A', and ***shift*** will be **false**. Similarly, when Ctrl is
+pressed along with a letter, the letter will currently always be reported in
+its uppercase form. E.g., if Shift, Ctrl, and 'a' are all pressed, this is
+indistinguishable from Ctrl and 'A'.
 
 Ctrl pressed along with 'J' or 'M', whether Shift is pressed or not,
 currently registers as **NCKEY_ENTER**. This will likely change in the
