@@ -38,7 +38,8 @@ typedef struct onode {
 // convert rgb [0..255] to sixel [0..99]
 static inline unsigned
 ss(unsigned c){
-  return round(c * 99.0 / 255);
+  unsigned r = round(c * 100.0 / 255); // use real [0..100] scaling
+  return r > 99 ? 99: r;
 }
 
 // get the keys for an rgb point. the returned value is on [0..999], and maps
