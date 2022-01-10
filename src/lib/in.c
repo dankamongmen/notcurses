@@ -1567,14 +1567,14 @@ tcap_cb(inputctx* ictx){
   while(*s && (s = gettcap(s, &val, &key)) ){
     if(strcmp(val, "TN") == 0){
       if(ictx->initdata->qterm == TERMINAL_UNKNOWN){
-        if(strcasecmp(key, "xterm") == 0){
-          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
-        }else if(strcasecmp(key, "mlterm") == 0){
+        if(strcmp(key, "xterm") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM;
+        }else if(strcmp(key, "mlterm") == 0){
           ictx->initdata->qterm = TERMINAL_MLTERM;
-        }else if(strcasecmp(key, "xterm-kitty") == 0){
-          ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
-        }else if(strcasecmp(key, "xterm-256color") == 0){
-          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
+        }else if(strcmp(key, "xterm-kitty") == 0){
+          ictx->initdata->qterm = TERMINAL_KITTY;
+        }else if(strcmp(key, "xterm-256color") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM;
         }else{
           logdebug("unknown terminal name %s", key);
         }

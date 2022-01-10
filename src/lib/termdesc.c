@@ -1067,7 +1067,6 @@ do_terminfo_lookups(tinfo *ti, size_t* tablelen, size_t* tableused){
     const char* tinfo;
   } strtdescs[] = {
     { ESCAPE_CUP, "cup", },
-    { ESCAPE_HPA, "hpa", },
     { ESCAPE_VPA, "vpa", },
     // Not all terminals support setting the fore/background independently
     { ESCAPE_SETAF, "setaf", },
@@ -1307,9 +1306,17 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     }
     if(iresp->appsync_supported){
       if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
+        free(iresp->hpa);
         free(iresp);
         goto err;
       }
+    }
+    if(iresp->hpa){
+      if(grow_esc_table(ti, iresp->hpa, ESCAPE_HPA, &tablelen, &tableused)){
+        free(iresp->hpa);
+        goto err;
+      }
+      free(iresp->hpa);
     }
     if((ti->kbdlevel = iresp->kbdlevel) == UINT_MAX){
       ti->kbdlevel = 0;
@@ -1381,6 +1388,12 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     }
   }else{
     ti->kbdlevel = 0; // confirmed no support, don't bother popping
+  }
+  // now look up any terminfo elements we might not have received via requests
+  if(ti->escindices[ESCAPE_HPA] == 0){
+    if(init_terminfo_esc(ti, "hpa", ESCAPE_HPA, &tablelen, &tableused)){
+      goto err;
+    }
   }
   if(*cursor_x >= 0 && *cursor_y >= 0){
     if(add_u7_escape(ti, &tablelen, &tableused)){
