@@ -540,6 +540,11 @@ static void
 pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
   --x;
   --y;
+  if(ictx->ti->cellpxy == 0 || ictx->ti->cellpxx == 0){
+    logerror("pixelmouse event without pixel info (%ld/%ld)", y, x);
+    inc_input_errors(ictx);
+    return;
+  }
   ni->ypx = y % ictx->ti->cellpxy;
   ni->xpx = x % ictx->ti->cellpxx;
   y /= ictx->ti->cellpxy;
@@ -1638,7 +1643,7 @@ tcap_cb(inputctx* ictx){
       ++s;
     }
   }
-  if(*s){
+  if(!s || *s){
     free(str);
     return -1;
   }
