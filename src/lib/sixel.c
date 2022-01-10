@@ -571,6 +571,28 @@ find_next_lowest_chosen(const qstate* qs, int z, int i, const qnode** hq){
   return -1;
 }
 
+static inline void
+choose(qstate* qs, qnode* q, int z, int i, int* hi, int* lo,
+       const qnode** hq, const qnode** lq){
+  if(!chosen_p(q)){
+//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qs->qnodes[z].qlink, qs->qnodes[z].q.pop, qs->qnodes[z].cidx);
+    if(z * 8 > *hi){
+      *hi = find_next_lowest_chosen(qs, z, i, hq);
+    }
+    int cur = z * 8 + (i >= 0 ? i : 4);
+    if(*lo == -1){
+      q->cidx = qidx(*hq);
+    }else if(*hi == -1 || cur - *lo < *hi - cur){
+      q->cidx = qidx(*lq);
+    }else{
+      q->cidx = qidx(*hq);
+    }
+  }else{
+    *lq = q;
+    *lo = z * 8;
+  }
+}
+
 // we must reduce the number of colors until we're using less than or equal
 // to the number of color registers.
 static inline int
@@ -621,43 +643,11 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
         const onode* o = &qs->onodes[qs->qnodes[z].qlink - 1];
         for(int i = 0 ; i < 8 ; ++i){
           if(o->q[i]){
-            if(!chosen_p(o->q[i])){
-//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, o->q[i]->qlink, o->q[i]->q.pop, o->q[i]->cidx);
-              if(z * 8 + i > hi){
-                hi = find_next_lowest_chosen(qs, z, i, &hq);
-              }
-              int cur = z * 8 + 4;
-              if(lo == -1){
-                o->q[i]->cidx = qidx(hq);
-              }else if(hi == -1 || cur - lo < hi - cur){
-                o->q[i]->cidx = qidx(lq);
-              }else{
-                o->q[i]->cidx = qidx(hq);
-              }
-            }else{
-              lq = o->q[i];
-              lo = z * 8 + i;
-            }
+            choose(qs, o->q[i], z, i, &hi, &lo, &hq, &lq);
           }
         }
       }else{
-        if(!chosen_p(&qs->qnodes[z])){
-//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qs->qnodes[z].qlink, qs->qnodes[z].q.pop, qs->qnodes[z].cidx);
-          if(z * 8 > hi){
-            hi = find_next_lowest_chosen(qs, z, -1, &hq);
-          }
-          int cur = z * 8 + 4;
-          if(lo == -1){
-            qs->qnodes[z].cidx = qidx(hq);
-          }else if(hi == -1 || cur - lo < hi - cur){
-            qs->qnodes[z].cidx = qidx(lq);
-          }else{
-            qs->qnodes[z].cidx = qidx(hq);
-          }
-        }else{
-          lq = &qs->qnodes[z];
-          lo = z * 8;
-        }
+        choose(qs, &qs->qnodes[z], z, -1, &hi, &lo, &hq, &lq);
       }
     }
     *colors = colorregs;
