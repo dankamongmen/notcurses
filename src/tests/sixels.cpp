@@ -54,6 +54,7 @@ TEST_CASE("Sixels") {
         //CHECK(ncv->data[y * newn->sprite->pixx + x] == rgb[y * newn->sprite->pixx + x]);
       }
     }
+    free(rgb);
     ncvisual_destroy(ncv);
   }
 
@@ -96,6 +97,8 @@ TEST_CASE("Sixels") {
 //print_bmap(rgbnew, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == ncplane_destroy(blockerplane));
+    free(rgbnew);
+    free(rgbold);
     ncvisual_destroy(ncv);
   }
 #endif
