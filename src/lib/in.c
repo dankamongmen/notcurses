@@ -1478,6 +1478,76 @@ xtversion_cb(inputctx* ictx){
   return 2;
 }
 
+// precondition: s starts with two hex digits, the first of which is not
+// greater than 7.
+static inline char
+toxdigit(const char* s){
+  char c = isalpha(*s) ? tolower(*s) - 'a' + 10 : *s - '0';
+  c *= 16;
+  ++s;
+  c += isalpha(*s) ? tolower(*s) - 'a' + 10 : *s - '0';
+  return c;
+}
+
+// on success, the subsequent character is returned, and |key| and |val| have
+// heap-allocated, decoded, nul-terminated copies of the appropriate input.
+static const char*
+gettcap(const char* s, char** key, char** val){
+  const char* equals = s;
+  while(*equals != '='){
+    if(!isxdigit(*equals)){ // rejects a NUL byte
+      logerror("bad key in %s", s);
+      return NULL;
+    }
+    ++equals;
+  }
+  if(equals - s == 0 || (equals - s) % 2){
+    logerror("bad key in %s", s);
+    return NULL;
+  }
+  if((*key = malloc((equals - s) / 2 + 1)) == NULL){
+    return NULL;
+  }
+  char* keytarg = *key;
+  do{
+    *keytarg = toxdigit(s);
+    s += 2;
+    ++keytarg;
+  }while(*s != '=');
+  *keytarg = '\0';
+  ++equals; // now one past the equal sign
+  const char *end = equals;
+  while(*end != ';' && *end){
+    if(!isxdigit(*end)){
+      logerror("bad value in %s", s);
+      goto valerr;
+    }
+    ++end;
+  }
+  if(end - equals == 0 || (end - equals) % 2){
+    logerror("bad value in %s", s);
+    goto valerr;
+  }
+  if((*val = malloc((end - equals) / 2 + 1)) == NULL){
+    goto valerr;
+  }
+  char* valtarg = *val;
+  ++s;
+  do{
+    *valtarg = toxdigit(s);
+    s += 2;
+    ++valtarg;
+  }while(s != end);
+  *valtarg = '\0';
+  loginfo("key: %s val: %s", *key, *val);
+  return end;
+
+valerr:
+  free(*key);
+  *key = NULL;
+  return end;
+}
+
 // XTGETTCAP responses are delimited by semicolons
 static int
 tcap_cb(inputctx* ictx){
@@ -1490,47 +1560,41 @@ tcap_cb(inputctx* ictx){
     free(str);
     return 2;
   }
-  char* s = str;
-  while(*s){
-    // FIXME clean this crap up, grotesque
-    if(strncasecmp(s, "544e=", 5) == 0){
-      size_t len = 5;
-      while(s[len] && s[len] != ';'){
-        ++len;
-      }
-      const char* tn = s + 5;
-      len -= 5;
+  const char* s = str;
+  char* key;
+  char* val;
+  // answers are delimited with semicolons, hex-encoded, key=value
+  while(*s && (s = gettcap(s, &val, &key)) ){
+    if(strcmp(val, "TN") == 0){
       if(ictx->initdata->qterm == TERMINAL_UNKNOWN){
-        if(len == 10){
-          if(strncasecmp(tn, "787465726d", 10) == 0){
-            ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
-          }
-        }else if(len == 12){
-          if(strncasecmp(tn, "6D6C7465726D", 12) == 0){
-            ictx->initdata->qterm = TERMINAL_MLTERM;
-          }
-        }else if(len == 22){
-          if(strncasecmp(tn, "787465726d2d6b69747479", 22) == 0){
-            ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
-          }
-        }else if(len == 28){
-          if(strncasecmp(tn, "787465726d2d323536636f6c6f72", 28) == 0){
-            ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
-          }
+        if(strcasecmp(key, "xterm") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm"
+        }else if(strcasecmp(key, "mlterm") == 0){
+          ictx->initdata->qterm = TERMINAL_MLTERM;
+        }else if(strcasecmp(key, "xterm-kitty") == 0){
+          ictx->initdata->qterm = TERMINAL_KITTY; // "xterm-kitty"
+        }else if(strcasecmp(key, "xterm-256color") == 0){
+          ictx->initdata->qterm = TERMINAL_XTERM; // "xterm-256color"
         }else{
-          logdebug("unknown terminal name %s", tn);
+          logdebug("unknown terminal name %s", key);
         }
       }
-    }else if(strncasecmp(s, "524742=", 7) == 0){
+    }else if(strcmp(val, "RGB") == 0){
       loginfo("got rgb (%s)", s);
       ictx->initdata->rgb = true;
+    }else if(strcmp(val, "hpa") == 0){
+      loginfo("got hpa (%s)", key);
+      ictx->initdata->hpa = key;
+      key = NULL;
     }else{
-      logdebug("unknown capability=val %s", str);
+      logwarn("unknown capability: %s", str);
     }
-    if((s = strchr(s, ';')) == NULL){
-      break;
-    }
-    ++s;
+    free(val);
+    free(key);
+  }
+  if(*s){
+    free(str);
+    return -1;
   }
   free(str);
   return 2;
