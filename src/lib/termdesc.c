@@ -455,8 +455,15 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // XTVERSION. Replies with DCS > | ... ST
 #define XTVERSION "\x1b[>0q"
 
-// XTGETTCAP['TN', 'RGB'] (Terminal Name, RGB)
-#define XTGETTCAP  "\x1bP+q544e;524742\x1b\\"
+// ideally we'd abandon terminfo entirely (terminfo is great; TERM sucks), and
+// get all properties through terminal queries. we don't yet, but grab a few
+// of importance that we know to oftentimes be incorrect:
+//  * TN (544e): terminal name; a poor man's XTVERSION
+//  * RGB (524742): 24-bit color is supported via setaf/setab
+//  * hpa (687061): broken in Kitty FreeBSD terminfo (#2541)
+// XTGETTCAP['TN', 'RGB', 'hpa']
+// (Terminal Name, RGB, Horizontal Position Absolute)
+#define XTGETTCAP  "\x1bP+q544e;524742;687061\x1b\\"
 
 // Secondary Device Attributes, necessary to get Alacritty's version. Since
 // this doesn't uniquely identify a terminal, we ask it last, so that if any
@@ -1052,6 +1059,60 @@ unix_early_matches(const char* term){
 #endif
 #endif
 
+static int
+do_terminfo_lookups(tinfo *ti, size_t* tablelen, size_t* tableused){
+  // don't list any here for which we also send XTGETTCAP sequences
+  const struct strtdesc {
+    escape_e esc;
+    const char* tinfo;
+  } strtdescs[] = {
+    { ESCAPE_CUP, "cup", },
+    { ESCAPE_HPA, "hpa", },
+    { ESCAPE_VPA, "vpa", },
+    // Not all terminals support setting the fore/background independently
+    { ESCAPE_SETAF, "setaf", },
+    { ESCAPE_SETAB, "setab", },
+    { ESCAPE_OP, "op", },
+    { ESCAPE_CNORM, "cnorm", },
+    { ESCAPE_CIVIS, "civis", },
+    { ESCAPE_SGR0, "sgr0", },
+    { ESCAPE_SITM, "sitm", },
+    { ESCAPE_RITM, "ritm", },
+    { ESCAPE_BOLD, "bold", },
+    { ESCAPE_CUD, "cud", },
+    { ESCAPE_CUU, "cuu", },
+    { ESCAPE_CUF, "cuf", },
+    { ESCAPE_CUB, "cub", },
+    { ESCAPE_U7, "u7", },
+    { ESCAPE_SMKX, "smkx", },
+    { ESCAPE_SMXX, "smxx", },
+    { ESCAPE_EL, "el", },
+    { ESCAPE_RMXX, "rmxx", },
+    { ESCAPE_SMUL, "smul", },
+    { ESCAPE_RMUL, "rmul", },
+    { ESCAPE_SC, "sc", },
+    { ESCAPE_RC, "rc", },
+    { ESCAPE_IND, "ind", },
+    { ESCAPE_INDN, "indn", },
+    { ESCAPE_CLEAR, "clear", },
+    { ESCAPE_OC, "oc", },
+    { ESCAPE_RMKX, "rmkx", },
+    { ESCAPE_INITC, "initc", },
+    { ESCAPE_MAX, NULL, },
+  };
+  for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
+    if(init_terminfo_esc(ti, strtdesc->tinfo, strtdesc->esc, tablelen, tableused)){
+      return -1;
+    }
+  }
+  // verify that the terminal provides cursor addressing (absolute movement)
+  if(ti->escindices[ESCAPE_CUP] == 0){
+    logpanic("required terminfo capability 'cup' not defined");
+    return -1;
+  }
+  return 0;
+}
+
 // if |termtype| is not NULL, it is used to look up the terminfo database entry
 // via setupterm(). the value of the TERM environment variable is otherwise
 // (implicitly) used. some details are not exposed via terminfo, and we must
@@ -1167,52 +1228,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     }
     ti->caps.rgb = query_rgb(); // independent of colors
   }
-  const struct strtdesc {
-    escape_e esc;
-    const char* tinfo;
-  } strtdescs[] = {
-    { ESCAPE_CUP, "cup", },
-    { ESCAPE_HPA, "hpa", },
-    { ESCAPE_VPA, "vpa", },
-    // Not all terminals support setting the fore/background independently
-    { ESCAPE_SETAF, "setaf", },
-    { ESCAPE_SETAB, "setab", },
-    { ESCAPE_OP, "op", },
-    { ESCAPE_CNORM, "cnorm", },
-    { ESCAPE_CIVIS, "civis", },
-    { ESCAPE_SGR0, "sgr0", },
-    { ESCAPE_SITM, "sitm", },
-    { ESCAPE_RITM, "ritm", },
-    { ESCAPE_BOLD, "bold", },
-    { ESCAPE_CUD, "cud", },
-    { ESCAPE_CUU, "cuu", },
-    { ESCAPE_CUF, "cuf", },
-    { ESCAPE_CUB, "cub", },
-    { ESCAPE_U7, "u7", },
-    { ESCAPE_SMKX, "smkx", },
-    { ESCAPE_SMXX, "smxx", },
-    { ESCAPE_EL, "el", },
-    { ESCAPE_RMXX, "rmxx", },
-    { ESCAPE_SMUL, "smul", },
-    { ESCAPE_RMUL, "rmul", },
-    { ESCAPE_SC, "sc", },
-    { ESCAPE_RC, "rc", },
-    { ESCAPE_IND, "ind", },
-    { ESCAPE_INDN, "indn", },
-    { ESCAPE_CLEAR, "clear", },
-    { ESCAPE_OC, "oc", },
-    { ESCAPE_RMKX, "rmkx", },
-    { ESCAPE_INITC, "initc", },
-    { ESCAPE_MAX, NULL, },
-  };
-  for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
-    if(init_terminfo_esc(ti, strtdesc->tinfo, strtdesc->esc, &tablelen, &tableused)){
-      goto err;
-    }
-  }
-  // verify that the terminal provides cursor addressing (absolute movement)
-  if(ti->escindices[ESCAPE_CUP] == 0){
-    logpanic("required terminfo capability 'cup' not defined");
+  if(do_terminfo_lookups(ti, &tablelen, &tableused)){
     goto err;
   }
   if(ti->ttyfd >= 0){

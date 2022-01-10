@@ -82,6 +82,7 @@ struct initial_responses {
   ncpalette palette;           // palette entries
   int maxpaletteread;          // maximum palette index read
   bool pixelmice;              // have we pixel-based mice events?
+  char* hpa;                   // control sequence for hpa via XTGETTCAP
 };
 
 // Blocking call. Waits until the input thread has processed all responses to

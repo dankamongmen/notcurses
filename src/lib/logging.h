@@ -8,6 +8,9 @@ extern "C" {
 // logging
 extern ncloglevel_e loglevel;
 
+static inline void nclog(const char* fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
+
 static inline void
 nclog(const char* fmt, ...){
   va_list va;
