@@ -1494,14 +1494,21 @@ toxdigit(const char* s){
 static const char*
 gettcap(const char* s, char** key, char** val){
   const char* equals = s;
+  // we don't want anything bigger than 7 in the first nibble
+  unsigned firstnibble = true;
   while(*equals != '='){
     if(!isxdigit(*equals)){ // rejects a NUL byte
       logerror("bad key in %s", s);
       return NULL;
     }
+    if(firstnibble && (!isdigit(*equals) || *equals - '0' >= 8)){
+      logerror("bad key in %s", s);
+      return NULL;
+    }
+    firstnibble = !firstnibble;
     ++equals;
   }
-  if(equals - s == 0 || (equals - s) % 2){
+  if(equals - s == 0 || !firstnibble){
     logerror("bad key in %s", s);
     return NULL;
   }
@@ -1517,14 +1524,20 @@ gettcap(const char* s, char** key, char** val){
   *keytarg = '\0';
   ++equals; // now one past the equal sign
   const char *end = equals;
+  firstnibble = true;
   while(*end != ';' && *end){
     if(!isxdigit(*end)){
       logerror("bad value in %s", s);
       goto valerr;
     }
+    if(firstnibble && (!isdigit(*end) || *end - '0' >= 8)){
+      logerror("bad value in %s", s);
+      return NULL;
+    }
+    firstnibble = !firstnibble;
     ++end;
   }
-  if(end - equals == 0 || (end - equals) % 2){
+  if(end - equals == 0 || !firstnibble){
     logerror("bad value in %s", s);
     goto valerr;
   }
