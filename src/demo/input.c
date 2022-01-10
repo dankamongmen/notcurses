@@ -125,6 +125,9 @@ ultramegaok_demo(void* vnc){
     if(id == 0){
       continue;
     }
+    if(id == NCKEY_EOF){
+      break;
+    }
     // go ahead and pass keyboard through to demo, even if it was a 'q' (this
     // might cause the demo to exit immediately, as is desired). we can't just
     // mess with the menu/HUD in our own context, as the demo thread(s) might
