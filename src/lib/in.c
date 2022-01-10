@@ -801,6 +801,8 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   }
   // FIXME decode remaining modifiers super, hyper, caps_lock, num_lock
   switch(evtype){
+    case 0:
+      __attribute__ ((fallthrough));
     case 1:
       tni.evtype = NCTYPE_PRESS;
       break;
