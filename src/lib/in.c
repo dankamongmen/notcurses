@@ -1698,8 +1698,8 @@ build_cflow_automaton(inputctx* ictx){
     { "[>\\N;\\N;\\Nc", da2_cb, },
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
+    { "P0+\\S", NULL, },    // negative XTGETTCAP
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
-    { "P0+r\\S", NULL, },    // negative XTGETTCAP
     { "P!|\\S", tda_cb, }, // DCS da3 form used by XTerm
     { "P>|\\S", xtversion_cb, },
     // OSC (\e_...ST)
