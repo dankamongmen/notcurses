@@ -226,14 +226,6 @@ find_color(const qstate* qs, uint32_t pixel){
       return -1;
     }
   }
-  while(!chosen_p(q)){
-    const qnode* newq = &qs->qnodes[qidx(q)];
-    if(newq == q){
-      logerror("invalid qidx %u for pixel 0x%08x key %u", qidx(q), pixel, key);
-      return -1;
-    }
-    q = newq;
-  }
   return qidx(q);
 }
 
@@ -546,10 +538,37 @@ get_active_set(qstate* qs, uint32_t colors){
   return act;
 }
 
-// FIXME for now they all go to the most popular. this must change.
-static inline void
-choose_alternate_color(qstate* qs, unsigned z, qnode* active, uint32_t colors){
-  qs->qnodes[active[z].qlink].cidx = active[colors - 1].qlink - 1;
+static inline int
+find_next_lowest_chosen(const qstate* qs, int z, int i, const qnode** hq){
+//fprintf(stderr, "FIRST CHOSEN: %u %d\n", z, i);
+  do{
+    const qnode* h = &qs->qnodes[z];
+//fprintf(stderr, "LOOKING AT %u POP %u QLINK %u CIDX %u\n", z, h->q.pop, h->qlink, h->cidx);
+    if(h->q.pop == 0 && h->qlink){
+      const onode* o = &qs->onodes[h->qlink - 1];
+      while(i >= 0){
+        h = o->q[i];
+        if(h && chosen_p(h)){
+          *hq = h;
+//fprintf(stderr, "NEW HQ: %p RET: %u\n", *hq, z * 8 + i);
+          return z * 8 + i;
+        }
+        if(++i == 8){
+          break;
+        }
+      }
+    }else{
+      if(chosen_p(h)){
+        *hq = h;
+//fprintf(stderr, "NEW HQ: %p RET: %u\n", *hq, z * 8);
+        return z * 8;
+      }
+    }
+    ++z;
+    i = 0;
+  }while(z < QNODECOUNT);
+//fprintf(stderr, "RETURNING -1\n");
+  return -1;
 }
 
 // we must reduce the number of colors until we're using less than or equal
@@ -574,22 +593,75 @@ merge_color_table(qstate* qs, uint32_t* colors, uint32_t colorregs){
         break; // we just ran out of color registers
       }
     }
-    qactive[z].cidx = make_chosen(cidx);
+    qs->qnodes[qactive[z].qlink].cidx = make_chosen(cidx);
     ++cidx;
   }
-  // tend to those which couldn't get a color table entry.
-  for(unsigned z = 0 ; z < *colors ; ++z){
-    qs->qnodes[qactive[z].qlink].cidx = qactive[z].cidx;
-//fprintf(stderr, "LOOKING AT %u %u\n", z, qactive[z].qlink);
-    if(!chosen_p(&qs->qnodes[qactive[z].qlink])){
-      choose_alternate_color(qs, z, qactive, *colors);
-//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qactive[z].qlink, qactive[z].q.pop, qactive[z].cidx);
+  free(qactive);
+  // tend to those which couldn't get a color table entry. we start with two
+  // values, lo and hi, initialized to -1. we iterate over the *static* qnodes,
+  // descending into onodes to check their qnodes. we thus iterate over all
+  // used qnodes, in order (and also unused static qnodes). if the node is
+  // empty, continue. if it is chosen, replace lo. otherwise, if hi is less
+  // than z, we need find the next lowest chosen one. if there is no next
+  // lowest, hi is reset to -1. otherwise, set hi. once we have the new hi > z,
+  // determine which of hi and lo are closer to z, discounting -1 values, and
+  // link te closer one to z. a toplevel node is worth 8 in terms of distance;
+  // and lowlevel node is worth 1.
+  int lo = -1;
+  int hi = -1;
+  const qnode* lq = NULL;
+  const qnode* hq = NULL;
+  for(int z = 0 ; z < QNODECOUNT ; ++z){
+    if(qs->qnodes[z].q.pop == 0){
+      if(qs->qnodes[z].qlink == 0){
+        continue; // unused
+      }
+      // process the onode
+      const onode* o = &qs->onodes[qs->qnodes[z].qlink - 1];
+      for(int i = 0 ; i < 8 ; ++i){
+        if(o->q[i]){
+          if(!chosen_p(o->q[i])){
+//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, o->q[i]->qlink, o->q[i]->q.pop, o->q[i]->cidx);
+            if(z * 8 + i > hi){
+              hi = find_next_lowest_chosen(qs, z, i, &hq);
+            }
+            int cur = z * 8 + 4;
+            if(lo == -1){
+              o->q[i]->cidx = qidx(hq);
+            }else if(hi == -1 || cur - lo < hi - cur){
+              o->q[i]->cidx = qidx(lq);
+            }else{
+              o->q[i]->cidx = qidx(hq);
+            }
+          }else{
+            lq = o->q[i];
+            lo = z * 8 + i;
+          }
+        }
+      }
+    }else{
+      if(!chosen_p(&qs->qnodes[z])){
+//fprintf(stderr, "NOT CHOSEN: %u %u %u %u\n", z, qs->qnodes[z].qlink, qs->qnodes[z].q.pop, qs->qnodes[z].cidx);
+        if(z * 8 > hi){
+          hi = find_next_lowest_chosen(qs, z, -1, &hq);
+        }
+        int cur = z * 8 + 4;
+        if(lo == -1){
+          qs->qnodes[z].cidx = qidx(hq);
+        }else if(hi == -1 || cur - lo < hi - cur){
+          qs->qnodes[z].cidx = qidx(lq);
+        }else{
+          qs->qnodes[z].cidx = qidx(hq);
+        }
+      }else{
+        lq = &qs->qnodes[z];
+        lo = z * 8;
+      }
     }
   }
   if(*colors > colorregs){
     *colors = colorregs;
   }
-  free(qactive);
   return 0;
 }
 
