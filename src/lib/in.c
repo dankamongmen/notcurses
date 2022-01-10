@@ -1532,7 +1532,7 @@ gettcap(const char* s, char** key, char** val){
     }
     if(firstnibble && (!isdigit(*end) || *end - '0' >= 8)){
       logerror("bad value in %s", s);
-      return NULL;
+      goto valerr;
     }
     firstnibble = !firstnibble;
     ++end;
@@ -1558,7 +1558,7 @@ gettcap(const char* s, char** key, char** val){
 valerr:
   free(*key);
   *key = NULL;
-  return end;
+  return NULL;
 }
 
 // replace \E with actual 0x1b for use as a terminfo-like format string,
