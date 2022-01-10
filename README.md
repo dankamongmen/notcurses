@@ -13,9 +13,9 @@ replacement for NCURSES on existing systems.
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
-[Doxygen](https://notcurses.com/html/) output. there is a
-[mailing list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
-via notcurses@googlegroups.com. i wrote a coherent
+[Doxygen](https://notcurses.com/html/) output. To subscribe to the
+[mailing list](https://groups.google.com/forum/#!forum/notcurses), send an email
+to notcurses+subscribe@googlegroups.com (the email contents don't matter). i wrote a coherent
 [guidebook](https://nick-black.com/htp-notcurses.pdf), which is available for
 free download (or [paperback purchase](https://amazon.com/dp/B086PNVNC9)).
 
