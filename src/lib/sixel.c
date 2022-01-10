@@ -76,7 +76,7 @@ chosen_p(const qnode* q){
 
 static inline unsigned
 make_chosen(unsigned cidx){
-  return cidx |= 0x8000u;
+  return cidx | 0x8000u;
 }
 
 // get the cidx without the chosen bit
