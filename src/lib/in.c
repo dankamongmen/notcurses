@@ -1548,6 +1548,36 @@ valerr:
   return end;
 }
 
+// replace \E with actual 0x1b for use as a terminfo-like format string,
+// writing in-place (and updating the nul terminator, if necessary).
+// returns its input.
+static inline char*
+determinfo(char* old){
+  bool escaped = false;
+  char* targo = old;
+  for(char* o = old ; *o ; ++o){
+    if(escaped){
+      if(*o == 'E'){
+        *targo = 0x1b;
+        ++targo;
+      }else{
+        *targo = '\\';
+        ++targo;
+        *targo = *o;
+        ++targo;
+      }
+      escaped = false;
+    }else if(*o == '\\'){
+      escaped = true;
+    }else{
+      *targo = *o;
+      ++targo;
+    }
+  }
+  *targo = '\0';
+  return old;
+}
+
 // XTGETTCAP responses are delimited by semicolons
 static int
 tcap_cb(inputctx* ictx){
@@ -1584,7 +1614,7 @@ tcap_cb(inputctx* ictx){
       ictx->initdata->rgb = true;
     }else if(strcmp(val, "hpa") == 0){
       loginfo("got hpa (%s)", key);
-      ictx->initdata->hpa = key;
+      ictx->initdata->hpa = determinfo(key);
       key = NULL;
     }else{
       logwarn("unknown capability: %s", str);
@@ -1698,7 +1728,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[>\\N;\\N;\\Nc", da2_cb, },
     { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
-    { "P0+\\S", NULL, },    // negative XTGETTCAP
+    { "P0+\\S", NULL, }, // negative XTGETTCAP
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
     { "P!|\\S", tda_cb, }, // DCS da3 form used by XTerm
     { "P>|\\S", xtversion_cb, },
