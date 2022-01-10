@@ -23,6 +23,7 @@ wipebitmap(struct notcurses* nc){
                                             6 * cellpxx * 4,
                                             6 * cellpxx);
   if(ncv == NULL){
+    free(pixels);
     return -1;
   }
   struct ncvisual_options vopts = {
@@ -32,6 +33,7 @@ wipebitmap(struct notcurses* nc){
   };
   struct ncplane* n = ncvisual_blit(nc, ncv, &vopts);
   if(n == NULL){
+    free(pixels);
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought see full square");
@@ -84,9 +86,12 @@ wipebitmap(struct notcurses* nc){
   }
   struct ncvisual* ncve = ncvisual_from_rgba(pixels, 6 * cellpxy, 6 * cellpxx * 4, 6 * cellpxx);
   if(ncve == NULL){
+    free(pixels);
     return -1;
   }
   if((n = ncvisual_blit(nc, ncve, &vopts)) == NULL){
+    free(pixels);
+    ncvisual_destroy(ncve);
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought see empty square");
@@ -117,6 +122,8 @@ wipebitmap(struct notcurses* nc){
   sleep(2);
 
   if(ncvisual_blit(nc, ncv, &vopts) == NULL){
+    ncvisual_destroy(ncve);
+    free(pixels);
     return -1;
   }
   emit(notcurses_stdplane(nc), "Ought *still* see 16 *s");
