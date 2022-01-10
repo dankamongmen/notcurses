@@ -729,7 +729,7 @@ notcurses_get_blocking(struct notcurses* n, ncinput* ni){
 
 static inline bool
 ncinput_nomod_p(const ncinput* ni){
-  return !ni->alt && !ni->ctrl && !ni->shift;
+  return !(ni->modifiers);
 }
 ```
 

@@ -1231,7 +1231,7 @@ notcurses_get_blocking(struct notcurses* n, ncinput* ni){
 // Was 'ni' free of modifiers?
 static inline bool
 ncinput_nomod_p(const ncinput* ni){
-  return !(ni->alt | ni->ctrl | ni->shift);
+  return !(ni->modifiers);
 }
 
 #define NCMICE_NO_EVENTS     0
