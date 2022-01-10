@@ -1591,6 +1591,9 @@ tcap_cb(inputctx* ictx){
     }
     free(val);
     free(key);
+    if(*s == ';'){
+      ++s;
+    }
   }
   if(*s){
     free(str);
