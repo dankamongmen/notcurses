@@ -2236,7 +2236,15 @@ static void
 process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
-    // FIXME insert fix here
+    bool noroom = false;
+    pthread_mutex_lock(&ictx->ilock);
+    if(ictx->ivalid == ictx->isize){
+      noroom = true;
+    }
+    pthread_mutex_unlock(&ictx->ilock);
+    if(noroom){
+      break;
+    }
     int consumed = process_ncinput(ictx, buf + offset, *bufused);
     if(consumed <= 0){
       break;
@@ -2436,7 +2444,10 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       }else if(pfds[pfdcount].fd == ictx->termfd){
         *rtfd = 1;
       }else if(pfds[pfdcount].fd == ictx->ipipes[0]){
-        // do nothing
+        char c;
+        while(read(ictx->ipipes[0], &c, sizeof(c)) == 1){
+          // FIXME accelerate?
+        }
       }
       --events;
     }
