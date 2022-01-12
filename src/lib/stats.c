@@ -237,7 +237,7 @@ void summarize_stats(notcurses* nc){
           (stats->bgemissions + stats->bgelisions) == 0 ? 0 :
           (stats->bgelisions * 100.0) / (stats->bgemissions + stats->bgelisions));
   ncbprefix(stats->sprixelbytes, 1, totalbuf, 1);
-  fprintf(stderr, "%sBitmap emits:elides: %"PRIu64":%"PRIu64" (%.2f%%) %sB (%.2f%%) SuM: %"PRIu64" (%.2f%%)" NL,
+  fprintf(stderr, "%sBmap emits:elides: %"PRIu64":%"PRIu64" (%.2f%%) %sB (%.2f%%) SuM: %"PRIu64" (%.2f%%)" NL,
           clreol, stats->sprixelemissions, stats->sprixelelisions,
           (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
           (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions),
