@@ -1,6 +1,17 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.5 (not yet released)
+  * The Hyper and Super modifiers are now supported. CapsLock and NumLock
+    can further be disambiguated when using the Kitty protocol. The
+    new functions `ncinput_super_p()` and friends have been added.
+  * `ncinput` has a new field, `modifiers`. The old `alt`, `shift`, and
+    `ctrl` booleans are now deprecated, and will be removed in 4.0.
+  * `ncmenu_section` **must** now specify any expected modifiers for their
+    shortucts using `modifiers`. Setting any of `alt`, `shift`, or
+    `ctrl` will see `ncmenu_create()` fail.
+  * `ncinput_equals_p()` considers `NCTYPE_UNKNOWN` equal to `NCTYPE_PRESS`.
+
 * 3.0.4 (2022-01-08)
   * We now use level 2 of `XTMODKEYS`, providing better differentiation
     of keyboard modifiers. We now unpack the Meta modifier.
