@@ -481,6 +481,9 @@ mark_pipe_ready(ipipe pipes[static 2]){
 // the last thing we do. if Ctrl or Shift are among the modifiers, we replace
 // any lowercase letter with its uppercase form, to maintain compatibility with
 // other input methods.
+//
+// note that this w orks entirely off 'modifiers', not the obsolete
+// shift/alt/ctrl booleans, which it neither sets nor tests!
 static void
 load_ncinput(inputctx* ictx, ncinput *tni){
   int synth = 0;
@@ -786,25 +789,18 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
   assert(mods >= 0);
   assert(val > 0);
   logdebug("v/m/e %d %d %d", val, mods, evtype);
+  // "If the modifier field is not present in the escape code, its default value
+  //  is 1 which means no modifiers."
+  if(mods == 0){
+    mods = 1;
+  }
   ncinput tni = {
     .id = kitty_functional(val),
     .shift = mods && !!((mods - 1) & 0x1),
     .alt = mods && !!((mods - 1) & 0x2),
     .ctrl = mods && !!((mods - 1) & 0x4),
+    .modifiers = mods - 1,
   };
-  if(tni.shift){
-    tni.modifiers |= NCKEY_MOD_SHIFT;
-  }
-  if(tni.ctrl){
-    tni.modifiers |= NCKEY_MOD_CTRL;
-  }
-  if(tni.alt){
-    tni.modifiers |= NCKEY_MOD_ALT;
-  }
-  if(mods && ((mods - 1) & 0x20)){
-    tni.modifiers |= NCKEY_MOD_META;
-  }
-  // FIXME decode remaining modifiers super, hyper, caps_lock, num_lock
   switch(evtype){
     case 0:
       __attribute__ ((fallthrough));

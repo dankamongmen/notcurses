@@ -1141,14 +1141,13 @@ typedef struct ncinput {
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
-  // FIXME kitty protocol also exposes hyper, meta, caps_lock, num_lock
   enum {
     NCTYPE_UNKNOWN,
     NCTYPE_PRESS,
     NCTYPE_REPEAT,
     NCTYPE_RELEASE,
   } evtype;
-  unsigned modifiers;// bitmask over NCMOD_META
+  unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
 

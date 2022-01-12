@@ -188,15 +188,13 @@ nckey_synthesized_p(uint32_t w){
   return w >= PRETERUNICODEBASE && w <= NCKEY_EOF;
 }
 
-// Synonyms (so far as we're concerned)
+// Synonyms and aliases (so far as we're concerned)
 #define NCKEY_SCROLL_UP   NCKEY_BUTTON4
 #define NCKEY_SCROLL_DOWN NCKEY_BUTTON5
 #define NCKEY_RETURN      NCKEY_ENTER
-
-// Just aliases, ma'am, from the 128 characters common to ASCII+UTF8
-#define NCKEY_TAB      0x09
-#define NCKEY_ESC      0x1b
-#define NCKEY_SPACE    0x20
+#define NCKEY_TAB         0x09
+#define NCKEY_ESC         0x1b
+#define NCKEY_SPACE       0x20
 
 // Is this uint32_t from the Private Use Area in the BMP (Plane 0)?
 static inline bool
@@ -216,11 +214,16 @@ nckey_supppuab_p(uint32_t w){
   return w >= 0x100000 && w <= 0x10fffd; // 65,534 codepoints
 }
 
-// modifiers bitmask
-#define NCKEY_MOD_SHIFT 1
-#define NCKEY_MOD_CTRL  2
-#define NCKEY_MOD_ALT   4
-#define NCKEY_MOD_META  8
+// used with the modifiers bitmask. definitions come straight from the kitty
+// keyboard protocol.
+#define NCKEY_MOD_SHIFT  1
+#define NCKEY_MOD_ALT    2
+#define NCKEY_MOD_CTRL   4
+#define NCKEY_MOD_SUPER  8
+#define NCKEY_MOD_HYPER 16
+#define NCKEY_MOD_META  32
+#define NCKEY_CAPSLOCK  64
+#define NCKEY_NUMLOCK  128
 
 #ifdef __cplusplus
 } // extern "C"
