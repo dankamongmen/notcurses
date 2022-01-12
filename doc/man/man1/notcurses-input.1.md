@@ -21,7 +21,11 @@ of modifier indicators:
 * 'A'/'a': Alt was or was not pressed.
 * 'C'/'c': Ctrl was or was not pressed.
 * 'S'/'s': Shift was or was not pressed.
+* 'U'/'u': Super was or was not pressed
 * 'M'/'m': Meta was or was not pressed.
+* 'H'/'h': Hyper was or was not pressed.
+* 'X'/'x': CapsLock was or was not pressed.
+* '#'/'.': NumLock was or was not pressed.
 * 'L'/'R'/'P'/'u': Key was a release, repeat, press, or of unknown type.
 
 # OPTIONS

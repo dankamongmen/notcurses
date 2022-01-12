@@ -1138,9 +1138,11 @@ typedef struct ncinput {
   uint32_t id;       // Unicode codepoint or synthesized NCKEY event
   int y, x;          // y/x cell coordinate of event, -1 for undefined
   char utf8[5];      // utf8 representation, if one exists
+  // DEPRECATED do not use! going away in 4.0
   bool alt;          // was alt held?
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
+  // END DEPRECATION
   enum {
     NCTYPE_UNKNOWN,
     NCTYPE_PRESS,
@@ -1169,6 +1171,26 @@ ncinput_alt_p(const ncinput* n){
 static inline bool
 ncinput_meta_p(const ncinput* n){
   return (n->modifiers & NCKEY_MOD_META);
+}
+
+static inline bool
+ncinput_super_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_SUPER);
+}
+
+static inline bool
+ncinput_hyper_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_HYPER);
+}
+
+static inline bool
+ncinput_capslock_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_CAPSLOCK);
+}
+
+static inline bool
+ncinput_numlock_p(const ncinput* n){
+  return (n->modifiers & NCKEY_MOD_NUMLOCK);
 }
 
 // compare two ncinput structs for data equality.

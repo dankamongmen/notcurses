@@ -216,14 +216,14 @@ nckey_supppuab_p(uint32_t w){
 
 // used with the modifiers bitmask. definitions come straight from the kitty
 // keyboard protocol.
-#define NCKEY_MOD_SHIFT  1
-#define NCKEY_MOD_ALT    2
-#define NCKEY_MOD_CTRL   4
-#define NCKEY_MOD_SUPER  8
-#define NCKEY_MOD_HYPER 16
-#define NCKEY_MOD_META  32
-#define NCKEY_CAPSLOCK  64
-#define NCKEY_NUMLOCK  128
+#define NCKEY_MOD_SHIFT      1
+#define NCKEY_MOD_ALT        2
+#define NCKEY_MOD_CTRL       4
+#define NCKEY_MOD_SUPER      8
+#define NCKEY_MOD_HYPER     16
+#define NCKEY_MOD_META      32
+#define NCKEY_MOD_CAPSLOCK  64
+#define NCKEY_MOD_NUMLOCK  128
 
 #ifdef __cplusplus
 } // extern "C"

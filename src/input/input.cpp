@@ -328,11 +328,15 @@ int input_demo(ncpp::NotCurses* nc) {
       break;
     }
     n->set_fg_rgb8(0xd0, 0xd0, 0xd0);
-    n->printf("%c%c%c%c%c ",
+    n->printf("%c%c%c%c%c%c%c%c%c ",
+              ncinput_shift_p(&ni) ? 'S' : 's',
               ncinput_alt_p(&ni) ? 'A' : 'a',
               ncinput_ctrl_p(&ni) ? 'C' : 'c',
-              ncinput_shift_p(&ni) ? 'S' : 's',
+              ncinput_super_p(&ni) ? 'U' : 'u',
+              ncinput_hyper_p(&ni) ? 'H' : 'h',
               ncinput_meta_p(&ni) ? 'M' : 'm',
+              ncinput_capslock_p(&ni) ? 'X' : 'x',
+              ncinput_numlock_p(&ni) ? '#' : '.',
               evtype_to_char(&ni));
     if(r < 0x80){
       n->set_fg_rgb8(128, 250, 64);
@@ -347,7 +351,7 @@ int input_demo(ncpp::NotCurses* nc) {
           break;
         }
         if(NCKey::IsMouse(r)){
-          if(n->printf(-1, NCAlign::Right, " x: %d y: %d", ni.x, ni.y) < 0){
+          if(n->printf(-1, NCAlign::Right, " %d/%d", ni.x, ni.y) < 0){
             break;
           }
         }
