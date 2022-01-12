@@ -1196,7 +1196,8 @@ ncinput_numlock_p(const ncinput* n){
 }
 
 // compare two ncinput structs for data equality. NCTYPE_PRESS and
-// NCTYPE_UNKNOWN are considered to be equivalent.
+// NCTYPE_UNKNOWN are considered to be equivalent. NCKEY_MOD_CAPSLOCK
+// and NCKEY_MOD_NUMLOCK are not considered relevant.
 static inline bool
 ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   // don't need to check ->utf8; it's derived from id
@@ -1207,7 +1208,8 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
     return false;
   }
   // don't need to check deprecated alt, ctrl, shift
-  if(n1->modifiers != n2->modifiers){
+  if((n1->modifiers & ~(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))
+      != (n2->modifiers & ~(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))){
     return false;
   }
   if(n1->evtype != n2->evtype){

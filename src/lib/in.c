@@ -487,14 +487,21 @@ mark_pipe_ready(ipipe pipes[static 2]){
 static void
 load_ncinput(inputctx* ictx, ncinput *tni){
   int synth = 0;
+  if(tni->modifiers & (NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT | NCKEY_MOD_CAPSLOCK)){
+    // when ctrl/shift are used with an ASCII (0..127) lowercase letter, always
+    // supply the capitalized form, to maintain compatibility among solutions.
+    if(tni->id < 0x7f){
+      if(islower(tni->id)){
+        tni->id = toupper(tni->id);
+      }
+    }
+  }
   if(tni->modifiers == NCKEY_MOD_CTRL){ // exclude all other modifiers
     if(ictx->linesigs){
-      if(isalpha(tni->id)){
-        if(toupper(tni->id) == 'C'){
-          synth = SIGINT;
-        }else if(toupper(tni->id) == 'Z'){
-          synth = SIGSTOP;
-        }
+      if(tni->id == 'C'){
+        synth = SIGINT;
+      }else if(tni->id == 'Z'){
+        synth = SIGSTOP;
       }else if(tni->id == '\\'){
         synth = SIGQUIT;
       }
@@ -504,15 +511,6 @@ load_ncinput(inputctx* ictx, ncinput *tni){
   if(ictx->drain || ictx->stdineof){
     send_synth_signal(synth);
     return;
-  }
-  if(tni->modifiers & (NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT)){
-    // when ctrl/shift are used with an ASCII (0..127) lowercase letter, always
-    // supply the capitalized form, to maintain compatibility among solutions.
-    if(tni->id < 0x7f){
-      if(islower(tni->id)){
-        tni->id = toupper(tni->id);
-      }
-    }
   }
   pthread_mutex_lock(&ictx->ilock);
   if(ictx->ivalid == ictx->isize){
