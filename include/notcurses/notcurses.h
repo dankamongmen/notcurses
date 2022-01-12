@@ -1130,6 +1130,13 @@ nckey_mouse_p(uint32_t r){
   return r >= NCKEY_MOTION && r <= NCKEY_BUTTON11;
 }
 
+typedef enum {
+  NCTYPE_UNKNOWN,
+  NCTYPE_PRESS,
+  NCTYPE_REPEAT,
+  NCTYPE_RELEASE,
+} ncintype_e;
+
 // An input event. Cell coordinates are currently defined only for mouse
 // events. It is not guaranteed that we can set the modifiers for a given
 // ncinput. We encompass single Unicode codepoints, not complete EGCs.
@@ -1143,12 +1150,7 @@ typedef struct ncinput {
   bool shift;        // was shift held?
   bool ctrl;         // was ctrl held?
   // END DEPRECATION
-  enum {
-    NCTYPE_UNKNOWN,
-    NCTYPE_PRESS,
-    NCTYPE_REPEAT,
-    NCTYPE_RELEASE,
-  } evtype;
+  ncintype_e evtype;
   unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
@@ -1193,19 +1195,28 @@ ncinput_numlock_p(const ncinput* n){
   return (n->modifiers & NCKEY_MOD_NUMLOCK);
 }
 
-// compare two ncinput structs for data equality.
+// compare two ncinput structs for data equality. NCTYPE_PRESS and
+// NCTYPE_UNKNOWN are considered to be equivalent.
 static inline bool
 ncinput_equal_p(const ncinput* n1, const ncinput* n2){
+  // don't need to check ->utf8; it's derived from id
   if(n1->id != n2->id){
     return false;
   }
   if(n1->y != n2->y || n1->x != n2->x){
     return false;
   }
-  if(n1->alt != n2->alt || n1->shift != n2->shift || n1->ctrl != n2->ctrl){
+  // don't need to check deprecated alt, ctrl, shift
+  if(n1->modifiers != n2->modifiers){
     return false;
   }
   if(n1->evtype != n2->evtype){
+    if((n1->evtype != NCTYPE_UNKNOWN && n1->evtype != NCTYPE_PRESS) ||
+       (n2->evtype != NCTYPE_UNKNOWN && n2->evtype != NCTYPE_PRESS)){
+      return false;
+    }
+  }
+  if(n1->ypx != n2->ypx || n1->xpx != n2->xpx){
     return false;
   }
   return true;

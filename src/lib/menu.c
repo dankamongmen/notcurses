@@ -92,10 +92,10 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
     return 0;
   }
   size_t bytes = 1; // NUL terminator
-  if(src->shortcut.alt){
+  if(ncinput_alt_p(&src->shortcut)){
     bytes += strlen(ALTMOD);
   }
-  if(src->shortcut.ctrl){
+  if(ncinput_ctrl_p(&src->shortcut)){
     bytes += strlen(CTLMOD);
   }
   mbstate_t ps;
@@ -107,8 +107,8 @@ dup_menu_item(ncmenu_int_item* dst, const struct ncmenu_item* src){
   }
   bytes += shortsize + 1;
   char* sdup = malloc(bytes);
-  int n = snprintf(sdup, bytes, "%s%s", src->shortcut.alt ? ALTMOD : "",
-                   src->shortcut.ctrl ? CTLMOD : "");
+  int n = snprintf(sdup, bytes, "%s%s", ncinput_alt_p(&src->shortcut) ? ALTMOD : "",
+                   ncinput_ctrl_p(&src->shortcut) ? CTLMOD : "");
   if(n < 0 || (size_t)n >= bytes){
     free(sdup);
     free(dst->desc);

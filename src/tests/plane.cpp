@@ -883,7 +883,7 @@ TEST_CASE("Plane") {
     REQUIRE(n);
     ncinput ni{};
     ni.id = NCKEY_BUTTON1;
-    ni.evtype = ncinput::NCTYPE_RELEASE;
+    ni.evtype = ncpp::EvType::Release;
     int total = 0;
     for(ni.y = 0 ; ni.y < 5 ; ++ni.y){
       for(ni.x = 0 ; ni.x < 5 ; ++ni.x){

@@ -14,23 +14,31 @@ notcurses_input - input via notcurses
 struct timespec;
 struct notcurses;
 
+typedef enum {
+  NCTYPE_UNKNOWN,
+  NCTYPE_PRESS,
+  NCTYPE_REPEAT,
+  NCTYPE_RELEASE,
+} ncintype_e;
+
+// An input event. Cell coordinates are currently defined only for mouse
+// events. It is not guaranteed that we can set the modifiers for a given
+// ncinput. We encompass single Unicode codepoints, not complete EGCs.
+// FIXME for abi4, combine the bools into |modifiers|
 typedef struct ncinput {
-  uint32_t id;     // Unicode codepoint
-  int y;           // Y cell coordinate of event, -1 for undefined
-  int x;           // X cell coordinate of event, -1 for undefined
-  char utf8[5];    // utf8 representation, when one exists
-  bool alt;        // Was Alt held during the event?
-  bool shift;      // Was Shift held during the event?
-  bool ctrl;       // Was Ctrl held during the event?
-  enum {
-    EVTYPE_UNKNOWN,
-    EVTYPE_PRESS,
-    EVTYPE_REPEAT,
-    EVTYPE_RELEASE,
-  } evtype;
-  int ypx, xpx;    // pixel offsets within cell, -1 for undefined
-  unsigned modifiers;
+  uint32_t id;       // Unicode codepoint or synthesized NCKEY event
+  int y, x;          // y/x cell coordinate of event, -1 for undefined
+  char utf8[5];      // utf8 representation, if one exists
+  // DEPRECATED do not use! going away in 4.0
+  bool alt;          // was alt held?
+  bool shift;        // was shift held?
+  bool ctrl;         // was ctrl held?
+  // END DEPRECATION
+  ncintype_e evtype;
+  unsigned modifiers;// bitmask over NCKEY_MOD_*
+  int ypx, xpx;      // pixel offsets within cell, -1 for undefined
 } ncinput;
+
 
 #define NCMICE_NO_EVENTS     0
 #define NCMICE_MOVE_EVENT    0x1
@@ -51,7 +59,7 @@ typedef struct ncinput {
 
 **uint32_t notcurses_get_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**int cnotcurses_mice_enable(struct notcurses* ***n***, unsigned ***eventmask***);**
+**int notcurses_mice_enable(struct notcurses* ***n***, unsigned ***eventmask***);**
 
 **int notcurses_mice_disable(struct notcurses* ***n***);**
 
@@ -70,6 +78,10 @@ typedef struct ncinput {
 **bool ncinput_alt_p(const struct ncinput* ***n***);**
 
 **bool ncinput_meta_p(const struct ncinput* ***n***);**
+
+**bool ncinput_super_p(const struct ncinput* ***n***);**
+
+**bool ncinput_hyper_p(const struct ncinput* ***n***);**
 
 # DESCRIPTION
 
@@ -102,7 +114,9 @@ be called without the possibility of blocking.
 
 **ncinput_equal_p** compares two **ncinput** structs for data equality (i.e.
 not considering padding), returning **true** if they represent the same
-input (though not necessarily the same input event).
+input (though not necessarily the same input event). Note that
+**NCTYPE_UNKNOWN** and **NCTYPE_PRESS** are considered equivalent for the
+purposes of **ncinput_equal_p**.
 
 **notcurses_linesigs_disable** disables conversion of inputs **INTR**, **QUIT**,
 **SUSP**, and **DSUSP** into **SIGINT**, **SIGQUIT**, and **SIGTSTP**. These

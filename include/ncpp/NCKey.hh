@@ -136,10 +136,10 @@ namespace ncpp
 
 	struct EvType
 	{
-		static constexpr unsigned Unknown = ncinput::NCTYPE_UNKNOWN;
-		static constexpr unsigned Press = ncinput::NCTYPE_PRESS;
-		static constexpr unsigned Repeat = ncinput::NCTYPE_REPEAT;
-		static constexpr unsigned Release = ncinput::NCTYPE_RELEASE;
+		static constexpr ncintype_e Unknown = NCTYPE_UNKNOWN;
+		static constexpr ncintype_e Press = NCTYPE_PRESS;
+		static constexpr ncintype_e Repeat = NCTYPE_REPEAT;
+		static constexpr ncintype_e Release = NCTYPE_RELEASE;
 	};
 
 }
