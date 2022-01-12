@@ -133,34 +133,33 @@ prep_xtmodkeys(inputctx* ictx){
   static const struct {
     const char* esc;
     uint32_t key;
-    bool shift, ctrl, alt;
     unsigned modifiers;
   } keys[] = {
-    { .esc = "\x1b\x8", .key = NCKEY_BACKSPACE, .alt = 1,
+    { .esc = "\x1b\x8", .key = NCKEY_BACKSPACE,
       .modifiers = NCKEY_MOD_ALT, },
-    { .esc = "\x1b[2P", .key = NCKEY_F01, .shift = 1,
+    { .esc = "\x1b[2P", .key = NCKEY_F01,
       .modifiers = NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[5P", .key = NCKEY_F01, .ctrl = 1,
+    { .esc = "\x1b[5P", .key = NCKEY_F01,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[6P", .key = NCKEY_F01, .ctrl = 1, .shift = 1,
+    { .esc = "\x1b[6P", .key = NCKEY_F01,
       .modifiers = NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[2Q", .key = NCKEY_F02, .shift = 1,
+    { .esc = "\x1b[2Q", .key = NCKEY_F02,
       .modifiers = NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[5Q", .key = NCKEY_F02, .ctrl = 1,
+    { .esc = "\x1b[5Q", .key = NCKEY_F02,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[6Q", .key = NCKEY_F02, .ctrl = 1, .shift = 1,
+    { .esc = "\x1b[6Q", .key = NCKEY_F02,
       .modifiers = NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[2R", .key = NCKEY_F03, .shift = 1,
+    { .esc = "\x1b[2R", .key = NCKEY_F03,
       .modifiers = NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[5R", .key = NCKEY_F03, .ctrl = 1,
+    { .esc = "\x1b[5R", .key = NCKEY_F03,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[6R", .key = NCKEY_F03, .ctrl = 1, .shift = 1,
+    { .esc = "\x1b[6R", .key = NCKEY_F03,
       .modifiers = NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[2S", .key = NCKEY_F04, .shift = 1,
+    { .esc = "\x1b[2S", .key = NCKEY_F04,
       .modifiers = NCKEY_MOD_SHIFT, },
-    { .esc = "\x1b[5S", .key = NCKEY_F04, .ctrl = 1,
+    { .esc = "\x1b[5S", .key = NCKEY_F04,
       .modifiers = NCKEY_MOD_CTRL, },
-    { .esc = "\x1b[6S", .key = NCKEY_F04, .ctrl = 1, .shift = 1,
+    { .esc = "\x1b[6S", .key = NCKEY_F04,
       .modifiers = NCKEY_MOD_CTRL | NCKEY_MOD_SHIFT, },
     { .esc = NULL, .key = 0, },
   }, *k;
@@ -522,8 +521,16 @@ load_ncinput(inputctx* ictx, ncinput *tni){
   }
   ncinput* ni = ictx->inputs + ictx->iwrite;
   memcpy(ni, tni, sizeof(*tni));
+  // perform final normalizations
   if(ni->id == 0x7f || ni->id == 0x8){
     ni->id = NCKEY_BACKSPACE;
+  }else if(ni->id == '\n' || ni->id == '\r'){
+    ni->id = NCKEY_ENTER;
+  }else if(ni->id == ictx->backspace){
+    ni->id = NCKEY_BACKSPACE;
+  }else if(ni->id > 0 && ni->id <= 26 && ni->id != '\t'){
+    ni->id = ni->id + 'A' - 1;
+    ni->modifiers |= NCKEY_MOD_CTRL;
   }
   if(++ictx->iwrite == ictx->isize){
     ictx->iwrite = 0;
@@ -2178,9 +2185,8 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
 // if we don't have that much data, return 0 and read more. if we determine
 // an error, return -1 to consume 1 byte, restarting the UTF8 lex on the next
 // byte. on a valid UTF8 character, set up the ncinput and return its length.
-// FIXME probably want most of this in load_ncinput()
 static int
-process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni){
+process_input(const unsigned char* buf, int buflen, ncinput* ni){
   assert(1 <= buflen);
   memset(ni, 0, sizeof(*ni));
   const int cpointlen = utf8_codepoint_length(*buf);
@@ -2188,20 +2194,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
     logwarn("invalid UTF8 initiator on input (0x%02x)", *buf);
     return -1;
   }else if(cpointlen == 1){ // pure ascii can't show up mid-utf8-character
-    if(buf[0] == 0x7f || buf[0] == 0x8){ // ASCII del, treated as backspace
-      ni->id = NCKEY_BACKSPACE;
-    }else if(buf[0] == '\n' || buf[0] == '\r'){
-      ni->id = NCKEY_ENTER;
-    }else if(buf[0] > 0 && buf[0] <= 26 && buf[0] != '\t'){
-      if(buf[0] == ictx->backspace){
-        ni->id = NCKEY_BACKSPACE;
-      }else{
-        ni->id = buf[0] + 'A' - 1;
-        ni->ctrl = true;
-      }
-    }else{
-      ni->id = buf[0];
-    }
+    ni->id = buf[0];
     return 1;
   }
   if(cpointlen > buflen){
@@ -2226,7 +2219,7 @@ process_input(inputctx* ictx, const unsigned char* buf, int buflen, ncinput* ni)
 static int
 process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   ncinput ni;
-  int r = process_input(ictx, buf, buflen, &ni);
+  int r = process_input(buf, buflen, &ni);
   if(r > 0){
     load_ncinput(ictx, &ni);
   }else if(r < 0){
@@ -2236,13 +2229,14 @@ process_ncinput(inputctx* ictx, const unsigned char* buf, int buflen){
   return r;
 }
 
-// process as much bulk UTF-8 input as we can, knowing it to be free of control
-// sequences. anything not a valid UTF-8 character is dropped. a control
-// sequence will be chopped up and passed up (assuming it to be valid UTF-8).
+// handle redirected input (i.e. not from our connected terminal). process as
+// much bulk UTF-8 input as we can, knowing it to be free of control sequences.
+// anything not a valid UTF-8 character is dropped.
 static void
 process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
   while(*bufused){
+    // FIXME insert fix here
     int consumed = process_ncinput(ictx, buf + offset, *bufused);
     if(consumed <= 0){
       break;
@@ -2250,7 +2244,6 @@ process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
     *bufused -= consumed;
     offset += consumed;
   }
-  handoff_initial_responses_late(ictx);
   // move any leftovers to the front
   if(*bufused){
     memmove(buf, buf + offset, *bufused);
@@ -2443,6 +2436,7 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
       }else if(pfds[pfdcount].fd == ictx->termfd){
         *rtfd = 1;
       }else if(pfds[pfdcount].fd == ictx->ipipes[0]){
+        // do nothing
       }
       --events;
     }
