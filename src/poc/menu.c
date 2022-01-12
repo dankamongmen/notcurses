@@ -69,30 +69,30 @@ int main(void){
   }
   notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT);
   struct ncmenu_item demo_items[] = {
-    { .desc = "Restart", .shortcut = { .id = 'r', .ctrl = true, }, },
-    { .desc = "Disabled", .shortcut = { .id = 'd', .ctrl = false, }, },
+    { .desc = "Restart", .shortcut = { .id = 'r', .modifiers = NCKEY_MOD_CTRL, }, },
+    { .desc = "Disabled", .shortcut = { .id = 'd', }, },
   };
   struct ncmenu_item file_items[] = {
-    { .desc = "New", .shortcut = { .id = 'n', .ctrl = true, }, },
-    { .desc = "Open", .shortcut = { .id = 'o', .ctrl = true, }, },
-    { .desc = "Close", .shortcut = { .id = 'c', .ctrl = true, }, },
+    { .desc = "New", .shortcut = { .id = 'n', .modifiers = NCKEY_MOD_CTRL, }, },
+    { .desc = "Open", .shortcut = { .id = 'o', .modifiers = NCKEY_MOD_CTRL, }, },
+    { .desc = "Close", .shortcut = { .id = 'c', .modifiers = NCKEY_MOD_CTRL, }, },
     { .desc = NULL, },
     { .desc = "Quit", .shortcut = { .id = 'q', }, },
   };
   struct ncmenu_item help_items[] = {
-    { .desc = "About", .shortcut = { .id = 'a', .ctrl = true, }, },
+    { .desc = "About", .shortcut = { .id = 'a', .modifiers = NCKEY_MOD_CTRL, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "Schwarzgerät", .items = demo_items,
       .itemcount = sizeof(demo_items) / sizeof(*demo_items),
-      .shortcut = { .id = 0x00e4, .alt = true, }, },
+      .shortcut = { .id = 0x00e4, .modifiers = NCKEY_MOD_ALT, }, },
     { .name = "File", .items = file_items,
       .itemcount = sizeof(file_items) / sizeof(*file_items),
-      .shortcut = { .id = 'f', .alt = true, }, },
+      .shortcut = { .id = 'f', .modifiers = NCKEY_MOD_ALT, }, },
     { .name = NULL, .items = NULL, .itemcount = 0, },
     { .name = "Help", .items = help_items,
       .itemcount = sizeof(help_items) / sizeof(*help_items),
-      .shortcut = { .id = 'h', .alt = true, }, },
+      .shortcut = { .id = 'h', .modifiers = NCKEY_MOD_ALT, }, },
   };
   ncmenu_options mopts;
   memset(&mopts, 0, sizeof(mopts));

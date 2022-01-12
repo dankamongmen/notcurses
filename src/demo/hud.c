@@ -255,37 +255,37 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     return false;
   }
   // toggle the HUD
-  if(tmpni.id == 'H' && !tmpni.alt && !tmpni.ctrl){
+  if(tmpni.id == 'H' && !ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
     hud_toggle(nc);
     return true;
   }
-  if(tmpni.id == 'P' && !tmpni.alt && !tmpni.ctrl){
+  if(tmpni.id == 'P' && !ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
     fpsplot_toggle(nc);
     return true;
   }
-  if(tmpni.id == 'U' && !tmpni.alt && tmpni.ctrl){
+  if(tmpni.id == 'U' && !ncinput_alt_p(&tmpni) && ncinput_ctrl_p(&tmpni)){
     about_toggle(nc);
     return true;
   }
-  if(tmpni.id == 'd' && tmpni.alt && !tmpni.ctrl){
+  if(tmpni.id == 'd' && ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
     debug_toggle(nc);
     return true;
   }
-  if(tmpni.id == 'L' && !tmpni.alt && tmpni.ctrl){
+  if(tmpni.id == 'L' && !ncinput_alt_p(&tmpni) && ncinput_ctrl_p(&tmpni)){
     if(menu){
       ncmenu_rollup(menu);
     }
     notcurses_refresh(nc, NULL, NULL);
     return true;
   }
-  if(tmpni.id == 'R' && !tmpni.alt && tmpni.ctrl){
+  if(tmpni.id == 'R' && !ncinput_alt_p(&tmpni) && ncinput_ctrl_p(&tmpni)){
     if(menu){
       ncmenu_rollup(menu);
     }
     interrupt_and_restart_demos();
     return true;
   }
-  if(tmpni.id == 'q' && !tmpni.alt && !tmpni.ctrl){
+  if(tmpni.id == 'q' && !ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
     if(menu){
       ncmenu_rollup(menu);
     }
@@ -305,23 +305,23 @@ struct ncmenu* menu_create(struct notcurses* nc){
   struct ncmenu_item demo_items[] = {
     { .desc = MENUSTR_TOGGLE_HUD, .shortcut = { .id = 'H', }, },
     { .desc = MENUSTR_TOGGLE_PLOT, .shortcut = { .id = 'P', }, },
-    { .desc = MENUSTR_REDRAW_SCREEN, .shortcut = { .id = 'L', .ctrl = true }, },
+    { .desc = MENUSTR_REDRAW_SCREEN, .shortcut = { .id = 'L', .modifiers = NCKEY_MOD_CTRL }, },
     { .desc = NULL, },
-    { .desc = MENUSTR_RESTART, .shortcut = { .id = 'R', .ctrl = true, }, },
+    { .desc = MENUSTR_RESTART, .shortcut = { .id = 'R', .modifiers = NCKEY_MOD_CTRL, }, },
     { .desc = MENUSTR_QUIT, .shortcut = { .id = 'q', }, },
   };
   struct ncmenu_item help_items[] = {
-    { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'U', .ctrl = true, }, },
-    { .desc = MENUSTR_DEBUG, .shortcut = { .id = 'd', .alt = true, }, },
+    { .desc = MENUSTR_ABOUT, .shortcut = { .id = 'U', .modifiers = NCKEY_MOD_CTRL, }, },
+    { .desc = MENUSTR_DEBUG, .shortcut = { .id = 'd', .modifiers = NCKEY_MOD_ALT, }, },
   };
   struct ncmenu_section sections[] = {
     { .name = "notcurses-demo", .items = demo_items,
       .itemcount = sizeof(demo_items) / sizeof(*demo_items),
-      .shortcut = { .id = 'o', .alt = true, }, },
+      .shortcut = { .id = 'o', .modifiers = NCKEY_MOD_ALT, }, },
     { .name = NULL, .items = NULL, .itemcount = 0, },
     { .name = "help", .items = help_items,
       .itemcount = sizeof(help_items) / sizeof(*help_items),
-      .shortcut = { .id = 'h', .alt = true, }, },
+      .shortcut = { .id = 'h', .modifiers = NCKEY_MOD_ALT, }, },
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
