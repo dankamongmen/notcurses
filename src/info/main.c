@@ -139,7 +139,7 @@ emoji_viz(struct ncplane* n){
                               "\U0001f3f4\u200d\u2620\ufe0f" // pirate flag
                               "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f" // type-3 woman playing water polo
                               ;
-  ncplane_set_bg_rgb(n, 0);
+  ncplane_set_bg_default(n);
   size_t bytes;
   for(const char* e = emoji ; *e ; e += bytes){
     if(ncplane_putegc(n, e, &bytes) < 0){
@@ -325,10 +325,10 @@ unicodedumper(struct ncplane* n, const char* indent){
     unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
     uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xd8, 0x8E);
-    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0x18, 0x8E);
+    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0xf8, 0x8E);
     uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
     uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
-    ncplane_stain(n, y - 16, 0, 16, 80, ul, ur, ll, lr);
+    ncplane_stain(n, y - 16, 0, 15, 80, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 12, 55);
     wviz(n, L"🯁🯂🯃https://notcurses.com");
