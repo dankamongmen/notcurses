@@ -16,7 +16,7 @@ There are no submodules. Dependencies are fairly minimal.
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libdeflate-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libdeflate-dev libgpm-dev libunibilium-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `libavformat-dev`, `libavutil-dev`, and `libswscale-dev` from this
@@ -32,7 +32,7 @@ If you want to build the Python wrappers, you'll also need:
 
 Install build dependencies:
 
-`dnf install cmake doctest-devel libdeflate-devel ncurses-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
+`dnf install cmake doctest-devel libdeflate-devel unibilium-devel gpm-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `OpenImageIO-devel`. If you're building outside Fedora Core (e.g. with
@@ -44,7 +44,7 @@ substitute for `libdeflate-devel`; build with `-DUSE_DEFLATE=off` in this case.
 
 Install build dependencies:
 
-`pkg install archivers/libdeflate devel/ncurses multimedia/ffmpeg graphics/qr-code-generator devel/libunistring`
+`pkg install archivers/libdeflate devel/unibilium multimedia/ffmpeg graphics/qr-code-generator devel/libunistring`
 
 If you only intend to build core Notcurses (without multimedia support), you
 can omit `multimedia/ffmpeg`. If you do not want to deflate Kitty graphics,
@@ -58,7 +58,7 @@ Building on Windows requires [MSYS2](https://www.msys2.org/) in its
 64-bit Universal C Runtime (UCRT) incarnation. This builds native Windows DLLs
 and EXEs, though it does not use Visual Studio. Install build dependencies:
 
-`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-libdeflate mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-ncurses mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-openimageio mingw-w64-ucrt-x86_64-toolchain`
+`pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-libdeflate mingw-w64-ucrt-x86_64-libunistring mingw-w64-ucrt-x86_64-unibilium mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-openimageio mingw-w64-ucrt-x86_64-toolchain`
 
 Note that on Windows, OpenImageIO is (at the moment) recommended over FFmpeg.
 

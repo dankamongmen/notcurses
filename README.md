@@ -53,7 +53,7 @@ Specification. For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, Notcurses is not a drop-in Curses replacement.
 
-Wherever possible, Notcurses makes use of the Terminfo library shipped with
+Wherever possible, Notcurses makes use of the Terminfo database shipped with
 NCURSES, benefiting greatly from its portability and thoroughness.
 
 Notcurses opens up advanced functionality for the interactive user on
@@ -108,7 +108,7 @@ may well be possible to use still older versions. Let me know of any successes!
 
 * (build) CMake 3.14.0+ and a C11 compiler
 * (OPTIONAL) (OpenImageIO, testing, C++ bindings): A C++17 compiler
-* (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
+* (build+runtime) From [Neovim](https://github.com/neovim/unibilium): unibilium 2.1.0+
 * (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
 * (OPTIONAL) (build+runtime) [libgpm](https://www.nico.schottelius.org/software/gpm/) 1.20+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
