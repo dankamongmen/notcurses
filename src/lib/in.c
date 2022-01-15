@@ -1841,6 +1841,7 @@ static inline inputctx*
 create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                 int bmargin, ncsharedstats* stats, unsigned drain,
                 int linesigs_enabled){
+  bool sent_queries = (ti->ttyfd >= 0) ? true : false;
   inputctx* i = malloc(sizeof(*i));
   if(i){
     i->csize = 64;
@@ -1860,14 +1861,20 @@ create_inputctx(tinfo* ti, FILE* infp, int lmargin, int tmargin, int rmargin,
                           if(set_fd_nonblocking(i->stdinfd, 1, &ti->stdio_blocking_save) == 0){
                             i->termfd = tty_check(i->stdinfd) ? -1 : get_tty_fd(infp);
                             memset(i->initdata, 0, sizeof(*i->initdata));
-                            i->coutstanding = 1; // one in initial request set
-                            i->initdata->qterm = ti->qterm;
-                            i->initdata->cursory = -1;
-                            i->initdata->cursorx = -1;
-                            i->initdata->maxpaletteread = -1;
+                            if(sent_queries){
+                              i->coutstanding = 1; // one in initial request set
+                              i->initdata->qterm = ti->qterm;
+                              i->initdata->cursory = -1;
+                              i->initdata->cursorx = -1;
+                              i->initdata->maxpaletteread = -1;
+                              i->initdata->kbdlevel = UINT_MAX;
+                            }else{
+                              free(i->initdata);
+                              i->initdata = NULL;
+                              i->coutstanding = 0;
+                            }
                             i->iread = i->iwrite = i->ivalid = 0;
                             i->cread = i->cwrite = i->cvalid = 0;
-                            i->initdata->kbdlevel = UINT_MAX;
                             i->initdata_complete = NULL;
                             i->stats = stats;
                             i->ti = ti;
