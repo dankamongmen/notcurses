@@ -267,7 +267,7 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     about_toggle(nc);
     return true;
   }
-  if(tmpni.id == 'd' && ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
+  if(tmpni.id == 'd' && ncinput_alt_p(&tmpni)){
     debug_toggle(nc);
     return true;
   }
@@ -285,7 +285,7 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
     interrupt_and_restart_demos();
     return true;
   }
-  if(tmpni.id == 'q' && !ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
+  if(tmpni.id == 'q' && !ncinput_alt_p(&tmpni)){
     if(menu){
       ncmenu_rollup(menu);
     }
