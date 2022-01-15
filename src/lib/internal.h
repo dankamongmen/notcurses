@@ -1077,6 +1077,8 @@ int ncvisual_blit_internal(const struct ncvisual* ncv, int rows, int cols,
                            ncplane* n, const struct blitset* bset,
                            const blitterargs* bargs);
 
+// if fd < 0, blocking_write() is going to emit an EBADF, so we don't
+// bother checking it here explicitly.
 static inline int
 tty_emit(const char* seq, int fd){
   if(!seq){
