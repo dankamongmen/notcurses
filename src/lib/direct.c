@@ -200,7 +200,10 @@ cursor_yx_get(ncdirect* n, const char* u7, unsigned* y, unsigned* x){
   if(x == NULL){
     x = &fakex;
   }
-  get_cursor_location(ictx, u7, y, x);
+  if(get_cursor_location(ictx, u7, y, x)){
+    logerror("couldn't get cursor position");
+    return -1;
+  }
   loginfo("cursor at y=%u x=%u\n", *y, *x);
   return 0;
 }
