@@ -13,9 +13,12 @@ int main(void){
   while((i = ncdirect_get_blocking(n, &ni)) != (uint32_t)-1){
     unsigned char utf8[5] = {0};
     notcurses_ucs32_to_utf8(&i, 1, utf8, sizeof(utf8));
-    printf("Read input: [%c%c%c] %s\n", ni.ctrl ? 'C' : 'c',
-           ni.alt ? 'A' : 'a', ni.shift ? 'S' : 's', utf8);
-    if(ni.ctrl && i == 'D'){
+    printf("Read input: [%c%c%c] %s\n",
+           ncinput_ctrl_p(&ni) ? 'C' : 'c',
+           ncinput_alt_p(&ni) ? 'A' : 'a',
+           ncinput_shift_p(&ni) ? 'S' : 's',
+           utf8);
+    if(ncinput_ctrl_p(&ni) && i == 'D'){
       break;
     }
   }

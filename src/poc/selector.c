@@ -40,7 +40,11 @@ run_selector(struct notcurses* nc, struct ncselector* ns){
       }
       switch(keypress){
         case NCKEY_ENTER: ncselector_destroy(ns, NULL); return;
-        case 'M': case 'J': if(ni.ctrl){ ncselector_destroy(ns, NULL); return; }
+        case 'M': case 'J':
+          if(ncinput_ctrl_p(&ni)){
+            ncselector_destroy(ns, NULL);
+            return;
+          }
       }
       if(keypress == 'q'){
         break;
