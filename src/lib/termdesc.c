@@ -1112,6 +1112,101 @@ do_terminfo_lookups(tinfo *ti, size_t* tablelen, size_t* tableused){
   return 0;
 }
 
+// handle any terminal query responses.
+static int
+handle_responses(tinfo* ti, size_t* tablelen, size_t* tableused,
+                 int* cursor_y, int* cursor_x, unsigned draininput,
+                 unsigned* kitty_graphics){
+  struct initial_responses* iresp;
+  if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
+    goto err;
+  }
+  if(ti->termversion){
+    free(iresp->version);
+  }else{
+    ti->termversion = iresp->version; // takes ownership
+  }
+  if(iresp->appsync_supported){
+    if(add_appsync_escapes_sm(ti, tablelen, tableused)){
+      free(iresp->hpa);
+      goto err;
+    }
+  }
+  if(iresp->hpa){
+    if(grow_esc_table(ti, iresp->hpa, ESCAPE_HPA, tablelen, tableused)){
+      free(iresp->hpa);
+      goto err;
+    }
+    free(iresp->hpa);
+  }
+  if((ti->kbdlevel = iresp->kbdlevel) == UINT_MAX){
+    ti->kbdlevel = 0;
+    if(!draininput){
+      if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
+        goto err;
+      }
+    }
+  }else{
+    ti->kittykbdsupport = true;
+  }
+  if(iresp->qterm != TERMINAL_UNKNOWN){
+    ti->qterm = iresp->qterm;
+  }
+  *cursor_y = iresp->cursory;
+  *cursor_x = iresp->cursorx;
+  if(iresp->dimy && iresp->dimx){
+    // FIXME probably oughtn't be setting the defaults, as this is just some
+    // random transient measurement?
+    ti->default_rows = iresp->dimy;
+    ti->default_cols = iresp->dimx;
+    ti->dimy = iresp->dimy;
+    ti->dimx = iresp->dimx;
+  }
+  if(iresp->maxpaletteread >= 0){
+    memcpy(ti->originalpalette.chans, iresp->palette.chans,
+            sizeof(*ti->originalpalette.chans) * (iresp->maxpaletteread + 1));
+    ti->maxpaletteread = iresp->maxpaletteread;
+  }
+  if(iresp->rgb){
+    ti->caps.rgb = true;
+  }
+  if(iresp->pixy && iresp->pixx){
+    ti->pixy = iresp->pixy;
+    ti->pixx = iresp->pixx;
+  }
+  if(ti->default_rows && ti->default_cols){
+    ti->cellpxy = ti->pixy / ti->default_rows;
+    ti->cellpxx = ti->pixx / ti->default_cols;
+  }
+  if(iresp->got_bg){
+    // reset the 0xfe000000 we loaded during initialization. if we're
+    // kitty, we'll add the 0x01000000 in during heuristics.
+    ti->bg_collides_default = iresp->bg;
+  }
+  if(iresp->got_fg){
+    ti->fg_default = iresp->fg;
+  }
+  // kitty trumps sixel, when both are available
+  if((*kitty_graphics = iresp->kitty_graphics) == 0){
+    ti->color_registers = iresp->color_registers;
+    ti->sixel_maxy_pristine = iresp->sixely;
+    ti->sixel_maxy = iresp->sixely;
+    ti->sixel_maxx = iresp->sixelx;
+  }
+  ti->pixelmice = iresp->pixelmice;
+  if(iresp->rectangular_edits){
+    if(grow_esc_table(ti, "\x1b[%p1%d;%p2%d;%p3%d;$z", ESCAPE_DECERA, tablelen, tableused)){
+      goto err;
+    }
+  }
+  free(iresp);
+  return 0;
+
+err:
+  free(iresp);
+  return -1;
+}
+
 // if |termtype| is not NULL, it is used to look up the terminfo database entry
 // via setupterm(). the value of the TERM environment variable is otherwise
 // (implicitly) used. some details are not exposed via terminfo, and we must
@@ -1295,91 +1390,10 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   }
   unsigned kitty_graphics = 0;
   if(ti->ttyfd >= 0){
-    struct initial_responses* iresp;
-    if((iresp = inputlayer_get_responses(ti->ictx)) == NULL){
+    if(handle_responses(ti, &tablelen, &tableused, cursor_y, cursor_x,
+                        draininput, &kitty_graphics)){
       goto err;
     }
-    if(ti->termversion){
-      free(iresp->version);
-    }else{
-      ti->termversion = iresp->version; // takes ownership
-    }
-    if(iresp->appsync_supported){
-      if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-        free(iresp->hpa);
-        free(iresp);
-        goto err;
-      }
-    }
-    if(iresp->hpa){
-      if(grow_esc_table(ti, iresp->hpa, ESCAPE_HPA, &tablelen, &tableused)){
-        free(iresp->hpa);
-        goto err;
-      }
-      free(iresp->hpa);
-    }
-    if((ti->kbdlevel = iresp->kbdlevel) == UINT_MAX){
-      ti->kbdlevel = 0;
-      if(!draininput){
-        if(tty_emit(XTMODKEYS, ti->ttyfd) < 0){
-          free(iresp);
-          goto err;
-        }
-      }
-    }else{
-      ti->kittykbdsupport = true;
-    }
-    if(iresp->qterm != TERMINAL_UNKNOWN){
-      ti->qterm = iresp->qterm;
-    }
-    *cursor_y = iresp->cursory;
-    *cursor_x = iresp->cursorx;
-    if(iresp->dimy && iresp->dimx){
-      // FIXME probably oughtn't be setting the defaults, as this is just some
-      // random transient measurement?
-      ti->default_rows = iresp->dimy;
-      ti->default_cols = iresp->dimx;
-      ti->dimy = iresp->dimy;
-      ti->dimx = iresp->dimx;
-    }
-    if(iresp->maxpaletteread >= 0){
-      memcpy(ti->originalpalette.chans, iresp->palette.chans,
-             sizeof(*ti->originalpalette.chans) * (iresp->maxpaletteread + 1));
-      ti->maxpaletteread = iresp->maxpaletteread;
-    }
-    if(iresp->rgb){
-      ti->caps.rgb = true;
-    }
-    if(iresp->pixy && iresp->pixx){
-      ti->pixy = iresp->pixy;
-      ti->pixx = iresp->pixx;
-    }
-    if(ti->default_rows && ti->default_cols){
-      ti->cellpxy = ti->pixy / ti->default_rows;
-      ti->cellpxx = ti->pixx / ti->default_cols;
-    }
-    if(iresp->got_bg){
-      // reset the 0xfe000000 we loaded during initialization. if we're
-      // kitty, we'll add the 0x01000000 in during heuristics.
-      ti->bg_collides_default = iresp->bg;
-    }
-    if(iresp->got_fg){
-      ti->fg_default = iresp->fg;
-    }
-    // kitty trumps sixel, when both are available
-    if((kitty_graphics = iresp->kitty_graphics) == 0){
-      ti->color_registers = iresp->color_registers;
-      ti->sixel_maxy_pristine = iresp->sixely;
-      ti->sixel_maxy = iresp->sixely;
-      ti->sixel_maxx = iresp->sixelx;
-    }
-    ti->pixelmice = iresp->pixelmice;
-    if(iresp->rectangular_edits){
-      if(grow_esc_table(ti, "\x1b[%p1%d;%p2%d;%p3%d;$z", ESCAPE_DECERA, &tablelen, &tableused)){
-        goto err;
-      }
-    }
-    free(iresp);
     if(nocbreak){
       // FIXME do this in input later, upon signaling completion?
       if(tcsetattr(ti->ttyfd, TCSANOW, ti->tpreserved)){
