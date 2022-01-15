@@ -2053,10 +2053,14 @@ read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
   }
   ssize_t r = read(fd, buf + *bufused, space);
   if(r <= 0){
-    if(r < 0){
+    if(r < 0 && (errno != EAGAIN && errno != EBUSY && errno == EWOULDBLOCK)){
       logwarn("couldn't read from %d (%s)", fd, strerror(errno));
     }else{
-      logwarn("got EOF on %d", fd);
+      if(r < 0){
+        logerror("error reading from %d (%s)", fd, strerror(errno));
+      }else{
+        logwarn("got EOF on %d", fd);
+      }
       if(goteof){
         *goteof = 1;
       }
@@ -2475,6 +2479,7 @@ read_inputs_nblock(inputctx* ictx){
     unsigned eof = ictx->stdineof;
     read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
                       &ictx->ibufvalid, &ictx->stdineof);
+    // did we switch from non-EOF state to EOF? if so, mark us ready
     if(!eof && ictx->stdineof){
       // we hit EOF; write an event to the readiness fd
       mark_pipe_ready(ictx->readypipes);
