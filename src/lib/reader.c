@@ -372,12 +372,12 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   if(ni->evtype == NCTYPE_RELEASE){
     return false;
   }
-  if(ni->ctrl && !n->no_cmd_keys){
+  if(ncinput_ctrl_p(&ni) && !n->no_cmd_keys){
     return ncreader_ctrl_input(n, ni);
-  }else if(ni->alt && !n->no_cmd_keys){
+  }else if(ncinput_alt_p(&ni) && !n->no_cmd_keys){
     return ncreader_alt_input(n, ni);
   }
-  if(ni->alt || ni->ctrl){ // pass on all alts/ctrls if no_cmd_keys is set
+  if(ncinput_alt_p(&ni) || ncinput_ctrl_p(&ni)){ // pass on all alts/ctrls if no_cmd_keys is set
     return false;
   }
   if(ni->id == NCKEY_BACKSPACE){
