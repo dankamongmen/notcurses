@@ -310,13 +310,13 @@ int input_demo(ncpp::NotCurses* nc) {
     if(r == 0){ // interrupted by signal
       continue;
     }
-    if(((r == 'D' || r == 'd') && ni.ctrl) || r == NCKEY_EOF){
+    if((r == 'D' && ncinput_ctrl_p(&ni) || r == NCKEY_EOF){
       done = true;
       tid.join();
       ncuplot_destroy(plot);
       return 0;
     }
-    if((r == 'L' || r == 'l') && ni.ctrl){
+    if(r == 'L' && ncinput_ctrl_p(&ni)){
       mtx.lock();
         if(!nc->refresh(nullptr, nullptr)){
           mtx.unlock();
