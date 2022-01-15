@@ -2662,6 +2662,7 @@ int get_cursor_location(inputctx* ictx, const char* u7, unsigned* y, unsigned* x
   while(ictx->cvalid == 0){
     if(ictx->coutstanding == 0){
       if(tty_emit(u7, ictx->ti->ttyfd)){
+        pthread_mutex_unlock(&ictx->clock);
         return -1;
       }
       ++ictx->coutstanding;
