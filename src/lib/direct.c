@@ -1009,7 +1009,7 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
     if(ni.evtype == NCTYPE_RELEASE){
       continue;
     }
-    if(id == NCKEY_EOF || id == NCKEY_ENTER || (ncinput_ctrl_p(&ni) && id == 'd')){
+    if(id == NCKEY_EOF || id == NCKEY_ENTER || (ncinput_ctrl_p(&ni) && id == 'D')){
       if(id == NCKEY_ENTER){
         if(fputc('\n', n->ttyfp) < 0){
           free(str);
