@@ -1039,9 +1039,9 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
       wpos -= dimx;
     }else if(id == NCKEY_DOWN){
       wpos += dimx;
-    }else if(id == 'a' && ni.ctrl){
+    }else if(id == 'A' && ncinput_ctrl_p(&ni)){
       wpos = 1;
-    }else if(id == 'e' && ni.ctrl){
+    }else if(id == 'E' && ncinput_ctrl_p(&ni)){
       wpos = wused - 1;
     }else if(nckey_synthesized_p(ni.id)){
       continue;
