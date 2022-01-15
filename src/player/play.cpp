@@ -126,14 +126,14 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       return 0;
     }else if(keyp == ' '){ // space for unpause
       continue;
-    }else if(keyp == 'L' && ni.ctrl && !ni.alt){
+    }else if(keyp == 'L' && ncinput_ctrl_p(&ni) && !ncinput_alt_p(&ni)){
       nc.refresh(nullptr, nullptr);
       continue;
-    }else if(keyp >= '0' && keyp <= '6' && !ni.alt && !ni.ctrl){
+    }else if(keyp >= '0' && keyp <= '6' && !ncinput_alt_p(&ni) && !ncinput_ctrl_p(&ni)){
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
       continue;
-    }else if(keyp >= '7' && keyp <= '9' && !ni.alt && !ni.ctrl){
+    }else if(keyp >= '7' && keyp <= '9' && !ncinput_alt_p(&ni) && !ncinput_ctrl_p(&ni)){
       continue; // don't error out
     }else if(keyp == NCKey::Up){
       // FIXME move backwards significantly
