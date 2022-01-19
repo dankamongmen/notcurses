@@ -9,7 +9,7 @@
         <authors>nick black</authors>
         <projectUrl>https://notcurses.com</projectUrl>
         <license type="expression">Apache-2.0</license>
-        <copyright>copyright 2019–2021 nick black</copyright>
+        <copyright>copyright 2019–2022 nick black</copyright>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <repository type="git" url="https://github.com/dankamongmen/notcurses.git" />
         <tags>tui graphics cli</tags>
