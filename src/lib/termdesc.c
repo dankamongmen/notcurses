@@ -287,6 +287,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 }
 
 // prepared minimal queries for 256 palette indices "0".."255"
+// FIXME we only want to send as many as we have colors!
 #define PALETTEQUERY \
   "\x1b\x5d\x34\x3b\x30\x3b\x3f\x1b\x5c"\
   "\x1b\x5d\x34\x3b\x31\x3b\x3f\x1b\x5c"\
