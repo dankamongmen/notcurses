@@ -53,7 +53,7 @@ uint32_t esctrie_id(const esctrie* e){
 
 // returns the idx of the new node, or 0 on failure (idx is 1-biased).
 // *invalidates any existing escnode pointers!*
-static inline unsigned
+static unsigned
 create_esctrie_node(automaton* a, int special){
   if(a->poolused == a->poolsize){
     unsigned newsize = a->poolsize ? a->poolsize * 2 : 512;
@@ -221,7 +221,7 @@ link_kleene(automaton* a, esctrie* e, unsigned follow){
 
 // phase 1 of the numeric algorithm; find a φ node on e. not sure what
 // to do if we have non-φ links at every digit...punt for now FIXME.
-static inline unsigned
+static unsigned
 get_phi_node(automaton* a, esctrie* e){
   // find a linked NODE_NUMERIC, if one exists. we'll want to reuse it.
   int nonphis = 0;
@@ -257,7 +257,7 @@ get_phi_node(automaton* a, esctrie* e){
 }
 
 // phase 2 of the numeric algorithm; find a ή node for |successor| on |phi|.
-static inline unsigned
+static unsigned
 get_eta_node(automaton* a, esctrie* phi, unsigned successor){
   unsigned phiidx = esctrie_idx(a, phi);
   unsigned etaidx = phi->trie[successor];
@@ -275,7 +275,7 @@ get_eta_node(automaton* a, esctrie* phi, unsigned successor){
 
 // |e| is a known-standard node reached by our prefix; go ahead and prep both
 // phi and eta links from it.
-static inline void
+static void
 add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
                       unsigned follow, unsigned eta){
 //logtrace("working with %u phi: %u follow: %u eta: %u", esctrie_idx(a, e), phi, follow, eta);
@@ -300,7 +300,7 @@ add_phi_and_eta_chain(const automaton *a, esctrie* e, unsigned phi,
 // non-phi chains from those nodes) and linking them to phi, and finding all
 // nodes which are prefixes of eta (all numeric non-phi chains from the
 // previous set) and linking them to eta. |e| is the path thus far.
-static inline void
+static void
 add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
                         int pfxlen, esctrie* phi, unsigned follow,
                         esctrie* eta, unsigned inphi){
@@ -351,7 +351,7 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
 }
 
 // |prefix| does *not* lead with an escape, and does not include the numeric.
-static inline void
+static void
 add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
                 esctrie* phi, unsigned follow, esctrie* eta){
   esctrie* esc = esctrie_from_idx(a, a->escapes);
