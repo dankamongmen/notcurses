@@ -569,6 +569,8 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // enter the alternate screen (smcup). we could technically get this from
 // terminfo, but everyone who supports it supports it the same way, and we
 // need to send it before our other directives if we're going to use it.
+// we warn later in setup if what we get from terminfo doesn't match what
+// we sent here.
 #define SMCUP DECSET(SET_SMCUP)
 #define RMCUP DECRST(SET_SMCUP)
 
@@ -582,41 +584,38 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 static int
 send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
                      unsigned draininput){
-  const char *queries;
-  if(noaltscreen){
-    if(minimal){
-      if(draininput){
-        queries = DSRCPR DIRECTIVES;
-      }else{
-        queries = DSRCPR KKBDENTER DIRECTIVES;
-      }
-    }else{
-      if(draininput){
-        queries = DSRCPR IDQUERIES DIRECTIVES;
-      }else{
-        queries = DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
-      }
+  size_t total = 0;
+  // everything sends DSRCPR, and everything sends DIRECTIVES afterwards.
+  // we send KKBDENTER immediately before DIRECTIVES unless input is being
+  // drained. we send IDQUERIES unless minimal is set. we send SMCUP (as
+  // the first thing) unless noaltscreen is set.
+  if(!noaltscreen){
+    if(blocking_write(fd, SMCUP, strlen(SMCUP))){
+      return -1;
     }
-  }else{
-    if(minimal){
-      if(draininput){
-        queries = SMCUP DSRCPR DIRECTIVES;
-      }else{
-        queries = SMCUP DSRCPR KKBDENTER DIRECTIVES;
-      }
-    }else{
-      if(draininput){
-        queries = SMCUP DSRCPR IDQUERIES DIRECTIVES;
-      }else{
-        queries = SMCUP DSRCPR KKBDENTER IDQUERIES DIRECTIVES;
-      }
-    }
+    total += strlen(SMCUP);
   }
-  size_t len = strlen(queries);
-  loginfo("sending %lluB", (unsigned long long)len);
-  if(blocking_write(fd, queries, len)){
+  if(blocking_write(fd, DSRCPR, strlen(DSRCPR))){
     return -1;
   }
+  total += strlen(DSRCPR);
+  if(!draininput){
+    if(blocking_write(fd, KKBDENTER, strlen(KKBDENTER))){
+      return -1;
+    }
+    total += strlen(KKBDENTER);
+  }
+  if(!minimal){
+    if(blocking_write(fd, IDQUERIES, strlen(IDQUERIES))){
+      return -1;
+    }
+    total += strlen(IDQUERIES);
+  }
+  if(blocking_write(fd, DIRECTIVES, strlen(DIRECTIVES))){
+    return -1;
+  }
+  total += strlen(DIRECTIVES);
+  loginfo("sent %" PRIuPTR "B", total);
   return 0;
 }
 
