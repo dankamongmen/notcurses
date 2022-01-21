@@ -1219,7 +1219,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
           if((scstate == SPRIXCELL_MIXED_SIXEL || scstate == SPRIXCELL_OPAQUE_SIXEL)
              && !rvec[damageidx].s.p_beats_sprixel){
 //fprintf(stderr, "INVALIDATING at %d/%d (%u)\n", y, x, rvec[damageidx].s.p_beats_sprixel);
-            sprixel_invalidate(rvec[damageidx].sprixel, y, x);
+            sprixel_invalidate(rvec[damageidx].sprixel, y - nc->margin_t, x - nc->margin_l);
           }
         }
         if(term_putc(f, &nc->pool, srccell)){
