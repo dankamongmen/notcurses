@@ -1,6 +1,6 @@
 % ncplayer(1)
 % nick black <nickblack@linux.com>
-% v3.0.4
+% v3.0.5
 
 # NAME
 

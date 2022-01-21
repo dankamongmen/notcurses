@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.5 (not yet released)
+* 3.0.5 (2022-01-21)
   * The Hyper and Super modifiers are now supported. CapsLock and NumLock
     can further be disambiguated when using the Kitty protocol. The
     new functions `ncinput_super_p()` and friends have been added.
