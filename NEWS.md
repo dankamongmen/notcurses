@@ -11,6 +11,7 @@ rearrangements of Notcurses.
     shortucts using `modifiers`. Setting any of `alt`, `shift`, or
     `ctrl` will see `ncmenu_create()` fail.
   * `ncinput_equal_p()` considers `NCTYPE_UNKNOWN` equal to `NCTYPE_PRESS`.
+  * Added `ncpalette_get()` for orthogonality's sake.
 
 * 3.0.4 (2022-01-08)
   * We now use level 2 of `XTMODKEYS`, providing better differentiation

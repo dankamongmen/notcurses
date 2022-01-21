@@ -27,6 +27,8 @@ typedef struct ncpalette {
 
 **int ncpalette_set(ncpalette* ***p***, int ***idx***, unsigned ***rgb***);**
 
+**uint32_t ncpalette_get(const ncpalette* ***p***, int ***idx***);**
+
 **int ncpalette_get_rgb8(const ncpalette* ***p***, int ***idx***, int* restrict ***r***, int* restrict ***g***, int* restrict ***b***);**
 
 **void ncpalette_free(ncpalette* ***p***);**
