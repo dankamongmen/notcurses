@@ -53,12 +53,12 @@ jobs:
           cd build
           sudo make install
 
-      - name: python wrappers (old)
-        run: |
-          python3 -m pip install --upgrade pip
-          pip3 install cffi pypandoc
-          cd cffi
-          python3 setup.py sdist build
+          #- name: python wrappers (old)
+          #run: |
+          #python3 -m pip install --upgrade pip
+          #pip3 install cffi pypandoc
+          #cd cffi
+          #python3 setup.py sdist build
           #sudo python3 setup.py install
           #notcurses-pydemo > /dev/null
           #ncdirect-pydemo > /dev/null
