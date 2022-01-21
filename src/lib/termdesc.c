@@ -681,6 +681,202 @@ add_pushcolors_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
   return 0;
 }
 
+static const char*
+apply_kitty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
+  ti->bg_collides_default |= 0x1000000;
+  ti->caps.sextants = true; // work since bugfix in 0.19.3
+  ti->caps.quadrants = true;
+  ti->caps.rgb = true;
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
+  /*if(compare_versions(ti->termversion, "0.22.1") >= 0){
+    setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_SELFREF);
+  }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
+    setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
+    // XTPOPCOLORS didn't reliably work until a bugfix late in 0.23.1 (see
+    // https://github.com/kovidgoyal/kitty/issues/4351), so reprogram the
+    // font directly until we exceed that version.
+    if(compare_versions(ti->termversion, "0.23.1") > 0){
+      if(add_pushcolors_escapes(ti, tablelen, tableused)){
+        return NULL;
+      }
+    }
+  }else{
+    setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
+  }
+  // kitty SUM doesn't want long sequences, which is exactly where we use
+  // it. remove support (we pick it up from queries).
+  kill_appsync_escapes(ti);
+  ti->gratuitous_hpa = true;
+  return "Kitty";
+}
+
+static const char*
+apply_alacritty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
+                           bool* invertsixel){
+  ti->caps.quadrants = true;
+  // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409
+  ti->caps.rgb = true;
+  // Alacritty implements DCS ASU, but no detection for it
+  if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
+    return NULL;
+  }
+  if(compare_versions(ti->termversion, "0.15.1") < 0){
+    *invertsixel = true;
+  }
+  return "Alacritty";
+}
+
+static const char*
+apply_vte_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  ti->caps.quadrants = true;
+  ti->caps.sextants = true; // VTE has long enjoyed good sextant support
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
+  // VTE understands DSC ACU, but doesn't do anything with it; don't use it
+  return "VTE";
+}
+
+static const char*
+apply_foot_heuristics(tinfo* ti, bool* invertsixel){
+  ti->caps.sextants = true;
+  ti->caps.quadrants = true;
+  ti->caps.rgb = true;
+  if(compare_versions(ti->termversion, "1.8.2") < 0){
+    *invertsixel = true;
+  }
+  return "foot";
+}
+
+static const char*
+apply_gnuscreen_heuristics(tinfo* ti){
+  if(compare_versions(ti->termversion, "5.0") < 0){
+    ti->caps.rgb = false;
+  }
+  return "GNU screen";
+}
+
+static const char*
+apply_mlterm_heuristics(tinfo* ti){
+  ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
+  return "MLterm";
+}
+
+static const char*
+apply_wezterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  ti->caps.rgb = true;
+  ti->caps.quadrants = true;
+  if(ti->termversion && strcmp(ti->termversion, "20210610") >= 0){
+    ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return NULL;
+    }
+  }
+  return "WezTerm";
+}
+
+static const char*
+apply_xterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
+                       bool* invertsixel){
+  if(compare_versions(ti->termversion, "369") < 0){
+    *invertsixel = true; // xterm 369 inverted DECSDM
+  }
+  // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
+  if(compare_versions(ti->termversion, "357") >= 0){
+    if(add_pushcolors_escapes(ti, tablelen, tableused)){
+      return NULL;
+    }
+  }
+  return "XTerm";
+}
+
+static const char*
+apply_mintty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
+                        bool* invertsixel){
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
+  if(compare_versions(ti->termversion, "3.5.2") < 0){
+    *invertsixel = true;
+  }
+  ti->bce = true;
+  return "MinTTY";
+}
+
+static const char*
+apply_msterminal_heuristics(tinfo* ti){
+  ti->caps.rgb = true;
+  ti->caps.quadrants = true;
+  return "Windows ConHost";
+}
+
+static const char*
+apply_contour_heuristics(tinfo* ti, bool* invertsixel){
+  ti->caps.quadrants = true;
+  ti->caps.sextants = true;
+  ti->caps.rgb = true;
+  *invertsixel = true;
+  return "Contour";
+}
+
+static const char*
+apply_iterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // iTerm implements DCS ASU, but has no detection for it
+  if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
+    return NULL;
+  }
+  ti->caps.quadrants = true;
+  ti->caps.rgb = true;
+  return "iTerm2";
+}
+
+static const char*
+apply_rxvt_heuristics(tinfo* ti){
+  ti->caps.braille = false;
+  ti->caps.quadrants = true;
+  return "RXVT";
+}
+
+static const char*
+apply_terminology_heuristics(tinfo* ti){
+  ti->caps.rgb = false; // as of at least 1.9.0
+  ti->caps.quadrants = true;
+  return "Terminology";
+}
+
+static const char*
+apply_linux_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
+                       unsigned nonewfonts){
+#ifdef __linux__
+  const char* termname = NULL;
+  struct utsname un;
+  if(uname(&un) == 0){
+    ti->termversion = strdup(un.release);
+  }
+  if(is_linux_framebuffer(ti)){
+    termname = "FBcon";
+    setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
+  }else{
+    termname = "VT";
+  }
+  ti->caps.halfblocks = false;
+  ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+  if(ti->ttyfd >= 0){
+    reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks,
+                           &ti->caps.quadrants);
+  }
+  // assume no useful unicode drawing unless we're positively sure
+#else
+  (void)nonewfonts;
+#endif
+  (void)tablelen;
+  (void)tableused;
+  return termname;
+}
+
 // qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
 // in a more perfect world, this function would not exist, but this is a
 // regrettably imperfect world, and thus all manner of things are not maintained
@@ -705,157 +901,68 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
   ti->caps.halfblocks = true; // most everyone has working halfblocks
-  // FIXME clean this shit up; use a table for chrissakes
-  if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
-    termname = "Kitty";
-    // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
-    ti->bg_collides_default |= 0x1000000;
-    ti->caps.sextants = true; // work since bugfix in 0.19.3
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-    if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
-    /*if(compare_versions(ti->termversion, "0.22.1") >= 0){
-      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_SELFREF);
-    }else*/ if(compare_versions(ti->termversion, "0.20.0") >= 0){
-      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
-      // XTPOPCOLORS didn't reliably work until a bugfix late in 0.23.1 (see
-      // https://github.com/kovidgoyal/kitty/issues/4351), so reprogram the
-      // font directly until we exceed that version.
-      if(compare_versions(ti->termversion, "0.23.1") > 0){
-        if(add_pushcolors_escapes(ti, tablelen, tableused)){
-          return -1;
-        }
-      }
-    }else{
-      setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
-    }
-    // kitty SUM doesn't want long sequences, which is exactly where we use
-    // it. remove support (we pick it up from queries).
-    kill_appsync_escapes(ti);
-    ti->gratuitous_hpa = true;
-  }else if(qterm == TERMINAL_ALACRITTY){
-    termname = "Alacritty";
-    ti->caps.quadrants = true;
-    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409
-    ti->caps.rgb = true;
-    // Alacritty implements DCS ASU, but no detection for it
-    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
-      return -1;
-    }
-    if(compare_versions(ti->termversion, "0.15.1") < 0){
-      *invertsixel = true;
-    }
-  }else if(qterm == TERMINAL_VTE){
-    termname = "VTE";
-    ti->caps.quadrants = true;
-    ti->caps.sextants = true; // VTE has long enjoyed good sextant support
-    if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
-    // VTE understands DSC ACU, but doesn't do anything with it; don't use it
-  }else if(qterm == TERMINAL_FOOT){
-    termname = "foot";
-    ti->caps.sextants = true;
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-    if(compare_versions(ti->termversion, "1.8.2") < 0){
-      *invertsixel = true;
-    }
-  }else if(qterm == TERMINAL_TMUX){
-    termname = "tmux";
-    // FIXME what, oh what to do with tmux?
-  }else if(qterm == TERMINAL_GNUSCREEN){
-    termname = "GNU screen";
-    if(compare_versions(ti->termversion, "5.0") < 0){
-      ti->caps.rgb = false;
-    }
-  }else if(qterm == TERMINAL_MLTERM){
-    termname = "MLterm";
-    ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
-  }else if(qterm == TERMINAL_WEZTERM){
-    termname = "WezTerm";
-    ti->caps.rgb = true;
-    ti->caps.quadrants = true;
-    if(ti->termversion && strcmp(ti->termversion, "20210610") >= 0){
-      ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
-      if(add_smulx_escapes(ti, tablelen, tableused)){
-        return -1;
-      }
-    }
-  }else if(qterm == TERMINAL_XTERM){
-    termname = "XTerm";
-    if(compare_versions(ti->termversion, "369") < 0){
-      *invertsixel = true; // xterm 369 inverted DECSDM
-    }
-    // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
-    if(compare_versions(ti->termversion, "357") >= 0){
-      if(add_pushcolors_escapes(ti, tablelen, tableused)){
-        return -1;
-      }
-    }
-  }else if(qterm == TERMINAL_MINTTY){
-    termname = "MinTTY";
-    if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
-    if(compare_versions(ti->termversion, "3.5.2") < 0){
-      *invertsixel = true;
-    }
-    ti->bce = true;
-  }else if(qterm == TERMINAL_MSTERMINAL){
-    termname = "Windows ConHost";
-    ti->caps.rgb = true;
-    ti->caps.quadrants = true;
-  }else if(qterm == TERMINAL_CONTOUR){
-    termname = "Contour";
-    ti->caps.quadrants = true;
-    ti->caps.sextants = true;
-    ti->caps.rgb = true;
-    *invertsixel = true;
-  }else if(qterm == TERMINAL_ITERM){
-    termname = "iTerm2";
-    // iTerm implements DCS ASU, but has no detection for it
-    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
-      return -1;
-    }
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-  }else if(qterm == TERMINAL_RXVT){
-    ti->caps.braille = false;
-    ti->caps.quadrants = true;
-    termname = "RXVT";
-  }else if(qterm == TERMINAL_APPLE){
-    termname = "Terminal.app";
-    // no quadrants, no sextants, no rgb, but it does have braille
-#ifdef __linux__
-  }else if(qterm == TERMINAL_LINUX){
-    struct utsname un;
-    if(uname(&un) == 0){
-      ti->termversion = strdup(un.release);
-    }
-    if(is_linux_framebuffer(ti)){
-      termname = "FBcon";
-      setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
-    }else{
-      termname = "VT";
-    }
-    ti->caps.halfblocks = false;
-    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
-    if(ti->ttyfd >= 0){
-      reprogram_console_font(ti, nonewfonts, &ti->caps.halfblocks,
-                             &ti->caps.quadrants);
-    }
-    // assume no useful unicode drawing unless we're positively sure
-#else
-(void)nonewfonts;
-#endif
-  }else if(qterm == TERMINAL_TERMINOLOGY){
-    termname = "Terminology";
-    ti->caps.rgb = false; // as of at least 1.9.0
-    ti->caps.quadrants = true;
+  const char* newname = NULL;
+  switch(qterm){
+    case TERMINAL_KITTY:
+      newname = apply_kitty_heuristics(ti, tablelen, tableused);
+      break;
+    case TERMINAL_ALACRITTY:
+      newname = apply_alacritty_heuristics(ti, tablelen, tableused, invertsixel);
+      break;
+    case TERMINAL_VTE:
+      newname = apply_vte_heuristics(ti, tablelen, tableused);
+      break;
+    case TERMINAL_FOOT:
+      newname = apply_foot_heuristics(ti, invertsixel);
+      break;
+    case TERMINAL_TMUX:
+      newname = "tmux"; // FIXME what, oh what to do with tmux?
+      break;
+    case TERMINAL_GNUSCREEN:
+      newname = apply_gnuscreen_heuristics(ti);
+      break;
+    case TERMINAL_MLTERM:
+      newname = apply_mlterm_heuristics(ti);
+      break;
+    case TERMINAL_WEZTERM:
+      newname = apply_wezterm_heuristics(ti, tablelen, tableused);
+      break;
+    case TERMINAL_XTERM:
+      newname = apply_xterm_heuristics(ti, tablelen, tableused, invertsixel);
+      break;
+    case TERMINAL_MINTTY:
+      newname = apply_mintty_heuristics(ti, tablelen, tableused, invertsixel);
+      break;
+    case TERMINAL_MSTERMINAL:
+      newname = apply_msterminal_heuristics(ti);
+      break;
+    case TERMINAL_CONTOUR:
+      newname = apply_contour_heuristics(ti, invertsixel);
+      break;
+    case TERMINAL_ITERM:
+      newname = apply_iterm_heuristics(ti, tablelen, tableused);
+      break;
+    case TERMINAL_RXVT:
+      newname = apply_rxvt_heuristics(ti);
+      break;
+    case TERMINAL_APPLE:
+      newname = "Terminal.app"; // no quadrants, no sextants, no rgb, but it does have braille
+      break;
+    case TERMINAL_LINUX:
+      newname = apply_linux_heuristics(ti, tablelen, tableused, nonewfonts);
+      break;
+    case TERMINAL_TERMINOLOGY:
+      newname = apply_terminology_heuristics(ti);
+      break;
+    default:
+      newname = termname;
+      break;
   }
+  if(newname == NULL){
+    logerror("no name provided for termtype %d", qterm);
+    return -1;
+  }
+  termname = newname;
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
     ti->caps.braille = false;
