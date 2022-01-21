@@ -1550,12 +1550,13 @@ ncpalette_set(ncpalette* p, int idx, unsigned rgb){
   return ncchannel_set(&p->chans[idx], rgb);
 }
 
-static inline uint32_t
-ncpalette_get(const ncpalette* p, int idx){
+static inline int
+ncpalette_get(const ncpalette* p, int idx, uint32_t* palent){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
-  return ncchannel_rgb(p->chans[idx]);
+  *palent = ncchannel_rgb(p->chans[idx]);
+  return 0;
 }
 
 static inline int
