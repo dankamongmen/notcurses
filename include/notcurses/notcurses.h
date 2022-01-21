@@ -1523,8 +1523,7 @@ typedef struct ncpalette {
 } ncpalette;
 
 // Create a new palette store. It will be initialized with notcurses' best
-// knowledge of the currently configured palette. The palette upon startup
-// cannot be reliably detected, sadly.
+// knowledge of the currently configured palette.
 API ALLOC ncpalette* ncpalette_new(struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
