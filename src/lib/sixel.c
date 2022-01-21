@@ -222,7 +222,7 @@ find_color(const qstate* qs, uint32_t pixel){
     if(qs->onodes[q->qlink - 1].q[skey]){
       q = qs->onodes[q->qlink - 1].q[skey];
     }else{
-      fprintf(stderr, "OH NOOOOOOOOOO %u:%u QLINK: %u\n", key, skey, q->qlink); // FIXME find one
+//fprintf(stderr, "OH NOOOOOOOOOO %u:%u QLINK: %u\n", key, skey, q->qlink); // FIXME find one
       return -1;
     }
   }
@@ -698,7 +698,6 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
   load_color_table(qs, colors, stab->map->table);
   memset(stab->map->data, 0, dsize);
   stab->map->colors = colors;
-  // FIXME fill in color table from q
   int pos = 0;
 //fprintf(stderr, "BUILDING DATA TABLE\n");
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
