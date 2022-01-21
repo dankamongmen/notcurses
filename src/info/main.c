@@ -270,7 +270,7 @@ vertviz(struct ncplane* n, wchar_t l, wchar_t li, wchar_t ri, wchar_t r,
 }
 
 static int
-unicodedumper(struct ncplane* n, const char* indent){
+unicodedumper(struct notcurses* nc, struct ncplane* n, const char* indent){
   if(notcurses_canutf8(ncplane_notcurses_const(n))){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls⎧", indent, NCQUADBLOCKS);
@@ -324,10 +324,20 @@ unicodedumper(struct ncplane* n, const char* indent){
     emoji_viz(n);
     unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
-    uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x1B, 0xd8, 0x8E);
-    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xdB, 0xf8, 0x8E);
-    uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
-    uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0x19, 0x19, 0x70);
+    ncpalette* npal = ncpalette_new(nc);
+    unsigned r, g, b;
+    // if we weren't able to detect the palette, we'll just have a black
+    // background throughout the unicode section. otherwise, our gradient
+    // will be based off the existing palette.
+    ncpalette_get_rgb8(npal, 4, &r, &g, &b);
+    uint64_t ur = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, r, g, b);
+    ncpalette_get_rgb8(npal, 5, &r, &g, &b);
+    uint64_t lr = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, r, g, b);
+    ncpalette_get_rgb8(npal, 6, &r, &g, &b);
+    uint64_t ul = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, r, g, b);
+    ncpalette_get_rgb8(npal, 7, &r, &g, &b);
+    uint64_t ll = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, r, g, b);
+    ncpalette_free(npal);
     ncplane_stain(n, y - 16, 0, 15, 80, ul, ur, ll, lr);
     ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_ITALIC);
     ncplane_cursor_move_yx(n, y - 12, 55);
@@ -509,7 +519,7 @@ int main(int argc, const char** argv){
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
-  unicodedumper(stdn, indent);
+  unicodedumper(nc, stdn, indent);
   char* path = notcurses_data_path(NULL, "notcurses.png");
   if(path){
     if(notcurses_canpixel(nc)){
