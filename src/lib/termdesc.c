@@ -848,19 +848,18 @@ apply_terminology_heuristics(tinfo* ti){
 }
 
 static const char*
-apply_linux_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
-                       unsigned nonewfonts){
+apply_linux_heuristics(tinfo* ti, unsigned nonewfonts){
+  const char* tname = NULL;
 #ifdef __linux__
-  const char* termname = NULL;
   struct utsname un;
   if(uname(&un) == 0){
     ti->termversion = strdup(un.release);
   }
   if(is_linux_framebuffer(ti)){
-    termname = "FBcon";
+    tname = "FBcon";
     setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
   }else{
-    termname = "VT";
+    tname = "VT";
   }
   ti->caps.halfblocks = false;
   ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
@@ -870,11 +869,10 @@ apply_linux_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
   }
   // assume no useful unicode drawing unless we're positively sure
 #else
+  (void)ti;
   (void)nonewfonts;
 #endif
-  (void)tablelen;
-  (void)tableused;
-  return termname;
+  return tname;
 }
 
 // qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
@@ -886,7 +884,7 @@ apply_linux_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
 // though, so it's something of a worst-of-all-worlds deal where TERM still
 // needs be correct, even though we identify the terminal. le sigh.
 static int
-apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm,
+apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
                       size_t* tablelen, size_t* tableused, bool* invertsixel,
                       unsigned nonewfonts){
 #ifdef __MINGW32__
@@ -894,9 +892,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
     qterm = TERMINAL_MSTERMINAL;
   }
 #endif
-  if(!termname){
+  if(!tname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
-    termname = ti->termname ? ti->termname : "unknown";
+    tname = ti->termname ? ti->termname : "unknown";
   }
   // st had neither caps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
@@ -949,20 +947,20 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
       newname = "Terminal.app"; // no quadrants, no sextants, no rgb, but it does have braille
       break;
     case TERMINAL_LINUX:
-      newname = apply_linux_heuristics(ti, tablelen, tableused, nonewfonts);
+      newname = apply_linux_heuristics(ti, nonewfonts);
       break;
     case TERMINAL_TERMINOLOGY:
       newname = apply_terminology_heuristics(ti);
       break;
     default:
-      newname = termname;
+      newname = tname;
       break;
   }
   if(newname == NULL){
     logerror("no name provided for termtype %d", qterm);
     return -1;
   }
-  termname = newname;
+  tname = newname;
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
     ti->caps.braille = false;
@@ -971,7 +969,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, queried_terminals_e qterm
   if(wcwidth(L'🬸') < 0){
     ti->caps.sextants = false;
   }
-  ti->termname = termname;
+  ti->termname = tname;
   return 0;
 }
 
@@ -1546,18 +1544,18 @@ int cbreak_mode(tinfo* ti){
 }
 
 // replace or populate the TERM environment variable with 'termname'
-int putenv_term(const char* termname){
+int putenv_term(const char* tname){
   #define ENVVAR "TERM"
   const char* oldterm = getenv(ENVVAR);
   if(oldterm){
-    logdebug("replacing %s value %s with %s", ENVVAR, oldterm, termname);
+    logdebug("replacing %s value %s with %s", ENVVAR, oldterm, tname);
   }else{
-    loginfo("provided %s value %s", ENVVAR, termname);
+    loginfo("provided %s value %s", ENVVAR, tname);
   }
-  if(oldterm && strcmp(oldterm, termname) == 0){
+  if(oldterm && strcmp(oldterm, tname) == 0){
     return 0;
   }
-  char* buf = malloc(strlen(termname) + strlen(ENVVAR) + 1);
+  char* buf = malloc(strlen(tname) + strlen(ENVVAR) + 1);
   if(buf == NULL){
     return -1;
   }
