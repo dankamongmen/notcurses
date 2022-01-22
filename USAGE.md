@@ -1520,6 +1520,7 @@ of [Unicode Annex #14](http://www.unicode.org/reports/tr14/tr14-34.html).
 // determine whether the write completed by inspecting '*bytes'.
 int ncplane_puttext(struct ncplane* n, int y, ncalign_e align,
                     const char* text, size_t* bytes);
+```
 
 Lines and boxes can be drawn, interpolating their colors between their two
 endpoints. For a line of a single color, be sure to specify the same channels
