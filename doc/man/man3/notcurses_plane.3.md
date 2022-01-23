@@ -151,13 +151,21 @@ typedef struct ncplane_options {
 
 **static inline unsigned ncplane_fchannel(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_fg_rgb8(struct ncplane* ***nc***);**
+**static inline unsigned ncplane_fg_rgb(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_bg_rgb8(struct ncplane* ***nc***);**
+**static inline unsigned ncplane_bg_rgb(struct ncplane* ***nc***);**
+
+**int ncplane_set_fg_rgb(struct ncplane* ***n***, uint32_t ***channel***);**
+
+**int ncplane_set_bg_rgb(struct ncplane* ***n***, uint32_t ***channel***);**
 
 **static inline unsigned ncplane_fg_alpha(struct ncplane* ***nc***);**
 
 **static inline unsigned ncplane_bg_alpha(struct ncplane* ***nc***);**
+
+**int ncplane_set_fg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
+
+**int ncplane_set_bg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
 
 **static inline unsigned ncplane_fg_rgb8(struct ncplane* ***n***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
@@ -171,17 +179,9 @@ typedef struct ncplane_options {
 
 **void ncplane_set_bg_rgb8_clipped(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 
-**int ncplane_set_fg_rgb8(struct ncplane* ***n***, uint32_t ***channel***);**
-
-**int ncplane_set_bg_rgb8(struct ncplane* ***n***, uint32_t ***channel***);**
-
 **void ncplane_set_fg_default(struct ncplane* ***n***);**
 
 **void ncplane_set_bg_default(struct ncplane* ***n***);**
-
-**int ncplane_set_fg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
-
-**int ncplane_set_bg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
 
 **int ncplane_set_fg_palindex(struct ncplane* ***n***, unsigned ***idx***);**
 
