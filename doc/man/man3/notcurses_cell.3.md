@@ -78,14 +78,6 @@ typedef struct nccell {
 
 **char* nccell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**uint32_t nccell_bchannel(const nccell* ***c***);**
-
-**uint32_t nccell_fchannel(const nccell* ***c***);**
-
-**uint64_t nccell_set_bchannel(nccell* ***c***, uint32_t ***channel***);**
-
-**uint64_t nccell_set_fchannel(nccell* ***c***, uint32_t ***channel***);**
-
 **uint32_t nccell_fg_rgb(const nccell* ***c***);**
 
 **uint32_t nccell_bg_rgb(const nccell* ***c***);**
