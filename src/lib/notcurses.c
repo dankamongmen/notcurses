@@ -1495,6 +1495,14 @@ int ncplane_set_fg_rgb(ncplane* n, unsigned channel){
   return ncchannels_set_fg_rgb(&n->channels, channel);
 }
 
+uint64_t ncplane_set_bchannel(ncplane* n, uint32_t channel){
+  return ncchannels_set_bchannel(&n->channels, channel);
+}
+
+uint64_t ncplane_set_fchannel(ncplane* n, uint32_t channel){
+  return ncchannels_set_fchannel(&n->channels, channel);
+}
+
 int ncplane_set_bg_rgb(ncplane* n, unsigned channel){
   return ncchannels_set_bg_rgb(&n->channels, channel);
 }
