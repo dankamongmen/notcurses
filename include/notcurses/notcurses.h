@@ -2862,6 +2862,14 @@ ncplane_fchannel(const struct ncplane* n){
 
 API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
 
+// Set the background alpha and coloring bits of the plane's current
+// channels from a single 32-bit value.
+API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
+
+// Set the foreground alpha and coloring bits of the plane's current
+// channels from a single 32-bit value.
+API uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
+
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
 API void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
