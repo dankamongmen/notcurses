@@ -7,6 +7,7 @@ rearrangements of Notcurses.
     `ncchannels_set_[fb]channel()`, and `ncchannels_[fb]channel()` now
     function only on the 28 alpha + coloring bits of their respective
     channels, which is almost certainly what you wanted in the first place.
+  * Restore `nccell_set_[fb]channel()` and friends, using these semantics.
 
 * 3.0.5 (2022-01-21)
   * The Hyper and Super modifiers are now supported. CapsLock and NumLock

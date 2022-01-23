@@ -2245,13 +2245,15 @@ Helpers are provided to manipulate an `nccell`'s `channels` member. They are
 all implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
-// Extract the 32-bit background channel from a cell.
+// Extract the background alpha and coloring bits from a cell's channels
+// as a single 32-bit value.
 static inline uint32_t
 nccell_bchannel(const nccell* cl){
   return ncchannels_bchannel(cl->channels);
 }
 
-// Extract the 32-bit foreground channel from a cell.
+// Extract the foreground alpha and coloring bits from a cell's channels
+// as a single 32-bit value.
 static inline uint32_t
 nccell_fchannel(const nccell* cl){
   return ncchannels_fchannel(cl->channels);

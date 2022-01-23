@@ -821,6 +821,20 @@ nccell_wide_left_p(const nccell* c){
 API __attribute__ ((returns_nonnull)) const char*
 nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
+// Extract the background alpha and coloring bits from a cell's channels
+// as a single 32-bit value.
+static inline uint32_t
+nccell_bchannel(const nccell* cl){
+  return ncchannels_bchannel(cl->channels);
+}
+
+// Extract the foreground alpha and coloring bits from a cell's channels
+// as a single 32-bit value.
+static inline uint32_t
+nccell_fchannel(const nccell* cl){
+  return ncchannels_fchannel(cl->channels);
+}
+
 // return the number of columns occupied by 'c'. see ncstrwidth() for an
 // equivalent for multiple EGCs.
 static inline unsigned
