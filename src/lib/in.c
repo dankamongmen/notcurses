@@ -1300,7 +1300,7 @@ da2_cb(inputctx* ictx){
 
 // weird form of Ternary Device Attributes used only by WezTerm
 static int
-da3_cb(inputctx* ictx){
+wezterm_tda_cb(inputctx* ictx){
   if(ictx->initdata){
     loginfo("read ternary device attributes");
   }
@@ -1666,6 +1666,8 @@ tda_cb(inputctx* ictx){
       ictx->initdata->qterm = TERMINAL_TERMINOLOGY;
     }else if(strcmp(str, "464F4F54") == 0){ // "FOOT"
       ictx->initdata->qterm = TERMINAL_FOOT;
+    }else if(strcmp(str, "7E4B4445") == 0){
+      ictx->initdata->qterm = TERMINAL_KONSOLE;
     }
     loginfo("got TDA: %s, terminal type %d", str, ictx->initdata->qterm);
   }
@@ -1745,7 +1747,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[>83;\\N;0c", da2_screen_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, },
-    { "[=\\Sc", da3_cb, }, // CSI da3 form as issued by WezTerm
+    { "[=\\Sc", wezterm_tda_cb, }, // CSI da3 form as issued by WezTerm
     // DCS (\eP...ST)
     { "P0+\\S", NULL, }, // negative XTGETTCAP
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP

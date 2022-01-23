@@ -848,9 +848,16 @@ apply_rxvt_heuristics(tinfo* ti){
 
 static const char*
 apply_terminology_heuristics(tinfo* ti){
-  ti->caps.rgb = false; // as of at least 1.9.0
+  // no RGB as of at least 1.9.0
   ti->caps.quadrants = true;
   return "Terminology";
+}
+
+static const char*
+apply_konsole_heuristics(tinfo* ti){
+  ti->caps.rgb = true;
+  ti->caps.quadrants = true;
+  return "Konsole";
 }
 
 static const char*
@@ -957,6 +964,9 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       break;
     case TERMINAL_TERMINOLOGY:
       newname = apply_terminology_heuristics(ti);
+      break;
+    case TERMINAL_KONSOLE:
+      newname = apply_konsole_heuristics(ti);
       break;
     default:
       newname = tname;
