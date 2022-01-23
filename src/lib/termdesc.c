@@ -429,35 +429,39 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define RMCUP DECRST(SET_SMCUP)
 
 static ssize_t
-send_initial_directives(int fd){
+send_initial_directives(queried_terminals_e qterm, int fd){
+  int total = 0;
 // 4096 is more than sufficient for up through 256 OSC queries
 #define PQUERYBUFLEN 4096
-  char* pqueries = malloc(PQUERYBUFLEN);
-  if(pqueries == NULL){
-    return -1;
-  }
-  int total = 0;
-  // bunch the queries up according to known palette sizes, so that we don't
-  // knock out batched OSCs with error responses.
-  const int qsets[] = { 0, 8, 16, 88, 256 };
-  for(size_t q = 1 ; q < sizeof(qsets) / sizeof(*qsets) ; ++q){
-    int len = 0;
-    for(int i = qsets[q - 1] ; i < qsets[q] ; ++i){
-      len += sprintf(pqueries + len, "\x1b]4;%d;?\e\\", i);
-      assert(len < PQUERYBUFLEN);
-    }
-    if(blocking_write(fd, pqueries, len)){
+  if(qterm != TERMINAL_LINUX){
+    // FIXME linux kernel does not yet support OSC4, and bleeds it. don't send
+    // palette queries on linux VT.
+    char* pqueries = malloc(PQUERYBUFLEN);
+    if(pqueries == NULL){
       return -1;
     }
-    total += len;
+    // bunch the queries up according to known palette sizes, so that we don't
+    // knock out batched OSCs with error responses.
+    const int qsets[] = { 0, 8, 16, 88, 256 };
+    for(size_t q = 1 ; q < sizeof(qsets) / sizeof(*qsets) ; ++q){
+      int len = 0;
+      for(int i = qsets[q - 1] ; i < qsets[q] ; ++i){
+        len += sprintf(pqueries + len, "\x1b]4;%d;?\e\\", i);
+        assert(len < PQUERYBUFLEN);
+      }
+      if(blocking_write(fd, pqueries, len)){
+        return -1;
+      }
+      total += len;
+    }
+    free(pqueries);
   }
-  free(pqueries);
+#undef PQUERYBUFLEN
   if(blocking_write(fd, DIRECTIVES, strlen(DIRECTIVES))){
     return -1;
   }
   total += strlen(DIRECTIVES);
   return total;
-#undef PQUERYBUFLEN
 }
 
 // we send an XTSMGRAPHICS to set up 256 (or ideally 1024) color registers.
@@ -467,9 +471,11 @@ send_initial_directives(int fd){
 // DSRCPR as early as possible, so that it precedes any query material that's
 // bled onto stdin and echoed. if 'noaltscreen' is set, do not send an smcup.
 // if 'draininput' is set, do not send any keyboard modifiers.
+// precondition: ti->ttyfd is a valid fd (we're connected to a terminal)
 static int
-send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
+send_initial_queries(tinfo* ti, unsigned minimal, unsigned noaltscreen,
                      unsigned draininput){
+  int fd = ti->ttyfd;
   size_t total = 0;
   // everything sends DSRCPR, and everything sends DIRECTIVES afterwards.
   // we send KKBDENTER immediately before DIRECTIVES unless input is being
@@ -497,7 +503,7 @@ send_initial_queries(int fd, unsigned minimal, unsigned noaltscreen,
     }
     total += strlen(IDQUERIES);
   }
-  ssize_t directiveb = send_initial_directives(fd);
+  ssize_t directiveb = send_initial_directives(ti->qterm, fd);
   if(directiveb < 0){
     return -1;
   }
@@ -1276,7 +1282,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
-    if(send_initial_queries(ti->ttyfd, minimal, noaltscreen, draininput)){
+    if(send_initial_queries(ti, minimal, noaltscreen, draininput)){
       goto err;
     }
   }
