@@ -296,13 +296,16 @@ ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
   *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
 }
 
-// Extract the 32-bit background channel from a channel pair.
+// Extract the background alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
 static inline uint32_t
 ncchannels_bchannel(uint64_t channels){
-  return channels & 0xfffffffflu;
+  return channels & (NC_BG_RGB_MASK | NC_BG_PALETTE |
+                     NC_BGDEFAULT_MASK | NC_BG_ALPHA_MASK);
 }
 
-// Extract the 32-bit foreground channel from a channel pair.
+// Extract the foreground alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
 static inline uint32_t
 ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);

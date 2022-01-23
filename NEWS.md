@@ -2,7 +2,11 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 3.0.6 (not yet released)
-  * Remove the unsafe `ncplane_set_bchannel()` and `ncplane_set_fchannel()`.
+  * `ncplane_set_[fb]channel()`, `ncplane_[fb]channel()`,
+    `ncplane_channels()`, `ncplane_set_channels()`,
+    `ncchannels_set_[fb]channel()`, and `ncchannels_[fb]channel()` now
+    function only on the 28 alpha + coloring bits of their respective
+    channels, which is almost certainly what you wanted in the first place.
 
 * 3.0.5 (2022-01-21)
   * The Hyper and Super modifiers are now supported. CapsLock and NumLock
