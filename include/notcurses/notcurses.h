@@ -327,16 +327,24 @@ ncchannels_bg_alpha(uint64_t channels){
   return ncchannel_alpha(ncchannels_bchannel(channels));
 }
 
-// Set the 32-bit background channel of a channel pair.
+// Set the background alpha and coloring bits of the 64-bit channel pair
+// from a single 32-bit value.
 static inline uint64_t
 ncchannels_set_bchannel(uint64_t* channels, uint32_t channel){
-  return *channels = (*channels & 0xffffffff00000000llu) | channel;
+  // drop the background color and alpha bit
+  *channels &= ((0xffffffffllu << 32u) | NC_NOBACKGROUND_MASK);
+  *channels |= (uint32_t)(channel & ~NC_NOBACKGROUND_MASK);
+  return *channels;
 }
 
-// Set the 32-bit foreground channel of a channel pair.
+// Set the foreground alpha and coloring bits of the 64-bit channel pair
+// from a single 32-bit value.
 static inline uint64_t
 ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
-  return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
+  // drop the foreground color and alpha bit
+  *channels &= (0xffffffffllu | ((uint64_t)NC_NOBACKGROUND_MASK << 32u));
+  *channels |= (uint64_t)(channel & ~NC_NOBACKGROUND_MASK) << 32u;
+  return *channels;
 }
 
 // Set the 2-bit alpha component of the background channel.
