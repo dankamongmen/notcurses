@@ -843,16 +843,6 @@ namespace ncpp
 			return ncplane_fg_alpha (plane);
 		}
 
-		uint64_t set_fchannel (uint32_t channel) const noexcept
-		{
-			return ncplane_set_fchannel (plane, channel);
-		}
-
-		uint64_t set_bchannel (uint32_t channel) const noexcept
-		{
-			return ncplane_set_bchannel (plane, channel);
-		}
-
 		void set_channels (uint64_t channels) const noexcept
 		{
 			ncplane_set_channels (plane, channels);

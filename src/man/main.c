@@ -315,7 +315,7 @@ putpara(struct ncplane* p, const char* text){
 static int
 draw_domnode(struct ncplane* p, const pagedom* dom, const pagenode* n,
              unsigned* wrotetext, unsigned* insubsec){
-  ncplane_set_fchannel(p, n->ttype->channel);
+  ncplane_set_fg_rgb(p, ncchannel_rgb(n->ttype->channel));
   size_t b = 0;
   unsigned y;
   ncplane_cursor_yx(p, &y, NULL);

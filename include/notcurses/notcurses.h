@@ -2903,10 +2903,6 @@ ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return ncchannels_bg_rgb8(ncplane_channels(n), r, g, b);
 }
 
-// Set an entire 32-bit channel of the plane
-API uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
-API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
-
 // Set the current fore/background color using RGB specifications. If the
 // terminal does not support directly-specified 3x8b cells (24-bit "TrueColor",
 // indicated by the "RGB" terminfo capability), the provided values will be

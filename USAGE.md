@@ -1807,10 +1807,6 @@ all implemented in terms of the lower-level [Channels API](#channels).
 uint64_t ncplane_channels(const struct ncplane* n);
 uint16_t ncplane_attr(const struct ncplane* n);
 
-// Set an entire 32-bit channel of the plane 'n'
-int ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
-int ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
-
 // Extract the 32-bit working background channel from an ncplane.
 static inline unsigned
 ncplane_bchannel(const struct ncplane* nc){
