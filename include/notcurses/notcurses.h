@@ -311,6 +311,13 @@ ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
 }
 
+// Extract the background alpha and coloring bits from a 64-bit channel pair.
+static inline uint64_t
+ncchannels_channels(uint64_t channels){
+  return ncchannels_bchannel(channels) |
+         ((uint64_t)ncchannels_fchannel(channels) << 32u);
+}
+
 static inline bool
 ncchannels_bg_rgb_p(uint64_t channels){
   return ncchannel_rgb_p(ncchannels_bchannel(channels));
@@ -345,6 +352,14 @@ ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
   *channels &= (0xffffffffllu | ((uint64_t)NC_NOBACKGROUND_MASK << 32u));
   *channels |= (uint64_t)(channel & ~NC_NOBACKGROUND_MASK) << 32u;
   return *channels;
+}
+
+// Set the alpha and coloring bits of a channel pair from another channel pair.
+static inline uint64_t
+ncchannels_set_channels(uint64_t* dst, uint64_t channels){
+  ncchannels_set_bchannel(dst, channels & 0xffffffffull);
+  ncchannels_set_fchannel(dst, (channels >> 32u) & 0xffffffffull);
+  return *dst;
 }
 
 // Set the 2-bit alpha component of the background channel.
@@ -816,6 +831,11 @@ nccell_set_fchannel(nccell* c, uint32_t channel){
   return ncchannels_set_fchannel(&c->channels, channel);
 }
 
+static inline uint64_t
+nccell_set_channels(nccell* c, uint64_t channels){
+  return ncchannels_set_channels(&c->channels, channels);
+}
+
 // Is the cell part of a multicolumn element?
 static inline bool
 nccell_double_wide_p(const nccell* c){
@@ -838,6 +858,11 @@ nccell_wide_left_p(const nccell* c){
 // can be invalidated by any further operation on the plane 'n', so...watch out!
 API __attribute__ ((returns_nonnull)) const char*
 nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+
+static inline uint64_t
+nccell_channels(const nccell* c){
+  return ncchannels_channels(c->channels);
+}
 
 // Extract the background alpha and coloring bits from a cell's channels
 // as a single 32-bit value.
