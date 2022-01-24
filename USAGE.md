@@ -1803,9 +1803,16 @@ Helpers are provided to manipulate an `ncplane`'s `channels` member. They are
 all implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
-// Get the current channels or attribute word for ncplane 'n'.
+// Get the current colors and alpha values for ncplane 'n'.
 uint64_t ncplane_channels(const struct ncplane* n);
+
+// Get the current styling for the ncplane 'n'.
 uint16_t ncplane_attr(const struct ncplane* n);
+
+// Set the alpha and coloring bits of the plane's current channels from a
+// 64-bit pair of channels.
+API void ncplane_set_channels(struct ncplane* n, uint64_t channels)
+  __attribute__ ((nonnull (1)));
 
 // Extract the background alpha and coloring bits from a 64-bit channel
 // pair as a single 32-bit value.
@@ -1820,6 +1827,15 @@ static inline uint32_t
 ncplane_fchannel(const struct ncplane* n){
   return ncchannels_fchannel(ncplane_channels(n));
 }
+
+// Set the background alpha and coloring bits of the plane's current
+// channels from a single 32-bit value.
+uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
+  __attribute__ ((nonnull (1)));
+
+// Set the foreground alpha and coloring bits of the plane's current
+// channels from a single 32-bit value.
+uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline unsigned

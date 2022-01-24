@@ -151,6 +151,10 @@ typedef struct ncplane_options {
 
 **static inline unsigned ncplane_fchannel(struct ncplane* ***nc***);**
 
+**uint64_t ncplane_set_bchannel(struct ncplane* ***nc***, uint32_t ***channel***);**
+
+**uint64_t ncplane_set_fchannel(struct ncplane* ***nc***, uint32_t ***channel***);**
+
 **static inline unsigned ncplane_fg_rgb(struct ncplane* ***nc***);**
 
 **static inline unsigned ncplane_bg_rgb(struct ncplane* ***nc***);**

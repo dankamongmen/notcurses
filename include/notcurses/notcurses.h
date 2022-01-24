@@ -2117,11 +2117,11 @@ ncplane_cursor_x(const struct ncplane* n){
   return x;
 }
 
-// Get the current channels or attribute word for ncplane 'n'.
+// Get the current colors and alpha values for ncplane 'n'.
 API uint64_t ncplane_channels(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
-// Return the current styling for this ncplane.
+// Get the current styling for the ncplane 'n'.
 API uint16_t ncplane_styles(const struct ncplane* n)
   __attribute__ ((nonnull (1)));
 
@@ -2880,25 +2880,33 @@ ncplane_fchannel(const struct ncplane* n){
   return ncchannels_fchannel(ncplane_channels(n));
 }
 
-API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
+// Set the alpha and coloring bits of the plane's current channels from a
+// 64-bit pair of channels.
+API void ncplane_set_channels(struct ncplane* n, uint64_t channels)
+  __attribute__ ((nonnull (1)));
 
 // Set the background alpha and coloring bits of the plane's current
 // channels from a single 32-bit value.
-API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel);
+API uint64_t ncplane_set_bchannel(struct ncplane* n, uint32_t channel)
+  __attribute__ ((nonnull (1)));
 
 // Set the foreground alpha and coloring bits of the plane's current
 // channels from a single 32-bit value.
-API uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel);
+API uint64_t ncplane_set_fchannel(struct ncplane* n, uint32_t channel)
+  __attribute__ ((nonnull (1)));
 
 // Set the specified style bits for the ncplane 'n', whether they're actively
 // supported or not.
-API void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_set_styles(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
 
 // Add the specified styles to the ncplane's existing spec.
-API void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_on_styles(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
 
 // Remove the specified styles from the ncplane's existing spec.
-API void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
+API void ncplane_off_styles(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline uint32_t
