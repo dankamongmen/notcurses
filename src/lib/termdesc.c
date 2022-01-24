@@ -157,6 +157,7 @@ query_rgb(void){
 
 void free_terminfo_cache(tinfo* ti){
   stop_inputlayer(ti);
+  loginfo("brought down input layer");
   free(ti->termversion);
   free(ti->esctable);
 #ifdef __linux__
@@ -169,6 +170,7 @@ void free_terminfo_cache(tinfo* ti){
   }
 #endif
   free(ti->tpreserved);
+  loginfo("destroyed terminfo cache");
 }
 
 // compare one terminal version against another. numerics, separated by

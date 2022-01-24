@@ -930,6 +930,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     }
   }
   if(ncvisual_init(loglevel)){
+    free_terminfo_cache(&ret->tcache);
     goto err;
   }
   unsigned cgeo, pgeo; // both are don't-cares

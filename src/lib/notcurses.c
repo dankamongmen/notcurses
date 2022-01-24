@@ -1438,6 +1438,7 @@ int notcurses_stop(notcurses* nc){
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
+    free_terminfo_cache(&nc->tcache);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
     if(!(nc->flags & NCOPTION_SUPPRESS_BANNERS)){
@@ -1449,7 +1450,6 @@ int notcurses_stop(notcurses* nc){
     ret |= pthread_mutex_destroy(&nc->stats.lock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
     fbuf_free(&nc->rstate.f);
-    free_terminfo_cache(&nc->tcache);
     free(nc);
   }
   return ret;
