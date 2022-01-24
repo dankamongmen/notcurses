@@ -89,9 +89,20 @@ notcurses_channels - operations on notcurses channels
 
 **int ncchannels_set_bg_palindex(uint64_t* ***channels***, unsigned ***idx***);**
 
+**uint64_t ncchannels_set_channels(uint64_t* ***dst***, uint64_t ***channels***);**
+
+**uint64_t ncchannels_channels(uint64_t ***channels***);**
+
 **uint64_t ncchannels_combine(uint32_t ***fchan***, uint32_t ***bchan***);**
 
 # DESCRIPTION
+
+Channels ought not be manually manipulated. They contain several bits used
+"behind the scenes", and e.g. direct assignment is likely to lead to strange
+and infrequent failures. To assign one channel pair to another, use
+**ncchannels_set_channels**. To assign a channel to a channel pair's
+foreground, use **ncchannels_set_fchannel**. To assign a channel to a channel
+pair's background, use **ncchannels_set_bchannel**.
 
 **ncchannel_palindex** extracts the palette index from a channel. The channel
 must be palette-indexed, or the return value is meaningless. Verify palette
