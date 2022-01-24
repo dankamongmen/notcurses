@@ -1810,17 +1810,19 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     return -1;
   }
   // reject any control character for output other than newline (and then only
-  // on a scrolling plane).
-  if(*egc == '\n'){
-    // if we're not scrolling, autogrow would be to the right (as opposed to
-    // down), and thus it still wouldn't apply to the case of a newline.
-    if(!n->scrolling){
-      logerror("rejecting newline on non-scrolling plane");
+  // on a scrolling plane) and tab.
+  if(is_control_egc((const unsigned char*)egc, bytes)){
+    if(*egc == '\n'){
+      // if we're not scrolling, autogrow would be to the right (as opposed to
+      // down), and thus it still wouldn't apply to the case of a newline.
+      if(!n->scrolling){
+        logerror("rejecting newline on non-scrolling plane");
+        return -1;
+      }
+    }else if(*egc != '\t'){
+      logerror("rejecting %dB control character", bytes);
       return -1;
     }
-  }else if(is_control_egc((const unsigned char*)egc, bytes)){
-    logerror("rejecting %dB control character", bytes);
-    return -1;
   }
   // check *before ncplane_cursor_move_yx()* whether we're past the end of the
   // line. if scrolling is enabled, move to the next line if so. if x or y are
@@ -1856,6 +1858,8 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
   if(*egc == '\n'){
     scroll_down(n);
+  }else if(*egc == '\t'){
+    // FIXME do what, exactly?
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one cell of a wide character
