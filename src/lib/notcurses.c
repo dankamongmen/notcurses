@@ -1456,15 +1456,15 @@ int notcurses_stop(notcurses* nc){
 }
 
 uint64_t ncplane_channels(const ncplane* n){
-  return n->channels;
+  return ncchannels_channels(n->channels);
+}
+
+void ncplane_set_channels(ncplane* n, uint64_t channels){
+  ncchannels_set_channels(&n->channels, channels);
 }
 
 uint16_t ncplane_styles(const ncplane* n){
   return n->stylemask;
-}
-
-void ncplane_set_channels(ncplane* n, uint64_t channels){
-  n->channels = channels;
 }
 
 void ncplane_set_fg_default(ncplane* n){
