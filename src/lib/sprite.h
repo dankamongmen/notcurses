@@ -220,6 +220,9 @@ int sprixel_load(sprixel* spx, fbuf* f, unsigned pixy, unsigned pixx,
 // called when a sprixel's cell-pixel geometry needs to change to |ncellpxy,ncellpxx|.
 int sprixel_rescale(sprixel* spx, unsigned ncellpixy, unsigned ncellpixx);
 
+// cleans up the sixel worker threads
+void sixel_cleanup(struct tinfo* ti);
+
 #ifdef __cplusplus
 }
 #endif

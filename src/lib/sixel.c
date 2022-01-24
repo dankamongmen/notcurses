@@ -1211,6 +1211,50 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   return s->glyph.used;
 }
 
+// we keep a few worker threads spun up to assist with quantization.
+typedef struct sixel_engine {
+  // FIXME we'll want maybe one per core in our cpuset?
+  pthread_t tids[3];
+  unsigned workers;
+  unsigned workers_wanted;
+  pthread_mutex_t lock;
+  pthread_cond_t cond;
+  void* chunks; // FIXME
+  bool done;
+} sixel_engine;
+
+// FIXME make this part of the context, sheesh
+static sixel_engine globsengine;
+
+// a quantization worker. 
+static void *
+sixel_worker(void* v){
+  sixel_engine *sengine = v;
+  pthread_mutex_lock(&globsengine.lock);
+  if(++sengine->workers < sengine->workers_wanted){
+    pthread_mutex_unlock(&globsengine.lock);
+    // don't bail on a failure here
+    if(pthread_create(&sengine->tids[sengine->workers], NULL, sixel_worker, sengine)){
+      logerror("couldn't spin up sixel worker %u", sengine->workers);
+    }
+  }else{
+    pthread_mutex_unlock(&globsengine.lock);
+  }
+  do{
+    pthread_mutex_lock(&sengine->lock);
+    while(sengine->chunks == NULL && !sengine->done){
+      pthread_cond_wait(&sengine->cond, &sengine->lock);
+    }
+    if(sengine->done){
+      pthread_mutex_unlock(&sengine->lock);
+      return NULL;
+    }
+    // FIXME take workchunk
+    pthread_mutex_unlock(&sengine->lock);
+    // FIXME handle workchunk
+  }while(1);
+}
+
 // private mode 80 (DECSDM) manages "Sixel Scrolling Mode" vs "Sixel Display
 // Mode". when 80 is enabled (i.e. DECSDM mode), images are displayed at the
 // upper left, and clipped to the window. we don't want either of those things
@@ -1219,6 +1263,12 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 //  emitted. we don't need this for rendered mode, but we do want it for
 //  direct mode. it causes us no problems, so always set it.
 int sixel_init(int fd){
+  globsengine.workers = 0;
+  globsengine.workers_wanted = sizeof(globsengine.tids) / sizeof(*globsengine.tids);
+  // don't fail on an error here
+  if(pthread_create(globsengine.tids, NULL, sixel_worker, &globsengine)){
+    logerror("couldn't spin up sixel workers");
+  }
   return tty_emit("\e[?80l\e[?8452h", fd);
 }
 
@@ -1280,10 +1330,21 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 1;
 }
 
-int sixel_shutdown(fbuf* f){
-  (void)f;
+void sixel_cleanup(tinfo* ti){
+  // FIXME pick up globsengine from ti!
+  unsigned tids = 0;
+  pthread_mutex_lock(&globsengine.lock);
+  globsengine.done = 1;
+  tids = globsengine.workers;
+  pthread_mutex_unlock(&globsengine.lock);
+  pthread_cond_broadcast(&globsengine.cond);
+  // FIXME what if we spawned another worker since taking zee lock?
+  loginfo("joining %u sixel thread%s", tids, tids == 1 ? "" : "s");
+  for(unsigned t = 0 ; t < tids ; ++t){
+    pthread_join(globsengine.tids[t], NULL);
+  }
+  loginfo("reaped sixel engine");
   // no way to know what the state was before; we ought use XTSAVE/XTRESTORE
-  return 0;
 }
 
 uint8_t* sixel_trans_auxvec(const ncpile* p){

@@ -71,6 +71,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->sprixel_scale_height = 6;
   set_pixel_blitter(sixel_blit);
   ti->pixel_implementation = NCPIXEL_SIXEL;
+  ti->pixel_cleanup = sixel_cleanup;
   sprite_init(ti, fd);
 }
 
@@ -158,6 +159,9 @@ query_rgb(void){
 void free_terminfo_cache(tinfo* ti){
   stop_inputlayer(ti);
   loginfo("brought down input layer");
+  if(ti->pixel_cleanup){
+    ti->pixel_cleanup(ti);
+  }
   free(ti->termversion);
   free(ti->esctable);
 #ifdef __linux__
