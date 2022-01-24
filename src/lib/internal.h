@@ -1427,7 +1427,7 @@ plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
 static inline bool
 is_control_egc(const unsigned char* egc, int bytes){
   if(bytes == 1){
-    if(*egc && iscntrl(*egc)){
+    if(*egc < 0x20 || *egc == 0x7f){ // includes NUL terminator
       return true;
     }
   }else if(bytes == 2){
