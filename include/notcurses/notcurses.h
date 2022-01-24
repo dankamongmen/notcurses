@@ -806,6 +806,16 @@ nccell_set_bg_alpha(nccell* c, int alpha){
   return ncchannels_set_bg_alpha(&c->channels, alpha);
 }
 
+static inline uint64_t
+nccell_set_bchannel(nccell* c, uint32_t channel){
+  return ncchannels_set_bchannel(&c->channels, channel);
+}
+
+static inline uint64_t
+nccell_set_fchannel(nccell* c, uint32_t channel){
+  return ncchannels_set_fchannel(&c->channels, channel);
+}
+
 // Is the cell part of a multicolumn element?
 static inline bool
 nccell_double_wide_p(const nccell* c){
@@ -2856,13 +2866,15 @@ nccell_bg_palindex_p(const nccell* cl){
   return ncchannels_bg_palindex_p(cl->channels);
 }
 
-// Extract the 32-bit working background channel from an ncplane.
+// Extract the background alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
 static inline uint32_t
 ncplane_bchannel(const struct ncplane* n){
   return ncchannels_bchannel(ncplane_channels(n));
 }
 
-// Extract the 32-bit working foreground channel from an ncplane.
+// Extract the foreground alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
 static inline uint32_t
 ncplane_fchannel(const struct ncplane* n){
   return ncchannels_fchannel(ncplane_channels(n));
