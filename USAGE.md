@@ -1807,16 +1807,18 @@ all implemented in terms of the lower-level [Channels API](#channels).
 uint64_t ncplane_channels(const struct ncplane* n);
 uint16_t ncplane_attr(const struct ncplane* n);
 
-// Extract the 32-bit working background channel from an ncplane.
-static inline unsigned
-ncplane_bchannel(const struct ncplane* nc){
-  return ncchannels_bchannel(ncplane_channels(nc));
+// Extract the background alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
+static inline uint32_t
+ncplane_bchannel(const struct ncplane* n){
+  return ncchannels_bchannel(ncplane_channels(n));
 }
 
-// Extract the 32-bit working foreground channel from an ncplane.
-static inline unsigned
-ncplane_fchannel(const struct ncplane* nc){
-  return ncchannels_fchannel(ncplane_channels(nc));
+// Extract the foreground alpha and coloring bits from a 64-bit channel
+// pair as a single 32-bit value.
+static inline uint32_t
+ncplane_fchannel(const struct ncplane* n){
+  return ncchannels_fchannel(ncplane_channels(n));
 }
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
