@@ -93,7 +93,7 @@ name: gentoo
 
 steps:
 - name: gentoo
-  image: dankamongmen/gentoo:2021-12-18a
+  image: dankamongmen/gentoo:2022-01-24a
   commands:
     - export LANG=C.UTF-8
     - export TERM=xterm
