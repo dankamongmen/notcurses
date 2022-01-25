@@ -674,6 +674,19 @@ load_color_table(const qstate* qs, uint32_t colors, unsigned char* table){
   assert(loaded == colors);
 }
 
+// get the byte in the actionmap corresponding to a color + sixelrow
+static inline unsigned
+actionmap_offset(int cidx, int colors, int sixelrow){
+  return (sixelrow * colors + cidx) / 8;
+}
+
+// get the bit in the actionmap corresponding to a color + sixelrow.
+// bytes in the actionmap are little-endian: 76543210fedcba98...
+static inline unsigned
+actionmap_bit(int cidx, int colors, int sixelrow){
+  return 1u << ((sixelrow * colors + cidx) % 8);
+}
+
 // we have converged upon colorregs in the octree. we now run over the pixels
 // once again, and get the actual final color table entries.
 static inline int
@@ -702,9 +715,11 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
   stab->map->colors = colors;
   int pos = 0;
 //fprintf(stderr, "BUILDING DATA TABLE\n");
-  size_t actionsize = colors * (leny + 5) / 6; // using a byte per, could use bit
+  // 1 bit per color per sixelrow as a skiptable; if 0, color is absent there
+  size_t actionsize = ((colors * (leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
   stab->map->action = malloc(actionsize);
   memset(stab->map->action, 0, actionsize);
+  int sixelrow = 0;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
@@ -721,10 +736,12 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
           return -1;
         }
         stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
-        stab->map->action[colors * (visy - begy) / 6 + cidx] = 1;
+        stab->map->action[actionmap_offset(cidx, colors, sixelrow)] |=
+          actionmap_bit(cidx, colors, sixelrow);
       }
       ++pos;
     }
+    ++sixelrow;
   }
   return 0;
 }
@@ -993,7 +1010,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
   while(p < map->sixelcount){
     int needclosure = 0;
     for(int i = 0 ; i < map->colors ; ++i){
-      if(!map->action[sixelrow * map->colors + i]){
+      if(!(map->action[actionmap_offset(i, map->colors, sixelrow)] & actionmap_bit(i, map->colors, sixelrow))){
         continue;
       }
       int seenrle = 0; // number of repetitions
