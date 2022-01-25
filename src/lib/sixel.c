@@ -723,6 +723,17 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
   return 0;
 }
 
+// handle a cell's worth of pixels--update its entry in the rmatrix, update
+// its entry in the TAM, update the p2 value if appropriate, update any
+// relevant auxvecs, and add all colors to the decatrees. we are operating
+// on celly and cellx of the image.
+static inline int
+preprocess_cell(const uint32_t* data, int linesize, int cols, int leny,
+                int lenx, sixeltable* stab, tament* tam,
+                int celly, int cellx, const blitterargs* bargs){
+  // FIXME
+}
+
 // we have a 4096-element array that takes the 4-5-3 MSBs from the RGB
 // comoponents. once it's complete, we might need to either merge some
 // chunks, or expand them, converging towards the available number of
