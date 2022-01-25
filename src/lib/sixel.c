@@ -757,8 +757,14 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   // calculate the cell geometry
   const int ccols = (lenx + cdimx - 1) / cdimx;
   const int crows = (leny + cdimy - 1) / cdimy;
+  typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
+  rmatrix = malloc(sizeof(*rmatrix) * crows * ccols);
+  if(rmatrix == NULL){
+    free_qstate(&qs);
+    return -1;
+  }
+  bargs->u.pixel.spx->needs_refresh = rmatrix;
   int pos = 0; // pixel position
-  unsigned char* rmatrix = bargs->u.pixel.spx->needs_refresh;
   for(int y = 0 ; y < crows ; ++y){ // cell row
     for(int x = 0 ; x < ccols ; ++x){ // cell column
       const int txyidx = y * ccols + x;
@@ -1138,15 +1144,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
-  typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
-  // FIXME needs_refresh is described as a per-cell deal, but this appears
-  // to be allocated per-pixel...?
-  rmatrix = malloc(sizeof(*rmatrix) * rows * cols);
-  if(rmatrix == NULL){
-    sixelmap_free(stable.map);
-    return -1;
-  }
-  bargs->u.pixel.spx->needs_refresh = rmatrix;
   assert(n->tam);
   if(extract_color_table(data, linesize, cols, leny, lenx, &stable, n->tam, bargs)){
     free(bargs->u.pixel.spx->needs_refresh);
