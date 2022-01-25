@@ -850,8 +850,9 @@ scrub_tam_boundaries(tament* tam, int leny, int lenx, int cdimy, int cdimx){
   // any sprixcells which don't cover the full cell underneath them cannot
   // be SPRIXCELL_OPAQUE
   const int cols = (lenx + cdimx - 1) / cdimx;
+  const int rows = (leny + cdimy - 1) / cdimy;
   if(lenx % cdimx){
-    for(int y = 0 ; y < (leny + cdimy - 1) / cdimy ; ++y){
+    for(int y = 0 ; y < rows ; ++y){
       if(tam[y * cols + cols - 1].state == SPRIXCELL_OPAQUE_KITTY){
         tam[y * cols + cols - 1].state = SPRIXCELL_MIXED_KITTY;
       }else if(tam[y * cols + cols - 1].state == SPRIXCELL_OPAQUE_SIXEL){
@@ -860,7 +861,7 @@ scrub_tam_boundaries(tament* tam, int leny, int lenx, int cdimy, int cdimx){
     }
   }
   if(leny % cdimy){
-    const int y = (leny + cdimy - 1) / cdimy - 1;
+    const int y = rows - 1;
     for(int x = 0 ; x < cols ; ++x){
       if(tam[y * cols + x].state == SPRIXCELL_OPAQUE_KITTY){
         tam[y * cols + x].state = SPRIXCELL_MIXED_KITTY;
