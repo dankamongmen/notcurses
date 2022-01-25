@@ -282,6 +282,7 @@ typedef struct sixelmap {
   // FIXME we ought be able to combine these under the new scheme
   // for each color, for each sixel (stack of six), the representation.
   unsigned char* data;  // |colors| x |sixelcount|-byte arrays
+  unsigned char* action; // |sixelrows| x |colors|-byte arrays
   // for each color, the components and a dindex.
   unsigned char* table; // |colors| x CENTSIZE: components
   sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
@@ -310,6 +311,7 @@ sixelmap_create(int dimy, int dimx){
 
 void sixelmap_free(sixelmap *s){
   if(s){
+    free(s->action);
     free(s->table);
     free(s->data);
     free(s);
@@ -700,6 +702,9 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
   stab->map->colors = colors;
   int pos = 0;
 //fprintf(stderr, "BUILDING DATA TABLE\n");
+  size_t actionsize = colors * (leny + 5) / 6; // using a byte per, could use bit
+  stab->map->action = malloc(actionsize);
+  memset(stab->map->action, 0, actionsize);
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
@@ -716,6 +721,7 @@ build_data_table(qstate* qs, uint32_t colors, sixeltable* stab, const uint32_t* 
           return -1;
         }
         stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
+        stab->map->action[colors * (visy - begy) / 6 + cidx] = 1;
       }
       ++pos;
     }
@@ -983,9 +989,13 @@ write_sixel_header(fbuf* f, int leny, int lenx, const sixelmap* smap){
 static int
 write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
   int p = 0;
+  int sixelrow = 0;
   while(p < map->sixelcount){
     int needclosure = 0;
     for(int i = 0 ; i < map->colors ; ++i){
+      if(!map->action[sixelrow * map->colors + i]){
+        continue;
+      }
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
       int printed = 0;
@@ -1020,6 +1030,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
       }
     }
     p += lenx;
+    ++sixelrow;
   }
   if(fbuf_puts(f, "\e\\") < 0){
     return -1;
@@ -1340,7 +1351,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 void sixel_cleanup(tinfo* ti){
-  // FIXME pick up globsengine from ti!
+  (void)ti; // FIXME pick up globsengine from ti!
   unsigned tids = 0;
   pthread_mutex_lock(&globsengine.lock);
   globsengine.done = 1;
