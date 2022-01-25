@@ -754,9 +754,10 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
   const int begy = bargs->begy;
   const int cdimy = bargs->u.pixel.cellpxy;
   const int cdimx = bargs->u.pixel.cellpxx;
-  // calculate the cell geometry
-  const int ccols = (lenx + cdimx - 1) / cdimx;
-  const int crows = (leny + cdimy - 1) / cdimy;
+  // use the cell geometry as computed by the visual layer; leny doesn't
+  // include any mandatory sixel padding.
+  const int ccols = bargs->u.pixel.spx->dimx;
+  const int crows = bargs->u.pixel.spx->dimy;
   typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
   rmatrix = malloc(sizeof(*rmatrix) * crows * ccols);
   if(rmatrix == NULL){
