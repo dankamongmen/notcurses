@@ -764,7 +764,6 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
     return -1;
   }
   bargs->u.pixel.spx->needs_refresh = rmatrix;
-  int pos = 0; // pixel position
   for(int y = 0 ; y < crows ; ++y){ // cell row
     for(int x = 0 ; x < ccols ; ++x){ // cell column
       const int txyidx = y * ccols + x;
@@ -851,7 +850,6 @@ fprintf(stderr, "TXYIDX %d (%d/%d) START %d/%d END %d/%d\n", txyidx, y, x, cstar
         return -1;
       }
       ++pixels;
-      ++pos;
     }
   }
   loginfo("octree got %"PRIu32" entries on %"PRIu64" pixels", octets, pixels);
