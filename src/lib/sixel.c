@@ -1059,7 +1059,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 // only called the first time we encode; after that, the palette remains
 // constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
 // are output geometry.
-static int
+static inline int
 write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab, int* parse_start){
   *parse_start = write_sixel_header(f, outy, outx, stab->map);
   if(*parse_start < 0){
