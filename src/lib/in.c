@@ -108,7 +108,8 @@ typedef struct inputctx {
   // been taken, both become NULL.
   struct initial_responses* initdata;
   struct initial_responses* initdata_complete;
-  bool failed;          // error initializing input automaton, abort
+  int kittykbd;        // kitty keyboard protocol support level
+  bool failed;         // error initializing input automaton, abort
 } inputctx;
 
 static inline void
@@ -493,6 +494,13 @@ load_ncinput(inputctx* ictx, ncinput *tni){
       if(islower(tni->id)){
         tni->id = toupper(tni->id);
       }
+    }
+  }
+  // if the kitty keyboard protocol is in use, any input without an explicit
+  // evtype can be safely considered a PRESS.
+  if(ictx->kittykbd){
+    if(tni->evtype == NCTYPE_UNKNOWN){
+      tni->evtype = NCTYPE_PRESS;
     }
   }
   if(tni->modifiers == NCKEY_MOD_CTRL){ // exclude all other modifiers
@@ -1068,7 +1076,8 @@ kitty_keyboard_cb(inputctx* ictx){
   if(ictx->initdata){
     ictx->initdata->kbdlevel = level;
   }
-  loginfo("kitty keyboard protocol level %u", level);
+  loginfo("kitty keyboard level %u (was %u)", level, ictx->kittykbd);
+  ictx->kittykbd = level;
   return 2;
 }
 
