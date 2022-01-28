@@ -1772,8 +1772,8 @@ int ncplane_scrollup(ncplane* n, int r){
 // error if |child| is not a child of |n|, or |n| is not scrolling, or |child|
 // is fixed. Returns the number of scrolling events otherwise (might be 0).
 int ncplane_scrollup_child(ncplane* n, const ncplane* child){
-  if(ncplane_parent_const(child) != n){
-    logerror("not a child of specified plane");
+  if(!ncplane_descendant_p(child, n)){
+    logerror("not a descendant of specified plane");
     return -1;
   }
   if(child->fixedbound){
