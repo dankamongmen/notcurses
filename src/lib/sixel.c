@@ -778,7 +778,6 @@ extract_cell_color_table(qstate* qs, long cellid){
   if(cendx > begx + lenx){
     cendx = begx + lenx;
   }
-  bool firstpix = true;
   // we initialize the TAM entry based on the first pixel. if it's transparent,
   // initialize as transparent, and otherwise as opaque. following that, any
   // transparent pixel takes opaque to mixed, and any filled pixel takes
@@ -818,21 +817,18 @@ extract_cell_color_table(qstate* qs, long cellid){
             tam[cellid].state = SPRIXCELL_ANNIHILATED;
           }
         }else{
-          if(!firstpix){
-            if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
-              if(tam[cellid].state == SPRIXCELL_OPAQUE_SIXEL){
-                tam[cellid].state = SPRIXCELL_MIXED_SIXEL;
-              }
-            }else{
-              if(tam[cellid].state == SPRIXCELL_TRANSPARENT){
-                tam[cellid].state = SPRIXCELL_MIXED_SIXEL;
-              }
+          if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
+            if(tam[cellid].state == SPRIXCELL_OPAQUE_SIXEL){
+              tam[cellid].state = SPRIXCELL_MIXED_SIXEL;
+            }
+          }else{
+            if(tam[cellid].state == SPRIXCELL_TRANSPARENT){
+              tam[cellid].state = SPRIXCELL_MIXED_SIXEL;
             }
           }
         }
       }
 //fprintf(stderr, "vis: %d/%d\n", visy, visx);
-      firstpix = false;
       if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
         continue;
       }
