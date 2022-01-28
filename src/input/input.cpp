@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <clocale>
+#include <getopt.h>
 #include <iostream>
 #include <ncpp/Plane.hh>
 #include <ncpp/NotCurses.hh>
@@ -417,19 +418,29 @@ int main(int argc, char** argv){
   nopts.margin_r = 2;
   nopts.margin_b = 2;
   nopts.loglevel = NCLOGLEVEL_ERROR;
-  // FIXME handle -m to inhibit mice events
-  if(argc > 2){
-    usage(argv[0], stderr);
-  }else if(argc == 2){
-    if(strcmp(argv[1], "-v") == 0){
-      nopts.loglevel = NCLOGLEVEL_TRACE;
-    }else{
-      usage(argv[0], stderr);
+  bool nomice = false;
+  int opt;
+  while((opt = getopt(argc, argv, "vm")) != -1){
+    switch(opt){
+      case 'm':
+        nomice = true;
+        break;
+      case 'v':
+        nopts.loglevel = NCLOGLEVEL_TRACE;
+        break;
+      default:
+        usage(argv[0], stderr);
+        break;
     }
+  }
+  if(argv[optind]){ // non-option argument was provided
+    usage(argv[0], stderr);
   }
   nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc(nopts);
-  nc.mouse_enable(NCMICE_ALL_EVENTS);
+  if(!nomice){
+    nc.mouse_enable(NCMICE_ALL_EVENTS);
+  }
   int ret = input_demo(&nc);
   if(!nc.stop() || ret){
     return EXIT_FAILURE;
