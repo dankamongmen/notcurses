@@ -8,7 +8,7 @@ notcurses-input - Read and display input events
 
 # SYNOPSIS
 
-**notcurses-input** [**-v**]
+**notcurses-input** [**-v**] [**-m**]
 
 # DESCRIPTION
 
@@ -28,9 +28,12 @@ of modifier indicators:
 * '#'/'.': NumLock was or was not pressed.
 * 'L'/'R'/'P'/'u': Key was a release, repeat, press, or of unknown type.
 
+By default, mice events are enabled.
+
 # OPTIONS
 
 **-v**: Increase verbosity.
+**-m**: Inhibit mice events.
 
 # NOTES
 

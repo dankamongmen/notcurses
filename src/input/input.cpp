@@ -400,7 +400,7 @@ int input_demo(ncpp::NotCurses* nc) {
 
 static void
 usage(const char* arg0, FILE* fp){
-  fprintf(fp, "usage: %s [ -v ]\n", arg0);
+  fprintf(fp, "usage: %s [ -v ] [ -m ]\n", arg0);
   if(fp == stderr){
     exit(EXIT_FAILURE);
   }
@@ -417,6 +417,7 @@ int main(int argc, char** argv){
   nopts.margin_r = 2;
   nopts.margin_b = 2;
   nopts.loglevel = NCLOGLEVEL_ERROR;
+  // FIXME handle -m to inhibit mice events
   if(argc > 2){
     usage(argv[0], stderr);
   }else if(argc == 2){
