@@ -782,6 +782,12 @@ extract_cell_color_table(qstate* qs, long cellid){
   // initialize as transparent, and otherwise as opaque. following that, any
   // transparent pixel takes opaque to mixed, and any filled pixel takes
   // transparent to mixed.
+  if(cstarty >= cendy){ // we're entirely transparent sixel overhead
+    tam[cellid].state = SPRIXCELL_TRANSPARENT;
+    qs->stab->map->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+    // FIXME need we set rmatrix?
+    return 0;
+  }
   const uint32_t* rgb = (qs->data + (qs->linesize / 4 * cstarty) + cstartx);
   if(tam[cellid].state == SPRIXCELL_ANNIHILATED || tam[cellid].state == SPRIXCELL_ANNIHILATED_TRANS){
     if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
@@ -803,7 +809,6 @@ extract_cell_color_table(qstate* qs, long cellid){
       tam[cellid].state = SPRIXCELL_OPAQUE_SIXEL;
     }
   }
-  sixeltable* stab = qs->stab;
   for(int visy = cstarty ; visy < cendy ; ++visy){   // current abs pixel row
     for(int visx = cstartx ; visx < cendx ; ++visx){ // current abs pixel col
       rgb = (qs->data + (qs->linesize / 4 * visy) + visx);
@@ -841,7 +846,7 @@ extract_cell_color_table(qstate* qs, long cellid){
   if(tam[cellid].state == SPRIXCELL_OPAQUE_SIXEL){
     rmatrix[cellid] = 0;
   }else{
-    stab->map->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+    qs->stab->map->p2 = SIXEL_P2_TRANS; // even one forces P2=1
   }
   return 0;
 }
