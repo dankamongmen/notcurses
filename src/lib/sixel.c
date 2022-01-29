@@ -698,9 +698,8 @@ actionmap_bit(int cidx, int colors, int sixelrow){
 // we have converged upon colorregs in the octree. we now run over the pixels
 // once again, and get the actual final color table entries.
 static inline int
-build_data_table(qstate* qs, const uint32_t* data,
-                 int begy, int begx, int leny, int lenx,
-                 uint32_t transcolor){
+build_data_table(qstate* qs, int begy, int begx){
+  const uint32_t* data = qs->data;
   sixeltable* stab = qs->stab;
   if(stab->map->sixelcount == 0){
     logerror("no sixels");
@@ -725,15 +724,15 @@ build_data_table(qstate* qs, const uint32_t* data,
   int pos = 0;
 //fprintf(stderr, "BUILDING DATA TABLE\n");
   // 1 bit per color per sixelrow as a skiptable; if 0, color is absent there
-  size_t actionsize = ((qs->colors * (leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
+  size_t actionsize = ((qs->colors * (qs->leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
   stab->map->action = malloc(actionsize);
   memset(stab->map->action, 0, actionsize);
   int sixelrow = 0;
-  for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
-    for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
-      for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
+  for(int visy = begy ; visy < (begy + qs->leny) ; visy += 6){ // pixel row
+    for(int visx = begx ; visx < (begx + qs->lenx) ; visx += 1){ // pixel column
+      for(int sy = visy ; sy < (begy + qs->leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (qs->linesize / 4 * sy) + visx);
-        if(rgba_trans_p(*rgb, transcolor)){
+        if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
           continue;
         }
         int cidx = find_color(qs, *rgb);
@@ -857,53 +856,34 @@ extract_cell_color_table(qstate* qs, long cellid){
 // color registers. |ccols| is cell geometry; |leny| and |lenx| are pixel
 // geometry, and *do not* include sixel padding.
 static inline int
-extract_color_table(const uint32_t* data, int linesize, int ccols,
-                    int leny, int lenx, sixeltable* stab,
-                    const blitterargs* bargs){
-  qstate qs;
-  if(alloc_qstate(bargs->u.pixel.colorregs, &qs)){
-    logerror("couldn't allocate qstate");
-    return -1;
-  }
-  qs.bargs = bargs;
-  qs.data = data;
-  qs.linesize = linesize;
-  qs.stab = stab;
-  qs.leny = leny;
-  qs.lenx = lenx;
+extract_color_table(qstate* qs, int ccols, sixeltable* stab){
+  const blitterargs* bargs = qs->bargs;
   // use the cell geometry as computed by the visual layer; leny doesn't
   // include any mandatory sixel padding.
   const int crows = bargs->u.pixel.spx->dimy;
   typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
   rmatrix = malloc(sizeof(*rmatrix) * crows * ccols);
   if(rmatrix == NULL){
-    free_qstate(&qs);
     return -1;
   }
   bargs->u.pixel.spx->needs_refresh = rmatrix;
   long cellid = 0;
   for(int y = 0 ; y < crows ; ++y){ // cell row
     for(int x = 0 ; x < ccols ; ++x){ // cell column
-      if(extract_cell_color_table(&qs, cellid)){
-        free_qstate(&qs);
+      if(extract_cell_color_table(qs, cellid)){
         return -1;
       }
       ++cellid;
     }
   }
-  loginfo("octree got %"PRIu32" entries", qs.colors);
-  if(merge_color_table(&qs, stab->colorregs)){
-    free_qstate(&qs);
+  loginfo("octree got %"PRIu32" entries", qs->colors);
+  if(merge_color_table(qs, stab->colorregs)){
     return -1;
   }
-  if(build_data_table(&qs, data,
-                      bargs->begy, bargs->begx, leny, lenx,
-                      bargs->transcolor)){
-    free_qstate(&qs);
+  if(build_data_table(qs, bargs->begy, bargs->begx)){
     return -1;
   }
-  loginfo("final palette: %u/%u colors", qs.colors, stab->colorregs);
-  free_qstate(&qs);
+  loginfo("final palette: %u/%u colors", qs->colors, qs->stab->colorregs);
   return 0;
 }
 
@@ -1187,14 +1167,27 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   int cols = bargs->u.pixel.spx->dimx;
   assert(n->tam);
-  if(extract_color_table(data, linesize, cols, leny, lenx, &stable, bargs)){
+  qstate qs;
+  if(alloc_qstate(bargs->u.pixel.colorregs, &qs)){
+    logerror("couldn't allocate qstate");
+    return -1;
+  }
+  qs.bargs = bargs;
+  qs.data = data;
+  qs.linesize = linesize;
+  qs.stab = &stable;
+  qs.leny = leny;
+  qs.lenx = lenx;
+  if(extract_color_table(&qs, cols, &stable)){
     free(bargs->u.pixel.spx->needs_refresh);
     bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(stable.map);
+    free_qstate(&qs);
     return -1;
   }
   // takes ownership of sixelmap on success
   int r = sixel_blit_inner(leny, lenx, &stable, bargs, n->tam);
+  free_qstate(&qs);
   if(r < 0){
     sixelmap_free(stable.map);
   }
