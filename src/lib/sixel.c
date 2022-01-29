@@ -698,7 +698,9 @@ actionmap_bit(int cidx, int colors, int sixelrow){
 // we have converged upon colorregs in the octree. we now run over the pixels
 // once again, and get the actual final color table entries.
 static inline int
-build_data_table(qstate* qs, int begy, int begx){
+build_data_table(qstate* qs){
+  int begy = qs->bargs->begy;
+  int begx = qs->bargs->begx;
   const uint32_t* data = qs->data;
   sixeltable* stab = qs->stab;
   if(stab->map->sixelcount == 0){
@@ -856,11 +858,12 @@ extract_cell_color_table(qstate* qs, long cellid){
 // color registers. |ccols| is cell geometry; |leny| and |lenx| are pixel
 // geometry, and *do not* include sixel padding.
 static inline int
-extract_color_table(qstate* qs, int ccols, sixeltable* stab){
+extract_color_table(qstate* qs, sixeltable* stab){
   const blitterargs* bargs = qs->bargs;
   // use the cell geometry as computed by the visual layer; leny doesn't
   // include any mandatory sixel padding.
   const int crows = bargs->u.pixel.spx->dimy;
+  const int ccols = bargs->u.pixel.spx->dimx;
   typeof(bargs->u.pixel.spx->needs_refresh) rmatrix;
   rmatrix = malloc(sizeof(*rmatrix) * crows * ccols);
   if(rmatrix == NULL){
@@ -880,7 +883,7 @@ extract_color_table(qstate* qs, int ccols, sixeltable* stab){
   if(merge_color_table(qs, stab->colorregs)){
     return -1;
   }
-  if(build_data_table(qs, bargs->begy, bargs->begx)){
+  if(build_data_table(qs)){
     return -1;
   }
   loginfo("final palette: %u/%u colors", qs->colors, qs->stab->colorregs);
@@ -1077,12 +1080,12 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 // constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
 // are output geometry.
 static inline int
-write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab, int* parse_start){
-  *parse_start = write_sixel_header(f, outy, outx, stab->map);
+write_sixel(qstate* qs, fbuf* f, int outy, const sixeltable* stab, int* parse_start){
+  *parse_start = write_sixel_header(f, outy, qs->lenx, stab->map);
   if(*parse_start < 0){
     return -1;
   }
-  if(write_sixel_payload(f, outx, stab->map) < 0){
+  if(write_sixel_payload(f, qs->lenx, stab->map) < 0){
     return -1;
   }
   return 0;
@@ -1123,7 +1126,7 @@ sixel_reblit(sprixel* s){
 // scaled geometry in pixels. We calculate output geometry herein, and supply
 // transparent filler input for any missing rows.
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs, tament* tam){
+sixel_blit_inner(qstate* qs, sixeltable* stab, const blitterargs* bargs, tament* tam){
   fbuf f;
   if(fbuf_init(&f)){
     return -1;
@@ -1132,19 +1135,19 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, const blitterargs* bargs,
   const int cellpxy = bargs->u.pixel.cellpxy;
   const int cellpxx = bargs->u.pixel.cellpxx;
   int parse_start = 0;
-  int outy = leny;
-  if(leny % 6){
-    outy += 6 - (leny % 6);
+  int outy = qs->leny;
+  if(outy % 6){
+    outy += 6 - (qs->leny % 6);
     stab->map->p2 = SIXEL_P2_TRANS;
   }
   // calls fclose() on success
-  if(write_sixel(&f, outy, lenx, stab, &parse_start)){
+  if(write_sixel(qs, &f, outy, stab, &parse_start)){
     fbuf_free(&f);
     return -1;
   }
-  scrub_tam_boundaries(tam, outy, lenx, cellpxy, cellpxx);
+  scrub_tam_boundaries(tam, outy, qs->lenx, cellpxy, cellpxx);
   // take ownership of buf on success
-  if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
+  if(plane_blit_sixel(s, &f, outy, qs->lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
     fbuf_free(&f);
     return -1;
   }
@@ -1165,7 +1168,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     sixelmap_free(stable.map);
     return -1;
   }
-  int cols = bargs->u.pixel.spx->dimx;
   assert(n->tam);
   qstate qs;
   if(alloc_qstate(bargs->u.pixel.colorregs, &qs)){
@@ -1178,7 +1180,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   qs.stab = &stable;
   qs.leny = leny;
   qs.lenx = lenx;
-  if(extract_color_table(&qs, cols, &stable)){
+  if(extract_color_table(&qs, &stable)){
     free(bargs->u.pixel.spx->needs_refresh);
     bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(stable.map);
@@ -1186,10 +1188,11 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     return -1;
   }
   // takes ownership of sixelmap on success
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs, n->tam);
+  int r = sixel_blit_inner(&qs, &stable, bargs, n->tam);
   free_qstate(&qs);
   if(r < 0){
     sixelmap_free(stable.map);
+    // FIXME free refresh table?
   }
   scrub_color_table(bargs->u.pixel.spx);
   return r;
