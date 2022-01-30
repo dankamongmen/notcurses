@@ -20,29 +20,25 @@ typedef enum {
   SIXEL_P2_TRANS = 1,
 } sixel_p2_e;
 
-// we keep a color-indexed set of sixels (a single-row column of six pixels,
-// encoded as a byte) across the life of the sprixel. This provides a good
-// combination of easy-to-edit (for wipes and restores) -- you can index by
-// color, and then by position, in O(1) -- and a form which can easily be
-// converted to the actual Sixel encoding. wipes and restores come in and edit
-// these sixels in O(1), and then at display time we recreate the encoded
-// bitmap in one go if necessary. we could just wipe and restore directly using
-// the encoded form, but it's a tremendous pain in the ass. this sixelmap will
-// be kept in the sprixel.
-// for initial quantization we fill out a static 5-level octree, with a sixth
-// dynamic level. we then merge as necessary to converge upon the number of
-// color registers. once we've settled on the colors, we run the pixels through
-// the octree again to build up the sixelmap.
+// across the life of the sixel, we'll need to wipe and restore cells, without
+// recourse to the original RGBA data. this is prohibitively expensive to do on
+// the encoded data, since it might require expanding or collapsing sections in
+// the middle (we could use a rope, but it would be annoying). instead, we keep
+// for each sixelrow (i.e. for every 6 rows) a vector of colors and distinct
+// encoded sections (i.e. *not* from some common long single allocation). this
+// way, the encoded sections can be easily and cheaply changed (since they're
+// small, and quickly indexed by sixelrow * color)). whenever we want to emit
+// the sixel, we just gather all these dynamic sections and write them
+// successively into the fbuf. this table can be built up in parallel, since
+// it's isolated among sixelrows -- the sixelrow is then the natural work unit.
+// this sixelmap is kept across the life of the sprixel; any longlived state
+// must be here, whereas state necessary only for rendering ought be in qstate.
 typedef struct sixelmap {
   int colors;
   int sixelcount;
-  // FIXME we ought be able to combine these under the new scheme
-  // for each color, for each sixel (stack of six), the representation.
-  unsigned char* data;  // |colors| x |sixelcount|-byte arrays
+  unsigned char* data;   // |colors| x |sixelcount|-byte arrays FIXME
   unsigned char* action; // |sixelrows| x |colors|-byte arrays
-  // for each color, the components and a dindex.
-  unsigned char* table; // |colors| x CENTSIZE: components
-  sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
+  sixel_p2_e p2;         // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixelmap;
 
 // second pass: construct data for extracted colors over the sixels. the
@@ -61,7 +57,7 @@ sixelmap_create(int dimy, int dimx){
     ret->p2 = SIXEL_P2_ALLOPAQUE;
     ret->sixelcount = sixelcount(dimy, dimx);
     ret->data = NULL;
-    ret->table = NULL;
+    ret->colors = 0;
   }
   return ret;
 }
@@ -69,7 +65,6 @@ sixelmap_create(int dimy, int dimx){
 void sixelmap_free(sixelmap *s){
   if(s){
     free(s->action);
-    free(s->table);
     free(s->data);
     free(s);
   }
@@ -147,6 +142,11 @@ qidx(const qnode* q){
 }
 
 typedef struct qstate {
+  // we always work in terms of quantized colors (quantization is the first
+  // step of rendering), using indexes into the derived palette. the actual
+  // palette need only be stored during the initial render, since the sixel
+  // header can be preserved, and the palette is unchanged by wipes/restores.
+  unsigned char* table;  // |colors| x RGBSIZE components
   qnode* qnodes;
   onode* onodes;
   unsigned dynnodes_free;
@@ -157,7 +157,6 @@ typedef struct qstate {
   const uint32_t* data;
   int linesize;
   sixeltable* stab;
-  uint32_t colors;
   // these are the leny and lenx passed to sixel_blit(), which are likely
   // different from those reachable through bargs->len{y,x}!
   int leny, lenx;
@@ -191,7 +190,7 @@ alloc_qstate(unsigned colorregs, qstate* qs){
   // we only initialize the static nodes, not the dynamic ones--we know
   // when we pull a dynamic one that it needs its popcount initialized.
   memset(qs->qnodes, 0, sizeof(qnode) * QNODECOUNT);
-  qs->colors = 0;
+  qs->table = NULL;
   return 0;
 }
 
@@ -202,6 +201,7 @@ free_qstate(qstate *qs){
     loginfo("freeing qstate");
     free(qs->qnodes);
     free(qs->onodes);
+    free(qs->table);
   }
 }
 
@@ -221,7 +221,7 @@ insert_color(qstate* qs, uint32_t pixel){
     q->q.comps[1] = g;
     q->q.comps[2] = b;
     q->q.pop = 1;
-    ++qs->colors;
+    ++qs->stab->map->colors;
     return 0;
   }
   onode* o;
@@ -282,7 +282,7 @@ insert_color(qstate* qs, uint32_t pixel){
   o->q[skey]->q.comps[2] = b;
   o->q[skey]->qlink = 0;
   o->q[skey]->cidx = 0;
-  ++qs->colors;
+  ++qs->stab->map->colors;
 //fprintf(stderr, "INSERTED[%u]: %u %u %u\n", key, q->q.comps[0], q->q.comps[1], q->q.comps[2]);
   return 0;
 }
@@ -307,9 +307,6 @@ find_color(const qstate* qs, uint32_t pixel){
   }
   return qidx(q);
 }
-
-// size of a color table entry: just the three components
-#define CENTSIZE (RGBSIZE)
 
 // create an auxiliary vector suitable for a Sixel sprixcell, and zero it out.
 // there are three bytes per pixel in the cell: a contiguous set of 16-bit
@@ -606,22 +603,22 @@ choose(qstate* qs, qnode* q, int z, int i, int* hi, int* lo,
 // we must reduce the number of colors until we're using less than or equal
 // to the number of color registers.
 static inline int
-merge_color_table(qstate* qs, uint32_t colorregs){
-  if(qs->colors == 0){
+merge_color_table(qstate* qs){
+  if(qs->stab->map->colors == 0){
     return 0;
   }
-  qnode* qactive = get_active_set(qs, qs->colors);
+  qnode* qactive = get_active_set(qs, qs->stab->map->colors);
   if(qactive == NULL){
     return -1;
   }
   // assign color table entries to the most popular colors. use the lowest
   // color table entries for the most popular ones, as they're the shortest
   // (this is not necessarily an optimizing huristic, but it'll do for now).
-  unsigned cidx = 0;
+  int cidx = 0;
 //fprintf(stderr, "colors: %u cregs: %u\n", qs->colors, colorregs);
-  for(int z = qs->colors - 1 ; z >= 0 ; --z){
-    if(qs->colors >= colorregs){
-      if(cidx == colorregs){
+  for(int z = qs->stab->map->colors - 1 ; z >= 0 ; --z){
+    if(qs->stab->map->colors >= qs->stab->colorregs){
+      if(cidx == qs->stab->colorregs){
         break; // we just ran out of color registers
       }
     }
@@ -629,7 +626,7 @@ merge_color_table(qstate* qs, uint32_t colorregs){
     ++cidx;
   }
   free(qactive);
-  if(qs->colors > colorregs){
+  if(qs->stab->map->colors > qs->stab->colorregs){
     // tend to those which couldn't get a color table entry. we start with two
     // values, lo and hi, initialized to -1. we iterate over the *static* qnodes,
     // descending into onodes to check their qnodes. we thus iterate over all
@@ -660,21 +657,21 @@ merge_color_table(qstate* qs, uint32_t colorregs){
         choose(qs, &qs->qnodes[z], z, -1, &hi, &lo, &hq, &lq);
       }
     }
-    qs->colors = colorregs;
+    qs->stab->map->colors = qs->stab->colorregs;
   }
   return 0;
 }
 
 static inline void
-load_color_table(const qstate* qs, unsigned char* table){
-  uint32_t loaded = 0;
-  unsigned total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
-  for(unsigned z = 0 ; z < total && loaded < qs->colors ; ++z){
+load_color_table(const qstate* qs){
+  int loaded = 0;
+  int total = QNODECOUNT + (qs->dynnodes_total - qs->dynnodes_free);
+  for(int z = 0 ; z < total && loaded < qs->stab->map->colors ; ++z){
     const qnode* q = &qs->qnodes[z];
     if(chosen_p(q)){
-      table[CENTSIZE * qidx(q) + 0] = ss(q->q.comps[0]);
-      table[CENTSIZE * qidx(q) + 1] = ss(q->q.comps[1]);
-      table[CENTSIZE * qidx(q) + 2] = ss(q->q.comps[2]);
+      qs->table[RGBSIZE * qidx(q) + 0] = ss(q->q.comps[0]);
+      qs->table[RGBSIZE * qidx(q) + 1] = ss(q->q.comps[1]);
+      qs->table[RGBSIZE * qidx(q) + 2] = ss(q->q.comps[2]);
       ++loaded;
     }
   }
@@ -707,26 +704,26 @@ build_data_table(qstate* qs){
     logerror("no sixels");
     return -1;
   }
-  // FIXME merge these two
-  size_t dsize = sizeof(*stab->map->data) * qs->colors * stab->map->sixelcount;
+  size_t dsize = sizeof(*stab->map->data) *
+                  qs->stab->map->colors *
+                  stab->map->sixelcount;
   stab->map->data = malloc(dsize);
   if(stab->map->data == NULL){
     return -1;
   }
-  size_t tsize = CENTSIZE * qs->colors;
-  stab->map->table = malloc(tsize);
-  if(stab->map->table == NULL){
+  size_t tsize = RGBSIZE * qs->stab->map->colors;
+  qs->table = malloc(tsize);
+  if(qs->table == NULL){
     free(stab->map->data);
     stab->map->data = NULL;
     return -1;
   }
-  load_color_table(qs, stab->map->table);
+  load_color_table(qs);
   memset(stab->map->data, 0, dsize);
-  stab->map->colors = qs->colors;
   int pos = 0;
 //fprintf(stderr, "BUILDING DATA TABLE\n");
   // 1 bit per color per sixelrow as a skiptable; if 0, color is absent there
-  size_t actionsize = ((qs->colors * (qs->leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
+  size_t actionsize = ((qs->stab->map->colors * (qs->leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
   stab->map->action = malloc(actionsize);
   memset(stab->map->action, 0, actionsize);
   int sixelrow = 0;
@@ -739,15 +736,13 @@ build_data_table(qstate* qs){
         }
         int cidx = find_color(qs, *rgb);
         if(cidx < 0){
-          free(stab->map->table);
-          stab->map->table = NULL;
           free(stab->map->data);
           stab->map->data = NULL;
           return -1;
         }
         stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
-        stab->map->action[actionmap_offset(cidx, qs->colors, sixelrow)] |=
-          actionmap_bit(cidx, qs->colors, sixelrow);
+        stab->map->action[actionmap_offset(cidx, qs->stab->map->colors, sixelrow)] |=
+          actionmap_bit(cidx, qs->stab->map->colors, sixelrow);
       }
       ++pos;
     }
@@ -857,8 +852,8 @@ extract_cell_color_table(qstate* qs, long cellid){
 // chunks, or expand them, converging towards the available number of
 // color registers. |ccols| is cell geometry; |leny| and |lenx| are pixel
 // geometry, and *do not* include sixel padding.
-static inline int
-extract_color_table(qstate* qs, sixeltable* stab){
+static int
+extract_color_table(qstate* qs){
   const blitterargs* bargs = qs->bargs;
   // use the cell geometry as computed by the visual layer; leny doesn't
   // include any mandatory sixel padding.
@@ -879,14 +874,14 @@ extract_color_table(qstate* qs, sixeltable* stab){
       ++cellid;
     }
   }
-  loginfo("octree got %"PRIu32" entries", qs->colors);
-  if(merge_color_table(qs, stab->colorregs)){
+  loginfo("octree got %"PRIu32" entries", qs->stab->map->colors);
+  if(merge_color_table(qs)){
     return -1;
   }
   if(build_data_table(qs)){
     return -1;
   }
-  loginfo("final palette: %u/%u colors", qs->colors, qs->stab->colorregs);
+  loginfo("final palette: %u/%u colors", qs->stab->map->colors, qs->stab->colorregs);
   return 0;
 }
 
@@ -1002,17 +997,17 @@ write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
 // future reencodings. |leny| and |lenx| are output pixel geometry.
 // returns the number of bytes written, so it can be stored at *parse_start.
 static int
-write_sixel_header(fbuf* f, int leny, int lenx, const sixelmap* smap){
+write_sixel_header(qstate* qs, fbuf* f, int leny){
   if(leny % 6){
     return -1;
   }
-  // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  int r = write_sixel_intro(f, smap->p2, leny, lenx);
+  // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=qs->lenx, Pv=leny
+  int r = write_sixel_intro(f, qs->stab->map->p2, leny, qs->lenx);
   if(r < 0){
     return -1;
   }
-  for(int i = 0 ; i < smap->colors ; ++i){
-    const unsigned char* rgb = smap->table + i * CENTSIZE;
+  for(int i = 0 ; i < qs->stab->map->colors ; ++i){
+    const unsigned char* rgb = qs->table + i * RGBSIZE;
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
     int rr = write_sixel_creg(f, i, rgb[0], rgb[1], rgb[2]);
     if(rr < 0){
@@ -1081,7 +1076,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 // are output geometry.
 static inline int
 write_sixel(qstate* qs, fbuf* f, int outy, const sixeltable* stab, int* parse_start){
-  *parse_start = write_sixel_header(f, outy, qs->lenx, stab->map);
+  *parse_start = write_sixel_header(qs, f, outy);
   if(*parse_start < 0){
     return -1;
   }
@@ -1180,7 +1175,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   qs.stab = &stable;
   qs.leny = leny;
   qs.lenx = lenx;
-  if(extract_color_table(&qs, &stable)){
+  if(extract_color_table(&qs)){
     free(bargs->u.pixel.spx->needs_refresh);
     bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(stable.map);
