@@ -366,57 +366,158 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
-// wipe the color from startx to endx, from starty to endy. returns the
+struct band_extender {
+  int length; // current length of the vector
+  int next;   // next x location we will cover with a write
+};
+
+// add the supplied rle section to the appropriate vector, which might
+// need to be created.
+static inline char*
+sixelband_extend(char* vec, struct band_extender* bes, int maxlen,
+                 int rep, int rle, int curx){
+  assert(maxlen >= rle);
+  assert(0 < rle);
+  assert(b->size > color);
+  assert(0 < rep);
+  assert(64 > rep);
+  if(vec == NULL){
+    // FIXME for now we make it as big as it could possibly need to be
+    if((vec = malloc(maxlen + 1)) == NULL){
+      return NULL;
+    }
+    bes->length = 0;
+    bes->next = 0;
+  }
+  int clearlen = (curx - rle + 1) - bes->next;
+fprintf(stderr, "clearlen: %d\n", clearlen);
+  if(clearlen > 2){
+    bes->length += sprintf(vec + bes->length, "!%d?", clearlen);
+  }else if(clearlen){
+    if(clearlen < 0){
+      logpanic("internal error, clearlen %d", clearlen);
+      free(vec);
+      return NULL;
+    }
+    vec[bes->length++] = '?';
+    if(clearlen == 2){
+      vec[bes->length++] = '?';
+    }
+    vec[bes->length] = '\0';
+  }
+  rep += 63;
+  if(rle > 2){
+    bes->length += sprintf(vec + bes->length, "!%d%c", rle, rep);
+  }else{
+    vec[bes->length++] = rep;
+    if(rle == 2){
+      vec[bes->length++] = rep;
+    }
+    vec[bes->length] = '\0';
+  }
+  bes->next = curx + 1;
+  return vec;
+}
+
+// wipe the color within this band from startx to endx, from starty to
+// endy (0-offset in the band). returns the number of pixels actually wiped.
+static inline int
+wipe_color(sixelband* b, int color, int startx, int endx,
+           char mask, int dimx, int cellpixy, int cellpixx,
+           uint8_t* auxvec){
+  const char* vec = b->vecs[color];
+  if(vec == NULL){
+    return 0; // no work to be done here
+  }
+  char* newvec = NULL;
+  int wiped = 0;
+//fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
+//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
+  // we decode the color within the sixelband, and rebuild it without the
+  // wiped pixels.
+  int rle = 0; // the repetition number for this element
+  // the x coordinate through which we've checked this band. if x + rle is
+  // less than startx, this element cannot be affected by the wipe.
+  // otherwise, starting at startx, it can be affected. once x > endx, we
+  // are done, and can copy the remaining elements blindly.
+  int x = 0;
+  struct band_extender bes = {
+    .length = 0, // index into newvec
+    .next = 0,
+  };
+  while(*vec){
+    if(isdigit(*vec)){
+      rle *= 10;
+      rle += (*vec - '0');
+    }else if(*vec == '!'){
+      rle = 0;
+    }else{
+      if(rle == 0){
+        rle = 1;
+      }
+      char rep = *vec - 63;
+fprintf(stderr, "SO FAR [%s] (%d) %d @ %d\n", newvec ? newvec : "NULL", bes.length, rle, x);
+      x += rle - 1;
+      if(x + rle < startx){ // not wiped material; reproduce as-is
+        newvec = sixelband_extend(newvec, &bes, dimx, rep, rle, x);
+      }else if((rep & mask) == rep){ // not changed by wipe
+        newvec = sixelband_extend(newvec, &bes, dimx, rep, rle, x);
+      }else{ // changed by wipe; might have to break it up
+        if(x < startx){
+          newvec = sixelband_extend(newvec, &bes, dimx, rep, startx - x, x);
+          x += startx - x;
+          rle -= startx - x;
+        }
+        // FIXME this new rep might equal the next rep, in which case we ought combine
+        newvec = sixelband_extend(newvec, &bes, dimx, rep & mask, endx - x, x);
+        x += startx - x;
+        rle -= startx - x;
+        wiped += startx - x;
+        if(rle){
+          newvec = sixelband_extend(newvec, &bes, dimx, rep, rle, x);
+        }
+      }
+    }
+    if(newvec == NULL){
+      return 0;
+    }
+    ++vec;
+    if(x > endx){
+      strcpy(newvec + bes.length, vec); // there is always room
+      break;
+    }
+  }
+  free(b->vecs[color]);
+  // FIXME check for empty vector; free such, and assign NULL
+  b->vecs[color] = newvec;
+  return wiped;
+}
+
+// wipe the band from startx to endx, from starty to endy. returns the
 // number of pixels actually wiped.
 static inline int
 wipe_band(sixelmap* smap, int band, int startx, int endx,
           int starty, int endy, int dimx, int cellpixy, int cellpixx,
           uint8_t* auxvec){
   int wiped = 0;
-  // offset into map->data where our color starts
-/* FIXME
-  int coff = smap->sixelcount * color;
-//fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
-  // we're going to repurpose starty as "starting row of this band", so keep it
-  // around as originy for auxvecidx computations
-  int originy = starty;
-  for(int b = sband ; b <= eband && b * 6 <= endy ; ++b){
-    const int boff = coff + b * dimx; // offset in data where band starts
-    unsigned char mask = 63;
-    for(int i = 0 ; i < 6 ; ++i){
-      if(b * 6 + i >= starty && b * 6 + i <= endy){
-        mask &= ~(1u << i);
-      }
-//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
+  // get 0-offset start and end row bounds for our band.
+  const int sy = starty - band * 6;
+  const int ey = ((band + 1) * 6 > endy ? endy - band * 6 : (band + 1) * 6);
+  // we've got a mask that we'll AND with the decoded sixels; set it to
+  // 0 wherever we're wiping.
+  unsigned char mask = 0;
+  // knock out a bit for each row we're wiping within the band
+  for(int i = 0 ; i < 6 ; ++i){
+    if(i < sy || i > ey){
+      mask |= ~(1u << i);
     }
-    for(int x = startx ; x <= endx ; ++x){
-      const int xoff = boff + x;
-      assert(xoff < (smap->colors + 1) * smap->sixelcount);
-//fprintf(stderr, "band: %d color: %d idx: %d mask: %02x\n", b, color, color * smap->sixelcount + xoff, mask);
-//fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
-      // this is the auxvec position of the upperleftmost pixel of the sixel
-      // there will be up to five more, each cellpxx away, for the five pixels
-      // below it. there will be cellpxx - 1 after it, each with their own five.
-//fprintf(stderr, "smap->data[%d] = %02x boff: %d x: %d color: %d\n", xoff, smap->data[xoff], boff, x, color);
-      for(int i = 0 ; i < 6 && b * 6 + i <= endy ; ++i){
-        int auxvecidx = (x - startx) + ((b * 6 + i - originy) * cellpixx);
-        unsigned bit = 1u << i;
-//fprintf(stderr, "xoff: %d i: %d b: %d endy: %d mask: 0x%02x\n", xoff, i, b, endy, mask);
-        if(!(mask & bit) && (smap->data[xoff] & bit)){
-//fprintf(stderr, "band %d %d/%d writing %d to auxvec[%d] %p xoff: %d boff: %d\n", b, b * 6 + i, x, color, auxvecidx, auxvec, xoff, boff);
-          auxvec[auxvecidx] = color;
-          auxvec[cellpixx * cellpixy + auxvecidx] = 0;
-        }
-      }
-      if((smap->data[xoff] & mask) != smap->data[xoff]){
-        smap->data[xoff] &= mask;
-        wiped = 1;
-      }
-//fprintf(stderr, "post: %02x\n", smap->data[color * smap->sixelcount + xoff]);
-    }
-    starty = (starty + 6) / 6 * 6;
   }
-  */
+  sixelband* b = &smap->bands[band];
+  // offset into map->data where our color starts
+  for(int i = 0 ; i < b->size ; ++i){
+    wiped += wipe_color(b, i, startx, endx, mask, dimx,
+                        cellpixy, cellpixx, auxvec);
+  }
   return wiped;
 }
 
@@ -713,54 +814,6 @@ load_color_table(const qstate* qs){
   assert(loaded == qs->stab->map->colors);
 }
 
-struct band_extender {
-  int length; // current length of the vector
-  int next;   // next x location we will cover with a write
-};
-
-// add the supplied rle section to the appropriate vector, which might
-// need to be created.
-static inline int
-sixelband_extend(sixelband* b, struct band_extender* bes, int maxlen,
-                 int color, int rep, int rle, int curx){
-  assert(maxlen >= rle);
-  assert(0 < rle);
-  assert(b->size > color);
-  assert(0 < rep);
-  assert(64 > rep);
-  struct band_extender* ourbes = &bes[color];
-  if(b->vecs[color] == NULL){
-    // FIXME for now we make it as big as it could possibly need to be
-    if((b->vecs[color] = malloc(maxlen + 1)) == NULL){
-      return -1;
-    }
-    ourbes->length = 0;
-    ourbes->next = 0;
-  }
-  int clearlen = (curx - rle + 1) - ourbes->next;
-  if(clearlen > 2){
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "!%d?", clearlen);
-  }else if(clearlen){
-    b->vecs[color][ourbes->length++] = '?';
-    if(clearlen == 2){
-      b->vecs[color][ourbes->length++] = '?';
-    }
-    b->vecs[color][ourbes->length] = '\0';
-  }
-  rep += 63;
-  if(rle > 2){
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "!%d%c", rle, rep);
-  }else{
-    b->vecs[color][ourbes->length++] = rep;
-    if(rle == 2){
-      b->vecs[color][ourbes->length++] = rep;
-    }
-    b->vecs[color][ourbes->length] = '\0';
-  }
-  ourbes->next = curx + 1;
-  return 0;
-}
-
 // build up a sixel band from (up to) 6 rows of the source RGBA.
 static inline int
 build_sixel_band(qstate* qs, int i){
@@ -845,7 +898,7 @@ build_sixel_band(qstate* qs, int i){
         }
       }
       if(!found){ // didn't find it; finalize it
-        sixelband_extend(b, meta, qs->lenx, prev[check].color, prev[check].rep, prev[check].rle, x);
+        b->vecs[prev[check].color] = sixelband_extend(b->vecs[prev[check].color], &meta[prev[check].color], qs->lenx, prev[check].rep, prev[check].rle, x);
         if(check + 1 < prevactive){
           // swap source with the top of the previous set
           prev[check].color = prev[prevactive - 1].color;
@@ -882,7 +935,7 @@ build_sixel_band(qstate* qs, int i){
   }
   // FIXME shouldn't this be on active, *not* prev!?
   for(int j = 0 ; j < prevactive ; ++j){
-    sixelband_extend(b, meta, qs->lenx, prev[j].color, prev[j].rep, prev[j].rle, x);
+    b->vecs[prev[j].color] = sixelband_extend(b->vecs[prev[j].color], &meta[prev[j].color], qs->lenx, prev[j].rep, prev[j].rle, x);
   }
   free(meta);
   return 0;
@@ -1367,7 +1420,7 @@ typedef struct sixel_engine {
 // FIXME make this part of the context, sheesh
 static sixel_engine globsengine;
 
-// a quantization worker. 
+// a quantization worker.
 static void *
 sixel_worker(void* v){
   sixel_engine *sengine = v;
