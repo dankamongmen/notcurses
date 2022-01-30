@@ -155,6 +155,12 @@ fbuf_reserve(fbuf* f, size_t len){
   return 0;
 }
 
+static inline void
+fbuf_chop(fbuf* f, size_t len){
+  assert(len <= f->size);
+  f->used = len;
+}
+
 static inline int
 fbuf_putc(fbuf* f, char c){
   if(fbuf_grow(f, 1)){
