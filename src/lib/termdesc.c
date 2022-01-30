@@ -50,9 +50,13 @@ get_default_geometry(tinfo* ti){
 // terminal implements DECSDM correctly (enabling it with \e[?80h), or inverts
 // the meaning (*disabling* it with \e[?80h) (we always want it disabled).
 static inline void
-setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
-  if(invert80){
-    ti->pixel_init = sixel_init_inverted;
+setup_sixel_bitmaps(tinfo* ti, int fd, unsigned forcesdm, unsigned invert80){
+  if(forcesdm){
+    if(invert80){
+      ti->pixel_init = sixel_init_inverted;
+    }else{
+      ti->pixel_init = sixel_init_forcesdm;
+    }
   }else{
     ti->pixel_init = sixel_init;
   }
@@ -727,7 +731,7 @@ apply_kitty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static const char*
 apply_alacritty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
-                           bool* invertsixel){
+                           bool* forcesdm, bool* invertsixel){
   ti->caps.quadrants = true;
   // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409
   ti->caps.rgb = true;
@@ -735,6 +739,7 @@ apply_alacritty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
   if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
     return NULL;
   }
+  *forcesdm = true;
   if(compare_versions(ti->termversion, "0.15.1") < 0){
     *invertsixel = true;
   }
@@ -753,10 +758,11 @@ apply_vte_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 static const char*
-apply_foot_heuristics(tinfo* ti, bool* invertsixel){
+apply_foot_heuristics(tinfo* ti, bool* forcesdm, bool* invertsixel){
   ti->caps.sextants = true;
   ti->caps.quadrants = true;
   ti->caps.rgb = true;
+  *forcesdm = true;
   if(compare_versions(ti->termversion, "1.8.2") < 0){
     *invertsixel = true;
   }
@@ -792,7 +798,8 @@ apply_wezterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static const char*
 apply_xterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
-                       bool* invertsixel){
+                       bool* forcesdm, bool* invertsixel){
+  *forcesdm = true;
   if(compare_versions(ti->termversion, "369") < 0){
     *invertsixel = true; // xterm 369 inverted DECSDM
   }
@@ -807,10 +814,11 @@ apply_xterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
 
 static const char*
 apply_mintty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
-                        bool* invertsixel){
+                        bool* forcesdm, bool* invertsixel){
   if(add_smulx_escapes(ti, tablelen, tableused)){
     return NULL;
   }
+  *forcesdm = true;
   if(compare_versions(ti->termversion, "3.5.2") < 0){
     *invertsixel = true;
   }
@@ -826,10 +834,11 @@ apply_msterminal_heuristics(tinfo* ti){
 }
 
 static const char*
-apply_contour_heuristics(tinfo* ti, bool* invertsixel){
+apply_contour_heuristics(tinfo* ti, bool* forcesdm, bool* invertsixel){
   ti->caps.quadrants = true;
   ti->caps.sextants = true;
   ti->caps.rgb = true;
+  *forcesdm = true;
   *invertsixel = true;
   return "Contour";
 }
@@ -904,7 +913,8 @@ apply_linux_heuristics(tinfo* ti, unsigned nonewfonts){
 // needs be correct, even though we identify the terminal. le sigh.
 static int
 apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused, bool* invertsixel,
+                      size_t* tablelen, size_t* tableused,
+                      bool* forcesdm, bool* invertsixel,
                       unsigned nonewfonts){
 #ifdef __MINGW32__
   if(qterm == TERMINAL_UNKNOWN){
@@ -924,13 +934,14 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_kitty_heuristics(ti, tablelen, tableused);
       break;
     case TERMINAL_ALACRITTY:
-      newname = apply_alacritty_heuristics(ti, tablelen, tableused, invertsixel);
+      newname = apply_alacritty_heuristics(ti, tablelen, tableused,
+                                           forcesdm, invertsixel);
       break;
     case TERMINAL_VTE:
       newname = apply_vte_heuristics(ti, tablelen, tableused);
       break;
     case TERMINAL_FOOT:
-      newname = apply_foot_heuristics(ti, invertsixel);
+      newname = apply_foot_heuristics(ti, forcesdm, invertsixel);
       break;
     case TERMINAL_TMUX:
       newname = "tmux"; // FIXME what, oh what to do with tmux?
@@ -945,16 +956,18 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_wezterm_heuristics(ti, tablelen, tableused);
       break;
     case TERMINAL_XTERM:
-      newname = apply_xterm_heuristics(ti, tablelen, tableused, invertsixel);
+      newname = apply_xterm_heuristics(ti, tablelen, tableused,
+                                       forcesdm, invertsixel);
       break;
     case TERMINAL_MINTTY:
-      newname = apply_mintty_heuristics(ti, tablelen, tableused, invertsixel);
+      newname = apply_mintty_heuristics(ti, tablelen, tableused,
+                                        forcesdm, invertsixel);
       break;
     case TERMINAL_MSTERMINAL:
       newname = apply_msterminal_heuristics(ti);
       break;
     case TERMINAL_CONTOUR:
-      newname = apply_contour_heuristics(ti, invertsixel);
+      newname = apply_contour_heuristics(ti, forcesdm, invertsixel);
       break;
     case TERMINAL_ITERM:
       newname = apply_iterm_heuristics(ti, tablelen, tableused);
@@ -1428,16 +1441,17 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       goto err;
     }
   }
+  bool forcesdm = false;
   bool invertsixel = false;
   if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
-                           &invertsixel, nonewfonts)){
+                           &forcesdm, &invertsixel, nonewfonts)){
     goto err;
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
     // color_registers was only assigned if kitty_graphics were unavailable
     if(ti->color_registers > 0){
-      setup_sixel_bitmaps(ti, ti->ttyfd, invertsixel);
+      setup_sixel_bitmaps(ti, ti->ttyfd, forcesdm, invertsixel);
     }
     if(kitty_graphics){
       setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
