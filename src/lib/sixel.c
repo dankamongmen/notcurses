@@ -238,7 +238,7 @@ free_qstate(qstate *qs){
 }
 
 // insert a color from the source image into the octree.
-static int
+static inline int
 insert_color(qstate* qs, uint32_t pixel){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
@@ -321,7 +321,7 @@ insert_color(qstate* qs, uint32_t pixel){
 
 // resolve the input color to a color table index following any postprocessing
 // of the octree.
-static int
+static inline int
 find_color(const qstate* qs, uint32_t pixel){
   const unsigned r = ncpixel_r(pixel);
   const unsigned g = ncpixel_g(pixel);
@@ -333,7 +333,7 @@ find_color(const qstate* qs, uint32_t pixel){
     if(qs->onodes[q->qlink - 1].q[skey]){
       q = qs->onodes[q->qlink - 1].q[skey];
     }else{
-      logerror("internal error: no color for 0x%016x", pixel);
+      logpanic("internal error: no color for 0x%016x", pixel);
       return -1;
     }
   }
