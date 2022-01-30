@@ -1096,20 +1096,10 @@ write_sixel(qstate* qs, fbuf* f, int outy, const sixeltable* stab, int* parse_st
 // is redrawn, and annihilated sprixcells still require a glyph to be emitted.
 static inline int
 sixel_reblit(sprixel* s){
-  fbuf f;
-  if(fbuf_init(&f)){
+  fbuf_chop(&s->glyph, s->parse_start);
+  if(write_sixel_payload(&s->glyph, s->pixx, s->smap) < 0){
     return -1;
   }
-  if(fbuf_putn(&f, s->glyph.buf, s->parse_start) != s->parse_start){
-    fbuf_free(&f);
-    return -1;
-  }
-  if(write_sixel_payload(&f, s->pixx, s->smap) < 0){
-    fbuf_free(&f);
-    return -1;
-  }
-  fbuf_free(&s->glyph);
-  memcpy(&s->glyph, &f, sizeof(f));
   change_p2(s->glyph.buf, s->smap->p2);
   return 0;
 }
