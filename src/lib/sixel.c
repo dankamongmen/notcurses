@@ -366,12 +366,12 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
-// wipe the color from startx to endx, from starty to endy. returns 1 if any
-// pixels were actually wiped.
+// wipe the color from startx to endx, from starty to endy. returns the
+// number of pixels actually wiped.
 static inline int
-wipe_color(sixelmap* smap, int color, int sband, int eband,
-           int startx, int endx, int starty, int endy, int dimx,
-           int cellpixy, int cellpixx, uint8_t* auxvec){
+wipe_band(sixelmap* smap, int band, int startx, int endx,
+          int starty, int endy, int dimx, int cellpixy, int cellpixx,
+          uint8_t* auxvec){
   int wiped = 0;
   // offset into map->data where our color starts
 /* FIXME
@@ -448,9 +448,9 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
   // walk through each color, and wipe the necessary sixels from each band
   int w = 0;
-  for(int c = 0 ; c < smap->colors ; ++c){
-    w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
-                    s->pixx, cellpxy, cellpxx, auxvec);
+  for(int b = startband ; b <= endband ; ++b){
+    w += wipe_band(smap, b, startx, endx, starty, endy, s->pixx,
+                   cellpxy, cellpxx, auxvec);
   }
   if(w){
     s->wipes_outstanding = true;
