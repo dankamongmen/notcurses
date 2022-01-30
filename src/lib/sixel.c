@@ -1072,17 +1072,17 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 
 // emit the sixel in its entirety, plus escapes to start and end pixel mode.
 // only called the first time we encode; after that, the palette remains
-// constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
-// are output geometry.
+// constant, and is simply copied. |outx| and |outy| are output geometry.
 static inline int
 write_sixel(qstate* qs, fbuf* f, int outy, const sixeltable* stab, int* parse_start){
   *parse_start = write_sixel_header(qs, f, outy);
   if(*parse_start < 0){
     return -1;
   }
-  if(write_sixel_payload(f, qs->lenx, stab->map) < 0){
-    return -1;
-  }
+  // we don't write out the payload yet -- set wipes_outstanding high, and
+  // it'll be emitted via sixel_reblit(), taking into account any wipes that
+  // occurred before it was displayed. otherwise, such a wipe would require
+  // two emissions, one of which would be thrown away.
   return 0;
 }
 
@@ -1125,7 +1125,6 @@ sixel_blit_inner(qstate* qs, sixeltable* stab, const blitterargs* bargs, tament*
     outy += 6 - (qs->leny % 6);
     stab->map->p2 = SIXEL_P2_TRANS;
   }
-  // calls fclose() on success
   if(write_sixel(qs, &f, outy, stab, &parse_start)){
     fbuf_free(&f);
     return -1;
@@ -1180,6 +1179,10 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     // FIXME free refresh table?
   }
   scrub_color_table(bargs->u.pixel.spx);
+  // see write_sixel()--we haven't actually emitted the body of the sixel yet.
+  // instead, we'll emit it at sixel_redraw(), thus avoided a double emission
+  // in the case of wipes taking place before it's visible.
+  bargs->u.pixel.spx->wipes_outstanding = 1;
   return r;
 }
 
