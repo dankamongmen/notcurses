@@ -1296,6 +1296,17 @@ sixel_worker(void* v){
   }while(1);
 }
 
+static int
+sixel_init_core(const char* initstr, int fd){
+  globsengine.workers = 0;
+  globsengine.workers_wanted = sizeof(globsengine.tids) / sizeof(*globsengine.tids);
+  // don't fail on an error here
+  if(pthread_create(globsengine.tids, NULL, sixel_worker, &globsengine)){
+    logerror("couldn't spin up sixel workers");
+  }
+  return tty_emit(initstr, fd);
+}
+
 // private mode 80 (DECSDM) manages "Sixel Scrolling Mode" vs "Sixel Display
 // Mode". when 80 is enabled (i.e. DECSDM mode), images are displayed at the
 // upper left, and clipped to the window. we don't want either of those things
@@ -1303,14 +1314,8 @@ sixel_worker(void* v){
 // private mode 8452 places the cursor at the end of a sixel when it's
 //  emitted. we don't need this for rendered mode, but we do want it for
 //  direct mode. it causes us no problems, so always set it.
-int sixel_init(int fd){
-  globsengine.workers = 0;
-  globsengine.workers_wanted = sizeof(globsengine.tids) / sizeof(*globsengine.tids);
-  // don't fail on an error here
-  if(pthread_create(globsengine.tids, NULL, sixel_worker, &globsengine)){
-    logerror("couldn't spin up sixel workers");
-  }
-  return tty_emit("\e[?80l\e[?8452h", fd);
+int sixel_init_forcesdm(int fd){
+  return sixel_init_core("\e[?80l\e[?8452h", fd);
 }
 
 int sixel_init_inverted(int fd){
@@ -1318,7 +1323,13 @@ int sixel_init_inverted(int fd){
   // we must use 80h rather than the correct 80l. this grows out of a
   // misunderstanding in XTerm through patchlevel 368, which was widely
   // copied into other terminals.
-  return tty_emit("\e[?80h\e[?8452h", fd);
+  return sixel_init_core("\e[?80h\e[?8452h", fd);
+}
+
+// if we aren't sure of the semantics of the terminal we're speaking with,
+// don't touch DECSDM at all. it's almost certainly set up the way we want.
+int sixel_init(int fd){
+  return sixel_init_core("\e[?8452h", fd);
 }
 
 // only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to
