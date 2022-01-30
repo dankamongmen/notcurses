@@ -69,6 +69,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Alacritty](https://github.com/alacritty/alacritty)       | ✅         |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
 | [cool-retro-term](https://github.com/Swordfish90/cool-retro-term) | ❌ | ❌ |✅ | `TERM=xterm-256color` `COLORTERM=24bit` | Accepts RGB. No `initc` despite claiming to be XTerm. |
 | [Contour](https://github.com/christianparpart/contour)    | ✅         |  ✅   |✅       |`TERM=contour`             | Sixel support.             |
+| [Darktile](https://github.com/liamg/darktile) | ? | ? | ? | `TERM=xterm-256color` | ? |
 | [ETerm](https://github.com/mej/Eterm) | | | | `TERM=Eterm` | Doesn't reply to Send Device Attributes |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)  | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
