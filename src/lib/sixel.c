@@ -676,7 +676,7 @@ load_color_table(const qstate* qs){
     }
   }
 //fprintf(stderr, "loaded: %u colors: %u\n", loaded, qs->colors);
-  assert(loaded == qs->colors);
+  assert(loaded == qs->stab->map->colors);
 }
 
 // get the byte in the actionmap corresponding to a color + sixelrow
@@ -1070,22 +1070,6 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
   return 0;
 }
 
-// emit the sixel in its entirety, plus escapes to start and end pixel mode.
-// only called the first time we encode; after that, the palette remains
-// constant, and is simply copied. |outx| and |outy| are output geometry.
-static inline int
-write_sixel(qstate* qs, fbuf* f, int outy, const sixeltable* stab, int* parse_start){
-  *parse_start = write_sixel_header(qs, f, outy);
-  if(*parse_start < 0){
-    return -1;
-  }
-  // we don't write out the payload yet -- set wipes_outstanding high, and
-  // it'll be emitted via sixel_reblit(), taking into account any wipes that
-  // occurred before it was displayed. otherwise, such a wipe would require
-  // two emissions, one of which would be thrown away.
-  return 0;
-}
-
 // once per render cycle (if needed), make the actual payload match the TAM. we
 // don't do these one at a time due to the complex (expensive) process involved
 // in regenerating a sixel (we can't easily do it in-place). anything newly
@@ -1104,12 +1088,7 @@ sixel_reblit(sprixel* s){
   return 0;
 }
 
-// Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
-// are programmed as a set of registers, which are then referenced by the
-// stacks. There is also a RLE component, handled in rasterization.
-// A pixel block is indicated by setting cell_pixels_p(). |leny| and |lenx| are
-// scaled geometry in pixels. We calculate output geometry herein, and supply
-// transparent filler input for any missing rows.
+// write out the sixel header after having quantized the palette.
 static inline int
 sixel_blit_inner(qstate* qs, sixeltable* stab, const blitterargs* bargs, tament* tam){
   fbuf f;
@@ -1119,16 +1098,20 @@ sixel_blit_inner(qstate* qs, sixeltable* stab, const blitterargs* bargs, tament*
   sprixel* s = bargs->u.pixel.spx;
   const int cellpxy = bargs->u.pixel.cellpxy;
   const int cellpxx = bargs->u.pixel.cellpxx;
-  int parse_start = 0;
   int outy = qs->leny;
   if(outy % 6){
     outy += 6 - (qs->leny % 6);
     stab->map->p2 = SIXEL_P2_TRANS;
   }
-  if(write_sixel(qs, &f, outy, stab, &parse_start)){
+  int parse_start = write_sixel_header(qs, &f, outy);
+  if(parse_start < 0){
     fbuf_free(&f);
     return -1;
   }
+  // we don't write out the payload yet -- set wipes_outstanding high, and
+  // it'll be emitted via sixel_reblit(), taking into account any wipes that
+  // occurred before it was displayed. otherwise, such a wipe would require
+  // two emissions, one of which would be thrown away.
   scrub_tam_boundaries(tam, outy, qs->lenx, cellpxy, cellpxx);
   // take ownership of buf on success
   if(plane_blit_sixel(s, &f, outy, qs->lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
@@ -1179,9 +1162,9 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     // FIXME free refresh table?
   }
   scrub_color_table(bargs->u.pixel.spx);
-  // see write_sixel()--we haven't actually emitted the body of the sixel yet.
-  // instead, we'll emit it at sixel_redraw(), thus avoided a double emission
-  // in the case of wipes taking place before it's visible.
+  // we haven't actually emitted the body of the sixel yet. instead, we'll emit
+  // it at sixel_redraw(), thus avoided a double emission in the case of wipes
+  // taking place before it's visible.
   bargs->u.pixel.spx->wipes_outstanding = 1;
   return r;
 }
