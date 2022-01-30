@@ -13,12 +13,27 @@ sixelcount(int dimy, int dimx){
   return (dimy + 5) / 6 * dimx;
 }
 
+// returns the number of sixel bands (horizontal series of sixels, aka 6 rows)
+// for |dimy| source rows. sixels are encoded as a series of sixel bands.
+static inline int
+sixelbandcount(int dimy){
+  return sixelcount(dimy, 1);
+}
+
 // we set P2 based on whether there is any transparency in the sixel. if not,
 // use SIXEL_P2_ALLOPAQUE (0), for faster drawing in certain terminals.
 typedef enum {
   SIXEL_P2_ALLOPAQUE = 0,
   SIXEL_P2_TRANS = 1,
 } sixel_p2_e;
+
+// data for a single sixelband. a vector of sixel rows, one for each color
+// represented within the band. we initially create a vector for every
+// possible (quantized) color, and then collapse it.
+typedef struct sixelband {
+  int size;     // capacity FIXME if same for all, eliminate this
+  char** vecs;  // array of vectors, many of which can be NULL
+} sixelband;
 
 // across the life of the sixel, we'll need to wipe and restore cells, without
 // recourse to the original RGBA data. this is prohibitively expensive to do on
@@ -35,37 +50,53 @@ typedef enum {
 // must be here, whereas state necessary only for rendering ought be in qstate.
 typedef struct sixelmap {
   int colors;
-  int sixelcount;
-  unsigned char* data;   // |colors| x |sixelcount|-byte arrays FIXME
-  unsigned char* action; // |sixelrows| x |colors|-byte arrays
+  int sixelbands;
+  sixelband* bands;      // |sixelbands| collections of sixel vectors
   sixel_p2_e p2;         // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixelmap;
 
 // second pass: construct data for extracted colors over the sixels. the
 // map will be persisted in the sprixel; the remainder is lost.
+// FIXME kill this off; induct directly into qstate
 typedef struct sixeltable {
   sixelmap* map;        // copy of palette indices / transparency bits
-  int colorregs;        // *available* color registers
 } sixeltable;
 
 // whip up a sixelmap sans data for the specified pixel geometry and color
 // register count.
 static sixelmap*
-sixelmap_create(int dimy, int dimx){
+sixelmap_create(int dimy){
   sixelmap* ret = malloc(sizeof(*ret));
   if(ret){
     ret->p2 = SIXEL_P2_ALLOPAQUE;
-    ret->sixelcount = sixelcount(dimy, dimx);
-    ret->data = NULL;
+    // they'll be initialized by their workers, possibly in parallel
+    ret->sixelbands = sixelbandcount(dimy);
+    ret->bands = malloc(sizeof(*ret->bands) * ret->sixelbands);
+    if(ret->bands == NULL){
+      free(ret);
+      return NULL;
+    }
+    for(int i = 0 ; i < ret->sixelbands ; ++i){
+      ret->bands[i].size = 0;
+    }
     ret->colors = 0;
   }
   return ret;
 }
 
+static inline void
+sixelband_free(sixelband* s){
+  for(int j = 0 ; j < s->size ; ++j){
+    free(s->vecs[j]);
+  }
+}
+
 void sixelmap_free(sixelmap *s){
   if(s){
-    free(s->action);
-    free(s->data);
+    for(int i = 0 ; i < s->sixelbands ; ++i){
+      sixelband_free(&s->bands[i]);
+    }
+    free(s->bands);
     free(s);
   }
 }
@@ -342,6 +373,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
            int cellpixy, int cellpixx, uint8_t* auxvec){
   int wiped = 0;
   // offset into map->data where our color starts
+/* FIXME
   int coff = smap->sixelcount * color;
 //fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
   // we're going to repurpose starty as "starting row of this band", so keep it
@@ -383,6 +415,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
     }
     starty = (starty + 6) / 6 * 6;
   }
+  */
   return wiped;
 }
 
@@ -617,8 +650,8 @@ merge_color_table(qstate* qs){
   int cidx = 0;
 //fprintf(stderr, "colors: %u cregs: %u\n", qs->colors, colorregs);
   for(int z = qs->stab->map->colors - 1 ; z >= 0 ; --z){
-    if(qs->stab->map->colors >= qs->stab->colorregs){
-      if(cidx == qs->stab->colorregs){
+    if(qs->stab->map->colors >= qs->bargs->u.pixel.colorregs){
+      if(cidx == qs->bargs->u.pixel.colorregs){
         break; // we just ran out of color registers
       }
     }
@@ -626,7 +659,7 @@ merge_color_table(qstate* qs){
     ++cidx;
   }
   free(qactive);
-  if(qs->stab->map->colors > qs->stab->colorregs){
+  if(qs->stab->map->colors > qs->bargs->u.pixel.colorregs){
     // tend to those which couldn't get a color table entry. we start with two
     // values, lo and hi, initialized to -1. we iterate over the *static* qnodes,
     // descending into onodes to check their qnodes. we thus iterate over all
@@ -657,7 +690,7 @@ merge_color_table(qstate* qs){
         choose(qs, &qs->qnodes[z], z, -1, &hi, &lo, &hq, &lq);
       }
     }
-    qs->stab->map->colors = qs->stab->colorregs;
+    qs->stab->map->colors = qs->bargs->u.pixel.colorregs;
   }
   return 0;
 }
@@ -679,75 +712,140 @@ load_color_table(const qstate* qs){
   assert(loaded == qs->stab->map->colors);
 }
 
-// get the byte in the actionmap corresponding to a color + sixelrow
-static inline unsigned
-actionmap_offset(int cidx, int colors, int sixelrow){
-  return (sixelrow * colors + cidx) / 8;
+// build up a sixel band from (up to) 6 rows of the source RGBA.
+static inline int
+build_sixel_band(qstate* qs, int i){
+  sixelband* b = &qs->stab->map->bands[i];
+  size_t bsize = sizeof(*b->vecs) * qs->stab->map->colors;
+  b->vecs = malloc(bsize);
+  if(b->vecs == NULL){
+    return -1;
+  }
+  memset(b->vecs, 0, bsize);
+  const int ystart = qs->bargs->begy + i * 6;
+  const int endy = i + 1 == qs->stab->map->sixelbands ?
+                             qs->leny - (i * 6) : qs->bargs->begy + 6;
+  struct {
+    int color; // color, -1 for unused
+    int rep;   // representation, 0..63
+    int rle;   // number seen thus far (don't-care for active stack)
+  } s1[6], s2[6], *prev = s1, *active = s2;
+  // we start off with s2 as our active stack, so initialize s1 with -1s
+  for(int j = 0 ; j < 6 ; ++j){
+    prev[j].color = -1;
+  }
+  int prevactive = 0;
+  // we're going to advance horizontally through the sixelband
+  for(int x = qs->bargs->begx ; x < (qs->bargs->begx + qs->lenx) ; ++x){ // pixel column
+    // there are at most 6 colors represented in any given sixel. similarly,
+    // there were at most 6 colors in the previous sixel, each with some 6-bit
+    // representation. at each sixel, we need to *start tracking* new colors,
+    // and colors which changed their representation, and *write out*
+    // previously-tracked colors whose representation changed (including
+    // becoming 0, indicating that color's absence). colors which were and
+    // remain present, with the same representation, continue to be tracked.
+    // so we keep six pairs of color and representation, and build up another
+    // set, and then compare them.
+    int activepos = 0; // number of active entries used
+    for(int y = ystart ; y < endy ; ++y){
+      const uint32_t* rgb = (qs->data + (qs->linesize / 4 * y) + x);
+      if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
+        continue;
+      }
+      int cidx = find_color(qs, *rgb);
+      if(cidx < 0){
+        // FIXME free?
+        return -1;
+      }
+      int act;
+      for(act = 0 ; act < activepos ; ++act){
+        if(active[act].color == cidx){
+          active[act].rep |= (1u << (y - ystart));
+          break;
+        }
+      }
+      if(act == activepos){ // didn't find it; create new entry
+        active[activepos].color = cidx;
+        active[activepos].rep = (1u << (y - ystart));
+        ++activepos;
+      }
+    }
+    // we now have the active set. go through the previous set and see which
+    // were extended. write out and replace those which were not.
+    int check = 0;
+    while(check < prevactive){
+      int targ;
+      for(targ = 0 ; targ < activepos ; ++targ){
+        if(active[targ].color == prev[check].color && active[targ].rep == prev[check].rep){
+          // found it! extend our rle and wipe this one from the active set
+          ++prev[check].rle;
+          if(targ + 1 < activepos){
+            // swap target with the top of the active set
+            active[targ].color = active[activepos - 1].color;
+            active[targ].rep = active[activepos - 1].rep;
+            active[targ].rle = 1;
+          }
+          --activepos;
+          break;
+        }
+      }
+      if(targ == activepos){ // didn't find it; finalize it
+        // FIXME write me out to vector
+        if(check + 1 < prevactive){
+          // swap source with the top of the previous set
+          prev[targ].color = prev[prevactive - 1].color;
+          prev[targ].rep = prev[prevactive - 1].rep;
+          prev[targ].rle = prev[prevactive - 1].rle;
+        }
+        --prevactive;
+      }else{
+        ++check;
+      }
+    }
+    assert(6 >= prevactive + activepos);
+    if(activepos >= prevactive){
+      while(prevactive){
+        --prevactive;
+        active[activepos].color = prev[prevactive].color;
+        active[activepos].rle = prev[prevactive].rle;
+        active[activepos].rep = prev[prevactive].rep;
+        ++activepos;
+      }
+      typeof(prev) tmp = active;
+      active = prev;
+      prev = tmp;
+    }else{
+      while(activepos){
+        --activepos;
+        prev[prevactive].color = active[activepos].color;
+        prev[prevactive].rle = active[activepos].rle;
+        prev[prevactive].rep = active[activepos].rep;
+        ++prevactive;
+      }
+    }
+    prevactive += activepos;
+  }
+  return 0;
 }
 
-// get the bit in the actionmap corresponding to a color + sixelrow.
-// bytes in the actionmap are little-endian: 76543210fedcba98...
-static inline unsigned
-actionmap_bit(int cidx, int colors, int sixelrow){
-  return 1u << ((sixelrow * colors + cidx) % 8);
-}
-
-// we have converged upon colorregs in the octree. we now run over the pixels
-// once again, and get the actual final color table entries.
+// we have converged upon some number of colors. we now run over the pixels
+// once again, and get the actual (color-indexed) sixels.
 static inline int
 build_data_table(qstate* qs){
-  int begy = qs->bargs->begy;
-  int begx = qs->bargs->begx;
-  const uint32_t* data = qs->data;
   sixeltable* stab = qs->stab;
-  if(stab->map->sixelcount == 0){
+  if(stab->map->sixelbands == 0){
     logerror("no sixels");
     return -1;
   }
-  size_t dsize = sizeof(*stab->map->data) *
-                  qs->stab->map->colors *
-                  stab->map->sixelcount;
-  stab->map->data = malloc(dsize);
-  if(stab->map->data == NULL){
-    return -1;
+  for(int i = 0 ; i < qs->stab->map->sixelbands ; ++i){
+    build_sixel_band(qs, i);
   }
   size_t tsize = RGBSIZE * qs->stab->map->colors;
   qs->table = malloc(tsize);
   if(qs->table == NULL){
-    free(stab->map->data);
-    stab->map->data = NULL;
     return -1;
   }
   load_color_table(qs);
-  memset(stab->map->data, 0, dsize);
-  int pos = 0;
-//fprintf(stderr, "BUILDING DATA TABLE\n");
-  // 1 bit per color per sixelrow as a skiptable; if 0, color is absent there
-  size_t actionsize = ((qs->stab->map->colors * (qs->leny + 5) / 6) + (CHAR_BIT - 1)) / CHAR_BIT;
-  stab->map->action = malloc(actionsize);
-  memset(stab->map->action, 0, actionsize);
-  int sixelrow = 0;
-  for(int visy = begy ; visy < (begy + qs->leny) ; visy += 6){ // pixel row
-    for(int visx = begx ; visx < (begx + qs->lenx) ; visx += 1){ // pixel column
-      for(int sy = visy ; sy < (begy + qs->leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
-        const uint32_t* rgb = (data + (qs->linesize / 4 * sy) + visx);
-        if(rgba_trans_p(*rgb, qs->bargs->transcolor)){
-          continue;
-        }
-        int cidx = find_color(qs, *rgb);
-        if(cidx < 0){
-          free(stab->map->data);
-          stab->map->data = NULL;
-          return -1;
-        }
-        stab->map->data[cidx * stab->map->sixelcount + pos] |= (1u << (sy - visy));
-        stab->map->action[actionmap_offset(cidx, qs->stab->map->colors, sixelrow)] |=
-          actionmap_bit(cidx, qs->stab->map->colors, sixelrow);
-      }
-      ++pos;
-    }
-    ++sixelrow;
-  }
   return 0;
 }
 
@@ -881,46 +979,7 @@ extract_color_table(qstate* qs){
   if(build_data_table(qs)){
     return -1;
   }
-  loginfo("final palette: %u/%u colors", qs->stab->map->colors, qs->stab->colorregs);
-  return 0;
-}
-
-// Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
-// seen the sixel |crle| for |seenrle| columns in a row. |seenrle| must > 0.
-static int
-write_rle(int* printed, int color, fbuf* f, int seenrle, unsigned char crle,
-          int* needclosure){
-  if(!*printed){
-    if(*needclosure){
-      if(fbuf_putc(f, '$') != 1){
-        return -1;
-      }
-    }
-    if(fbuf_putc(f, '#') != 1){
-      return -1;
-    }
-    if(fbuf_putint(f, color) < 0){
-      return -1;
-    }
-    *printed = 1;
-    *needclosure = 0;
-  }
-  crle += 63;
-  if(seenrle == 2){
-    if(fbuf_putc(f, crle) != 1){
-      return -1;
-    }
-  }else if(seenrle != 1){
-    if(fbuf_putc(f, '!') != 1){
-      return -1;
-    }
-    if(fbuf_putint(f, seenrle) < 0){
-      return -1;
-    }
-  }
-  if(fbuf_putc(f, crle) != 1){
-    return -1;
-  }
+  loginfo("final palette: %u/%u colors", qs->stab->map->colors, qs->bargs->u.pixel.colorregs);
   return 0;
 }
 
@@ -1019,50 +1078,33 @@ write_sixel_header(qstate* qs, fbuf* f, int leny){
 }
 
 static int
-write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
-  int p = 0;
-  int sixelrow = 0;
-  while(p < map->sixelcount){
+write_sixel_payload(fbuf* f, const sixelmap* map){
+  for(int j = 0 ; j < map->sixelbands ; ++j){
     int needclosure = 0;
-    for(int i = 0 ; i < map->colors ; ++i){
-      if(!(map->action[actionmap_offset(i, map->colors, sixelrow)] & actionmap_bit(i, map->colors, sixelrow))){
-        continue;
-      }
-      int seenrle = 0; // number of repetitions
-      unsigned char crle = 0; // character being repeated
-      int printed = 0;
-      for(int m = p ; m < map->sixelcount && m < p + lenx ; ++m){
-//fprintf(stderr, "%d ", i * map->sixelcount + m);
-//fputc(map->data[i * map->sixelcount + m] + 63, stderr);
-        if(seenrle){
-          if(map->data[i * map->sixelcount + m] == crle){
-            ++seenrle;
-          }else{
-            if(write_rle(&printed, i, f, seenrle, crle, &needclosure)){
-              return -1;
-            }
-            seenrle = 1;
-            crle = map->data[i * map->sixelcount + m];
+    const sixelband* band = &map->bands[j];
+    for(int i = 0 ; i < band->size ; ++i){
+      if(band->vecs[i]){
+        if(needclosure){
+          if(fbuf_putc(f, '$') != 1){ // end previous one
+            return -1;
           }
         }else{
-          seenrle = 1;
-          crle = map->data[i * map->sixelcount + m];
+          needclosure = 1;
         }
-      }
-      if(crle){
-        if(write_rle(&printed, i, f, seenrle, crle, &needclosure)){
+        if(fbuf_putc(f, '#') != 1){
+          return -1;
+        }
+        if(fbuf_putint(f, i) < 0){
+          return -1;
+        }
+        if(fbuf_puts(f, band->vecs[i]) < 0){
           return -1;
         }
       }
-      needclosure = needclosure | printed;
     }
-    if(p + lenx < map->sixelcount){
-      if(fbuf_putc(f, '-') != 1){
-        return -1;
-      }
+    if(fbuf_putc(f, '-') != 1){
+      return -1;
     }
-    p += lenx;
-    ++sixelrow;
   }
   if(fbuf_puts(f, "\e\\") < 0){
     return -1;
@@ -1081,7 +1123,7 @@ write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
 static inline int
 sixel_reblit(sprixel* s){
   fbuf_chop(&s->glyph, s->parse_start);
-  if(write_sixel_payload(&s->glyph, s->pixx, s->smap) < 0){
+  if(write_sixel_payload(&s->glyph, s->smap) < 0){
     return -1;
   }
   change_p2(s->glyph.buf, s->smap->p2);
@@ -1126,19 +1168,17 @@ sixel_blit_inner(qstate* qs, sixeltable* stab, const blitterargs* bargs, tament*
 // nearest multiple of six greater than or equal to |leny|.
 int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs){
-  int colorregs = bargs->u.pixel.colorregs;
   sixeltable stable = {
-    .map = sixelmap_create(leny - bargs->begy, lenx - bargs->begx),
-    .colorregs = colorregs,
+    .map = sixelmap_create(leny - bargs->begy),
   };
   if(stable.map == NULL){
-    sixelmap_free(stable.map);
     return -1;
   }
   assert(n->tam);
   qstate qs;
   if(alloc_qstate(bargs->u.pixel.colorregs, &qs)){
     logerror("couldn't allocate qstate");
+    sixelmap_free(stable.map);
     return -1;
   }
   qs.bargs = bargs;
@@ -1337,6 +1377,8 @@ int sixel_init(int fd){
 // just like wiping. this is necessary due to the complex nature of
 // modifying a Sixel -- we want to do them all in one batch.
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  // FIXME
+  /*
   s->wipes_outstanding = true;
   sixelmap* smap = s->smap;
   const int cellpxx = ncplane_pile(s->n)->cellpxx;
@@ -1379,6 +1421,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     newstate = SPRIXCELL_OPAQUE_SIXEL;
   }
   s->n->tam[s->dimx * ycell + xcell].state = newstate;
+  */
   return 1;
 }
 
