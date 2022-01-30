@@ -740,18 +740,22 @@ sixelband_extend(sixelband* b, struct band_extender* bes, int maxlen,
   int clearlen = (curx - rle + 1) - ourbes->next;
   if(clearlen > 2){
     ourbes->length += sprintf(b->vecs[color] + ourbes->length, "!%d?", clearlen);
-  }else if(clearlen == 2){
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "??");
   }else if(clearlen){
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "?");
+    b->vecs[color][ourbes->length++] = '?';
+    if(clearlen == 2){
+      b->vecs[color][ourbes->length++] = '?';
+    }
+    b->vecs[color][ourbes->length] = '\0';
   }
   rep += 63;
   if(rle > 2){
     ourbes->length += sprintf(b->vecs[color] + ourbes->length, "!%d%c", rle, rep);
-  }else if(rle == 2){
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "%c%c", rep, rep);
   }else{
-    ourbes->length += sprintf(b->vecs[color] + ourbes->length, "%c", rep);
+    b->vecs[color][ourbes->length++] = rep;
+    if(rle == 2){
+      b->vecs[color][ourbes->length++] = rep;
+    }
+    b->vecs[color][ourbes->length] = '\0';
   }
   ourbes->next = curx + 1;
   return 0;
@@ -876,6 +880,7 @@ build_sixel_band(qstate* qs, int i){
     }
     prevactive += activepos;
   }
+  // FIXME shouldn't this be on active, *not* prev!?
   for(int j = 0 ; j < prevactive ; ++j){
     sixelband_extend(b, meta, qs->lenx, prev[j].color, prev[j].rep, prev[j].rle, x);
   }
