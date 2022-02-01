@@ -249,10 +249,10 @@ bool menu_or_hud_key(struct notcurses *nc, const struct ncinput *ni){
       memcpy(&tmpni, ni, sizeof(tmpni));
     }
   }else{
+    if(ni->evtype == NCTYPE_RELEASE){
+      return false;
+    }
     memcpy(&tmpni, ni, sizeof(tmpni));
-  }
-  if(tmpni.evtype == NCTYPE_RELEASE){
-    return false;
   }
   // toggle the HUD
   if(tmpni.id == 'H' && !ncinput_alt_p(&tmpni) && !ncinput_ctrl_p(&tmpni)){
