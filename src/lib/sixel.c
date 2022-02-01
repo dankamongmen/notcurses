@@ -366,56 +366,57 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
+// one for each color in the band we're building. |rle| tracks the number of
+// consecutive unwritten instances of the current non-0 rep, which is itself
+// tracked in |rep|. |wrote| tracks the number of sixels written out for this
+// color. whenever we get a new rep (this only happens for non-zero reps),
+// we must write any old rle rep, plus any zero-reps since then.
 struct band_extender {
   int length; // current length of the vector
-  int next;   // next x location we will cover with a write
+  int rle;    // current rep count of non-zero sixel for this color
+  int wrote;  // number of sixels we've written out
+  int rep;    // representation, 0..63
 };
 
 // add the supplied rle section to the appropriate vector, which might
-// need to be created.
+// need to be created. we are writing out [bes->wrote, curx) (i.e. curx
+// ought *not* describe the |bes| element, and ought equal |dimx| when
+// finalizing the band).
 static inline char*
-sixelband_extend(char* vec, struct band_extender* bes, int maxlen,
-                 int rep, int rle, int curx){
-  assert(maxlen >= rle);
-  assert(0 < rle);
-  assert(b->size > color);
-  assert(0 < rep);
-  assert(64 > rep);
-  if(vec == NULL){
-    // FIXME for now we make it as big as it could possibly need to be
-    if((vec = malloc(maxlen + 1)) == NULL){
+sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
+  assert(dimx >= rle);
+  assert(0 <= bes->rle);
+  assert(0 < bes->rep);
+  assert(64 > bes->rep);
+  if(bes->wrote == 0){
+    // FIXME for now we make it as big as it could possibly need to be. ps,
+    // don't try to just base it off how far in we are; wipe/restore could
+    // change that!
+    if((vec = malloc(dimx + 1)) == NULL){
       return NULL;
     }
-    bes->length = 0;
-    bes->next = 0;
   }
-  int clearlen = (curx - rle + 1) - bes->next;
-fprintf(stderr, "clearlen: %d\n", clearlen);
+  // rle will equal 0 if this is our first non-zero rep, at a non-zero x;
+  // in that case, rep is guaranteed to be 0; catch it at the bottom.
+  if(bes->rle > 2){
+    bes->length += sprintf(vec + bes->length, "!%d", bes->rle);
+  }else if(bes->rle == 2){
+    vec[bes->length++] = bes->rep + 63;
+  }
+  if(bes->rle){
+    vec[bes->length++] = bes->rep + 63;
+  }
+  int clearlen = curx - (bes->rle + bes->wrote);
   if(clearlen > 2){
-    bes->length += sprintf(vec + bes->length, "!%d?", clearlen);
-  }else if(clearlen){
-    if(clearlen < 0){
-      logpanic("internal error, clearlen %d", clearlen);
-      free(vec);
-      return NULL;
-    }
+    bes->length += sprintf(vec + bes->length, "!%d", clearlen);
+  }else if(clearlen == 2){
     vec[bes->length++] = '?';
-    if(clearlen == 2){
-      vec[bes->length++] = '?';
-    }
-    vec[bes->length] = '\0';
   }
-  rep += 63;
-  if(rle > 2){
-    bes->length += sprintf(vec + bes->length, "!%d%c", rle, rep);
-  }else{
-    vec[bes->length++] = rep;
-    if(rle == 2){
-      vec[bes->length++] = rep;
-    }
-    vec[bes->length] = '\0';
+  if(clearlen){
+    vec[bes->length++] = '?';
   }
-  bes->next = curx + 1;
+  vec[bes->length] = '\0';
+  // bes->wrote = curx; handled by caller
   return vec;
 }
 
@@ -429,8 +430,9 @@ wipe_color(sixelband* b, int color, int startx, int endx,
   if(vec == NULL){
     return 0; // no work to be done here
   }
-  char* newvec = NULL;
   int wiped = 0;
+  /*
+  char* newvec = NULL;
 //fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
 //fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
   // we decode the color within the sixelband, and rebuild it without the
@@ -456,7 +458,6 @@ wipe_color(sixelband* b, int color, int startx, int endx,
         rle = 1;
       }
       char rep = *vec - 63;
-fprintf(stderr, "SO FAR [%s] (%d) %d @ %d\n", newvec ? newvec : "NULL", bes.length, rle, x);
       x += rle - 1;
       if(x + rle < startx){ // not wiped material; reproduce as-is
         newvec = sixelband_extend(newvec, &bes, dimx, rep, rle, x);
@@ -477,9 +478,9 @@ fprintf(stderr, "SO FAR [%s] (%d) %d @ %d\n", newvec ? newvec : "NULL", bes.leng
           newvec = sixelband_extend(newvec, &bes, dimx, rep, rle, x);
         }
       }
-    }
-    if(newvec == NULL){
-      return 0;
+      if(newvec == NULL){
+        return 0;
+      }
     }
     ++vec;
     if(x > endx){
@@ -490,6 +491,7 @@ fprintf(stderr, "SO FAR [%s] (%d) %d @ %d\n", newvec ? newvec : "NULL", bes.leng
   free(b->vecs[color]);
   // FIXME check for empty vector; free such, and assign NULL
   b->vecs[color] = newvec;
+  */
   return wiped;
 }
 
@@ -816,41 +818,37 @@ load_color_table(const qstate* qs){
 
 // build up a sixel band from (up to) 6 rows of the source RGBA.
 static inline int
-build_sixel_band(qstate* qs, int i){
-  sixelband* b = &qs->stab->map->bands[i];
+build_sixel_band(qstate* qs, int bnum){
+  sixelband* b = &qs->stab->map->bands[bnum];
   b->size = qs->stab->map->colors;
   size_t bsize = sizeof(*b->vecs) * b->size;
   b->vecs = malloc(bsize);
   if(b->vecs == NULL){
     return -1;
   }
-  memset(b->vecs, 0, bsize);
-  struct band_extender* meta = malloc(qs->stab->map->colors * sizeof(*meta));
-  const int ystart = qs->bargs->begy + i * 6;
-  const int endy = (i + 1 == qs->stab->map->sixelbands ?
-                             qs->leny - (i * 6) : ystart + 6);
+  // no need to initialize b->vecs; we can derive that from meta->wrote
+  size_t mlen = qs->stab->map->colors * sizeof(struct band_extender);
+  struct band_extender* meta = malloc(mlen);
+  memset(meta, 0, mlen);
+  const int ystart = qs->bargs->begy + bnum * 6;
+  const int endy = (bnum + 1 == qs->stab->map->sixelbands ?
+                                 qs->leny - (bnum * 6) : ystart + 6);
   struct {
-    int color; // color, -1 for unused
-    int rep;   // representation, 0..63
-    int rle;   // number seen thus far (don't-care for active stack)
-  } s1[6], s2[6], *prev = s1, *active = s2;
-  // we start off with s2 as our active stack, so initialize s1 with -1s
-  for(int j = 0 ; j < 6 ; ++j){
-    prev[j].color = -1;
-  }
-  int prevactive = 0;
+    int color; // 0..colormax
+    int rep;   // non-zero representation, 1..63
+  } active[6];
   // we're going to advance horizontally through the sixelband
   int x;
+  // FIXME we could greatly clean this up by tracking, for each color, the active
+  // rep and the number of times we've seen it...but only write it out either (a)
+  // when the rep changes (b) when we get the color again after a gap or (c) at the
+  // end. that way we wouldn't need maintain these prevactive/active sets...
   for(x = qs->bargs->begx ; x < (qs->bargs->begx + qs->lenx) ; ++x){ // pixel column
-    // there are at most 6 colors represented in any given sixel. similarly,
-    // there were at most 6 colors in the previous sixel, each with some 6-bit
-    // representation. at each sixel, we need to *start tracking* new colors,
-    // and colors which changed their representation, and *write out*
-    // previously-tracked colors whose representation changed (including
-    // becoming 0, indicating that color's absence). colors which were and
-    // remain present, with the same representation, continue to be tracked.
-    // so we keep six pairs of color and representation, and build up another
-    // set, and then compare them.
+    // there are at most 6 colors represented in any given sixel. at each
+    // sixel, we need to *start tracking* new colors, and colors which changed
+    // their representation. we also write out what we previously tracked for
+    // this color: possibly a non-zero rep, possibly followed by a zero-rep (we
+    // can have zero, either, or both).
     int activepos = 0; // number of active entries used
     for(int y = ystart ; y < endy ; ++y){
       const uint32_t* rgb = (qs->data + (qs->linesize / 4 * y) + x);
@@ -872,70 +870,35 @@ build_sixel_band(qstate* qs, int i){
       if(act == activepos){ // didn't find it; create new entry
         active[activepos].color = cidx;
         active[activepos].rep = (1u << (y - ystart));
-        active[activepos].rle = 1;
         ++activepos;
       }
     }
-    // we now have the active set. go through the previous set and see which
-    // were extended. write out and replace those which were not.
-    int check = 0;
-    while(check < prevactive){
-      int targ;
-      bool found = false;
-      for(targ = 0 ; targ < activepos ; ++targ){
-        if(active[targ].color == prev[check].color && active[targ].rep == prev[check].rep){
-          // found it! extend our rle and wipe this one from the active set
-          ++prev[check].rle;
-          if(targ + 1 < activepos){
-            // swap target with the top of the active set
-            active[targ].color = active[activepos - 1].color;
-            active[targ].rep = active[activepos - 1].rep;
-            active[targ].rle = 1;
-          }
-          --activepos;
-          found = true;
-          break;
-        }
-      }
-      if(!found){ // didn't find it; finalize it
-        b->vecs[prev[check].color] = sixelband_extend(b->vecs[prev[check].color], &meta[prev[check].color], qs->lenx, prev[check].rep, prev[check].rle, x);
-        if(check + 1 < prevactive){
-          // swap source with the top of the previous set
-          prev[check].color = prev[prevactive - 1].color;
-          prev[check].rep = prev[prevactive - 1].rep;
-          prev[check].rle = prev[prevactive - 1].rle;
-        }
-        --prevactive;
+    // we now have the active set. check to see if they extend existing RLEs,
+    // and if not, write out whatever came before us.
+    for(int i = 0 ; i < activepos ; ++i){
+      const int c = active[i].color;
+      if(meta[c].rep == active[i].rep && meta[c].rle + meta[c].wrote == x){
+        ++meta[c].rle;
       }else{
-        ++check;
+        b->vecs[c] = sixelband_extend(b->vecs[c], &meta[c], qs->lenx, x);
+        if(b->vecs[c] == NULL){
+          return -1;
+        }
+        meta[c].rle = 1;
+        meta[c].wrote = x;
+        meta[c].rep = active[i].rep;
       }
     }
-    assert(6 >= prevactive + activepos);
-    if(activepos >= prevactive){
-      while(prevactive){
-        --prevactive;
-        active[activepos].color = prev[prevactive].color;
-        active[activepos].rle = prev[prevactive].rle;
-        active[activepos].rep = prev[prevactive].rep;
-        ++activepos;
-      }
-      typeof(prev) tmp = active;
-      active = prev;
-      prev = tmp;
-    }else{
-      while(activepos){
-        --activepos;
-        prev[prevactive].color = active[activepos].color;
-        prev[prevactive].rle = active[activepos].rle;
-        prev[prevactive].rep = active[activepos].rep;
-        ++prevactive;
-      }
-    }
-    prevactive += activepos;
   }
-  // FIXME shouldn't this be on active, *not* prev!?
-  for(int j = 0 ; j < prevactive ; ++j){
-    b->vecs[prev[j].color] = sixelband_extend(b->vecs[prev[j].color], &meta[prev[j].color], qs->lenx, prev[j].rep, prev[j].rle, x);
+  for(int i = 0 ; i < qs->stab->map->colors ; ++i){
+    if(meta[i].rle){ // color was wholly unused iff rle == 0 at end
+      b->vecs[i] = sixelband_extend(b->vecs[i], &meta[i], qs->lenx, x);
+      if(b->vecs[i] == NULL){
+        return -1;
+      }
+    }else{
+      b->vecs[i] = NULL;
+    }
   }
   free(meta);
   return 0;
@@ -951,7 +914,9 @@ build_data_table(qstate* qs){
     return -1;
   }
   for(int i = 0 ; i < qs->stab->map->sixelbands ; ++i){
-    build_sixel_band(qs, i);
+    if(build_sixel_band(qs, i) < 0){
+      return -1;
+    }
   }
   size_t tsize = RGBSIZE * qs->stab->map->colors;
   qs->table = malloc(tsize);
