@@ -147,9 +147,8 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
           rle += *sx - '0';
           ++sx;
         }while(isdigit(*sx));
-        if(2 >= rle){
-          logerror("bad rle %d", rle);
-          goto err;
+        if(0 == rle){
+          rle = 1;
         }
         --sx;
       }else if(*sx == '$'){
