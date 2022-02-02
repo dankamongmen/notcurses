@@ -836,7 +836,7 @@ build_sixel_band(qstate* qs, int bnum){
   memset(meta, 0, mlen);
   const int ystart = qs->bargs->begy + bnum * 6;
   const int endy = (bnum + 1 == qs->stab->map->sixelbands ?
-                                 qs->leny - (bnum * 6) : ystart + 6);
+                                 qs->leny - qs->bargs->begy : ystart + 6);
   struct {
     int color; // 0..colormax
     int rep;   // non-zero representation, 1..63
