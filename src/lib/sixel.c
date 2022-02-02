@@ -388,7 +388,7 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
   assert(0 <= bes->rle);
   assert(0 < bes->rep);
   assert(64 > bes->rep);
-  if(bes->wrote == 0){
+  if(vec == NULL){
     // FIXME for now we make it as big as it could possibly need to be. ps,
     // don't try to just base it off how far in we are; wipe/restore could
     // change that!
@@ -822,13 +822,17 @@ build_sixel_band(qstate* qs, int bnum){
   sixelband* b = &qs->stab->map->bands[bnum];
   b->size = qs->stab->map->colors;
   size_t bsize = sizeof(*b->vecs) * b->size;
-  b->vecs = malloc(bsize);
-  if(b->vecs == NULL){
-    return -1;
-  }
-  // no need to initialize b->vecs; we can derive that from meta->wrote
   size_t mlen = qs->stab->map->colors * sizeof(struct band_extender);
   struct band_extender* meta = malloc(mlen);
+  if(meta == NULL){
+    return -1;
+  }
+  b->vecs = malloc(bsize);
+  if(b->vecs == NULL){
+    free(meta);
+    return -1;
+  }
+  memset(b->vecs, 0, bsize);
   memset(meta, 0, mlen);
   const int ystart = qs->bargs->begy + bnum * 6;
   const int endy = (bnum + 1 == qs->stab->map->sixelbands ?
