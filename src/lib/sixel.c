@@ -378,10 +378,22 @@ struct band_extender {
   int rep;    // representation, 0..63
 };
 
+static inline void
+write_rle(char* vec, int* voff, int rle, int rep){
+  if(rle > 2){
+    *voff += sprintf(vec + *voff, "!%d", rle);
+  }else if(rle == 2){
+    vec[(*voff)++] = rep;
+  }
+  if(rle){
+    vec[(*voff)++] = rep;
+  }
+}
+
 // add the supplied rle section to the appropriate vector, which might
 // need to be created. we are writing out [bes->wrote, curx) (i.e. curx
 // ought *not* describe the |bes| element, and ought equal |dimx| when
-// finalizing the band).
+// finalizing the band). caller must update bes->wrote afterwards!
 static inline char*
 sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
   assert(dimx >= rle);
@@ -398,25 +410,10 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
   }
   // rle will equal 0 if this is our first non-zero rep, at a non-zero x;
   // in that case, rep is guaranteed to be 0; catch it at the bottom.
-  if(bes->rle > 2){
-    bes->length += sprintf(vec + bes->length, "!%d", bes->rle);
-  }else if(bes->rle == 2){
-    vec[bes->length++] = bes->rep + 63;
-  }
-  if(bes->rle){
-    vec[bes->length++] = bes->rep + 63;
-  }
+  write_rle(vec, &bes->length, bes->rle, bes->rep + 63);
   int clearlen = curx - (bes->rle + bes->wrote);
-  if(clearlen > 2){
-    bes->length += sprintf(vec + bes->length, "!%d", clearlen);
-  }else if(clearlen == 2){
-    vec[bes->length++] = '?';
-  }
-  if(clearlen){
-    vec[bes->length++] = '?';
-  }
+  write_rle(vec, &bes->length, clearlen, '?');
   vec[bes->length] = '\0';
-  // bes->wrote = curx; handled by caller
   return vec;
 }
 
