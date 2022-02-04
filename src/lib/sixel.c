@@ -1473,47 +1473,51 @@ int sixel_init(int fd){
   return sixel_init_core("\e[?8452h", fd);
 }
 
+static inline int
+restore_band(sixelmap* smap, int band, int startx, int endx,
+             int starty, int endy, int dimx, int cellpixy, int cellpixx,
+             uint8_t* auxvec){
+  // FIXME
+  return 0;
+}
+
 // only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to
 // wipes_outstanding, so the Sixel gets regenerated the next render cycle,
 // just like wiping. this is necessary due to the complex nature of
 // modifying a Sixel -- we want to do them all in one batch.
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  s->wipes_outstanding = true;
-  sixelmap* smap = s->smap;
-  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+//fprintf(stderr, "REBUILDING %d/%d\n", ycell, xcell);
+  if(auxvec == NULL){
+    return -1;
+  }
   const int cellpxy = ncplane_pile(s->n)->cellpxy;
+  const int cellpxx = ncplane_pile(s->n)->cellpxx;
+  memset(auxvec + cellpxx * cellpxy, 0xff, cellpxx * cellpxy);
+  sixelmap* smap = s->smap;
   const int startx = xcell * cellpxx;
   const int starty = ycell * cellpxy;
-  int endx = ((xcell + 1) * cellpxx) - 1;
-  if(endx > s->pixx){
+  int endx = ((xcell + 1) * cellpxx);
+  if(endx >= s->pixx){
     endx = s->pixx;
   }
-  int endy = ((ycell + 1) * cellpxy) - 1;
-  if(endy > s->pixy){
+  int endy = ((ycell + 1) * cellpxy);
+  if(endy >= s->pixy){
     endy = s->pixy;
   }
-  int transparent = 0;
+  const int startband = starty / 6;
+  const int endband = endy / 6;
 //fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
-  /* FIXME
-  for(int x = startx ; x <= endx ; ++x){
-    for(int y = starty ; y <= endy ; ++y){
-      int auxvecidx = (y - starty) * cellpxx + (x - startx);
-      int trans = auxvec[cellpxx * cellpxy + auxvecidx];
-      if(!trans){
-        int color = auxvec[auxvecidx];
-        int coff = smap->sixelcount * color;
-        int band = y / 6;
-        int boff = coff + band * s->pixx;
-        int xoff = boff + x;
-//fprintf(stderr, "%d/%d band: %d coff: %d boff: %d rebuild %d/%d with color %d from %d %p xoff: %d\n", ycell, xcell, band, coff, boff, y, x, color, auxvecidx, auxvec, xoff);
-        s->smap->data[xoff] |= (1u << (y % 6));
-      }else{
-        ++transparent;
-      }
-    }
+  // walk through each color, and wipe the necessary sixels from each band
+  int w = 0;
+  for(int b = startband ; b < endband ; ++b){
+    w += restore_band(smap, b, startx, endx, starty, endy, s->pixx,
+                      cellpxy, cellpxx, auxvec);
   }
-  */
-  sprixcell_e newstate;
+  s->wipes_outstanding = true;
+  // FIXME need to set this back up...how? return transparent count from
+  // restore_band(), and sum them up?
+  sprixcell_e newstate = SPRIXCELL_OPAQUE_SIXEL; // FIXME incorrect!
+  /*
   if(transparent == cellpxx * cellpxy){
     newstate = SPRIXCELL_TRANSPARENT;
   }else if(transparent){
@@ -1521,6 +1525,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   }else{
     newstate = SPRIXCELL_OPAQUE_SIXEL;
   }
+  */
   s->n->tam[s->dimx * ycell + xcell].state = newstate;
   return 1;
 }
