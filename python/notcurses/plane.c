@@ -1088,7 +1088,7 @@ NcPlane_set_fg_rgb8(NcPlaneObject *self, PyObject *args)
 {
     unsigned r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "III", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_fg_rgb8(self->ncplane_ptr, r, g, b));
 
@@ -1100,7 +1100,7 @@ NcPlane_set_bg_rgb8(NcPlaneObject *self, PyObject *args)
 {
     unsigned r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "III", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_bg_rgb8(self->ncplane_ptr, r, g, b));
 
