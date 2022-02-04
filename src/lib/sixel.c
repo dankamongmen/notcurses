@@ -8,6 +8,9 @@
 // the palette at 65535 other entries).
 #define TRANS_PALETTE_ENTRY 65535
 
+// bytes per element in the auxiliary vector
+#define AUXVECELEMSIZE 2
+
 // returns the number of individual sixels necessary to represent the specified
 // pixel geometry. these might encompass more pixel rows than |dimy| would
 // suggest, up to the next multiple of 6 (i.e. a single row becomes a 6-row
@@ -350,7 +353,7 @@ find_color(const qstate* qs, uint32_t pixel){
 static inline uint8_t*
 sixel_auxiliary_vector(const sprixel* s){
   int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
-  size_t slen = pixels * 2;
+  size_t slen = pixels * AUXVECELEMSIZE;
   uint8_t* ret = malloc(slen);
   if(ret){
     memset(ret, 0, sizeof(slen));
@@ -418,6 +421,24 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
   int clearlen = curx - (bes->rle + bes->wrote);
   write_rle(vec, &bes->length, clearlen, '?');
   return vec;
+}
+
+// get the index into the auxvec (2 bytes per pixel) given the true y/x pixel
+// coordinates, plus the origin+dimensions of the relevant cell.
+static inline int
+auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
+  if(y >= sy + cellpxy || y < sy){
+    logpanic("illegal y for %d cell at %d: %d", cellpxy, sy, y);
+    return -1;
+  }
+  if(x >= sx + cellpxx || x < sx){
+    logpanic("illegal x for %d cell at %d: %d", cellpxx, sx, x);
+    return -1;
+  }
+  const int xoff = x - sx;
+  const int yoff = y - sy;
+  const int off = yoff * cellpxx + xoff;
+  return AUXVECELEMSIZE * off;
 }
 
 // the sixel |rep| is being wiped. the active pixels need be written to the
