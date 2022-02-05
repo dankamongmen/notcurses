@@ -441,8 +441,8 @@ wipe_color(sixelband* b, int color, int startx, int endx,
   if(newvec == NULL){
     return -1;
   }
-//fprintf(stderr, "sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
-//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
+//fprintf(stderr, "color: %d Y: %d-%d X: %d-%d\n", color, starty, endy, startx, endx);
+//fprintf(stderr, "s/e: %d/%d mask: %02x WIPE: [%s]\n", starty, endy, mask, vec);
   // we decode the color within the sixelband, and rebuild it without the
   // wiped pixels.
   int rle = 0; // the repetition number for this element
@@ -464,6 +464,7 @@ wipe_color(sixelband* b, int color, int startx, int endx,
       }
       char rep = *vec;
       char masked = ((rep - 63) & mask) + 63;
+//fprintf(stderr, "X/RLE/ENDX: %d %d %d\n", x, rle, endx);
       if(x + rle < startx){ // not wiped material; reproduce as-is
         write_rle(newvec, &voff, rle, rep);
         x += rle;
@@ -502,6 +503,7 @@ wipe_color(sixelband* b, int color, int startx, int endx,
       break;
     }
   }
+//if(strcmp(newvec, b->vecs[color])) fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d [%s]\n", color, starty, endy, startx, endx, mask, newvec);
   free(b->vecs[color]);
   if(voff == 0){
     // FIXME check for other null vectors; free such, and assign NULL
@@ -509,7 +511,6 @@ wipe_color(sixelband* b, int color, int startx, int endx,
     newvec = NULL;
   }
   b->vecs[color] = newvec;
-//fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d\n", color, starty, endy, startx, endx, mask);
   return wiped;
 }
 
@@ -519,6 +520,7 @@ static inline int
 wipe_band(sixelmap* smap, int band, int startx, int endx,
           int starty, int endy, int dimx, int cellpixy, int cellpixx,
           uint8_t* auxvec){
+//fprintf(stderr, "******************** BAND %d ********************8\n", band);
   int wiped = 0;
   // get 0-offset start and end row bounds for our band.
   const int sy = band * 6 < starty ? starty - band * 6 : 0;
@@ -564,11 +566,11 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
     endy = s->pixy;
   }
   const int startband = starty / 6;
-  const int endband = endy / 6;
-//fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
+  const int endband = (endy - 1) / 6;
+//fprintf(stderr, "y/x: %d/%d bands: %d-%d start: %d/%d end: %d/%d\n", ycell, xcell, startband, endband - 1, starty, startx, endy, endx);
   // walk through each color, and wipe the necessary sixels from each band
   int w = 0;
-  for(int b = startband ; b < endband ; ++b){
+  for(int b = startband ; b <= endband ; ++b){
     w += wipe_band(smap, b, startx, endx, starty, endy, s->pixx,
                    cellpxy, cellpxx, auxvec);
   }
