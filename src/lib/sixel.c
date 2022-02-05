@@ -1,8 +1,12 @@
 #include <math.h>
+#include <stdatomic.h>
 #include "internal.h"
 #include "fbuf.h"
 
 #define RGBSIZE 3
+
+// number of worker threads FIXME
+#define POPULATION 3
 
 // this palette entry is a sentinel for a transparent pixel (and thus caps
 // the palette at 65535 other entries).
@@ -181,6 +185,7 @@ qidx(const qnode* q){
 }
 
 typedef struct qstate {
+  atomic_int refcount; // initialized to worker count
   // we always work in terms of quantized colors (quantization is the first
   // step of rendering), using indexes into the derived palette. the actual
   // palette need only be stored during the initial render, since the sixel
@@ -199,6 +204,7 @@ typedef struct qstate {
   // these are the leny and lenx passed to sixel_blit(), which are likely
   // different from those reachable through bargs->len{y,x}!
   int leny, lenx;
+  struct qstate* next; // next in the threading engine's queue
 } qstate;
 
 #define QNODECOUNT 1000
@@ -230,6 +236,8 @@ alloc_qstate(unsigned colorregs, qstate* qs){
   // when we pull a dynamic one that it needs its popcount initialized.
   memset(qs->qnodes, 0, sizeof(qnode) * QNODECOUNT);
   qs->table = NULL;
+  qs->refcount = 1 + POPULATION;
+  qs->next = NULL;
   return 0;
 }
 
@@ -1435,7 +1443,7 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 // we keep a few worker threads spun up to assist with quantization.
 typedef struct sixel_engine {
   // FIXME we'll want maybe one per core in our cpuset?
-  pthread_t tids[3];
+  pthread_t tids[POPULATION];
   unsigned workers;
   unsigned workers_wanted;
   pthread_mutex_t lock;
@@ -1461,18 +1469,27 @@ sixel_worker(void* v){
   }else{
     pthread_mutex_unlock(&globsengine.lock);
   }
+  qstate* qs = NULL;
+  pthread_mutex_lock(&sengine->lock);
   do{
-    pthread_mutex_lock(&sengine->lock);
-    while(sengine->qs == NULL && !sengine->done){
+    while((sengine->qs == NULL || sengine->qs == qs) && !sengine->done){
       pthread_cond_wait(&sengine->cond, &sengine->lock);
     }
     if(sengine->done){
       pthread_mutex_unlock(&sengine->lock);
       return NULL;
     }
-    // FIXME take workchunk
+    qs = sengine->qs;
     pthread_mutex_unlock(&sengine->lock);
-    // FIXME handle workchunk
+    // FIXME handle qs
+    if(--qs->refcount == 0){
+      qstate* qnext = qs->next;
+      free_qstate(qs);
+      pthread_mutex_lock(&sengine->lock);
+      sengine->qs = qnext;
+    }else{
+      pthread_mutex_lock(&sengine->lock);
+    }
   }while(1);
 }
 
