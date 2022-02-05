@@ -186,6 +186,7 @@ qidx(const qnode* q){
 
 typedef struct qstate {
   atomic_int refcount; // initialized to worker count
+  atomic_int bandbuilder; // threads take bands as their work unit
   // we always work in terms of quantized colors (quantization is the first
   // step of rendering), using indexes into the derived palette. the actual
   // palette need only be stored during the initial render, since the sixel
@@ -456,10 +457,15 @@ auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
 static inline void
 write_auxvec(uint8_t* auxvec, int color, int y, int x, int len, int sx, int ex,
              int sy, int ey, char rep, char mask, int cellpxy, int cellpxx){
-fprintf(stderr, "AUXVEC UPDATE[%d] y/x: %d/%d:%d s: %d/%d e: %d/%d %d\n", color, y, x, len, sy, sx, ey, ex, rep);
+//fprintf(stderr, "AUXVEC UPDATE[%d] y/x: %d/%d:%d s: %d/%d e: %d/%d %d\n", color, y, x, len, sy, sx, ey, ex, rep);
   for(int i = x ; i < x + len ; ++i){
     const int idx = auxvec_idx(y, i, sy, sx, cellpxy, cellpxx);
-fprintf(stderr, "AUXVEC %d for %d: %d\n", i, color, idx);
+//fprintf(stderr, "AUXVEC %d for %d: %d\n", i, color, idx);
+    (void)ex;
+    (void)ey;
+    (void)rep;
+    (void)color;
+    (void)idx;
     (void)auxvec; // FIXME
     (void)mask; // FIXME
   }
@@ -521,7 +527,7 @@ wipe_color(sixelband* b, int color, int y, int startx, int endx,
         }
         if(x + rle >= endx){
           // FIXME this might equal the prev/next rep, and we ought combine
-fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
+//fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
           write_rle(newvec, &voff, endx - x, masked);
           write_auxvec(auxvec, color, y, x, endx - x, startx, endx, starty,
                        endy, rep, mask, cellpxy, cellpxx);
@@ -547,7 +553,7 @@ fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
       break;
     }
   }
-if(strcmp(newvec, b->vecs[color])) fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d [%s]\n", color, starty, endy, startx, endx, mask, newvec);
+//if(strcmp(newvec, b->vecs[color])) fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d [%s]\n", color, starty, endy, startx, endx, mask, newvec);
   free(b->vecs[color]);
   if(voff == 0){
     // FIXME check for other null vectors; free such, and assign NULL
@@ -883,6 +889,7 @@ load_color_table(const qstate* qs){
 // build up a sixel band from (up to) 6 rows of the source RGBA.
 static inline int
 build_sixel_band(qstate* qs, int bnum){
+//fprintf(stderr, "building band %d\n", bnum);
   sixelband* b = &qs->smap->bands[bnum];
   b->size = qs->smap->colors;
   size_t bsize = sizeof(*b->vecs) * b->size;
@@ -972,6 +979,32 @@ build_sixel_band(qstate* qs, int bnum){
   return 0;
 }
 
+// we keep a few worker threads spun up to assist with quantization.
+typedef struct sixel_engine {
+  // FIXME we'll want maybe one per core in our cpuset?
+  pthread_t tids[POPULATION];
+  unsigned workers;
+  unsigned workers_wanted;
+  pthread_mutex_t lock;
+  pthread_cond_t cond;
+  bool done;
+  qstate* qs;
+} sixel_engine;
+
+// FIXME make this part of the context, sheesh
+static sixel_engine globsengine;
+
+static int
+bandworker(qstate* qs){
+  int b;
+  while((b = qs->bandbuilder++) < qs->smap->sixelbands){
+    if(build_sixel_band(qs, b) < 0){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 // we have converged upon some number of colors. we now run over the pixels
 // once again, and get the actual (color-indexed) sixels.
 static inline int
@@ -981,17 +1014,20 @@ build_data_table(qstate* qs){
     logerror("no sixels");
     return -1;
   }
-  for(int i = 0 ; i < smap->sixelbands ; ++i){
-    if(build_sixel_band(qs, i) < 0){
-      return -1;
-    }
-  }
+  qs->bandbuilder = 0;
+  pthread_mutex_lock(&globsengine.lock);
+  // FIXME need enqueue it
+  globsengine.qs = qs;
+  pthread_mutex_unlock(&globsengine.lock);
+  pthread_cond_signal(&globsengine.cond);
   size_t tsize = RGBSIZE * smap->colors;
   qs->table = malloc(tsize);
   if(qs->table == NULL){
     return -1;
   }
   load_color_table(qs);
+  bandworker(qs);
+  // FIXME need to drop our reference, possibly drop qs
   return 0;
 }
 
@@ -1440,21 +1476,6 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   return s->glyph.used;
 }
 
-// we keep a few worker threads spun up to assist with quantization.
-typedef struct sixel_engine {
-  // FIXME we'll want maybe one per core in our cpuset?
-  pthread_t tids[POPULATION];
-  unsigned workers;
-  unsigned workers_wanted;
-  pthread_mutex_t lock;
-  pthread_cond_t cond;
-  bool done;
-  qstate* qs;
-} sixel_engine;
-
-// FIXME make this part of the context, sheesh
-static sixel_engine globsengine;
-
 // a quantization worker.
 static void *
 sixel_worker(void* v){
@@ -1463,32 +1484,31 @@ sixel_worker(void* v){
   if(++sengine->workers < sengine->workers_wanted){
     pthread_mutex_unlock(&globsengine.lock);
     // don't bail on a failure here
-    if(pthread_create(&sengine->tids[sengine->workers], NULL, sixel_worker, sengine)){
+    if(pthread_create(&globsengine.tids[sengine->workers], NULL, sixel_worker, sengine)){
       logerror("couldn't spin up sixel worker %u", sengine->workers);
     }
   }else{
     pthread_mutex_unlock(&globsengine.lock);
   }
   qstate* qs = NULL;
-  pthread_mutex_lock(&sengine->lock);
+  pthread_mutex_lock(&globsengine.lock);
   do{
     while((sengine->qs == NULL || sengine->qs == qs) && !sengine->done){
-      pthread_cond_wait(&sengine->cond, &sengine->lock);
+      pthread_cond_wait(&globsengine.cond, &globsengine.lock);
     }
     if(sengine->done){
-      pthread_mutex_unlock(&sengine->lock);
+      pthread_mutex_unlock(&globsengine.lock);
       return NULL;
     }
     qs = sengine->qs;
-    pthread_mutex_unlock(&sengine->lock);
-    // FIXME handle qs
+    pthread_mutex_unlock(&globsengine.lock);
+    bandworker(qs);
     if(--qs->refcount == 0){
+      pthread_mutex_lock(&globsengine.lock);
       qstate* qnext = qs->next;
-      free_qstate(qs);
-      pthread_mutex_lock(&sengine->lock);
       sengine->qs = qnext;
     }else{
-      pthread_mutex_lock(&sengine->lock);
+      pthread_mutex_lock(&globsengine.lock);
     }
   }while(1);
 }
