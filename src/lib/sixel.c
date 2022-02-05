@@ -436,11 +436,11 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
 // coordinates, plus the origin+dimensions of the relevant cell.
 static inline int
 auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
-  if(y >= sy + cellpxy || y < sy){
+  if(y >= sy + cellpxy || y < sy - cellpxy){
     logpanic("illegal y for %d cell at %d: %d", cellpxy, sy, y);
     return -1;
   }
-  if(x >= sx + cellpxx || x < sx){
+  if(x >= sx + cellpxx || x < sx - cellpxx){
     logpanic("illegal x for %d cell at %d: %d", cellpxx, sx, x);
     return -1;
   }
@@ -459,7 +459,11 @@ write_auxvec(uint8_t* auxvec, int color, int y, int x, int len, int sx, int ex,
              int sy, int ey, char rep, char mask, int cellpxy, int cellpxx){
 //fprintf(stderr, "AUXVEC UPDATE[%d] y/x: %d/%d:%d s: %d/%d e: %d/%d %d\n", color, y, x, len, sy, sx, ey, ex, rep);
   for(int i = x ; i < x + len ; ++i){
+    // we get the auxvec
     const int idx = auxvec_idx(y, i, sy, sx, cellpxy, cellpxx);
+    if(idx < 0){
+      continue;
+    }
 //fprintf(stderr, "AUXVEC %d for %d: %d\n", i, color, idx);
     (void)ex;
     (void)ey;
@@ -1001,6 +1005,7 @@ bandworker(qstate* qs){
     if(build_sixel_band(qs, b) < 0){
       return -1;
     }
+//fprintf(stderr, "%lu DID BAND %d on %p\n", pthread_self(), b, qs);
   }
   return 0;
 }
