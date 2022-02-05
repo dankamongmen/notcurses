@@ -448,8 +448,8 @@ wipe_color(sixelband* b, int color, int startx, int endx,
   int rle = 0; // the repetition number for this element
   // the x coordinate through which we've checked this band. if x + rle is
   // less than startx, this element cannot be affected by the wipe.
-  // otherwise, starting at startx, it can be affected. once x > endx, we
-  // are done, and can copy the remaining elements blindly.
+  // otherwise, starting at startx, it can be affected. once x >= endx, we
+  // are done, and can copy any remaining elements blindly.
   int x = 0;
   int voff = 0;
   while(*vec){
@@ -498,7 +498,7 @@ wipe_color(sixelband* b, int color, int startx, int endx,
       rle = 0;
     }
     ++vec;
-    if(x > endx){
+    if(x >= endx){
       strcpy(newvec + voff, vec); // there is always room
       break;
     }
