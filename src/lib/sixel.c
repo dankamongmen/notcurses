@@ -444,9 +444,17 @@ auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
 // the sixel |rep| is being wiped. the active pixels need be written to the
 // |auxvec|, which is (|ey| - |sy| + 1) rows of (|ex| - |sx| + 1) columns.
 // we are wiping the sixel |rep|, changing it to |mask|.
+// precondition: mask is a bitwise proper subset of rep
 static inline void
-write_auxvec(uint8_t* auxvec, int color, int x, int len, int sx, int ex,
-             int sy, int ey, char rep, char mask){
+write_auxvec(uint8_t* auxvec, int color, int y, int x, int len, int sx, int ex,
+             int sy, int ey, char rep, char mask, int cellpxy, int cellpxx){
+fprintf(stderr, "AUXVEC UPDATE[%d] y/x: %d/%d:%d s: %d/%d e: %d/%d %d\n", color, y, x, len, sy, sx, ey, ex, rep);
+  for(int i = x ; i < x + len ; ++i){
+    const int idx = auxvec_idx(y, i, sy, sx, cellpxy, cellpxx);
+fprintf(stderr, "AUXVEC %d for %d: %d\n", i, color, idx);
+    (void)auxvec; // FIXME
+    (void)mask; // FIXME
+  }
 }
 
 // wipe the color within this band from startx to endx - 1, from starty to
@@ -454,8 +462,9 @@ write_auxvec(uint8_t* auxvec, int color, int x, int len, int sx, int ex,
 // auxvec. mask is the allowable sixel, y-wise. returns a positive number if
 // pixels were wiped.
 static inline int
-wipe_color(sixelband* b, int color, int startx, int endx,
-           int starty, int endy, char mask, int dimx, uint8_t* auxvec){
+wipe_color(sixelband* b, int color, int y, int startx, int endx,
+           int starty, int endy, char mask, int dimx, uint8_t* auxvec,
+           int cellpxy, int cellpxx){
   const char* vec = b->vecs[color];
   if(vec == NULL){
     return 0; // no work to be done here
@@ -503,14 +512,17 @@ wipe_color(sixelband* b, int color, int startx, int endx,
           x = startx;
         }
         if(x + rle >= endx){
-          // FIXME this new rep might equal the next rep, in which case we ought combine
+          // FIXME this might equal the prev/next rep, and we ought combine
+fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
           write_rle(newvec, &voff, endx - x, masked);
-          write_auxvec(auxvec, color, x, endx - x, startx, endx, starty, endy, rep, mask);
+          write_auxvec(auxvec, color, y, x, endx - x, startx, endx, starty,
+                       endy, rep, mask, cellpxy, cellpxx);
           rle -= endx - x;
           x = endx;
         }else{
           write_rle(newvec, &voff, rle, masked);
-          write_auxvec(auxvec, color, x, rle, startx, endx, starty, endy, rep, mask);
+          write_auxvec(auxvec, color, y, x, rle, startx, endx, starty, endy,
+                       rep, mask, cellpxy, cellpxx);
           x += rle;
           rle = 0;
         }
@@ -527,7 +539,7 @@ wipe_color(sixelband* b, int color, int startx, int endx,
       break;
     }
   }
-//if(strcmp(newvec, b->vecs[color])) fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d [%s]\n", color, starty, endy, startx, endx, mask, newvec);
+if(strcmp(newvec, b->vecs[color])) fprintf(stderr, "WIPED %d y [%d..%d) x [%d..%d) mask: %d [%s]\n", color, starty, endy, startx, endx, mask, newvec);
   free(b->vecs[color]);
   if(voff == 0){
     // FIXME check for other null vectors; free such, and assign NULL
@@ -542,7 +554,7 @@ wipe_color(sixelband* b, int color, int startx, int endx,
 // number of pixels actually wiped.
 static inline int
 wipe_band(sixelmap* smap, int band, int startx, int endx,
-          int starty, int endy, int dimx, int cellpixy, int cellpixx,
+          int starty, int endy, int dimx, int cellpxy, int cellpxx,
           uint8_t* auxvec){
 //fprintf(stderr, "******************** BAND %d ********************8\n", band);
   int wiped = 0;
@@ -561,7 +573,8 @@ wipe_band(sixelmap* smap, int band, int startx, int endx,
   sixelband* b = &smap->bands[band];
   // offset into map->data where our color starts
   for(int i = 0 ; i < b->size ; ++i){
-    wiped += wipe_color(b, i, startx, endx, starty, endy, mask, dimx, auxvec);
+    wiped += wipe_color(b, i, band * 6, startx, endx, starty, endy, mask,
+                        dimx, auxvec, cellpxy, cellpxx);
   }
   return wiped;
 }
@@ -1427,8 +1440,8 @@ typedef struct sixel_engine {
   unsigned workers_wanted;
   pthread_mutex_t lock;
   pthread_cond_t cond;
-  void* chunks; // FIXME
   bool done;
+  qstate* qs;
 } sixel_engine;
 
 // FIXME make this part of the context, sheesh
@@ -1450,7 +1463,7 @@ sixel_worker(void* v){
   }
   do{
     pthread_mutex_lock(&sengine->lock);
-    while(sengine->chunks == NULL && !sengine->done){
+    while(sengine->qs == NULL && !sengine->done){
       pthread_cond_wait(&sengine->cond, &sengine->lock);
     }
     if(sengine->done){
@@ -1501,8 +1514,18 @@ int sixel_init(int fd){
 
 static inline int
 restore_band(sixelmap* smap, int band, int startx, int endx,
-             int starty, int endy, int dimx, int cellpixy, int cellpixx,
+             int starty, int endy, int dimx, int cellpxy, int cellpxx,
              uint8_t* auxvec){
+  (void)smap;
+  (void)band;
+  (void)startx;
+  (void)endx;
+  (void)starty;
+  (void)endy;
+  (void)dimx;
+  (void)cellpxy;
+  (void)cellpxx;
+  (void)auxvec;
   // FIXME
   return 0;
 }
