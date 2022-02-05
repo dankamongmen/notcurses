@@ -1019,7 +1019,7 @@ build_data_table(qstate* qs){
   // FIXME need enqueue it
   globsengine.qs = qs;
   pthread_mutex_unlock(&globsengine.lock);
-  pthread_cond_signal(&globsengine.cond);
+  pthread_cond_broadcast(&globsengine.cond);
   size_t tsize = RGBSIZE * smap->colors;
   qs->table = malloc(tsize);
   if(qs->table == NULL){
