@@ -181,7 +181,7 @@ Notcurses_bottom(NotcursesObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-Notcurses_getc(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+Notcurses_get(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
 {
     PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
     return NULL;
@@ -196,17 +196,48 @@ Notcurses_inputready_fd(NotcursesObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-Notcurses_getc_nblock(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+build_NcInput(ncinput const *ni)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
-    return NULL;
+    PyObject *input = GNU_PY_CHECK(PyStructSequence_New(NcInput_Type));
+    PyStructSequence_SET_ITEM(input, 0, PyLong_FromLong(ni->id));
+    PyStructSequence_SET_ITEM(input, 1, PyLong_FromLong(ni->y));
+    PyStructSequence_SET_ITEM(input, 2, PyLong_FromLong(ni->x));
+    PyStructSequence_SET_ITEM(input, 3, PyUnicode_FromStringAndSize(ni->utf8, 1));
+    PyStructSequence_SET_ITEM(input, 4, PyLong_FromLong(ni->evtype));
+    PyStructSequence_SET_ITEM(input, 5, PyLong_FromLong(ni->modifiers));
+    PyStructSequence_SET_ITEM(input, 6, PyLong_FromLong(ni->ypx));
+    PyStructSequence_SET_ITEM(input, 7, PyLong_FromLong(ni->xpx));
+    return input;
 }
 
 static PyObject *
-Notcurses_getc_blocking(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+Notcurses_get_nblock(NotcursesObject *self)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
-    return NULL;
+    ncinput ni;
+    uint32_t id = notcurses_get_nblock(self->notcurses_ptr, &ni);
+    if (id == (uint32_t)-1)
+    {
+        PyErr_Format(PyExc_RuntimeError, "notcurses_get_nblock return -1");
+        return NULL;
+    }
+    else if (id == 0)
+        // No input event.
+        Py_RETURN_NONE;
+    else
+        return build_NcInput(&ni);
+}
+
+static PyObject *
+Notcurses_get_blocking(NotcursesObject *self)
+{
+    ncinput ni;
+    if (notcurses_get_blocking(self->notcurses_ptr, &ni) == (uint32_t)-1)
+    {
+        PyErr_Format(PyExc_RuntimeError, "notcurses_get_blocking return -1");
+        return NULL;
+    }
+    else
+        return build_NcInput(&ni);
 }
 
 static PyObject *
@@ -215,6 +246,7 @@ Notcurses_mice_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
     CHECK_NOTCURSES(notcurses_mice_enable(self->notcurses_ptr, NCMICE_BUTTON_EVENT));
     Py_RETURN_NONE;
 }
+
 static PyObject *
 Notcurses_mice_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
@@ -439,10 +471,10 @@ static PyMethodDef Notcurses_methods[] = {
     {"top", (PyCFunction)Notcurses_top, METH_NOARGS, "Return the topmost ncplane of the standard pile."},
     {"bottom", (PyCFunction)Notcurses_bottom, METH_NOARGS, "Return the bottommost ncplane of the standard pile."},
 
-    {"getc", (void *)Notcurses_getc, METH_VARARGS | METH_KEYWORDS, "See ppoll(2) for more detail. Provide a None 'ts' to block at length, a 'ts' of 0 for non-blocking operation, and otherwise a timespec to bound blocking. Signals in sigmask (less several we handle internally) will be atomically masked and unmasked per ppoll(2). It should generally contain all signals. Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the return value is the 'id' field from that event. 'ni' may be NULL."},
+    {"get", (void *)Notcurses_get, METH_VARARGS | METH_KEYWORDS, "See ppoll(2) for more detail. Provide a None 'ts' to block at length, a 'ts' of 0 for non-blocking operation, and otherwise a timespec to bound blocking. Signals in sigmask (less several we handle internally) will be atomically masked and unmasked per ppoll(2). It should generally contain all signals. Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the return value is the 'id' field from that event. 'ni' may be NULL."},
     {"inputready_fd", (PyCFunction)Notcurses_inputready_fd, METH_NOARGS, "Get a file descriptor suitable for input event poll()ing. When this descriptor becomes available, you can call notcurses_getc_nblock(), and input ought be ready. This file descriptor is *not* necessarily the file descriptor associated with stdin (but it might be!)."},
-    {"getc_nblock", (PyCFunction)Notcurses_getc_nblock, METH_NOARGS, "Get input event without blocking. If no event is ready, returns None."},
-    {"getc_blocking", (PyCFunction)Notcurses_getc_blocking, METH_NOARGS, "Get input event completely blocking until and event or signal received."},
+    {"get_nblock", (PyCFunction)Notcurses_get_nblock, METH_NOARGS, "Get input event without blocking. If no event is ready, returns None."},
+    {"get_blocking", (PyCFunction)Notcurses_get_blocking, METH_NOARGS, "Get input event completely blocking until and event or signal received."},
 
     {"mice_enable", (PyCFunction)Notcurses_mice_enable, METH_NOARGS, "Enable the mouse in \"button-event tracking\" mode with focus detection and UTF8-style extended coordinates. On success mouse events will be published to getc()"},
     {"mice_disable", (PyCFunction)Notcurses_mice_disable, METH_NOARGS, "Disable mouse events. Any events in the input queue can still be delivered."},
