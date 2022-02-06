@@ -15,7 +15,8 @@
 # limitations under the License.
 
 from .notcurses import (
-    NcPlane, Notcurses, ncchannel_alpha, ncchannel_b, ncchannel_default_p,
+    NcPlane, Notcurses, NcInput,
+    ncchannel_alpha, ncchannel_b, ncchannel_default_p,
     ncchannel_g, ncchannel_palindex, ncchannel_palindex_p, ncchannel_r,
     ncchannel_rgb8, ncchannel_rgb_initializer, ncchannel_set,
     ncchannel_set_alpha, ncchannel_set_default, ncchannel_set_palindex,
