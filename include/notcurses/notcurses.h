@@ -3570,25 +3570,25 @@ API int ncblit_rgb_loose(const void* data, int linesize,
 // Extract the 8-bit alpha component from a pixel
 static inline unsigned
 ncpixel_a(uint32_t pixel){
-  return (htole(pixel) & 0xff000000ul) >> 24u;
+  return (htole(pixel) & 0xff000000u) >> 24u;
 }
 
 // Extract the 8-bit red component from an ABGR pixel
 static inline unsigned
 ncpixel_r(uint32_t pixel){
-  return (htole(pixel) & 0x000000fful);
+  return (htole(pixel) & 0x000000ffu);
 }
 
 // Extract the 8-bit green component from an ABGR pixel
 static inline unsigned
 ncpixel_g(uint32_t pixel){
-  return (htole(pixel) & 0x0000ff00ul) >> 8u;
+  return (htole(pixel) & 0x0000ff00u) >> 8u;
 }
 
 // Extract the 8-bit blue component from an ABGR pixel
 static inline unsigned
 ncpixel_b(uint32_t pixel){
-  return (htole(pixel) & 0x00ff0000ul) >> 16u;
+  return (htole(pixel) & 0x00ff0000u) >> 16u;
 }
 
 // Set the 8-bit alpha component of an ABGR pixel
@@ -3597,7 +3597,7 @@ ncpixel_set_a(uint32_t* pixel, unsigned a){
   if(a > 255){
     return -1;
   }
-  *pixel = htole((htole(*pixel) & 0x00fffffful) | (a << 24u));
+  *pixel = htole((htole(*pixel) & 0x00ffffffu) | (a << 24u));
   return 0;
 }
 
@@ -3607,7 +3607,7 @@ ncpixel_set_r(uint32_t* pixel, unsigned r){
   if(r > 255){
     return -1;
   }
-  *pixel = htole((htole(*pixel) & 0xffffff00ul) | r);
+  *pixel = htole((htole(*pixel) & 0xffffff00u) | r);
   return 0;
 }
 
@@ -3617,7 +3617,7 @@ ncpixel_set_g(uint32_t* pixel, unsigned g){
   if(g > 255){
     return -1;
   }
-  *pixel = htole((htole(*pixel) & 0xffff00fful) | (g << 8u));
+  *pixel = htole((htole(*pixel) & 0xffff00ffu) | (g << 8u));
   return 0;
 }
 
@@ -3627,7 +3627,7 @@ ncpixel_set_b(uint32_t* pixel, unsigned b){
   if(b > 255){
     return -1;
   }
-  *pixel = htole((htole(*pixel) & 0xff00fffful) | (b << 16u));
+  *pixel = htole((htole(*pixel) & 0xff00ffffu) | (b << 16u));
   return 0;
 }
 
