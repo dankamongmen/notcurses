@@ -14,27 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from notcurses import Notcurses
 
-from notcurses import get_std_plane
-
-std_plane = get_std_plane()
+nc = Notcurses()
+std_plane = nc.stdplane()
 std_plane.putstr("Enter string!")
 
-std_plane.context.render()
-std_plane.context.enable_cursor()
-std_plane.context.enable_mouse()
+nc.render()
+nc.mice_enable()
 
 while True:
     # Get an input event and print its properties
-    p = std_plane.context.get_input_blocking()
+    inp = nc.get_blocking()
     std_plane.erase()
-    std_plane.putstr(f"Code point: {repr(p.code)}",
-                     y_pos=0, x_pos=0)
-    std_plane.putstr(f"Y pos: {p.y_pos}", y_pos=1, x_pos=0)
-    std_plane.putstr(f"X pos: {p.x_pos}", y_pos=2, x_pos=0)
-    std_plane.putstr(f"Is alt: {p.is_alt}", y_pos=3, x_pos=0)
-    std_plane.putstr(f"Is shift: {p.is_shift}", y_pos=4, x_pos=0)
-    std_plane.putstr(f"Is ctrl: {p.is_ctrl}", y_pos=5, x_pos=0)
-    std_plane.putstr("Press CTRL+C to exit.", y_pos=7, x_pos=0)
+    std_plane.putstr_yx(1, 4, f"Code point: {hex(inp.id)}")
+    std_plane.putstr_yx(2, 4, f"Y pos: {inp.y}")
+    std_plane.putstr_yx(3, 4, f"X pos: {inp.x}")
+    std_plane.putstr_yx(4, 4, f"UTF-8: {inp.utf8!r}")
+    std_plane.putstr_yx(5, 4, f"Event type: {inp.evtype}")
+    std_plane.putstr_yx(6, 4, f"Modifiers: {bin(inp.modifiers)}")
+    std_plane.putstr_yx(7, 4, f"Y pixel offset: {inp.ypx}")
+    std_plane.putstr_yx(8, 4, f"X pixel offset: {inp.xpx}")
+    std_plane.putstr_yx(10, 4, "Press CTRL+C to exit.")
 
-    std_plane.context.render()
+    nc.render()
