@@ -36,6 +36,28 @@ static struct PyModuleDef NotcursesMiscModule = {
     .m_free = (freefunc)Notcurses_module_free,
 };
 
+static PyStructSequence_Field NcInput_fields[] = {
+    {"id", "Unicode codepoint or synthesized NCKEY event"},
+    {"y", "y cell coordinate of event, -1 for undefined"},
+    {"x", "x cell coordinate of event, -1 for undefined"},
+    {"utf8", "utf8 representation, if one exists"},
+    // Note: alt, shift, ctrl fields deprecated in C API are omitted.
+    {"evtype", NULL},
+    {"modifiers", "bitmask over NCKEY_MOD_*"},
+    {"ypx", "y pixel offset within cell, -1 for undefined"},
+    {"xpx", "x pixel offset within cell, -1 for undefined"},
+    {NULL, NULL},
+};
+
+static struct PyStructSequence_Desc NcInput_desc = {
+    .name = "NcInput",
+    .doc = "Notcurses input event",
+    .fields = NcInput_fields,
+    .n_in_sequence = 8,
+};
+
+PyTypeObject *NcInput_Type;
+
 PyMODINIT_FUNC
 PyInit_notcurses(void)
 {
@@ -52,6 +74,11 @@ PyInit_notcurses(void)
     // Add objects
     GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&Notcurses_Type, "Notcurses");
     GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&NcPlane_Type, "NcPlane");
+
+    NcInput_Type = PyStructSequence_NewType(&NcInput_desc);
+    if (NcInput_Type == NULL)
+        return NULL;
+    GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)NcInput_Type, "NcInput");
 
     // background cannot be highcontrast, only foreground
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_HIGHCONTRAST));

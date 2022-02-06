@@ -125,12 +125,6 @@ typedef struct
 typedef struct
 {
     PyObject_HEAD;
-    struct ncinput ncinput;
-} NcInputObject;
-
-typedef struct
-{
-    PyObject_HEAD;
     struct ncstats ncstats;
 } NcStatsObject;
 
@@ -139,6 +133,8 @@ typedef struct
     PyObject_HEAD;
     struct ncpalette ncpalette;
 } Palette256Object;
+
+extern PyTypeObject *NcInput_Type;
 
 // Imports
 
