@@ -211,7 +211,7 @@ build_NcInput(ncinput const *ni)
 }
 
 static PyObject *
-Notcurses_get_nblock(NotcursesObject *self)
+Notcurses_get_nblock(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     ncinput ni;
     uint32_t id = notcurses_get_nblock(self->notcurses_ptr, &ni);
@@ -228,7 +228,7 @@ Notcurses_get_nblock(NotcursesObject *self)
 }
 
 static PyObject *
-Notcurses_get_blocking(NotcursesObject *self)
+Notcurses_get_blocking(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     ncinput ni;
     if (notcurses_get_blocking(self->notcurses_ptr, &ni) == (uint32_t)-1)
