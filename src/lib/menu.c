@@ -659,17 +659,19 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
   if(!ncplane_translate_abs(nc, &y, &x)){
     return NULL;
   }
-  // FIXME section_x() works only off the section header lengths, meaning that
-  // if we click an item outside of those columns covered by the header, it will
-  // read as a -1 from section_x(). we want to instead get the unrolled section,
-  // find its boundaries, and verify that we are within them.
-  int i = section_x(n, x);
-  if(i < 0 || i != n->unrolledsection){
+  if(n->unrolledsection < 0){
     return NULL;
   }
   const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
-  if(y < 2 || (unsigned)y - 2 >= sec->itemcount){
-    return NULL;
+  // don't allow a click on the side boundaries
+  if(sec->xoff < 0){
+    if((unsigned)x > dimx - 4 || (unsigned)x <= dimx - 4 - sec->bodycols){
+      return NULL;
+    }
+  }else{
+    if(x <= sec->xoff || x > sec->xoff + sec->bodycols){
+      return NULL;
+    }
   }
   const int itemidx = y - 2;
   if(sec->items[itemidx].disabled){
