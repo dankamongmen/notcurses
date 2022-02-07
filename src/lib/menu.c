@@ -643,6 +643,29 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
   return sec->items[itemidx].desc;
 }
 
+// given the active section, return the line on which we clicked, or -1 if the
+// click was not within said section. |y| and |x| ought be translated for the
+// menu plane |n|->ncp.
+static int
+ncsection_click_index(const ncmenu* n, const ncmenu_int_section* sec,
+                      unsigned dimy, unsigned dimx, int y, int x){
+  // don't allow a click on the side boundaries
+  if(sec->xoff < 0){
+    if(x > (int)dimx - 4 || x <= (int)dimx - 4 - sec->bodycols){
+      return -1;
+    }
+  }else{
+    if(x <= sec->xoff || x > sec->xoff + sec->bodycols){
+      return -1;
+    }
+  }
+  const int itemidx = n->bottom ? y - ((int)dimy - (int)sec->itemcount) + 2 : y - 2;
+  if(itemidx < 0 || itemidx >= (int)sec->itemcount){
+    return -1;
+  }
+  return itemidx;
+}
+
 const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
                                   ncinput* ni){
   if(click->id != NCKEY_BUTTON1){
@@ -663,20 +686,11 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
     return NULL;
   }
   const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
-  // don't allow a click on the side boundaries
-  if(sec->xoff < 0){
-    if(x > (int)dimx - 4 || x <= (int)dimx - 4 - sec->bodycols){
-      return NULL;
-    }
-  }else{
-    if(x <= sec->xoff || x > sec->xoff + sec->bodycols){
-      return NULL;
-    }
-  }
-  const int itemidx = n->bottom ? y - ((int)dimy - (int)sec->itemcount) + 2 : y - 2;
-  if(itemidx < 0 || itemidx >= (int)sec->itemcount){
+  int itemidx = ncsection_click_index(n, sec, dimy, dimx, y, x);
+  if(itemidx < 0){
     return NULL;
   }
+  // don't allow a disabled item to be selected
   if(sec->items[itemidx].disabled){
     return NULL;
   }
@@ -696,6 +710,17 @@ bool ncmenu_offer_input(ncmenu* n, const ncinput* nc){
     ncplane_dim_yx(n->ncp, &dimy, &dimx);
     if(!ncplane_translate_abs(n->ncp, &y, &x)){
       return false;
+    }
+    if(n->unrolledsection >= 0){
+      struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
+      int itemidx = ncsection_click_index(n, sec, dimy, dimx, y, x);
+      if(itemidx >= 0){
+        if(!sec->items[itemidx].disabled){
+          sec->itemselected = itemidx;
+          ncmenu_unroll(n, n->unrolledsection);
+          return false;
+        }
+      }
     }
     if(y != (n->bottom ? (int)dimy - 1 : 0)){
       return false;
