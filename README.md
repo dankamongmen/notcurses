@@ -131,6 +131,7 @@ others are external.
 | -------- | ----------------------------- | ---------- |
 | Ada      | Jeremy Grosser                | [JeremyGrosser/notcursesada](https://github.com/JeremyGrosser/notcursesada) |
 | C++      | Marek Habersack, nick black   | internal   |
+| Dart     | Nelson Fernandez              | [kascote/dart_notcurses](https://github.com/kascote/dart_notcurses) |
 | Python   | nick black                    | internal   |
 | Python   | igo95862                      | internal   |
 | Rust     | José Luis Cruz                | [dankamongmen/libnotcurses-sys](https://github.com/dankamongmen/libnotcurses-sys) |
