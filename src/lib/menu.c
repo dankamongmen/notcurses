@@ -136,7 +136,7 @@ dup_menu_section(ncmenu_int_section* dst, const struct ncmenu_section* src){
     return -1;
   }
   dst->bodycols = 0;
-  dst->itemselected = 0;
+  dst->itemselected = -1;
   dst->items = NULL;
   // we must reject any section which is entirely separators
   bool gotitem = false;
@@ -480,13 +480,16 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
   if(ncplane_rounded_box_sized(n->ncp, 0, n->headerchannels, height, width, 0)){
     return -1;
   }
-  const ncmenu_int_section* sec = &n->sections[sectionidx];
+  ncmenu_int_section* sec = &n->sections[sectionidx];
   for(unsigned i = 0 ; i < sec->itemcount ; ++i){
     ++ypos;
     if(sec->items[i].desc){
       // FIXME the user ought be able to configure the disabled channel
       if(!sec->items[i].disabled){
         ncplane_set_channels(n->ncp, n->sectionchannels);
+        if(sec->itemselected < 0){
+          sec->itemselected = i;
+        }
       }else{
         ncplane_set_channels(n->ncp, n->disablechannels);
       }
@@ -559,10 +562,13 @@ int ncmenu_rollup(ncmenu* n){
 
 int ncmenu_nextsection(ncmenu* n){
   int nextsection = n->unrolledsection;
-  // FIXME probably best to detect cycles
+  int origselected = n->unrolledsection;
   do{
     if(++nextsection == n->sectioncount){
       nextsection = 0;
+    }
+    if(nextsection == origselected){
+      break;
     }
   }while(n->sections[nextsection].name == NULL ||
          n->sections[nextsection].enabled_item_count == 0);
@@ -571,10 +577,13 @@ int ncmenu_nextsection(ncmenu* n){
 
 int ncmenu_prevsection(ncmenu* n){
   int prevsection = n->unrolledsection;
-  // FIXME probably best to detect cycles
+  int origselected = n->unrolledsection;
   do{
     if(--prevsection < 0){
       prevsection = n->sectioncount - 1;
+    }
+    if(prevsection == origselected){
+      break;
     }
   }while(n->sections[prevsection].name == NULL ||
          n->sections[prevsection].enabled_item_count == 0);
@@ -625,6 +634,9 @@ const char* ncmenu_selected(const ncmenu* n, ncinput* ni){
   }
   const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
   const int itemidx = sec->itemselected;
+  if(itemidx < 0){
+    return NULL;
+  }
   if(ni){
     memcpy(ni, &sec->items[itemidx].shortcut, sizeof(*ni));
   }
