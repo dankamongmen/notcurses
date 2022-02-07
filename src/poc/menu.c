@@ -30,23 +30,20 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   notcurses_render(nc);
   while((keypress = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
-      if(ni.evtype == NCTYPE_RELEASE){
-        if(ni.id == NCKEY_BUTTON1){
-          const char* sel = ncmenu_mouse_selected(ncm, &ni, NULL);
-          if(sel && !strcmp(sel, "Quit")){
-            ncmenu_destroy(ncm);
-            ncplane_destroy(selplane);
-            return 0;
-          }
-        }else{
-          continue;
+      const char* sel;
+      if( (sel = ncmenu_mouse_selected(ncm, &ni, NULL)) ){
+        if(sel && !strcmp(sel, "Quit")){
+          ncmenu_destroy(ncm);
+          ncplane_destroy(selplane);
+          return 0;
         }
+      }else if(ni.evtype == NCTYPE_RELEASE){
+        continue;
       }else if(keypress == 'q'){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
         return 0;
       }else if(keypress == NCKEY_ENTER){ // selected a menu item
-        const char* sel;
         if( (sel = ncmenu_selected(ncm, &ni)) ){
           if(strcmp(sel, "Quit") == 0){
             ncmenu_destroy(ncm);
@@ -144,10 +141,10 @@ int main(void){
   if(bottom == NULL){
     goto err;
   }
-  if(ncmenu_item_set_status(top, "Schwarzgerät", "Restart", false)){
+  if(ncmenu_item_set_status(bottom, "Schwarzgerät", "Restart", false)){
     goto err;
   }
-  if(ncmenu_item_set_status(top, "Schwarzgerät", "Derp", false)){
+  if(ncmenu_item_set_status(bottom, "Schwarzgerät", "Derp", false)){
     goto err;
   }
   if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
