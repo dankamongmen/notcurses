@@ -672,6 +672,9 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
     return NULL;
   }
   const int itemidx = y - 2;
+  if(sec->items[itemidx].disabled){
+    return NULL;
+  }
   if(ni){
     memcpy(ni, &sec->items[itemidx].shortcut, sizeof(*ni));
   }
