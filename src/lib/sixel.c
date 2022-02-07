@@ -5,7 +5,8 @@
 
 #define RGBSIZE 3
 
-// number of worker threads FIXME fit to local machine
+// number of worker threads
+// FIXME fit to local machine, but more than 3 never seems to help
 #define POPULATION 3
 
 // a worker can have up to three qstates enqueued for work
