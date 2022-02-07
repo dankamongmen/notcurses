@@ -1168,7 +1168,7 @@ extract_cell_color_table(qstate* qs, long cellid){
 }
 
 // we have a 4096-element array that takes the 4-5-3 MSBs from the RGB
-// comoponents. once it's complete, we might need to either merge some
+// components. once it's complete, we might need to either merge some
 // chunks, or expand them, converging towards the available number of
 // color registers. |ccols| is cell geometry; |leny| and |lenx| are pixel
 // geometry, and *do not* include sixel padding.
