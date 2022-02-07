@@ -1678,7 +1678,7 @@ void sixel_cleanup(tinfo* ti){
 }
 
 uint8_t* sixel_trans_auxvec(const ncpile* p){
-  const size_t slen = 3 * p->cellpxy * p->cellpxx;
+  const size_t slen = AUXVECELEMSIZE * p->cellpxy * p->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);
