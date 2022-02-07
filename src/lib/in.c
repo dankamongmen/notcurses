@@ -2112,7 +2112,7 @@ ictx_independent_p(const inputctx* ictx){
 //  precondition: buflen >= 1. precondition: buf[0] == 0x1b.
 static int
 process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
-  assert(ictx->amata.used < buflen);
+  assert(ictx->amata.used <= buflen);
   while(ictx->amata.used < buflen){
     unsigned char candidate = buf[ictx->amata.used++];
     unsigned used = ictx->amata.used;
