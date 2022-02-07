@@ -1215,7 +1215,9 @@ handle_responses(tinfo* ti, size_t* tablelen, size_t* tableused,
   }
   // kitty trumps sixel, when both are available
   if((*kitty_graphics = iresp->kitty_graphics) == 0){
-    ti->color_registers = iresp->color_registers;
+    if((ti->color_registers = iresp->color_registers) > SIXEL_MAX_REGISTERS){
+      ti->color_registers = SIXEL_MAX_REGISTERS;
+    }
     ti->sixel_maxy_pristine = iresp->sixely;
     ti->sixel_maxy = iresp->sixely;
     ti->sixel_maxx = iresp->sixelx;
