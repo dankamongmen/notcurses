@@ -31,7 +31,16 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   while((keypress = notcurses_get_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
       if(ni.evtype == NCTYPE_RELEASE){
-        continue;
+        if(ni.id == NCKEY_BUTTON1){
+          const char* sel = ncmenu_mouse_selected(ncm, &ni, NULL);
+          if(sel && !strcmp(sel, "Quit")){
+            ncmenu_destroy(ncm);
+            ncplane_destroy(selplane);
+            return 0;
+          }
+        }else{
+          continue;
+        }
       }else if(keypress == 'q'){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
