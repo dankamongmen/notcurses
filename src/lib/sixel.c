@@ -411,20 +411,6 @@ find_color(const qstate* qs, uint32_t pixel){
   return qidx(q);
 }
 
-// create an auxiliary vector suitable for a Sixel sprixcell, and zero it out.
-// there are two bytes per pixel in the cell: a palette index of up to 65534,
-// or 65535 to indicate transparency.
-static inline uint8_t*
-sixel_auxiliary_vector(const sprixel* s){
-  int pixels = ncplane_pile(s->n)->cellpxy * ncplane_pile(s->n)->cellpxx;
-  size_t slen = pixels * AUXVECELEMSIZE;
-  uint8_t* ret = malloc(slen);
-  if(ret){
-    memset(ret, 0, sizeof(slen));
-  }
-  return ret;
-}
-
 // the P2 parameter on a sixel specifies how unspecified pixels are drawn.
 // if P2 is 1, unspecified pixels are transparent. otherwise, they're drawn
 // as something else. some terminals (e.g. foot) can draw more quickly if
@@ -490,17 +476,9 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
 // get the index into the auxvec (2 bytes per pixel) given the true y/x pixel
 // coordinates, plus the origin+dimensions of the relevant cell.
 static inline int
-auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
-  if(y >= sy + cellpxy || y < sy - cellpxy){
-    logpanic("illegal y for %d cell at %d: %d", cellpxy, sy, y);
-    return -1;
-  }
-  if(x >= sx + cellpxx || x < sx - cellpxx){
-    logpanic("illegal x for %d cell at %d: %d", cellpxx, sx, x);
-    return -1;
-  }
-  const int xoff = x - sx;
-  const int yoff = y - sy;
+auxvec_idx(int y, int x, int cellpxy, int cellpxx){
+  const int xoff = x % cellpxx;
+  const int yoff = y % cellpxy;
   const int off = yoff * cellpxx + xoff;
   return AUXVECELEMSIZE * off;
 }
@@ -510,23 +488,27 @@ auxvec_idx(int y, int x, int sy, int sx, int cellpxy, int cellpxx){
 // we are wiping the sixel |rep|, changing it to |mask|.
 // precondition: mask is a bitwise proper subset of rep
 static inline void
-write_auxvec(uint8_t* auxvec, int color, int y, int x, int len, int sx, int ex,
-             int sy, int ey, char rep, char mask, int cellpxy, int cellpxx){
-//fprintf(stderr, "AUXVEC UPDATE[%d] y/x: %d/%d:%d s: %d/%d e: %d/%d %d\n", color, y, x, len, sy, sx, ey, ex, rep);
-  for(int i = x ; i < x + len ; ++i){
-    // we get the auxvec
-    const int idx = auxvec_idx(y, i, sy, sx, cellpxy, cellpxx);
-    if(idx < 0){
-      continue;
+write_auxvec(uint8_t* auxvec, int color, int y, int x, int len, int sx,
+             int sy, int ey, char rep, char masked, int cellpxy, int cellpxx){
+  rep -= 63;
+fprintf(stderr, "AUXVEC WRITE[%d] y/x: %d/%d:%d s: %d/%d e: %d %d 0x%x\n", color, y, x, len, sy, sx, ey, rep, masked);
+  for(int i = x ; i < sx + len ; ++i){
+    char bitselector = 1;
+    for(int dy = 0 ; dy < 6 ; bitselector <<= 1u, ++dy){
+      if((rep & bitselector) == (masked & bitselector)){
+        continue; // no change
+      }
+      // we get the auxvec
+      const int idx = auxvec_idx(y + dy, i, cellpxy, cellpxx);
+      if(idx < 0 || idx > cellpxy * cellpxx * AUXVECELEMSIZE){
+fprintf(stderr, "INVALID AUXIDX %d\n", idx);
+        continue;
+      }
+      uint16_t a;
+      memcpy(&a, &auxvec[idx], AUXVECELEMSIZE);
+fprintf(stderr, "AUXVEC %p %d/%d for cidx %d: idx %d (was 0x%04x) BS: 0x%x\n", auxvec, y + dy, i, color, idx, a, bitselector);
+      (void)ey; // FIXME
     }
-//fprintf(stderr, "AUXVEC %d for %d: %d\n", i, color, idx);
-    (void)ex;
-    (void)ey;
-    (void)rep;
-    (void)color;
-    (void)idx;
-    (void)auxvec; // FIXME
-    (void)mask; // FIXME
   }
 }
 
@@ -588,14 +570,14 @@ wipe_color(sixelband* b, int color, int y, int startx, int endx,
           // FIXME this might equal the prev/next rep, and we ought combine
 //fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
           write_rle(newvec, &voff, endx - x, masked);
-          write_auxvec(auxvec, color, y, x, endx - x, startx, endx, starty,
-                       endy, rep, mask, cellpxy, cellpxx);
+          write_auxvec(auxvec, color, y, x, endx - x, startx, starty,
+                       endy, rep, masked, cellpxy, cellpxx);
           rle -= endx - x;
           x = endx;
         }else{
           write_rle(newvec, &voff, rle, masked);
-          write_auxvec(auxvec, color, y, x, rle, startx, endx, starty, endy,
-                       rep, mask, cellpxy, cellpxx);
+          write_auxvec(auxvec, color, y, x, rle, startx, starty, endy,
+                       rep, masked, cellpxy, cellpxx);
           x += rle;
           rle = 0;
         }
@@ -657,13 +639,12 @@ wipe_band(sixelmap* smap, int band, int startx, int endx,
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
-  uint8_t* auxvec = sixel_auxiliary_vector(s);
+  uint8_t* auxvec = sixel_trans_auxvec(ncplane_pile(s->n));
   if(auxvec == NULL){
     return -1;
   }
   const int cellpxy = ncplane_pile(s->n)->cellpxy;
   const int cellpxx = ncplane_pile(s->n)->cellpxx;
-  memset(auxvec + cellpxx * cellpxy, 0xff, cellpxx * cellpxy);
   sixelmap* smap = s->smap;
   const int startx = xcell * cellpxx;
   const int starty = ycell * cellpxy;
@@ -1677,11 +1658,14 @@ void sixel_cleanup(tinfo* ti){
   // no way to know what the state was before; we ought use XTSAVE/XTRESTORE
 }
 
+// create an auxiliary vector suitable for a Sixel sprixcell, and zero it out.
+// there are two bytes per pixel in the cell: a palette index of up to 65534,
+// or 65535 to indicate transparency.
 uint8_t* sixel_trans_auxvec(const ncpile* p){
   const size_t slen = AUXVECELEMSIZE * p->cellpxy * p->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
-    memset(a, 0, slen);
+    memset(a, 0xff, slen);
   }
   return a;
 }
