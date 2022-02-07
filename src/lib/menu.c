@@ -588,10 +588,13 @@ int ncmenu_nextitem(ncmenu* n){
     }
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
-  // FIXME probably best to detect cycles
+  int origselected = sec->itemselected;
   do{
     if((unsigned)++sec->itemselected == sec->itemcount){
       sec->itemselected = 0;
+    }
+    if(sec->itemselected == origselected){
+      break;
     }
   }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
   return ncmenu_unroll(n, n->unrolledsection);
@@ -604,10 +607,13 @@ int ncmenu_previtem(ncmenu* n){
     }
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
-  // FIXME probably best to detect cycles
+  int origselected = sec->itemselected;
   do{
     if(sec->itemselected-- == 0){
       sec->itemselected = sec->itemcount - 1;
+    }
+    if(sec->itemselected == origselected){
+      break;
     }
   }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
   return ncmenu_unroll(n, n->unrolledsection);
@@ -734,7 +740,7 @@ int ncmenu_item_set_status(ncmenu* n, const char* section, const char* item,
       for(unsigned ii = 0 ; ii < sec->itemcount ; ++ii){
         struct ncmenu_int_item* i = &sec->items[ii];
         if(strcmp(i->desc, item) == 0){
-          const bool changed = i->disabled == enabled;
+          const bool changed = (i->disabled != enabled);
           i->disabled = !enabled;
           if(changed){
             if(i->disabled){

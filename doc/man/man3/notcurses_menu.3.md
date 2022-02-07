@@ -87,6 +87,11 @@ menu sections, clicks to dismiss the menu, Escape to dismiss the menu, left
 and right to change menu sections, and up and down to change menu items (these
 latter are only consumed if there is an actively unrolled section).
 
+Items can be disabled with **ncmenu_item_set_status**. Pass **false** to
+disable the item, or **true** to enable it. All items are enabled by
+default. A disabled item will not be returned with **ncmenu_mouse_selected**,
+nor reached with **ncmenu_nextsection** nor **ncmenu_prevsection**.
+
 # RETURN VALUES
 
 **ncmenu_create** returns **NULL** on error, or a pointer to a valid new ncmenu.
