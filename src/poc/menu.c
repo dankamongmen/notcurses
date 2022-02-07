@@ -79,7 +79,7 @@ int main(void){
   notcurses_mice_enable(nc, NCMICE_BUTTON_EVENT);
   struct ncmenu_item demo_items[] = {
     { .desc = "Restart", .shortcut = { .id = 'r', .modifiers = NCKEY_MOD_CTRL, }, },
-    { .desc = "Disabled", .shortcut = { .id = 'd', }, },
+    { .desc = "Derp", .shortcut = { .id = 'd', }, },
   };
   struct ncmenu_item file_items[] = {
     { .desc = "New", .shortcut = { .id = 'n', .modifiers = NCKEY_MOD_CTRL, }, },
@@ -117,10 +117,10 @@ int main(void){
   if(top == NULL){
     goto err;
   }
-  if(ncmenu_item_set_status(top, "Schwarzgerät", "Disabled", false)){
+  if(ncmenu_item_set_status(top, "Schwarzgerät", "Restart", false)){
     goto err;
   }
-  if(ncmenu_item_set_status(top, "Schwarzgerät", "Restart", false)){
+  if(ncmenu_item_set_status(top, "File", "Open", false)){
     goto err;
   }
   uint64_t channels = 0;
@@ -142,6 +142,12 @@ int main(void){
   mopts.flags |= NCMENU_OPTION_BOTTOM;
   struct ncmenu* bottom = ncmenu_create(n, &mopts);
   if(bottom == NULL){
+    goto err;
+  }
+  if(ncmenu_item_set_status(top, "Schwarzgerät", "Restart", false)){
+    goto err;
+  }
+  if(ncmenu_item_set_status(top, "Schwarzgerät", "Derp", false)){
     goto err;
   }
   if(ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=- ") < 0){
