@@ -665,7 +665,7 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
   const struct ncmenu_int_section* sec = &n->sections[n->unrolledsection];
   // don't allow a click on the side boundaries
   if(sec->xoff < 0){
-    if((unsigned)x > dimx - 4 || (unsigned)x <= dimx - 4 - sec->bodycols){
+    if(x > (int)dimx - 4 || x <= (int)dimx - 4 - sec->bodycols){
       return NULL;
     }
   }else{
@@ -673,7 +673,10 @@ const char* ncmenu_mouse_selected(const ncmenu* n, const ncinput* click,
       return NULL;
     }
   }
-  const int itemidx = y - (1 + !n->bottom);
+  const int itemidx = n->bottom ? y - ((int)dimy - (int)sec->itemcount) + 2 : y - 2;
+  if(itemidx < 0 || itemidx >= (int)sec->itemcount){
+    return NULL;
+  }
   if(sec->items[itemidx].disabled){
     return NULL;
   }
