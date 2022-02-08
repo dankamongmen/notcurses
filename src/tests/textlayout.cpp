@@ -10,6 +10,31 @@ TEST_CASE("TextLayout") {
 
   const char str[] = "this is going to be broken up";
 
+  SUBCASE("LayoutUnaligned") {
+    struct ncplane_options nopts = {
+      .y = 0,
+      .x = 0,
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+      .margin_b = 0, .margin_r = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
+    REQUIRE(sp);
+    size_t bytes;
+    CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_UNALIGNED, str, &bytes));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(bytes == strlen(str));
+    char* line = ncplane_contents(sp, 0, 0, 2, 20);
+    REQUIRE(line);
+    CHECK(0 == strcmp(line, "this is going to be broken up"));
+    free(line);
+    CHECK(0 == ncplane_destroy(sp));
+  }
+
   SUBCASE("LayoutLeft") {
     struct ncplane_options nopts = {
       .y = 0,
