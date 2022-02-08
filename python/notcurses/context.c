@@ -218,7 +218,7 @@ static inline struct timespec secs_to_timespec(double const sec) {
     assert(sec >= 0);
     struct timespec const timespec = {
         .tv_sec = (time_t)sec,
-        .tv_nsec = (long)((sec - (time_t)sec) * 1E+9) };
+        .tv_nsec = (long)((sec - (double)(time_t)sec) * 1E+9) };
     return timespec;
 }
 
