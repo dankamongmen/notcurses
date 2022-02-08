@@ -181,13 +181,6 @@ Notcurses_bottom(NotcursesObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-Notcurses_get(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
-{
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
-    return NULL;
-}
-
-static PyObject *
 Notcurses_inputready_fd(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     int input_fd = notcurses_inputready_fd(self->notcurses_ptr);
@@ -196,25 +189,8 @@ Notcurses_inputready_fd(NotcursesObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-build_NcInput(ncinput const *ni)
+build_NcInput(uint32_t const id, ncinput const *const ni)
 {
-    PyObject *input = GNU_PY_CHECK(PyStructSequence_New(NcInput_Type));
-    PyStructSequence_SET_ITEM(input, 0, PyLong_FromLong(ni->id));
-    PyStructSequence_SET_ITEM(input, 1, PyLong_FromLong(ni->y));
-    PyStructSequence_SET_ITEM(input, 2, PyLong_FromLong(ni->x));
-    PyStructSequence_SET_ITEM(input, 3, PyUnicode_FromStringAndSize(ni->utf8, 1));
-    PyStructSequence_SET_ITEM(input, 4, PyLong_FromLong(ni->evtype));
-    PyStructSequence_SET_ITEM(input, 5, PyLong_FromLong(ni->modifiers));
-    PyStructSequence_SET_ITEM(input, 6, PyLong_FromLong(ni->ypx));
-    PyStructSequence_SET_ITEM(input, 7, PyLong_FromLong(ni->xpx));
-    return input;
-}
-
-static PyObject *
-Notcurses_get_nblock(NotcursesObject *self, PyObject *Py_UNUSED(args))
-{
-    ncinput ni;
-    uint32_t id = notcurses_get_nblock(self->notcurses_ptr, &ni);
     if (id == (uint32_t)-1)
     {
         PyErr_Format(PyExc_RuntimeError, "notcurses_get_nblock return -1");
@@ -224,20 +200,75 @@ Notcurses_get_nblock(NotcursesObject *self, PyObject *Py_UNUSED(args))
         // No input event.
         Py_RETURN_NONE;
     else
-        return build_NcInput(&ni);
+    {
+        PyObject *input = GNU_PY_CHECK(PyStructSequence_New(NcInput_Type));
+        PyStructSequence_SET_ITEM(input, 0, PyLong_FromLong(ni->id));
+        PyStructSequence_SET_ITEM(input, 1, PyLong_FromLong(ni->y));
+        PyStructSequence_SET_ITEM(input, 2, PyLong_FromLong(ni->x));
+        PyStructSequence_SET_ITEM(input, 3, PyUnicode_FromStringAndSize(ni->utf8, 1));
+        PyStructSequence_SET_ITEM(input, 4, PyLong_FromLong(ni->evtype));
+        PyStructSequence_SET_ITEM(input, 5, PyLong_FromLong(ni->modifiers));
+        PyStructSequence_SET_ITEM(input, 6, PyLong_FromLong(ni->ypx));
+        PyStructSequence_SET_ITEM(input, 7, PyLong_FromLong(ni->xpx));
+        return input;
+    }
+}
+
+static inline struct timespec secs_to_timespec(double const sec) {
+    assert(sec >= 0);
+    struct timespec const timespec = {
+        .tv_sec = (time_t)sec,
+        .tv_nsec = (long)((sec - (time_t)sec) * 1E+9) };
+    return timespec;
+}
+
+static PyObject *
+Notcurses_get(NotcursesObject *self, PyObject *args, PyObject *kw)
+{
+    static char *keywords[] = {"deadline", NULL};
+    PyObject* deadline_arg;
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "O", keywords, &deadline_arg))
+        return NULL;
+
+    struct timespec timespec;
+    struct timespec *ts;
+    if (deadline_arg == Py_None)
+        // No deadline.
+        ts = NULL;
+    else
+    {
+        double const deadline = PyFloat_AsDouble(deadline_arg);
+        if (PyErr_Occurred())
+            // Can't convert to float sec.
+            return NULL;
+        if (deadline < 0)
+        {
+            PyErr_Format(PyExc_ValueError, "negative deadline");
+            return NULL;
+        }
+        timespec = secs_to_timespec(deadline);
+        ts = &timespec;
+    }
+
+    struct ncinput ni;
+    uint32_t const id = notcurses_get(self->notcurses_ptr, ts, &ni);
+    return build_NcInput(id, &ni);
+}
+
+static PyObject *
+Notcurses_get_nblock(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    struct ncinput ni;
+    uint32_t const id = notcurses_get_nblock(self->notcurses_ptr, &ni);
+    return build_NcInput(id, &ni);
 }
 
 static PyObject *
 Notcurses_get_blocking(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    ncinput ni;
-    if (notcurses_get_blocking(self->notcurses_ptr, &ni) == (uint32_t)-1)
-    {
-        PyErr_Format(PyExc_RuntimeError, "notcurses_get_blocking return -1");
-        return NULL;
-    }
-    else
-        return build_NcInput(&ni);
+    struct ncinput ni;
+    uint32_t const id = notcurses_get_blocking(self->notcurses_ptr, &ni);
+    return build_NcInput(id, &ni);
 }
 
 static PyObject *
