@@ -151,7 +151,7 @@ ncchannel_set_alpha(uint32_t* channel, unsigned alpha){
   if(alpha & ~NC_BG_ALPHA_MASK){
     return -1;
   }
-  *channel = alpha | (*channel & ~NC_BG_ALPHA_MASK);
+  *channel = (uint32_t)alpha | (*channel & (uint32_t)~NC_BG_ALPHA_MASK);
   if(alpha != NCALPHA_OPAQUE){
     *channel |= NC_BGDEFAULT_MASK;
   }
@@ -167,7 +167,7 @@ ncchannel_default_p(uint32_t channel){
 // Mark the channel as using its default color. Alpha is set opaque.
 static inline uint32_t
 ncchannel_set_default(uint32_t* channel){
-  *channel &= ~NC_BGDEFAULT_MASK; // turn off not-default bit
+  *channel &= (uint32_t)~NC_BGDEFAULT_MASK; // turn off not-default bit
   ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
   return *channel;
 }
@@ -255,7 +255,7 @@ ncchannel_set_rgb8(uint32_t* channel, unsigned r, unsigned g, unsigned b){
   uint32_t c = (r << 16u) | (g << 8u) | b;
   // clear the existing rgb bits, clear the palette index indicator, set
   // the not-default bit, and or in the new rgb.
-  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
+  *channel = (uint32_t)((*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c);
   return 0;
 }
 
@@ -265,7 +265,7 @@ ncchannel_set(uint32_t* channel, uint32_t rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb;
+  *channel = (uint32_t)((*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | rgb);
   return 0;
 }
 
@@ -292,8 +292,8 @@ ncchannel_set_rgb8_clipped(uint32_t* channel, int r, int g, int b){
   if(b <= -1){
     b = 0;
   }
-  uint32_t c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c;
+  uint32_t c = (uint32_t)((r << 16u) | (g << 8u) | b);
+  *channel = (uint32_t)((*channel & ~(NC_BG_RGB_MASK | NC_BG_PALETTE)) | NC_BGDEFAULT_MASK | c);
 }
 
 // Extract the background alpha and coloring bits from a 64-bit channel
@@ -358,7 +358,7 @@ ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
 static inline uint64_t
 ncchannels_set_channels(uint64_t* dst, uint64_t channels){
   ncchannels_set_bchannel(dst, channels & 0xffffffffull);
-  ncchannels_set_fchannel(dst, (channels >> 32u) & 0xffffffffull);
+  ncchannels_set_fchannel(dst, (uint32_t)((channels >> 32u) & 0xffffffffull));
   return *dst;
 }
 
@@ -790,13 +790,13 @@ nccell_styles(const nccell* c){
 // whether they're actively supported or not.
 static inline void
 nccell_on_styles(nccell* c, unsigned stylebits){
-  c->stylemask |= (stylebits & NCSTYLE_MASK);
+  c->stylemask |= (uint16_t)(stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the nccell's existing spec.
 static inline void
 nccell_off_styles(nccell* c, unsigned stylebits){
-  c->stylemask &= ~(stylebits & NCSTYLE_MASK);
+  c->stylemask &= (uint16_t)~(stylebits & NCSTYLE_MASK);
 }
 
 // Use the default color for the foreground.
@@ -812,12 +812,12 @@ nccell_set_bg_default(nccell* c){
 }
 
 static inline int
-nccell_set_fg_alpha(nccell* c, int alpha){
+nccell_set_fg_alpha(nccell* c, unsigned alpha){
   return ncchannels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
-nccell_set_bg_alpha(nccell* c, int alpha){
+nccell_set_bg_alpha(nccell* c, unsigned alpha){
   return ncchannels_set_bg_alpha(&c->channels, alpha);
 }
 
@@ -1268,8 +1268,8 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
     return false;
   }
   // don't need to check deprecated alt, ctrl, shift
-  if((n1->modifiers & ~(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))
-      != (n2->modifiers & ~(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))){
+  if((n1->modifiers & ~(unsigned)(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))
+      != (n2->modifiers & ~(unsigned)(NCKEY_MOD_CAPSLOCK | NCKEY_MOD_NUMLOCK))){
     return false;
   }
   if(n1->evtype != n2->evtype){
@@ -1623,7 +1623,7 @@ ncpalette_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* 
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
-  return ncchannel_rgb8(p->chans[idx], r, g, b);
+  return (int)ncchannel_rgb8(p->chans[idx], r, g, b);
 }
 
 // Free the palette store 'p'.
@@ -2097,7 +2097,7 @@ notcurses_align(int availu, ncalign_e align, int u){
 // 'align'. Undefined behavior on negative 'c'.
 static inline int
 ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
-  return notcurses_align(ncplane_dim_x(n), align, c);
+  return notcurses_align((int)ncplane_dim_x(n), align, c);
 }
 
 // Return the row at which 'r' rows ought start in order to be aligned
@@ -2105,7 +2105,7 @@ ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
 // 'align'. Undefined behavior on negative 'r'.
 static inline int
 ncplane_valign(const struct ncplane* n, ncalign_e align, int r){
-  return notcurses_align(ncplane_dim_y(n), align, r);
+  return notcurses_align((int)ncplane_dim_y(n), align, r);
 }
 
 // Move the cursor to the specified position (the cursor needn't be visible).
@@ -2330,9 +2330,9 @@ API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_
 static inline int
 ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
-  int offset = 0;
+  size_t offset = 0;
 //fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
-  while((size_t)offset < s && gclusters[offset]){
+  while(offset < s && gclusters[offset]){
     size_t wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
     if(cols < 0){
@@ -2413,7 +2413,7 @@ ncplane_pututf32_yx(struct ncplane* n, int y, int x, uint32_t u){
   memset(&ps, 0, sizeof(ps));
   // this isn't going to be valid for reconstructued surrogate pairs...
   // we need our own, or to use unistring or something.
-  size_t s = wcrtomb(utf8c, u, &ps);
+  size_t s = wcrtomb(utf8c, (wchar_t)u, &ps);
   if(s == (size_t)-1){
     return -1;
   }
@@ -2423,7 +2423,7 @@ ncplane_pututf32_yx(struct ncplane* n, int y, int x, uint32_t u){
 
 static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
-  return ncplane_pututf32_yx(n, y, x, w);
+  return ncplane_pututf32_yx(n, y, x, (uint32_t)w);
 }
 
 // Write 'w' at the current cursor position, using the plane's current styling.
@@ -2453,7 +2453,7 @@ ncplane_putwc_utf32(struct ncplane* n, const wchar_t* w, unsigned* wchars){
     utf32 += (w[1] & 0x3fflu);
   }else{
     *wchars = 1;
-    utf32 = *w;
+    utf32 = (uint32_t)*w;
   }
   return ncplane_pututf32_yx(n, -1, -1, utf32);
 }

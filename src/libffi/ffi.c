@@ -72,11 +72,11 @@ int nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc);
 int nccell_load_ucs32(struct ncplane* n, nccell* c, uint32_t u);
 int nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
              uint16_t stylemask, uint64_t channels);
-int nccell_set_bg_alpha(nccell* c, int alpha);
+int nccell_set_bg_alpha(nccell* c, unsigned alpha);
 int nccell_set_bg_palindex(nccell* cl, unsigned idx);
 int nccell_set_bg_rgb(nccell* c, uint32_t channel);
 int nccell_set_bg_rgb8(nccell* cl, unsigned r, unsigned g, unsigned b);
-int nccell_set_fg_alpha(nccell* c, int alpha);
+int nccell_set_fg_alpha(nccell* c, unsigned alpha);
 int nccell_set_fg_palindex(nccell* cl, unsigned idx);
 int nccell_set_fg_rgb(nccell* c, uint32_t channel);
 int nccell_set_fg_rgb8(nccell* cl, unsigned r, unsigned g, unsigned b);
