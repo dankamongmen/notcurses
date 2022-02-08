@@ -302,6 +302,17 @@ def ncchannels_set_bg_default(channels: int, /) -> int:
 # endregion ncchannel
 
 
+class NcInput:
+    id: int
+    y: int
+    x: int
+    utf8: str
+    evtype: int
+    modifiers: int
+    xpx: int
+    ypx: int
+
+
 class Notcurses:
     """Notcurses context."""
 
@@ -337,20 +348,20 @@ class Notcurses:
         """Return the bottommost ncplane of the standard pile."""
         raise NotImplementedError('Stub')
 
-    def getc(self) -> str:
-        """Get a single unicode codepoint of input."""
-        raise NotImplementedError('Stub')
-
     def inputready_fd(self) -> int:
         """Get a file descriptor suitable for input event poll."""
         raise NotImplementedError('Stub')
 
-    def getc_nblock(self) -> str:
+    def get(self, deadline: Optional[float]) -> NcInput:
+        """Reads an input event. If no event is ready, returns None."""
+        raise NotImplementedError('Stub')
+
+    def get_nblock(self) -> NcInput:
         """Get input event without blocking. If no event is ready,
         returns None."""
         raise NotImplementedError('Stub')
 
-    def getc_blocking(self) -> str:
+    def get_blocking(self) -> NcInput:
         """Get input event completely blocking until and event or signal
         received."""
         raise NotImplementedError('Stub')
