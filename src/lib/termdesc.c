@@ -1261,6 +1261,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     cursor_y = &foolcursor_y;
   }
   *cursor_x = *cursor_y = -1;
+  ti->sixelengine = NULL;
   ti->bg_collides_default = 0xfe000000;
   ti->fg_default = 0xff000000;
   ti->kbdlevel = UINT_MAX; // see comment in tinfo definition

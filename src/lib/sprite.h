@@ -169,7 +169,7 @@ create_tam(int rows, int cols){
   return tam;
 }
 
-int sprite_init(const struct tinfo* t, int fd);
+int sprite_init(struct tinfo* t, int fd);
 int sixel_wipe(sprixel* s, int ycell, int xcell);
 // nulls out a cell from a kitty bitmap via changing the alpha value
 // throughout to 0. the same trick doesn't work on sixel, but there we
@@ -196,9 +196,9 @@ int kitty_scrub(const struct ncpile* p, sprixel* s);
 int fbcon_scrub(const struct ncpile* p, sprixel* s);
 int kitty_remove(int id, fbuf* f);
 int kitty_clear_all(fbuf* f);
-int sixel_init_forcesdm(int fd);
-int sixel_init_inverted(int fd);
-int sixel_init(int fd);
+int sixel_init_forcesdm(struct tinfo* ti, int fd);
+int sixel_init_inverted(struct tinfo* ti, int fd);
+int sixel_init(struct tinfo* ti, int fd);
 uint8_t* sixel_trans_auxvec(const struct ncpile* p);
 uint8_t* kitty_trans_auxvec(const struct ncpile* p);
 int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
