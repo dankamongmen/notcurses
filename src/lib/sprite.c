@@ -211,7 +211,7 @@ int sprite_clear_all(const tinfo* t, fbuf* f){
 // we don't want to seed the process-wide prng, but we do want to stir in a
 // bit of randomness for our purposes. we probably ought just use platform-
 // specific APIs, but for now, throw the timestamp in there, lame FIXME.
-int sprite_init(const tinfo* t, int fd){
+int sprite_init(tinfo* t, int fd){
   struct timeval tv;
   gettimeofday(&tv, NULL);
   int stir = (tv.tv_sec >> 3) ^ tv.tv_usec;
@@ -219,7 +219,7 @@ int sprite_init(const tinfo* t, int fd){
   if(t->pixel_init == NULL){
     return 0;
   }
-  return t->pixel_init(fd);
+  return t->pixel_init(t, fd);
 }
 
 int sprixel_rescale(sprixel* spx, unsigned ncellpxy, unsigned ncellpxx){

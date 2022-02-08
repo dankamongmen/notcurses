@@ -143,7 +143,7 @@ typedef struct tinfo {
   // it leaves the sprixel in INVALIDATED so that it's drawn in phase 2.
   void (*pixel_refresh)(const struct ncpile* p, struct sprixel* s);
   int (*pixel_remove)(int id, fbuf* f); // kitty only, issue actual delete command
-  int (*pixel_init)(int fd); // called when support is detected
+  int (*pixel_init)(struct tinfo* ti, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
                     struct sprixel* s, fbuf* f, int y, int x);
   int (*pixel_draw_late)(const struct tinfo*, struct sprixel* s, int yoff, int xoff);
@@ -172,6 +172,7 @@ typedef struct tinfo {
   unsigned sixel_maxy;          // maximum working sixel height
   unsigned sixel_maxy_pristine; // maximum theoretical sixel height, as queried
   unsigned sprixel_scale_height;// sprixel must be a multiple of this many rows
+  void* sixelengine;         // opaque threaded engine used by sixel dispatch
   const char* termname;      // terminal name from environment variables/init
   char* termversion;         // terminal version (freeform) from query responses
   queried_terminals_e qterm; // detected terminal class
