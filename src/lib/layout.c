@@ -7,7 +7,8 @@
 static inline int
 ncplane_putline(ncplane* n, ncalign_e align, int cols, const char* text, size_t bytes){
   const int avail = ncplane_dim_x(n) - n->x - 1;
-  const int offset = notcurses_align(avail, align, cols);
+  const int offset = (align == NCALIGN_UNALIGNED ? 0 :
+                      notcurses_align(avail, align, cols));
   return ncplane_putnstr_yx(n, -1, n->x + offset, bytes, text);
 }
 
