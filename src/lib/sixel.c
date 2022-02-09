@@ -542,7 +542,7 @@ wipe_color(sixelband* b, int color, int y, int startx, int endx,
     return 0; // no work to be done here
   }
   int wiped = 0;
-  char* newvec = malloc(dimx);
+  char* newvec = malloc(dimx + 1);
   if(newvec == NULL){
     return -1;
   }
@@ -1622,10 +1622,61 @@ restore_vec(sixelband* b, int color, int yoff, int xoff, int dimx){
       return -1;
     }
   }else{
-    // FIXME must update, walk vec, fun fun
+    int rle = 0; // the repetition number for this element
+    int x = 0;
+    int voff = 0;
+    if((v = malloc(dimx + 1)) == NULL){
+      return -1;
+    }
+    while(*vec){
+      if(isdigit(*vec)){
+        rle *= 10;
+        rle += (*vec - '0');
+      }else if(*vec == '!'){
+        rle = 0;
+      }else{
+        if(rle == 0){
+          rle = 1;
+        }
+        char rep = *vec;
+//fprintf(stderr, "X/RLE/ENDX: %d %d %d\n", x, rle, endx);
+        if(x + rle < xoff){ // not wiped material; reproduce as-is
+          write_rle(v, &voff, rle, rep);
+          x += rle;
+        }else if(x > xoff){
+          write_rle(v, &voff, rle, rep);
+          x += rle;
+        }else{
+          if(x < xoff){
+            write_rle(v, &voff, xoff - x, rep);
+            rle -= xoff - x;
+            x = xoff;
+          }
+          write_rle(v, &voff, 1, ((rep - 63) | bit) + 63);
+          --rle;
+          ++x;
+          break; // FIXME
+          if(rle){
+            write_rle(v, &voff, rle, rep);
+            x += rle;
+          }
+        }
+        rle = 0;
+      }
+      ++vec;
+      /*
+      if(x > xoff){
+fprintf(stderr, "COPYING IN %zu [%s] at %d ([%s])\n", strlen(vec), vec, voff, v);
+fprintf(stderr, "LENVEC: %zu\n", strlen(v));
+        strcpy(v + voff, vec); // there is always room
+        break;
+      }
+      */
+    }
   }
   free(b->vecs[color]);
   b->vecs[color] = v;
+//fprintf(stderr, "SET NEW VEC (%zu) [%s]\n", strlen(v), v);
   return 0;
 }
 
@@ -1650,16 +1701,16 @@ restore_band(sixelmap* smap, int band, int startx, int endx,
   const int height = ey - sy;
   const int totalpixels = width * height;
   sixelband* b = &smap->bands[band];
-fprintf(stderr, "RESTORING band %d (%d->%d (%d->%d), %d->%d) %d pixels\n", band, sy, ey, starty, endy, startx, endx, totalpixels);
+//fprintf(stderr, "RESTORING band %d (%d->%d (%d->%d), %d->%d) %d pixels\n", band, sy, ey, starty, endy, startx, endx, totalpixels);
   int yoff = sy % cellpxy; // we start off on this row of the auxvec
   int xoff = startx % cellpxx;
   for(int dy = 0 ; sy + dy < ey ; ++dy, ++yoff){
     const int idx = (yoff * cellpxx + xoff) * AUXVECELEMSIZE;
-fprintf(stderr, " looking at line %d (auxvec row %d idx %d, dy %d)\n", sy + dy, yoff, idx, dy);
+//fprintf(stderr, " looking at line %d (auxvec row %d idx %d, dy %d)\n", sy + dy, yoff, idx, dy);
     for(int dx = 0 ; startx + dx < endx ; ++dx){
       uint16_t color;
       memcpy(&color, &auxvec[idx], AUXVECELEMSIZE);
-fprintf(stderr, " idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
+//fprintf(stderr, " idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
       if(color != TRANS_PALETTE_ENTRY){
         restore_vec(b, color, dy, startx + dx, dimx);
         ++restored;
@@ -1675,7 +1726,7 @@ fprintf(stderr, " idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
 // just like wiping. this is necessary due to the complex nature of
 // modifying a Sixel -- we want to do them all in one batch.
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-fprintf(stderr, "REBUILDING %d/%d\n", ycell, xcell);
+//fprintf(stderr, "REBUILDING %d/%d\n", ycell, xcell);
   if(auxvec == NULL){
     return -1;
   }
@@ -1699,7 +1750,7 @@ fprintf(stderr, "REBUILDING %d/%d\n", ycell, xcell);
   // walk through each color, and wipe the necessary sixels from each band
   int w = 0;
   for(int b = startband ; b < endband ; ++b){
-    w += restore_band(smap, b, startx, endx, starty, endy, s->dimx,
+    w += restore_band(smap, b, startx, endx, starty, endy, s->pixx,
                       cellpxy, cellpxx, auxvec);
   }
   s->wipes_outstanding = true;
