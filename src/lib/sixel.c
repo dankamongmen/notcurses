@@ -520,7 +520,7 @@ write_auxvec(uint8_t* auxvec, uint16_t color, int y, int x, int len,
     if(yoff + dy >= cellpxy){ // reached the next cell below
       break;
     }
-//fprintf(stderr, " writing to row %d (%d)\n", y + dy, bitselector);
+//fprintf(stderr, " writing to auxrow %d (%d)\n", yoff + dy, bitselector);
     const int idx = ((yoff + dy) * cellpxx + xoff) * AUXVECELEMSIZE;
 //fprintf(stderr, " xoff: %d yoff: %d dy: %d idx: %d\n", xoff, yoff, dy, idx);
     for(int i = 0 ; i < len ; ++i){
@@ -1605,12 +1605,11 @@ int sixel_init(tinfo* ti, int fd){
 // restore the |yoff|th bit of the sixel at |xoff| for the specified vec
 // FIXME this is a very dopey implementation yuck, use RLE at least
 static int
-restore_vec(sixelband* b, int color, int yoff, int xoff, int dimx){
+restore_vec(sixelband* b, int color, int bit, int xoff, int dimx){
   if(color >= b->size){
     logpanic("illegal color %d >= %d", color, b->size);
     return -1;
   }
-  int bit = 1 << yoff;
   char* v = NULL;
   const char* vec = b->vecs[color]; // might be NULL
   if(vec == NULL){ // write this sixel, and we're done
@@ -1697,17 +1696,18 @@ restore_band(sixelmap* smap, int band, int startx, int endx,
   const int totalpixels = width * height;
   sixelband* b = &smap->bands[band];
 //fprintf(stderr, "RESTORING band %d (%d->%d (%d->%d), %d->%d) %d pixels\n", band, sy, ey, starty, endy, startx, endx, totalpixels);
-  int yoff = sy % cellpxy; // we start off on this row of the auxvec
+  int yoff = ((band * 6) + sy - starty) % cellpxy; // we start off on this row of the auxvec
   int xoff = startx % cellpxx;
-  for(int dy = 0 ; sy + dy < ey ; ++dy, ++yoff){
+  for(int dy = sy ; dy < ey ; ++dy, ++yoff){
     const int idx = (yoff * cellpxx + xoff) * AUXVECELEMSIZE;
-//fprintf(stderr, " looking at line %d (auxvec row %d idx %d, dy %d)\n", sy + dy, yoff, idx, dy);
+    const int bit = 1 << dy;
+//fprintf(stderr, " looking at bandline %d (auxvec row %d idx %d, dy %d)\n", dy, yoff, idx, dy);
     for(int dx = 0 ; startx + dx < endx ; ++dx){
       uint16_t color;
       memcpy(&color, &auxvec[idx], AUXVECELEMSIZE);
-//fprintf(stderr, " idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
+//fprintf(stderr, "  idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
       if(color != TRANS_PALETTE_ENTRY){
-        restore_vec(b, color, dy, startx + dx, dimx);
+        restore_vec(b, color, bit, startx + dx, dimx);
         ++restored;
       }
     }
@@ -1727,7 +1727,6 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   }
   const int cellpxy = ncplane_pile(s->n)->cellpxy;
   const int cellpxx = ncplane_pile(s->n)->cellpxx;
-  memset(auxvec + cellpxx * cellpxy, 0xff, cellpxx * cellpxy);
   sixelmap* smap = s->smap;
   const int startx = xcell * cellpxx;
   const int starty = ycell * cellpxy;
@@ -1740,11 +1739,11 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     endy = s->pixy;
   }
   const int startband = starty / 6;
-  const int endband = endy / 6;
+  const int endband = (endy - 1) / 6;
 //fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
   // walk through each color, and wipe the necessary sixels from each band
   int w = 0;
-  for(int b = startband ; b < endband ; ++b){
+  for(int b = startband ; b <= endband ; ++b){
     w += restore_band(smap, b, startx, endx, starty, endy, s->pixx,
                       cellpxy, cellpxx, auxvec);
   }
