@@ -659,20 +659,6 @@ wipe_band(sixelmap* smap, int band, int startx, int endx,
   return wiped;
 }
 
-/*
-static void
-debug_wiped_cell(const uint8_t* auxvec, int tp, int x){
-  for(int y = 0 ; y < tp / x ; ++y){
-    for(int x0 = 0 ; x0 < x ; ++x0){
-      uint16_t color;
-      memcpy(&color, &auxvec[(x0 + y * x) * 2], 2);
-      fprintf(stderr, "%03d ", color);
-    }
-    fprintf(stderr, "\n");
-  }
-}
-*/
-
 // we return -1 because we're not doing a proper wipe -- that's not possible
 // using sixel. we just mark it as partially transparent, so that if it's
 // redrawn, it's redrawn using P2=1.
@@ -707,7 +693,6 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(w){
     s->wipes_outstanding = true;
   }
-  //debug_wiped_cell(auxvec, cellpxy * cellpxx, cellpxx);
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
   assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
@@ -1728,7 +1713,7 @@ restore_band(sixelmap* smap, int band, int startx, int endx,
 //fprintf(stderr, " looking at bandline %d (auxvec row %d idx %d, dy %d)\n", dy, yoff, idx, dy);
     for(int dx = 0 ; startx + dx < endx ; ++dx){
       uint16_t color;
-      memcpy(&color, &auxvec[idx], AUXVECELEMSIZE);
+      memcpy(&color, &auxvec[idx + dx * AUXVECELEMSIZE], AUXVECELEMSIZE);
 //fprintf(stderr, "  idx %d (dx %d x %d): %hu\n", idx, dx, dx + startx, color);
       if(color != TRANS_PALETTE_ENTRY){
         restore_vec(b, color, bit, startx + dx, dimx);
