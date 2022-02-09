@@ -570,7 +570,7 @@ wipe_color(sixelband* b, int color, int y, int startx, int endx,
       char rep = *vec;
       char masked = ((rep - 63) & mask) + 63;
 //fprintf(stderr, "X/RLE/ENDX: %d %d %d\n", x, rle, endx);
-      if(x + rle < startx){ // not wiped material; reproduce as-is
+      if(x + rle <= startx){ // not wiped material; reproduce as-is
         write_rle(newvec, &voff, rle, rep);
         x += rle;
       }else if(masked == rep){ // not changed by wipe; reproduce as-is
@@ -1640,7 +1640,7 @@ restore_vec(sixelband* b, int color, int yoff, int xoff, int dimx){
         }
         char rep = *vec;
 //fprintf(stderr, "X/RLE/ENDX: %d %d %d\n", x, rle, endx);
-        if(x + rle < xoff){ // not wiped material; reproduce as-is
+        if(x + rle <= xoff){ // not wiped material; reproduce as-is
           write_rle(v, &voff, rle, rep);
           x += rle;
         }else if(x > xoff){
@@ -1655,7 +1655,6 @@ restore_vec(sixelband* b, int color, int yoff, int xoff, int dimx){
           write_rle(v, &voff, 1, ((rep - 63) | bit) + 63);
           --rle;
           ++x;
-          break; // FIXME
           if(rle){
             write_rle(v, &voff, rle, rep);
             x += rle;
@@ -1664,14 +1663,10 @@ restore_vec(sixelband* b, int color, int yoff, int xoff, int dimx){
         rle = 0;
       }
       ++vec;
-      /*
       if(x > xoff){
-fprintf(stderr, "COPYING IN %zu [%s] at %d ([%s])\n", strlen(vec), vec, voff, v);
-fprintf(stderr, "LENVEC: %zu\n", strlen(v));
         strcpy(v + voff, vec); // there is always room
         break;
       }
-      */
     }
   }
   free(b->vecs[color]);
