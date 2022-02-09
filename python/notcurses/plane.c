@@ -1675,7 +1675,7 @@ static PyMethodDef NcPlane_methods[] = {
 
     {"translate", (void *)NcPlane_translate, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("provided a coordinate relative to the origin of 'src', map it to the same absolute coordinate relative to the origin of 'dst'.")},
     {"translate_abs", (PyCFunction)NcPlane_translate_abs, METH_VARARGS, PyDoc_STR("Fed absolute 'y'/'x' coordinates, determine whether that coordinate is within the ncplane.")},
-    {"set_scrolling", (PyCFunction)NcPlane_set_scrolling, METH_NOARGS, PyDoc_STR("All planes are created with scrolling disabled. Returns true if scrolling was previously enabled, or false if it was disabled.")},
+    {"set_scrolling", (PyCFunction)NcPlane_set_scrolling, METH_VARARGS, PyDoc_STR("All planes are created with scrolling disabled. Returns true if scrolling was previously enabled, or false if it was disabled.")},
 
     {"resize", (void *)NcPlane_resize, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Resize the specified ncplane.")},
     {"resize_simple", (PyCFunction)NcPlane_resize_simple, METH_VARARGS, PyDoc_STR("Resize the plane, retaining what data we can (everything, unless we're shrinking in some dimension). Keep the origin where it is.")},
