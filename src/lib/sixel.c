@@ -506,23 +506,27 @@ auxvec_idx(int y, int x, int cellpxy, int cellpxx){
 // modulo |cellpxy|, and the position within the auxvec by multiplying that
 // result by |cellpxx| and adding |x| modulo |cellpxx|. we set |len| pixels.
 static inline void
-write_auxvec(uint8_t* auxvec, uint16_t color, int y, int x, int len,
+write_auxvec(uint8_t* auxvec, uint16_t color, int endy, int y, int x, int len,
              char rep, char masked, int cellpxy, int cellpxx){
+  rep -= 63;
+  masked -= 63;
   const char diff = rep ^ masked;
-//fprintf(stderr, "AUXVEC WRITE[%hu] y/x: %d/%d:%d r: 0x%x m: 0x%x d: 0x%x\n", color, y, x, len, rep, masked, diff);
+//fprintf(stderr, "AUXVEC WRITE[%hu] ey: %d y/x: %d/%d:%d r: 0x%x m: 0x%x d: 0x%x total %d\n", color, endy, y, x, len, rep, masked, diff, cellpxy * cellpxx);
   const int xoff = x % cellpxx;
   const int yoff = y % cellpxy;
   int dy = 0;
   for(char bitselector = 1 ; bitselector < 0x40 ; bitselector <<= 1u, ++dy){
     if((diff & bitselector) == 0){
+//if(diff == 0x20)fprintf(stderr, "diff: 0x%x bs: %d\n", diff, bitselector);
       continue;
     }
-    if(yoff + dy >= cellpxy){ // reached the next cell below
+    if(yoff + dy == endy){ // reached the next cell below
+//if(diff == 0x20)fprintf(stderr, "BOUNCING! 0x%x bs: %d %d > %d\n", diff, bitselector, yoff + dy, cellpxy);
       break;
     }
 //fprintf(stderr, " writing to auxrow %d (%d)\n", yoff + dy, bitselector);
-    const int idx = ((yoff + dy) * cellpxx + xoff) * AUXVECELEMSIZE;
-//fprintf(stderr, " xoff: %d yoff: %d dy: %d idx: %d\n", xoff, yoff, dy, idx);
+    const int idx = (((yoff + dy) % cellpxy) * cellpxx + xoff) * AUXVECELEMSIZE;
+//fprintf(stderr, " xoff: %d yoff: %d dy: %d ydy: %d idx: %d\n", xoff, yoff, dy, yoff + dy, idx);
     for(int i = 0 ; i < len ; ++i){
       memcpy(&auxvec[idx + i * AUXVECELEMSIZE], &color, AUXVECELEMSIZE);
     }
@@ -534,7 +538,7 @@ write_auxvec(uint8_t* auxvec, uint16_t color, int y, int x, int len,
 // auxvec. mask is the allowable sixel, y-wise. returns a positive number if
 // pixels were wiped.
 static inline int
-wipe_color(sixelband* b, int color, int y, int startx, int endx,
+wipe_color(sixelband* b, int color, int y, int endy, int startx, int endx,
            char mask, int dimx, uint8_t* auxvec,
            int cellpxy, int cellpxx){
   const char* vec = b->vecs[color];
@@ -587,14 +591,12 @@ wipe_color(sixelband* b, int color, int y, int startx, int endx,
           // FIXME this might equal the prev/next rep, and we ought combine
 //fprintf(stderr, "************************* %d %d %d\n", endx - x, x, rle);
           write_rle(newvec, &voff, endx - x, masked);
-          write_auxvec(auxvec, color, y, x, endx - x,
-                       rep - 63, masked - 63, cellpxy, cellpxx);
+          write_auxvec(auxvec, color, endy, y, x, endx - x, rep, masked, cellpxy, cellpxx);
           rle -= endx - x;
           x = endx;
         }else{
           write_rle(newvec, &voff, rle, masked);
-          write_auxvec(auxvec, color, y, x, rle,
-                       rep - 63, masked - 63, cellpxy, cellpxx);
+          write_auxvec(auxvec, color, endy, y, x, rle, rep, masked, cellpxy, cellpxx);
           x += rle;
           rle = 0;
         }
@@ -645,11 +647,25 @@ wipe_band(sixelmap* smap, int band, int startx, int endx,
   sixelband* b = &smap->bands[band];
   // offset into map->data where our color starts
   for(int i = 0 ; i < b->size ; ++i){
-    wiped += wipe_color(b, i, band * 6, startx, endx, mask,
+    wiped += wipe_color(b, i, band * 6, endy, startx, endx, mask,
                         dimx, auxvec, cellpxy, cellpxx);
   }
   return wiped;
 }
+
+/*
+static void
+debug_wiped_cell(const uint8_t* auxvec, int tp, int x){
+  for(int y = 0 ; y < tp / x ; ++y){
+    for(int x0 = 0 ; x0 < x ; ++x0){
+      uint16_t color;
+      memcpy(&color, &auxvec[(x0 + y * x) * 2], 2);
+      fprintf(stderr, "%03d ", color);
+    }
+    fprintf(stderr, "\n");
+  }
+}
+*/
 
 // we return -1 because we're not doing a proper wipe -- that's not possible
 // using sixel. we just mark it as partially transparent, so that if it's
@@ -685,6 +701,7 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(w){
     s->wipes_outstanding = true;
   }
+  //debug_wiped_cell(auxvec, cellpxy * cellpxx, cellpxx);
   change_p2(s->glyph.buf, SIXEL_P2_TRANS);
   assert(NULL == s->n->tam[s->dimx * ycell + xcell].auxvector);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
