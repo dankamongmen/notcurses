@@ -13,34 +13,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from time import sleep
 
+from time import sleep
 from notcurses import Notcurses
 
 nc = Notcurses()
+plane = nc.stdplane()
 
-stdplane = nc.stdplane()
-
-red = 0x80
-green = 0x80
-blue = 0x80
-
-y_dimension, x_dimension = stdplane.dim_yx()
-
+y_dimension, x_dimension = plane.dim_yx()
 for y in range(y_dimension):
     for x in range(x_dimension):
-        stdplane.set_fg_rgb8(red, green, blue)
-        stdplane.set_bg_rgb8(blue, red, green)
-        stdplane.putstr_yx(y, x, 'X')
-        blue += 2
-        if blue == 256:
-            blue = 0
-            green += 2
-            if green == 256:
-                green = 0
-                red = (red + 2) % 256
-
+        y_frac = round(y / y_dimension * 256)
+        x_frac = round(x / x_dimension * 256)
+        plane.set_fg_rgb8(128, y_frac, x_frac)
+        plane.set_bg_rgb8(x_frac, 128, y_frac)
+        plane.putstr_yx(y, x, 'X')
 
 nc.render()
-
 sleep(5)
+
