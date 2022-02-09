@@ -202,10 +202,11 @@ build_NcInput(uint32_t const id, ncinput const *const ni)
     else
     {
         PyObject *input = GNU_PY_CHECK(PyStructSequence_New(NcInput_Type));
+        PyObject *utf8 = GNU_PY_CHECK(PyUnicode_FromStringAndSize(ni->utf8, (Py_ssize_t)strlen(ni->utf8)));
         PyStructSequence_SET_ITEM(input, 0, PyLong_FromLong(ni->id));
         PyStructSequence_SET_ITEM(input, 1, PyLong_FromLong(ni->y));
         PyStructSequence_SET_ITEM(input, 2, PyLong_FromLong(ni->x));
-        PyStructSequence_SET_ITEM(input, 3, PyUnicode_FromStringAndSize(ni->utf8, 1));
+        PyStructSequence_SET_ITEM(input, 3, utf8);
         PyStructSequence_SET_ITEM(input, 4, PyLong_FromLong(ni->evtype));
         PyStructSequence_SET_ITEM(input, 5, PyLong_FromLong(ni->modifiers));
         PyStructSequence_SET_ITEM(input, 6, PyLong_FromLong(ni->ypx));
