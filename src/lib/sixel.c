@@ -131,6 +131,9 @@ typedef struct sixel_engine {
 // a reference will be stored in |qs|->refcount.
 static void
 enqueue_to_workers(sixel_engine* eng, qstate* qs){
+  if(eng == NULL){
+    return;
+  }
   int usecount = 0;
   pthread_mutex_lock(&eng->lock);
   for(int i = 0 ; i < POPULATION ; ++i){
@@ -154,6 +157,9 @@ enqueue_to_workers(sixel_engine* eng, qstate* qs){
 // block until all workers have finished up with |qs|
 static void
 block_on_workers(sixel_engine* eng, qstate* qs){
+  if(eng == NULL){
+    return;
+  }
   pthread_mutex_lock(&eng->lock);
   while(qs->refcount){
     pthread_cond_wait(&eng->cond, &eng->lock);
@@ -1426,7 +1432,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   qs->smap = smap;
   qs->leny = leny;
   qs->lenx = lenx;
-  if(extract_color_table(ncplane_notcurses(n)->tcache.sixelengine, qs)){
+  sixel_engine* sengine = ncplane_pile(n) ? ncplane_notcurses(n)->tcache.sixelengine : NULL;
+  if(extract_color_table(sengine, qs)){
     free(bargs->u.pixel.spx->needs_refresh);
     bargs->u.pixel.spx->needs_refresh = NULL;
     sixelmap_free(smap);
