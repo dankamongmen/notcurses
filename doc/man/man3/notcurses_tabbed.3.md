@@ -1,5 +1,5 @@
 % notcurses_tabbed(3)
-% v3.0.5
+% v3.0.6
 
 # NAME
 

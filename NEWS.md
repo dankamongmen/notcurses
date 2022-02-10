@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.6 (not yet released)
+* 3.0.6 (2022-02-09)
   * `ncplane_set_[fb]channel()`, `ncplane_[fb]channel()`,
     `ncplane_channels()`, `ncplane_set_channels()`,
     `ncchannels_set_[fb]channel()`, and `ncchannels_[fb]channel()` now
