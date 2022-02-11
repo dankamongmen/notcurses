@@ -1889,15 +1889,17 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // move to the next line. otherwise, simply fill any spaces we can. this has
   // already taken place by the time we get here, if it ought have happened.
   if(*egc == '\t'){
-    if(n->x >= n->lenx){
+    cols = TABSTOP - (n->x % TABSTOP);
+    if(n->x + 1 >= n->lenx){
       if(!n->scrolling && n->autogrow){
-        // FIXME might need autogrow to the next tab stop out
+        ncplane_resize_simple(n, n->leny, n->lenx + (cols ? cols - 1 : TABSTOP - 1));
+        // must refresh targ; resize invalidated it
+        targ = ncplane_cell_ref_yx(n, n->y, n->x);
       }
     }
     if(cell_load_direct(n, targ, " ", bytes, 1) < 0){
       return -1;
     }
-    cols = TABSTOP - (n->x % TABSTOP);
   }else{
     if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
       return -1;
