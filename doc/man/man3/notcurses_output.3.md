@@ -100,8 +100,12 @@ breaks. For more information, consult [Unicode® Standard Annex #29](https://uni
 Functions accepting a set of EGCs must consist of a series of well-formed EGCs,
 broken by cluster breaks, terminated by the appropriate NUL terminator.
 
-Control characters are rejected, except for a newline when the output plane
-is in scrolling mode. A newline outside of scrolling mode will be rejected.
+Control characters are rejected, aside from two exceptions: a horizontal tab
+(**'\t'**, 0x09), and a newline (**'\n'**, 0x0a) *when the output plane
+is in scrolling mode*. A newline outside of scrolling mode will be rejected.
+A tab will advance to the next tab stop, filling the space between with spaces.
+Tab stops are separated by eight columns, and the first character of each line
+is a tab stop.
 
 These functions output to the **ncplane**'s current cursor location. Aside from
 **ncplane_puttext()**, they *do not* move to the next line upon reaching the
