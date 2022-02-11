@@ -1894,7 +1894,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
         // FIXME might need autogrow to the next tab stop out
       }
     }
-    if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
+    if(cell_load_direct(n, targ, " ", bytes, cols) < 0){
       return -1;
     }
     cols = (n->x + TABSTOP) / TABSTOP * TABSTOP;

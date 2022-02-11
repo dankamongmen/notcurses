@@ -21,11 +21,15 @@ TEST_CASE("TaBs") { // refreshing and delicious
     ncplane_cursor_yx(n, &y, &x);
     CHECK(y == 0);
     CHECK(x == TABWIDTH);
-    for(unsigned i = 0 ; i < x ; ++i){
-      char* c = ncplane_at_yx(n, 0, i, nullptr, nullptr);
-      REQUIRE(c);
-      CHECK(0 == strcmp(c, " "));
-      free(c);
+    char* c = ncplane_at_yx(n, 0, 0, nullptr, nullptr);
+    REQUIRE(c);
+    CHECK(0 == strcmp(c, " "));
+    free(c);
+    for(unsigned i = 1 ; i < x ; ++i){
+      nccell nc;
+      CHECK(1 == ncplane_at_yx_cell(n, 0, i, &nc));
+      CHECK(nccell_wide_right_p(&nc));
+      nccell_release(n, &nc);
     }
   }
 
