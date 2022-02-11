@@ -124,6 +124,30 @@ TEST_CASE("TaBs") { // refreshing and delicious
     }
   }
 
+  SUBCASE("GrowWithTaBs") {
+    struct ncplane_options nopts{};
+    nopts.rows = 2;
+    nopts.cols = TABWIDTH;
+    nopts.flags = NCPLANE_OPTION_AUTOGROW;
+    auto n = ncplane_create(n_, &nopts);
+    unsigned y, x;
+    CHECK(16 == ncplane_putstr(n, "\t\t"));
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(y == 0);
+    CHECK(x == 16);
+    CHECK(16 == ncplane_dim_x(n));
+    CHECK(8 == ncplane_putstr(n, "\t"));
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(x == 24);
+    CHECK(24 == ncplane_dim_x(n));
+    for(unsigned i = 0 ; i < ncplane_dim_x(n) ; ++i){
+      char* c = ncplane_at_yx(n, 0, i, nullptr, nullptr);
+      REQUIRE(c);
+      CHECK(0 == strcmp(c, " "));
+      free(c);
+    }
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
