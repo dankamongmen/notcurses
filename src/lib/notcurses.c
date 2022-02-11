@@ -1894,10 +1894,10 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
         // FIXME might need autogrow to the next tab stop out
       }
     }
-    if(cell_load_direct(n, targ, " ", bytes, cols) < 0){
+    if(cell_load_direct(n, targ, " ", bytes, 1) < 0){
       return -1;
     }
-    cols = (n->x + TABSTOP) / TABSTOP * TABSTOP;
+    cols = TABSTOP - (n->x % TABSTOP);
   }else{
     if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
       return -1;
@@ -1914,9 +1914,15 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
       while(--off > 0){
         nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + off)]);
       }
-      candidate->channels = targ->channels;
-      candidate->stylemask = targ->stylemask;
-      candidate->width = targ->width;
+      if(*egc != '\t'){
+        candidate->channels = targ->channels;
+        candidate->stylemask = targ->stylemask;
+        candidate->width = targ->width;
+      }else{
+        if(cell_load_direct(n, candidate, " ", bytes, 1) < 0){
+          return -1;
+        }
+      }
       ++n->x;
     }
   }
