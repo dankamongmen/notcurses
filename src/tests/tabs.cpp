@@ -9,7 +9,6 @@ TEST_CASE("TaBs") { // refreshing and delicious
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
-  // FIXME these ought all use a specific plane to avoid requirements on the stdplane
   SUBCASE("PutcTaB") {
     struct ncplane_options nopts{};
     nopts.rows = 2;
