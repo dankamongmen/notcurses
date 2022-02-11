@@ -598,14 +598,16 @@ int ncmenu_nextitem(ncmenu* n){
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
   int origselected = sec->itemselected;
-  do{
-    if((unsigned)++sec->itemselected == sec->itemcount){
-      sec->itemselected = 0;
-    }
-    if(sec->itemselected == origselected){
-      break;
-    }
-  }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
+  if(origselected >= 0){
+    do{
+      if((unsigned)++sec->itemselected == sec->itemcount){
+        sec->itemselected = 0;
+      }
+      if(sec->itemselected == origselected){
+        break;
+      }
+    }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
+  }
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
@@ -617,14 +619,16 @@ int ncmenu_previtem(ncmenu* n){
   }
   ncmenu_int_section* sec = &n->sections[n->unrolledsection];
   int origselected = sec->itemselected;
-  do{
-    if(sec->itemselected-- == 0){
-      sec->itemselected = sec->itemcount - 1;
-    }
-    if(sec->itemselected == origselected){
-      break;
-    }
-  }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
+  if(origselected >= 0){
+    do{
+      if(sec->itemselected-- == 0){
+        sec->itemselected = sec->itemcount - 1;
+      }
+      if(sec->itemselected == origselected){
+        break;
+      }
+    }while(!sec->items[sec->itemselected].desc || sec->items[sec->itemselected].disabled);
+  }
   return ncmenu_unroll(n, n->unrolledsection);
 }
 
