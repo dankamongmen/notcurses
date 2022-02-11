@@ -19,6 +19,7 @@
 #include "banner.h"
 
 #define ESC "\x1b"
+#define TABSTOP 8
 
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
   *major = NOTCURSES_VERNUM_MAJOR;
@@ -1858,8 +1859,6 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
   if(*egc == '\n'){
     scroll_down(n);
-  }else if(*egc == '\t'){
-    // FIXME do what, exactly?
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one cell of a wide character
@@ -1884,13 +1883,30 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
   targ->stylemask = stylemask;
   targ->channels = channels;
-  if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
-    return -1;
+  // tabs get replaced with spaces, up to the next tab stop. we always try to
+  // write at least one. if there are no more tabstops on the current line, if
+  // autogrowing to the right, extend as necessary. otherwise, if scrolling,
+  // move to the next line. otherwise, simply fill any spaces we can. this has
+  // already taken place by the time we get here, if it ought have happened.
+  if(*egc == '\t'){
+    if(n->x >= n->lenx){
+      if(!n->scrolling && n->autogrow){
+        // FIXME might need autogrow to the next tab stop out
+      }
+    }
+    if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
+      return -1;
+    }
+    cols = (n->x + TABSTOP) / TABSTOP * TABSTOP;
+  }else{
+    if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
+      return -1;
+    }
   }
 //fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, nccell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
-  // must set our right hand sides wide, and check for further damage
   if(*egc != '\n'){
     ++n->x;
+    // if wide, set our right hand columns wide, and check for further damage
     for(int i = 1 ; i < cols ; ++i){
       nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
       int off = nccell_cols(candidate);

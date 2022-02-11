@@ -2165,8 +2165,9 @@ ncplane_putc(struct ncplane* n, const nccell* c){
 }
 
 // Replace the cell at the specified coordinates with the provided 7-bit char
-// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
-// This works whether the underlying char is signed or unsigned.
+// 'c'. Advance the cursor by 1. On success, returns the number of columns the
+// cursor was advanced. On failure, returns -1. This works whether the
+// underlying char is signed or unsigned.
 static inline int
 ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
   nccell ce = NCCELL_INITIALIZER((uint32_t)c, ncplane_styles(n), ncplane_channels(n));
