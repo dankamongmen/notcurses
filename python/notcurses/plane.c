@@ -1802,7 +1802,7 @@ static PyMethodDef NcPlane_methods[] = {
 
     {"cells_load_box", (void *)NcPlane_cells_load_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Load up six cells with the EGCs necessary to draw a box.")},
     {"cells_rounded_box", (void *)NcPlane_cells_rounded_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Load up six cells with the EGCs necessary to draw a round box.")},
-    {"perimeter_rounded", (void *)NcPlane_perimeter_rounded, METH_VARARGS, PyDoc_STR("Draw a perimeter around plane.")},
+    {"perimeter_rounded", (void *)NcPlane_perimeter_rounded, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a perimeter around plane.")},
 
     {"rounded_box_sized", (void *)NcPlane_rounded_box_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a round box around plane.")},
     {"cells_double_box", (void *)NcPlane_cells_double_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a double box with cells.")},
