@@ -727,6 +727,7 @@ typedef struct nccell {
 // protect against such misuse here. problems *will* ensue. similarly, do not
 // set channel flags other than colors/alpha. we assign non-printing glyphs
 // a width of 1 to match utf8_egc_len()'s behavior for whitespace/NUL.
+// FIXME can we enforce this with static_assert?
 #define NCCELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0,\
   .width = (uint8_t)((wcwidth(c) < 0 || !c) ? 1 : wcwidth(c)), .stylemask = (s), .channels = (chan), }
 // python fails on #define CELL_CHAR_INITIALIZER(c) CELL_INITIALIZER(c, 0, 0)
