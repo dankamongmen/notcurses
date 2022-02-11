@@ -359,7 +359,7 @@ TEST_CASE("Cell") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     CHECK(-1 == nccell_load_char(n_, &c, '\f'));
     CHECK(-1 == nccell_load_char(n_, &c, '\v'));
-    CHECK(-1 == nccell_load_char(n_, &c, '\t'));
+    CHECK(1 == nccell_load_char(n_, &c, '\t'));
     CHECK(1 == nccell_load_char(n_, &c, '\n'));
     CHECK(1 == nccell_load_char(n_, &c, ' '));
   }
