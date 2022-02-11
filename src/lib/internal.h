@@ -1452,9 +1452,9 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
   if(bytes < 0 || cols < 0){
     return -1;
   }
-  // we allow newlines to be blitted into the pool, as they're picked up and
-  // given special semantics by paint() and rasterization.
-  if(*gcluster != '\n' && is_control_egc((const unsigned char*)gcluster, bytes)){
+  // we allow newlines and tabs to be blitted into the pool, as they're picked
+  // up and given special semantics by output, paint(), and rasterization.
+  if(is_control_egc((const unsigned char*)gcluster, bytes) && *gcluster != '\n' && *gcluster != '\t'){
     logerror("not loading control character %u", *(const unsigned char*)gcluster);
     return -1;
   }
