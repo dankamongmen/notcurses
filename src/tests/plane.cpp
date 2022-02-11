@@ -1031,14 +1031,17 @@ TEST_CASE("Plane") {
     ncplane_destroy(n1);
   }
 
-  // you ought not be able to output control characters
+  // you ought not be able to output control characters, aside from tab, and
+  // newlines (when we're scrolling).
   SUBCASE("DenyControlASCII") {
     signed char c = 0;
     c = -1;
     do{
       ++c;
       if(c && !isprint(c)){
-        CHECK(0 > ncplane_putchar_yx(n_, 0, 0, c));
+        if(c != '\t'){
+          CHECK(0 > ncplane_putchar_yx(n_, 0, 0, c));
+        }
       }else{
         CHECK(1 == ncplane_putchar_yx(n_, 0, 0, c));
       }
