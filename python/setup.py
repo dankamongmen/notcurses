@@ -46,6 +46,7 @@ setup(
             sources=[
                 'notcurses/channels.c',
                 'notcurses/context.c',
+                'notcurses/functions.c',
                 'notcurses/main.c',
                 'notcurses/misc.c',
                 'notcurses/plane.c',
