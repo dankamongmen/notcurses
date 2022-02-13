@@ -22,7 +22,17 @@ TEST_CASE("Sixels") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
-  // this can only run with a Sixel backend
+  // exercise ncvisual_from_sixel()
+  SUBCASE("LoadSixel") {
+    auto ncv = ncvisual_from_sixel("\x1bP0;1;0q\"1;1;1;6#0;2;66;18;80#0@-\x1b\\", 1, 1);
+    REQUIRE(ncv);
+    uint32_t p;
+    ncvisual_at_yx(ncv, 0, 0, &p);
+    CHECK(0xffcc2da8 == p);
+    ncvisual_destroy(ncv);
+  }
+
+  // remaining tests can only run with a Sixel backend
   if(notcurses_check_pixel_support(nc_) <= 0){
     CHECK(0 == notcurses_stop(nc_));
     return;
