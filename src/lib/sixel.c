@@ -1434,7 +1434,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   scrub_color_table(bargs->u.pixel.spx);
   // we haven't actually emitted the body of the sixel yet. instead, we'll emit
-  // it at sixel_redraw(), thus avoided a double emission in the case of wipes
+  // it at sixel_redraw(), thus avoiding a double emission in the case of wipes
   // taking place before it's visible.
   bargs->u.pixel.spx->wipes_outstanding = 1;
   return r;
