@@ -943,7 +943,9 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
   return bytesemitted;
 }
 
-// scroll the lastframe data |rows| up, to reflect scrolling reality
+// scroll the lastframe data |rows| up, to reflect scrolling reality.
+// FIXME we could virtualize this as we do for scrolling planes; this
+// method involves a lot of unnecessary copying.
 static void
 scroll_lastframe(notcurses* nc, unsigned rows){
   // the top |rows| rows need be released (though not more than the actual
