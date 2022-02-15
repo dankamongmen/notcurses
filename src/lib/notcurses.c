@@ -1738,9 +1738,7 @@ void scroll_down(ncplane* n){
     // if this is the standard plane, that means a "physical" scroll event is
     // called for.
     if(n == notcurses_stdplane(ncplane_notcurses(n))){
-      // FIXME likely isn't necessary anymore?
       ncplane_pile(n)->scrolls++;
-      notcurses_render(ncplane_notcurses(n));
     }
     n->logrow = (n->logrow + 1) % n->leny;
     nccell* row = n->fb + nfbcellidx(n, n->y, 0);
@@ -1849,9 +1847,11 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
       linesend = true;
     }
   }
+  bool scrolled = false;
   if(linesend){
     if(n->scrolling){
       scroll_down(n);
+      scrolled = true;
     }else if(n->autogrow){
       ncplane_resize_simple(n, n->leny, n->lenx + cols);
     }else{
@@ -1865,6 +1865,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
   if(*egc == '\n'){
     scroll_down(n);
+    scrolled = true;
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one cell of a wide character
@@ -1932,6 +1933,11 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
         }
       }
       ++n->x;
+    }
+  }
+  if(scrolled){
+    if(n == notcurses_stdplane(ncplane_notcurses(n))){
+      notcurses_render(ncplane_notcurses(n));
     }
   }
   return cols;
