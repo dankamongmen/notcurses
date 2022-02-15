@@ -1728,13 +1728,19 @@ void scroll_down(ncplane* n){
 //fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d scrolling: %u\n", n->y, n->x, n->leny, n->lenx, n->logrow, n->scrolling);
   n->x = 0;
   if(n->y == n->leny - 1){
+    // we're on the last line of the plane
     if(n->autogrow){
       ncplane_resize_simple(n, n->leny + 1, n->lenx);
       ncplane_cursor_move_yx(n, n->leny - 1, 0);
       return;
     }
+    // we'll actually be scrolling material up and out, and making a new line.
+    // if this is the standard plane, that means a "physical" scroll event is
+    // called for.
     if(n == notcurses_stdplane(ncplane_notcurses(n))){
+      // FIXME likely isn't necessary anymore?
       ncplane_pile(n)->scrolls++;
+      notcurses_render(ncplane_notcurses(n));
     }
     n->logrow = (n->logrow + 1) % n->leny;
     nccell* row = n->fb + nfbcellidx(n, n->y, 0);
