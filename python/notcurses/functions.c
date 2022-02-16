@@ -4,17 +4,16 @@
 #include "notcurses-python.h"
 
 // TODO: function to construct channels: channel(None | pindex | color, alpha=0)
-// TODO: split channels into two args
 // TODO: perimeter version
 // TODO: rationalize coordinate / size args
-// TODO: provide a way to set channels for each corne
+// TODO: provide a way to set channels for each corner
 // TODO: docstring
-// TODO: test
+// TODO: unit test
 
 static PyObject*
 pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   static char* keywords[] = {
-    "plane", "ystop", "xstop", "y", "x", "box_chars", "styles", "channels",
+    "plane", "ystop", "xstop", "y", "x", "box_chars", "styles", "fg", "bg",
     "ctlword", NULL
   };
   NcPlaneObject* plane_arg;
@@ -24,19 +23,20 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   int x = -1;
   const char* box_chars = NCBOXASCII;
   uint16_t styles = 0;
-  uint64_t channels = 0;
+  uint32_t fg = 0;
+  uint32_t bg = 0;
   unsigned ctlword = 0;
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "O!II|iis$HKI:box", keywords,
+        args, kwargs, "O!II|iis$HIII:box", keywords,
         &NcPlane_Type, &plane_arg,
-        &ystop, &xstop, &y, &x, &box_chars, &styles, &channels, &ctlword))
+        &ystop, &xstop, &y, &x, &box_chars, &styles, &fg, &bg, &ctlword))
     return NULL;
+
+  struct ncplane* const plane = plane_arg->ncplane_ptr;
 
   if (!notcurses_canutf8(ncplane_notcurses(plane)))
     // No UTF-8 support; force ASCII.
     box_chars = NCBOXASCII;
-
-  struct ncplane* const plane = plane_arg->ncplane_ptr;
 
   int ret;
   nccell ul = NCCELL_TRIVIAL_INITIALIZER;
@@ -45,6 +45,7 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   nccell lr = NCCELL_TRIVIAL_INITIALIZER;
   nccell hl = NCCELL_TRIVIAL_INITIALIZER;
   nccell vl = NCCELL_TRIVIAL_INITIALIZER;
+  uint64_t channels = (uint64_t) fg << 32 | bg;
   ret = nccells_load_box(
     plane, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl, box_chars);
   if (ret == -1) {
