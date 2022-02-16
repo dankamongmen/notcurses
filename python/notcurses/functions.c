@@ -3,12 +3,43 @@
 
 #include "notcurses-python.h"
 
-// TODO: function to construct channels: channel(None | pindex | color, alpha=0)
-// TODO: perimeter version
+// TODO: alpha flags on channels
+// TODO: indexed color channels
+// TODO: perimeter function
 // TODO: rationalize coordinate / size args
 // TODO: provide a way to set channels for each corner
-// TODO: docstring
-// TODO: unit test
+// TODO: docstrings
+// TODO: unit tests
+
+/*
+ * Converts borrowed `obj` to a channel value in `channel`.  Returns 1 on
+ * success.
+ */
+static int
+to_channel(PyObject* obj, uint32_t* channel) {
+  // None → default color.
+  if (obj == Py_None) {
+    *channel = 0;
+    return 1;
+  }
+
+  // A single long → channel value.
+  long long const value = PyLong_AsLongLong(obj);
+  if (PyErr_Occurred())
+    PyErr_Clear();
+    // And fall through.
+  else if (value & ~0xffffffffll) {
+    PyErr_Format(PyExc_ValueError, "invalid channel: %lld", value);
+    return 0;
+  }
+  else {
+    *channel = (uint32_t) value;
+    return 1;
+  }
+
+  PyErr_Format(PyExc_TypeError, "not a channel: %R", obj);
+  return 0;
+}
 
 static PyObject*
 pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
@@ -23,14 +54,23 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   int x = -1;
   const char* box_chars = NCBOXASCII;
   uint16_t styles = 0;
-  uint32_t fg = 0;
-  uint32_t bg = 0;
+  PyObject* fg_arg = 0;
+  PyObject* bg_arg = 0;
   unsigned ctlword = 0;
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "O!II|iis$HIII:box", keywords,
+        args, kwargs, "O!II|iis$HOOI:box", keywords,
         &NcPlane_Type, &plane_arg,
-        &ystop, &xstop, &y, &x, &box_chars, &styles, &fg, &bg, &ctlword))
+        &ystop, &xstop, &y, &x, &box_chars,
+        &styles, &fg_arg, &bg_arg, &ctlword))
     return NULL;
+
+  uint32_t fg;
+  if (!to_channel(fg_arg, &fg))
+    return NULL;
+  uint32_t bg;
+  if (!to_channel(bg_arg, &bg))
+    return NULL;
+  uint64_t const channels = (uint64_t) fg << 32 | bg;
 
   struct ncplane* const plane = plane_arg->ncplane_ptr;
 
@@ -45,7 +85,6 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   nccell lr = NCCELL_TRIVIAL_INITIALIZER;
   nccell hl = NCCELL_TRIVIAL_INITIALIZER;
   nccell vl = NCCELL_TRIVIAL_INITIALIZER;
-  uint64_t channels = (uint64_t) fg << 32 | bg;
   ret = nccells_load_box(
     plane, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl, box_chars);
   if (ret == -1) {
@@ -56,7 +95,8 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   if (y != 1 || x != -1) {
     ret = ncplane_cursor_move_yx(plane, y, x);
     if (ret < 0) {
-      PyErr_Format(PyExc_RuntimeError, "ncplane_cursor_move_yx returned %i", ret);
+      PyErr_Format(
+        PyExc_RuntimeError, "ncplane_cursor_move_yx returned %i", ret);
       goto done;
     }
   }
@@ -79,12 +119,35 @@ done:
     Py_RETURN_NONE;
 }
 
+static PyObject*
+pync_meth_rgb(PyObject* Py_UNUSED(self), PyObject* args) {
+  int r;
+  int g;
+  int b;
+  if (!PyArg_ParseTuple(args, "iii", &r, &g, &b))
+    return NULL;
+
+  if ((r & ~0xff) == 0 && (g & ~0xff) == 0 && (b & ~0xff) == 0)
+    return PyLong_FromLong(
+      0x40000000u | (uint32_t) r << 16 | (uint32_t) g <<  8 | (uint32_t) b);
+  else {
+    PyErr_Format(PyExc_ValueError, "invalid rgb: (%d, %d, %d)", r, g, b);
+    return NULL;
+  }
+}
+
 struct PyMethodDef pync_methods[] = {
     {
-        "box",
-        (void*) pync_meth_box,
-        METH_VARARGS | METH_KEYWORDS,
-        "FIXME: Docs."
+      "box",
+      (void*) pync_meth_box,
+      METH_VARARGS | METH_KEYWORDS,
+      "FIXME: Docs."
+    },
+    {
+      "rgb",
+      (void*) pync_meth_rgb,
+      METH_VARARGS,
+      "FIXME: Docs."
     },
     {NULL, NULL, 0, NULL}
 };
