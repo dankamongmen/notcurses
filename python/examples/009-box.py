@@ -14,10 +14,10 @@ BOX_CHARS = (
 )
 
 COLORS = (
-    (0x00000000, 0x00000000),
-    (0x00000000, 0x40808080),   # default on grey
-    (0x40ff0000, 0x00000000),   # red on default
-    (0x4000ff00, 0x400000ff),   # green on blue
+    (None, None),
+    (None, nc.rgb(128, 128, 128)),          # default on grey
+    (nc.rgb(255, 0, 0), None),              # red on default
+    (nc.rgb(0, 255, 0), nc.rgb(0, 0, 255)), # green on blue
 )
 
 SY = 7
