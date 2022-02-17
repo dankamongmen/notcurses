@@ -142,9 +142,9 @@ enqueue_to_workers(sixel_engine* eng, qstate* qs){
       wq->qstates[wq->writeto] = qs;
       ++wq->used;
       ++usecount;
-    }
-    if(++wq->writeto == WORKERDEPTH){
-      wq->writeto = 0;
+      if(++wq->writeto == WORKERDEPTH){
+        wq->writeto = 0;
+      }
     }
   }
   qs->refcount = usecount;
