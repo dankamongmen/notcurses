@@ -1770,6 +1770,9 @@ int ncplane_scrollup(ncplane* n, int r){
   while(r-- > 0){
     scroll_down(n);
   }
+  if(n == notcurses_stdplane(ncplane_notcurses(n))){
+    notcurses_render(ncplane_notcurses(n));
+  }
   return 0;
 }
 
@@ -1787,6 +1790,7 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
   }
   int parend = ncplane_abs_y(n) + ncplane_dim_y(n) - 1; // where parent ends
   int chend = ncplane_abs_y(child) + ncplane_dim_y(child) - 1; // where child ends
+fprintf(stderr, "chend: %d parend: %d\n", chend, parend);
   if(chend <= parend){
     return 0;
   }
