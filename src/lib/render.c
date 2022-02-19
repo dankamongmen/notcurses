@@ -1278,11 +1278,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, f);
-  if(rasterize_scrolls(p, f)){
-    return -1;
-  }
   int scrolls = p->scrolls;
-  p->scrolls = 0;
   logdebug("sprixel phase 1");
   int64_t sprixelbytes = clean_sprixels(nc, p, f, scrolls);
   if(sprixelbytes < 0){
@@ -1302,6 +1298,10 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
     nc->stats.s.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->stats.lock);
   logdebug("glyph phase 2");
+  if(rasterize_scrolls(p, f)){
+    return -1;
+  }
+  p->scrolls = 0;
   if(rasterize_core(nc, p, f, 1)){
     return -1;
   }
