@@ -1790,7 +1790,6 @@ int ncplane_scrollup_child(ncplane* n, const ncplane* child){
   }
   int parend = ncplane_abs_y(n) + ncplane_dim_y(n) - 1; // where parent ends
   int chend = ncplane_abs_y(child) + ncplane_dim_y(child) - 1; // where child ends
-fprintf(stderr, "chend: %d parend: %d\n", chend, parend);
   if(chend <= parend){
     return 0;
   }
