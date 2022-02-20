@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.7 (not yet released)
+* 3.0.7 (2022-02-20)
   * Tab characters may now be used with `ncplane_put*()`. See
      `ncplane_output.3` for more information.
 
