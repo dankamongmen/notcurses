@@ -28,7 +28,10 @@ TEST_CASE("Sixels") {
     REQUIRE(ncv);
     uint32_t p;
     ncvisual_at_yx(ncv, 0, 0, &p);
-    CHECK(0xffcc2da8 == p);
+    CHECK(0xff == ncpixel_a(p));
+    CHECK(0xa8 == ncpixel_r(p));
+    CHECK(0x2d == ncpixel_g(p));
+    CHECK(0xcc == ncpixel_b(p));
     ncvisual_destroy(ncv);
   }
 
