@@ -44,23 +44,21 @@ to_channel(PyObject* obj, uint32_t* channel) {
 static PyObject*
 pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
   static char* keywords[] = {
-    "plane", "ystop", "xstop", "y", "x", "box_chars", "styles", "fg", "bg",
+    "plane", "ystop", "xstop", "box_chars", "styles", "fg", "bg",
     "ctlword", NULL
   };
   NcPlaneObject* plane_arg;
   unsigned ystop;
   unsigned xstop;
-  int y = -1;
-  int x = -1;
   const char* box_chars = NCBOXASCII;
   uint16_t styles = 0;
   PyObject* fg_arg = 0;
   PyObject* bg_arg = 0;
   unsigned ctlword = 0;
   if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "O!II|iis$HOOI:box", keywords,
+        args, kwargs, "O!II|s$HOOI:box", keywords,
         &NcPlane_Type, &plane_arg,
-        &ystop, &xstop, &y, &x, &box_chars,
+        &ystop, &xstop, &box_chars,
         &styles, &fg_arg, &bg_arg, &ctlword))
     return NULL;
 
@@ -92,20 +90,10 @@ pync_meth_box(PyObject* Py_UNUSED(self), PyObject* args, PyObject* kwargs) {
     return NULL;
   }
 
-  if (y != 1 || x != -1) {
-    ret = ncplane_cursor_move_yx(plane, y, x);
-    if (ret < 0) {
-      PyErr_Format(
-        PyExc_RuntimeError, "ncplane_cursor_move_yx returned %i", ret);
-      goto done;
-    }
-  }
-
   ret = ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   if (ret < 0)
     PyErr_Format(PyExc_RuntimeError, "nplane_box returned %i", ret);
 
-done:
   nccell_release(plane, &ul);
   nccell_release(plane, &ur);
   nccell_release(plane, &ll);

@@ -25,8 +25,9 @@ SX = 10
 
 for y, (fg, bg) in enumerate(COLORS):
     for x, box_chars in enumerate(BOX_CHARS):
+        plane.cursor_move_yx(y * SY + 1, x * SX + 1);
         nc.box(
-            plane, (y + 1) * SY - 1, (x + 1) * SX - 1, y * SY + 1, x * SX + 1,
+            plane, (y + 1) * SY - 1, (x + 1) * SX - 1,
             box_chars,
             fg=fg, bg=bg,
             # ctlword=0x1f9
