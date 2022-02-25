@@ -1650,6 +1650,15 @@ NcPlane_pile_render_to_file(NcPlaneObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *
+NcPlane_scrollup(NcPlaneObject *self, PyObject *args)
+{
+    int r;
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &r));
+    CHECK_NOTCURSES(ncplane_scrollup(self->ncplane_ptr, r));
+    Py_RETURN_NONE;
+}
+
 /*
 static PyObject *
 NcPlane_(NcPlaneObject *self, PyObject *args)
@@ -1839,6 +1848,8 @@ static PyMethodDef NcPlane_methods[] = {
 
     {"pile_render_to_buffer", (PyCFunction)NcPlane_pile_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
     {"render_to_file", (PyCFunction)NcPlane_pile_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
+
+    {"scrollup", (PyCFunction)NcPlane_scrollup, METH_VARARGS, "Effect scroll events on the plane."},
 
     //  {"", (PyCFunction) NULL, METH_VARARGS, PyDoc_STR("")},
     {NULL, NULL, 0, NULL},
