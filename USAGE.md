@@ -1303,7 +1303,7 @@ ncplane_putc(struct ncplane* n, const nccell* c){
 // This works whether the underlying char is signed or unsigned.
 static inline int
 ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
-  nccell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
+  nccell ce = CELL_INITIALIZER(c, ncplane_styles(n), ncplane_channels(n));
   return ncplane_putc_yx(n, y, x, &ce);
 }
 
@@ -1808,7 +1808,7 @@ all implemented in terms of the lower-level [Channels API](#channels).
 uint64_t ncplane_channels(const struct ncplane* n);
 
 // Get the current styling for the ncplane 'n'.
-uint16_t ncplane_attr(const struct ncplane* n);
+uint16_t ncplane_styles(const struct ncplane* n);
 
 // Set the alpha and coloring bits of the plane's current channels from a
 // 64-bit pair of channels.
