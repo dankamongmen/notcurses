@@ -834,7 +834,11 @@ apply_msterminal_heuristics(tinfo* ti){
 }
 
 static const char*
-apply_contour_heuristics(tinfo* ti, bool* forcesdm, bool* invertsixel){
+apply_contour_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
+                         bool* forcesdm, bool* invertsixel){
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
   ti->caps.quadrants = true;
   ti->caps.sextants = true;
   ti->caps.rgb = true;
@@ -967,7 +971,8 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_msterminal_heuristics(ti);
       break;
     case TERMINAL_CONTOUR:
-      newname = apply_contour_heuristics(ti, forcesdm, invertsixel);
+      newname = apply_contour_heuristics(ti, tablelen, tableused,
+                                         forcesdm, invertsixel);
       break;
     case TERMINAL_ITERM:
       newname = apply_iterm_heuristics(ti, tablelen, tableused);
