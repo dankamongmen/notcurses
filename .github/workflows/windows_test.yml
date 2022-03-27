@@ -16,7 +16,7 @@ jobs:
       COLORTERM: truecolor
       TERM: xterm
     name: 🏁 build, test, & install
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
 
