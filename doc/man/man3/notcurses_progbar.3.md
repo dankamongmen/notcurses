@@ -16,8 +16,10 @@ struct ncprogbar;
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
 
 typedef struct ncprogbar_options {
-  uint64_t maxchannels;
-  uint64_t minchannels;
+  uint32_t ulchannel; // upper-left channel. in the context of a progress bar,
+  uint32_t urchannel; // "up" is the direction we are progressing towards, and
+  uint32_t blchannel; // "bottom" is the direction of origin. for monochromatic
+  uint32_t brchannel; // bar, all four channels ought be the same.
   uint64_t flags;
 } ncprogbar_options;
 ```
