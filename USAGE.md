@@ -2830,10 +2830,10 @@ struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* o
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
 
 typedef struct ncprogbar_options {
-  // channels for the maximum and minimum points. linear interpolation will be
-  // applied across the domain between these two.
-  uint64_t maxchannels;
-  uint64_t minchannels;
+  uint32_t ulchannel; // upper-left channel. in the context of a progress bar,
+  uint32_t urchannel; // "up" is the direction we are progressing towards, and
+  uint32_t blchannel; // "bottom" is the direction of origin. for monochromatic
+  uint32_t brchannel; // bar, all four channels ought be the same.
   uint64_t flags;
 } ncprogbar_options;
 
