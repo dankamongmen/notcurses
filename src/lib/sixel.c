@@ -477,16 +477,6 @@ sixelband_extend(char* vec, struct band_extender* bes, int dimx, int curx){
   return vec;
 }
 
-// get the index into the auxvec (2 bytes per pixel) given the true y/x pixel
-// coordinates, plus the origin+dimensions of the relevant cell.
-static inline int
-auxvec_idx(int y, int x, int cellpxy, int cellpxx){
-  const int xoff = x % cellpxx;
-  const int yoff = y % cellpxy;
-  const int off = yoff * cellpxx + xoff;
-  return AUXVECELEMSIZE * off;
-}
-
 // write to this cell's auxvec, backing up the pixels cleared by a wipe. wipes
 // are requested at cell granularity, broken down into sixelbands, broken down
 // by color, and then finally effected at the sixel RLE level. we're thus in
