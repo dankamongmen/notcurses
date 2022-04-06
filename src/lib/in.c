@@ -2159,9 +2159,9 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
 }
 
 // process as many control sequences from |buf|, having |bufused| bytes,
-// as we can. anything not a valid control sequence is dropped. this text
-// needn't be valid UTF-8. this is always called on tbuf; if we find bulk data
-// here, we need replay it into ibuf (assuming that there's room).
+// as we can. this text needn't be valid UTF-8. this is always called on
+// tbuf; if we find bulk data here, we need replay it into ibuf (assuming
+// that there's room).
 static void
 process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
@@ -2289,6 +2289,7 @@ process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
 static void
 process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
   int offset = 0;
+  int origlen = *bufused;
   while(*bufused){
     logdebug("input %d (%u)/%d [0x%02x] (%c)", offset, ictx->amata.used,
              *bufused, buf[offset], isprint(buf[offset]) ? buf[offset] : ' ');
@@ -2297,7 +2298,7 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
       consumed = process_escape(ictx, buf + offset, *bufused);
       if(consumed < 0){
         if(ictx->midescape){
-          if(*bufused != -consumed){
+          if(*bufused != -consumed || *bufused == origlen){
             // not at the end; treat it as input. no need to move between
             // buffers; simply ensure we process it as input, and don't mark
             // anything as consumed.
