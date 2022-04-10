@@ -76,6 +76,8 @@ on the scroll arrows will be handled.
 **ncmultiselector_destroy** destroys the backing **ncplane**, as does
 **ncmultiselector_create** in the event of any error.
 
+As no flags exist, the **flags** option ought always be 0.
+
 # RETURN VALUES
 
 **ncmultiselector_create** returns **NULL** on an error, in which case the

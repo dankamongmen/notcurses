@@ -3904,7 +3904,7 @@ typedef struct ncselector_options {
   uint64_t titlechannels;// title channels
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
-  uint64_t flags;        // bitfield of NCSELECTOR_OPTION_*
+  uint64_t flags;        // bitfield of NCSELECTOR_OPTION_*, currently unused
 } ncselector_options;
 
 API ALLOC struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts)
@@ -3983,7 +3983,7 @@ typedef struct ncmultiselector_options {
   uint64_t titlechannels;// title channels
   uint64_t footchannels; // secondary and footer channels
   uint64_t boxchannels;  // border channels
-  uint64_t flags;        // bitfield of NCMULTISELECTOR_OPTION_*
+  uint64_t flags;        // bitfield of NCMULTISELECTOR_OPTION_*, currently unused
 } ncmultiselector_options;
 
 API ALLOC struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts)

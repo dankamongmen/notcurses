@@ -89,6 +89,8 @@ on the scroll arrows will be handled.
 **ncselector_destroy** destroys the backing **ncplane**, as does
 **ncselector_create** in the event of any error.
 
+As no flags exist, the **flags** option ought always be 0.
+
 # RETURN VALUES
 
 **ncselector_create** returns **NULL** on an error, in which case the passed
