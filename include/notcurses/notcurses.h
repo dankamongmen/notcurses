@@ -759,7 +759,7 @@ nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
 
 // Duplicate 'c' into 'targ'; both must be/will be bound to 'n'. Returns -1 on
 // failure, and 0 on success.
-API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
+API int nccell_duplicate(const struct ncplane* n, nccell* targ, const nccell* c);
 
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
@@ -1876,7 +1876,7 @@ API int ncplane_set_base(struct ncplane* n, const char* egc,
 
 // Extract the ncplane's base nccell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
-API int ncplane_base(struct ncplane* n, nccell* c);
+API int ncplane_base(const struct ncplane* n, nccell* c);
 
 // Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
 // a root plane). To get absolute coordinates, use ncplane_abs_yx().
@@ -2009,13 +2009,13 @@ API int ncplane_rotate_ccw(struct ncplane* n)
 // Retrieve the current contents of the cell under the cursor. The EGC is
 // returned, or NULL on error. This EGC must be free()d by the caller. The
 // stylemask and channels are written to 'stylemask' and 'channels', respectively.
-API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels)
+API char* ncplane_at_cursor(const struct ncplane* n, uint16_t* stylemask, uint64_t* channels)
   __attribute__ ((nonnull (1)));
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed. Returns the number
 // of bytes in the EGC, or -1 on error.
-API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c)
+API int ncplane_at_cursor_cell(const struct ncplane* n, nccell* c)
   __attribute__ ((nonnull (1, 2)));
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
@@ -2036,7 +2036,7 @@ API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
 // the secondary columns of a wide glyph, the return can be distinguished from
 // the primary column (nccell_wide_right_p(c) will return true). It is an
 // error to call this on a sprixel plane (unlike ncplane_at_yx()).
-API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c)
+API int ncplane_at_yx_cell(const struct ncplane* n, int y, int x, nccell* c)
   __attribute__ ((nonnull (1, 4)));
 
 // Create a flat string from the EGCs of the selected region of the ncplane
@@ -2044,7 +2044,7 @@ API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c)
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as 0 to go through the boundary of the plane.
 // -1 can be specified for 'begx'/'begy' to use the current cursor location.
-API char* ncplane_contents(struct ncplane* n, int begy, int begx,
+API char* ncplane_contents(const struct ncplane* n, int begy, int begx,
                            unsigned leny, unsigned lenx)
   __attribute__ ((nonnull (1)));
 

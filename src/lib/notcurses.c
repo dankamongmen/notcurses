@@ -207,7 +207,7 @@ cursor_invalid_p(const ncplane* n){
   return false;
 }
 
-char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
+char* ncplane_at_cursor(const ncplane* n, uint16_t* stylemask, uint64_t* channels){
   return ncplane_at_yx(n, n->y, n->x, stylemask, channels);
 }
 
@@ -263,11 +263,11 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_
   return ret;
 }
 
-int ncplane_at_cursor_cell(ncplane* n, nccell* c){
+int ncplane_at_cursor_cell(const ncplane* n, nccell* c){
   return ncplane_at_yx_cell(n, n->y, n->x, c);
 }
 
-int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
+int ncplane_at_yx_cell(const ncplane* n, int y, int x, nccell* c){
   if(n->sprite){
     logerror("invoked on a sprixel plane");
     return -1;
@@ -1535,7 +1535,7 @@ int ncplane_set_base(ncplane* ncp, const char* egc, uint16_t stylemask, uint64_t
   return nccell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
-int ncplane_base(ncplane* ncp, nccell* c){
+int ncplane_base(const ncplane* ncp, nccell* c){
   return nccell_duplicate(ncp, c, &ncp->basecell);
 }
 
@@ -3196,7 +3196,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 }
 
 // return a heap-allocated copy of the contents
-char* ncplane_contents(ncplane* nc, int begy, int begx, unsigned leny, unsigned lenx){
+char* ncplane_contents(const ncplane* nc, int begy, int begx, unsigned leny, unsigned lenx){
   unsigned ystart, xstart;
   if(check_geometry_args(nc, begy, begx, &leny, &lenx, &ystart, &xstart)){
     return NULL;
