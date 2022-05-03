@@ -35,6 +35,8 @@ from .notcurses import (
     ncchannels_set_fg_rgb, ncchannels_set_fg_rgb8,
     ncchannels_set_fg_rgb8_clipped, ncstrwidth, notcurses_version,
     notcurses_version_components,
+    NCBOXASCII, NCBOXDOUBLE, NCBOXHEAVY, NCBOXLIGHT, NCBOXOUTER, NCBOXROUND,
+    box, rgb,
 )
 
 __all__ = (
@@ -61,4 +63,6 @@ __all__ = (
     'ncchannels_set_fg_rgb8_clipped',
 
     'ncstrwidth', 'notcurses_version', 'notcurses_version_components',
+
+    'box', 'rgb',
 )

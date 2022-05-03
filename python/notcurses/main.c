@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <Python.h>
+
 #include "notcurses-python.h"
 
 PyObject *traceback_format_exception = NULL;
@@ -27,12 +29,14 @@ Notcurses_module_free(PyObject *Py_UNUSED(self))
     Py_XDECREF(new_line_unicode);
 }
 
+extern PyMethodDef pync_methods[];
+
 static struct PyModuleDef NotcursesMiscModule = {
     PyModuleDef_HEAD_INIT,
     .m_name = "Notcurses",
     .m_doc = "Notcurses python module",
     .m_size = -1,
-    .m_methods = NULL,
+    .m_methods = pync_methods,
     .m_free = (freefunc)Notcurses_module_free,
 };
 
@@ -85,6 +89,14 @@ PyInit_notcurses(void)
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_TRANSPARENT));
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_BLEND));
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_OPAQUE));
+
+    // FIXME: Better, attributes of an object such as an enum.
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXASCII));
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXDOUBLE));
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXHEAVY));
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXLIGHT));
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXOUTER));
+    GNU_PY_CHECK_INT(PyModule_AddStringMacro(py_module, NCBOXROUND));
 
     // if this bit is set, we are *not* using the default background color
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BGDEFAULT_MASK));
