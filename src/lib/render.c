@@ -130,7 +130,7 @@ void nccell_release(ncplane* n, nccell* c){
 }
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
-int nccell_duplicate(const ncplane* n, nccell* targ, const nccell* c){
+int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
     logerror("failed duplicating cell");
     return -1;
