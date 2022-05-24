@@ -16,7 +16,7 @@ static void
 usage(const char* argv0, FILE* o){
   fprintf(o, "usage: %s [ -hVq ] files\n", argv0);
   fprintf(o, " -h: print help and return success\n");
-  fprintf(o, " -v: print version and return success\n");
+  fprintf(o, " -V: print version and return success\n");
   fprintf(o, " -q: don't wait for any input\n");
 }
 
