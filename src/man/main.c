@@ -613,6 +613,9 @@ manloop(struct notcurses* nc, const char* arg, unsigned noui){
         newy = ncplane_y(page) - (int)ncplane_dim_y(stdn) + 1;
         movedown = true;
         break;
+      case 'g': case NCKEY_HOME:
+        newy = 1;
+        break;
       }case 'q':
         ret = 0;
         goto done;

@@ -45,6 +45,7 @@ The following keypresses are recognized:
 * **j**/**down**: Move down by one line.
 * **f**/**pgdown**: Move down by one page.
 * **l**/**right**: Move down by one section.
+* **g**/**home**: Go to first line in file.
 * **s**: Toggle the structure browser's visibility.
 
 The mouse wheel can also be used to move up and down within the active browser.
