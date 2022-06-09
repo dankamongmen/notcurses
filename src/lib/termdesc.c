@@ -839,6 +839,9 @@ apply_contour_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
   if(add_smulx_escapes(ti, tablelen, tableused)){
     return NULL;
   }
+  if(add_pushcolors_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
   ti->caps.quadrants = true;
   ti->caps.sextants = true;
   ti->caps.rgb = true;
