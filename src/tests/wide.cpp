@@ -284,7 +284,7 @@ TEST_CASE("Wide") {
   }
 
   // If an ncplane is moved atop the right half of a wide glyph, the entire
-  // glyph should be oblitrated.
+  // glyph should be obliterated.
   SUBCASE("PlaneStompsWideGlyph"){
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     char* egc;

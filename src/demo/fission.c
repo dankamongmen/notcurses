@@ -13,7 +13,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
   // 5 * demodelay total
   ns_to_timespec(timespec_to_ns(&demodelay) / arrcount / 2, &iterdelay);
   // we've got a range of up to 10% total blocks falling at any given time. they
-  // accelerate as they fall. [ranges, reange) covers the active range.
+  // accelerate as they fall. [ranges, range) covers the active range.
   int ranges = 0;
   int rangee = 0;
   const int FALLINGMAX = arrcount < 10 ? 1 : arrcount / 10;
