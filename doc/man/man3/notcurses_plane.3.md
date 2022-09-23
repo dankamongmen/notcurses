@@ -241,7 +241,7 @@ typedef struct ncplane_options {
 
 # DESCRIPTION
 
-Ncplanes are the fundamental drawing object of notcurses. All output functions
+Ncplanes are the fundamental drawing object of Notcurses. All output functions
 take a **struct ncplane** as an argument. They can be any size, and placed
 anywhere. In addition to its framebuffer--a rectilinear matrix of **nccell**s
 (see **notcurses_cell(3)**)--an ncplane is defined by:
@@ -310,7 +310,7 @@ the rendering area. A plane can be moved off-screen entirely, in which case
 it will not be visible following rasterization; it can also be partially
 off-screen.
 
-A plane has a virtual cursor; Set its new position with **ncplane_cursor_move_yx**.
+A plane has a virtual cursor; set its new position with **ncplane_cursor_move_yx**.
 Specifying -1 as one or both coordinates will hold that axis constant. You may
 move a cursor relatively to its current position with **ncplane_cursor_move_rel**.
 Unless coordinates are specified for a call, action takes place at the plane's
@@ -403,7 +403,7 @@ sequence) to set the base cell. **ncplane_set_base** does the same with
 
 ## Piles
 
-A single **notcurses** context is made up of one or more piles. A pile is a
+A single Notcurses context is made up of one or more piles. A pile is a
 set of one or more **ncplane**s, including the partial orderings made up of
 their binding and z-axis pointers. A pile has a top and bottom **ncplane**
 (this might be a single plane), and one or more root planes (planes which are
