@@ -61,7 +61,7 @@ typedef struct ncvgeom {
   unsigned begy, begx;     // upper-left corner of used region
   unsigned leny, lenx;     // geometry of used region
   unsigned maxpixely, maxpixelx; // only defined for NCBLIT_PIXEL
-  ncblitter_e blitter;i    // blitter that will be used
+  ncblitter_e blitter;     // blitter that will be used
 } ncvgeom;
 ```
 
