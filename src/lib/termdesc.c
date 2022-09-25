@@ -846,7 +846,7 @@ apply_contour_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
   ti->caps.sextants = true;
   ti->caps.rgb = true;
   *forcesdm = true;
-  *invertsixel = true;
+  *invertsixel = false;
   return "Contour";
 }
 
