@@ -15,7 +15,7 @@
 # limitations under the License.
 from time import sleep
 
-from notcurses import Notcurses
+from notcurses.notcurses import Notcurses
 
 Notcurses()
 
