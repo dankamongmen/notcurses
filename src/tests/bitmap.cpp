@@ -17,7 +17,8 @@ TEST_CASE("Bitmaps") {
     CHECK(0 < nc_->tcache.cellpxy);
     CHECK(0 < nc_->tcache.cellpxx);
     if(!nc_->tcache.pixel_draw_late){
-      CHECK(nc_->tcache.pixel_draw);
+      // work around bug in doctest 2.4.9 =[
+      CHECK((const void*)nc_->tcache.pixel_draw);
     }
   }
 
