@@ -1650,7 +1650,7 @@ int ncplane_move_family_above(ncplane* restrict n, ncplane* restrict bpoint){
   // first, so that we know the topmost element of our new ensplicification.
   // at this point, n is the bottommost plane, and we're inserting above it.
   ncplane* targ = n;
-  while(above){
+  while(above && above != n){
     ncplane* tmp = ncplane_above(above);
     if(ncplane_descendant_p(above, n)){
       ncplane_move_above(above, targ);
@@ -1684,7 +1684,7 @@ int ncplane_move_family_below(ncplane* restrict n, ncplane* restrict bpoint){
   // first, so that we know the bottommost element of our new ensplicification.
   // we're inserting below n...
   ncplane* targ = n;
-  while(below){
+  while(below && below != n){
     ncplane* tmp = ncplane_below(below);
     if(ncplane_descendant_p(below, n)){
       ncplane_move_below(below, targ);
