@@ -200,7 +200,7 @@ TEST_CASE("ZAxis") {
   }
 
   SUBCASE("FamilyBottom") {
-    struct ncplane_options nopts{};
+    ncplane_options nopts{};
     nopts.rows = nopts.cols = 1;
     auto a = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != a);
@@ -234,5 +234,22 @@ TEST_CASE("ZAxis") {
     CHECK(ncpile_bottom(n_) == e);
   }
 
+  // contributed by drewt on github, this led to an infinite loop
+  SUBCASE("FamilyAbove") {
+    ncplane_options nopts{};
+    nopts.rows = 1;
+    nopts.cols = 1;
+    struct ncplane *n = ncplane_create(notcurses_stdplane(nc_), &nopts);
+    struct ncplane *a = ncplane_create(n, &nopts);
+    struct ncplane *b = ncplane_create(n, &nopts);
+    struct ncplane *bpoint = ncplane_create(notcurses_stdplane(nc_), &nopts);
+    ncplane_move_family_above(n, bpoint);
+    ncplane_destroy(bpoint);
+    ncplane_destroy(b);
+    ncplane_destroy(a);
+    ncplane_destroy(n);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
+
 }
