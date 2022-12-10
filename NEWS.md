@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.9 (2022-12-10)
+  * Eliminated infinite loop in `ncplane_move_family_above()`.
+    Thanks, drewt!
+
 * 3.0.8 (2022-04-06)
   * Bugfix release, but also support curled underlines in Contour.
 
