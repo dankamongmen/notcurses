@@ -28,12 +28,18 @@ defaultout(void){
   for(int i = 0 ; i < 128 ; ++i){
     wint_t w = i;
     int width = wcwidth(w);
-    printf("0x%02x: %d%c\t", w, width, width < 0 ? '!' : ' ');
+    if(printf("0x%02x: %d%c\t", w, width, width < 0 ? '!' : ' ') < 0){
+      return -1;
+    }
     if(i % 4 == 3){
-      printf("\n");
+      if(printf("\n") < 0){
+        return -1;
+      }
     }
   }
-  printf("\n");
+  if(printf("\n") < 0){
+    return -1;
+  }
   return 0;
 }
 
