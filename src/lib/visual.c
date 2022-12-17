@@ -122,7 +122,9 @@ ncvisual* ncvisual_create(void){
     return visual_implementation->visual_create();
   }
   ncvisual* ret = malloc(sizeof(*ret));
-  memset(ret, 0, sizeof(*ret));
+  if(ret){
+    memset(ret, 0, sizeof(*ret));
+  }
   return ret;
 }
 
