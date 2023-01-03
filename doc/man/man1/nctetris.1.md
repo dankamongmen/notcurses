@@ -4,7 +4,7 @@
 
 # NAME
 
-nctetris - Render images and video to a terminal
+nctetris - Тетрис in the terminal
 
 # SYNOPSIS
 
@@ -12,7 +12,7 @@ nctetris - Render images and video to a terminal
 
 # DESCRIPTION
 
-**nctetris** implements Tetris using Notcurses.
+**nctetris** implements a Tetris clone using Notcurses.
 
 The goal is to complete horizontal lines, without allowing tetriminos to
 reach the top of the screen. The falling tetrimino can be rotated counter-
