@@ -1198,6 +1198,11 @@ typedef enum {
   NCTYPE_RELEASE,
 } ncintype_e;
 
+
+//Note: changing this also means adding kitty_cb_atxt functions in
+//in.c otherwise extra codepoints won't be picked up.
+#define NCINPUT_MAX_EFF_TEXT_CODEPOINTS 4
+
 // An input event. Cell coordinates are currently defined only for mouse
 // events. It is not guaranteed that we can set the modifiers for a given
 // ncinput. We encompass single Unicode codepoints, not complete EGCs.
@@ -1214,8 +1219,9 @@ typedef struct ncinput {
   ncintype_e evtype;
   unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
-  uint32_t eff_text[5];  // Effective utf32 representation, taking 
-                     // modifier keys into account. This can be multiple
+  uint32_t eff_text[NCINPUT_MAX_EFF_TEXT_CODEPOINTS];  // Effective 
+                     // utf32 representation, taking modifier 
+                     // keys into account. This can be multiple
                      // codepoints. Array is zero-terminated.
 } ncinput;
 

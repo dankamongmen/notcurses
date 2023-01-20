@@ -832,7 +832,7 @@ kitty_kbd_txt(inputctx* ictx, int val, int mods, uint32_t *txt, int evtype){
   }
   //note: if we don't set eff_text here, it will be set to .id later.
   if(txt && txt[0]!=0){
-    for(int i=0 ; i<4 ; i++){
+    for(int i=0 ; i<NCINPUT_MAX_EFF_TEXT_CODEPOINTS ; i++){
       tni.eff_text[i] = txt[i];
     }
   }
