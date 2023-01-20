@@ -797,7 +797,7 @@ kitty_functional(uint32_t val){
 }
 
 static void
-kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
+kitty_kbd_txt(inputctx* ictx, int val, int mods, unsigned *txt, int evtype){
   assert(evtype >= 0);
   assert(mods >= 0);
   assert(val > 0);
@@ -830,7 +830,31 @@ kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
       tni.evtype = NCTYPE_UNKNOWN;
       break;
   }
+  // Validate the txt array. It needs to be a non-zero-length set of up to 4 bytes.
+  int txt_valid = 0;
+  if(txt){
+    for (int i = 0 ; i<4 ; i++){
+      if(txt[i]==0) break;
+      if(txt[i]>255){
+        txt_valid = 0;
+        break;
+      }
+      txt_valid = 1;
+    }
+  }
+  //note: if we don't populate .utf8_eff here, it will be set to what becomes .utf8 in
+  //internal_get().
+  if(txt_valid){
+    for(int i=0 ; i<4 ; i++){
+      tni.utf8_eff[i] = (char)txt[i];
+    }
+  }
   load_ncinput(ictx, &tni);
+}
+
+static void
+kitty_kbd(inputctx* ictx, int val, int mods, int evtype){
+  kitty_kbd_txt(ictx, val, mods, NULL, evtype);
 }
 
 static int
@@ -847,6 +871,66 @@ kitty_cb(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "", 'u');
   kitty_kbd(ictx, val, mods, 0);
   return 2;
+}
+
+static int 
+kitty_cb_atxtn(inputctx* ictx, int n, int with_event){
+  unsigned txt[5]={0};
+  unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
+  unsigned ev = 0;
+  unsigned mods = 0;
+  if (with_event) {
+    mods = amata_next_numeric(&ictx->amata, "", ':');
+    ev = amata_next_numeric(&ictx->amata, "", ';');
+  } else {
+    mods = amata_next_numeric(&ictx->amata, "", ';');
+  }
+  for (int i = 0; i<n; i++) {
+    txt[i] = amata_next_numeric(&ictx->amata, "", (i==n-1)?'u':';');
+  }
+  kitty_kbd_txt(ictx, val, mods, txt, ev);
+  return 2;
+}
+
+static int
+kitty_cb_atxt1(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 1, 0);
+}
+
+static int
+kitty_cb_atxt2(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 2, 0);
+}
+
+static int
+kitty_cb_atxt3(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 3, 0);
+}
+
+static int
+kitty_cb_atxt4(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 4, 0);
+}
+
+
+static int
+kitty_cb_complex_atxt1(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 1, 1);
+}
+
+static int
+kitty_cb_complex_atxt2(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 2, 1);
+}
+
+static int
+kitty_cb_complex_atxt3(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 3, 1);
+}
+
+static int
+kitty_cb_complex_atxt4(inputctx* ictx){
+  return kitty_cb_atxtn(ictx, 4, 1);
 }
 
 static uint32_t
@@ -1702,7 +1786,15 @@ build_cflow_automaton(inputctx* ictx){
     { "[\\Nu", kitty_cb_simple, },
     { "[\\N;\\N~", wezterm_cb, },
     { "[\\N;\\Nu", kitty_cb, },
+    { "[\\N;\\N;\\Nu", kitty_cb_atxt1, },
+    { "[\\N;\\N;\\N;\\Nu", kitty_cb_atxt2, },
+    { "[\\N;\\N;\\N;\\N;\\Nu", kitty_cb_atxt3, },
+    { "[\\N;\\N;\\N;\\N;\\N;\\Nu", kitty_cb_atxt4, },
     { "[\\N;\\N:\\Nu", kitty_cb_complex, },
+    { "[\\N;\\N:\\N;\\Nu", kitty_cb_complex_atxt1, },
+    { "[\\N;\\N:\\N;\\N;\\Nu", kitty_cb_complex_atxt2, },
+    { "[\\N;\\N:\\N;\\N;\\N;\\Nu", kitty_cb_complex_atxt3, },
+    { "[\\N;\\N:\\N;\\N;\\N;\\N;\\Nu", kitty_cb_complex_atxt4, },
     { "[\\N;\\N;\\N~", xtmodkey_cb, },
     { "[\\N;\\N:\\N~", kitty_cb_functional, },
     { "[1;\\NP", legacy_cb_f1, },
@@ -2616,6 +2708,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     memcpy(ni, &ictx->inputs[ictx->iread], sizeof(*ni));
     if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){
       ni->utf8[0] = 0;
+    }
+    if(ni->utf8_eff[0] == 0){
+      memcpy(ni->utf8_eff, ni->utf8, sizeof(ni->utf8_eff));
     }
   }
   if(++ictx->iread == ictx->isize){
