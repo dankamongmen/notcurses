@@ -401,7 +401,12 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     return false;
   }
 
-  ncreader_write_egc(n, ni->utf8_eff);
+  for (int c=0; ni->eff_text[c]!=0; c++){
+    unsigned char egc[5]={0};
+    if(notcurses_ucs32_to_utf8(&ni->eff_text[c], 1, egc, 4)>=0){
+      ncreader_write_egc(n, (char*)egc);
+    }
+  }
   return true;
 }
 
