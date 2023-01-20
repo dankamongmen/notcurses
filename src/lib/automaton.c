@@ -364,7 +364,7 @@ add_phi_and_eta(automaton* a, const char* prefix, size_t pfxlen,
 // accept any digit and transition to a numeric node. |e| is the culmination of
 // the prefix before the numeric. |follow| is the successor of the numeric.
 // here's our approach:
-//  - find a link to a numeric from e. there can only be one node (thought it
+//  - find a link to a numeric from e. there can only be one node (though it
 //     might have many links), so we can use the first one we find.
 //  - if there is no such numeric node linked from e, create one.
 //     (FIXME if all ten digits are occupied, what would we do?)
