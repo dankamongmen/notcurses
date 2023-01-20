@@ -797,7 +797,7 @@ kitty_functional(uint32_t val){
 }
 
 static void
-kitty_kbd_txt(inputctx* ictx, int val, int mods, unsigned *txt, int evtype){
+kitty_kbd_txt(inputctx* ictx, int val, int mods, uint32_t *txt, int evtype){
   assert(evtype >= 0);
   assert(mods >= 0);
   assert(val > 0);
@@ -830,23 +830,10 @@ kitty_kbd_txt(inputctx* ictx, int val, int mods, unsigned *txt, int evtype){
       tni.evtype = NCTYPE_UNKNOWN;
       break;
   }
-  // Validate the txt array. It needs to be a non-zero-length set of up to 4 bytes.
-  int txt_valid = 0;
-  if(txt){
-    for (int i = 0 ; i<4 ; i++){
-      if(txt[i]==0) break;
-      if(txt[i]>255){
-        txt_valid = 0;
-        break;
-      }
-      txt_valid = 1;
-    }
-  }
-  //note: if we don't populate .utf8_eff here, it will be set to what becomes .utf8 in
-  //internal_get().
-  if(txt_valid){
+  //note: if we don't set eff_text here, it will be set to .id later.
+  if(txt && txt[0]!=0){
     for(int i=0 ; i<4 ; i++){
-      tni.utf8_eff[i] = (char)txt[i];
+      tni.eff_text[i] = txt[i];
     }
   }
   load_ncinput(ictx, &tni);
@@ -875,7 +862,7 @@ kitty_cb(inputctx* ictx){
 
 static int 
 kitty_cb_atxtn(inputctx* ictx, int n, int with_event){
-  unsigned txt[5]={0};
+  uint32_t txt[5]={0};
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned ev = 0;
   unsigned mods = 0;
@@ -2709,9 +2696,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){
       ni->utf8[0] = 0;
     }
-    if(ni->utf8_eff[0] == 0){
-      memcpy(ni->utf8_eff, ni->utf8, sizeof(ni->utf8_eff));
-    }
+    if (ni->eff_text[0]==0) ni->eff_text[0]=ni->id;
   }
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
