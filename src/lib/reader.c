@@ -400,12 +400,8 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   }else if(nckey_synthesized_p(ni->id)){
     return false;
   }
-  // FIXME need to collect full EGCs
-  char wbuf[WCHAR_MAX_UTF8BYTES + 1];
-  // FIXME breaks for wint_t < 32bits
-  if(snprintf(wbuf, sizeof(wbuf), "%lc", (wint_t)ni->id) < (int)sizeof(wbuf)){
-    ncreader_write_egc(n, wbuf);
-  }
+
+  ncreader_write_egc(n, ni->utf8_eff);
   return true;
 }
 

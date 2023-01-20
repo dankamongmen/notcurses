@@ -351,9 +351,9 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define KITTYQUERY
 #endif
 
-// request kitty keyboard protocol features 1, 2, and 8, first pushing current.
+// request kitty keyboard protocol features 1, 2, 8 and 16, first pushing current.
 // see https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
-#define KKBDSUPPORT "\x1b[=11u"
+#define KKBDSUPPORT "\x1b[=27u"
 
 // the kitty keyboard protocol allows unambiguous, complete identification of
 // input events. this queries for the level of support. we want to do this

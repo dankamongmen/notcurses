@@ -1214,6 +1214,7 @@ typedef struct ncinput {
   ncintype_e evtype;
   unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
+  char utf8_eff[5];  // Effective utf8 representation, taking modifier keys into account
 } ncinput;
 
 static inline bool

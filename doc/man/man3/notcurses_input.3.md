@@ -37,6 +37,7 @@ typedef struct ncinput {
   ncintype_e evtype;
   unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
+  char utf8_eff[5];  // Effective utf8 representation, taking modifier keys into account
 } ncinput;
 
 
@@ -241,6 +242,12 @@ When the Kitty keyboard disambiguation protocol is used, most of these
 issues are resolved. You can determine whether the protocol is in use
 by examining the output of **notcurses-info(1)**. If the **kbd** property
 is indicated, you're using the Kitty protocol.
+
+Note that utf_eff will always return the effective text value of the key,
+taking into account any meta keys pressed. (So shift-a will always return
+'A' in this field, regardless of if the Kitty keyboard disambiguation
+protocol is used.) This field generally only can be trusted on
+**NCTYPE_PRESS** and **NCTYPE_REPEAT** events, however.
 
 Mouse events in the left margins will never be delivered to the
 application (as is intended), but mouse events in the bottom and right margins
