@@ -1,6 +1,6 @@
 #include "internal.h"
 
-int loglevel = NCLOGLEVEL_SILENT;
+ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
 
 void notcurses_debug(const notcurses* nc, FILE* debugfp){
   fbuf f;
