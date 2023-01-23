@@ -361,6 +361,16 @@ int input_demo(ncpp::NotCurses* nc) {
         n->printf("Unicode: [0x%08x] '%s'", r, ni.utf8);
       }
     }
+    if(ni.eff_text[0] != ni.id || ni.eff_text[1] != 0){
+      n->printf(" effective text '");
+      for (int c=0; ni.eff_text[c]!=0; c++){
+        unsigned char egc[5]={0};
+        if(notcurses_ucs32_to_utf8(&ni.eff_text[c], 1, egc, 4)>=0){
+          n->printf("%s", egc);
+        }
+      }
+      n->printf("'");
+    }
     unsigned x;
     n->get_cursor_yx(nullptr, &x);
     for(unsigned i = x ; i < n->get_dim_x() ; ++i){
