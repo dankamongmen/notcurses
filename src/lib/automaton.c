@@ -321,24 +321,34 @@ add_phi_and_eta_recurse(automaton* a, esctrie* e, const char* prefix,
     }
     ++prefix;
     --pfxlen;
+    // Optimization: get_phi_node will set the trie[i] for i='0'..'9' to the exact 
+    // same linked tri index. If that happens, there is no need to to the (expensive)
+    // add_phi_and_eta_recurse call ten times, only the first time is enough.
+    unsigned linked_tri_seen_last = UINT_MAX;
     for(int i = '0' ; i <= '9' ; ++i){
       if(e->trie[i] == 0){
         //logdebug("linking %u[%d] to %u", esctrie_idx(a, e), i, esctrie_idx(a, phi));
         e->trie[i] = esctrie_idx(a, phi);
       }else{
-        add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
+        if(e->trie[i] != linked_tri_seen_last){
+            add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
                                 prefix, pfxlen, phi, follow, eta, 1);
+            linked_tri_seen_last = e->trie[i];
+        }
       }
     }
   }else{
     if(inphi){
+      //same optimization as above
+      unsigned linked_tri_seen_last = UINT_MAX;
       for(int i = '0' ; i <= '9' ; ++i){
         if(e->trie[i] == 0){
           //logdebug("linking %u[%d] to %u", esctrie_idx(a, e), i, esctrie_idx(a, phi));
           e->trie[i] = esctrie_idx(a, phi);
-        }else if(e->trie[i] != esctrie_idx(a, e)){
+        }else if(e->trie[i] != esctrie_idx(a, e) && e->trie[i] != linked_tri_seen_last){
           add_phi_and_eta_recurse(a, esctrie_from_idx(a, e->trie[i]),
-                                  prefix, pfxlen, phi, follow, eta, 1);
+                                prefix, pfxlen, phi, follow, eta, 1);
+          linked_tri_seen_last = e->trie[i];
         }
       }
     }
