@@ -9,6 +9,7 @@
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 #include <libswscale/version.h>
+#include <libavdevice/avdevice.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
 #include "lib/visual-details.h"
@@ -691,17 +692,19 @@ ffmpeg_log_level(int level){
 static int
 ffmpeg_init(int logl){
   av_log_set_level(ffmpeg_log_level(logl));
+  avdevice_register_all();
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
 
 static void
 ffmpeg_printbanner(fbuf* f){
-  fbuf_printf(f, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u avcodec %u.%u.%u" NL,
+  fbuf_printf(f, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u avcodec %u.%u.%u avdevice %u.%u.%u" NL,
               LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
               LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
               LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
-              LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO);
+              LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
+              LIBAVDEVICE_VERSION_MAJOR, LIBAVDEVICE_VERSION_MINOR, LIBAVDEVICE_VERSION_MICRO);
 }
 
 static void
