@@ -107,6 +107,7 @@ set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
+pkg_check_modules(AVDEVICE REQUIRED libavdevice>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
@@ -362,6 +363,7 @@ if(${USE_FFMPEG})
 target_include_directories(notcurses
   PRIVATE
     "${AVCODEC_INCLUDE_DIRS}"
+    "${AVDEVICE_INCLUDE_DIRS}"
     "${AVFORMAT_INCLUDE_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
@@ -369,6 +371,7 @@ target_include_directories(notcurses
 target_include_directories(notcurses-static
   PRIVATE
     "${AVCODEC_STATIC_INCLUDE_DIRS}"
+    "${AVDEVICE_STATIC_INCLUDE_DIRS}"
     "${AVFORMAT_STATIC_INCLUDE_DIRS}"
     "${AVUTIL_STATIC_INCLUDE_DIRS}"
     "${SWSCALE_STATIC_INCLUDE_DIRS}"
@@ -376,6 +379,7 @@ target_include_directories(notcurses-static
 target_link_libraries(notcurses
   PRIVATE
     "${AVCODEC_LIBRARIES}"
+    "${AVDEVICE_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
     "${AVUTIL_LIBRARIES}"
@@ -383,6 +387,7 @@ target_link_libraries(notcurses
 target_link_libraries(notcurses-static
   PRIVATE
     "${AVCODEC_STATIC_LIBRARIES}"
+    "${AVDEVICE_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
     "${AVUTIL_STATIC_LIBRARIES}"
@@ -390,6 +395,7 @@ target_link_libraries(notcurses-static
 target_link_directories(notcurses
   PRIVATE
     "${AVCODEC_LIBRARY_DIRS}"
+    "${AVDEVICE_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
     "${AVUTIL_LIBRARY_DIRS}"
@@ -397,6 +403,7 @@ target_link_directories(notcurses
 target_link_directories(notcurses-static
   PRIVATE
     "${AVCODEC_STATIC_LIBRARY_DIRS}"
+    "${AVDEVICE_STATIC_LIBRARY_DIRS}"
     "${AVFORMAT_STATIC_LIBRARY_DIRS}"
     "${SWSCALE_STATIC_LIBRARY_DIRS}"
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
