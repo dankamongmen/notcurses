@@ -2,6 +2,8 @@
 #include <cfenv>
 #include <iostream>
 
+#define BUFSIZE (NCPREFIXSTRLEN + 1)
+
 // run ncmetric, and then change any localized decimal separator into our
 // proud imperial yankee capitalist democratic one dot under god period.
 // manifest destiny, bitchhhhhhhezzzz!
@@ -10,7 +12,7 @@ char* impericize_ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
   const char* decisep = localeconv()->decimal_point;
   REQUIRE(decisep);
   REQUIRE(1 ==  strlen(decisep));
-  REQUIRE(ncnmetric(val, INT_MAX, decimal, buf, omitdec, mult, uprefix));
+  REQUIRE(ncnmetric(val, BUFSIZE, decimal, buf, omitdec, mult, uprefix));
   char* commie = buf;
   while( (commie = strstr(commie, decisep)) ){
     *commie = '.'; // https://dank.qemfd.net/images/16whcc.jpg
@@ -26,7 +28,7 @@ TEST_CASE("Metric") {
   REQUIRE(0 ==  fesetround(FE_TONEAREST));
 
   SUBCASE("CornerInts") {
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     impericize_ncmetric(0, 1, buf, 0, 1000, '\0');
     CHECK(!strcmp("0.00", buf));
     impericize_ncmetric(0, 1, buf, 0, 1024, 'i');
@@ -74,7 +76,7 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("Maxints") {
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     // FIXME these will change based on the size of intmax_t and uintmax_t
     impericize_ncmetric(INTMAX_MAX - 1, 1, buf, 0, 1000, '\0');
     CHECK(!strcmp("9.22E", buf));
@@ -87,7 +89,7 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("Maxints1024") {
-    char buf[NCPREFIXSTRLEN + 1], gold[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE], gold[BUFSIZE];
     // FIXME these will change based on the size of intmax_t and uintmax_t
     REQUIRE(ncbprefix(((double)(INTMAX_MAX - 1ull)), 1, buf, 0));
     sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - 1ull)) / (1ull << 60));
@@ -110,8 +112,8 @@ TEST_CASE("Metric") {
   const char suffixes[] = "\0KMGTPE";
 
   SUBCASE("PowersOfTen") {
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t goldval = 1;
     uintmax_t val = 1;
     size_t i = 0;
@@ -133,8 +135,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("PowersOfTenNoDec") {
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t goldval = 1;
     uintmax_t val = 1;
     size_t i = 0;
@@ -202,8 +204,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("PowersOfTwoAsTens") {
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
@@ -248,8 +250,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("PowersOfTenMinusOne") {
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
@@ -271,8 +273,8 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("PowersOfTenPlusOne") {
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t vfloor = 1;
     uintmax_t val = 1;
     size_t i = 0;
@@ -323,9 +325,9 @@ TEST_CASE("Metric") {
   // nanoseconds, but want output in seconds.
   // This requires 'decimal' = GIG.
   SUBCASE("ScaledGigSupra") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2f", 9.029); // 9.02
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t val = 9027854993;
     uintmax_t decimal = GIG;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -333,9 +335,9 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigUnity") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2f", 1.0); // 1.00
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t decimal = GIG;
     uintmax_t val = decimal;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -343,9 +345,9 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigJustAbove") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2f", 1.0); // 1.00
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t val = 1000000001;
     uintmax_t decimal = GIG;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -353,9 +355,9 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigJustBelow") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2fm", 999.999); //999.99
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t val = 999999999;
     uintmax_t decimal = GIG;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -363,9 +365,9 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigSub") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2fm", 27.85); // 27.85
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t val = 27854993;
     uintmax_t decimal = GIG;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -373,9 +375,9 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("ScaledGigSubSub") {
-    char gold[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
     snprintf(gold, sizeof(gold), "%.2fm", 7.85); // 7.85
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     uintmax_t val = 7854993;
     uintmax_t decimal = GIG;
     REQUIRE(ncqprefix(val, decimal, buf, 0));
@@ -383,7 +385,7 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("SmallCorners") {
-    char buf[NCPREFIXSTRLEN + 1];
+    char buf[BUFSIZE];
     impericize_ncmetric(1, 1000, buf, 0, 1000, '\0');
     CHECK(!strcmp("1.00m", buf));
     impericize_ncmetric(1, 1024, buf, 0, 1024, 'i');
@@ -431,8 +433,8 @@ TEST_CASE("Metric") {
     }else{
       smallsuffixes = L"yzafpnum";
     }
-    char gold[NCPREFIXSTRLEN + 1];
-    char buf[NCPREFIXSTRLEN + 1];
+    char gold[BUFSIZE];
+    char buf[BUFSIZE];
     uintmax_t goldval = 1;
     uintmax_t val = 1;
     size_t i = 0;
