@@ -26,7 +26,8 @@ jobs:
             ffmpeg \
             libdeflate \
             libunistring \
-            ncurses
+            ncurses \
+            pkg-config
 
       - uses: actions/checkout@v2
 
