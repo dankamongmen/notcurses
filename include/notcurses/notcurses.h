@@ -1385,12 +1385,6 @@ API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n)
 API void ncplane_dim_yx(const struct ncplane* n, unsigned* RESTRICT y, unsigned* RESTRICT x)
   __attribute__ ((nonnull (1)));
 
-// Get a reference to the standard plane (one matching our current idea of the
-// terminal size) for this terminal. The standard plane always exists, and its
-// origin is always at the uppermost, leftmost cell of the terminal.
-API struct ncplane* notcurses_stdplane(struct notcurses* nc);
-API const struct ncplane* notcurses_stdplane_const(const struct notcurses* nc);
-
 // notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 static inline struct ncplane*
 notcurses_stddim_yx(struct notcurses* nc, unsigned* RESTRICT y, unsigned* RESTRICT x){
