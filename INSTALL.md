@@ -16,13 +16,12 @@ There are no submodules. Dependencies are fairly minimal.
 
 Install build dependencies:
 
-`apt-get install build-essential cmake doctest-dev libavformat-dev libavdevice-dev libavutil-dev libdeflate-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev libavdevice-dev libdeflate-dev libgpm-dev libncurses-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
-If you only intend to build core Notcurses (without multimedia support), you can
-omit `libavformat-dev`, `libavdevice-dev`, `libavutil-dev`, and `libswscale-dev`
-from this list. `zlib1g-dev` can be substituted for `libdeflate-dev`; build with
-`-DUSE_DEFLATE=off` in this case. If you don't want to generate QR codes, you
-can omit 'libqrcodegen-dev'.
+If you only intend to build core Notcurses (without multimedia support), you
+can omit `libavdevice-dev` from this list. `zlib1g-dev` can be substituted for
+`libdeflate-dev`; build with `-DUSE_DEFLATE=off` in this case. If you don't
+want to generate QR codes, you can omit 'libqrcodegen-dev'.
 
 If you want to build the Python wrappers, you'll also need:
 

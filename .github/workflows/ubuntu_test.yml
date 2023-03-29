@@ -26,10 +26,7 @@ jobs:
             cmake \
             doctest-dev \
             ffmpeg \
-            libavcodec-dev \
-            libavformat-dev \
             libavdevice-dev \
-            libavutil-dev \
             libdeflate-dev \
             libncurses-dev \
             libqrcodegen-dev \
