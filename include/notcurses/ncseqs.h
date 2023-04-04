@@ -79,7 +79,7 @@ extern "C" {
 #define NCSUITSBLACK L"\u2660\u2663\u2665\u2666" // ♠♣♥♦
 #define NCSUITSWHITE L"\u2661\u2662\u2664\u2667" // ♡♢♤♧
 #define NCCHESSBLACK L"\u265f\u265c\u265e\u265d\u265b\u265a" // ♟♜♞♝♛♚
-#define NCCHESSWHITE L"\u265f\u265c\u265e\u265d\u265b\u265a" // ♙♖♘♗♕♔
+#define NCCHESSWHITE L"\u2659\u2656\u2658\u2657\u2655\u2654" // ♙♖♘♗♕♔
 #define NCDICE       L"\u2680\u2681\u2682\u2683\u2684\u2685" // ⚀⚁⚂⚃⚄⚅
 #define NCMUSICSYM   L"\u2669\u266A\u266B\u266C\u266D\u266E\u266F" // ♩♪♫♬♭♮♯
 
