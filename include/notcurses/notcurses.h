@@ -3815,7 +3815,7 @@ API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
 #define NCMETRICFWIDTH(x, cols) \
     ((int)(strlen(x) - ncstrwidth(x, NULL, NULL) + (cols)))
 #define NCPREFIXFMT(x) NCMETRICFWIDTH((x), NCPREFIXCOLUMNS), (x)
-#define NCIPREFIXFMT(x) NCMETRIXFWIDTH((x), NCIPREFIXCOLUMNS), (x)
+#define NCIPREFIXFMT(x) NCMETRICFWIDTH((x), NCIPREFIXCOLUMNS), (x)
 #define NCBPREFIXFMT(x) NCMETRICFWIDTH((x), NCBPREFIXCOLUMNS), (x)
 
 // Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1 and PREFIXCOLUMNS.
