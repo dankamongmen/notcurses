@@ -171,7 +171,7 @@ You'll then need `COLORTERM=24bit` defined within your tmux environment.
 
 ### iTerm2
 
-You're recommented to change "Report terminal type" to `iterm2`.
+You're recommended to change "Report terminal type" to `iterm2`.
 
 You're recommended to enable "Use Unicode version 9+ widths" under
 `Profiles/Text`.
