@@ -69,7 +69,7 @@ for which the terminal advertises support.
 
 **notcurses_palette_size** returns the size of the terminal's palette, used
 for palette-indexed color. It will always return at least 1. This is
-independent of RGB TrueColor support. No terminal is know to support
+independent of RGB TrueColor support. No terminal is known to support
 more than 256-indexed color.
 
 **notcurses_cantruecolor** returns **true** if the terminal advertises
