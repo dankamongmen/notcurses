@@ -115,4 +115,4 @@ will return **true**, but the full spectrum will not be available.
 **notcurses(3)**,
 **notcurses_init(3)**,
 **notcurses_visual(3)**,
-utf8(7)
+**utf8(7)**
