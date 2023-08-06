@@ -35,6 +35,9 @@ extern "C" {
 #include <wctype.h>
 #include <pthread.h>
 #include <stdbool.h>
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
 #include <inttypes.h>
 #include <unictype.h>
 #ifndef __MINGW32__
