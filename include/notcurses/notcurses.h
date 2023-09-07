@@ -593,6 +593,17 @@ ncchannels_set_bg_default(uint64_t* channels){
 // 0x0--0x10ffff can be UTF-8-encoded with only 4 bytes
 #define WCHAR_MAX_UTF8BYTES 4
 
+// Calculate the length and width of the next EGC in the UTF-8 string input.
+// We use libunistring's uc_is_grapheme_break() to segment EGCs. Writes the
+// number of columns to '*colcount'. Returns the number of bytes consumed,
+// not including any NUL terminator. Neither the number of bytes nor columns
+// is necessarily equal to the number of decoded code points. Such are the
+// ways of Unicode. uc_is_grapheme_break() wants UTF-32, which is fine, because
+// we need wchar_t to use wcwidth() anyway FIXME except this doesn't work with
+// 16-bit wchar_t!
+API int ncegc_len(const char* gcluster, int* colcount)
+  __attribute__ ((nonnull (1)));
+
 // Returns the number of columns occupied by the longest valid prefix of a
 // multibyte (UTF-8) string. If an invalid character is encountered, -1 will be
 // returned, and the number of valid bytes and columns will be written into
