@@ -3269,6 +3269,10 @@ int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
   return r;
 }
 
+int ncegc_len(const char* gcluster, int* colcount){
+  return utf8_egc_len(gcluster, colcount);
+}
+
 int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
                             unsigned char* resultbuf, size_t buflen){
   if(u32_to_u8(ucs32, ucs32count, resultbuf, &buflen) == NULL){
