@@ -567,19 +567,6 @@ pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
   x /= ictx->ti->cellpxx;
   x -= ictx->lmargin;
   y -= ictx->tmargin;
-  // convert from 1- to 0-indexing, and account for margins
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
   ni->y = y;
   ni->x = x;
   load_ncinput(ictx, ni);
@@ -631,19 +618,6 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   }
   x -= (1 + ictx->lmargin);
   y -= (1 + ictx->tmargin);
-  // convert from 1- to 0-indexing, and account for margins
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
   tni.x = x;
   tni.y = y;
   tni.ypx = -1;
