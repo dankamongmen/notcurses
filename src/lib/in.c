@@ -1779,6 +1779,12 @@ build_cflow_automaton(inputctx* ictx){
     { "[E", simple_cb_begin, },
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
+    { "[<\\N;-\\N;\\NM", mouse_press_cb, },
+    { "[<\\N;-\\N;\\Nm", mouse_release_cb, },
+    { "[<\\N;\\N;-\\NM", mouse_press_cb, },
+    { "[<\\N;\\N;-\\Nm", mouse_release_cb, },
+    { "[<\\N;-\\N;-\\NM", mouse_press_cb, },
+    { "[<\\N;-\\N;-\\Nm", mouse_release_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
