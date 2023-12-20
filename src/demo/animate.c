@@ -131,7 +131,7 @@ determine_totalmoves(struct ncplane* std, struct ncplane* left, struct ncplane* 
 static int
 spin_cycle(const char* utf8, int iters){
   int offsets[10]; // no cycles longer than this
-  mbstate_t mbs = { };
+  mbstate_t mbs = { 0 };
   int offset = 0;
   size_t s;
   int o = 0;
@@ -268,7 +268,7 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
     return -1;
   }
   ncplane_set_base(leftp, " ", 0, NCCHANNELS_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
-  ncprogbar_options popts = { };
+  ncprogbar_options popts = { 0 };
   ncchannel_set_rgb8(&popts.brchannel, 0, 0, 0);
   ncchannel_set_rgb8(&popts.blchannel, 0, 0xff, 0);
   ncchannel_set_rgb8(&popts.urchannel, 0, 0, 0xff);
