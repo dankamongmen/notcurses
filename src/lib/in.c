@@ -1842,7 +1842,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[>83;\\N;0c", da2_screen_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, },
-    { "[=\\N;\\Dc", da1_syncterm_cb, }, // CSI da1 form as issued by SyncTERM
+    { "[=67;84;101;114;109;\\Dc", da1_syncterm_cb, }, // CSI da1 form as issued by SyncTERM
     // DCS (\eP...ST)
     { "P0+\\S", NULL, }, // negative XTGETTCAP
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
