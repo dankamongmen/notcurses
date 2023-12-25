@@ -1221,6 +1221,22 @@ scrub_sixel_responses(struct initial_responses* idata){
   }
 }
 
+// Most annoyingly, SyncTERM sends a different DA response, which includes
+// the revision of the parser, not a list of features.
+// TODO: Be useful...
+static int
+da1_syncterm_cb(inputctx* ictx){
+  loginfo("read primary device attributes");
+  if(ictx->initdata){
+    // TODO: SyncTERM supports sixel in some modes
+    // but not others... discovered via CSI < Ps c
+    // See: https://gitlab.synchro.net/main/sbbs/-/raw/master/src/conio/cterm.txt
+    scrub_sixel_responses(ictx->initdata);
+    handoff_initial_responses_early(ictx);
+  }
+  return 1;
+}
+
 // annoyingly, alacritty (well, branches of alacritty) supports Sixel, but
 // does not indicate this in their Primary Device Attributes response (there
 // is no room for attributes in a VT102-style DA1, which alacritty uses).
@@ -1374,15 +1390,6 @@ da2_cb(inputctx* ictx){
     loginfo("might be alacritty %s", buf);
     ictx->initdata->version = buf;
     ictx->initdata->qterm = TERMINAL_ALACRITTY;
-  }
-  return 2;
-}
-
-// weird form of Ternary Device Attributes used only by WezTerm
-static int
-wezterm_tda_cb(inputctx* ictx){
-  if(ictx->initdata){
-    loginfo("read ternary device attributes");
   }
   return 2;
 }
@@ -1835,7 +1842,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[>83;\\N;0c", da2_screen_cb, },
     { "[>\\N;\\N;\\Nc", da2_cb, },
-    { "[=\\Sc", wezterm_tda_cb, }, // CSI da3 form as issued by WezTerm
+    { "[=\\N;\\Dc", da1_syncterm_cb, }, // CSI da1 form as issued by SyncTERM
     // DCS (\eP...ST)
     { "P0+\\S", NULL, }, // negative XTGETTCAP
     { "P1+r\\S", tcap_cb, }, // positive XTGETTCAP
