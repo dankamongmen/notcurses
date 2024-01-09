@@ -202,7 +202,7 @@ ncchannel_set_palindex(uint32_t* channel, unsigned idx){
 static inline bool
 ncchannel_rgb_p(uint32_t channel){
   // bitwise or is intentional (allows compiler more freedom)
-  return !(ncchannel_default_p(channel) | ncchannel_palindex_p(channel));
+  return !(ncchannel_default_p(channel) || ncchannel_palindex_p(channel));
 }
 
 // Extract the 8-bit red component from a 32-bit channel. Only valid if
