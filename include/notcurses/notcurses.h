@@ -201,7 +201,6 @@ ncchannel_set_palindex(uint32_t* channel, unsigned idx){
 // Is this channel using RGB color?
 static inline bool
 ncchannel_rgb_p(uint32_t channel){
-  // bitwise or is intentional (allows compiler more freedom)
   return !(ncchannel_default_p(channel) || ncchannel_palindex_p(channel));
 }
 
