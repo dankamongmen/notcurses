@@ -481,7 +481,6 @@ static int
 ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
               ncstreamcb streamer, const struct ncvisual_options* vopts,
               void* curry){
-  int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
@@ -520,7 +519,6 @@ ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     if(activevopts.n != newn){
       activevopts.n = newn;
     }
-    ++frame;
     uint64_t duration = ncv->details->frame->pkt_duration * tbase * NANOSECS_IN_SEC;
     double schedns = nsbegin;
     sum_duration += (duration * timescale);
