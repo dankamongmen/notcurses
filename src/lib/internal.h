@@ -1358,9 +1358,7 @@ channels_blend(notcurses* nc, unsigned c1, unsigned c2, unsigned* blends,
     }
   }else if(ncchannel_default_p(c1) && ncchannel_default_p(c2)){
     // do nothing, leave as default
-  // intentional bitwise AND on the first condition, to eliminate the
-  // dependency due to C's short-circuit evaluation
-  }else if((ncchannel_palindex_p(c1) & ncchannel_palindex_p(c2)) &&
+  }else if((ncchannel_palindex_p(c1) && ncchannel_palindex_p(c2)) &&
            ncchannel_palindex(c1) == ncchannel_palindex(c2)){
     // do nothing, leave as palette
   }else{
