@@ -901,7 +901,7 @@ namespace ncpp
 		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) const NOEXCEPT_MAYBE
 		{
 			if (clipped) {
-				ncplane_set_fg_rgb8_clipped (plane, r, g, b);
+				ncplane_set_bg_rgb8_clipped (plane, r, g, b);
 				return true;
 			}
 
