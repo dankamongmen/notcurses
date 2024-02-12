@@ -3193,10 +3193,20 @@ static inline uint64_t
 ncchannels_reverse(uint64_t channels){
   const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
                        ncchannels_fchannel(channels);
-  const uint64_t statemask = (NC_NOBACKGROUND_MASK | NC_FG_ALPHA_MASK |
-                              NC_BG_ALPHA_MASK | (NC_NOBACKGROUND_MASK >> 32u));
+  const uint64_t statemask = ((NC_NOBACKGROUND_MASK | NC_BG_ALPHA_MASK) << 32u) |
+                             NC_NOBACKGROUND_MASK | NC_BG_ALPHA_MASK;
   uint64_t ret = raw & ~statemask;
   ret |= channels & statemask;
+  if(ncchannels_bg_alpha(ret) != NCALPHA_OPAQUE){
+    if(!ncchannels_bg_rgb_p(ret)){
+      ncchannels_set_bg_alpha(&ret, NCALPHA_OPAQUE);
+    }
+  }
+  if(ncchannels_fg_alpha(ret) != NCALPHA_OPAQUE){
+    if(!ncchannels_fg_rgb_p(ret)){
+      ncchannels_set_fg_alpha(&ret, NCALPHA_OPAQUE);
+    }
+  }
   return ret;
 }
 
