@@ -557,14 +557,10 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     if(nopts->rows != 0 || nopts->cols != 0){
-      logerror("geometry specified with margins (r=%d, c=%d)",
+      logerror("geometry specified with margins (r=%u, c=%u)",
                nopts->rows, nopts->cols);
       return NULL;
     }
-  }else if(nopts->rows <= 0 || nopts->cols <= 0){
-    logerror("won't create denormalized plane (r=%d, c=%d)",
-             nopts->rows, nopts->cols);
-    return NULL;
   }
   ncplane* p = malloc(sizeof(*p));
   if(p == NULL){
@@ -596,7 +592,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   size_t fbsize = sizeof(*p->fb) * (p->leny * p->lenx);
   if((p->fb = malloc(fbsize)) == NULL){
-    logerror("error allocating cellmatrix (r=%d, c=%d)",
+    logerror("error allocating cellmatrix (r=%u, c=%u)",
              p->leny, p->lenx);
     free(p);
     return NULL;
@@ -669,7 +665,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
       pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
-  loginfo("created new %dx%d plane \"%s\" @ %dx%d",
+  loginfo("created new %ux%u plane \"%s\" @ %dx%d",
           p->leny, p->lenx, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
