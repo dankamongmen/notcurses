@@ -584,12 +584,6 @@ target_compile_definitions(notcurses++-static
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
 )
 
-file(GLOB NOTCURSES_HEADERS
-  CONFIGURE_DEPENDS
-  LIST_DIRECTORIES false
-  ${PROJECT_SOURCE_DIR}/include/notcurses/*.h
-  ${CMAKE_CURRENT_BINARY_DIR}/include/version.h)
-
 file(GLOB NCPP_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
@@ -599,13 +593,19 @@ file(GLOB NCPP_INTERNAL_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
+
+install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
+install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 endif()
 
 export(PACKAGE notcurses)
 
+file(GLOB NOTCURSES_HEADERS
+  CONFIGURE_DEPENDS
+  LIST_DIRECTORIES false
+  ${PROJECT_SOURCE_DIR}/include/notcurses/*.h
+  ${CMAKE_CURRENT_BINARY_DIR}/include/version.h)
 install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses)
-install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
-install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 
 # tiny proofs of concept, one binary per source file
 if(USE_POC)
@@ -1021,11 +1021,12 @@ configure_file(tools/notcurses-ffi.pc.in
   @ONLY
 )
 endif()
-configure_file(tools/notcurses++.pc.in
+if(${USE_CXX})
+   configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
 )
-
+endif()
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
 configure_file(tools/builddef.h.in include/builddef.h)
@@ -1050,6 +1051,7 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
+if(${USE_CXX})
 configure_package_config_file(tools/Notcurses++Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++
@@ -1059,6 +1061,7 @@ write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
 )
+endif()
 
 # Installation
 install(FILES
@@ -1073,11 +1076,13 @@ install(FILES
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses"
 )
 
+if(${USE_CXX})
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++"
 )
+endif()
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
@@ -1096,10 +1101,12 @@ install(FILES
 )
 endif()
 
+if(${USE_CXX})
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   DESTINATION ${PKGCONFIG_DIR}
 )
+endif()
 
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
