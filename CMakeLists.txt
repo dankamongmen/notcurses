@@ -548,6 +548,23 @@ target_compile_options(notcurses++
   -fPIC
   )
 
+target_compile_options(notcurses++-static
+  PRIVATE
+  ${NCPP_COMPILE_OPTIONS}
+  -fPIE
+)
+
+target_compile_definitions(notcurses++
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+)
+
+target_compile_definitions(notcurses++-static
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+)
+endif()
+
 target_compile_options(notcurses-core
   PRIVATE
     -fPIC
@@ -568,22 +585,6 @@ target_compile_options(notcurses-static
     -fPIE
 )
 
-target_compile_options(notcurses++-static
-  PRIVATE
-  ${NCPP_COMPILE_OPTIONS}
-  -fPIE
-)
-
-target_compile_definitions(notcurses++
-  PUBLIC
-    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-)
-
-target_compile_definitions(notcurses++-static
-  PUBLIC
-    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-)
-
 file(GLOB NOTCURSES_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
@@ -599,7 +600,6 @@ file(GLOB NCPP_INTERNAL_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
-endif()
 
 export(PACKAGE notcurses)
 
