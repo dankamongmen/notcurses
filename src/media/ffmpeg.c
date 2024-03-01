@@ -707,7 +707,7 @@ ffmpeg_printbanner(fbuf* f){
 
 static void
 ffmpeg_details_destroy(ncvisual_details* deets){
-  avcodec_close(deets->codecctx);
+  // avcodec_close() is deprecated; avcodec_free_context() suffices
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
