@@ -906,11 +906,14 @@ add_test(
   NAME rgb
   COMMAND rgb
 )
+LIST(APPEND TESTBINS notcurses-info sgr-direct sgr-full rgb)
+if(${USE_CXX})
 add_test(
   NAME rgbbg
   COMMAND rgbbg
 )
-LIST(APPEND TESTBINS notcurses-info sgr-direct sgr-full rgb rgbbg)
+LIST(APPEND TESTBINS rgbbg)
+endif()
 if(${USE_QRCODEGEN})
 add_test(
   NAME qrcode
