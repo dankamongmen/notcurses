@@ -41,7 +41,7 @@ typedef struct ncvisual_details {
 #define IMGALLOCALIGN 64
 
 uint64_t ffmpeg_pkt_duration(const AVFrame* frame){
-#ifdef FF_API_PKT_DURATION
+#if LIBAVUTIL_VERSION_MAJOR < 59
       return frame->pkt_duration;
 #else
       return frame->duration;
