@@ -40,6 +40,14 @@ typedef struct ncvisual_details {
 
 #define IMGALLOCALIGN 64
 
+uint64_t ffmpeg_pkt_duration(const AVFrame* frame){
+#ifdef FF_API_PKT_DURATION
+      return frame->pkt_duration;
+#else
+      return frame->duration;
+#endif
+}
+
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   if(f == NULL){
@@ -76,7 +84,7 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   }
   fprintf(stderr, " PTS %" PRId64 " Flags: 0x%04x\n", f->pts, f->flags);
   fprintf(stderr, " %" PRIu64 "ms@%" PRIu64 "ms (%skeyframe) qual: %d\n",
-          f->duration, // FIXME in 'time_base' units
+          ffmpeg_pkt_duration(f), // FIXME in 'time_base' units
           f->best_effort_timestamp,
           f->key_frame ? "" : "non-",
           f->quality);
@@ -519,7 +527,9 @@ ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     if(activevopts.n != newn){
       activevopts.n = newn;
     }
-    uint64_t duration = ncv->details->frame->duration * tbase * NANOSECS_IN_SEC;
+    // display duration in units of time_base
+    const uint64_t pktduration = ffmpeg_pkt_duration(ncv->details->frame);
+    uint64_t duration = pktduration * tbase * NANOSECS_IN_SEC;
     double schedns = nsbegin;
     sum_duration += (duration * timescale);
     schedns += sum_duration;
