@@ -141,7 +141,7 @@ setup_fbcon_bitmaps(tinfo* ti, int fd){
 
 static bool
 query_rgb(void){
-  bool rgb = (tigetflag("RGB") > 1 || tigetflag("Tc") > 1);
+  bool rgb = (tigetflag("RGB") > 0 || tigetflag("Tc") > 0);
   if(!rgb){
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not
     // commonly found in terminal entries today. COLORTERM, however, is a
