@@ -123,7 +123,7 @@ if(NOT WIN32)
 # MSYS2 needs -lssp and -fstack-protector for _FORTIFY_SOURCE
 # macOS with ASAN can't handle _FORTIFY_SOURCE != 1
 if(NOT ${USE_ASAN})
-add_compile_definitions(_FORTIFY_SOURCE=3)
+add_compile_definitions(_FORTIFY_SOURCE=2)
 endif()
 add_compile_options(-Wformat -Werror=format-security)
 endif()

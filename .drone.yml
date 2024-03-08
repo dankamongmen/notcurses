@@ -5,10 +5,14 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2022-01-29a
+  image: debian:unstable-slim
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=xterm
+    - apt-get update -y
+    - apt-get install -y ncurses-dev pkgconf libqrcodegen-dev libavdevice-dev cmake build-essential doctest-dev libunistring-dev libdeflate-dev libgpm-dev pandoc locales
+    - echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    - locale-gen
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_STATIC=off -DUSE_GPM=on -DUSE_QRCODEGEN=on -DDFSG_BUILD=on -DBUILD_FFI_LIBRARY=on
@@ -17,6 +21,7 @@ steps:
     - ctest --output-on-failure
     - make install
     - ldconfig
+    - apt-get install -y python3-setuptools python3-wheel python3-pip python3-pypandoc python3-cffi-backend
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
