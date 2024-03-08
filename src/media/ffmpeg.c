@@ -76,7 +76,7 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   }
   fprintf(stderr, " PTS %" PRId64 " Flags: 0x%04x\n", f->pts, f->flags);
   fprintf(stderr, " %" PRIu64 "ms@%" PRIu64 "ms (%skeyframe) qual: %d\n",
-          f->pkt_duration, // FIXME in 'time_base' units
+          f->duration, // FIXME in 'time_base' units
           f->best_effort_timestamp,
           f->key_frame ? "" : "non-",
           f->quality);
@@ -485,7 +485,7 @@ ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
   //bool usets = false;
-  // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
+  // each frame has a duration in units of time_base. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
   ncplane* newn = NULL;
@@ -519,7 +519,7 @@ ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     if(activevopts.n != newn){
       activevopts.n = newn;
     }
-    uint64_t duration = ncv->details->frame->pkt_duration * tbase * NANOSECS_IN_SEC;
+    uint64_t duration = ncv->details->frame->duration * tbase * NANOSECS_IN_SEC;
     double schedns = nsbegin;
     sum_duration += (duration * timescale);
     schedns += sum_duration;
