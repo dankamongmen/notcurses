@@ -286,7 +286,6 @@ putpara(struct ncplane* p, const char* text){
           curend = macend;
           break;
         }else{
-          inescape = false;
           cur = curend++;
           break;
         }
