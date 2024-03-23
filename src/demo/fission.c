@@ -33,7 +33,11 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
       }
     }
     do{
-      DEMO_RENDER(nc);
+      int e = demo_render(nc);
+      if(e){
+        free(speeds);
+        return e;
+      }
       // don't allow gaps in the active range. so long as felloff is true, we've only handled
       // planes which have fallen off the screen, and can be collected.
       bool felloff = true;
