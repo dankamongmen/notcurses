@@ -1090,9 +1090,8 @@ int ncplane_destroy_family(ncplane *ncp){
 // called setlocale() themselves, and set the NCOPTION_INHIBIT_SETLOCALE flag.
 // if that flag is set, we take the locale and encoding as we get them.
 void init_lang(void){
-  char* setret;
 #ifdef __MINGW32__
-  if((setret = setlocale(LC_ALL, ".UTF8")) == NULL){
+  if(setlocale(LC_ALL, ".UTF8") == NULL){
     logwarn("couldn't set LC_ALL to utf8");
   }
 #endif
@@ -1107,7 +1106,7 @@ void init_lang(void){
     return;
   }
 #ifndef __MINGW32__
-  if((setret = setlocale(LC_ALL, "")) == NULL){
+  if(setlocale(LC_ALL, "") == NULL){
     logwarn("setting locale based on LANG failed");
   }
 #endif
