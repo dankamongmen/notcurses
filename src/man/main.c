@@ -670,7 +670,7 @@ int main(int argc, char** argv){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  bool success;
+  bool success = false;
   for(int i = 0 ; i < argc - nonopt ; ++i){
     success = false;
     if(tfman(nc, argv[nonopt + i], noui)){
