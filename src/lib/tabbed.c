@@ -164,20 +164,18 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   nt->leftmost = nt->selected = NULL;
   nt->tabcount = 0;
   nt->sepcols = 0;
-  memcpy(&nt->opts, topts, sizeof(*topts));
   nt->opts.separator = NULL;
   nt->opts.selchan = topts->selchan;
   nt->opts.hdrchan = topts->hdrchan;
   nt->opts.sepchan = topts->sepchan;
   nt->opts.flags = topts->flags;
   if(topts->separator){
-    if((nt->opts.separator = strdup(topts->separator)) == NULL){
-      logerror("Couldn't allocate nctabbed separator");
+    if((nt->sepcols = ncstrwidth(topts->separator, NULL, NULL)) < 0){
+      logerror("Separator string contains illegal characters");
       goto err;
     }
-    if((nt->sepcols = ncstrwidth(nt->opts.separator, NULL, NULL)) < 0){
-      logerror("Separator string contains illegal characters");
-      free(nt->opts.separator);
+    if((nt->opts.separator = strdup(topts->separator)) == NULL){
+      logerror("Couldn't allocate nctabbed separator");
       goto err;
     }
   }
