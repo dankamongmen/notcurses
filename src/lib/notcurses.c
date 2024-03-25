@@ -822,43 +822,59 @@ int resize_callbacks_children(ncplane* n){
   return ret;
 }
 
-// can be used on stdplane, unlike ncplane_resize() which prohibits it.
-int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
-                            unsigned keepleny, unsigned keeplenx,
-                            int yoff, int xoff,
-                            unsigned ylen, unsigned xlen){
+// basic consistency checks on resize requests
+static int
+ncplane_resize_internal_check(const ncplane* n, int keepy, int keepx,
+                              unsigned keepleny, unsigned keeplenx,
+                              int yoff, int xoff, unsigned ylen, unsigned xlen,
+                              unsigned* rows, unsigned* cols){
   if(keepy < 0 || keepx < 0){ // can't start at negative origin
     logerror("can't retain negative offset %dx%d", keepy, keepx);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    logerror("can't retain null dimension %dx%d", keepleny, keeplenx);
+    logerror("can't retain null dimension %ux%u", keepleny, keeplenx);
     return -1;
   }
   // can't be smaller than keep length
   if(ylen < keepleny){
-    logerror("can't map in y dimension: %u < %d", ylen, keepleny);
+    logerror("can't map in y dimension: %u < %u", ylen, keepleny);
     return -1;
   }
   if(xlen < keeplenx){
-    logerror("can't map in x dimension: %u < %d", xlen, keeplenx);
+    logerror("can't map in x dimension: %u < %u", xlen, keeplenx);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
     logerror("can't achieve meaningless size %ux%u", ylen, xlen);
     return -1;
   }
+  ncplane_dim_yx(n, rows, cols);
+  if(keepleny + keepy > *rows){
+    logerror("can't keep %u@%d rows from %u", keepleny, keepy, *rows);
+    return -1;
+  }
+  if(keeplenx + keepx > *cols){
+    logerror("can't keep %u@%d cols from %u", keeplenx, keepx, *cols);
+    return -1;
+  }
+  loginfo("%ux%u @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)", *rows, *cols,
+          n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff,
+          keepleny, keeplenx, keepy, keepx);
+  return 0;
+}
+
+// can be used on stdplane, unlike ncplane_resize() which prohibits it.
+int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
+                            unsigned keepleny, unsigned keeplenx,
+                            int yoff, int xoff,
+                            unsigned ylen, unsigned xlen){
   unsigned rows, cols;
-  ncplane_dim_yx(n, &rows, &cols);
-  if(keepleny + keepy > rows){
-    logerror("can't keep %d@%d rows from %d", keepleny, keepy, rows);
+  if(ncplane_resize_internal_check(n, keepy, keepx, keepleny, keeplenx,
+                                   yoff, xoff, ylen, xlen,
+                                   &rows, &cols)){
     return -1;
   }
-  if(keeplenx + keepx > cols){
-    logerror("can't keep %d@%d cols from %d", keeplenx, keepx, cols);
-    return -1;
-  }
-  loginfo("%dx%d @ %d/%d → %u/%u @ %d/%d (want %ux%u@%d/%d)", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
       rows == ylen && cols == xlen){
     return 0;
@@ -2697,7 +2713,6 @@ int ncplane_resize_placewithin(ncplane* n){
     if(ncplane_move_rel(n, -absy, 0)){
       ret = -1;
     }
-    absy = ncplane_abs_y(n);
   }
   if(absx < 0){
     logdebug("moving right %d", -absx);
@@ -2705,7 +2720,6 @@ int ncplane_resize_placewithin(ncplane* n){
     if(ncplane_move_rel(n, 0, -absx)){
       ret = -1;
     }
-    absx = ncplane_abs_x(n);
   }
   return ret;
 }
