@@ -987,7 +987,7 @@ build_sixel_band(qstate* qs, int bnum){
       }
       int cidx = find_color(qs, *rgb);
       if(cidx < 0){
-        // FIXME free?
+        free(meta);
         return -1;
       }
       int act;
@@ -1012,6 +1012,7 @@ build_sixel_band(qstate* qs, int bnum){
       }else{
         b->vecs[c] = sixelband_extend(b->vecs[c], &meta[c], qs->lenx, x);
         if(b->vecs[c] == NULL){
+          free(meta);
           return -1;
         }
         meta[c].rle = 1;
@@ -1024,6 +1025,7 @@ build_sixel_band(qstate* qs, int bnum){
     if(meta[i].rle){ // color was wholly unused iff rle == 0 at end
       b->vecs[i] = sixelband_extend(b->vecs[i], &meta[i], qs->lenx, x);
       if(b->vecs[i] == NULL){
+        free(meta);
         return -1;
       }
     }else{
