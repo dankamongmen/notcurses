@@ -132,13 +132,13 @@ typedef enum {
   ((NCCHANNEL_INITIALIZER((fr), (fg), (fb)) << 32ull) + \
    (NCCHANNEL_INITIALIZER((br), (bg), (bb))))
 
-// These lowest-level functions manipulate a channel encodings directly. Users
-// will typically manipulate ncplanes' and nccells' channels through their
-// APIs, rather than calling these explicitly.
+// These lowest-level functions directly manipulate a channel. Users will
+// typically manipulate ncplanes' and nccells' channels through their APIs,
+// rather than calling these explicitly.
 
 // Extract the 2-bit alpha component from a 32-bit channel. It is not
 // shifted down, and can be directly compared to NCALPHA_* values.
-static inline unsigned
+static inline uint32_t
 ncchannel_alpha(uint32_t channel){
   return channel & NC_BG_ALPHA_MASK;
 }
@@ -1197,9 +1197,8 @@ typedef enum {
   NCTYPE_RELEASE,
 } ncintype_e;
 
-
-//Note: changing this also means adding kitty_cb_atxt functions in
-//in.c otherwise extra codepoints won't be picked up.
+// Note: changing this also means adding kitty_cb_atxt functions in
+// in.c otherwise extra codepoints won't be picked up.
 #define NCINPUT_MAX_EFF_TEXT_CODEPOINTS 4
 
 // An input event. Cell coordinates are currently defined only for mouse
