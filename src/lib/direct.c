@@ -893,8 +893,9 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   const char* encoding = nl_langinfo(CODESET);
   bool utf8 = false;
-  if(encoding && strcmp(encoding, "UTF-8") == 0){
+  if(encoding && encoding_is_utf8(encoding)){
     utf8 = true;
+    ncmetric_use_utf8();
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
