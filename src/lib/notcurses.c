@@ -1095,6 +1095,30 @@ int ncplane_destroy_family(ncplane *ncp){
   return ret;
 }
 
+// glibc's _nl_normalize_charset() converts to lowercase, removing everything
+// but alnums. furthermore, "cs" is a valid prefix meaning "character set".
+static bool
+encoding_is_utf8(const char *enc){
+  if(tolower(enc[0]) == 'c' && tolower(enc[1]) == 's'){ // strncasecmp() isn't ansi/iso
+    enc += 2; // skip initial "cs" if present.
+  }
+  const char utfstr[] = "utf8";
+  const char* match = utfstr;
+  while(*enc){
+    if(isalnum(*enc)){ // we only care about alnums
+      if(tolower(*enc) != tolower(*match)){
+        return false;
+      }
+      ++match;
+    }
+    ++enc;
+  }
+  if(*match){
+    return false;
+  }
+  return true;
+}
+
 // it's critical that we're using UTF-8 encoding if at all possible. since the
 // client might not have called setlocale(2) (if they weren't reading the
 // directions...), go ahead and try calling setlocale(LC_ALL, "") and then
@@ -1112,7 +1136,7 @@ void init_lang(void){
   }
 #endif
   const char* encoding = nl_langinfo(CODESET);
-  if(encoding && !strcmp(encoding, "UTF-8")){
+  if(encoding && encoding_is_utf8(encoding)){
     return; // already utf-8, great!
   }
   const char* lang = getenv("LANG");
@@ -1127,13 +1151,13 @@ void init_lang(void){
   }
 #endif
   encoding = nl_langinfo(CODESET);
-  if(encoding && !strcmp(encoding, "UTF-8")){
+  if(encoding && encoding_is_utf8(encoding)){
     loginfo("set locale from LANG; client should call setlocale(2)!");
     return;
   }
   setlocale(LC_CTYPE, "C.UTF-8");
   encoding = nl_langinfo(CODESET);
-  if(encoding && !strcmp(encoding, "UTF-8")){
+  if(encoding && encoding_is_utf8(encoding)){
     loginfo("forced UTF-8 encoding; client should call setlocale(2)!");
     return;
   }
@@ -1214,7 +1238,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
   }
 //fprintf(stderr, "getenv LC_ALL: %s LC_CTYPE: %s\n", getenv("LC_ALL"), getenv("LC_CTYPE"));
   const char* encoding = nl_langinfo(CODESET);
-  if(encoding && !strcmp(encoding, "UTF-8")){
+  if(encoding && encoding_is_utf8(encoding)){
     *utf8 = true;
   }else{
     *utf8 = false;
