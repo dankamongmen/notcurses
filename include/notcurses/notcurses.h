@@ -3790,8 +3790,7 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 //
 // You are encouraged to consult notcurses_metric(3).
 API const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
-                          char* buf, int omitdec, uintmax_t mult,
-                          int uprefix)
+                          char* buf, int omitdec, uintmax_t mult, int uprefix)
   __attribute__ ((nonnull (4)));
 
 // The number of columns is one fewer, as the STRLEN expressions must leave

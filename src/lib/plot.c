@@ -89,7 +89,7 @@ typedef struct nc##X##plot { \
   ncplot plot; \
 } nc##X##plot; \
 \
-int redraw_pixelplot_##T(nc##X##plot* ncp){ \
+static int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   if(calculate_gradient_vector(&ncp->plot, 1)){ \
     return -1; \
   } \
@@ -256,7 +256,7 @@ int redraw_pixelplot_##T(nc##X##plot* ncp){ \
   return 0; \
 } \
 \
-int redraw_plot_##T(nc##X##plot* ncp){ \
+static int redraw_plot_##T(nc##X##plot* ncp){ \
   if(ncp->plot.bset->geom == NCBLIT_PIXEL){ \
     return redraw_pixelplot_##T(ncp); \
   } \
@@ -429,8 +429,8 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
 } \
 \
 static const struct blitset* \
-create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T miny, const T maxy, \
-           const T trueminy, const T truemaxy){ \
+create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, \
+           const T miny, const T maxy, const T trueminy, const T truemaxy){ \
   /* set up ->plot.ncp first so it gets destroyed on error */ \
   ncpp->plot.ncp = n; \
   if(ncplane_set_widget(ncpp->plot.ncp, ncpp, (void(*)(void*))nc##X##plot_destroy)){ \

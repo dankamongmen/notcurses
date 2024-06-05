@@ -33,12 +33,12 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 
 # DESCRIPTION
 
-**ncmetric** (and the helper wrappers **qprefix** and **bprefix**) accept
-very large (or very small) non-negative numbers, and prepare formatted output
+**ncnmetric** (and the helper wrappers **nc[qib]prefix**) accept
+very large (or very small) non-negative integers, and prepare formatted output
 of a maximum width using metric suffixes. The suffix can represent arbitrary
 amounts of growth, but is designed for 1000 (**NCPREFIX**) or 1024
 (**NCIPREFIX**). 1024 is used for "digital units of information", i.e. kibibytes
-and gibibits. **ncmetric** supports the large suffixes KMGTPEZY (Kilo, Mega,
+and gibibits. **ncnmetric** supports the large suffixes KMGTPEZY (Kilo, Mega,
 Giga, Tera, Peta, Exa, Zetta, and Yotta) and the small suffixes mµnpfazy
 (Milli, Micro, Nano, Pico, Femto, Atto, Zepto, and Yocto). This covers the
 range 1e24 (one septillion) through 1e-24, sufficing for all possible values of
@@ -62,19 +62,19 @@ Three helper functions are provided to simplify these common cases:
 // Mega, kilo, gigafoo. Use NCPREFIXSTRLEN + 1 and NCPREFIXCOLUMNS.
 static inline const char*
 ncqprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
+  return ncnmetric(val, decimal, buf, omitdec, 1000, '\0');
 }
 
 // Mibi, kebi, gibibytes sans 'i' suffix. Use NCIPREFIXSTRLEN + 1.
 static inline const char*
 nciprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, '\0');
+  return ncnmetric(val, decimal, buf, omitdec, 1024, '\0');
 }
 
 // Mibi, kebi, gibibytes. Use NCBPREFIXSTRLEN + 1 and NCBPREFIXCOLUMNS.
 static inline const char*
 ncbprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
+  return ncnmetric(val, decimal, buf, omitdec, 1024, 'i');
 }
 ```
 
@@ -101,7 +101,7 @@ suffix, and u is the ***uprefix***. The minimum-width output will take the form
 single-column value such as 5 is passed for ***val***.
 
 Three more defines are provided to simplify formatted fixed-width output using
-the results of **ncmetric**. Each of these macros accepts a character buffer
+the results of **ncnmetric**. Each of these macros accepts a character buffer
 holding the result of the call, and expand to *two* arguments:
 
 * **NCPREFIXFMT(x)**
@@ -116,7 +116,8 @@ to ensure that the output is always **NCPREFIXCOLUMNS** wide.
 
 # RETURN VALUES
 
-**NULL** if input parameters were invalid. Otherwise, a pointer to ***buf***,
+**NULL** if input parameters were invalid, or if **notcurses_init**
+has not been successfully called. Otherwise, a pointer to ***buf***,
 filled in with the formatted output.
 
 # EXAMPLES
@@ -139,7 +140,12 @@ filled in with the formatted output.
 
 # BUGS
 
-This function is difficult to understand.
+This function is difficult to understand, and takes too many arguments.
+
+This function uses a library-wide instance of **struct notcurses**, created
+in **notcurses_init**. If **notcurses_init** is called multiple times in a
+process's lifetime, behavior is undefined. If **notcurses_stop** is called,
+behavior is undefined.
 
 # SEE ALSO
 
