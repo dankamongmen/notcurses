@@ -165,7 +165,6 @@ static int
 nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
                     const struct nctree_item* add){
   const unsigned* p = spec;
-  unsigned depth = 0;
   while(p[1] != UINT_MAX){ // we know p[0] isn't UINT_MAX
     if(*p >= nii->subcount){
       logerror("invalid path element (%u >= %u)", *p, nii->subcount);
@@ -173,7 +172,6 @@ nctree_add_internal(nctree* n, nctree_int_item* nii, const unsigned* spec,
     }
     nii = &nii->subs[*p];
     ++p;
-    ++depth;
   }
   // we're at the node into which |add| ought be inserted
   // this last one can be equal to subcount; we're placing it at the end
