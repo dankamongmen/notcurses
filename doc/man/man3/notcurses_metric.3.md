@@ -142,10 +142,11 @@ filled in with the formatted output.
 
 This function is difficult to understand, and takes too many arguments.
 
-This function uses a library-wide instance of **struct notcurses**, created
-in **notcurses_init**. If **notcurses_init** is called multiple times in a
-process's lifetime, behavior is undefined. If **notcurses_stop** is called,
-behavior is undefined.
+If UTF-8 is available, 'µ' (U+00B5 MICRO SIGN) will be used in place of
+'u' (U+0075 LATIN SMALL LETTER U) for the 'micro-' prefix. This is
+determined by **notcurses_init**/**ncdirect_init**. Once UTF-8 is detected,
+it is used for the lifetime of the process. The alternative would require
+accepting a **const struct notcurses** (and associated API break).
 
 # SEE ALSO
 
@@ -153,4 +154,5 @@ behavior is undefined.
 **notcurses(3)**,
 **notcurses_output(3)**,
 **setlocale(3)**,
-**snprintf(3)**
+**snprintf(3)**,
+**utf-8(7)**
