@@ -34,6 +34,7 @@ jobs:
       - name: cmake
         run: |
           mkdir build && cd build
+          env PKG_CONFIG_PATH="/opt/homebrew/opt/ncurses/lib/pkgconfig" \
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_PANDOC=off
