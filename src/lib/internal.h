@@ -1889,6 +1889,33 @@ int putenv_term(const char* termname) __attribute__ ((nonnull (1)));
 int set_loglevel_from_env(ncloglevel_e* loglevel)
   __attribute__ ((nonnull (1)));
 
+// glibc's _nl_normalize_charset() converts to lowercase, removing everything
+// but alnums. furthermore, "cs" is a valid prefix meaning "character set".
+static inline bool
+encoding_is_utf8(const char *enc){
+  if(tolower(enc[0]) == 'c' && tolower(enc[1]) == 's'){ // strncasecmp() isn't ansi/iso
+    enc += 2; // skip initial "cs" if present.
+  }
+  const char utfstr[] = "utf8";
+  const char* match = utfstr;
+  while(*enc){
+    if(isalnum(*enc)){ // we only care about alnums
+      if(tolower(*enc) != tolower(*match)){
+        return false;
+      }
+      ++match;
+    }
+    ++enc;
+  }
+  if(*match){
+    return false;
+  }
+  return true;
+}
+
+// tell ncmetric that utf8 is available. should be per-context, but isn't.
+void ncmetric_use_utf8(void);
+
 #undef API
 #undef ALLOC
 

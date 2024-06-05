@@ -8,26 +8,27 @@
 
 static const wchar_t UTF8_SUBPREFIX[] = L"mµnpfazy"; // 10^24-1
 static const wchar_t ASCII_SUBPREFIX[] = L"munpfazy"; // 10^24-1
-static const wchar_t* SUBPREFIXES = ASCII_SUBPREFIX;
-static pthread_once_t utf8_detector = PTHREAD_ONCE_INIT;
 
-// sure hope we've called setlocale() by the time we hit this!
+// we want to use UTF8_SUBPREFIX if we have utf8 available to us. we could
+// pull this out of const struct notcurses*, except these ncnmetric() doesn't
+// take one, and we don't want to break the API. instead, we call this from
+// notcurses_init() when we create a utf8 context. a gross hack =\.
+static pthread_once_t utf8_verdict = PTHREAD_ONCE_INIT;
+static const wchar_t* SUBPREFIXES = ASCII_SUBPREFIX;
+
 static void
-detect_utf8(void){
-  const char* encoding = nl_langinfo(CODESET);
-  if(encoding){
-    if(strcmp(encoding, "UTF-8") == 0){
-      SUBPREFIXES = UTF8_SUBPREFIX;
-    }
-  }
+ncmetric_use_utf8_internal(void){
+  SUBPREFIXES = UTF8_SUBPREFIX;
+}
+
+void ncmetric_use_utf8(void){
+  pthread_once(&utf8_verdict, ncmetric_use_utf8_internal);
 }
 
 const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
                       char* buf, int omitdec, uintmax_t mult,
                       int uprefix){
-  // FIXME this is global to the process...ick :/
-  fesetround(FE_TONEAREST);
-  pthread_once(&utf8_detector, detect_utf8);
+  fesetround(FE_TONEAREST); // FIXME global to the process...ick :/
   // these two must have the same number of elements
   const wchar_t* subprefixes = SUBPREFIXES;
   const wchar_t prefixes[] = L"KMGTPEZY"; // 10^21-1 encompasses 2^64-1

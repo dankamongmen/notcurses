@@ -1095,30 +1095,6 @@ int ncplane_destroy_family(ncplane *ncp){
   return ret;
 }
 
-// glibc's _nl_normalize_charset() converts to lowercase, removing everything
-// but alnums. furthermore, "cs" is a valid prefix meaning "character set".
-static bool
-encoding_is_utf8(const char *enc){
-  if(tolower(enc[0]) == 'c' && tolower(enc[1]) == 's'){ // strncasecmp() isn't ansi/iso
-    enc += 2; // skip initial "cs" if present.
-  }
-  const char utfstr[] = "utf8";
-  const char* match = utfstr;
-  while(*enc){
-    if(isalnum(*enc)){ // we only care about alnums
-      if(tolower(*enc) != tolower(*match)){
-        return false;
-      }
-      ++match;
-    }
-    ++enc;
-  }
-  if(*match){
-    return false;
-  }
-  return true;
-}
-
 // it's critical that we're using UTF-8 encoding if at all possible. since the
 // client might not have called setlocale(2) (if they weren't reading the
 // directions...), go ahead and try calling setlocale(LC_ALL, "") and then
@@ -1270,6 +1246,9 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
     return NULL;
+  }
+  if(utf8){
+    ncmetric_use_utf8();
   }
   return ret;
 }
