@@ -153,7 +153,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         --sx;
       }else if(*sx == '$'){
         x = 0;
-        state = STATE_WANT_HASH;
+        state = STATE_WANT_DATA;
       }else if(*sx == '-'){
         x = 0;
         y += 6;
