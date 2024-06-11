@@ -778,6 +778,10 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
     logerror("rowstride %d not a multiple of 4", rowstride);
     return NULL;
   }
+  if(rowstride * 4 < cols || cols <= 0 || rows <= 0){
+    logerror("invalid rowstride or geometry");
+    return NULL;
+  }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     // ffmpeg needs inputs with rows aligned on 192-byte boundaries
@@ -812,6 +816,14 @@ ncvisual* ncvisual_from_sixel(const char* s, unsigned leny, unsigned lenx){
 
 ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
                                    int cols, int alpha){
+  if(rowstride % 3){
+    logerror("rowstride %d not a multiple of 3", rowstride);
+    return NULL;
+  }
+  if(rows <= 0 || cols <= 0 || rowstride < cols * 3){
+    logerror("illegal packed rgb geometry");
+    return NULL;
+  }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = pad_for_image(cols * 4, cols);
@@ -849,6 +861,10 @@ ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
     logerror("rowstride %d not a multiple of 4", rowstride);
     return NULL;
   }
+  if(rows <= 0 || cols <= 0 || rowstride < cols * 4){
+    logerror("illegal packed rgb geometry");
+    return NULL;
+  }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = pad_for_image(cols * 4, cols);
@@ -874,6 +890,11 @@ ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
 
 ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols){
   if(rowstride % 4){
+    logerror("rowstride %d not a multiple of 4", rowstride);
+    return NULL;
+  }
+  if(rows <= 0 || cols <= 0 || rowstride < cols * 4){
+    logerror("illegal bgra geometry");
     return NULL;
   }
   ncvisual* ncv = ncvisual_create();
@@ -907,8 +928,12 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
                                int cols, int palsize, int pstride,
                                const uint32_t* palette){
-  if(rowstride % pstride){
+  if(pstride <= 0 || rowstride % pstride){
     logerror("bad pstride (%d) for rowstride (%d)", pstride, rowstride);
+    return NULL;
+  }
+  if(rows <= 0 || cols <= 0 || rowstride < cols * pstride){
+    logerror("illegal palimg geometry");
     return NULL;
   }
   if(palsize > 256 || palsize <= 0){
