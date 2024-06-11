@@ -3262,21 +3262,27 @@ API ALLOC struct ncvisual* ncvisual_from_file(const char* file)
 // memory at 'rgba'. 'rgba' is laid out as 'rows' lines, each of which is
 // 'rowstride' bytes in length. Each line has 'cols' 32-bit 8bpc RGBA pixels
 // followed by possible padding (there will be 'rowstride' - 'cols' * 4 bytes
-// of padding). The total size of 'rgba' is thus (rows * rowstride) bytes, of
-// which (rows * cols * 4) bytes are actual non-padding data.
+// of padding). The total size of 'rgba' is thus ('rows' * 'rowstride') bytes,
+// of which ('rows' * 'cols' * 4) bytes are actual non-padding data. It is an
+// error if any argument is not positive, if 'rowstride' is not a multiple of
+// 4, or if 'rowstride' is less than 'cols' * 4.
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols)
   __attribute__ ((nonnull (1)));
 
 // ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
-// throughout using 'alpha'.
+// throughout using 'alpha'. It is an error if 'rows', 'rowstride', or 'cols'
+// is not positive, if 'rowstride' is not a multiple of 3, or if 'rowstride'
+// is less than 'cols' * 3.
 API ALLOC struct ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows,
                                                     int rowstride, int cols,
                                                     int alpha)
   __attribute__ ((nonnull (1)));
 
 // ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
-// throughout using 'alpha'. rowstride must be a multiple of 4.
+// throughout using 'alpha'. It is an error if 'rows', 'cols', or 'rowstride'
+// are not positive, if 'rowstride' is not a multiple of 4, or if 'rowstride'
+// is less than 'cols' * 4.
 API ALLOC struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
                                                    int rowstride, int cols,
                                                    int alpha)
@@ -3285,6 +3291,8 @@ API ALLOC struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA. note that this is a
 // byte-oriented layout, despite being bunched in 32-bit pixels; the lowest
 // memory address ought be B, and A is reached by adding 3 to that address.
+// It is an error if 'rows', 'cols', or 'rowstride' are not positive, if
+// 'rowstride' is not a multiple of 4, or if 'rowstride' is less than 'cols' * 4.
 API ALLOC struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows,
                                               int rowstride, int cols)
   __attribute__ ((nonnull (1)));
@@ -3292,6 +3300,9 @@ API ALLOC struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows,
 // ncvisual_from_rgba(), but 'data' is 'pstride'-byte palette-indexed pixels,
 // arranged in 'rows' lines of 'rowstride' bytes each, composed of 'cols'
 // pixels. 'palette' is an array of at least 'palsize' ncchannels.
+// It is an error if 'rows', 'cols', 'rowstride', or 'pstride' are not
+// positive, if 'rowstride' is not a multiple of 'pstride', or if 'rowstride'
+// is less than 'cols' * 'pstride'.
 API ALLOC struct ncvisual* ncvisual_from_palidx(const void* data, int rows,
                                                 int rowstride, int cols,
                                                 int palsize, int pstride,
