@@ -10,6 +10,10 @@ extern "C" {
 #include "logging.h"
 
 uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
+  if(!leny || !lenx){
+    logerror("null sixel geometry");
+    return NULL;
+  }
 #define MAXCOLORS 65535
   // cast is necessary for c++ callers
   uint32_t* rgba = (uint32_t*)calloc(leny * lenx, sizeof(*rgba));
@@ -26,7 +30,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
   // transparent line (the only possible colorless line).
   while(*sx != '#' && *sx != '-'){
     if(!*sx){
-      logerror("expected octothorpe/hyphen, got eol\n");
+      logerror("expected octothorpe/hyphen, got eol");
       return NULL;
     }
     ++sx;
@@ -56,12 +60,12 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }else if('#' == *sx){
         state = STATE_WANT_COLOR;
       }else{
-        logerror("expected octothorpe, got %u\n", *sx);
+        logerror("expected octothorpe, got %u", *sx);
         goto err;
       }
     }else if(state == STATE_WANT_COLOR){
       if(!isdigit(*sx)){
-        logerror("expected digit, got %u\n", *sx);
+        logerror("expected digit, got %u", *sx);
         goto err;
       }
       color = 0;
@@ -84,12 +88,12 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }
     }else if(state == STATE_WANT_COLORSPACE){
       if('2' != *(sx++)){
-        logerror("expected '2', got %u\n", *sx);
+        logerror("expected '2', got %u", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
       if(';' != *(sx++)){
-        logerror("expected semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -100,7 +104,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
-        logerror("expected semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -112,7 +116,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         ++sx;
       }while(isdigit(*sx));
       if(';' != *(sx++)){
-        logerror("expected semicolon, got %u\n", *sx);
+        logerror("expected semicolon, got %u", *sx);
         goto err;
       }
 //fprintf(stderr, "SX: %u 0x%02x %c\n", *sx, *sx, *sx);
@@ -153,7 +157,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
         --sx;
       }else if(*sx == '$'){
         x = 0;
-        state = STATE_WANT_HASH;
+        state = STATE_WANT_DATA;
       }else if(*sx == '-'){
         x = 0;
         y += 6;

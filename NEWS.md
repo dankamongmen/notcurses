@@ -5,6 +5,10 @@ rearrangements of Notcurses.
   * We now normalize the return of `nl_langinfo()` according to the behavior
     of glibc's `_nl_normalize_charset()`, supporting some atypical synonyms
     of `UTF-8`.
+  * Fixed a bug in `ncsixel_as_rgba()` (called by `ncvisual_from_sixel()`)
+    that broke loading of sixels having more than 12 rows (sixel generation
+    from images worked fine). Thanks, waveplate!
+  * Reject illegal geometries in `ncvisual_from_*()`.
 
 * 3.0.9 (2022-12-10)
   * Eliminated infinite loop in `ncplane_move_family_above()`.
