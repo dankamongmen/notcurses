@@ -58,14 +58,15 @@ handle_opts(const char** argv){
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
     }else if(strncmp(*argv, "-l", 2) == 0){ // just require -l
+      const char* larg = *(argv + 1);
       char* eol;
-      long ll = strtol(*argv + 2, &eol, 0);
+      long ll = strtol(larg, &eol, 0);
       if(ll < NCLOGLEVEL_SILENT || ll > NCLOGLEVEL_TRACE){
-        std::cerr << "illegal loglevel: " << *argv + 2 << std::endl;
+        std::cerr << "illegal loglevel: " << larg << std::endl;
         exit(EXIT_FAILURE);
       }
       if(*eol){
-        std::cerr << "illegal loglevel: " << *argv + 2 << std::endl;
+        std::cerr << "illegal loglevel: " << larg << std::endl;
         exit(EXIT_FAILURE);
       }
       std::cout << "got loglevel " << ll << std::endl;
