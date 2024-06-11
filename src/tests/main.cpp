@@ -45,6 +45,7 @@ auto is_test_tty() -> bool {
   return true;
 }
 
+// doctest options might be strewn within, so only match explicitly
 static void
 handle_opts(const char** argv){
   // now that we've spun up one testing framework, switch to _SILENT unless
@@ -57,9 +58,14 @@ handle_opts(const char** argv){
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
-    }else if(strncmp(*argv, "-l", 2) == 0){ // just require -l
+    }else if(strcmp(*argv, "-l") == 0){
       const char* larg = *(argv + 1);
       char* eol;
+      if(larg == NULL){
+        std::cerr << "option requires argument: -l" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+fprintf(stderr, "ARG: %s LARG: %p\n", *argv, larg);
       long ll = strtol(larg, &eol, 0);
       if(ll < NCLOGLEVEL_SILENT || ll > NCLOGLEVEL_TRACE){
         std::cerr << "illegal loglevel: " << larg << std::endl;
@@ -71,6 +77,7 @@ handle_opts(const char** argv){
       }
       std::cout << "got loglevel " << ll << std::endl;
       loglevel = static_cast<ncloglevel_e>(ll);
+      ++argv;
     }
     ++argv;
   }
@@ -138,21 +145,6 @@ reset_terminal(){
   }
 }
 
-// from https://github.com/onqtam/doctest/blob/master/doc/markdown/commandline.md
-class dt_removed {
-  std::vector<const char*> vec;
-public:
-  dt_removed(const char** argv_in) {
-      for(; *argv_in; ++argv_in)
-          if(strncmp(*argv_in, "--dt-", strlen("--dt-")) != 0)
-              vec.push_back(*argv_in);
-      vec.push_back(nullptr);
-  }
-
-  auto argc() -> int { return static_cast<int>(vec.size()) - 1; }
-  auto argv() -> const char** { return &vec[0]; }
-};
-
 auto lang_and_term() -> void {
   const char* lang = getenv("LANG");
   if(lang == nullptr){
@@ -182,7 +174,6 @@ auto main(int argc, const char **argv) -> int {
   context.setOption("order-by", "name"); // sort the test cases by their name
   context.applyCommandLine(argc, argv);
   context.setOption("no-breaks", true); // don't break in the debugger when assertions fail
-  dt_removed args(argv);
   handle_opts(argv);
   int res = context.run(); // run
   reset_terminal();
