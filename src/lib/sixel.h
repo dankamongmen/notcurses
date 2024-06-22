@@ -161,7 +161,7 @@ uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
       }else if(*sx == '-'){
         x = 0;
         y += 6;
-        state = STATE_WANT_HASH;
+        state = STATE_WANT_DATA;
       }else{
 //fprintf(stderr, "RLE: %d pos: %d x %d\n", rle, y, x);
         if(y + 6 > (leny + 5) / 6 * 6){
