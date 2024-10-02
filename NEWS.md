@@ -12,7 +12,7 @@ rearrangements of Notcurses.
   * We build with FFMPEG 7.1.
 
 * 3.0.10 (2024-10-02)
-  * Cursed.
+  * Cursed. See https://github.com/dankamongmen/notcurses/issues/2795.
 
 * 3.0.9 (2022-12-10)
   * Eliminated infinite loop in `ncplane_move_family_above()`.
