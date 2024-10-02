@@ -199,6 +199,7 @@ uint32_t nccell_fg_alpha(const nccell* cl);
 uint32_t nccell_fg_palindex(const nccell* cl);
 uint32_t nccell_fg_rgb(const nccell* cl);
 uint32_t nccell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b);
+uint32_t ncchannel_alpha(uint32_t channel);
 uint32_t ncchannel_rgb(uint32_t channel);
 uint32_t ncchannel_rgb8(uint32_t channel, unsigned* restrict r, unsigned* restrict g,
                unsigned* restrict b);
@@ -238,7 +239,6 @@ uint64_t nctabbed_hdrchan(struct nctabbed* nt);
 uint64_t nctabbed_selchan(struct nctabbed* nt);
 uint64_t nctabbed_sepchan(struct nctabbed* nt);
 unsigned nccell_cols(const nccell* c);
-unsigned ncchannel_alpha(uint32_t channel);
 unsigned ncchannel_b(uint32_t channel);
 unsigned ncchannel_g(uint32_t channel);
 unsigned ncchannel_palindex(uint32_t channel);

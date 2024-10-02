@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.10 (upcoming)
+* 3.0.10 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
     of glibc's `_nl_normalize_charset()`, supporting some atypical synonyms
     of `UTF-8`.
