@@ -580,7 +580,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
-  nccell* rendfb = calloc(sizeof(*rendfb), totalcells);
+  nccell* rendfb = calloc(totalcells, sizeof(*rendfb));
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
