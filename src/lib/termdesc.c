@@ -8,6 +8,40 @@
 #include "windows.h"
 #include "linux.h"
 
+// tlen -- size of escape table. tused -- used bytes in same.
+// returns -1 if the starting location is >= 65535. otherwise,
+// copies tstr into the table, and sets up 1-biased index.
+int grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
+                   size_t* tlen, size_t* tused){
+  // the actual table can grow past 64KB, but we can't start there, as
+  // we only have 16-bit indices.
+  if(*tused >= 65535){
+    fprintf(stderr, "Can't add escape %d to full table\n", esc);
+    return -1;
+  }
+  if(get_escape(ti, esc)){
+    fprintf(stderr, "Already defined escape %d (%s)\n",
+            esc, get_escape(ti, esc));
+    return -1;
+  }
+  size_t slen = strlen(tstr) + 1; // count the nul term
+  if(*tlen - *tused < slen){
+    // guaranteed to give us enough space to add tstr (and then some)
+    size_t newsize = *tlen + 4020 + slen; // don't pull two pages ideally
+    char* tmp = realloc(ti->esctable, newsize);
+    if(tmp == NULL){
+      return -1;
+    }
+    ti->esctable = tmp;
+    *tlen = newsize;
+  }
+  // we now are guaranteed sufficient space to copy tstr
+  memcpy(ti->esctable + *tused, tstr, slen);
+  ti->escindices[esc] = *tused + 1; // one-bias
+  *tused += slen;
+  return 0;
+}
+
 // there does not exist any true standard terminal size. with that said, we
 // need assume *something* for the case where we're not actually attached to
 // a terminal (mainly unit tests, but also daemon environments). in preference

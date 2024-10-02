@@ -252,40 +252,8 @@ char* termdesc_longterm(const tinfo* ti);
 
 int locate_cursor(tinfo* ti, unsigned* cursor_y, unsigned* cursor_x);
 
-// tlen -- size of escape table. tused -- used bytes in same.
-// returns -1 if the starting location is >= 65535. otherwise,
-// copies tstr into the table, and sets up 1-biased index.
-static inline int
-grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
-               size_t* tlen, size_t* tused){
-  // the actual table can grow past 64KB, but we can't start there, as
-  // we only have 16-bit indices.
-  if(*tused >= 65535){
-    fprintf(stderr, "Can't add escape %d to full table\n", esc);
-    return -1;
-  }
-  if(get_escape(ti, esc)){
-    fprintf(stderr, "Already defined escape %d (%s)\n",
-            esc, get_escape(ti, esc));
-    return -1;
-  }
-  size_t slen = strlen(tstr) + 1; // count the nul term
-  if(*tlen - *tused < slen){
-    // guaranteed to give us enough space to add tstr (and then some)
-    size_t newsize = *tlen + 4020 + slen; // don't pull two pages ideally
-    char* tmp = (char*)realloc(ti->esctable, newsize); // cast for c++
-    if(tmp == NULL){
-      return -1;
-    }
-    ti->esctable = tmp;
-    *tlen = newsize;
-  }
-  // we now are guaranteed sufficient space to copy tstr
-  memcpy(ti->esctable + *tused, tstr, slen);
-  ti->escindices[esc] = *tused + 1; // one-bias
-  *tused += slen;
-  return 0;
-}
+int grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
+                   size_t* tlen, size_t* tused);
 
 static inline int
 ncfputs(const char* ext, FILE* out){
