@@ -327,7 +327,7 @@ int troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       current_subsection->ttype = node;
       current_para = current_subsection;
     }else if(node->ltype == LINE_PP){
-      if(dom->root == NULL){
+      if(current_para == NULL){
         fprintf(stderr, "paragraph transcends structure\n");
         return -1;
       }
@@ -336,7 +336,7 @@ int troff_parse(const unsigned char* map, size_t mlen, pagedom* dom){
       }
       current_para->ttype = node;
     }else if(node->ltype == LINE_TP){
-      if(dom->root == NULL){
+      if(current_para == NULL){
         fprintf(stderr, "tagged paragraph transcends structure\n");
         return -1;
       }
