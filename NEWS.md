@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.10 (2024-10-02)
+* 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
     of glibc's `_nl_normalize_charset()`, supporting some atypical synonyms
     of `UTF-8`.
@@ -9,6 +9,10 @@ rearrangements of Notcurses.
     that broke loading of sixels having more than 12 rows (sixel generation
     from images worked fine). Thanks, waveplate!
   * Reject illegal geometries in `ncvisual_from_*()`.
+  * We build with FFMPEG 7.1.
+
+* 3.0.10 (2024-10-02)
+  * Cursed.
 
 * 3.0.9 (2022-12-10)
   * Eliminated infinite loop in `ncplane_move_family_above()`.
