@@ -567,19 +567,6 @@ pixelmouse_click(inputctx* ictx, ncinput* ni, long y, long x){
   x /= ictx->ti->cellpxx;
   x -= ictx->lmargin;
   y -= ictx->tmargin;
-  // convert from 1- to 0-indexing, and account for margins
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
   ni->y = y;
   ni->x = x;
   load_ncinput(ictx, ni);
@@ -631,19 +618,6 @@ mouse_click(inputctx* ictx, unsigned release, char follow){
   }
   x -= (1 + ictx->lmargin);
   y -= (1 + ictx->tmargin);
-  // convert from 1- to 0-indexing, and account for margins
-  if(x < 0 || y < 0){ // click was in margins, drop it
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)x >= ictx->ti->dimx - (ictx->rmargin + ictx->lmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
-  if((unsigned)y >= ictx->ti->dimy - (ictx->bmargin + ictx->tmargin)){
-    logwarn("dropping click in margins %ld/%ld", y, x);
-    return;
-  }
   tni.x = x;
   tni.y = y;
   tni.ypx = -1;
@@ -956,6 +930,10 @@ kitty_cb_functional(inputctx* ictx){
   unsigned val = amata_next_numeric(&ictx->amata, "\x1b[", ';');
   unsigned mods = amata_next_numeric(&ictx->amata, "", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", '~');
+  if(val == 13) {
+    kitty_kbd(ictx, NCKEY_F03, mods, ev);
+    return 23;
+  }
   uint32_t kval = kitty_functional(val);
   if(kval == val){
     kval = legacy_functional(val);
@@ -1015,6 +993,13 @@ kitty_cb_f3(inputctx* ictx){
   unsigned mods = amata_next_numeric(&ictx->amata, "\x1b[1;", ':');
   unsigned ev = amata_next_numeric(&ictx->amata, "", 'R');
   kitty_kbd(ictx, NCKEY_F03, mods, ev);
+  return 2;
+}
+
+static int
+kitty_cb_f3_alternate(inputctx* ictx){
+  amata_next_numeric(&ictx->amata, "\x1b[", '~');
+  kitty_kbd(ictx, NCKEY_F03, 1, 0);
   return 2;
 }
 
@@ -1768,9 +1753,16 @@ build_cflow_automaton(inputctx* ictx){
     { "[E", simple_cb_begin, },
     { "[<\\N;\\N;\\NM", mouse_press_cb, },
     { "[<\\N;\\N;\\Nm", mouse_release_cb, },
+    { "[<\\N;-\\N;\\NM", mouse_press_cb, },
+    { "[<\\N;-\\N;\\Nm", mouse_release_cb, },
+    { "[<\\N;\\N;-\\NM", mouse_press_cb, },
+    { "[<\\N;\\N;-\\Nm", mouse_release_cb, },
+    { "[<\\N;-\\N;-\\NM", mouse_press_cb, },
+    { "[<\\N;-\\N;-\\Nm", mouse_release_cb, },
     // technically these must begin with "4" or "8"; enforce in callbacks
     { "[\\N;\\N;\\Nt", geom_cb, },
     { "[\\Nu", kitty_cb_simple, },
+    { "[13~", kitty_cb_f3_alternate, },
     { "[\\N;\\N~", wezterm_cb, },
     { "[\\N;\\Nu", kitty_cb, },
     { "[\\N;\\N;\\Nu", kitty_cb_atxt1, },
@@ -2052,6 +2044,7 @@ prep_kitty_special_keys(inputctx* ictx){
     { .esc = "\x1b[P", .key = NCKEY_F01, },
     { .esc = "\x1b[Q", .key = NCKEY_F02, },
     { .esc = "\x1b[R", .key = NCKEY_F03, },
+    { .esc = "\x1b[13~", .key = NCKEY_F03, },
     { .esc = "\x1b[S", .key = NCKEY_F04, },
     { .esc = "\x1b[127;2u", .key = NCKEY_BACKSPACE,
       .modifiers = NCKEY_MOD_SHIFT, },
