@@ -146,7 +146,7 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.tpreserved){
       ret |= tcsetattr(nc->tcache.ttyfd, TCSAFLUSH, nc->tcache.tpreserved);
     }
-    // don't use use leave_alternate_screen() here; we need pop the keyboard
+    // don't use leave_alternate_screen() here; we need pop the keyboard
     // whether we're in regular or alternate screen, and we need it done
     // before returning to the regular screen if we're in the alternate. if
     // we drained input, we never sent a keyboard modifier; send none now.
