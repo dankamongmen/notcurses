@@ -533,29 +533,15 @@ make_ncpile(notcurses* nc, ncplane* n){
 }
 
 
-static inline size_t  ncplane_sizeof_cellarray( unsigned rows, unsigned cols)
+static inline size_t  ncplane_sizeof_cellarray( size_t rows, size_t cols)
 {
-  size_t fbsize;
-  size_t size;
-
-  // (nat) This protects against size_t overflow and also checks
-  // that dimensions are not zero en-passant. Why ?
-  // Assume: size_t is 16 bit, unsigned is 8 bit (UINT_MAX: 0xFF)
-  // nccell is sizeof( *p->fb): 0x10 (128 bit)
-  //
-  // 0xFF * 0xFF * 0x10 = 0xFE010, but overflows so: 0xE010
-  // 0x3F * 0x3F * 0x10 = 0xf810 is the biggest square possible
-
-  size = (size_t) cols * (size_t) rows;
-  if( size < (size_t) cols || size < (size_t) rows)
+  // check if multiplication would overflow
+  // calloc will deal with overflow due to sizeof(nccell)
+  if( ! rows || (cols > SIZE_MAX / rows)) 
     return 0;
-
-  fbsize = sizeof( struct nccell) * size;
-  if( fbsize <= size)
-    return 0;
-
-  return fbsize;
+  return rows * cols;
 }
+
 // create a new ncplane at the specified location (relative to the true screen,
 // having origin at 0,0), having the specified size, and put it at the top of
 // the planestack. its cursor starts at its origin; its style starts as null.
@@ -615,8 +601,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     p->lenx = nopts->cols;
   }
 
-  size_t fbsize = ncplane_sizeof_cellarray( p->leny, p->lenx);
-  if( ! fbsize || (p->fb = calloc(1,fbsize)) == NULL){
+  size_t fbsize = ncplane_sizeof_cellarray(p->leny, p->lenx);
+  if(!fbsize || (p->fb = calloc(sizeof(struct nccell),fbsize)) == NULL){
     logerror("error allocating cellmatrix (r=%u, c=%u)",
              p->leny, p->lenx);
     free(p);
