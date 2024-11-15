@@ -572,7 +572,7 @@ int ncplane_qrcode(ncplane* n, unsigned* ymax, unsigned* xmax, const void* data,
   if(*ymax > n->leny - starty){
     return -1;
   }
-  if(*ymax < qrcode_rows(1)){
+  if(*ymax * 2 < qrcode_rows(1)){
     return -1;
   }
   if(*xmax < qrcode_cols(1)){
