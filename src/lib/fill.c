@@ -619,9 +619,12 @@ int ncplane_qrcode(ncplane* n, unsigned* ymax, unsigned* xmax, const void* data,
       free(rgba);
       if(ncv){
         ret = square;
+        // we don't allow degredation because 2x1 is the only blitter which
+        // can generate a qrcode with proper aspect ratio. ascii is thus out.
         struct ncvisual_options vopts = {
           .n = n,
           .blitter = blitfxn,
+          .flags = NCVISUAL_OPTION_NODEGRADE,
         };
         if(ncvisual_blit(ncplane_notcurses(n), ncv, &vopts) == n){
           ret = square;
