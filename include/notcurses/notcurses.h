@@ -4591,6 +4591,8 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
 // properly-scaled values are written back to '*ymax' and '*xmax').
+// NCBLIT_2x1 is always used, and the call will fail if it is not available,
+// as only this blitter can generate a proper aspect ratio.
 API int ncplane_qrcode(struct ncplane* n, unsigned* ymax, unsigned* xmax,
                        const void* data, size_t len)
   __attribute__ ((nonnull (1, 4)));

@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.12 (not yet released)
+  * Fixed a bug when rendering QR codes into a small area. QR codes now
+    require NCBLIT_2x1, as that is the only blitter which can generate a
+    proper aspect ratio. It thus no longer works in an ASCII environment.
+
 * 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
     of glibc's `_nl_normalize_charset()`, supporting some atypical synonyms
