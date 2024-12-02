@@ -2654,7 +2654,8 @@ ncplane_perimeter(struct ncplane* n, const nccell* ul, const nccell* ur,
 // 'c', 'c' is copied into it, and the original glyph is considered the fill
 // target. We do the same to all cardinally-connected cells having this same
 // fill target. Returns the number of cells polyfilled. An invalid initial y, x
-// is an error. Returns the number of cells filled, or -1 on error.
+// is an error. Returns the number of cells filled, or -1 on error. Does
+// not update cursor position.
 API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c)
   __attribute__ ((nonnull (1, 4)));
 
@@ -2669,7 +2670,7 @@ API int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c)
 // color everything the same, all four channels should be equivalent. The
 // resulting alpha values are equal to incoming alpha values. Returns the
 // number of cells filled on success, or -1 on failure.
-// Palette-indexed color is not supported.
+// Palette-indexed color is not supported. Does not update cursor position.
 //
 // Preconditions for gradient operations (error otherwise):
 //
@@ -2686,7 +2687,7 @@ API int ncplane_gradient(struct ncplane* n, int y, int x, unsigned ylen,
 // Do a high-resolution gradient using upper blocks and synced backgrounds.
 // This doubles the number of vertical gradations, but restricts you to
 // half blocks (appearing to be full blocks). Returns the number of cells
-// filled on success, or -1 on error.
+// filled on success, or -1 on error. Does not update cursor position.
 API int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
                             unsigned xlen, uint32_t ul, uint32_t ur,
                             uint32_t ll, uint32_t lr)
@@ -2698,7 +2699,7 @@ API int ncplane_gradient2x1(struct ncplane* n, int y, int x, unsigned ylen,
 // is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
-// or -1 on failure.
+// or -1 on failure. Does not update the cursor position.
 API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
                        unsigned xlen, uint16_t stylemask)
   __attribute__ ((nonnull (1)));
@@ -2709,7 +2710,7 @@ API int ncplane_format(struct ncplane* n, int y, int x, unsigned ylen,
 // is specified by 'ylen', 'xlen', and 0 may be specified to indicate everything
 // remaining to the right and below, respectively. It is an error for any
 // coordinate to be outside the plane. Returns the number of cells set,
-// or -1 on failure.
+// or -1 on failure. Does not update the cursor position.
 API int ncplane_stain(struct ncplane* n, int y, int x, unsigned ylen,
                       unsigned xlen, uint64_t ul, uint64_t ur,
                       uint64_t ll, uint64_t lr)
