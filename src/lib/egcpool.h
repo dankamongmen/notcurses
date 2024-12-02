@@ -20,10 +20,10 @@
 extern "C" {
 #endif
 
-// cells only provide storage for a single 7-bit character. if there's anything
-// more than that, it's spilled into the egcpool, and the cell is given an
-// offset. when a cell is released, the memory it owned is zeroed out, and
-// recognizable as use for another cell.
+// an nccell only provides storage for up to 4 bytes of an EGC. if there's
+// anything more than that, it's spilled into the egcpool, and the nccell
+// records the offset. when an nccell is released, the egcpool memory it
+// owned is zeroed out, and made usable by another nccell.
 
 typedef struct egcpool {
   char* pool;         // ringbuffer of attached extension storage
@@ -43,10 +43,16 @@ egcpool_init(egcpool* p){
 static inline int
 egcpool_grow(egcpool* pool, size_t len){
   size_t newsize = pool->poolsize * 2;
+  if(newsize < pool->poolsize){
+    return -1; // pernicious overflow (see also POOL_MAXIMUM_BYTES check below)
+  }
   if(newsize < POOL_MINIMUM_ALLOC){
     newsize = POOL_MINIMUM_ALLOC;
   }
   while(len > newsize - pool->poolsize){ // ensure we make enough space
+    if(newsize * 2 < newsize){
+      return -1;
+    }
     newsize *= 2;
   }
   if(newsize > POOL_MAXIMUM_BYTES){
