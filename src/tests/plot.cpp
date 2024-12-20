@@ -256,6 +256,33 @@ TEST_CASE("Plot") {
     ncuplot_destroy(p);
   }
 
+  SUBCASE("Octantlot1Row") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 1, .cols = 25,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
+    popts.gridtype = NCBLIT_4x2;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 5 ; ++i){
+      for(auto j = 0 ; j < 5 ; ++j){
+        CHECK(0 == ncuplot_add_sample(p, i * 10 + j * 2, i));
+        CHECK(0 == ncuplot_add_sample(p, i * 10 + j * 2 + 1, j));
+      }
+    }
+    CHECK(0 == notcurses_render(nc_));
+    ncuplot_destroy(p);
+  }
+
   SUBCASE("BraillePlot1Row") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 25,

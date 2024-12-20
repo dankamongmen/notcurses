@@ -84,9 +84,9 @@ contribute to the plot. Supplying an **x** below the current window is an
 error, and has no effect.
 
 More granular block glyphs means more resolution in your plots, but they can
-be difficult to differentiate at small text sizes. Sextants and Braille allow 
-for more resolution on the independent variable. It can be difficult to predict
-how the Braille glyphs will look in a given font.
+be difficult to differentiate at small text sizes. Octants, sextants, and Braille
+allow for more resolution on the independent variable. It can be difficult to
+predict how the Braille glyphs will look in a given font.
 
 The same **ncplot_options** struct can be used with all ncplot types. The
 **flags** field is a bitmask composed of:

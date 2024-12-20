@@ -10,6 +10,7 @@ TEST_CASE("Blit") {
 
   SUBCASE("BlitterStrings") {
     CHECK(0 == strcmp("pixel", notcurses_str_blitter(NCBLIT_PIXEL)));
+    CHECK(0 == strcmp("oct", notcurses_str_blitter(NCBLIT_4x2)));
     CHECK(0 == strcmp("sex", notcurses_str_blitter(NCBLIT_3x2)));
     CHECK(0 == strcmp("quad", notcurses_str_blitter(NCBLIT_2x2)));
     CHECK(0 == strcmp("half", notcurses_str_blitter(NCBLIT_2x1)));

@@ -28,6 +28,7 @@ int main(int argc, char** argv){
     NCBLIT_2x1,     // full/(upper|left) blocks
     NCBLIT_2x2,     // quadrants
     NCBLIT_3x2,     // sextants
+    NCBLIT_4x2,     // octants
     NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
     NCBLIT_PIXEL,   // pixel graphics
     -1,

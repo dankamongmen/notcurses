@@ -126,6 +126,11 @@ namespace ncpp
 			return notcurses_cansextant (nc);
 		}
 
+		bool can_octant () const noexcept
+		{
+			return notcurses_canoctant (nc);
+		}
+
 		bool can_utf8 () const noexcept
 		{
 			return notcurses_canutf8 (nc);

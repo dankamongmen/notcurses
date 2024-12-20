@@ -711,6 +711,448 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   return total;
 }
 
+// Bit is *set* where octant *is*:
+//   0  1
+//   2  3
+//   4  5
+//   6  7
+// Same as NCOCTBLOCKS but as array of characters
+static const char* const octant_egcs[256] = {
+  "\x20",
+  "\U0001CEA8",
+  "\U0001CEAB",
+  "\U0001FB82",
+  "\U0001CD00",
+  "\U00002598",
+  "\U0001CD01",
+  "\U0001CD02",
+  "\U0001CD03",
+  "\U0001CD04",
+  "\U0000259D",
+  "\U0001CD05",
+  "\U0001CD06",
+  "\U0001CD07",
+  "\U0001CD08",
+  "\U00002580",
+  "\U0001CD09",
+  "\U0001CD0A",
+  "\U0001CD0B",
+  "\U0001CD0C",
+  "\U0001FBE6",
+  "\U0001CD0D",
+  "\U0001CD0E",
+  "\U0001CD0F",
+  "\U0001CD10",
+  "\U0001CD11",
+  "\U0001CD12",
+  "\U0001CD13",
+  "\U0001CD14",
+  "\U0001CD15",
+  "\U0001CD16",
+  "\U0001CD17",
+  "\U0001CD18",
+  "\U0001CD19",
+  "\U0001CD1A",
+  "\U0001CD1B",
+  "\U0001CD1C",
+  "\U0001CD1D",
+  "\U0001CD1E",
+  "\U0001CD1F",
+  "\U0001FBE7",
+  "\U0001CD20",
+  "\U0001CD21",
+  "\U0001CD22",
+  "\U0001CD23",
+  "\U0001CD24",
+  "\U0001CD25",
+  "\U0001CD26",
+  "\U0001CD27",
+  "\U0001CD28",
+  "\U0001CD29",
+  "\U0001CD2A",
+  "\U0001CD2B",
+  "\U0001CD2C",
+  "\U0001CD2D",
+  "\U0001CD2E",
+  "\U0001CD2F",
+  "\U0001CD30",
+  "\U0001CD31",
+  "\U0001CD32",
+  "\U0001CD33",
+  "\U0001CD34",
+  "\U0001CD35",
+  "\U0001FB85",
+  "\U0001CEA3",
+  "\U0001CD36",
+  "\U0001CD37",
+  "\U0001CD38",
+  "\U0001CD39",
+  "\U0001CD3A",
+  "\U0001CD3B",
+  "\U0001CD3C",
+  "\U0001CD3D",
+  "\U0001CD3E",
+  "\U0001CD3F",
+  "\U0001CD40",
+  "\U0001CD41",
+  "\U0001CD42",
+  "\U0001CD43",
+  "\U0001CD44",
+  "\U00002596",
+  "\U0001CD45",
+  "\U0001CD46",
+  "\U0001CD47",
+  "\U0001CD48",
+  "\U0000258C",
+  "\U0001CD49",
+  "\U0001CD4A",
+  "\U0001CD4B",
+  "\U0001CD4C",
+  "\U0000259E",
+  "\U0001CD4D",
+  "\U0001CD4E",
+  "\U0001CD4F",
+  "\U0001CD50",
+  "\U0000259B",
+  "\U0001CD51",
+  "\U0001CD52",
+  "\U0001CD53",
+  "\U0001CD54",
+  "\U0001CD55",
+  "\U0001CD56",
+  "\U0001CD57",
+  "\U0001CD58",
+  "\U0001CD59",
+  "\U0001CD5A",
+  "\U0001CD5B",
+  "\U0001CD5C",
+  "\U0001CD5D",
+  "\U0001CD5E",
+  "\U0001CD5F",
+  "\U0001CD60",
+  "\U0001CD61",
+  "\U0001CD62",
+  "\U0001CD63",
+  "\U0001CD64",
+  "\U0001CD65",
+  "\U0001CD66",
+  "\U0001CD67",
+  "\U0001CD68",
+  "\U0001CD69",
+  "\U0001CD6A",
+  "\U0001CD6B",
+  "\U0001CD6C",
+  "\U0001CD6D",
+  "\U0001CD6E",
+  "\U0001CD6F",
+  "\U0001CD70",
+  "\U0001CEA0",
+  "\U0001CD71",
+  "\U0001CD72",
+  "\U0001CD73",
+  "\U0001CD74",
+  "\U0001CD75",
+  "\U0001CD76",
+  "\U0001CD77",
+  "\U0001CD78",
+  "\U0001CD79",
+  "\U0001CD7A",
+  "\U0001CD7B",
+  "\U0001CD7C",
+  "\U0001CD7D",
+  "\U0001CD7E",
+  "\U0001CD7F",
+  "\U0001CD80",
+  "\U0001CD81",
+  "\U0001CD82",
+  "\U0001CD83",
+  "\U0001CD84",
+  "\U0001CD85",
+  "\U0001CD86",
+  "\U0001CD87",
+  "\U0001CD88",
+  "\U0001CD89",
+  "\U0001CD8A",
+  "\U0001CD8B",
+  "\U0001CD8C",
+  "\U0001CD8D",
+  "\U0001CD8E",
+  "\U0001CD8F",
+  "\U00002597",
+  "\U0001CD90",
+  "\U0001CD91",
+  "\U0001CD92",
+  "\U0001CD93",
+  "\U0000259A",
+  "\U0001CD94",
+  "\U0001CD95",
+  "\U0001CD96",
+  "\U0001CD97",
+  "\U00002590",
+  "\U0001CD98",
+  "\U0001CD99",
+  "\U0001CD9A",
+  "\U0001CD9B",
+  "\U0000259C",
+  "\U0001CD9C",
+  "\U0001CD9D",
+  "\U0001CD9E",
+  "\U0001CD9F",
+  "\U0001CDA0",
+  "\U0001CDA1",
+  "\U0001CDA2",
+  "\U0001CDA3",
+  "\U0001CDA4",
+  "\U0001CDA5",
+  "\U0001CDA6",
+  "\U0001CDA7",
+  "\U0001CDA8",
+  "\U0001CDA9",
+  "\U0001CDAA",
+  "\U0001CDAB",
+  "\U00002582",
+  "\U0001CDAC",
+  "\U0001CDAD",
+  "\U0001CDAE",
+  "\U0001CDAF",
+  "\U0001CDB0",
+  "\U0001CDB1",
+  "\U0001CDB2",
+  "\U0001CDB3",
+  "\U0001CDB4",
+  "\U0001CDB5",
+  "\U0001CDB6",
+  "\U0001CDB7",
+  "\U0001CDB8",
+  "\U0001CDB9",
+  "\U0001CDBA",
+  "\U0001CDBB",
+  "\U0001CDBC",
+  "\U0001CDBD",
+  "\U0001CDBE",
+  "\U0001CDBF",
+  "\U0001CDC0",
+  "\U0001CDC1",
+  "\U0001CDC2",
+  "\U0001CDC3",
+  "\U0001CDC4",
+  "\U0001CDC5",
+  "\U0001CDC6",
+  "\U0001CDC7",
+  "\U0001CDC8",
+  "\U0001CDC9",
+  "\U0001CDCA",
+  "\U0001CDCB",
+  "\U0001CDCC",
+  "\U0001CDCD",
+  "\U0001CDCE",
+  "\U0001CDCF",
+  "\U0001CDD0",
+  "\U0001CDD1",
+  "\U0001CDD2",
+  "\U0001CDD3",
+  "\U0001CDD4",
+  "\U0001CDD5",
+  "\U0001CDD6",
+  "\U0001CDD7",
+  "\U0001CDD8",
+  "\U0001CDD9",
+  "\U0001CDDA",
+  "\U00002584",
+  "\U0001CDDB",
+  "\U0001CDDC",
+  "\U0001CDDD",
+  "\U0001CDDE",
+  "\U00002599",
+  "\U0001CDDF",
+  "\U0001CDE0",
+  "\U0001CDE1",
+  "\U0001CDE2",
+  "\U0000259F",
+  "\U0001CDE3",
+  "\U00002586",
+  "\U0001CDE4",
+  "\U0001CDE5",
+  "\U00002588",
+};
+
+// Solve for the cell rendered by this 4x2 sample. None of the input pixels may
+// be transparent (that ought already have been handled). We use exhaustive
+// search, which might be quite computationally intensive for the worst case
+// (all eight pixels are different colors). We want to solve for the 2-partition
+// of pixels that minimizes total source distance from the resulting lerps.
+static const char*
+oct_solver(const uint32_t rgbas[8], uint64_t* channels, unsigned blendcolors,
+           unsigned nointerpolate){
+  // Each element within the set of 256 has an inverse element within
+  // the set, for which we would calculate the same total differences,
+  // so just handle the first 128.
+  //
+  // We loop over the bitstrings, dividing the pixels into two sets,
+  // and then taking a general lerp over each set. we then compute the
+  // sum of absolute differences, and see if it's the new minimum.
+  int best = -1;
+  uint32_t mindiff = UINT_MAX;
+  for(size_t glyph = 0; glyph < 128; ++glyph){
+    unsigned rsum0 = 0, rsum1 = 0;
+    unsigned gsum0 = 0, gsum1 = 0;
+    unsigned bsum0 = 0, bsum1 = 0;
+    int insum = 0;
+    int outsum = 0;
+    for(unsigned mask = 0 ; mask < 8 ; ++mask){
+      if(glyph & (1u << mask)){
+        if(!nointerpolate || !insum){
+          rsum0 += ncpixel_r(rgbas[mask]);
+          gsum0 += ncpixel_g(rgbas[mask]);
+          bsum0 += ncpixel_b(rgbas[mask]);
+          ++insum;
+        }
+      }else{
+        if(!nointerpolate || !outsum){
+          rsum1 += ncpixel_r(rgbas[mask]);
+          gsum1 += ncpixel_g(rgbas[mask]);
+          bsum1 += ncpixel_b(rgbas[mask]);
+          ++outsum;
+        }
+      }
+    }
+    uint32_t l0 = generalerp(rsum0, gsum0, bsum0, insum);
+    uint32_t l1 = generalerp(rsum1, gsum1, bsum1, outsum);
+    uint32_t totaldiff = 0;
+    for(unsigned mask = 0 ; mask < 8 ; ++mask){
+      unsigned r, g, b;
+      if(glyph & (1u << mask)){
+        ncchannel_rgb8(l0, &r, &g, &b);
+      }else{
+        ncchannel_rgb8(l1, &r, &g, &b);
+      }
+      uint32_t rdiff = rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
+                                ncpixel_b(rgbas[mask]), r, g, b);
+      totaldiff += rdiff;
+    }
+    if(totaldiff < mindiff){
+      mindiff = totaldiff;
+      best = glyph;
+      ncchannels_set_fchannel(channels, l0);
+      ncchannels_set_bchannel(channels, l1);
+    }
+    if(totaldiff == 0){ // can't beat that!
+      break;
+    }
+  }
+  assert(best >= 0 && best < 128);
+  if(blendcolors){
+    ncchannels_set_fg_alpha(channels, NCALPHA_BLEND);
+    ncchannels_set_bg_alpha(channels, NCALPHA_BLEND);
+  }
+  return octant_egcs[best];
+}
+
+static const char*
+oct_trans_check(nccell* c, const uint32_t rgbas[8], unsigned blendcolors,
+                uint32_t transcolor, unsigned nointerpolate){
+  unsigned transstring = 0;
+  unsigned r = 0, g = 0, b = 0;
+  unsigned div = 0;
+  for(unsigned mask = 0 ; mask < 8 ; ++mask){
+    if(rgba_trans_p(rgbas[mask], transcolor)){
+      transstring |= (1u << mask);
+    }else if(!nointerpolate || !div){
+      r += ncpixel_r(rgbas[mask]);
+      g += ncpixel_g(rgbas[mask]);
+      b += ncpixel_b(rgbas[mask]);
+      ++div;
+    }
+  }
+  if(transstring == 0){ // there was no transparency
+    return NULL;
+  }
+  nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
+  // there were some transparent pixels. since they get priority, the foreground
+  // is just a general lerp across non-transparent pixels.
+  const char* egc = octant_egcs[transstring ^ 0xff];
+  nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
+//fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
+  if(*egc == ' '){ // entirely transparent
+    nccell_set_fg_alpha(c, NCALPHA_TRANSPARENT);
+    return "";
+  }else{ // partially transparent, thus div >= 1
+//fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
+    cell_set_fchannel(c, generalerp(r, g, b, div));
+    if(blendcolors){
+      nccell_set_fg_alpha(c, NCALPHA_BLEND);
+    }
+    cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
+                              !(transstring & 20u), !(transstring & 40u));
+  }
+//fprintf(stderr, "OCT-BQ: 0x%x\n", cell_blittedquadrants(c));
+  return egc;
+}
+
+// octant blitter. maps 4x2 to each cell. since we only have two colors at
+// our disposal (foreground and background), we lose some fidelity.
+static inline int
+octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+            const blitterargs* bargs){
+  const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
+  unsigned dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+//fprintf(stderr, "octblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
+  const unsigned char* dat = data;
+  int visy = bargs->begy;
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 4){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
+      return -1;
+    }
+    int visx = bargs->begx;
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+      uint32_t rgbas[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+      memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
+      if(visx < bargs->begx + lenx - 1){
+        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * 4)), sizeof(*rgbas));
+        if(visy < bargs->begy + leny - 1){
+          memcpy(&rgbas[3], (dat + (linesize * (visy + 1)) + ((visx + 1) * 4)), sizeof(*rgbas));
+          if(visy < bargs->begy + leny - 2){
+            memcpy(&rgbas[5], (dat + (linesize * (visy + 2)) + ((visx + 1) * 4)), sizeof(*rgbas));
+            if(visy < bargs->begy + leny - 3){
+              memcpy(&rgbas[7], (dat + (linesize * (visy + 3)) + ((visx + 1) * 4)), sizeof(*rgbas));
+            }
+          }
+        }
+      }
+      if(visy < bargs->begy + leny - 1){
+        memcpy(&rgbas[2], (dat + (linesize * (visy + 1)) + (visx * 4)), sizeof(*rgbas));
+        if(visy < bargs->begy + leny - 2){
+          memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * 4)), sizeof(*rgbas));
+          if(visy < bargs->begy + leny - 3){
+            memcpy(&rgbas[6], (dat + (linesize * (visy + 3)) + (visx * 4)), sizeof(*rgbas));
+          }
+        }
+      }
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
+      c->channels = 0;
+      c->stylemask = 0;
+      const char* egc = oct_trans_check(c, rgbas, blendcolors, bargs->transcolor, nointerpolate);
+      if(egc == NULL){ // no transparency; run a full solver
+        egc = oct_solver(rgbas, &c->channels, blendcolors, nointerpolate);
+        cell_set_blitquadrants(c, 1, 1, 1, 1);
+      }
+//fprintf(stderr, "oct EGC: %s channels: %016lx\n", egc, c->channels);
+      if(*egc){
+        if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
+        }
+        ++total;
+      }else{
+        nccell_release(nc, c);
+      }
+    }
+  }
+  return total;
+}
+
 // fold the r, g, and b components of the pixel into *r, *g, and *b, and
 // increment *foldcount
 static inline void
@@ -867,6 +1309,34 @@ static struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_3x2,     .width = 2, .height = 3,
      .egcs = NCSEXBLOCKS,    .plotegcs = L" 🬞🬦▐🬏🬭🬵🬷🬓🬱🬹🬻▌🬲🬺█",
      .blit = sextant_blit,   .name = "sex",           .fill = false, },
+   { .geom = NCBLIT_4x2,     .width = 2, .height = 4,
+     .egcs = NCOCTBLOCKS,
+     .plotegcs = (L"\0x20"
+                  L"\U0001cea0"
+                  L"\U00002597"
+                  L"\U0001CD96"
+                  L"\U0001CD91"
+                  L"\U0001CEA3"
+                  L"\U00002582" 
+                  L"\U0001CDCB"
+                  L"\U0001CDD3"
+                  L"\U0001CDCD"
+                  L"\U00002596" 
+                  L"\U0001CDBB"
+                  L"\U00002584" 
+                  L"\U0001CDE1"
+                  L"\U0001CDDC"
+                  L"\U0001CD48"
+                  L"\U0001CDBF"
+                  L"\U0001CDDE"
+                  L"\U00002586" 
+                  L"\U0001CDDF"
+                  L"\U0000258C" 
+                  L"\U0001CDC0"
+                  L"\U00002599" 
+                  L"\U0001CDE4"
+                  L"\U0001CDE0"),
+     .blit = octant_blit,    .name = "oct",           .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4,
      .egcs = NCBRAILLEEGCS,
      .plotegcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
@@ -898,10 +1368,19 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
   if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
     return NULL;
   }
-  // without braille support, NCBLIT_BRAILLE decays to NCBLIT_3x2
+  // without braille support, NCBLIT_BRAILLE decays to NCBLIT_4x2
   if(setid == NCBLIT_BRAILLE){
     if(tcache->caps.braille){
       return &notcurses_blitters[setid - 1];
+    }else if(!may_degrade){
+      return NULL;
+    }
+    setid = NCBLIT_4x2;
+  }
+  // without octant support, NCBLIT_4x2 decays to NCBLIT_3x2
+  if(setid == NCBLIT_4x2){
+    if(tcache->caps.octants){
+       return &notcurses_blitters[setid - 1];
     }else if(!may_degrade){
       return NULL;
     }
