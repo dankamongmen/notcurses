@@ -220,6 +220,12 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     memset(&fakevopts, 0, sizeof(fakevopts));
     vopts = &fakevopts;
   }
+  if (vopts->begx || vopts->begy ||
+      (vopts->leny && n && vopts->leny != n->pixy) ||
+      (vopts->leny && n && vopts->leny != n->pixx)) {
+    logerror("visual not cropped in ncvisual_geom_inner (internal error)");
+    return -1;
+  }
   // check basic vopts preconditions
   if(vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
     logwarn("warning: unknown ncvisual options %016" PRIx64, vopts->flags);
@@ -449,13 +455,81 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
   return 0;
 }
 
-int ncvisual_geom(const notcurses* nc, const ncvisual* n,
-                  const struct ncvisual_options* vopts, ncvgeom* geom){
+static int ncvisual_translate_and_crop(const ncvisual* orig, const struct ncvisual_options* vopts,
+                                       ncvisual* dst, struct ncvisual_options* dst_vopts) {
+  if((orig != NULL && dst == NULL) ||
+     (vopts != NULL && dst_vopts == NULL)){
+    return -1;
+  }
+  struct ncvisual_options fakevvopts;
+  if(dst_vopts == NULL) {
+    dst_vopts = &fakevvopts;
+  }
+  if(orig){
+    *dst = *orig;
+    dst->owndata = false;
+  }
+  if(vopts){
+    *dst_vopts = *vopts;
+  } else {
+    memset(dst_vopts, 0, sizeof(*dst_vopts));
+  }
+
+  if(!dst){
+    dst_vopts->begx = 0;
+    dst_vopts->begy = 0;
+    return 0;
+  }
+
+  if(dst_vopts->begx >= dst->pixx || dst_vopts->begy >= dst->pixy){
+    logerror("visual too large %u > %d or %u > %d", dst_vopts->begy, dst->pixy, dst_vopts->begx, dst->pixx);
+    return -1;
+  }
+
+  if(dst_vopts->begx){
+    dst->data += dst_vopts->begx;
+    dst->pixx -= dst_vopts->begx;
+    dst_vopts->begx = 0;
+  }
+  if(dst_vopts->begy){
+    dst->data += dst_vopts->begy * dst->rowstride / 4;
+    dst->pixy -= dst_vopts->begy;
+    dst_vopts->begy = 0;
+  }
+  if(dst_vopts->lenx){
+    if(dst->pixx > dst_vopts->lenx){
+      dst->pixx = dst_vopts->lenx;
+    }
+    dst_vopts->lenx = 0;
+  }
+  if(dst_vopts->leny){
+    if(dst->pixy > dst_vopts->leny){
+      dst->pixy = dst_vopts->leny;
+    }
+    dst_vopts->leny = 0;
+  }
+  return 0;
+}
+
+int ncvisual_geom(const notcurses* nc, const ncvisual* n_orig,
+                  const struct ncvisual_options* vopts_orig, ncvgeom* geom){
+  ncvisual n_temp;
+  struct ncvisual_options vopts_temp;
+  if(ncvisual_translate_and_crop(n_orig, vopts_orig, &n_temp, &vopts_temp) < 0){
+    return -1;
+  }
   const struct blitset* bset;
   unsigned disppxy, disppxx, outy, outx;
   int placey, placex;
-  return ncvisual_geom_inner(nc ? &nc->tcache : NULL, n, vopts, geom, &bset,
-                             &disppxy, &disppxx, &outy, &outx, &placey, &placex);
+  int res = ncvisual_geom_inner(nc ? &nc->tcache : NULL, n_orig ? &n_temp : NULL, &vopts_temp, geom,
+                                &bset, &disppxy, &disppxx, &outy, &outx, &placey, &placex);
+  if(res >= 0){
+    if(vopts_orig){
+      geom->begx = vopts_orig->begx;
+      geom->begy = vopts_orig->begy;
+    }
+  }
+  return 0;
 }
 
 void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
@@ -1133,32 +1207,33 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   return n;
 }
 
-ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-//fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
-  struct ncvisual_options fakevopts;
-  if(vopts == NULL){
-    memset(&fakevopts, 0, sizeof(fakevopts));
-    vopts = &fakevopts;
+ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv_orig, const struct ncvisual_options* vopts_orig){
+  ncvisual ncv_temp;
+  struct ncvisual_options vopts_temp;
+  if(ncvisual_translate_and_crop(ncv_orig, vopts_orig, &ncv_temp, &vopts_temp) < 0){
+    return NULL;
   }
-  loginfo("inblit %dx%d %d@%d %dx%d @ %dx%d %p", ncv->pixy, ncv->pixx, vopts->y, vopts->x,
-          vopts->leny, vopts->lenx, vopts->begy, vopts->begx, vopts->n);
+
+//fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
+  loginfo("inblit %dx%d %d@%d %dx%d @ %dx%d %p", ncv_temp.pixy, ncv_temp.pixx, vopts_temp.y, vopts_temp.x,
+          vopts_temp.leny, vopts_temp.lenx, vopts_temp.begy, vopts_temp.begx, vopts_temp.n);
   ncvgeom geom;
   const struct blitset* bset;
   unsigned disppxy, disppxx, outy, outx;
   int placey, placex;
-  if(ncvisual_geom_inner(&nc->tcache, ncv, vopts, &geom, &bset,
+  if(ncvisual_geom_inner(&nc->tcache, &ncv_temp, &vopts_temp, &geom, &bset,
                          &disppxy, &disppxx, &outy, &outx,
                          &placey, &placex)){
     // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
   }
-  ncplane* n = vopts->n;
+  ncplane* n = vopts_temp.n;
   uint32_t transcolor = 0;
-  if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
-    transcolor = 0x1000000ull | vopts->transcolor;
+  if(vopts_temp.flags & NCVISUAL_OPTION_ADDALPHA){
+    transcolor = 0x1000000ull | vopts_temp.transcolor;
   }
   ncplane* createdn = NULL; // to destroy on error
-  if(n == NULL || (vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+  if(n == NULL || (vopts_temp.flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
@@ -1169,13 +1244,13 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
       .resizecb = NULL,
       .flags = 0,
     };
-    if(vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+    if(vopts_temp.flags & NCVISUAL_OPTION_HORALIGNED){
       nopts.flags |= NCPLANE_OPTION_HORALIGNED;
-      nopts.x = vopts->x;
+      nopts.x = vopts_temp.x;
     }
-    if(vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+    if(vopts_temp.flags & NCVISUAL_OPTION_VERALIGNED){
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
-      nopts.y = vopts->y;
+      nopts.y = vopts_temp.y;
     }
     loginfo("placing new plane: %d/%d @ %d/%d 0x%016" PRIx64, nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
     if(n == NULL){
@@ -1191,13 +1266,13 @@ ncplane* ncvisual_blit(notcurses* nc, ncvisual* ncv, const struct ncvisual_optio
   }
   logdebug("blit to plane %p at %d/%d geom %dx%d", n, ncplane_abs_y(n), ncplane_abs_x(n), ncplane_dim_y(n), ncplane_dim_x(n));
   if(geom.blitter != NCBLIT_PIXEL){
-    n = ncvisual_render_cells(ncv, bset, placey, placex,
-                              &geom, n, vopts->flags, transcolor);
+    n = ncvisual_render_cells(&ncv_temp, bset, placey, placex,
+                              &geom, n, vopts_temp.flags, transcolor);
   }else{
-    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex,
+    n = ncvisual_render_pixels(nc, &ncv_temp, bset, placey, placex,
                                &geom, n,
-                               vopts->flags, transcolor,
-                               vopts->pxoffy, vopts->pxoffx);
+                               vopts_temp.flags, transcolor,
+                               vopts_temp.pxoffy, vopts_temp.pxoffx);
   }
   if(n == NULL){
     ncplane_destroy(createdn);
