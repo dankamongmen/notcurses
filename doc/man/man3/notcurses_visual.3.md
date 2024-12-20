@@ -24,6 +24,7 @@ typedef enum {
   NCBLIT_2x1,     // halves + 1x1
   NCBLIT_2x2,     // quadrants + 2x1
   NCBLIT_3x2,     // sextants + 1x1
+  NCBLIT_4x2,     // octants + quadrants + 2x1 + 1x1
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
   NCBLIT_PIXEL,   // pixel graphics
   NCBLIT_4x1,     // four vertical levels, (plots)
@@ -238,6 +239,7 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_2x1**: Adds the half blocks (▄▀) to **NCBLIT_1x1**.
 * **NCBLIT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCBLIT_2x1**.
 * **NCBLIT_3x2**: Adds sextants to **NCBLIT_1x1**.
+* **NCBLIT_4x2**: Adds octants to **NCBLIT_2x2**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
 * **NCBLIT_PIXEL**: Adds pixel graphics (these also work in ASCII).
 
@@ -343,10 +345,11 @@ or if both ***nc*** and ***n*** are **NULL**.
 
 **ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
-**NCBLIT_1x1**. If ***scale*** is **NCSCALE_NONE** or **NCSCALE_SCALE**, the
-aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
-(see **notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
-**NCBLIT_2x2**.
+**NCBLIT_1x1**. If octants are available, (see **notcurses_canictant**), the
+aspect-preserving **NCBLIT_4x2** will be returned. If ***scale*** is
+**NCSCALE_NONE** or **NCSCALE_SCALE**, the aspect-preserving **NCBLIT_2x1**
+will be returned. If sextants are available (see **notcurses_cansextant**),
+this will be **NCBLIT_3x2**, or otherwise **NCBLIT_2x2**.
 
 # NOTES
 

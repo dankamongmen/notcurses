@@ -17,7 +17,7 @@ terminal environment, including material loaded from **terminfo(5)** (based
 on the **TERM** environment variable), replies from the terminal in
 response to our queries, and built-in heuristics.
 
-The Unicode half block, quadrant, sextant, and Braille glyphs are all included
+The Unicode half block, quadrant, sextant, octant, and Braille glyphs are all included
 in the output. If their appearance is irregular, it might behoove you to choose
 another font.
 
@@ -70,6 +70,7 @@ The next five lines describe properties of the terminal environment:
   * 2x1: Upper- and lower-half blocks are available
   * 2x2: Quadrant blocks are available
   * 3x2: Sextant blocks are available
+  * 4x2: Octant blocks are available
   * 4x2: Braille characters are available
   * img: Images can be decoded
   * vid: Video can be decoded
@@ -93,7 +94,7 @@ To the right of this material is the Notcurses homepage's URI, and the
 Notcurses logo (the latter only if bitmap graphics are available).
 
 The final eleven lines, only printed when in a UTF8 locale, show various
-Unicode glyphs. The first four lines include the quadrant, sextant, and
+Unicode glyphs. The first four lines include the quadrant, sextant, octant, and
 box-drawing characters. The next four lines include the entire Braille set.
 The following two lines include many of the Symbols for Legacy Computing
 introduced in Unicode 13. The final line includes many emoji.

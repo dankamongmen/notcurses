@@ -16,6 +16,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     { NCBLIT_2x1, notcurses_canhalfblock, },
     { NCBLIT_2x2, notcurses_canquadrant, },
     { NCBLIT_3x2, notcurses_cansextant, },
+    { NCBLIT_4x2, notcurses_canoctant, },
     { NCBLIT_PIXEL, notcurses_canpixel, },
   };
   struct ncplane* stdn = notcurses_stdplane(nc);

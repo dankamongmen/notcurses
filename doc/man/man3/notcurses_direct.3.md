@@ -114,6 +114,8 @@ notcurses_direct - the Direct Mode API
 
 **bool ncdirect_cansextant(const struct ncdirect* ***nc***);**
 
+**bool ncdirect_canoctant(const struct ncdirect* ***nc***);**
+
 **bool ncdirect_canbraille(const struct ncdirect* ***nc***);**
 
 **bool ncdirect_canget_cursor(const struct ncdirect* ***nc***);**

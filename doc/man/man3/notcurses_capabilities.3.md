@@ -34,6 +34,8 @@ notcurses_capabilities - runtime capability detection
 
 **bool notcurses_cansextant(const struct notcurses* ***nc***);**
 
+**bool notcurses_canoctant(const struct notcurses* ***nc***);**
+
 **bool notcurses_canbraille(const struct notcurses* ***nc***);**
 
 **bool notcurses_canpixel(const struct notcurses* ***nc***);**
@@ -92,6 +94,8 @@ multimedia support capable of decoding videos.
 **notcurses_canutf8** returns **true** if the configured locale uses
 UTF-8 encoding, and the locale was successfully loaded.
 
+**notcurses_canoctant** returns **true** if the heuristics suggest
+that the terminal can properly render Unicode 17 octants. Likewise,
 **notcurses_cansextant** returns **true** if the heuristics suggest
 that the terminal can properly render Unicode 13 sextants. Likewise,
 **notcurses_canquadrant** and **notcurses_canhalfblock** return **true**

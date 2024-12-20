@@ -226,9 +226,9 @@ likely get blanks or � (U+FFFD, REPLACEMENT CHARACTER) for missing characters,
 and subsequent characters on the line may be misplaced.
 
 It is worth knowing that several terminals draw the block characters directly,
-rather than loading them from a font. This is generally desirable. Quadrants
-and sextants are not the place to demonstrate your design virtuosity. To
-inspect your environment's rendering of drawing characters, run
+rather than loading them from a font. This is generally desirable. Quadrants,
+sextants, and octants are not the place to demonstrate your design virtuosity.
+To inspect your environment's rendering of drawing characters, run
 `notcurses-info`. The desired output ought look something like this:
 
 <p align="center">
@@ -309,7 +309,8 @@ If things break or seem otherwise lackluster, **please** consult the
   Notcurses will not make use of bitmap protocols unless the terminal positively
   indicates support for them, even if <code>NCBLIT_PIXEL</code> has been
   requested. Likewise, sextants (<code>NCBLIT_3x2</code>) won't be used without
-  Unicode 13 support, etc. <code>ncvisual_blit()</code> will use the best blitter
+  Unicode 13 support, octants (<code>NCBLIT_4x2</code>) won't be used without
+  Unicode 17 support, etc. <code>ncvisual_blit()</code> will use the best blitter
   available, unless <code>NCVISUAL_OPTION_NODEGRADE</code> is provided (in
   which case it will fail).
 </details>

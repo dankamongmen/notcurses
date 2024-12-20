@@ -32,6 +32,9 @@ rgba_blitter_default(const tinfo* tcache, ncscale_e scale){
   if(!tcache->caps.utf8){
     return NCBLIT_1x1; // only one that works in ASCII
   }
+  if(tcache->caps.octants){
+    return NCBLIT_4x2;
+  }
   if(scale == NCSCALE_NONE || scale == NCSCALE_SCALE){
     return NCBLIT_2x1;
   }

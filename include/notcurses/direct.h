@@ -394,6 +394,12 @@ ncdirect_cansextant(const struct ncdirect* nc){
   return ncdirect_canutf8(nc) && ncdirect_capabilities(nc)->sextants;
 }
 
+// Can we reliably use Unicode 16 octants?
+static inline bool
+ncdirect_canoctant(const struct ncdirect* nc){
+  return ncdirect_canutf8(nc) && ncdirect_capabilities(nc)->octants;
+}
+
 // Can we reliably use Unicode Braille?
 static inline bool
 ncdirect_canbraille(const struct ncdirect* nc){

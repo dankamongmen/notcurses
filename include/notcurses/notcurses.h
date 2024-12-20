@@ -68,6 +68,7 @@ typedef enum {
   NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
   NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
   NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
+  NCBLIT_4x2,     // octants
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
   NCBLIT_PIXEL,   // pixel graphics
   // these blitters are suitable only for plots, not general media
@@ -1641,6 +1642,7 @@ typedef struct nccapabilities {
   bool halfblocks;// we assume halfblocks, but some are known to lack them
   bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
+  bool octants;   // do we have (good, vetted) Unicode 16 octant support?
   bool braille;   // do we have Braille support? (linux console does not)
 } nccapabilities;
 
@@ -1754,6 +1756,12 @@ notcurses_canquadrant(const struct notcurses* nc){
 __attribute__ ((nonnull (1))) __attribute__ ((pure)) static inline bool
 notcurses_cansextant(const struct notcurses* nc){
   return notcurses_canutf8(nc) && notcurses_capabilities(nc)->sextants;
+}
+
+// Can we reliably use Unicode 16 octants?
+__attribute__ ((nonnull (1))) __attribute__ ((pure)) static inline bool
+notcurses_canoctant(const struct notcurses* nc){
+  return notcurses_canutf8(nc) && notcurses_capabilities(nc)->octants;
 }
 
 // Can we reliably use Unicode Braille?
@@ -3510,11 +3518,12 @@ API ALLOC struct ncplane* ncvisual_subtitle_plane(struct ncplane* parent,
 // Get the default *media* (not plot) blitter for this environment when using
 // the specified scaling method. Currently, this means:
 //  - if lacking UTF-8, NCBLIT_1x1
+//  - otherwise, if octants are known to be good, NCBLIT_4x2
 //  - otherwise, if not NCSCALE_STRETCH, NCBLIT_2x1
 //  - otherwise, if sextants are not known to be good, NCBLIT_2x2
 //  - otherwise NCBLIT_3x2
 // NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
-// NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
+// NCBLIT_4x2 or NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
 API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale)
   __attribute__ ((nonnull (1)));
 
