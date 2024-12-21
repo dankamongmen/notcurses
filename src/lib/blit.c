@@ -22,7 +22,7 @@ lerp(uint32_t c0, uint32_t c1, unsigned nointerpolate){
   return ret;
 }
 
-// linearly interpolate a 24-bit RGB value along each 8-bit channel
+// trilinearly interpolate a 24-bit RGB value along each 8-bit channel
 static inline uint32_t
 trilerp(uint32_t c0, uint32_t c1, uint32_t c2, unsigned nointerpolate){
   uint32_t ret = 0;
