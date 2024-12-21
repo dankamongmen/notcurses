@@ -221,8 +221,8 @@ int ncvisual_geom_inner(const tinfo* ti, const ncvisual* n,
     vopts = &fakevopts;
   }
   if (vopts->begx || vopts->begy ||
-      (vopts->leny && n && vopts->leny != n->pixy) ||
-      (vopts->leny && n && vopts->leny != n->pixx)) {
+      (vopts->leny && n != NULL && vopts->leny != n->pixy) ||
+      (vopts->lenx && n != NULL && vopts->lenx != n->pixx)) {
     logerror("visual not cropped in ncvisual_geom_inner (internal error)");
     return -1;
   }
@@ -524,7 +524,7 @@ int ncvisual_geom(const notcurses* nc, const ncvisual* n_orig,
   int res = ncvisual_geom_inner(nc ? &nc->tcache : NULL, n_orig ? &n_temp : NULL, &vopts_temp, geom,
                                 &bset, &disppxy, &disppxx, &outy, &outx, &placey, &placex);
   if(res >= 0){
-    if(vopts_orig){
+    if(vopts_orig != NULL){
       geom->begx = vopts_orig->begx;
       geom->begy = vopts_orig->begy;
     }
