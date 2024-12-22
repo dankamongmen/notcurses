@@ -1220,7 +1220,7 @@ braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       //  1 4
       //  2 5
       //  3 6
-      //  4 7
+      //  7 8
       // FIXME fold this into the above?
       if(!rgba_trans_p(*rgbbase_l0, bargs->transcolor)){
         egcidx |= 1u;

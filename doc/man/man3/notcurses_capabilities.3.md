@@ -95,9 +95,9 @@ multimedia support capable of decoding videos.
 UTF-8 encoding, and the locale was successfully loaded.
 
 **notcurses_canoctant** returns **true** if the heuristics suggest
-that the terminal can properly render Unicode 17 octants. Likewise,
+that the terminal can properly render Unicode 16 octants.
 **notcurses_cansextant** returns **true** if the heuristics suggest
-that the terminal can properly render Unicode 13 sextants. Likewise,
+that the terminal can properly render Unicode 13 sextants, and
 **notcurses_canquadrant** and **notcurses_canhalfblock** return **true**
 if the heuristics suggest that the terminal can properly render Unicode
 quadrants and halfblocks, respectively. **notcurses_canbraille** returns

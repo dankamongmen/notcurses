@@ -3518,12 +3518,12 @@ API ALLOC struct ncplane* ncvisual_subtitle_plane(struct ncplane* parent,
 // Get the default *media* (not plot) blitter for this environment when using
 // the specified scaling method. Currently, this means:
 //  - if lacking UTF-8, NCBLIT_1x1
-//  - otherwise, if octants are known to be good, NCBLIT_4x2
 //  - otherwise, if not NCSCALE_STRETCH, NCBLIT_2x1
+//  - otherwise, if octants are known to be good, NCBLIT_4x2
 //  - otherwise, if sextants are not known to be good, NCBLIT_2x2
 //  - otherwise NCBLIT_3x2
 // NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
-// NCBLIT_4x2 or NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
+// NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
 API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale)
   __attribute__ ((nonnull (1)));
 

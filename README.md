@@ -310,7 +310,7 @@ If things break or seem otherwise lackluster, **please** consult the
   indicates support for them, even if <code>NCBLIT_PIXEL</code> has been
   requested. Likewise, sextants (<code>NCBLIT_3x2</code>) won't be used without
   Unicode 13 support, octants (<code>NCBLIT_4x2</code>) won't be used without
-  Unicode 17 support, etc. <code>ncvisual_blit()</code> will use the best blitter
+  Unicode 16 support, etc. <code>ncvisual_blit()</code> will use the best blitter
   available, unless <code>NCVISUAL_OPTION_NODEGRADE</code> is provided (in
   which case it will fail).
 </details>
