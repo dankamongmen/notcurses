@@ -345,11 +345,12 @@ or if both ***nc*** and ***n*** are **NULL**.
 
 **ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
-**NCBLIT_1x1**. If octants are available, (see **notcurses_canictant**), the
-aspect-preserving **NCBLIT_4x2** will be returned. If ***scale*** is
-**NCSCALE_NONE** or **NCSCALE_SCALE**, the aspect-preserving **NCBLIT_2x1**
-will be returned. If sextants are available (see **notcurses_cansextant**),
-this will be **NCBLIT_3x2**, or otherwise **NCBLIT_2x2**.
+**NCBLIT_1x1**. If ***scale*** is **NCSCALE_NONE** or **NCSCALE_SCALE**, the
+aspect-preserving **NCBLIT_2x1** will be returned. If octants are
+available (see **notcurses_canoctant**), this will be **NCBLIT_4x2**,
+or otherwise, if sextants are available (see
+**notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
+**NCBLIT_2x2**.
 
 # NOTES
 
@@ -362,7 +363,8 @@ a multimedia backend include **ncvisual_from_file** and
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
 
-Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
+Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_4x2**, **NCBLIT_3x2**,
+**NCBLIT_4x1**,
 **NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
 the raised dots, rather than drawing all eight dots with two different styles.
 It's often best for the emulator to draw these glyphs itself.
