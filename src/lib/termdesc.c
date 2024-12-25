@@ -1046,6 +1046,10 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
   if(wcwidth(L'🬸') < 0){
     ti->caps.sextants = false;
   }
+  // run a wcwidth(𜴀) to guarantee libc Unicode 16 support, independent of term
+  if(wcwidth(L'𜴀') < 0){
+    ti->caps.octants = false;
+  }
   ti->termname = tname;
   return 0;
 }
