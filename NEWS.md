@@ -3,8 +3,11 @@ rearrangements of Notcurses.
 
 * 3.0.12 (not yet released)
   * Fixed a bug when rendering QR codes into a small area. QR codes now
-    require NCBLIT_2x1, as that is the only blitter which can generate a
+    require `NCBLIT_2x1`, as that is the only blitter which can generate a
     proper aspect ratio. It thus no longer works in an ASCII environment.
+  * The `NCBLIT_4x2` "octant" blitter has been added, making use of new
+    characters from Unicode 16. `notcurses_canoctant()` has been added to
+    check for `NCBLIT_4x2` support at runtime. Thanks, eschnett!
 
 * 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
