@@ -254,19 +254,20 @@ to work out very well for images, but (depending on the font) can be very
 good for plots.
 
 A string can be transformed to a blitter with **notcurses_lex_blitter**,
-recognizing **ascii**, **half**, **quad**, **sex**, **fourstep**, **braille**,
-**eightstep**, and **pixel**. Conversion in the opposite direction is performed
-with **notcurses_str_blitter**.
+recognizing **ascii**, **half**, **quad**, **sex**, **oct**, **fourstep**,
+**braille**, **eightstep**, and **pixel**. Conversion in the opposite direction
+is performed with **notcurses_str_blitter**.
 
 In the absence of scaling, for a given set of pixels, more rows and columns in
 the blitter will result in a smaller output image. An image rendered with
 **NCBLIT_1x1** will be twice as tall as the same image rendered with
 **NCBLIT_2x1**, which will be twice as wide as the same image rendered with
-**NCBLIT_2x2**. The same image rendered with **NCBLIT_3x2** will be one-third
-as tall and one-half as wide as the original **NCBLIT_1x1** render (again, this
-depends on **NCSCALE_NONE**). If the output size is held constant (using for
-instance **NCSCALE_SCALE_HIRES** and a large image), more rows and columns will
-result in more effective resolution.
+**NCBLIT_2x2**, and double the height and width of the same image rendered
+with **NCBLIT_4x2**. The same image rendered with **NCBLIT_3x2** will be
+one-third as tall and one-half as wide as the original **NCBLIT_1x1** render
+(again, this depends on **NCSCALE_NONE**). If the output size is held constant
+(using for instance **NCSCALE_SCALE_HIRES** and a large image), more rows and
+columns will result in more effective resolution.
 
 A string can be transformed to a scaling mode with **notcurses_lex_scalemode**,
 recognizing **stretch**, **scalehi**, **hires**, **scale**, and **none**.
@@ -276,7 +277,9 @@ Assuming a cell is twice as tall as it is wide, **NCBLIT_1x1** (and indeed
 any NxN blitter) will stretch an image by a factor of 2 in the vertical
 dimension. **NCBLIT_2x1** will not distort the image whatsoever, as it maps a
 vector two pixels high and one pixel wide to a single cell. **NCBLIT_3x2** will
-stretch an image by a factor of 1.5.
+stretch an image by a factor of 1.5. **NCBLIT_4x2** will preserve the aspect
+ratio similarly to **NCBLIT_2x1**, but can lose color fidelity (there can be
+more than two colors in a block of eight pixels).
 
 The cell's dimension in pixels is ideally evenly divisible by the blitter
 geometry. If **NCBLIT_3x2** is used together with a cell 8 pixels wide and
@@ -346,11 +349,10 @@ or if both ***nc*** and ***n*** are **NULL**.
 **ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
 **NCBLIT_1x1**. If ***scale*** is **NCSCALE_NONE** or **NCSCALE_SCALE**, the
-aspect-preserving **NCBLIT_2x1** will be returned. If octants are
-available (see **notcurses_canoctant**), this will be **NCBLIT_4x2**,
-or otherwise, if sextants are available (see
-**notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
-**NCBLIT_2x2**.
+aspect-preserving **NCBLIT_2x1** will be returned. For **NCSCALE_STRETCH**,
+**NCBLIT_4x2** is chosen if octants are available (see **notcurses_canoctant**),
+otherwise **NCBLIT_3x2** if sextants are available (see **notcurses_cansextant**),
+and otherwise **NCBLIT_2x2**.
 
 # NOTES
 
@@ -363,11 +365,10 @@ a multimedia backend include **ncvisual_from_file** and
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
 
-Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_4x2**, **NCBLIT_3x2**,
-**NCBLIT_4x1**,
-**NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
-the raised dots, rather than drawing all eight dots with two different styles.
-It's often best for the emulator to draw these glyphs itself.
+Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
+**NCBLIT_4x2**, **NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought
+ideally draw only the raised dots, rather than drawing all eight dots with two
+different styles. It's often best for the emulator to draw these glyphs itself.
 
 Several emulators claim to implement Sixel, but do so in a more or less broken
 fashion. I consider **XTerm** and **foot** to be reference Sixel
