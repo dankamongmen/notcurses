@@ -33,7 +33,7 @@ typedef struct egcpool {
 } egcpool;
 
 #define POOL_MINIMUM_ALLOC BUFSIZ
-#define POOL_MAXIMUM_BYTES (1u << 24u) // max 16MiB
+#define POOL_MAXIMUM_BYTES (1 << 24) // max 16MiB (assumes 32 bits)
 
 static inline void
 egcpool_init(egcpool* p){
@@ -41,8 +41,8 @@ egcpool_init(egcpool* p){
 }
 
 static inline int
-egcpool_grow(egcpool* pool, size_t len){
-  size_t newsize = pool->poolsize * 2;
+egcpool_grow(egcpool* pool, int len){
+  int newsize = pool->poolsize * 2;
   if(newsize < pool->poolsize){
     return -1; // pernicious overflow (see also POOL_MAXIMUM_BYTES check below)
   }
