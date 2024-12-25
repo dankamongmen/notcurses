@@ -29,7 +29,7 @@ be any non-negative number.
 
 **-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
-**-b** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
+**-b** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **oct**, **braille**, or **pixel**.
 
 **-m margins**: Define rendering margins (see below).
 
@@ -62,7 +62,7 @@ the highest-resolution blitter available. **scale** resizes the object so that
 the longer edge of the rendering area is matched exactly, and the other edge is
 changed to maintain aspect ratio. **none** uses the original image size. Both
 **scale** and **none** aim for a 1:1 aspect ratio, and will thus prefer **half**
-to **quad**, **sex**, or **braille**. **scalehi** and **hires** use the
+to **quad**, **sex**, **oct**, or **braille**. **scalehi** and **hires** use the
 highest-resolution blitter available.
 
 Blitters can be selected at runtime by pressing '0' through '6'.
