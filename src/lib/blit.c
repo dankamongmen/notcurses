@@ -653,11 +653,12 @@ sex_trans_check(nccell* c, const uint32_t rgbas[6], unsigned blendcolors,
   return egc;
 }
 
-// sextant blitter. maps 3x2 to each cell. since we only have two colors at
-// our disposal (foreground and background), we lose some fidelity.
+// sextant/octant blitter. maps 3x2 or 4x2 to each cell. since we only have two
+// colors at our disposal (foreground and background), we generally lose some
+// color fidelity.
 static inline int
-sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-             const blitterargs* bargs){
+hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+           const blitterargs* bargs, int cellheight){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   unsigned dimy, dimx, x, y;
@@ -666,13 +667,15 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 //fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 3){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += cellheight){
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
+      uint32_t rgbas[cellheight * 2];
+      memset(rgbas, 0, sizeof(rgbas));
+      // FIXME need to handle this generally based off cellheight
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
       if(visx < bargs->begx + lenx - 1){
         memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * 4)), sizeof(*rgbas));
@@ -709,6 +712,18 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     }
   }
   return total;
+}
+
+static inline int
+sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+             const blitterargs* bargs){
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3);
+}
+
+static inline int
+octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+           const blitterargs* bargs){
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4);
 }
 
 // Bit is set where octant is present:
@@ -930,12 +945,6 @@ static inline int
 braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs){
   return blit_4x2(nc, linesize, data, leny, lenx, bargs, braille_egcs);
-}
-
-static inline int
-octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-            const blitterargs* bargs){
-  return blit_4x2(nc, linesize, data, leny, lenx, bargs, octant_egcs);
 }
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
