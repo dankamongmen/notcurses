@@ -508,14 +508,16 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   return total;
 }
 
-// Solve for the cell rendered by this 3x2 sample. None of the input pixels may
-// be transparent (that ought already have been handled). We use exhaustive
-// search, which might be quite computationally intensive for the worst case
-// (all six pixels are different colors). We want to solve for the 2-partition
-// of pixels that minimizes total source distance from the resulting lerps.
+// Solve for the cell rendered by this cellheightX2 sample. None of the input
+// pixels may be transparent (that ought already have been handled). We use
+// exhaustive search, which might be quite computationally intensive for the
+// worst case (all pixels are different colors). We want to solve for the
+// 2-partition of pixels that minimizes total source distance from the
+// resulting lerps.
 static const char*
-sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
-           unsigned nointerpolate){
+hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
+             unsigned nointerpolate, unsigned cellheight){
+  // FIXME need genericize to hires
   // each element within the set of 64 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 32. the partition[] bit masks represent combinations of
@@ -545,7 +547,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     unsigned bsum0 = 0, bsum1 = 0;
     int insum = 0;
     int outsum = 0;
-    for(unsigned mask = 0 ; mask < 6 ; ++mask){
+    for(unsigned mask = 0 ; mask < cellheight * 2 ; ++mask){
       if(partitions[glyph] & (1u << mask)){
         if(!nointerpolate || !insum){
           rsum0 += ncpixel_r(rgbas[mask]);
@@ -566,7 +568,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     uint32_t l1 = generalerp(rsum1, gsum1, bsum1, outsum);
 //fprintf(stderr, "sum0: %06x sum1: %06x insum: %d\n", l0 & 0xffffffu, l1 & 0xffffffu, insum);
     uint32_t totaldiff = 0;
-    for(unsigned mask = 0 ; mask < 6 ; ++mask){
+    for(unsigned mask = 0 ; mask < cellheight * 2 ; ++mask){
       unsigned r, g, b;
       if(partitions[glyph] & (1u << mask)){
         ncchannel_rgb8(l0, &r, &g, &b);
@@ -702,8 +704,7 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       const char* egc = hires_trans_check(c, rgbas, blendcolors, bargs->transcolor,
                                           nointerpolate, cellheight, sextrans);
       if(egc == NULL){ // no transparency; run a full solver
-        // FIXME need genericize to hires
-        egc = sex_solver(rgbas, &c->channels, blendcolors, nointerpolate);
+        egc = hires_solver(rgbas, &c->channels, blendcolors, nointerpolate, cellheight);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "hires EGC: %s channels: %016lx\n", egc, c->channels);
