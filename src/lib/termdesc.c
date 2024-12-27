@@ -735,6 +735,7 @@ static const char*
 apply_kitty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
   // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
   ti->bg_collides_default |= 0x1000000;
+  ti->caps.octants = true;
   ti->caps.sextants = true; // work since bugfix in 0.19.3
   ti->caps.quadrants = true;
   ti->caps.rgb = true;
@@ -1048,7 +1049,7 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
   }
   // run a wcwidth(𜴀) to guarantee libc Unicode 16 support, independent of term
   if(wcwidth(L'𜴀') < 0){
-    ti->caps.octants = false;
+  //  ti->caps.octants = false;
   }
   ti->termname = tname;
   return 0;
