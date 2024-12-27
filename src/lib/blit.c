@@ -598,27 +598,30 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
   return sex[best];
 }
 
+// bit is *set* where sextant *is not*
+// 32: bottom right 16: bottom left
+//  8: middle right  4: middle left
+//  2: upper right   1: upper left
+static const char* sextrans[64] = {
+  "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵",
+  "🬴", "🬳", "🬲", "🬱", "🬰", "🬯", "🬮", "🬭",
+  "🬬", "🬫", "🬪", "🬩", "🬨", "▐", "🬧", "🬦",
+  "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", "🬞",
+  "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖",
+  "🬕", "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏",
+  "🬎", "🬍", "🬌", "🬋", "🬊", "🬉", "🬈", "🬇",
+  "🬆", "🬅", "🬄", "🬃", "🬂", "🬁", "🬀", " ",
+};
+
 static const char*
-sex_trans_check(nccell* c, const uint32_t rgbas[6], unsigned blendcolors,
-                uint32_t transcolor, unsigned nointerpolate){
-  // bit is *set* where sextant *is not*
-  // 32: bottom right 16: bottom left
-  //  8: middle right  4: middle left
-  //  2: upper right   1: upper left
-  static const char* sex[64] = {
-    "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵",
-    "🬴", "🬳", "🬲", "🬱", "🬰", "🬯", "🬮", "🬭",
-    "🬬", "🬫", "🬪", "🬩", "🬨", "▐", "🬧", "🬦",
-    "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", "🬞",
-    "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖",
-    "🬕", "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏",
-    "🬎", "🬍", "🬌", "🬋", "🬊", "🬉", "🬈", "🬇",
-    "🬆", "🬅", "🬄", "🬃", "🬂", "🬁", "🬀", " ",
-  };
+hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
+                  uint32_t transcolor, unsigned nointerpolate, int cellheight,
+                  const char** transegcs){
   unsigned transstring = 0;
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
-  for(unsigned mask = 0 ; mask < 6 ; ++mask){
+  // check each pixel for transparency
+  for(int mask = 0 ; mask < cellheight * 2 ; ++mask){
     if(rgba_trans_p(rgbas[mask], transcolor)){
       transstring |= (1u << mask);
     }else if(!nointerpolate || !div){
@@ -628,13 +631,14 @@ sex_trans_check(nccell* c, const uint32_t rgbas[6], unsigned blendcolors,
       ++div;
     }
   }
+  // transstring can only have 0x80 and/or 0x40 set if cellheight was 4
   if(transstring == 0){ // there was no transparency
     return NULL;
   }
   nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
   // there were some transparent pixels. since they get priority, the foreground
   // is just a general lerp across non-transparent pixels.
-  const char* egc = sex[transstring];
+  const char* egc = transegcs[transstring];
   nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
 //fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
   if(*egc == ' '){ // entirely transparent
@@ -664,7 +668,7 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
-//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
+//fprintf(stderr, "hiresblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += cellheight){
@@ -694,13 +698,15 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      // FIXME need genericize
-      const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor, nointerpolate);
+      // FIXME need genericize (need octtrans for last param, etc)
+      const char* egc = hires_trans_check(c, rgbas, blendcolors, bargs->transcolor,
+                                          nointerpolate, cellheight, sextrans);
       if(egc == NULL){ // no transparency; run a full solver
+        // FIXME need genericize to hires
         egc = sex_solver(rgbas, &c->channels, blendcolors, nointerpolate);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
-//fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
+//fprintf(stderr, "hires EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
