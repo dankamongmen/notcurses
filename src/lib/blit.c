@@ -592,7 +592,7 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     }
   }
 //fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
-  assert(best >= 0 && best < 32);
+  assert(best >= 0 && best < 32); // FIXME adapt to oct
   if(blendcolors){
     ncchannels_set_fg_alpha(channels, NCALPHA_BLEND);
     ncchannels_set_bg_alpha(channels, NCALPHA_BLEND);
@@ -600,6 +600,7 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
   return sex[best];
 }
 
+// FIXME replace both of these arrays of pointers with fixed-width matrices
 // bit is *set* where sextant *is not*
 // 32: bottom right 16: bottom left
 //  8: middle right  4: middle left
@@ -613,6 +614,35 @@ static const char* sextrans[64] = {
   "🬕", "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏",
   "🬎", "🬍", "🬌", "🬋", "🬊", "🬉", "🬈", "🬇",
   "🬆", "🬅", "🬄", "🬃", "🬂", "🬁", "🬀", " ",
+};
+
+// bit is *set* where octant *is not*
+// 128: row 3 right  64: row 3 left
+//  32: row 2 right  16: row 2 left
+//   8: row 1 right   4: row 1 left
+//   2: row 0 right   1: row 0 left
+static const char* octtrans[256] = {
+  "█", // all eight set (255)                 (full block)
+  "\U00002584", // row 2/3 full (250)         (lower half block)
+  // FIXME 127 here (all true octants)
+  "\U0001cea0", // lower right only (128)     (right half lower one quarter)
+  // FIXME 63 here
+  "\U0001cea3", // lower left only (64)       (left half lower one quarter)
+  // FIXME 31 here
+  "\U0001cd18", // row 2 right only (32)      (o6)
+  // FIXME 15 here
+  "\U0001cd09", // row 2 left only (16)       (o5)
+  "\U00002580", // row 0/1 full (15)          (upper half block)
+  // FIXME 7 here
+  "\U0001cd03", // row 1 right only (8)       (o4)
+  "\U0001cd02", // row 0 full row 1 left (7)  (o123)
+  "\U0001cd04", // row 0 left row 1 right (6) (o14)
+  "\U00002598", // row 0/1 left only (5)      (upper left quadrant)
+  "\U0001cd00", // row 1 left only (4)        (o3)
+  "\U00002594", // top two (3)                (upper one eighth)
+  "\U0001ceab", // upper right only (2)       (right half upper one quarter)
+  "\U0001cea8", // upper left only (1)        (left half upper one quarter)
+  " " // zero set
 };
 
 static const char*
@@ -652,6 +682,7 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
     if(blendcolors){
       nccell_set_fg_alpha(c, NCALPHA_BLEND);
     }
+    // FIXME genericize for hires
     cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
                               !(transstring & 20u), !(transstring & 40u));
   }
@@ -664,7 +695,8 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
 // color fidelity.
 static inline int
 hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-           const blitterargs* bargs, int cellheight){
+           const blitterargs* bargs, int cellheight,
+           const char** transegcs){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   unsigned dimy, dimx, x, y;
@@ -700,9 +732,8 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      // FIXME need genericize (need octtrans for last param, etc)
       const char* egc = hires_trans_check(c, rgbas, blendcolors, bargs->transcolor,
-                                          nointerpolate, cellheight, sextrans);
+                                          nointerpolate, cellheight, transegcs);
       if(egc == NULL){ // no transparency; run a full solver
         egc = hires_solver(rgbas, &c->channels, blendcolors, nointerpolate, cellheight);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
@@ -724,13 +755,13 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 static inline int
 sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs){
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3);
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans);
 }
 
 static inline int
 octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs){
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4);
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans);
 }
 
 // Bit is set where octant is present:
