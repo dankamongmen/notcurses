@@ -673,28 +673,28 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      uint32_t rgbas[cellheight * 2];
+      uint32_t rgbas[cellheight * 2]; // row-major
       memset(rgbas, 0, sizeof(rgbas));
-      // FIXME need to handle this generally based off cellheight
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
-      if(visx < bargs->begx + lenx - 1){
-        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * 4)), sizeof(*rgbas));
-        if(visy < bargs->begy + leny - 1){
-          memcpy(&rgbas[3], (dat + (linesize * (visy + 1)) + ((visx + 1) * 4)), sizeof(*rgbas));
-          if(visy < bargs->begy + leny - 2){
-            memcpy(&rgbas[5], (dat + (linesize * (visy + 2)) + ((visx + 1) * 4)), sizeof(*rgbas));
-          }
+      // conditional looks at first column, begininng at the second row
+      for(int yoff = 1 ; yoff < cellheight ; ++yoff){
+        if(visy < bargs->begy + leny - yoff){
+          memcpy(&rgbas[yoff * 2], (dat + (linesize * (visy + yoff)) + (visx * 4)), sizeof(*rgbas));
         }
       }
-      if(visy < bargs->begy + leny - 1){
-        memcpy(&rgbas[2], (dat + (linesize * (visy + 1)) + (visx * 4)), sizeof(*rgbas));
-        if(visy < bargs->begy + leny - 2){
-          memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * 4)), sizeof(*rgbas));
+      // conditional looks at second column, beginning at second row
+      if(visx < bargs->begx + lenx - 1){
+        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * 4)), sizeof(*rgbas));
+        for(int yoff = 1 ; yoff < cellheight ; ++yoff){
+          if(visy < bargs->begy + leny - yoff){
+            memcpy(&rgbas[1 + yoff * 2], (dat + (linesize * (visy + yoff)) + ((visx + 1) * 4)), sizeof(*rgbas));
+          }
         }
       }
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
+      // FIXME need genericize
       const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor, nointerpolate);
       if(egc == NULL){ // no transparency; run a full solver
         egc = sex_solver(rgbas, &c->channels, blendcolors, nointerpolate);
