@@ -601,7 +601,7 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
 }
 
 // FIXME replace both of these arrays of pointers with fixed-width matrices
-// bit is *set* where sextant *is not*
+// bit of index is *set* where sextant *is not*
 // 32: bottom right 16: bottom left
 //  8: middle right  4: middle left
 //  2: upper right   1: upper left
@@ -616,13 +616,13 @@ static const char* sextrans[64] = {
   "🬆", "🬅", "🬄", "🬃", "🬂", "🬁", "🬀", " ",
 };
 
-// bit is *set* where octant *is not*
+// bit of index is *set* where octant *is not*
 // 128: row 3 right  64: row 3 left
 //  32: row 2 right  16: row 2 left
 //   8: row 1 right   4: row 1 left
 //   2: row 0 right   1: row 0 left
 static const char* octtrans[256] = {
-  "█", // all eight set (255)                 (full block)
+  "\U00002588", // all eight set (255)        (full block)
   "\U00002584", // row 2/3 full (250)         (lower half block)
   // FIXME 127 here (all true octants)
   "\U0001cea0", // lower right only (128)     (right half lower one quarter)
