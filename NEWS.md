@@ -7,7 +7,10 @@ rearrangements of Notcurses.
     proper aspect ratio. It thus no longer works in an ASCII environment.
   * The `NCBLIT_4x2` "octant" blitter has been added, making use of new
     characters from Unicode 16. `notcurses_canoctant()` has been added to
-    check for `NCBLIT_4x2` support at runtime. Thanks, eschnett!
+    check for `NCBLIT_4x2` support at runtime. If present, octants will be
+    used for `NCBLIT_DEFAULT` when used with `NCSCALE_NONE_HIRES`,
+    `NCSCALE_SCALE_HIRES`, or `NCSCALE_STRETCH`. Thanks, eschnett! Note
+    that octants are not supported by GNU libc until 2.41.
 
 * 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
