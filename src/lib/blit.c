@@ -531,7 +531,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
     3, 5, 9, 17, 33, 6, 10, 18, 34, 12, 20, 36, 24, 40, 48, // 15 ways for 2
     //  16 ways to arrange 3, *but* six of them are inverses, so 10
-    7, 11, 19, 35, 13, 21, 37, 25, 41, 14 //  10 + 15 + 6 + 1 == 32
+    7, 11, 19, 35, 13, 21, 37, 25, 41, 49 //  10 + 15 + 6 + 1 == 32
   };
   // we loop over the bitstrings, dividing the pixels into two sets, and then
   // taking a general lerp over each set. we then compute the sum of absolute
