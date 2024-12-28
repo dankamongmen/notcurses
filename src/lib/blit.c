@@ -617,32 +617,142 @@ static const char* sextrans[64] = {
 };
 
 // bit of index is *set* where octant *is not*
-// 128: row 3 right  64: row 3 left
-//  32: row 2 right  16: row 2 left
-//   8: row 1 right   4: row 1 left
-//   2: row 0 right   1: row 0 left
+//   1: row 0 left   2: row 0 right
+//   4: row 1 left   8: row 1 right
+//  16: row 2 left  32: row 2 right
+//  64: row 3 left 128: row 3 right
 static const char* octtrans[256] = {
-  "\U00002588", // all eight set (255)        (full block)
-  "\U00002584", // row 2/3 full (250)         (lower half block)
-  // FIXME 127 here (all true octants)
-  "\U0001cea0", // lower right only (128)     (right half lower one quarter)
-  // FIXME 63 here
-  "\U0001cea3", // lower left only (64)       (left half lower one quarter)
-  // FIXME 31 here
-  "\U0001cd18", // row 2 right only (32)      (o6)
-  // FIXME 15 here
-  "\U0001cd09", // row 2 left only (16)       (o5)
-  "\U00002580", // row 0/1 full (15)          (upper half block)
-  // FIXME 7 here
-  "\U0001cd03", // row 1 right only (8)       (o4)
-  "\U0001cd02", // row 0 full row 1 left (7)  (o123)
-  "\U0001cd04", // row 0 left row 1 right (6) (o14)
-  "\U00002598", // row 0/1 left only (5)      (upper left quadrant)
-  "\U0001cd00", // row 1 left only (4)        (o3)
-  "\U00002594", // top two (3)                (upper one eighth)
-  "\U0001ceab", // upper right only (2)       (right half upper one quarter)
-  "\U0001cea8", // upper left only (1)        (left half upper one quarter)
-  " " // zero set
+  "\U00002588", // █ 255 all eight set          (full)
+  "\U0001cde5", // 𜷥 254 missing upper left     (o2345678)
+  "\U0001cde4", // 𜷤 253 missing upper right    (o1345678)
+  "\U00002586", // ▆ 252 missing row 0          (lower three quarters)
+  "\U0001cde3", // 𜷣 251 missing row 1 left     (o1245678)
+  "\U0000259f", // ▟ 250                        (q upper right and lower left and lower right)
+  "\U0001cde2", // 𜷢 249                        (o1245678)
+  "\U0001cde1", // 𜷡 248                        (o45678)
+  "\U0001cde0", // 𜷠 247 missing row 1 right    (o1235678)
+  "\U0001cddf", // 𜷟 246 missing 0 left 1 right (o235678)
+  "\U00002599", // ▙ 245 missing 0/1 right      (q upper left and lower left and lower right)
+  "\U0001cdde", // 𜷞 244
+  "\U0001cddd", // 𜷝 243
+  "\U0001cddc", // 𜷜 242
+  "\U0001cddb", // 𜷛 241                        (o15678)
+  "\U00002584", // ▄ 240 2/3 full               (lower half)
+  "\U0001cdda", // 𜷚 239                        (o1234678)
+  "\U0001cdd9", // 𜷙 238                        (o234678)
+  "\U0001cdd8", // 𜷘 237                        (o134678)
+  "\U0001cdd7", // 𜷗 236                        (o34678)
+  "\U0001cdd6", // 𜷖 235                        (o124678)
+  "\U0001cdd5", // 𜷕 234                        (o24678)
+  "\U0001cdd4", // 𜷔 233                        (o14678)
+  "\U0001cdd3", // 𜷓 232                        (o4678)
+  "\U0001cdd2", // 𜷒 231
+  "\U0001cdd1", // 𜷑 230
+  "\U0001cdd0", // 𜷐 229
+  "\U0001cdcf", // 𜷏 228
+  "\U0001cdce", // 𜷎 227
+  "\U0001cdcd", // 𜷍 226
+  "\U0001cdcc", // 𜷌 225
+  "\U0001cdcb", // 𜷋 224
+  /*"\U0001CDC3", "\U0001CDC4", "\U0001CDC5", "\U0001CDC6", "\U0001CDC7", "\U0001CDC8", "\U0001CDC9", "\U0001CDCA",
+  "\U0001CDBB", "\U0001CDBC", "\U0001CDBD", "\U0001CDBE", "\U0001CDBF", "\U0001CDC0", "\U0001CDC1", "\U0001CDC2",
+  "\U0001CDB3", "\U0001CDB4", "\U0001CDB5", "\U0001CDB6", "\U0001CDB7", "\U0001CDB8", "\U0001CDB9", "\U0001CDBA",
+  "\U00002582", "\U0001CDAC", "\U0001CDAD", "\U0001CDAE", "\U0001CDAF", "\U0001CDB0", "\U0001CDB1", "\U0001CDB2",
+  "\U0001CDA4", "\U0001CDA5", "\U0001CDA6", "\U0001CDA7", "\U0001CDA8", "\U0001CDA9", "\U0001CDAA", "\U0001CDAB",
+  "\U0001CDA3",
+  "\U0001CDA2",
+  "\U0001CDA1",
+  "\U0001CDA0",
+  "\U0001CD9F",
+  "\U0001CD9E",
+  "\U0001CD9D",
+  "\U0001CD9C",*/
+  // 176
+  /*"\U0001CEA0", "\U0001CD71", "\U0001CD72", "\U0001CD73", "\U0001CD74", "\U0001CD75", "\U0001CD76", "\U0001CD77",
+  "\U0001CD78", "\U0001CD79", "\U0001CD7A", "\U0001CD7B", "\U0001CD7C", "\U0001CD7D", "\U0001CD7E", "\U0001CD7F",
+  "\U0001CD80", "\U0001CD81", "\U0001CD82", "\U0001CD83", "\U0001CD84", "\U0001CD85", "\U0001CD86", "\U0001CD87",
+  "\U0001CD88", "\U0001CD89", "\U0001CD8A", "\U0001CD8B", "\U0001CD8C", "\U0001CD8D", "\U0001CD8E", "\U0001CD8F",
+  "\U00002597", "\U0001CD90", "\U0001CD91", "\U0001CD92", "\U0001CD93", "\U0000259A", "\U0001CD94", "\U0001CD95",
+  "\U0001CD96", "\U0001CD97", "\U00002590", "\U0001CD98", "\U0001CD99", "\U0001CD9A", "\U0001CD9B", "\U0000259C",*/
+
+  "\U0001cea0", // 𜺠 128 lower right only       (right half lower one quarter)
+  "\U0001cd70", // 𜵰 127 missing lower right    (u1234567)
+
+  /*"\U0001CD69", "\U0001CD6A", "\U0001CD6B", "\U0001CD6C", "\U0001CD6D", "\U0001CD6E", "\U0001CD6F", "\U0001CD70",
+  "\U0001CD61", "\U0001CD62", "\U0001CD63", "\U0001CD64", "\U0001CD65", "\U0001CD66", "\U0001CD67", "\U0001CD68",
+  "\U0001CD59", "\U0001CD5A", "\U0001CD5B", "\U0001CD5C", "\U0001CD5D", "\U0001CD5E", "\U0001CD5F", "\U0001CD60",
+  "\U0001CD51", "\U0001CD52", "\U0001CD53", "\U0001CD54", "\U0001CD55", "\U0001CD56", "\U0001CD57", "\U0001CD58",
+  "\U0001CD4B", "\U0001CD4C", "\U0000259E", "\U0001CD4D", "\U0001CD4E", "\U0001CD4F", "\U0001CD50", "\U0000259B",
+  "\U00002596", "\U0001CD45", "\U0001CD46", "\U0001CD47", "\U0001CD48", "\U0000258C", "\U0001CD49", "\U0001CD4A",
+  "\U0001CD3D", "\U0001CD3E", "\U0001CD3F", "\U0001CD40", "\U0001CD41", "\U0001CD42", "\U0001CD43", "\U0001CD44",
+  "\U0001CEA3", "\U0001CD36", "\U0001CD37", "\U0001CD38", "\U0001CD39", "\U0001CD3A", "\U0001CD3B", "\U0001CD3C",*/
+
+
+  "\U0001cea3", // 𜺣  64 lower left only        (left half lower one quarter)
+  "\U0001fb85", // 🮅  63 row 0/1/2 full         (upper three quarters)
+  "\U0001cd35", // 𜴵  62                        (o23456)
+  "\U0001cd34", // 𜴴  61                        (o13456)
+  "\U0001cd33", // 𜴳  60                        (o3456)
+  "\U0001cd32", // 𜴲  59                        (o12456)
+  "\U0001cd31", // 𜴱  58                        (o2456)
+  "\U0001cd30", // 𜴰  57 0 left 1 right 2 full  (o1456)
+  "\U0001cd2f", // 𜴯  56                        (o456)
+  "\U0001cd2e", // 𜴮  55
+  "\U0001cd2d", // 𜴭  54
+  "\U0001cd2c", // 𜴬  53
+  "\U0001cd2b", // 𜴫  52
+  "\U0001cd2a", // 𜴪  51
+  "\U0001cd29", // 𜴩  50
+  "\U0001cd28", // 𜴨  49
+  "\U0001cd27", // 𜴧  48
+  "\U0001cd26", // 𜴦  47                        (o12346)
+  "\U0001cd25", // 𜴥  46                        (o2346)
+  "\U0001cd24", // 𜴤  45                        (o1346)
+  "\U0001cd23", // 𜴣  44                        (o346)
+  "\U0001cd22", // 𜴢  43                        (o1246)
+  "\U0001cd21", // 𜴡  42                        (o246)
+  "\U0001cd20", // 𜴠  41                        (o146)
+  "\U0001fbe7", // 🯧  40                        (middle right one quarter)
+  "\U0001cd1f", // 𜴟  39                        (o1236)
+  "\U0001cd1e", // 𜴞  38                        (o236)
+  "\U0001cd1d", // 𜴝  37                        (o136)
+  "\U0001cd1c", // 𜴜  36                        (o36)
+  "\U0001cd1b", // 𜴛  35                        (o126)
+  "\U0001cd1a", // 𜴚  34                        (o26)
+  "\U0001cd19", // 𜴙  33                        (o16)
+  "\U0001cd18", // 𜴘  32 row 2 right only       (o6)
+  "\U0001cd17", // 𜴗  31                        (o12345)
+  "\U0001cd16", // 𜴖  30                        (o2345)
+  "\U0001cd15", // 𜴕  29                        (o1345)
+  "\U0001cd14", // 𜴔  28                        (o345)
+  "\U0001cd13", // 𜴓  27                        (o1245)
+  "\U0001cd12", // 𜴒  26 row 0/1 right row 2 l  (o245)
+  "\U0001cd11", // 𜴑  25 row 1/2 left row 1 r   (o145)
+  "\U0001cd10", // 𜴐  24 row 1 right row 2 left (o45)
+  "\U0001cd0f", // 𜴏  23 row 0 full row 1/2 l   (o1235)
+  "\U0001cd0e", // 𜴎  22 row 1 right row 2/3 l  (o235)
+  "\U0001cd0d", // 𜴍  21 row 0/1/2 left         (o135)
+  "\U0001fbe6", // 🯦  20 row 1/2 left           (middle left one quarter)
+  "\U0001cd0c", // 𜴌  19 row 0 full row 2 left  (o125)
+  "\U0001cd0b", // 𜴋  18 row 0 right row 2 left (o25)
+  "\U0001cd0a", // 𜴊  17 row 0 left row 2 left  (o15)
+  "\U0001cd09", // 𜴉  16 row 2 left only        (o5)
+  "\U00002580", // ▀  15 row 0/1 full           (upper half)
+  "\U0001cd08", // 𜴈  14 row 0 right row 1 full (o234)
+  "\U0001cd07", // 𜴇  13 row 0 left row 1 full  (o134)
+  "\U0001cd06", // 𜴆  12 row 1 full             (o34)
+  "\U0001cd05", // 𜴅  11 row 0 full row 1 right (o124)
+  "\U0000259d", // ▝  10 row 0/1 right only     (upper right quadrant)
+  "\U0001cd04", // 𜴄   9 row 0 left row 1 right (o14)
+  "\U0001cd03", // 𜴃   8 row 1 right only       (o4)
+  "\U0001cd02", // 𜴂   7 row 0 full row 1 left  (o123)
+  "\U0001cd01", // 𜴁   6 row 0 right row 1 left (o23)
+  "\U00002598", // ▘   5 row 0/1 left only      (upper left quadrant)
+  "\U0001cd00", // 𜴀   4 row 1 left only        (o3)
+  "\U0001f8b2", // 🮂   3 row 0                  (upper one quarter)
+  "\U0001ceab", // 𜺫   2 upper right only       (right half upper one quarter)
+  "\U0001cea8", // 𜺨   1 upper left only        (left half upper one quarter)
+  " "  //     0 none set               (space)
 };
 
 static const char*
@@ -763,47 +873,6 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs){
   return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans);
 }
-
-// Bit is set where octant is present:
-//   0  1
-//   2  3
-//   4  5
-//   6  7
-// Same as NCOCTBLOCKS but as array of fixed-width strings
-static const char octant_egcs[256][5] = {
-  "\x20", "\U0001CEA8", "\U0001CEAB", "\U0001FB82", "\U0001CD00", "\U00002598", "\U0001CD01", "\U0001CD02",
-  "\U0001CD03", "\U0001CD04", "\U0000259D", "\U0001CD05", "\U0001CD06", "\U0001CD07", "\U0001CD08", "\U00002580",
-  "\U0001CD09", "\U0001CD0A", "\U0001CD0B", "\U0001CD0C", "\U0001FBE6", "\U0001CD0D", "\U0001CD0E", "\U0001CD0F",
-  "\U0001CD10", "\U0001CD11", "\U0001CD12", "\U0001CD13", "\U0001CD14", "\U0001CD15", "\U0001CD16", "\U0001CD17",
-  "\U0001CD18", "\U0001CD19", "\U0001CD1A", "\U0001CD1B", "\U0001CD1C", "\U0001CD1D", "\U0001CD1E", "\U0001CD1F",
-  "\U0001FBE7", "\U0001CD20", "\U0001CD21", "\U0001CD22", "\U0001CD23", "\U0001CD24", "\U0001CD25", "\U0001CD26",
-  "\U0001CD27", "\U0001CD28", "\U0001CD29", "\U0001CD2A", "\U0001CD2B", "\U0001CD2C", "\U0001CD2D", "\U0001CD2E",
-  "\U0001CD2F", "\U0001CD30", "\U0001CD31", "\U0001CD32", "\U0001CD33", "\U0001CD34", "\U0001CD35", "\U0001FB85",
-  "\U0001CEA3", "\U0001CD36", "\U0001CD37", "\U0001CD38", "\U0001CD39", "\U0001CD3A", "\U0001CD3B", "\U0001CD3C",
-  "\U0001CD3D", "\U0001CD3E", "\U0001CD3F", "\U0001CD40", "\U0001CD41", "\U0001CD42", "\U0001CD43", "\U0001CD44",
-  "\U00002596", "\U0001CD45", "\U0001CD46", "\U0001CD47", "\U0001CD48", "\U0000258C", "\U0001CD49", "\U0001CD4A",
-  "\U0001CD4B", "\U0001CD4C", "\U0000259E", "\U0001CD4D", "\U0001CD4E", "\U0001CD4F", "\U0001CD50", "\U0000259B",
-  "\U0001CD51", "\U0001CD52", "\U0001CD53", "\U0001CD54", "\U0001CD55", "\U0001CD56", "\U0001CD57", "\U0001CD58",
-  "\U0001CD59", "\U0001CD5A", "\U0001CD5B", "\U0001CD5C", "\U0001CD5D", "\U0001CD5E", "\U0001CD5F", "\U0001CD60",
-  "\U0001CD61", "\U0001CD62", "\U0001CD63", "\U0001CD64", "\U0001CD65", "\U0001CD66", "\U0001CD67", "\U0001CD68",
-  "\U0001CD69", "\U0001CD6A", "\U0001CD6B", "\U0001CD6C", "\U0001CD6D", "\U0001CD6E", "\U0001CD6F", "\U0001CD70",
-  "\U0001CEA0", "\U0001CD71", "\U0001CD72", "\U0001CD73", "\U0001CD74", "\U0001CD75", "\U0001CD76", "\U0001CD77",
-  "\U0001CD78", "\U0001CD79", "\U0001CD7A", "\U0001CD7B", "\U0001CD7C", "\U0001CD7D", "\U0001CD7E", "\U0001CD7F",
-  "\U0001CD80", "\U0001CD81", "\U0001CD82", "\U0001CD83", "\U0001CD84", "\U0001CD85", "\U0001CD86", "\U0001CD87",
-  "\U0001CD88", "\U0001CD89", "\U0001CD8A", "\U0001CD8B", "\U0001CD8C", "\U0001CD8D", "\U0001CD8E", "\U0001CD8F",
-  "\U00002597", "\U0001CD90", "\U0001CD91", "\U0001CD92", "\U0001CD93", "\U0000259A", "\U0001CD94", "\U0001CD95",
-  "\U0001CD96", "\U0001CD97", "\U00002590", "\U0001CD98", "\U0001CD99", "\U0001CD9A", "\U0001CD9B", "\U0000259C",
-  "\U0001CD9C", "\U0001CD9D", "\U0001CD9E", "\U0001CD9F", "\U0001CDA0", "\U0001CDA1", "\U0001CDA2", "\U0001CDA3",
-  "\U0001CDA4", "\U0001CDA5", "\U0001CDA6", "\U0001CDA7", "\U0001CDA8", "\U0001CDA9", "\U0001CDAA", "\U0001CDAB",
-  "\U00002582", "\U0001CDAC", "\U0001CDAD", "\U0001CDAE", "\U0001CDAF", "\U0001CDB0", "\U0001CDB1", "\U0001CDB2",
-  "\U0001CDB3", "\U0001CDB4", "\U0001CDB5", "\U0001CDB6", "\U0001CDB7", "\U0001CDB8", "\U0001CDB9", "\U0001CDBA",
-  "\U0001CDBB", "\U0001CDBC", "\U0001CDBD", "\U0001CDBE", "\U0001CDBF", "\U0001CDC0", "\U0001CDC1", "\U0001CDC2",
-  "\U0001CDC3", "\U0001CDC4", "\U0001CDC5", "\U0001CDC6", "\U0001CDC7", "\U0001CDC8", "\U0001CDC9", "\U0001CDCA",
-  "\U0001CDCB", "\U0001CDCC", "\U0001CDCD", "\U0001CDCE", "\U0001CDCF", "\U0001CDD0", "\U0001CDD1", "\U0001CDD2",
-  "\U0001CDD3", "\U0001CDD4", "\U0001CDD5", "\U0001CDD6", "\U0001CDD7", "\U0001CDD8", "\U0001CDD9", "\U0001CDDA",
-  "\U00002584", "\U0001CDDB", "\U0001CDDC", "\U0001CDDD", "\U0001CDDE", "\U00002599", "\U0001CDDF", "\U0001CDE0",
-  "\U0001CDE1", "\U0001CDE2", "\U0000259F", "\U0001CDE3", "\U00002586", "\U0001CDE4", "\U0001CDE5", "\U00002588",
-};
 
 // Bit is set where Braille dot is present:
 //   0  1
