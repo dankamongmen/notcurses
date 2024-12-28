@@ -929,13 +929,14 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 //fprintf(stderr, "hiresblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   const unsigned char* dat = data;
   int visy = bargs->begy;
+  assert(cellheight <= 4); // due to rgbas[] array below
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += cellheight){
     if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
-      uint32_t rgbas[cellheight * 2]; // row-major
+      uint32_t rgbas[8]; // row-major
       memset(rgbas, 0, sizeof(rgbas));
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
       // conditional looks at first column, begininng at the second row
