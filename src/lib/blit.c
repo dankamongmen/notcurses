@@ -632,47 +632,47 @@ static const char* const octtrans[256] = {
   "\U0001cdd2", // 𜷒 231
   "\U0001cdd1", // 𜷑 230
   "\U0001cdd0", // 𜷐 229
-  "\U0001cdcf", // 𜷏 228
+  "\U0001cdcf", // 𜷏 228                        (o145678)
   "\U0001cdce", // 𜷎 227
   "\U0001cdcd", // 𜷍 226
   "\U0001cdcc", // 𜷌 225
-  "\U0001cdcb", // 𜷋 224
+  "\U0001cdcb", // 𜷋 224                        (o678)
   "\U0001cdca",
   "\U0001cdc9",
   "\U0001cdc8",
-  "\U0001cdc7",
+  "\U0001cdc7", // 𜷇 220                        (o34578)
   "\U0001cdc6",
   "\U0001cdc5",
   "\U0001cdc4",
-  "\U0001cdc3",
+  "\U0001cdc3", // 𜷃 216                        (o4578)
   "\U0001cdc2",
   "\U0001cdc1",
   "\U0001cdc0",
-  "\U0001cdbf",
+  "\U0001cdbf", // 𜶿 212                        (o3578)
   "\U0001cdbe",
   "\U0001cdbd",
   "\U0001cdbc",
-  "\U0001cdbb",
+  "\U0001cdbb", // 𜶻 208                        (o578)
   "\U0001cdba",
   "\U0001cdb9",
   "\U0001cdb8",
-  "\U0001cdb7",
+  "\U0001cdb7", // 𜶷 204                        (o4578)
   "\U0001cdb6",
   "\U0001cdb5",
   "\U0001cdb4",
-  "\U0001cdb3",
+  "\U0001cdb3", // 𜶳 200                        (o478)
   "\U0001cdb2",
   "\U0001cdb1",
   "\U0001cdb0",
-  "\U0001cdaf",
+  "\U0001cdaf", // 𜶯 196                        (o378)
   "\U0001cdae",
   "\U0001cdad",
   "\U0001cdac",
-  "\U00002582", // ▂ 196                           (lower one quarter)
+  "\U00002582", // ▂ 192                        (lower one quarter)
   "\U0001cdab",
   "\U0001cdaa",
   "\U0001cda9",
-  "\U0001cda8",
+  "\U0001cda8", // 𜶨 188                        (o34568)
   "\U0001cda7",
   "\U0001cda6",
   "\U0001cda5",
@@ -685,50 +685,50 @@ static const char* const octtrans[256] = {
   "\U0001cd9e",
   "\U0001cd9d",
   "\U0001cd9c",
-  "\U0000259c", // ▜ 175                            (q upper left and upper right and lower right)
+  "\U0000259c", // ▜ 175                        (q upper left and upper right and lower right)
   "\U0001cd9b",
   "\U0001cd9a",
   "\U0001cd99",
   "\U0001cd98",
-  "\U00002590", // ▐ 170                            (right half)
+  "\U00002590", // ▐ 170                        (right half)
   "\U0001cd97",
   "\U0001cd96",
   "\U0001cd95",
   "\U0001cd94",
-  "\U0000259a", // ▚                                (q upper left and lower right)
+  "\U0000259a", // ▚ 165                        (q upper left and lower right)
   "\U0001cd93",
   "\U0001cd92",
   "\U0001cd91",
   "\U0001cd90",
-  "\U00002597", // ▗                                (q lower right)
+  "\U00002597", // ▗ 160                        (q lower right)
   "\U0001cd8f",
   "\U0001cd8e",
   "\U0001cd8d",
-  "\U0001cd8c",
+  "\U0001cd8c", // 𜶌 156                        (u3458)
   "\U0001cd8b",
   "\U0001cd8a",
   "\U0001cd89",
-  "\U0001cd88",
+  "\U0001cd88", // 𜶈 152                        (u458)
   "\U0001cd87",
   "\U0001cd86",
   "\U0001cd85",
-  "\U0001cd84",
+  "\U0001cd84", // 𜶄 148                        (u358)
   "\U0001cd83",
   "\U0001cd82",
   "\U0001cd81",
-  "\U0001cd80",
+  "\U0001cd80", // 𜶀 144                        (u58)
   "\U0001cd7f",
   "\U0001cd7e",
   "\U0001cd7d",
-  "\U0001cd7c",
+  "\U0001cd7c", // 𜵼 140                        (u348)
   "\U0001cd7b",
   "\U0001cd7a",
   "\U0001cd79",
-  "\U0001cd78",
+  "\U0001cd78", // 𜵸 136                        (u48)
   "\U0001cd77",
   "\U0001cd76",
   "\U0001cd75",
-  "\U0001cd74",
+  "\U0001cd74", // 𜵴 132                        (u38)
   "\U0001cd73",
   "\U0001cd72",
   "\U0001cd71",
@@ -860,7 +860,7 @@ static const char* const octtrans[256] = {
   "\U0001f8b2", // 🮂   3 row 0                  (upper one quarter)
   "\U0001ceab", // 𜺫   2 upper right only       (right half upper one quarter)
   "\U0001cea8", // 𜺨   1 upper left only        (left half upper one quarter)
-  " "  //     0 none set               (space)
+  " "           //     0 none set               (space)
 };
 
 static const char*
