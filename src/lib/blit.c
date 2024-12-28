@@ -1027,21 +1027,25 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     octtrans[207], octtrans[175], octtrans[111], // 5+6
     octtrans[159], octtrans[95], // 6+7
     octtrans[63],  // 7+8
-    // FIXME three set
+    // three set (21 + 15 + 10 + 6 + 3 + 1)
+    // FIXME
+    octrrans[143], octtrans[47], // 5+6+7
+    octtrans[31], // 6+7+8
     // FIXME four set
   };
   static const unsigned octitions[] = {
     0, // 1 way to arrange 0
     1, 2, 4, 8, 16, 32, 64, 128, // 8 ways to arrange 1
-    // 28 ways for 2
     3, 5, 9, 17, 33, 65, 129,
     6, 10, 18, 34, 66, 130,
     12, 20, 36, 68, 132,
     24, 40, 72, 136,
     48, 80, 144,
     96, 160,
-    192
-    // 56 ways for 3 FIXME
+    192,                         // 28 ways for 2
+    // FIXME
+    112, 208,
+    224                          // 56 ways for 3
     // 70 ways for 4, but there are inverses among them FIXME
   };
   return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans,
