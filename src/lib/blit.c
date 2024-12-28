@@ -994,7 +994,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
     3, 5, 9, 17, 33, 6, 10, 18, 34, 12, 20, 36, 24, 40, 48, // 15 ways for 2
     //  16 ways to arrange 3, *but* six of them are inverses, so 10
-    7, 11, 19, 35, 13, 21, 37, 25, 41, 14 //  10 + 15 + 6 + 1 == 32
+    7, 11, 19, 35, 13, 21, 37, 25, 41, 49 //  10 + 15 + 6 + 1 == 32
   };
   return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans,
                     sex, sextitions, sizeof(sextitions) / sizeof(*sextitions));
@@ -1081,10 +1081,9 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     octtrans[T(E(0) + E(4) + E(5) + E(6))], octtrans[T(E(0) + E(4) + E(5) + E(7))], 
     octtrans[T(E(0) + E(4) + E(6) + E(7))], 
     octtrans[T(E(0) + E(5) + E(6) + E(7))],  // 0 + 5 + 6 + 7
-#undef E
 #undef T
   };
-  static const unsigned octitions[] = {
+  static const unsigned octitions[128] = {
     0, // 1 way to arrange 0
     1, 2, 4, 8, 16, 32, 64, 128, // 8 ways to arrange 1
     3, 5, 9, 17, 33, 65, 129,
@@ -1094,10 +1093,19 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     48, 80, 144,
     96, 160,
     192,                         // 28 ways for 2
+    3, 5, 9, 17, 33, 65, 129,
+    6, 10, 18, 34, 66, 130,
+    12, 20, 36, 68, 132,
+    24, 40, 72, 136,
+    48, 80, 144,
+    96, 160,
+    192,                         // 56 ways for 3
     // FIXME
     112, 208,
     224                          // 56 ways for 3
-    // 70 ways for 4, but there are inverses among them FIXME
+    // 70 ways for 4, but there are 35 inverses among them
+    // FIXME
+#undef E
   };
   return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans,
                     oct, octitions, sizeof(octitions) / sizeof(*octitions));
