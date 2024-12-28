@@ -1045,66 +1045,115 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     octtrans[T(E(0) + E(5) + E(6))], octtrans[T(E(0) + E(5) + E(7))], // 0 + 5 + 6...
     octtrans[T(E(0) + E(6) + E(7))], // 0 + 6 + 7
     octtrans[T(E(1) + E(2) + E(3))], octtrans[T(E(1) + E(2) + E(4))], octtrans[T(E(1) + E(2) + E(5))],
-    octtrans[T(E(1) + E(2) + E(6))], octtrans[T(E(1) + E(2) + E(7))], 
+    octtrans[T(E(1) + E(2) + E(6))], octtrans[T(E(1) + E(2) + E(7))],
     octtrans[T(E(1) + E(3) + E(4))], octtrans[T(E(1) + E(3) + E(5))], octtrans[T(E(1) + E(3) + E(6))],
-    octtrans[T(E(1) + E(3) + E(7))], 
-    octtrans[T(E(1) + E(4) + E(5))], octtrans[T(E(1) + E(4) + E(6))], octtrans[T(E(1) + E(4) + E(7))], 
-    octtrans[T(E(1) + E(5) + E(6))], octtrans[T(E(1) + E(5) + E(7))], 
-    octtrans[T(E(1) + E(6) + E(7))], 
+    octtrans[T(E(1) + E(3) + E(7))],
+    octtrans[T(E(1) + E(4) + E(5))], octtrans[T(E(1) + E(4) + E(6))], octtrans[T(E(1) + E(4) + E(7))],
+    octtrans[T(E(1) + E(5) + E(6))], octtrans[T(E(1) + E(5) + E(7))],
+    octtrans[T(E(1) + E(6) + E(7))],
     octtrans[T(E(2) + E(3) + E(4))], octtrans[T(E(2) + E(3) + E(5))], octtrans[T(E(2) + E(3) + E(6))],
-    octtrans[T(E(2) + E(3) + E(7))], 
-    octtrans[T(E(2) + E(4) + E(5))], octtrans[T(E(2) + E(4) + E(6))], octtrans[T(E(2) + E(4) + E(7))], 
-    octtrans[T(E(2) + E(5) + E(6))], octtrans[T(E(2) + E(5) + E(7))], 
-    octtrans[T(E(2) + E(6) + E(7))], 
-    octtrans[T(E(3) + E(4) + E(5))], octtrans[T(E(3) + E(4) + E(6))], octtrans[T(E(3) + E(4) + E(7))], 
-    octtrans[T(E(3) + E(5) + E(6))], octtrans[T(E(3) + E(5) + E(7))], 
-    octtrans[T(E(3) + E(6) + E(7))], 
-    octtrans[T(E(4) + E(5) + E(6))], octtrans[T(E(4) + E(5) + E(7))], 
-    octtrans[T(E(4) + E(6) + E(7))], 
+    octtrans[T(E(2) + E(3) + E(7))],
+    octtrans[T(E(2) + E(4) + E(5))], octtrans[T(E(2) + E(4) + E(6))], octtrans[T(E(2) + E(4) + E(7))],
+    octtrans[T(E(2) + E(5) + E(6))], octtrans[T(E(2) + E(5) + E(7))],
+    octtrans[T(E(2) + E(6) + E(7))],
+    octtrans[T(E(3) + E(4) + E(5))], octtrans[T(E(3) + E(4) + E(6))], octtrans[T(E(3) + E(4) + E(7))],
+    octtrans[T(E(3) + E(5) + E(6))], octtrans[T(E(3) + E(5) + E(7))],
+    octtrans[T(E(3) + E(6) + E(7))],
+    octtrans[T(E(4) + E(5) + E(6))], octtrans[T(E(4) + E(5) + E(7))],
+    octtrans[T(E(4) + E(6) + E(7))],
     octtrans[T(E(5) + E(6) + E(7))],  // 5 + 6 + 7
     // four set (15 + 10 + 6 + 3 + 1 = 35)
     octtrans[T(E(0) + E(1) + E(2) + E(3))], octtrans[T(E(0) + E(1) + E(2) + E(4))], octtrans[T(E(0) + E(1) + E(2) + E(5))],
-    octtrans[T(E(0) + E(1) + E(2) + E(6))], octtrans[T(E(0) + E(1) + E(2) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(2) + E(6))], octtrans[T(E(0) + E(1) + E(2) + E(7))],
     octtrans[T(E(0) + E(1) + E(3) + E(4))], octtrans[T(E(0) + E(1) + E(3) + E(5))], octtrans[T(E(0) + E(1) + E(3) + E(6))],
-    octtrans[T(E(0) + E(1) + E(3) + E(7))], 
-    octtrans[T(E(0) + E(1) + E(4) + E(5))], octtrans[T(E(0) + E(1) + E(4) + E(6))], octtrans[T(E(0) + E(1) + E(4) + E(7))], 
-    octtrans[T(E(0) + E(1) + E(5) + E(6))], octtrans[T(E(0) + E(1) + E(5) + E(7))], 
-    octtrans[T(E(0) + E(1) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(3) + E(7))],
+    octtrans[T(E(0) + E(1) + E(4) + E(5))], octtrans[T(E(0) + E(1) + E(4) + E(6))], octtrans[T(E(0) + E(1) + E(4) + E(7))],
+    octtrans[T(E(0) + E(1) + E(5) + E(6))], octtrans[T(E(0) + E(1) + E(5) + E(7))],
+    octtrans[T(E(0) + E(1) + E(6) + E(7))],
     octtrans[T(E(0) + E(2) + E(3) + E(4))], octtrans[T(E(0) + E(2) + E(3) + E(5))], octtrans[T(E(0) + E(2) + E(3) + E(6))],
-    octtrans[T(E(0) + E(2) + E(3) + E(7))], 
-    octtrans[T(E(0) + E(2) + E(4) + E(5))], octtrans[T(E(0) + E(2) + E(4) + E(6))], octtrans[T(E(0) + E(2) + E(4) + E(7))], 
-    octtrans[T(E(0) + E(2) + E(5) + E(6))], octtrans[T(E(0) + E(2) + E(5) + E(7))], 
-    octtrans[T(E(0) + E(2) + E(6) + E(7))], 
-    octtrans[T(E(0) + E(3) + E(4) + E(5))], octtrans[T(E(0) + E(3) + E(4) + E(6))], octtrans[T(E(0) + E(3) + E(4) + E(7))], 
-    octtrans[T(E(0) + E(3) + E(5) + E(6))], octtrans[T(E(0) + E(3) + E(5) + E(7))], 
-    octtrans[T(E(0) + E(3) + E(6) + E(7))], 
-    octtrans[T(E(0) + E(4) + E(5) + E(6))], octtrans[T(E(0) + E(4) + E(5) + E(7))], 
-    octtrans[T(E(0) + E(4) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(2) + E(3) + E(7))],
+    octtrans[T(E(0) + E(2) + E(4) + E(5))], octtrans[T(E(0) + E(2) + E(4) + E(6))], octtrans[T(E(0) + E(2) + E(4) + E(7))],
+    octtrans[T(E(0) + E(2) + E(5) + E(6))], octtrans[T(E(0) + E(2) + E(5) + E(7))],
+    octtrans[T(E(0) + E(2) + E(6) + E(7))],
+    octtrans[T(E(0) + E(3) + E(4) + E(5))], octtrans[T(E(0) + E(3) + E(4) + E(6))], octtrans[T(E(0) + E(3) + E(4) + E(7))],
+    octtrans[T(E(0) + E(3) + E(5) + E(6))], octtrans[T(E(0) + E(3) + E(5) + E(7))],
+    octtrans[T(E(0) + E(3) + E(6) + E(7))],
+    octtrans[T(E(0) + E(4) + E(5) + E(6))], octtrans[T(E(0) + E(4) + E(5) + E(7))],
+    octtrans[T(E(0) + E(4) + E(6) + E(7))],
     octtrans[T(E(0) + E(5) + E(6) + E(7))],  // 0 + 5 + 6 + 7
 #undef T
   };
   static const unsigned octitions[128] = {
-    0, // 1 way to arrange 0
-    1, 2, 4, 8, 16, 32, 64, 128, // 8 ways to arrange 1
-    3, 5, 9, 17, 33, 65, 129,
-    6, 10, 18, 34, 66, 130,
-    12, 20, 36, 68, 132,
-    24, 40, 72, 136,
-    48, 80, 144,
-    96, 160,
-    192,                         // 28 ways for 2
-    3, 5, 9, 17, 33, 65, 129,
-    6, 10, 18, 34, 66, 130,
-    12, 20, 36, 68, 132,
-    24, 40, 72, 136,
-    48, 80, 144,
-    96, 160,
-    192,                         // 56 ways for 3
-    // FIXME
-    112, 208,
-    224                          // 56 ways for 3
-    // 70 ways for 4, but there are 35 inverses among them
-    // FIXME
+    0,
+    // one set
+    E(0),
+    E(1),
+    E(2),
+    E(3),
+    E(4),
+    E(5),
+    E(6),
+    E(7),
+    // two set (7 + 6 + 5 + 4 + 3 + 2 + 1 = 28)
+    E(0) + E(1), E(0) + E(2), E(0) + E(3),
+    E(0) + E(4), E(0) + E(5), E(0) + E(6),
+    E(0) + E(7), // 0 + 1...
+    E(1) + E(2), E(1) + E(3), E(1) + E(4),
+    E(1) + E(5), E(1) + E(6), E(1) + E(7), // 1 + 2...
+    E(2) + E(3), E(2) + E(4), E(2) + E(5),
+    E(2) + E(6), E(2) + E(7), // 2 + 3...
+    E(3) + E(4), E(3) + E(5), E(3) + E(6),
+    E(3) + E(7), // 3 + 4...
+    E(4) + E(5), E(4) + E(6), E(4) + E(7), // 4 + 5...
+    E(5) + E(6), E(5) + E(7), // 5 + 6...
+    E(6) + E(7), // 6 + 7
+    // three set (21 + 15 + 10 + 6 + 3 + 1 = 56)
+    E(0) + E(1) + E(2), E(0) + E(1) + E(3), E(0) + E(1) + E(4),
+    E(0) + E(1) + E(5), E(0) + E(1) + E(6), E(0) + E(1) + E(7), // 0 + 1 + 2...
+    E(0) + E(2) + E(3), E(0) + E(2) + E(4), E(0) + E(2) + E(5),
+    E(0) + E(2) + E(6), E(0) + E(2) + E(7), // 0 + 2 + 3...
+    E(0) + E(3) + E(4), E(0) + E(3) + E(5), E(0) + E(3) + E(6),
+    E(0) + E(3) + E(7), // 3 + 4...
+    E(0) + E(4) + E(5), E(0) + E(4) + E(6), E(0) + E(4) + E(7), // 0 + 4 + 5...
+    E(0) + E(5) + E(6), E(0) + E(5) + E(7), // 0 + 5 + 6...
+    E(0) + E(6) + E(7), // 0 + 6 + 7
+    E(1) + E(2) + E(3), E(1) + E(2) + E(4), E(1) + E(2) + E(5),
+    E(1) + E(2) + E(6), E(1) + E(2) + E(7),
+    E(1) + E(3) + E(4), E(1) + E(3) + E(5), E(1) + E(3) + E(6),
+    E(1) + E(3) + E(7),
+    E(1) + E(4) + E(5), E(1) + E(4) + E(6), E(1) + E(4) + E(7),
+    E(1) + E(5) + E(6), E(1) + E(5) + E(7),
+    E(1) + E(6) + E(7),
+    E(2) + E(3) + E(4), E(2) + E(3) + E(5), E(2) + E(3) + E(6),
+    E(2) + E(3) + E(7),
+    E(2) + E(4) + E(5), E(2) + E(4) + E(6), E(2) + E(4) + E(7),
+    E(2) + E(5) + E(6), E(2) + E(5) + E(7),
+    E(2) + E(6) + E(7),
+    E(3) + E(4) + E(5), E(3) + E(4) + E(6), E(3) + E(4) + E(7),
+    E(3) + E(5) + E(6), E(3) + E(5) + E(7),
+    E(3) + E(6) + E(7),
+    E(4) + E(5) + E(6), E(4) + E(5) + E(7),
+    E(4) + E(6) + E(7),
+    E(5) + E(6) + E(7),  // 5 + 6 + 7
+    // four set (15 + 10 + 6 + 3 + 1 = 35)
+    E(0) + E(1) + E(2) + E(3), E(0) + E(1) + E(2) + E(4), E(0) + E(1) + E(2) + E(5),
+    E(0) + E(1) + E(2) + E(6), E(0) + E(1) + E(2) + E(7),
+    E(0) + E(1) + E(3) + E(4), E(0) + E(1) + E(3) + E(5), E(0) + E(1) + E(3) + E(6),
+    E(0) + E(1) + E(3) + E(7),
+    E(0) + E(1) + E(4) + E(5), E(0) + E(1) + E(4) + E(6), E(0) + E(1) + E(4) + E(7),
+    E(0) + E(1) + E(5) + E(6), E(0) + E(1) + E(5) + E(7),
+    E(0) + E(1) + E(6) + E(7),
+    E(0) + E(2) + E(3) + E(4), E(0) + E(2) + E(3) + E(5), E(0) + E(2) + E(3) + E(6),
+    E(0) + E(2) + E(3) + E(7),
+    E(0) + E(2) + E(4) + E(5), E(0) + E(2) + E(4) + E(6), E(0) + E(2) + E(4) + E(7),
+    E(0) + E(2) + E(5) + E(6), E(0) + E(2) + E(5) + E(7),
+    E(0) + E(2) + E(6) + E(7),
+    E(0) + E(3) + E(4) + E(5), E(0) + E(3) + E(4) + E(6), E(0) + E(3) + E(4) + E(7),
+    E(0) + E(3) + E(5) + E(6), E(0) + E(3) + E(5) + E(7),
+    E(0) + E(3) + E(6) + E(7),
+    E(0) + E(4) + E(5) + E(6), E(0) + E(4) + E(5) + E(7),
+    E(0) + E(4) + E(6) + E(7),
+    E(0) + E(5) + E(6) + E(7),  // 0 + 5 + 6 + 7
 #undef E
   };
   return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans,
