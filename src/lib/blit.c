@@ -1074,14 +1074,10 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
   ++*foldcount;
 }
 
-// generic 4x2 blitter, used for octant and Braille. maps 4x2 to each
-// cell. since we only have one color at our disposal (foreground), we
-// lose some fidelity. this is optimal for visuals with only two
-// colors in a given area, as it packs lots of resolution. always
-// transparent background.
+// Braille maps 4x2 to each cell, always using a transparent background.
 static inline int
-blit_4x2(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-         const blitterargs* bargs, const char egcs[256][5]){
+braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+             const blitterargs* bargs){
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   unsigned dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -1185,7 +1181,7 @@ blit_4x2(ncplane* nc, int linesize, const void* data, int leny, int lenx,
         if(blends){
           nccell_set_fg_rgb8(c, r / blends, g / blends, b / blends);
         }
-        const char* egc = egcs[egcidx];
+        const char* egc = braille_egcs[egcidx];
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
         }
@@ -1194,12 +1190,6 @@ blit_4x2(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     }
   }
   return total;
-}
-
-static inline int
-braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-             const blitterargs* bargs){
-  return blit_4x2(nc, linesize, data, leny, lenx, bargs, braille_egcs);
 }
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
