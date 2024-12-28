@@ -857,7 +857,7 @@ static const char* const octtrans[256] = {
   "\U0001cd01", // 𜴁   6 row 0 right row 1 left (o23)
   "\U00002598", // ▘   5 row 0/1 left only      (upper left quadrant)
   "\U0001cd00", // 𜴀   4 row 1 left only        (o3)
-  "\U0001f8b2", // 🮂   3 row 0                  (upper one quarter)
+  "\U0001fb82", // 🮂   3 row 0                  (upper one quarter)
   "\U0001ceab", // 𜺫   2 upper right only       (right half upper one quarter)
   "\U0001cea8", // 𜺨   1 upper left only        (left half upper one quarter)
   " "           //     0 none set               (space)
