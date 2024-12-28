@@ -1003,7 +1003,6 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 static inline int
 octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs){
-  // FIXME define octant sets
   // each element within the set of 256 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 128. the octition[] bit masks represent combinations of
