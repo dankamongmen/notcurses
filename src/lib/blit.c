@@ -516,32 +516,15 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 // resulting lerps.
 static const char*
 hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
-             unsigned nointerpolate, unsigned cellheight){
-  // FIXME need genericize to hires
-  // each element within the set of 64 has an inverse element within the set,
-  // for which we would calculate the same total differences, so just handle
-  // the first 32. the partition[] bit masks represent combinations of
-  // sextants, and their indices correspond to sex[].
-  static const char* sex[32] = {
-    " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
-    "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
-    "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
-    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬮", // 24..31
-  };
-  static const unsigned partitions[32] = {
-    0, // 1 way to arrange 0
-    1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
-    3, 5, 9, 17, 33, 6, 10, 18, 34, 12, 20, 36, 24, 40, 48, // 15 ways for 2
-    //  16 ways to arrange 3, *but* six of them are inverses, so 10
-    7, 11, 19, 35, 13, 21, 37, 25, 41, 49 //  10 + 15 + 6 + 1 == 32
-  };
+             unsigned nointerpolate, unsigned cellheight, const char** egcs,
+             const unsigned* partitions, unsigned parcount){
   // we loop over the bitstrings, dividing the pixels into two sets, and then
   // taking a general lerp over each set. we then compute the sum of absolute
   // differences, and see if it's the new minimum.
   int best = -1;
   uint32_t mindiff = UINT_MAX;
 //fprintf(stderr, "%06x %06x\n%06x %06x\n%06x %06x\n", rgbas[0], rgbas[1], rgbas[2], rgbas[3], rgbas[4], rgbas[5]);
-  for(size_t glyph = 0 ; glyph < sizeof(partitions) / sizeof(*partitions) ; ++glyph){
+  for(size_t glyph = 0 ; glyph < parcount ; ++glyph){
     unsigned rsum0 = 0, rsum1 = 0;
     unsigned gsum0 = 0, gsum1 = 0;
     unsigned bsum0 = 0, bsum1 = 0;
@@ -592,12 +575,12 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     }
   }
 //fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
-  assert(best >= 0 && best < 32); // FIXME adapt to oct
+  assert(best >= 0 && best < (1u << (cellheight * 2) - 1));
   if(blendcolors){
     ncchannels_set_fg_alpha(channels, NCALPHA_BLEND);
     ncchannels_set_bg_alpha(channels, NCALPHA_BLEND);
   }
-  return sex[best];
+  return egcs[best];
 }
 
 // FIXME replace both of these arrays of pointers with fixed-width matrices
@@ -605,7 +588,7 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
 // 32: bottom right 16: bottom left
 //  8: middle right  4: middle left
 //  2: upper right   1: upper left
-static const char* sextrans[64] = {
+static const char* const sextrans[64] = {
   "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵",
   "🬴", "🬳", "🬲", "🬱", "🬰", "🬯", "🬮", "🬭",
   "🬬", "🬫", "🬪", "🬩", "🬨", "▐", "🬧", "🬦",
@@ -621,7 +604,7 @@ static const char* sextrans[64] = {
 //   4: row 1 left   8: row 1 right
 //  16: row 2 left  32: row 2 right
 //  64: row 3 left 128: row 3 right
-static const char* octtrans[256] = {
+static const char* const octtrans[256] = {
   "\U00002588", // █ 255 all eight set          (full)
   "\U0001cde5", // 𜷥 254 missing upper left     (o2345678)
   "\U0001cde4", // 𜷤 253 missing upper right    (o1345678)
@@ -883,7 +866,7 @@ static const char* octtrans[256] = {
 static const char*
 hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
                   uint32_t transcolor, unsigned nointerpolate, int cellheight,
-                  const char** transegcs){
+                  const char* const* transegcs){
   unsigned transstring = 0;
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
@@ -935,7 +918,8 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
 static inline int
 hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs, int cellheight,
-           const char** transegcs){
+           const char* const* transegcs, const char **egcs,
+           const unsigned* partitions, unsigned parcount){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   unsigned dimy, dimx, x, y;
@@ -974,7 +958,8 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       const char* egc = hires_trans_check(c, rgbas, blendcolors, bargs->transcolor,
                                           nointerpolate, cellheight, transegcs);
       if(egc == NULL){ // no transparency; run a full solver
-        egc = hires_solver(rgbas, &c->channels, blendcolors, nointerpolate, cellheight);
+        egc = hires_solver(rgbas, &c->channels, blendcolors, nointerpolate,
+                           cellheight, egcs, partitions, parcount);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "hires EGC: %s channels: %016lx\n", egc, c->channels);
@@ -994,13 +979,47 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 static inline int
 sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs){
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans);
+  // each element within the set of 64 has an inverse element within the set,
+  // for which we would calculate the same total differences, so just handle
+  // the first 32. the sextition[] bit masks represent combinations of
+  // sextants, and their indices correspond to sex[].
+  static const char* sex[32] = {
+    " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
+    "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
+    "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
+    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍", // 24..31
+  };
+  static const unsigned sextitions[32] = {
+    0, // 1 way to arrange 0
+    1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
+    3, 5, 9, 17, 33, 6, 10, 18, 34, 12, 20, 36, 24, 40, 48, // 15 ways for 2
+    //  16 ways to arrange 3, *but* six of them are inverses, so 10
+    7, 11, 19, 35, 13, 21, 37, 25, 41, 14 //  10 + 15 + 6 + 1 == 32
+  };
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans,
+                    sex, sextitions, sizeof(sextitions) / sizeof(*sextitions));
 }
 
 static inline int
 octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs){
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans);
+  // FIXME define octant sets
+  // each element within the set of 256 has an inverse element within the set,
+  // for which we would calculate the same total differences, so just handle
+  // the first 128. the octition[] bit masks represent combinations of
+  // octants, and their indices correspond to sex[].
+  static const char* oct[128] = {
+    octtrans[255],
+  };
+  static const unsigned octitions[] = {
+    0, // 1 way to arrange 0
+    1, 2, 4, 8, 16, 32, 64, 128, // 8 ways to arrange 1
+    // 28 ways for 2 FIXME
+    // 56 ways for 3 FIXME
+    // 70 ways for 4, but there are inverses among them FIXME
+  };
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans,
+                    oct, octitions, sizeof(octitions) / sizeof(*octitions));
 }
 
 // Bit is set where Braille dot is present:
