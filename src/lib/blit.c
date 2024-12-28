@@ -516,8 +516,9 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 // resulting lerps.
 static const char*
 hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
-             unsigned nointerpolate, unsigned cellheight, const char** egcs,
-             const unsigned* partitions, unsigned parcount){
+             unsigned nointerpolate, unsigned cellheight,
+             const char* const* transegcs, const unsigned* partitions){
+  const unsigned parcount = 1u << (cellheight * 2 - 1);
   // we loop over the bitstrings, dividing the pixels into two sets, and then
   // taking a general lerp over each set. we then compute the sum of absolute
   // differences, and see if it's the new minimum.
@@ -575,12 +576,13 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     }
   }
 //fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
-  assert(best >= 0 && best < (1u << (cellheight * 2) - 1));
   if(blendcolors){
     ncchannels_set_fg_alpha(channels, NCALPHA_BLEND);
     ncchannels_set_bg_alpha(channels, NCALPHA_BLEND);
   }
-  return egcs[best];
+  best = parcount * 2 - 1 - partitions[best];
+  assert(best >= 0 && best >= (1u << (cellheight * 2 - 1)) && best < (1u << (cellheight * 2)));
+  return transegcs[best];
 }
 
 // FIXME replace both of these arrays of pointers with fixed-width matrices
@@ -605,262 +607,262 @@ static const char* const sextrans[64] = {
 //  16: row 2 left  32: row 2 right
 //  64: row 3 left 128: row 3 right
 static const char* const octtrans[256] = {
-  "\U00002588", // █ 255 all eight set          (full)
-  "\U0001cde5", // 𜷥 254 missing upper left     (o2345678)
-  "\U0001cde4", // 𜷤 253 missing upper right    (o1345678)
-  "\U00002586", // ▆ 252 missing row 0          (lower three quarters)
-  "\U0001cde3", // 𜷣 251 missing row 1 left     (o1245678)
-  "\U0000259f", // ▟ 250                        (q upper right and lower left and lower right)
-  "\U0001cde2", // 𜷢 249                        (o1245678)
-  "\U0001cde1", // 𜷡 248                        (o45678)
-  "\U0001cde0", // 𜷠 247 missing row 1 right    (o1235678)
-  "\U0001cddf", // 𜷟 246 missing 0 left 1 right (o235678)
-  "\U00002599", // ▙ 245 missing 0/1 right      (q upper left and lower left and lower right)
-  "\U0001cdde", // 𜷞 244
-  "\U0001cddd", // 𜷝 243
-  "\U0001cddc", // 𜷜 242
-  "\U0001cddb", // 𜷛 241                        (o15678)
-  "\U00002584", // ▄ 240 2/3 full               (lower half)
-  "\U0001cdda", // 𜷚 239                        (o1234678)
-  "\U0001cdd9", // 𜷙 238                        (o234678)
-  "\U0001cdd8", // 𜷘 237                        (o134678)
-  "\U0001cdd7", // 𜷗 236                        (o34678)
-  "\U0001cdd6", // 𜷖 235                        (o124678)
-  "\U0001cdd5", // 𜷕 234                        (o24678)
-  "\U0001cdd4", // 𜷔 233                        (o14678)
-  "\U0001cdd3", // 𜷓 232                        (o4678)
-  "\U0001cdd2", // 𜷒 231
-  "\U0001cdd1", // 𜷑 230
-  "\U0001cdd0", // 𜷐 229
-  "\U0001cdcf", // 𜷏 228                        (o145678)
-  "\U0001cdce", // 𜷎 227
-  "\U0001cdcd", // 𜷍 226
-  "\U0001cdcc", // 𜷌 225
-  "\U0001cdcb", // 𜷋 224                        (o678)
-  "\U0001cdca",
-  "\U0001cdc9",
-  "\U0001cdc8",
-  "\U0001cdc7", // 𜷇 220                        (o34578)
-  "\U0001cdc6",
-  "\U0001cdc5",
-  "\U0001cdc4",
-  "\U0001cdc3", // 𜷃 216                        (o4578)
-  "\U0001cdc2",
-  "\U0001cdc1",
-  "\U0001cdc0",
-  "\U0001cdbf", // 𜶿 212                        (o3578)
-  "\U0001cdbe",
-  "\U0001cdbd",
-  "\U0001cdbc",
-  "\U0001cdbb", // 𜶻 208                        (o578)
-  "\U0001cdba",
-  "\U0001cdb9",
-  "\U0001cdb8",
-  "\U0001cdb7", // 𜶷 204                        (o4578)
-  "\U0001cdb6",
-  "\U0001cdb5",
-  "\U0001cdb4",
-  "\U0001cdb3", // 𜶳 200                        (o478)
-  "\U0001cdb2",
-  "\U0001cdb1",
-  "\U0001cdb0",
-  "\U0001cdaf", // 𜶯 196                        (o378)
-  "\U0001cdae",
-  "\U0001cdad",
-  "\U0001cdac",
-  "\U00002582", // ▂ 192                        (lower one quarter)
-  "\U0001cdab",
-  "\U0001cdaa",
-  "\U0001cda9",
-  "\U0001cda8", // 𜶨 188                        (o34568)
-  "\U0001cda7",
-  "\U0001cda6",
-  "\U0001cda5",
-  "\U0001cda4",
-  "\U0001cda3",
-  "\U0001cda2",
-  "\U0001cda1",
-  "\U0001cda0",
-  "\U0001cd9f",
-  "\U0001cd9e",
-  "\U0001cd9d",
-  "\U0001cd9c",
-  "\U0000259c", // ▜ 175                        (q upper left and upper right and lower right)
-  "\U0001cd9b",
-  "\U0001cd9a",
-  "\U0001cd99",
-  "\U0001cd98",
-  "\U00002590", // ▐ 170                        (right half)
-  "\U0001cd97",
-  "\U0001cd96",
-  "\U0001cd95",
-  "\U0001cd94",
-  "\U0000259a", // ▚ 165                        (q upper left and lower right)
-  "\U0001cd93",
-  "\U0001cd92",
-  "\U0001cd91",
-  "\U0001cd90",
-  "\U00002597", // ▗ 160                        (q lower right)
-  "\U0001cd8f",
-  "\U0001cd8e",
-  "\U0001cd8d",
-  "\U0001cd8c", // 𜶌 156                        (u3458)
-  "\U0001cd8b",
-  "\U0001cd8a",
-  "\U0001cd89",
-  "\U0001cd88", // 𜶈 152                        (u458)
-  "\U0001cd87",
-  "\U0001cd86",
-  "\U0001cd85",
-  "\U0001cd84", // 𜶄 148                        (u358)
-  "\U0001cd83",
-  "\U0001cd82",
-  "\U0001cd81",
-  "\U0001cd80", // 𜶀 144                        (u58)
-  "\U0001cd7f",
-  "\U0001cd7e",
-  "\U0001cd7d",
-  "\U0001cd7c", // 𜵼 140                        (u348)
-  "\U0001cd7b",
-  "\U0001cd7a",
-  "\U0001cd79",
-  "\U0001cd78", // 𜵸 136                        (u48)
-  "\U0001cd77",
-  "\U0001cd76",
-  "\U0001cd75",
-  "\U0001cd74", // 𜵴 132                        (u38)
-  "\U0001cd73",
-  "\U0001cd72",
-  "\U0001cd71",
-  "\U0001cea0", // 𜺠 128 lower right only       (right half lower one quarter)
-  "\U0001cd70", // 𜵰 127 missing lower right    (u1234567)
-  "\U0001cd6f",
-  "\U0001cd6e",
-  "\U0001cd6d",
-  "\U0001cd6c",
-  "\U0001cd6b",
-  "\U0001cd6a",
-  "\U0001cd69",
-  "\U0001cd68",
-  "\U0001cd67",
-  "\U0001cd66",
-  "\U0001cd65",
-  "\U0001cd64",
-  "\U0001cd63",
-  "\U0001cd62",
-  "\U0001cd61",
-  "\U0001cd60",
-  "\U0001cd5f",
-  "\U0001cd5e",
-  "\U0001cd5d",
-  "\U0001cd5c",
-  "\U0001cd5b",
-  "\U0001cd5a",
-  "\U0001cd59",
-  "\U0001cd58",
-  "\U0001cd57",
-  "\U0001cd56",
-  "\U0001cd55",
-  "\U0001cd54",
-  "\U0001cd53",
-  "\U0001cd52",
-  "\U0001cd51",
-  "\U0000259b", // ▛  95 0/1 full 2/3 left      (q upper left and upper right and lower left)
-  "\U0001cd50",
-  "\U0001cd4f",
-  "\U0001cd4e",
-  "\U0001cd4d",
-  "\U0000259e", // ▞  92 0/1 right 2/3 left     (q upper right and lower left)
-  "\U0001cd4c",
-  "\U0001cd4b",
-  "\U0001cd4a",
-  "\U0001cd49",
-  "\U0000258c", // ▌  85 0/1/2/3 left           (left block)
-  "\U0001cd48",
-  "\U0001cd47",
-  "\U0001cd46",
-  "\U0001cd45",
-  "\U00002596", // ▖  80 2/3 left               (q lower left)
-  "\U0001cd44",
-  "\U0001cd43",
-  "\U0001cd42",
-  "\U0001cd41",
-  "\U0001cd40",
-  "\U0001cd3f",
-  "\U0001cd3e",
-  "\U0001cd3d",
-  "\U0001cd3c",
-  "\U0001cd3b",
-  "\U0001cd3a",
-  "\U0001cd39",
-  "\U0001cd38",
-  "\U0001cd37", // 𜴷  66 0 right 3 left         (o27)
-  "\U0001cd36", // 𜴶  65 0 left 3 left          (o17)
-  "\U0001cea3", // 𜺣  64 lower left only        (left half lower one quarter)
-  "\U0001fb85", // 🮅  63 row 0/1/2 full         (upper three quarters)
-  "\U0001cd35", // 𜴵  62                        (o23456)
-  "\U0001cd34", // 𜴴  61                        (o13456)
-  "\U0001cd33", // 𜴳  60                        (o3456)
-  "\U0001cd32", // 𜴲  59                        (o12456)
-  "\U0001cd31", // 𜴱  58                        (o2456)
-  "\U0001cd30", // 𜴰  57 0 left 1 right 2 full  (o1456)
-  "\U0001cd2f", // 𜴯  56                        (o456)
-  "\U0001cd2e", // 𜴮  55
-  "\U0001cd2d", // 𜴭  54
-  "\U0001cd2c", // 𜴬  53
-  "\U0001cd2b", // 𜴫  52
-  "\U0001cd2a", // 𜴪  51
-  "\U0001cd29", // 𜴩  50
-  "\U0001cd28", // 𜴨  49
-  "\U0001cd27", // 𜴧  48
-  "\U0001cd26", // 𜴦  47                        (o12346)
-  "\U0001cd25", // 𜴥  46                        (o2346)
-  "\U0001cd24", // 𜴤  45                        (o1346)
-  "\U0001cd23", // 𜴣  44                        (o346)
-  "\U0001cd22", // 𜴢  43                        (o1246)
-  "\U0001cd21", // 𜴡  42                        (o246)
-  "\U0001cd20", // 𜴠  41                        (o146)
-  "\U0001fbe7", // 🯧  40                        (middle right one quarter)
-  "\U0001cd1f", // 𜴟  39                        (o1236)
-  "\U0001cd1e", // 𜴞  38                        (o236)
-  "\U0001cd1d", // 𜴝  37                        (o136)
-  "\U0001cd1c", // 𜴜  36                        (o36)
-  "\U0001cd1b", // 𜴛  35                        (o126)
-  "\U0001cd1a", // 𜴚  34                        (o26)
-  "\U0001cd19", // 𜴙  33                        (o16)
-  "\U0001cd18", // 𜴘  32 row 2 right only       (o6)
-  "\U0001cd17", // 𜴗  31                        (o12345)
-  "\U0001cd16", // 𜴖  30                        (o2345)
-  "\U0001cd15", // 𜴕  29                        (o1345)
-  "\U0001cd14", // 𜴔  28                        (o345)
-  "\U0001cd13", // 𜴓  27                        (o1245)
-  "\U0001cd12", // 𜴒  26 row 0/1 right row 2 l  (o245)
-  "\U0001cd11", // 𜴑  25 row 1/2 left row 1 r   (o145)
-  "\U0001cd10", // 𜴐  24 row 1 right row 2 left (o45)
-  "\U0001cd0f", // 𜴏  23 row 0 full row 1/2 l   (o1235)
-  "\U0001cd0e", // 𜴎  22 row 1 right row 2/3 l  (o235)
-  "\U0001cd0d", // 𜴍  21 row 0/1/2 left         (o135)
-  "\U0001fbe6", // 🯦  20 row 1/2 left           (middle left one quarter)
-  "\U0001cd0c", // 𜴌  19 row 0 full row 2 left  (o125)
-  "\U0001cd0b", // 𜴋  18 row 0 right row 2 left (o25)
-  "\U0001cd0a", // 𜴊  17 row 0 left row 2 left  (o15)
-  "\U0001cd09", // 𜴉  16 row 2 left only        (o5)
-  "\U00002580", // ▀  15 row 0/1 full           (upper half)
-  "\U0001cd08", // 𜴈  14 row 0 right row 1 full (o234)
-  "\U0001cd07", // 𜴇  13 row 0 left row 1 full  (o134)
-  "\U0001cd06", // 𜴆  12 row 1 full             (o34)
-  "\U0001cd05", // 𜴅  11 row 0 full row 1 right (o124)
-  "\U0000259d", // ▝  10 row 0/1 right only     (upper right quadrant)
-  "\U0001cd04", // 𜴄   9 row 0 left row 1 right (o14)
-  "\U0001cd03", // 𜴃   8 row 1 right only       (o4)
-  "\U0001cd02", // 𜴂   7 row 0 full row 1 left  (o123)
-  "\U0001cd01", // 𜴁   6 row 0 right row 1 left (o23)
-  "\U00002598", // ▘   5 row 0/1 left only      (upper left quadrant)
-  "\U0001cd00", // 𜴀   4 row 1 left only        (o3)
-  "\U0001fb82", // 🮂   3 row 0                  (upper one quarter)
-  "\U0001ceab", // 𜺫   2 upper right only       (right half upper one quarter)
-  "\U0001cea8", // 𜺨   1 upper left only        (left half upper one quarter)
-  " "           //     0 none set               (space)
+  u8"\U00002588", // █ 255 all eight set          (full)
+  u8"\U0001cde5", // 𜷥 254 missing upper left     (o2345678)
+  u8"\U0001cde4", // 𜷤 253 missing upper right    (o1345678)
+  u8"\U00002586", // ▆ 252 missing row 0          (lower three quarters)
+  u8"\U0001cde3", // 𜷣 251 missing row 1 left     (o1245678)
+  u8"\U0000259f", // ▟ 250                        (q upper right and lower left and lower right)
+  u8"\U0001cde2", // 𜷢 249                        (o1245678)
+  u8"\U0001cde1", // 𜷡 248                        (o45678)
+  u8"\U0001cde0", // 𜷠 247 missing row 1 right    (o1235678)
+  u8"\U0001cddf", // 𜷟 246 missing 0 left 1 right (o235678)
+  u8"\U00002599", // ▙ 245 missing 0/1 right      (q upper left and lower left and lower right)
+  u8"\U0001cdde", // 𜷞 244
+  u8"\U0001cddd", // 𜷝 243
+  u8"\U0001cddc", // 𜷜 242
+  u8"\U0001cddb", // 𜷛 241                        (o15678)
+  u8"\U00002584", // ▄ 240 2/3 full               (lower half)
+  u8"\U0001cdda", // 𜷚 239                        (o1234678)
+  u8"\U0001cdd9", // 𜷙 238                        (o234678)
+  u8"\U0001cdd8", // 𜷘 237                        (o134678)
+  u8"\U0001cdd7", // 𜷗 236                        (o34678)
+  u8"\U0001cdd6", // 𜷖 235                        (o124678)
+  u8"\U0001cdd5", // 𜷕 234                        (o24678)
+  u8"\U0001cdd4", // 𜷔 233                        (o14678)
+  u8"\U0001cdd3", // 𜷓 232                        (o4678)
+  u8"\U0001cdd2", // 𜷒 231
+  u8"\U0001cdd1", // 𜷑 230
+  u8"\U0001cdd0", // 𜷐 229
+  u8"\U0001cdcf", // 𜷏 228                        (o145678)
+  u8"\U0001cdce", // 𜷎 227
+  u8"\U0001cdcd", // 𜷍 226
+  u8"\U0001cdcc", // 𜷌 225
+  u8"\U0001cdcb", // 𜷋 224                        (o678)
+  u8"\U0001cdca",
+  u8"\U0001cdc9",
+  u8"\U0001cdc8",
+  u8"\U0001cdc7", // 𜷇 220                        (o34578)
+  u8"\U0001cdc6",
+  u8"\U0001cdc5",
+  u8"\U0001cdc4",
+  u8"\U0001cdc3", // 𜷃 216                        (o4578)
+  u8"\U0001cdc2",
+  u8"\U0001cdc1",
+  u8"\U0001cdc0",
+  u8"\U0001cdbf", // 𜶿 212                        (o3578)
+  u8"\U0001cdbe",
+  u8"\U0001cdbd",
+  u8"\U0001cdbc",
+  u8"\U0001cdbb", // 𜶻 208                        (o578)
+  u8"\U0001cdba",
+  u8"\U0001cdb9",
+  u8"\U0001cdb8",
+  u8"\U0001cdb7", // 𜶷 204                        (o4578)
+  u8"\U0001cdb6",
+  u8"\U0001cdb5",
+  u8"\U0001cdb4",
+  u8"\U0001cdb3", // 𜶳 200                        (o478)
+  u8"\U0001cdb2",
+  u8"\U0001cdb1",
+  u8"\U0001cdb0",
+  u8"\U0001cdaf", // 𜶯 196                        (o378)
+  u8"\U0001cdae",
+  u8"\U0001cdad",
+  u8"\U0001cdac",
+  u8"\U00002582", // ▂ 192                        (lower one quarter)
+  u8"\U0001cdab",
+  u8"\U0001cdaa",
+  u8"\U0001cda9",
+  u8"\U0001cda8", // 𜶨 188                        (o34568)
+  u8"\U0001cda7",
+  u8"\U0001cda6",
+  u8"\U0001cda5",
+  u8"\U0001cda4",
+  u8"\U0001cda3",
+  u8"\U0001cda2",
+  u8"\U0001cda1",
+  u8"\U0001cda0",
+  u8"\U0001cd9f",
+  u8"\U0001cd9e",
+  u8"\U0001cd9d",
+  u8"\U0001cd9c",
+  u8"\U0000259c", // ▜ 175                        (q upper left and upper right and lower right)
+  u8"\U0001cd9b",
+  u8"\U0001cd9a",
+  u8"\U0001cd99",
+  u8"\U0001cd98",
+  u8"\U00002590", // ▐ 170                        (right half)
+  u8"\U0001cd97",
+  u8"\U0001cd96",
+  u8"\U0001cd95",
+  u8"\U0001cd94",
+  u8"\U0000259a", // ▚ 165                        (q upper left and lower right)
+  u8"\U0001cd93",
+  u8"\U0001cd92",
+  u8"\U0001cd91",
+  u8"\U0001cd90",
+  u8"\U00002597", // ▗ 160                        (q lower right)
+  u8"\U0001cd8f",
+  u8"\U0001cd8e",
+  u8"\U0001cd8d",
+  u8"\U0001cd8c", // 𜶌 156                        (u3458)
+  u8"\U0001cd8b",
+  u8"\U0001cd8a",
+  u8"\U0001cd89",
+  u8"\U0001cd88", // 𜶈 152                        (u458)
+  u8"\U0001cd87",
+  u8"\U0001cd86",
+  u8"\U0001cd85",
+  u8"\U0001cd84", // 𜶄 148                        (u358)
+  u8"\U0001cd83",
+  u8"\U0001cd82",
+  u8"\U0001cd81",
+  u8"\U0001cd80", // 𜶀 144                        (u58)
+  u8"\U0001cd7f",
+  u8"\U0001cd7e",
+  u8"\U0001cd7d",
+  u8"\U0001cd7c", // 𜵼 140                        (u348)
+  u8"\U0001cd7b",
+  u8"\U0001cd7a",
+  u8"\U0001cd79",
+  u8"\U0001cd78", // 𜵸 136                        (u48)
+  u8"\U0001cd77",
+  u8"\U0001cd76",
+  u8"\U0001cd75",
+  u8"\U0001cd74", // 𜵴 132                        (u38)
+  u8"\U0001cd73",
+  u8"\U0001cd72",
+  u8"\U0001cd71",
+  u8"\U0001cea0", // 𜺠 128 lower right only       (right half lower one quarter)
+  u8"\U0001cd70", // 𜵰 127 missing lower right    (u1234567)
+  u8"\U0001cd6f",
+  u8"\U0001cd6e",
+  u8"\U0001cd6d",
+  u8"\U0001cd6c",
+  u8"\U0001cd6b",
+  u8"\U0001cd6a",
+  u8"\U0001cd69",
+  u8"\U0001cd68",
+  u8"\U0001cd67",
+  u8"\U0001cd66",
+  u8"\U0001cd65",
+  u8"\U0001cd64",
+  u8"\U0001cd63",
+  u8"\U0001cd62",
+  u8"\U0001cd61",
+  u8"\U0001cd60",
+  u8"\U0001cd5f",
+  u8"\U0001cd5e",
+  u8"\U0001cd5d",
+  u8"\U0001cd5c",
+  u8"\U0001cd5b",
+  u8"\U0001cd5a",
+  u8"\U0001cd59",
+  u8"\U0001cd58",
+  u8"\U0001cd57",
+  u8"\U0001cd56",
+  u8"\U0001cd55",
+  u8"\U0001cd54",
+  u8"\U0001cd53",
+  u8"\U0001cd52",
+  u8"\U0001cd51",
+  u8"\U0000259b", // ▛  95 0/1 full 2/3 left      (q upper left and upper right and lower left)
+  u8"\U0001cd50",
+  u8"\U0001cd4f",
+  u8"\U0001cd4e",
+  u8"\U0001cd4d",
+  u8"\U0000259e", // ▞  92 0/1 right 2/3 left     (q upper right and lower left)
+  u8"\U0001cd4c",
+  u8"\U0001cd4b",
+  u8"\U0001cd4a",
+  u8"\U0001cd49",
+  u8"\U0000258c", // ▌  85 0/1/2/3 left           (left block)
+  u8"\U0001cd48",
+  u8"\U0001cd47",
+  u8"\U0001cd46",
+  u8"\U0001cd45",
+  u8"\U00002596", // ▖  80 2/3 left               (q lower left)
+  u8"\U0001cd44",
+  u8"\U0001cd43",
+  u8"\U0001cd42",
+  u8"\U0001cd41",
+  u8"\U0001cd40",
+  u8"\U0001cd3f",
+  u8"\U0001cd3e",
+  u8"\U0001cd3d",
+  u8"\U0001cd3c",
+  u8"\U0001cd3b",
+  u8"\U0001cd3a",
+  u8"\U0001cd39",
+  u8"\U0001cd38",
+  u8"\U0001cd37", // 𜴷  66 0 right 3 left         (o27)
+  u8"\U0001cd36", // 𜴶  65 0 left 3 left          (o17)
+  u8"\U0001cea3", // 𜺣  64 lower left only        (left half lower one quarter)
+  u8"\U0001fb85", // 🮅  63 row 0/1/2 full         (upper three quarters)
+  u8"\U0001cd35", // 𜴵  62                        (o23456)
+  u8"\U0001cd34", // 𜴴  61                        (o13456)
+  u8"\U0001cd33", // 𜴳  60                        (o3456)
+  u8"\U0001cd32", // 𜴲  59                        (o12456)
+  u8"\U0001cd31", // 𜴱  58                        (o2456)
+  u8"\U0001cd30", // 𜴰  57 0 left 1 right 2 full  (o1456)
+  u8"\U0001cd2f", // 𜴯  56                        (o456)
+  u8"\U0001cd2e", // 𜴮  55
+  u8"\U0001cd2d", // 𜴭  54
+  u8"\U0001cd2c", // 𜴬  53
+  u8"\U0001cd2b", // 𜴫  52
+  u8"\U0001cd2a", // 𜴪  51
+  u8"\U0001cd29", // 𜴩  50
+  u8"\U0001cd28", // 𜴨  49
+  u8"\U0001cd27", // 𜴧  48
+  u8"\U0001cd26", // 𜴦  47                        (o12346)
+  u8"\U0001cd25", // 𜴥  46                        (o2346)
+  u8"\U0001cd24", // 𜴤  45                        (o1346)
+  u8"\U0001cd23", // 𜴣  44                        (o346)
+  u8"\U0001cd22", // 𜴢  43                        (o1246)
+  u8"\U0001cd21", // 𜴡  42                        (o246)
+  u8"\U0001cd20", // 𜴠  41                        (o146)
+  u8"\U0001fbe7", // 🯧  40                        (middle right one quarter)
+  u8"\U0001cd1f", // 𜴟  39                        (o1236)
+  u8"\U0001cd1e", // 𜴞  38                        (o236)
+  u8"\U0001cd1d", // 𜴝  37                        (o136)
+  u8"\U0001cd1c", // 𜴜  36                        (o36)
+  u8"\U0001cd1b", // 𜴛  35                        (o126)
+  u8"\U0001cd1a", // 𜴚  34                        (o26)
+  u8"\U0001cd19", // 𜴙  33                        (o16)
+  u8"\U0001cd18", // 𜴘  32 row 2 right only       (o6)
+  u8"\U0001cd17", // 𜴗  31                        (o12345)
+  u8"\U0001cd16", // 𜴖  30                        (o2345)
+  u8"\U0001cd15", // 𜴕  29                        (o1345)
+  u8"\U0001cd14", // 𜴔  28                        (o345)
+  u8"\U0001cd13", // 𜴓  27                        (o1245)
+  u8"\U0001cd12", // 𜴒  26 row 0/1 right row 2 l  (o245)
+  u8"\U0001cd11", // 𜴑  25 row 1/2 left row 1 r   (o145)
+  u8"\U0001cd10", // 𜴐  24 row 1 right row 2 left (o45)
+  u8"\U0001cd0f", // 𜴏  23 row 0 full row 1/2 l   (o1235)
+  u8"\U0001cd0e", // 𜴎  22 row 1 right row 2/3 l  (o235)
+  u8"\U0001cd0d", // 𜴍  21 row 0/1/2 left         (o135)
+  u8"\U0001fbe6", // 🯦  20 row 1/2 left           (middle left one quarter)
+  u8"\U0001cd0c", // 𜴌  19 row 0 full row 2 left  (o125)
+  u8"\U0001cd0b", // 𜴋  18 row 0 right row 2 left (o25)
+  u8"\U0001cd0a", // 𜴊  17 row 0 left row 2 left  (o15)
+  u8"\U0001cd09", // 𜴉  16 row 2 left only        (o5)
+  u8"\U00002580", // ▀  15 row 0/1 full           (upper half)
+  u8"\U0001cd08", // 𜴈  14 row 0 right row 1 full (o234)
+  u8"\U0001cd07", // 𜴇  13 row 0 left row 1 full  (o134)
+  u8"\U0001cd06", // 𜴆  12 row 1 full             (o34)
+  u8"\U0001cd05", // 𜴅  11 row 0 full row 1 right (o124)
+  u8"\U0000259d", // ▝  10 row 0/1 right only     (upper right quadrant)
+  u8"\U0001cd04", // 𜴄   9 row 0 left row 1 right (o14)
+  u8"\U0001cd03", // 𜴃   8 row 1 right only       (o4)
+  u8"\U0001cd02", // 𜴂   7 row 0 full row 1 left  (o123)
+  u8"\U0001cd01", // 𜴁   6 row 0 right row 1 left (o23)
+  u8"\U00002598", // ▘   5 row 0/1 left only      (upper left quadrant)
+  u8"\U0001cd00", // 𜴀   4 row 1 left only        (o3)
+  u8"\U0001fb82", // 🮂   3 row 0                  (upper one quarter)
+  u8"\U0001ceab", // 𜺫   2 upper right only       (right half upper one quarter)
+  u8"\U0001cea8", // 𜺨   1 upper left only        (left half upper one quarter)
+  u8" "           //     0 none set               (space)
 };
 
 static const char*
@@ -918,8 +920,7 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
 static inline int
 hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
            const blitterargs* bargs, int cellheight,
-           const char* const* transegcs, const char **egcs,
-           const unsigned* partitions, unsigned parcount){
+           const char* const* transegcs, const unsigned* partitions){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   unsigned dimy, dimx, x, y;
@@ -959,7 +960,7 @@ hires_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
                                           nointerpolate, cellheight, transegcs);
       if(egc == NULL){ // no transparency; run a full solver
         egc = hires_solver(rgbas, &c->channels, blendcolors, nointerpolate,
-                           cellheight, egcs, partitions, parcount);
+                           cellheight, transegcs, partitions);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "hires EGC: %s channels: %016lx\n", egc, c->channels);
@@ -982,13 +983,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   // each element within the set of 64 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 32. the sextition[] bit masks represent combinations of
-  // sextants, and their indices correspond to sex[].
-  static const char* sex[32] = {
-    " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
-    "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
-    "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
-    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬮", // 24..31
-  };
+  // sextants, and their indices correspond to inverse sextrans[].
   static const unsigned sextitions[32] = {
     0, // 1 way to arrange 0
     1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
@@ -996,8 +991,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     //  16 ways to arrange 3, *but* six of them are inverses, so 10
     7, 11, 19, 35, 13, 21, 37, 25, 41, 49 //  10 + 15 + 6 + 1 == 32
   };
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans,
-                    sex, sextitions, sizeof(sextitions) / sizeof(*sextitions));
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 3, sextrans, sextitions);
 }
 
 static inline int
@@ -1006,82 +1000,8 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   // each element within the set of 256 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 128. the octition[] bit masks represent combinations of
-  // octants, and their indices correspond to sex[].
-#define T(sum) (255 - (sum))
+  // octants, and their indices correspond to inverse octtrans[].
 #define E(bits) (1u << (bits))
-  static const char* oct[128] = {
-    octtrans[T(0)],
-    // one set
-    octtrans[T(E(0))],
-    octtrans[T(E(1))],
-    octtrans[T(E(2))],
-    octtrans[T(E(3))],
-    octtrans[T(E(4))],
-    octtrans[T(E(5))],
-    octtrans[T(E(6))],
-    octtrans[T(E(7))],
-    // two set (7 + 6 + 5 + 4 + 3 + 2 + 1 = 28)
-    octtrans[T(E(0) + E(1))], octtrans[T(E(0) + E(2))], octtrans[T(E(0) + E(3))],
-    octtrans[T(E(0) + E(4))], octtrans[T(E(0) + E(5))], octtrans[T(E(0) + E(6))],
-    octtrans[T(E(0) + E(7))], // 0 + 1...
-    octtrans[T(E(1) + E(2))], octtrans[T(E(1) + E(3))], octtrans[T(E(1) + E(4))],
-    octtrans[T(E(1) + E(5))], octtrans[T(E(1) + E(6))], octtrans[T(E(1) + E(7))], // 1 + 2...
-    octtrans[T(E(2) + E(3))], octtrans[T(E(2) + E(4))], octtrans[T(E(2) + E(5))],
-    octtrans[T(E(2) + E(6))], octtrans[T(E(2) + E(7))], // 2 + 3...
-    octtrans[T(E(3) + E(4))], octtrans[T(E(3) + E(5))], octtrans[T(E(3) + E(6))],
-    octtrans[T(E(3) + E(7))], // 3 + 4...
-    octtrans[T(E(4) + E(5))], octtrans[T(E(4) + E(6))], octtrans[T(E(4) + E(7))], // 4 + 5...
-    octtrans[T(E(5) + E(6))], octtrans[T(E(5) + E(7))], // 5 + 6...
-    octtrans[T(E(6) + E(7))], // 6 + 7
-    // three set (21 + 15 + 10 + 6 + 3 + 1 = 56)
-    octtrans[T(E(0) + E(1) + E(2))], octtrans[T(E(0) + E(1) + E(3))], octtrans[T(E(0) + E(1) + E(4))],
-    octtrans[T(E(0) + E(1) + E(5))], octtrans[T(E(0) + E(1) + E(6))], octtrans[T(E(0) + E(1) + E(7))], // 0 + 1 + 2...
-    octtrans[T(E(0) + E(2) + E(3))], octtrans[T(E(0) + E(2) + E(4))], octtrans[T(E(0) + E(2) + E(5))],
-    octtrans[T(E(0) + E(2) + E(6))], octtrans[T(E(0) + E(2) + E(7))], // 0 + 2 + 3...
-    octtrans[T(E(0) + E(3) + E(4))], octtrans[T(E(0) + E(3) + E(5))], octtrans[T(E(0) + E(3) + E(6))],
-    octtrans[T(E(0) + E(3) + E(7))], // 3 + 4...
-    octtrans[T(E(0) + E(4) + E(5))], octtrans[T(E(0) + E(4) + E(6))], octtrans[T(E(0) + E(4) + E(7))], // 0 + 4 + 5...
-    octtrans[T(E(0) + E(5) + E(6))], octtrans[T(E(0) + E(5) + E(7))], // 0 + 5 + 6...
-    octtrans[T(E(0) + E(6) + E(7))], // 0 + 6 + 7
-    octtrans[T(E(1) + E(2) + E(3))], octtrans[T(E(1) + E(2) + E(4))], octtrans[T(E(1) + E(2) + E(5))],
-    octtrans[T(E(1) + E(2) + E(6))], octtrans[T(E(1) + E(2) + E(7))],
-    octtrans[T(E(1) + E(3) + E(4))], octtrans[T(E(1) + E(3) + E(5))], octtrans[T(E(1) + E(3) + E(6))],
-    octtrans[T(E(1) + E(3) + E(7))],
-    octtrans[T(E(1) + E(4) + E(5))], octtrans[T(E(1) + E(4) + E(6))], octtrans[T(E(1) + E(4) + E(7))],
-    octtrans[T(E(1) + E(5) + E(6))], octtrans[T(E(1) + E(5) + E(7))],
-    octtrans[T(E(1) + E(6) + E(7))],
-    octtrans[T(E(2) + E(3) + E(4))], octtrans[T(E(2) + E(3) + E(5))], octtrans[T(E(2) + E(3) + E(6))],
-    octtrans[T(E(2) + E(3) + E(7))],
-    octtrans[T(E(2) + E(4) + E(5))], octtrans[T(E(2) + E(4) + E(6))], octtrans[T(E(2) + E(4) + E(7))],
-    octtrans[T(E(2) + E(5) + E(6))], octtrans[T(E(2) + E(5) + E(7))],
-    octtrans[T(E(2) + E(6) + E(7))],
-    octtrans[T(E(3) + E(4) + E(5))], octtrans[T(E(3) + E(4) + E(6))], octtrans[T(E(3) + E(4) + E(7))],
-    octtrans[T(E(3) + E(5) + E(6))], octtrans[T(E(3) + E(5) + E(7))],
-    octtrans[T(E(3) + E(6) + E(7))],
-    octtrans[T(E(4) + E(5) + E(6))], octtrans[T(E(4) + E(5) + E(7))],
-    octtrans[T(E(4) + E(6) + E(7))],
-    octtrans[T(E(5) + E(6) + E(7))],  // 5 + 6 + 7
-    // four set (15 + 10 + 6 + 3 + 1 = 35)
-    octtrans[T(E(0) + E(1) + E(2) + E(3))], octtrans[T(E(0) + E(1) + E(2) + E(4))], octtrans[T(E(0) + E(1) + E(2) + E(5))],
-    octtrans[T(E(0) + E(1) + E(2) + E(6))], octtrans[T(E(0) + E(1) + E(2) + E(7))],
-    octtrans[T(E(0) + E(1) + E(3) + E(4))], octtrans[T(E(0) + E(1) + E(3) + E(5))], octtrans[T(E(0) + E(1) + E(3) + E(6))],
-    octtrans[T(E(0) + E(1) + E(3) + E(7))],
-    octtrans[T(E(0) + E(1) + E(4) + E(5))], octtrans[T(E(0) + E(1) + E(4) + E(6))], octtrans[T(E(0) + E(1) + E(4) + E(7))],
-    octtrans[T(E(0) + E(1) + E(5) + E(6))], octtrans[T(E(0) + E(1) + E(5) + E(7))],
-    octtrans[T(E(0) + E(1) + E(6) + E(7))],
-    octtrans[T(E(0) + E(2) + E(3) + E(4))], octtrans[T(E(0) + E(2) + E(3) + E(5))], octtrans[T(E(0) + E(2) + E(3) + E(6))],
-    octtrans[T(E(0) + E(2) + E(3) + E(7))],
-    octtrans[T(E(0) + E(2) + E(4) + E(5))], octtrans[T(E(0) + E(2) + E(4) + E(6))], octtrans[T(E(0) + E(2) + E(4) + E(7))],
-    octtrans[T(E(0) + E(2) + E(5) + E(6))], octtrans[T(E(0) + E(2) + E(5) + E(7))],
-    octtrans[T(E(0) + E(2) + E(6) + E(7))],
-    octtrans[T(E(0) + E(3) + E(4) + E(5))], octtrans[T(E(0) + E(3) + E(4) + E(6))], octtrans[T(E(0) + E(3) + E(4) + E(7))],
-    octtrans[T(E(0) + E(3) + E(5) + E(6))], octtrans[T(E(0) + E(3) + E(5) + E(7))],
-    octtrans[T(E(0) + E(3) + E(6) + E(7))],
-    octtrans[T(E(0) + E(4) + E(5) + E(6))], octtrans[T(E(0) + E(4) + E(5) + E(7))],
-    octtrans[T(E(0) + E(4) + E(6) + E(7))],
-    octtrans[T(E(0) + E(5) + E(6) + E(7))],  // 0 + 5 + 6 + 7
-#undef T
-  };
   static const unsigned octitions[128] = {
     0,
     // one set
@@ -1155,8 +1075,7 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     E(0) + E(5) + E(6) + E(7),  // 0 + 5 + 6 + 7
 #undef E
   };
-  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans,
-                    oct, octitions, sizeof(octitions) / sizeof(*octitions));
+  return hires_blit(nc, linesize, data, leny, lenx, bargs, 4, octtrans, octitions);
 }
 
 // Bit is set where Braille dot is present:
