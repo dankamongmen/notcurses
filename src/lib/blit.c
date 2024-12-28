@@ -987,7 +987,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
     " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
     "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
     "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
-    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍", // 24..31
+    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬮", // 24..31
   };
   static const unsigned sextitions[32] = {
     0, // 1 way to arrange 0
@@ -1008,30 +1008,81 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   // for which we would calculate the same total differences, so just handle
   // the first 128. the octition[] bit masks represent combinations of
   // octants, and their indices correspond to sex[].
+#define T(sum) (255 - (sum))
+#define E(bits) (1u << (bits))
   static const char* oct[128] = {
-    octtrans[255],
+    octtrans[T(0)],
     // one set
-    octtrans[254],
-    octtrans[253],
-    octtrans[251],
-    octrrans[247],
-    octtrans[239],
-    octtrans[223],
-    octtrans[191],
-    octtrans[127],
-    // two set (7 + 6 + 5 + 4 + 3 + 2 + 1)
-    octtrans[252], octtrans[250], octtrans[246], octtrans[238], octtrans[222], octtrans[190], octtrans[126], // 1+2
-    octtrans[249], octtrans[245], octtrans[237], octtrans[221], octtrans[189], octtrans[125], // 2+3
-    octtrans[243], octtrans[235], octtrans[219], octtrans[187], octtrans[123], // 3+4
-    octtrans[231], octtrans[215], octtrans[183], octtrans[119], // 4+5
-    octtrans[207], octtrans[175], octtrans[111], // 5+6
-    octtrans[159], octtrans[95], // 6+7
-    octtrans[63],  // 7+8
-    // three set (21 + 15 + 10 + 6 + 3 + 1)
-    // FIXME
-    octrrans[143], octtrans[47], // 5+6+7
-    octtrans[31], // 6+7+8
-    // FIXME four set
+    octtrans[T(E(0))],
+    octtrans[T(E(1))],
+    octtrans[T(E(2))],
+    octtrans[T(E(3))],
+    octtrans[T(E(4))],
+    octtrans[T(E(5))],
+    octtrans[T(E(6))],
+    octtrans[T(E(7))],
+    // two set (7 + 6 + 5 + 4 + 3 + 2 + 1 = 28)
+    octtrans[T(E(0) + E(1))], octtrans[T(E(0) + E(2))], octtrans[T(E(0) + E(3))],
+    octtrans[T(E(0) + E(4))], octtrans[T(E(0) + E(5))], octtrans[T(E(0) + E(6))],
+    octtrans[T(E(0) + E(7))], // 0 + 1...
+    octtrans[T(E(1) + E(2))], octtrans[T(E(1) + E(3))], octtrans[T(E(1) + E(4))],
+    octtrans[T(E(1) + E(5))], octtrans[T(E(1) + E(6))], octtrans[T(E(1) + E(7))], // 1 + 2...
+    octtrans[T(E(2) + E(3))], octtrans[T(E(2) + E(4))], octtrans[T(E(2) + E(5))],
+    octtrans[T(E(2) + E(6))], octtrans[T(E(2) + E(7))], // 2 + 3...
+    octtrans[T(E(3) + E(4))], octtrans[T(E(3) + E(5))], octtrans[T(E(3) + E(6))],
+    octtrans[T(E(3) + E(7))], // 3 + 4...
+    octtrans[T(E(4) + E(5))], octtrans[T(E(4) + E(6))], octtrans[T(E(4) + E(7))], // 4 + 5...
+    octtrans[T(E(5) + E(6))], octtrans[T(E(5) + E(7))], // 5 + 6...
+    octtrans[T(E(6) + E(7))], // 6 + 7
+    // three set (21 + 15 + 10 + 6 + 3 + 1 = 56)
+    octtrans[T(E(0) + E(1) + E(2))], octtrans[T(E(0) + E(1) + E(3))], octtrans[T(E(0) + E(1) + E(4))],
+    octtrans[T(E(0) + E(1) + E(5))], octtrans[T(E(0) + E(1) + E(6))], octtrans[T(E(0) + E(1) + E(7))], // 0 + 1 + 2...
+    octtrans[T(E(0) + E(2) + E(3))], octtrans[T(E(0) + E(2) + E(4))], octtrans[T(E(0) + E(2) + E(5))],
+    octtrans[T(E(0) + E(2) + E(6))], octtrans[T(E(0) + E(2) + E(7))], // 0 + 2 + 3...
+    octtrans[T(E(0) + E(3) + E(4))], octtrans[T(E(0) + E(3) + E(5))], octtrans[T(E(0) + E(3) + E(6))],
+    octtrans[T(E(0) + E(3) + E(7))], // 3 + 4...
+    octtrans[T(E(0) + E(4) + E(5))], octtrans[T(E(0) + E(4) + E(6))], octtrans[T(E(0) + E(4) + E(7))], // 0 + 4 + 5...
+    octtrans[T(E(0) + E(5) + E(6))], octtrans[T(E(0) + E(5) + E(7))], // 0 + 5 + 6...
+    octtrans[T(E(0) + E(6) + E(7))], // 0 + 6 + 7
+    octtrans[T(E(1) + E(2) + E(3))], octtrans[T(E(1) + E(2) + E(4))], octtrans[T(E(1) + E(2) + E(5))],
+    octtrans[T(E(1) + E(2) + E(6))], octtrans[T(E(1) + E(2) + E(7))], 
+    octtrans[T(E(1) + E(3) + E(4))], octtrans[T(E(1) + E(3) + E(5))], octtrans[T(E(1) + E(3) + E(6))],
+    octtrans[T(E(1) + E(3) + E(7))], 
+    octtrans[T(E(1) + E(4) + E(5))], octtrans[T(E(1) + E(4) + E(6))], octtrans[T(E(1) + E(4) + E(7))], 
+    octtrans[T(E(1) + E(5) + E(6))], octtrans[T(E(1) + E(5) + E(7))], 
+    octtrans[T(E(1) + E(6) + E(7))], 
+    octtrans[T(E(2) + E(3) + E(4))], octtrans[T(E(2) + E(3) + E(5))], octtrans[T(E(2) + E(3) + E(6))],
+    octtrans[T(E(2) + E(3) + E(7))], 
+    octtrans[T(E(2) + E(4) + E(5))], octtrans[T(E(2) + E(4) + E(6))], octtrans[T(E(2) + E(4) + E(7))], 
+    octtrans[T(E(2) + E(5) + E(6))], octtrans[T(E(2) + E(5) + E(7))], 
+    octtrans[T(E(2) + E(6) + E(7))], 
+    octtrans[T(E(3) + E(4) + E(5))], octtrans[T(E(3) + E(4) + E(6))], octtrans[T(E(3) + E(4) + E(7))], 
+    octtrans[T(E(3) + E(5) + E(6))], octtrans[T(E(3) + E(5) + E(7))], 
+    octtrans[T(E(3) + E(6) + E(7))], 
+    octtrans[T(E(4) + E(5) + E(6))], octtrans[T(E(4) + E(5) + E(7))], 
+    octtrans[T(E(4) + E(6) + E(7))], 
+    octtrans[T(E(5) + E(6) + E(7))],  // 5 + 6 + 7
+    // four set (15 + 10 + 6 + 3 + 1 = 35)
+    octtrans[T(E(0) + E(1) + E(2) + E(3))], octtrans[T(E(0) + E(1) + E(2) + E(4))], octtrans[T(E(0) + E(1) + E(2) + E(5))],
+    octtrans[T(E(0) + E(1) + E(2) + E(6))], octtrans[T(E(0) + E(1) + E(2) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(3) + E(4))], octtrans[T(E(0) + E(1) + E(3) + E(5))], octtrans[T(E(0) + E(1) + E(3) + E(6))],
+    octtrans[T(E(0) + E(1) + E(3) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(4) + E(5))], octtrans[T(E(0) + E(1) + E(4) + E(6))], octtrans[T(E(0) + E(1) + E(4) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(5) + E(6))], octtrans[T(E(0) + E(1) + E(5) + E(7))], 
+    octtrans[T(E(0) + E(1) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(2) + E(3) + E(4))], octtrans[T(E(0) + E(2) + E(3) + E(5))], octtrans[T(E(0) + E(2) + E(3) + E(6))],
+    octtrans[T(E(0) + E(2) + E(3) + E(7))], 
+    octtrans[T(E(0) + E(2) + E(4) + E(5))], octtrans[T(E(0) + E(2) + E(4) + E(6))], octtrans[T(E(0) + E(2) + E(4) + E(7))], 
+    octtrans[T(E(0) + E(2) + E(5) + E(6))], octtrans[T(E(0) + E(2) + E(5) + E(7))], 
+    octtrans[T(E(0) + E(2) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(3) + E(4) + E(5))], octtrans[T(E(0) + E(3) + E(4) + E(6))], octtrans[T(E(0) + E(3) + E(4) + E(7))], 
+    octtrans[T(E(0) + E(3) + E(5) + E(6))], octtrans[T(E(0) + E(3) + E(5) + E(7))], 
+    octtrans[T(E(0) + E(3) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(4) + E(5) + E(6))], octtrans[T(E(0) + E(4) + E(5) + E(7))], 
+    octtrans[T(E(0) + E(4) + E(6) + E(7))], 
+    octtrans[T(E(0) + E(5) + E(6) + E(7))],  // 0 + 5 + 6 + 7
+#undef E
+#undef T
   };
   static const unsigned octitions[] = {
     0, // 1 way to arrange 0
