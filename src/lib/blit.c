@@ -1010,11 +1010,37 @@ octant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
   // octants, and their indices correspond to sex[].
   static const char* oct[128] = {
     octtrans[255],
+    // one set
+    octtrans[254],
+    octtrans[253],
+    octtrans[251],
+    octrrans[247],
+    octtrans[239],
+    octtrans[223],
+    octtrans[191],
+    octtrans[127],
+    // two set (7 + 6 + 5 + 4 + 3 + 2 + 1)
+    octtrans[252], octtrans[250], octtrans[246], octtrans[238], octtrans[222], octtrans[190], octtrans[126], // 1+2
+    octtrans[249], octtrans[245], octtrans[237], octtrans[221], octtrans[189], octtrans[125], // 2+3
+    octtrans[243], octtrans[235], octtrans[219], octtrans[187], octtrans[123], // 3+4
+    octtrans[231], octtrans[215], octtrans[183], octtrans[119], // 4+5
+    octtrans[207], octtrans[175], octtrans[111], // 5+6
+    octtrans[159], octtrans[95], // 6+7
+    octtrans[63],  // 7+8
+    // FIXME three set
+    // FIXME four set
   };
   static const unsigned octitions[] = {
     0, // 1 way to arrange 0
     1, 2, 4, 8, 16, 32, 64, 128, // 8 ways to arrange 1
-    // 28 ways for 2 FIXME
+    // 28 ways for 2
+    3, 5, 9, 17, 33, 65, 129,
+    6, 10, 18, 34, 66, 130,
+    12, 20, 36, 68, 132,
+    24, 40, 72, 136,
+    48, 80, 144,
+    96, 160,
+    192
     // 56 ways for 3 FIXME
     // 70 ways for 4, but there are inverses among them FIXME
   };
