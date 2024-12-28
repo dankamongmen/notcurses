@@ -891,20 +891,20 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
   for(int mask = 0 ; mask < cellheight * 2 ; ++mask){
     if(rgba_trans_p(rgbas[mask], transcolor)){
       transstring |= (1u << mask);
-    }else if(!nointerpolate || !div){
+    }else if(!nointerpolate || !div){ // force an initialization if nointerpolate
       r += ncpixel_r(rgbas[mask]);
       g += ncpixel_g(rgbas[mask]);
       b += ncpixel_b(rgbas[mask]);
       ++div;
     }
   }
-  // transstring can only have 0x80 and/or 0x40 set if cellheight was 4
   if(transstring == 0){ // there was no transparency
     return NULL;
   }
   nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
   // there were some transparent pixels. since they get priority, the foreground
-  // is just a general lerp across non-transparent pixels.
+  // is just a general lerp across non-transparent pixels. transstring can only
+  // have 0x80 and/or 0x40 set if cellheight was 4.
   const char* egc = transegcs[transstring];
   nccell_set_bg_alpha(c, NCALPHA_TRANSPARENT);
 //fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
@@ -917,9 +917,13 @@ hires_trans_check(nccell* c, const uint32_t* rgbas, unsigned blendcolors,
     if(blendcolors){
       nccell_set_fg_alpha(c, NCALPHA_BLEND);
     }
-    // FIXME genericize for hires
-    cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
-                              !(transstring & 20u), !(transstring & 40u));
+    if(cellheight == 3){
+      cell_set_blitquadrants(c, !(transstring & 0x5), !(transstring & 0xa),
+                                !(transstring & 0x14), !(transstring & 0x28));
+    }else{
+      cell_set_blitquadrants(c, !(transstring & 0x5), !(transstring & 0xa),
+                                !(transstring & 0x50), !(transstring & 0xa0));
+    }
   }
 //fprintf(stderr, "SEX-BQ: 0x%x\n", cell_blittedquadrants(c));
   return egc;
