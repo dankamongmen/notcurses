@@ -602,7 +602,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
 
   size_t fbsize = ncplane_sizeof_cellarray(p->leny, p->lenx);
-  if(!fbsize || (p->fb = calloc(sizeof(struct nccell),fbsize)) == NULL){
+  if(!fbsize || (p->fb = calloc(fbsize, sizeof(struct nccell))) == NULL){
     logerror("error allocating cellmatrix (r=%u, c=%u)",
              p->leny, p->lenx);
     free(p);
