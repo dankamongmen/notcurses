@@ -313,6 +313,8 @@ endif()
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
+# can't build binaries against static notcurses until ffmpeg linking issues
+# are resolved (USE_STATIC_BINARIES) FIXME
 add_library(notcurses-static STATIC ${NCSRCS} ${COMPATSRC})
 else()
 add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS} ${COMPATSRC})
