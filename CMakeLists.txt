@@ -28,6 +28,7 @@ option(BUILD_FFI_LIBRARY "Build ffi library (containing all symbols which are st
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
+option(USE_TFMAN_STATIC "Link tfman with notcurses statically" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -772,12 +773,21 @@ target_include_directories(tfman
     "${libdeflate_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
 )
+if(USE_TFMAN_STATIC AND USE_STATIC)
+target_link_libraries(tfman
+  PRIVATE
+    notcurses-core-static
+    "${libdeflate}"
+    "${ZLIB_LIBRARIES}"
+)
+else()
 target_link_libraries(tfman
   PRIVATE
     notcurses-core
     "${libdeflate}"
     "${ZLIB_LIBRARIES}"
 )
+endif()
 endif()
 
 ############################################################################
