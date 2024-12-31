@@ -54,11 +54,11 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-jellyfish
+name: ubuntu-noble
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/impish:2024-12-31a
+  image: dankamongmen/noble:2024-12-31a
   commands:
     - export LANG=es_ES.UTF-8
     - export TERM=xterm
