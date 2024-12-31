@@ -58,7 +58,7 @@ name: ubuntu-noble
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/noble:2024-12-31a
+  image: dankamongmen/noble:2024-12-31b
   commands:
     - export LANG=es_ES.UTF-8
     - export TERM=xterm
