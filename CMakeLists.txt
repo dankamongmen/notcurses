@@ -28,7 +28,10 @@ option(BUILD_FFI_LIBRARY "Build ffi library (containing all symbols which are st
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
-option(USE_TFMAN_STATIC "Link tfman with notcurses statically" ON)
+cmake_dependent_option(
+  USE_STATIC_BINARIES "Link binaries statically (requires USE_STATIC)" OFF
+  "USE_STATIC" ON
+)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -106,6 +109,14 @@ pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
+
+if(${USE_DEFLATE})
+pkg_check_modules(DEFLATE REQUIRED libdeflate>=1.9)
+else()
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
+endif()
+
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVDEVICE REQUIRED libavdevice>=57.0)
@@ -179,20 +190,6 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
 
 # optional dependencies lacking pkg-config support
-if(${USE_DEFLATE})
-unset(HAVE_DEFLATE_H CACHE)
-check_include_file("libdeflate.h" HAVE_DEFLATE_H)
-if(NOT "${HAVE_DEFLATE_H}")
-  message(FATAL_ERROR "Couldn't find libdeflate.h")
-endif()
-find_library(libdeflate deflate REQUIRED)
-set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libdeflate)
-set_package_properties(libdeflate PROPERTIES TYPE REQUIRED)
-else()
-find_package(ZLIB)
-set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
-endif()
-
 if(${USE_GPM}) # no pkgconfig from gpm
 unset(HAVE_GPM_H CACHE)
 check_include_file("gpm.h" HAVE_GPM_H)
@@ -257,7 +254,7 @@ target_include_directories(notcurses-core
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
-    "${libdeflate_INCLUDE_DIRS}"
+    "${DEFLATE_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
@@ -268,12 +265,12 @@ target_include_directories(notcurses-core-static
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
-    "${libdeflate_STATIC_INCLUDE_DIRS}"
+    "${DEFLATE_STATIC_INCLUDE_DIRS}"
     "${ZLIB_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
-    "${libdeflate}"
+    "${DEFLATE_LIBRARIES}"
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
@@ -285,7 +282,7 @@ target_link_libraries(notcurses-core
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
-    "${libdeflate_STATIC_LIBRARIES}"
+    "${DEFLATE_STATIC_LIBRARIES}"
     "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
@@ -297,13 +294,13 @@ target_link_libraries(notcurses-core-static
 target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
-    "${libdeflate_LIBRARY_DIRS}"
+    "${DEFLATE_LIBRARY_DIRS}"
     "${ZLIB_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
-    "${libdeflate_STATIC_LIBRARY_DIRS}"
+    "${DEFLATE_STATIC_LIBRARY_DIRS}"
     "${ZLIB_STATIC_LIBRARY_DIRS}"
 )
 if(${USE_QRCODEGEN})
@@ -448,13 +445,13 @@ target_include_directories(notcurses-ffi
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
-    "${libdeflate_INCLUDE_DIRS}"
+    "${DEFLATE_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
 )
 
 target_link_libraries(notcurses-ffi
   PRIVATE
-    "${libdeflate}"
+    "${DEFLATE_LIBRARIES}"
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
@@ -469,7 +466,7 @@ target_link_libraries(notcurses-ffi
 target_link_directories(notcurses-ffi
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
-    "${libdeflate_LIBRARY_DIRS}"
+    "${DEFLATE_LIBRARY_DIRS}"
     "${ZLIB_LIBRARY_DIRS}"
 )
 endif()
@@ -770,21 +767,21 @@ target_include_directories(tfman
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-    "${libdeflate_INCLUDE_DIRS}"
+    "${DEFLATE_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
 )
-if(USE_TFMAN_STATIC AND USE_STATIC)
+if(USE_STATIC_BINARIES)
 target_link_libraries(tfman
   PRIVATE
     notcurses-core-static
-    "${libdeflate}"
+    "${DEFLATE_LIBRARIES}"
     "${ZLIB_LIBRARIES}"
 )
 else()
 target_link_libraries(tfman
   PRIVATE
     notcurses-core
-    "${libdeflate}"
+    "${DEFLATE_LIBRARIES}"
     "${ZLIB_LIBRARIES}"
 )
 endif()
@@ -807,7 +804,6 @@ target_link_libraries(ncneofetch
     notcurses
     "${LIBRT}"
 )
-
 
 # all further binaries require multimedia and C++ support
 if(${USE_CXX})
