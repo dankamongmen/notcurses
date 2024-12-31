@@ -36,8 +36,7 @@ jobs:
           env PKG_CONFIG_PATH="/opt/homebrew/opt/ncurses/lib/pkgconfig" \
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_PANDOC=off \
-            -DUSE_DEFLATE=off
+            -DUSE_PANDOC=off
 
       - name: make
         run: |

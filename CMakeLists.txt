@@ -110,13 +110,6 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
 
-if(${USE_DEFLATE})
-pkg_check_modules(DEFLATE REQUIRED libdeflate>=1.9)
-else()
-find_package(ZLIB)
-set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
-endif()
-
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVDEVICE REQUIRED libavdevice>=57.0)
@@ -190,6 +183,21 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
 
 # optional dependencies lacking pkg-config support
+# libdeflate has had pkgconf support since 1.9, where is it on ubuntu? FIXME
+if(${USE_DEFLATE})
+unset(HAVE_DEFLATE_H CACHE)
+check_include_file("libdeflate.h" HAVE_DEFLATE_H)
+if(NOT "${HAVE_DEFLATE_H}")
+  message(FATAL_ERROR "Couldn't find libdeflate.h")
+endif()
+find_library(libdeflate deflate REQUIRED)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libdeflate)
+set_package_properties(libdeflate PROPERTIES TYPE REQUIRED)
+else()
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
+endif()
+
 if(${USE_GPM}) # no pkgconfig from gpm
 unset(HAVE_GPM_H CACHE)
 check_include_file("gpm.h" HAVE_GPM_H)

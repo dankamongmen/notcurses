@@ -11,9 +11,6 @@ rearrangements of Notcurses.
     used for `NCBLIT_DEFAULT` when used with `NCSCALE_NONE_HIRES`,
     `NCSCALE_SCALE_HIRES`, or `NCSCALE_STRETCH`. Thanks, eschnett! Note
     that octants are not supported by GNU libc until 2.41.
-  * We now depend on at least version 1.9 of libdeflate, when libdeflate
-    is being used. This was released 2022-01-12, and hopefully won't
-    cause any problems for anyone.
 
 * 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
