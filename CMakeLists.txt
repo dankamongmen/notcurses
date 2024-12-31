@@ -193,7 +193,7 @@ endif()
 find_library(DEFLATE deflate REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND DEFLATE)
 set_package_properties(DEFLATE PROPERTIES TYPE REQUIRED)
-set(DEFLATE_LIBRARIES ${libdeflate})
+set(DEFLATE_LIBRARIES ${DEFLATE})
 else()
 find_package(ZLIB)
 set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
@@ -279,24 +279,24 @@ target_include_directories(notcurses-core-static
 )
 target_link_libraries(notcurses-core
   PRIVATE
-    "${DEFLATE_LIBRARIES}"
-    "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
     "${gpm}"
+    "${DEFLATE_LIBRARIES}"
+    "${ZLIB_LIBRARIES}"
   PUBLIC
     Threads::Threads
     "${LIBRT}"
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
-    "${DEFLATE_STATIC_LIBRARIES}"
-    "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${unistring}"
     "${gpm}"
+    "${DEFLATE_STATIC_LIBRARIES}"
+    "${ZLIB_STATIC_LIBRARIES}"
     Threads::Threads
     "${LIBRT}"
 )
