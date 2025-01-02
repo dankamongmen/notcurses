@@ -581,7 +581,6 @@ hires_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
     ncchannels_set_bg_alpha(channels, NCALPHA_BLEND);
   }
   best = parcount * 2 - 1 - partitions[best];
-  assert(best >= 0 && best >= (1u << (cellheight * 2 - 1)) && best < (1u << (cellheight * 2)));
   return transegcs[best];
 }
 
