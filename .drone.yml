@@ -98,7 +98,7 @@ name: gentoo
 
 steps:
 - name: gentoo
-  image: dankamongmen/gentoo:2025-01-02a
+  image: dankamongmen/gentoo:2025-01-02b
   commands:
     - export LANG=C.UTF-8
     - export TERM=xterm
