@@ -165,7 +165,9 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
 void setup_alt_sig_stack(void){
   pthread_mutex_lock(&lock);
   if(alt_signal_stack.ss_sp){
-    sigaltstack(&alt_signal_stack, NULL);
+    if(sigaltstack(&alt_signal_stack, NULL)){
+      logerror("error installing alternate signal stack (%s)", strerror(errno));
+    }
   }
   pthread_mutex_unlock(&lock);
 }
