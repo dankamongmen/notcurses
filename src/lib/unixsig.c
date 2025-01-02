@@ -207,24 +207,25 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     handling_winch = true;
   }
   if(!no_quit_sigs){
+    memset(&sa, 0, sizeof(sa));
 // AddressSanitizer doesn't want us to use sigaltstack(). we could force everyone
 // to export ASAN_OPTIONS=use_sigaltstack=0, or just not fuck with the alternate
 // signal stack when built with ASAN.
 #ifndef USE_ASAN
+    alt_signal_stack.ss_size = SIGSTKSZ * 4;
     alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
     if(alt_signal_stack.ss_sp == NULL){
       fprintf(stderr, "warning: couldn't create alternate signal stack (%s)" NL, strerror(errno));
     }else{
-      alt_signal_stack.ss_size = SIGSTKSZ * 4;
-      alt_signal_stack.ss_flags = 0;
       if(sigaltstack(&alt_signal_stack, NULL)){
         fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)" NL, strerror(errno));
         free(alt_signal_stack.ss_sp);
         alt_signal_stack.ss_sp = NULL;
+      }else{
+        sa.sa_flags = SA_ONSTACK;
       }
     }
 #endif
-    memset(&sa, 0, sizeof(sa));
     fatal_callback = handler;
     sa.sa_sigaction = fatal_handler;
     sigaddset(&sa.sa_mask, SIGABRT);
@@ -236,7 +237,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
     sigaddset(&sa.sa_mask, SIGSEGV);
     sigaddset(&sa.sa_mask, SIGTERM);
     // don't try to handle fatal signals twice, and use our alternative stack
-    sa.sa_flags = SA_ONSTACK | SA_SIGINFO | SA_RESETHAND;
+    sa.sa_flags |= SA_SIGINFO | SA_RESETHAND;
     int ret = 0;
     ret |= sigaction(SIGABRT, &sa, &old_abrt);
     ret |= sigaction(SIGBUS, &sa, &old_bus);
