@@ -212,15 +212,20 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
 // to export ASAN_OPTIONS=use_sigaltstack=0, or just not fuck with the alternate
 // signal stack when built with ASAN.
 #ifndef USE_ASAN
-    alt_signal_stack.ss_size = SIGSTKSZ * 4;
-    alt_signal_stack.ss_sp = malloc(alt_signal_stack.ss_size);
+    long minstksz = sysconf(_SC_SIGSTKSZ);
+    if(minstksz <= 0){
+      minstksz = SIGSTKSZ * 4;
+    }
+    alt_signal_stack.ss_sp = malloc(minstksz);
     if(alt_signal_stack.ss_sp == NULL){
-      fprintf(stderr, "warning: couldn't create alternate signal stack (%s)" NL, strerror(errno));
+      fprintf(stderr, "warning: couldn't create %ldB alternate signal stack (%s)" NL, minstksz, strerror(errno));
     }else{
+      alt_signal_stack.ss_size = minstksz;
       if(sigaltstack(&alt_signal_stack, NULL)){
-        fprintf(stderr, "warning: couldn't set up alternate signal stack (%s)" NL, strerror(errno));
+        fprintf(stderr, "warning: couldn't set up %ldB alternate signal stack (%s)" NL, minstksz, strerror(errno));
         free(alt_signal_stack.ss_sp);
         alt_signal_stack.ss_sp = NULL;
+        alt_signal_stack.ss_size = 0;
       }else{
         sa.sa_flags = SA_ONSTACK;
       }
