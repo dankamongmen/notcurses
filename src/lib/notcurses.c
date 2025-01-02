@@ -118,10 +118,10 @@ int reset_term_palette(const tinfo* ti, fbuf* f, unsigned touchedpalette){
 // to tear down and account for internal structures. note that we do lots of
 // shit here that is unsafe within a signal handler =[ FIXME.
 static int
-notcurses_stop_minimal(void* vnc){
+notcurses_stop_minimal(void* vnc, void** altstack){
   notcurses* nc = vnc;
   int ret = 0;
-  ret |= drop_signals(nc);
+  ret |= drop_signals(nc, altstack);
   // collect output into the memstream buffer, and then dump it directly using
   // blocking_write(), to avoid problems with unreliable fflush().
   fbuf* f = &nc->rstate.f;
@@ -1285,11 +1285,13 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                           ret->margin_l, ret->margin_t,
                           ret->margin_r, ret->margin_b,
                           ret->flags & NCOPTION_DRAIN_INPUT)){
+    void* altstack;
     fbuf_free(&ret->rstate.f);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->stats.lock);
-    drop_signals(ret);
+    drop_signals(ret, &altstack);
     free(ret);
+    free(altstack);
     return NULL;
   }
   if(ret->tcache.maxpaletteread > -1){
@@ -1385,20 +1387,22 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   return ret;
 
-err:
-  logpanic("alas, you will not be going to space today.");
-  notcurses_stop_minimal(ret);
-  fbuf_free(&ret->rstate.f);
-  if(ret->tcache.ttyfd >= 0 && ret->tcache.tpreserved){
-    (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);
-    free(ret->tcache.tpreserved);
+err:{
+    void* altstack;
+    logpanic("alas, you will not be going to space today.");
+    notcurses_stop_minimal(ret, &altstack);
+    fbuf_free(&ret->rstate.f);
+    if(ret->tcache.ttyfd >= 0 && ret->tcache.tpreserved){
+      (void)tcsetattr(ret->tcache.ttyfd, TCSAFLUSH, ret->tcache.tpreserved);
+      free(ret->tcache.tpreserved);
+    }
+    del_curterm(cur_term);
+    pthread_mutex_destroy(&ret->stats.lock);
+    pthread_mutex_destroy(&ret->pilelock);
+    free(ret);
+    free(altstack);
+    return NULL;
   }
-  drop_signals(ret);
-  del_curterm(cur_term);
-  pthread_mutex_destroy(&ret->stats.lock);
-  pthread_mutex_destroy(&ret->pilelock);
-  free(ret);
-  return NULL;
 }
 
 // updates *pile to point at (*pile)->next, frees all but standard pile/plane
@@ -1444,7 +1448,8 @@ int notcurses_stop(notcurses* nc){
 //notcurses_debug(nc, stderr);
   int ret = 0;
   if(nc){
-    ret |= notcurses_stop_minimal(nc);
+    void* altstack;
+    ret |= notcurses_stop_minimal(nc, &altstack);
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the furthest place to which it advanced.
     if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
@@ -1463,6 +1468,7 @@ int notcurses_stop(notcurses* nc){
     }
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
+    // perhaps surprisingly, this stops the input thread
     free_terminfo_cache(&nc->tcache);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
@@ -1476,6 +1482,7 @@ int notcurses_stop(notcurses* nc){
     ret |= pthread_mutex_destroy(&nc->pilelock);
     fbuf_free(&nc->rstate.f);
     free(nc);
+    free(altstack);
   }
   return ret;
 }

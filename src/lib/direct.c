@@ -832,9 +832,9 @@ int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt
 }
 
 static int
-ncdirect_stop_minimal(void* vnc){
+ncdirect_stop_minimal(void* vnc, void** altstack){
   ncdirect* nc = vnc;
-  int ret = drop_signals(nc);
+  int ret = drop_signals(nc, altstack);
   fbuf f = {0};
   if(fbuf_init_small(&f) == 0){
     ret |= reset_term_attributes(&nc->tcache, &f);
@@ -939,26 +939,30 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   ncdirect_set_styles(ret, 0);
   return ret;
 
-err:
-  if(ret->tcache.ttyfd >= 0){
-    (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
+err:{
+    void* altstack;
+    if(ret->tcache.ttyfd >= 0){
+      (void)tcsetattr(ret->tcache.ttyfd, TCSANOW, ret->tcache.tpreserved);
+    }
+    drop_signals(ret, &altstack);
+    pthread_mutex_destroy(&ret->stats.lock);
+    free(ret);
   }
-  drop_signals(ret);
-  pthread_mutex_destroy(&ret->stats.lock);
-  free(ret);
   return NULL;
 }
 
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
-    ret |= ncdirect_stop_minimal(nc);
+    void* altstack;
+    ret |= ncdirect_stop_minimal(nc, &altstack);
     free_terminfo_cache(&nc->tcache);
     if(nc->tcache.ttyfd >= 0){
       ret |= close(nc->tcache.ttyfd);
     }
     pthread_mutex_destroy(&nc->stats.lock);
     free(nc);
+    free(altstack);
   }
   return ret;
 }

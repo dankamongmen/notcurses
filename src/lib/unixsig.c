@@ -17,8 +17,9 @@ int unblock_signals(const sigset_t* old_blocked_signals){
   return 0;
 }
 
-int drop_signals(void* nc){
+int drop_signals(void* nc, void** altstack){
   void* expected = nc;
+  *altstack = NULL;
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, NULL)){
     return -1;
   }
@@ -29,7 +30,7 @@ int drop_signals(void* nc){
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
 int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
-                  int(*handler)(void*)){
+                  int(*handler)(void*, void**)){
   (void)no_quit_sigs;
   (void)no_winch_sigs;
   (void)handler;
@@ -72,7 +73,7 @@ static struct sigaction old_term;
 // Prepared in setup_signals(), and never changes across our lifetime.
 static sigset_t wblock_signals;
 
-static int(*fatal_callback)(void*); // fatal handler callback
+static int(*fatal_callback)(void*, void**); // fatal handler callback
 
 int block_signals(sigset_t* old_blocked_signals){
   if(pthread_sigmask(SIG_BLOCK, &wblock_signals, old_blocked_signals)){
@@ -88,9 +89,18 @@ int unblock_signals(const sigset_t* old_blocked_signals){
   return 0;
 }
 
-int drop_signals(void* nc){
+// we don't want to run our signal handlers (especially those for fatal
+// signals) once library shutdown has started. we need to leave any
+// alternate signal stack around, however, because musl rather dubiously
+// interprets POSIX's sigaltstack() definition to imply our alternate stack
+// a wildfire suitable for dousing with the hosting libc's adolescent seed.
+// see https://github.com/dankamongmen/notcurses/issues/2828. our child
+// threads still have the alternate stack configured, so we must leave it
+// up. callers ought thus free *altstack at the very end of things.
+int drop_signals(void* nc, void** altstack){
   int ret = -1;
   void* expected = nc;
+  *altstack = NULL;
   pthread_mutex_lock(&lock);
   if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
     if(handling_winch){
@@ -116,9 +126,9 @@ int drop_signals(void* nc){
           fprintf(stderr, "couldn't remove alternate signal stack (%s)", strerror(errno));
         }
       }
-      free(alt_signal_stack.ss_sp);
-      alt_signal_stack.ss_sp = NULL;
     }
+    *altstack = alt_signal_stack.ss_sp;
+    alt_signal_stack.ss_sp = NULL;
     ret = !atomic_compare_exchange_strong(&signal_nc, &expected, NULL);
   }
   pthread_mutex_unlock(&lock);
@@ -145,7 +155,7 @@ static void
 fatal_handler(int signo, siginfo_t* siginfo, void* v){
   notcurses* nc = atomic_load(&signal_nc);
   if(nc){
-    fatal_callback(nc);
+    fatal_callback(nc, NULL); // fuck the alt stack save yourselves
     switch(signo){
       case SIGTERM: invoke_old(&old_term, signo, siginfo, v); break;
       case SIGSEGV: invoke_old(&old_segv, signo, siginfo, v); break;
@@ -176,7 +186,7 @@ void setup_alt_sig_stack(void){
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
 int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
-                  int(*handler)(void*)){
+                  int(*handler)(void*, void**)){
   notcurses* nc = vnc;
   void* expected = NULL;
   struct sigaction sa;

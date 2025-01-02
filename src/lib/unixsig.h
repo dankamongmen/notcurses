@@ -8,8 +8,11 @@ extern "C" {
 #include <signal.h>
 
 int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
-                  int(*handler)(void*));
-int drop_signals(void* nc);
+                  int(*handler)(void*, void**));
+
+// call at the beginning of shutdown (we don't want to run fatal signal
+// handlers during shutdown!). altstack is written to be freed late.
+int drop_signals(void* nc, void** altstack);
 
 // block a few signals for the duration of a write to the terminal.
 int block_signals(sigset_t* old_blocked_signals);
