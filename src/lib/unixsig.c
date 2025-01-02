@@ -225,7 +225,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
 #ifdef _SC_SIGSTKSZ
     long minstksz = sysconf(_SC_SIGSTKSZ);
 #else
-    long minsktkz = 0;
+    long minstksz = 0;
 #endif
     if(minstksz <= 0){
       minstksz = SIGSTKSZ * 4;
