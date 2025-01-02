@@ -67,8 +67,8 @@ typedef enum {
   NCBLIT_1x1,     // space, compatible with ASCII
   NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
   NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
-  NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
-  NCBLIT_4x2,     // octants
+  NCBLIT_3x2,     // sextants + 2x1           🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
+  NCBLIT_4x2,     // octants + 2x2            there are a great many octants
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
   NCBLIT_PIXEL,   // pixel graphics
   // these blitters are suitable only for plots, not general media
