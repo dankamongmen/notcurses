@@ -222,7 +222,11 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
 // to export ASAN_OPTIONS=use_sigaltstack=0, or just not fuck with the alternate
 // signal stack when built with ASAN.
 #ifndef USE_ASAN
+#ifdef _SC_SIGSTKSZ
     long minstksz = sysconf(_SC_SIGSTKSZ);
+#else
+    long minsktkz = 0;
+#endif
     if(minstksz <= 0){
       minstksz = SIGSTKSZ * 4;
     }
