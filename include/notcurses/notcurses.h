@@ -3484,7 +3484,7 @@ ncvisualplane_create(struct notcurses* nc, const struct ncplane_options* opts,
                      struct ncvisual* ncv, struct ncvisual_options* vopts){
   struct ncplane* newn;
   if(vopts && vopts->n){
-    if(vopts->flags & NCVISUAL_OPTION_CHILDPLANE){
+    if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
       return NULL; // the whole point is to create a new plane
     }
     newn = ncplane_create(vopts->n, opts);
