@@ -32,7 +32,7 @@
 
 ### Debian
 
-* In gbp repository, run `tools/debrelease.sh $VERSION`:
+* In gbp repository, run `tools/debrelease.sh $VERSION path-to-notcurses-checkout`:
   * Updates Debian changelog with `dch -v $VERSION+dfsg.1-1`
   * Finalizes Debian changelog with `dch -r`
   * Repacks DFSG-safe tarball with `uscan`:

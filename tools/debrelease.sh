@@ -5,11 +5,12 @@ set -e
 # export DISTRIBUTION to use something other than unstable (or whatever was
 # last used in debian/changelog). see dch(1). can use a DEBVERSION exported
 # in the process's environment.
-usage() { echo "usage: `basename $0` version" ; }
+usage() { echo "usage: `basename $0` version notcursessrcdir" ; }
 
-[ $# -eq 1 ] || { usage >&2 ; exit 1 ; }
+[ $# -eq 2 ] || { usage >&2 ; exit 1 ; }
 
 VERSION="$1"
+SRCDIR="$2"
 
 if [ -z "$DEBVERSION" ] ; then
   DEBVERSION=1
@@ -23,9 +24,12 @@ else
   dch -r
 fi
 uscan --repack --compression xz --force
-gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz
-# FIXME this seems to upload to $VERSION.dfsg as opposed to $VERSION+dfsg?
-github-asset dankamongmen/notcurses upload v$VERSION ../notcurses_$VERSION+dfsg.1.orig.tar.xz ../notcurses_$VERSION+dfsg.1.orig.tar.xz.asc
+XBALL=notcurses_$VERSION+dfsg.1.orig.tar.xz
+gpg --sign --armor --detach-sign ../$XBALL
+ASC=$(readlink -f ../$XBALL.asc)
+cd "$SRCDIR"
+gh release upload v$VERSION $ASC $(readlink -f $XBALL)
+cd -
 git commit -m "v$VERSION" -a
 
 echo
