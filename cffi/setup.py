@@ -1,7 +1,7 @@
 from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.sdist import sdist
-from distutils.command.build import build
+from setuptools.command.build import build
 import os
 import shutil
 
