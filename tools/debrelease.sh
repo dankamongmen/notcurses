@@ -27,8 +27,9 @@ uscan --repack --compression xz --force
 XBALL=notcurses_$VERSION+dfsg.1.orig.tar.xz
 gpg --sign --armor --detach-sign ../$XBALL
 ASC=$(readlink -f ../$XBALL.asc)
+XBALL=$(readlink -f $XBALL)
 cd "$SRCDIR"
-gh release upload v$VERSION $ASC $(readlink -f $XBALL)
+gh release upload v$VERSION $ASC $XBALL
 cd -
 git commit -m "v$VERSION" -a
 
