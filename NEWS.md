@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.12 (not yet released)
+* 3.0.12 (2025-01-09)
   * Fixed a bug when rendering QR codes into a small area. QR codes now
     require `NCBLIT_2x1`, as that is the only blitter which can generate a
     proper aspect ratio. It thus no longer works in an ASCII environment.
@@ -11,6 +11,7 @@ rearrangements of Notcurses.
     used for `NCBLIT_DEFAULT` when used with `NCSCALE_NONE_HIRES`,
     `NCSCALE_SCALE_HIRES`, or `NCSCALE_STRETCH`. Thanks, eschnett! Note
     that octants are not supported by GNU libc until 2.41.
+  * Fixed coredump on exit when using musl as libc (alpine, some gentoo).
 
 * 3.0.11 (2024-10-02)
   * We now normalize the return of `nl_langinfo()` according to the behavior
