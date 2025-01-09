@@ -33,11 +33,7 @@ gh release upload v$VERSION $ASC $XBALL
 cd -
 git commit -m "v$VERSION" -a
 
-echo
-echo "Go change the $VERSION.dfsg to $VERSION+dfsg before proceeding, bro"
-echo
-
-gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz
+gbp import-orig --upstream-version=$VERSION ../notcurses_$VERSION+dfsg.1.orig.tar.xz
 git push --tags
 dpkg-buildpackage --build=source
 cd ..
