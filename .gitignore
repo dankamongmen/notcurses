@@ -1,4 +1,7 @@
-/build/
+build*
+cffi/build
+cffi/dist
+cffi/src/notcurses.egg-info
 doc/examples/book
 obj-x86_64-linux-gnu
 cffi/include
@@ -12,7 +15,9 @@ python/src/_notcurses.so
 tools/function-summary/out-*
 rust/target
 rust/Cargo.lock
+*.asc
 *.pyc
 *.so
 *.swp
 *.swo
+*.xz
