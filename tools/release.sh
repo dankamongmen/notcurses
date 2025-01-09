@@ -72,15 +72,15 @@ echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releas
 echo "The bastards are trying to immanentize the Eschaton"
 
 # requires token in ~/.netrc
-github-release dankamongmen/notcurses create v$VERSION --name "v$VERSION—$QUIP" --publish $TARBALL.asc
-rm $TARBALL.asc
-
 cd "$BUILDDIR"
 sudo make install
 # restrict to files beginning with n* to leave out shared objects
 tar czvf notcurses-doc-$VERSION.tar.gz n*.1 t*.1 n*.3 *.html
-github-asset dankamongmen/notcurses upload v$VERSION notcurses-doc-$VERSION.tar.gz
-cd ../cffi
+gh release create v$VERSION --title "v$VERSION—$QUIP" $TARBALL.asc notcurses-doc-$VERSION.tar.gz
+cd ..
+rm $TARBALL.asc
+
+cd cffi
 python3 setup.py sdist
 python3 setup.py build
 twine upload -s -udankamongmen dist/*
