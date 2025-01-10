@@ -17,14 +17,14 @@ if [ -z "$DEBVERSION" ] ; then
 fi
 
 rm -fv debian/files
-dch -v $VERSION+dfsg1-$DEBVERSION
+dch -v $VERSION+dfsg-$DEBVERSION
 if [ -n "$DISTRIBUTION" ] ; then
   dch -r --distribution "$DISTRIBUTION"
 else
   dch -r
 fi
 uscan --repack --compression xz --force
-XBALL=notcurses_$VERSION+dfsg1.orig.tar.xz
+XBALL=notcurses_$VERSION+dfsg.orig.tar.xz
 gpg --sign --armor --detach-sign ../$XBALL
 ASC=$(readlink -f ../$XBALL.asc)
 XBALL=$(readlink -f $XBALL)
@@ -33,7 +33,7 @@ gh release upload v$VERSION $ASC $XBALL
 cd -
 git commit -m "v$VERSION" -a
 
-gbp import-orig --upstream-version=$VERSION ../notcurses_$VERSION+dfsg1.orig.tar.xz
+gbp import-orig --upstream-version=$VERSION ../notcurses_$VERSION+dfsg.orig.tar.xz
 git push --tags
 dpkg-buildpackage --build=source
 cd ..

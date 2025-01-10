@@ -33,13 +33,13 @@
 ### Debian
 
 * In gbp repository, run `tools/debrelease.sh $VERSION path-to-notcurses-checkout`:
-  * Updates Debian changelog with `dch -v $VERSION+dfsg.1-1`
+  * Updates Debian changelog with `dch -v $VERSION+dfsg-1`
   * Finalizes Debian changelog with `dch -r`
   * Repacks DFSG-safe tarball with `uscan`:
     * `uscan --repack --compression xz --force`
-    * `gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
+    * `gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.orig.tar.xz`
   * Uploads repack + signature to github
-  * imports new version: `gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz`
+  * imports new version: `gbp import-orig ../notcurses_$VERSION+dfsg.orig.tar.xz`
   * `git push --tags`
   * builds source package: `dpkg-buildpackage --build=source`
   * builds binaries: `cd .. && export TERM=xterm-256color && sudo pbuilder build *dsc`
