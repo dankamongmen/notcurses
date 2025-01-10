@@ -66,7 +66,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 endif()
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")

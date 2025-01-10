@@ -73,6 +73,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [ETerm](https://github.com/mej/Eterm) | | | | `TERM=Eterm` | Doesn't reply to Send Device Attributes |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)  | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
+| [Ghostty](https://github.com/ghostty-org/ghostty) | ? | ? | ? | ? | |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
 | [iTerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=iterm2`  | |
