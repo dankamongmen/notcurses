@@ -41,7 +41,7 @@ const char* ncnmetric(uintmax_t val, size_t s, uintmax_t decimal,
   unsigned consumed = 0;
   uintmax_t dv = mult;
   if(decimal <= val || val == 0){
-    // FIXME verify that input < 2^89, wish we had static_assert() :/
+    // FIXME verify that input < 2^89
     while((val / decimal) >= dv && consumed < sizeof(prefixes) / sizeof(*prefixes)){
       dv *= mult;
       ++consumed;

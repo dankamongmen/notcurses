@@ -1233,7 +1233,7 @@ notcurses_early_init(const struct notcurses_options* opts, FILE* fp, unsigned* u
     free(ret);
     return NULL;
   }
-  if(utf8){
+  if(*utf8){
     ncmetric_use_utf8();
   }
   return ret;
