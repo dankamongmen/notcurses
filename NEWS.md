@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.13 (2025-01-11)
+  * Fix regression when building with `USE_CXX=off`.
+  * Use `distutils` from its own Python component rather than assuming
+    it's in `setuputils`, from which it was removed in Python 3.12.
+  * Properly check for UTF8 before calling ncmetric_use_utf8(), fixing
+    a bug when using ncmetric without UTF8 support.
+
 * 3.0.12 (2025-01-09)
   * Fixed a bug when rendering QR codes into a small area. QR codes now
     require `NCBLIT_2x1`, as that is the only blitter which can generate a
