@@ -24,10 +24,10 @@ else
   dch -r
 fi
 uscan --repack --compression xz --force
-XBALL=notcurses_$VERSION+dfsg.orig.tar.xz
-gpg --sign --armor --detach-sign ../$XBALL
-ASC=$(readlink -f ../$XBALL.asc)
-XBALL=$(readlink -f $XBALL)
+XBALL=../notcurses_$VERSION+dfsg.orig.tar.xz
+gpg --sign --armor --detach-sign $XBALL
+ASC=$(readlink -f $XBALL.asc)
+XBALL=$(readlink -f $XBALL) # eliminates ../
 cd "$SRCDIR"
 gh release upload v$VERSION $ASC $XBALL
 cd -
