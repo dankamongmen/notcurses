@@ -509,7 +509,7 @@ endif()
 set_target_properties(
   notcurses++-static PROPERTIES
   OUTPUT_NAME notcurses++
-  )
+)
 
 set_target_properties(
   notcurses++ PROPERTIES
@@ -572,7 +572,23 @@ target_compile_definitions(notcurses++-static
   PUBLIC
     ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
 )
-endif()
+
+target_compile_options(notcurses++-static
+  PRIVATE
+  ${NCPP_COMPILE_OPTIONS}
+  -fPIE
+)
+
+target_compile_definitions(notcurses++
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+)
+
+target_compile_definitions(notcurses++-static
+  PUBLIC
+    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
+)
+endif() # end USE_CXX block
 
 target_compile_options(notcurses-core
   PRIVATE
@@ -592,22 +608,6 @@ target_compile_options(notcurses
 target_compile_options(notcurses-static
   PRIVATE
     -fPIE
-)
-
-target_compile_options(notcurses++-static
-  PRIVATE
-  ${NCPP_COMPILE_OPTIONS}
-  -fPIE
-)
-
-target_compile_definitions(notcurses++
-  PUBLIC
-    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
-)
-
-target_compile_definitions(notcurses++-static
-  PUBLIC
-    ${NCPP_COMPILE_DEFINITIONS_PUBLIC}
 )
 
 file(GLOB NCPP_HEADERS
