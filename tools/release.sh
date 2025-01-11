@@ -71,16 +71,16 @@ echo "Cut $VERSION, signed to $TARBALL.asc"
 echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releases"
 echo "The bastards are trying to immanentize the Eschaton"
 
+# restrict to files beginning with n* to leave out shared objects
+tar czvf notcurses-doc-$VERSION.tar.gz -C "$BUILDDIR" n*.1 t*.1 n*.3 *.html
 # requires token in ~/.netrc
+gh release create v$VERSION --title "v$VERSION—$QUIP" $TARBALL.asc notcurses-doc-$VERSION.tar.gz
+rm $TARBALL.asc notcurses-doc-$VERSION.tar.gz
+
+# install the build for python, then uninstall it. gross; we ought do better FIXME.
 cd "$BUILDDIR"
 sudo make install
-# restrict to files beginning with n* to leave out shared objects
-tar czvf notcurses-doc-$VERSION.tar.gz n*.1 t*.1 n*.3 *.html
-gh release create v$VERSION --title "v$VERSION—$QUIP" $TARBALL.asc notcurses-doc-$VERSION.tar.gz
-cd ..
-rm $TARBALL.asc
-
-cd cffi
+cd ../cffi
 python3 setup.py sdist
 python3 setup.py build
 twine upload -s -udankamongmen dist/*
