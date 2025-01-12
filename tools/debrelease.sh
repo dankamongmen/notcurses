@@ -37,8 +37,6 @@ gbp import-orig --upstream-version=$VERSION ../notcurses_$VERSION+dfsg.orig.tar.
 git push --tags
 dpkg-buildpackage --build=source
 cd ..
-# this isn't perfect -- we might not be running xterm -- but it keeps us
-# from dying when such a terminal doesn't have its terminfo inside pbuilder
 xterm -e sudo pbuilder build notcurses*dsc
 cd -
 git push
