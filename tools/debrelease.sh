@@ -39,7 +39,7 @@ dpkg-buildpackage --build=source
 cd ..
 # this isn't perfect -- we might not be running xterm -- but it keeps us
 # from dying when such a terminal doesn't have its terminfo inside pbuilder
-sudo TERM=xterm pbuilder build notcurses*dsc
+xterm -e sudo pbuilder build notcurses*dsc
 cd -
 git push
 rm debian/files
