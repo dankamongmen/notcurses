@@ -19,7 +19,9 @@ int unblock_signals(const sigset_t* old_blocked_signals){
 
 int drop_signals(void* nc, void** altstack){
   void* expected = nc;
-  *altstack = NULL;
+  if(!altstack){
+    return 0;
+  }
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, NULL)){
     return -1;
   }
@@ -100,6 +102,9 @@ int unblock_signals(const sigset_t* old_blocked_signals){
 int drop_signals(void* nc, void** altstack){
   int ret = -1;
   void* expected = nc;
+  if(!altstack){ // came in via signal handler
+    return 0;
+  }
   *altstack = NULL;
   pthread_mutex_lock(&lock);
   if(atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
