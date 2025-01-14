@@ -32,7 +32,7 @@ int drop_signals(void* nc, void** altstack){
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
 int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
-                  int(*handler)(void*, void**)){
+                  int(*handler)(void*, void**, int)){
   (void)no_quit_sigs;
   (void)no_winch_sigs;
   (void)handler;
@@ -75,7 +75,9 @@ static struct sigaction old_term;
 // Prepared in setup_signals(), and never changes across our lifetime.
 static sigset_t wblock_signals;
 
-static int(*fatal_callback)(void*, void**); // fatal handler callback
+// fatal handler callback, takes notcurses struct, pointer to altstack,
+// and return value override.
+static int(*fatal_callback)(void*, void**, int);
 
 int block_signals(sigset_t* old_blocked_signals){
   if(pthread_sigmask(SIG_BLOCK, &wblock_signals, old_blocked_signals)){
@@ -160,7 +162,7 @@ static void
 fatal_handler(int signo, siginfo_t* siginfo, void* v){
   notcurses* nc = atomic_load(&signal_nc);
   if(nc){
-    fatal_callback(nc, NULL); // fuck the alt stack save yourselves
+    fatal_callback(nc, NULL, signo); // fuck the alt stack save yourselves
     switch(signo){
       case SIGTERM: invoke_old(&old_term, signo, siginfo, v); break;
       case SIGSEGV: invoke_old(&old_segv, signo, siginfo, v); break;
@@ -191,7 +193,7 @@ void setup_alt_sig_stack(void){
 // inhibited), and ensures that only one notcurses/ncdirect context is active
 // at any given time.
 int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sigs,
-                  int(*handler)(void*, void**)){
+                  int(*handler)(void*, void**, int)){
   notcurses* nc = vnc;
   void* expected = NULL;
   struct sigaction sa;

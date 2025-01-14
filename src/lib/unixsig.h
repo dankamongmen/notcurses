@@ -8,7 +8,7 @@ extern "C" {
 #include <signal.h>
 
 int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
-                  int(*handler)(void*, void**));
+                  int(*handler)(void*, void**, int));
 
 // call at the beginning of shutdown (we don't want to run fatal signal
 // handlers during shutdown!). altstack is written to be freed late.

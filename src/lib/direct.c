@@ -832,7 +832,7 @@ int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt
 }
 
 static int
-ncdirect_stop_minimal(void* vnc, void** altstack){
+ncdirect_stop_minimal(void* vnc, void** altstack, int errret){
   ncdirect* nc = vnc;
   int ret = drop_signals(nc, altstack);
   fbuf f = {0};
@@ -862,6 +862,9 @@ ncdirect_stop_minimal(void* vnc, void** altstack){
 #ifndef __MINGW32__
   del_curterm(cur_term);
 #endif
+  if(errret){
+    ret = errret;
+  }
   return ret;
 }
 
@@ -955,7 +958,7 @@ int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
     void* altstack;
-    ret |= ncdirect_stop_minimal(nc, &altstack);
+    ret |= ncdirect_stop_minimal(nc, &altstack, 0);
     free_terminfo_cache(&nc->tcache);
     if(nc->tcache.ttyfd >= 0){
       ret |= close(nc->tcache.ttyfd);
