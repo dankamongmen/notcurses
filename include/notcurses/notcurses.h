@@ -1865,9 +1865,9 @@ ncplane_resize_simple(struct ncplane* n, unsigned ylen, unsigned xlen){
   return ncplane_resize(n, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen);
 }
 
-// Destroy the specified ncplane. None of its contents will be visible after
-// the next call to notcurses_render(). It is an error to attempt to destroy
-// the standard plane.
+// Destroy ncplane 'n'. None of its contents will be visible after the next
+// call to notcurses_render(). It is an error to attempt to destroy the
+// standard plane. It is a noop if 'n' is NULL.
 API int ncplane_destroy(struct ncplane* n);
 
 // Set the ncplane's base nccell to 'c'. The base cell is used for purposes of
@@ -1983,6 +1983,10 @@ static inline void
 ncplane_move_family_bottom(struct ncplane* n){
   ncplane_move_family_above(n, NULL);
 }
+
+// Destroy ncplane 'n' and all its bound descendants. It is a noop if 'n'
+// is NULL. It is an error to attempt to destroy the standard plane.
+API int ncplane_family_destroy(struct ncplane *n);
 
 // Return the plane below this one, or NULL if this is at the bottom.
 API struct ncplane* ncplane_below(struct ncplane* n)

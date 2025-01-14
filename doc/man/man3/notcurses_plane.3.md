@@ -205,7 +205,9 @@ typedef struct ncplane_options {
 
 **int ncplane_blit_rgba(struct ncplane* ***nc***, int ***placey***, int ***placex***, int ***linesize***, ncblitter_e ***blitter***, const unsigned char* ***data***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncplane_destroy(struct ncplane* ***ncp***);**
+**int ncplane_destroy(struct ncplane* ***n***);**
+
+**int ncplane_family_destroy(struct ncplane ***n***);**
 
 **void notcurses_drop_planes(struct notcurses* ***nc***);**
 

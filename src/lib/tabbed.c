@@ -220,7 +220,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   return nt;
 
 err:
-  ncplane_destroy_family(n);
+  ncplane_family_destroy(n);
   if(nt){
     free(nt->opts.separator);
     free(nt);
@@ -427,7 +427,7 @@ void nctabbed_destroy(nctabbed* nt){
       free(t);
       t = tmp;
     }
-    ncplane_destroy_family(nt->ncp);
+    ncplane_family_destroy(nt->ncp);
     free(nt->opts.separator);
     free(nt);
   }

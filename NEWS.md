@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.14 (not yet released)
+  * `ncplane_family_destroy()` has been added to the API.
+
 * 3.0.13 (2025-01-11)
   * Fix regression when building with `USE_CXX=off`.
   * Use `distutils` from its own Python component rather than assuming

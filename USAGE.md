@@ -863,6 +863,15 @@ struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 // with it to its new destination. Their z-order is maintained.
 struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent);
 
+// Destroy ncplane 'n'. None of its contents will be visible after the next
+// call to notcurses_render(). It is an error to attempt to destroy the
+// standard plane. It is a noop if 'n' is NULL.
+int ncplane_destroy(struct ncplane* n);
+
+// Destroy ncplane 'n' and all its bound descendants. It is a noop if 'n'
+// is NULL. It is an error to attempt to destroy the standard plane.
+int ncplane_family_destroy(struct ncplane *n);
+
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
 void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*));
 

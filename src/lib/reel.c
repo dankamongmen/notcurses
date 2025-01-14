@@ -239,7 +239,7 @@ static void
 nctablet_wipeout(nctablet* t){
   if(t){
     if(ncplane_set_widget(t->p, NULL, NULL) == 0){
-      ncplane_destroy_family(t->p);
+      ncplane_family_destroy(t->p);
     }
     t->p = NULL;
     t->cbp = NULL;
@@ -276,7 +276,7 @@ nctablet_delete_internal(struct nctablet* t){
   t->next->prev = t->prev;
   if(t->p){
     if(ncplane_set_widget(t->p, NULL, NULL) == 0){
-      ncplane_destroy_family(t->p);
+      ncplane_family_destroy(t->p);
     }
   }
   free(t);
@@ -379,7 +379,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
       if(ll){ // must be smaller than the space we provided; add back bottom
         ncplane_resize_simple(t->cbp, ll, cblenx);
       }else{
-        ncplane_destroy_family(t->cbp);
+        ncplane_family_destroy(t->cbp);
         t->cbp = NULL;
       }
       // resize the borderplane iff we got smaller
@@ -491,7 +491,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
 //fprintf(stderr, "top: %dx%d @ %d, miny: %d\n", ylen, xlen, y, miny);
   if(boty < miny){
 //fprintf(stderr, "NUKING top!\n");
-    ncplane_destroy_family(top->p);
+    ncplane_family_destroy(top->p);
     top->p = NULL;
     top->cbp = NULL;
     top = top->next;
@@ -499,7 +499,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   }else if(y < miny){
     int ynew = ylen - (miny - y);
     if(ynew <= 0){
-      ncplane_destroy_family(top->p);
+      ncplane_family_destroy(top->p);
       top->p = NULL;
       top->cbp = NULL;
     }else{
@@ -508,7 +508,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
       }
       if(top->cbp){
         if(ynew == !(r->ropts.tabletmask & NCBOXMASK_TOP)){
-          ncplane_destroy_family(top->cbp);
+          ncplane_family_destroy(top->cbp);
           top->cbp = NULL;
         }else{
           ncplane_dim_yx(top->cbp, &ylen, &xlen);
@@ -532,7 +532,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
     if(maxy < y){
   //fprintf(stderr, "NUKING bottom!\n");
       if(ncplane_set_widget(bottom->p, NULL, NULL) == 0){
-        ncplane_destroy_family(bottom->p);
+        ncplane_family_destroy(bottom->p);
       }
       bottom->p = NULL;
       bottom->cbp = NULL;
@@ -541,7 +541,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
     }if(maxy < boty){
       int ynew = ylen - (boty - maxy);
       if(ynew <= 0){
-        ncplane_destroy_family(bottom->p);
+        ncplane_family_destroy(bottom->p);
         bottom->p = NULL;
         bottom->cbp = NULL;
       }else{
@@ -551,7 +551,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   //fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
         if(bottom->cbp){
           if(ynew == !(r->ropts.tabletmask & NCBOXMASK_BOTTOM)){
-            ncplane_destroy_family(bottom->cbp);
+            ncplane_family_destroy(bottom->cbp);
             bottom->cbp = NULL;
           }else{
             ncplane_dim_yx(bottom->cbp, &ylen, &xlen);

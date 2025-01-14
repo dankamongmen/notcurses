@@ -1287,9 +1287,6 @@ cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigne
   c->channels = ((c->channels & ~NC_BLITTERSTACK_MASK) | newval);
 }
 
-// Destroy a plane and all its bound descendants.
-int ncplane_destroy_family(ncplane *ncp);
-
 // Extract the 32-bit background channel from a cell.
 static inline uint32_t
 cell_bchannel(const nccell* cl){
