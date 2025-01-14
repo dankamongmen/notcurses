@@ -35,7 +35,6 @@ jobs:
             mingw-w64-ucrt-x86_64-ncurses
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-ninja
-            #mingw-w64-ucrt-x86_64-openimageio
 
       - uses: actions/checkout@v2
 
