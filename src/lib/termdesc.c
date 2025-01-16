@@ -792,13 +792,19 @@ apply_vte_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 static const char*
-apply_foot_heuristics(tinfo* ti, bool* forcesdm, bool* invertsixel){
+apply_foot_heuristics(tinfo* ti, size_t *tablelen, size_t *tableused,
+                      bool* forcesdm, bool* invertsixel){
   ti->caps.sextants = true;
   ti->caps.quadrants = true;
   ti->caps.rgb = true;
   *forcesdm = true;
   if(compare_versions(ti->termversion, "1.8.2") < 0){
     *invertsixel = true;
+  }
+  if(compare_versions(ti->termversion, "1.18.0") >= 0){
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return NULL;
+    }
   }
   return "foot";
 }
@@ -982,7 +988,8 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_vte_heuristics(ti, tablelen, tableused);
       break;
     case TERMINAL_FOOT:
-      newname = apply_foot_heuristics(ti, forcesdm, invertsixel);
+      newname = apply_foot_heuristics(ti, tablelen, tableused,
+                                      forcesdm, invertsixel);
       break;
     case TERMINAL_TMUX:
       newname = "tmux"; // FIXME what, oh what to do with tmux?
