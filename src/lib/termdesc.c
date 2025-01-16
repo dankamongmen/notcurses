@@ -806,6 +806,9 @@ apply_foot_heuristics(tinfo* ti, size_t *tablelen, size_t *tableused,
       return NULL;
     }
   }
+  if(compare_versions(ti->termversion, "1.20.0") >= 0){
+    ti->caps.octants = true;
+  }
   return "foot";
 }
 
