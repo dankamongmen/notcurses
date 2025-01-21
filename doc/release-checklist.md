@@ -4,7 +4,7 @@
 
 * Review the testing checklist (doc/testing-checklist.md)
 * clang-tidy check with something like:
-  * `cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy-15\;-checks=-*,clang-analyzer-*,modernize-*,performance-*" ..`
+  * `cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy\;-checks=-*,clang-analyzer-*,modernize-*,performance-*" ..`
   or
   * `scan-build cmake .. && scan-build make`
 * Verify that rust + python compile

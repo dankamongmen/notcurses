@@ -209,6 +209,7 @@ fetch_cpu_info(fetched_info* fi){
 #undef TAG
 #undef CORE
   }
+  fclose(cpuinfo);
   return 0;
 }
 
