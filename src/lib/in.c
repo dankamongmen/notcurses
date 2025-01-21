@@ -1556,6 +1556,7 @@ xtversion_cb(inputctx* ictx){
     { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
     { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
     { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+    { .prefix = "ghostty ", .suffix = 0, .term = TERMINAL_GHOSTTY, },
     { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
     { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
     { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
@@ -1720,14 +1721,16 @@ tcap_cb(inputctx* ictx){
           ictx->initdata->qterm = TERMINAL_MLTERM;
         }else if(strcmp(key, "xterm-kitty") == 0){
           ictx->initdata->qterm = TERMINAL_KITTY;
+        }else if(strcmp(key, "xterm-ghostty") == 0){
+          ictx->initdata->qterm = TERMINAL_GHOSTTY;
         }else if(strcmp(key, "xterm-256color") == 0){
           ictx->initdata->qterm = TERMINAL_XTERM;
         }else{
-          logdebug("unknown terminal name %s", key);
+          logwarn("unknown terminal name %s", key);
         }
       }
     }else if(strcmp(val, "RGB") == 0){
-      loginfo("got rgb (%s)", s);
+      loginfo("got rgb (%s)", key);
       ictx->initdata->rgb = true;
     }else if(strcmp(val, "hpa") == 0){
       loginfo("got hpa (%s)", key);
