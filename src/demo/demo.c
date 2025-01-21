@@ -384,6 +384,7 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
                     results[i].stats.renders, results[i].timens, i < strlen(spec) - 1 ? "," : "") < 0);
   }
   ret |= (fprintf(f, "}}}\n") < 0);
+  ret |= fclose(f);
   return ret;
 }
 
