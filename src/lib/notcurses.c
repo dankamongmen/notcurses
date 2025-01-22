@@ -3186,19 +3186,16 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
           for(unsigned px = 0 ; px < bset->width ; ++px){
             uint32_t* p = &ret[(targy + py) * (lenx * bset->width) + (targx + px)];
             bool background = is_bg_p(idx, py, px, bset->width);
+            *p = 0;
             if(background){
-              if(ba){
-                *p = 0;
-              }else{
+              if(!ba){
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, br);
                 ncpixel_set_g(p, bb);
                 ncpixel_set_b(p, bg);
               }
             }else{
-              if(fa){
-                *p = 0;
-              }else{
+              if(!fa){
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, fr);
                 ncpixel_set_g(p, fb);
