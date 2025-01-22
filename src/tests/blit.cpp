@@ -108,6 +108,7 @@ TEST_CASE("Blit") {
     if(notcurses_canutf8(nc_)){
       if(notcurses_canquadrant(nc_)){
         uint32_t p2x2[4];
+        memset(p2x2, 0xff, sizeof(p2x2));
         uint32_t* ptl = &p2x2[0];
         ncpixel_set_a(ptl, 0xff);
         ncpixel_set_r(ptl, 0);
