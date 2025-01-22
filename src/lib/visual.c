@@ -471,6 +471,7 @@ void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, in
       for(int x = 0 ; x < cols ; ++x){
         const uint32_t* src = (const uint32_t*)data + (*rowstride / 4) * y + x;
         uint32_t* dst = ret + cols * y + x;
+        *dst = 0; // kill scan-build warning about using uninitialized value below
         ncpixel_set_a(dst, alpha);
         ncpixel_set_r(dst, ncpixel_r(*src));
         ncpixel_set_g(dst, ncpixel_g(*src));
@@ -492,6 +493,7 @@ void* rgb_packed_to_rgba(const void* data, int rows, int* rowstride, int cols, i
       for(int x = 0 ; x < cols ; ++x){
         const unsigned char* src = (const unsigned char*)data + *rowstride * y + x;
         uint32_t* dst = ret + cols * y + x;
+        *dst = 0; // kill scan-build warning about using uninitialized value below
         ncpixel_set_a(dst, alpha);
         ncpixel_set_r(dst, src[0]);
         ncpixel_set_g(dst, src[1]);
@@ -516,6 +518,7 @@ void* bgra_to_rgba(const void* data, int rows, int* rowstride, int cols, int alp
       for(int x = 0 ; x < cols ; ++x){
         const uint32_t* src = (const uint32_t*)data + (*rowstride / 4) * y + x;
         uint32_t* dst = ret + cols * y + x;
+        *dst = 0; // kill scan-build warning about using uninitialized value below
         ncpixel_set_a(dst, alpha);
         ncpixel_set_r(dst, ncpixel_b(*src));
         ncpixel_set_g(dst, ncpixel_g(*src));
@@ -842,6 +845,7 @@ ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
         memcpy(&r, src + rowstride * y + 3 * x, 1);
         memcpy(&g, src + rowstride * y + 3 * x + 1, 1);
         memcpy(&b, src + rowstride * y + 3 * x + 2, 1);
+        data[y * ncv->rowstride / 4 + x] = 0; // eliminate scan-build uninitialized data warning
         ncpixel_set_a(&data[y * ncv->rowstride / 4 + x], alpha);
         ncpixel_set_r(&data[y * ncv->rowstride / 4 + x], r);
         ncpixel_set_g(&data[y * ncv->rowstride / 4 + x], g);
@@ -912,6 +916,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
         uint32_t src;
         memcpy(&src, (const char*)bgra + y * rowstride + x * 4, 4);
         uint32_t* dst = &data[ncv->rowstride * y / 4 + x];
+        *dst = 0; // kill scan-build warning about using uninitialized value below
         ncpixel_set_a(dst, ncpixel_a(src));
         ncpixel_set_r(dst, ncpixel_b(src));
         ncpixel_set_g(dst, ncpixel_g(src));
@@ -962,6 +967,7 @@ ncvisual* ncvisual_from_palidx(const void* pdata, int rows, int rowstride,
         uint32_t src = palette[palidx];
         uint32_t* dst = &data[ncv->rowstride * y / 4 + x];
         if(ncchannel_default_p(src)){
+          *dst = 0; // kill scan-build warning about using uninitialized value below
           // FIXME use default color as detected, or just 0xffffff
           ncpixel_set_a(dst, 255 - palidx);
           ncpixel_set_r(dst, palidx);
