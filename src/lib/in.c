@@ -2709,12 +2709,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(r){
       pthread_mutex_unlock(&ictx->ilock);
       if(r == ETIMEDOUT){
-        pthread_mutex_unlock(&ictx->ilock);
         if(ni){
           memset(ni, 0, sizeof(*ni));
         }
         return 0;
-      }else if(r < 0){
+      }else{
         inc_input_errors(ictx);
         if(ni){
           memset(ni, 0, sizeof(*ni));
