@@ -2668,6 +2668,11 @@ int inputready_fd(const inputctx* ictx){
 #endif
 }
 
+static void
+cleanup_mutex(void* v){
+  pthread_mutex_unlock(v);
+}
+
 static inline uint32_t
 internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   uint32_t id;
@@ -2690,10 +2695,16 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       }
       return NCKEY_EOF;
     }
+    int r;
+    pthread_cleanup_push(cleanup_mutex, &ictx->ilock);
     if(ts == NULL){
-      pthread_cond_wait(&ictx->icond, &ictx->ilock);
+      r = pthread_cond_wait(&ictx->icond, &ictx->ilock);
     }else{
-      int r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
+      r = pthread_cond_timedwait(&ictx->icond, &ictx->ilock, ts);
+    }
+    pthread_cleanup_pop(0);
+    if(r){
+      pthread_mutex_unlock(&ictx->ilock);
       if(r == ETIMEDOUT){
         pthread_mutex_unlock(&ictx->ilock);
         if(ni){
@@ -2728,9 +2739,11 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     logtrace("draining event readiness pipe %d", ictx->ivalid);
 #ifndef __MINGW32__
     char c;
+    pthread_cleanup_push(cleanup_mutex, &ictx->ilock);
     while(read(ictx->readypipes[0], &c, sizeof(c)) == 1){
       // FIXME accelerate?
     }
+    pthread_cleanup_pop(0);
 #else
     // we ought be draining this, but it breaks everything, as we can't easily
     // do nonblocking input from a pipe in windows, augh...

@@ -3,6 +3,10 @@ rearrangements of Notcurses.
 
 * 3.0.14 (not yet released)
   * `ncplane_family_destroy()` has been added to the API.
+  * Added some `foot` capabilities. Recognize `ghostty` and bless its
+     quadrants/sextants implementations.
+  * A bug introduced sometime in 2022 that caused unpredictable
+    hangs on exit was resolved (#2837), yay!
 
 * 3.0.13 (2025-01-11)
   * Fix regression when building with `USE_CXX=off`.
