@@ -106,7 +106,7 @@ portability, you should by all means use that fine library.
 Minimum versions generally indicate the oldest version I've tested with; it
 may well be possible to use still older versions. Let me know of any successes!
 
-* (build) CMake 3.14.0+ and a C11 compiler
+* (build) CMake 3.21.0+ and a C17 compiler
 * (OPTIONAL) (OpenImageIO, testing, C++ bindings): A C++17 compiler
 * (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
 * (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
