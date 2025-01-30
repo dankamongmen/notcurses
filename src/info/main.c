@@ -464,7 +464,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "2x2", notcurses_canquadrant(nc));
   tinfo_debug_cap(n, "3x2", notcurses_cansextant(nc));
   tinfo_debug_cap(n, "4x2", notcurses_canoctant(nc));
-  tinfo_debug_cap(n, "4x2", notcurses_canbraille(nc));
+  tinfo_debug_cap(n, "⠃⠗⠇", notcurses_canbraille(nc));
   tinfo_debug_cap(n, "img", notcurses_canopen_images(nc));
   tinfo_debug_cap(n, "vid", notcurses_canopen_videos(nc));
   tinfo_debug_cap(n, "indn", get_escape(ti, ESCAPE_INDN));
