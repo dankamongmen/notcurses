@@ -92,20 +92,20 @@ TEST_CASE("Metric") {
     char buf[BUFSIZE], gold[BUFSIZE];
     // FIXME these will change based on the size of intmax_t and uintmax_t
     REQUIRE(ncbprefix(((double)(INTMAX_MAX - 1ull)), 1, buf, 0));
-    sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - 1ull)) / (1ull << 60));
+    snprintf(gold, sizeof(gold), "%.2fEi", ((double)(INTMAX_MAX - 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     REQUIRE(ncbprefix(((double)(INTMAX_MAX - (1ull << 53))), 1, buf, 0));
-    sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
+    snprintf(gold, sizeof(gold), "%.2fEi", ((double)(INTMAX_MAX - (1ull << 53))) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     REQUIRE(ncbprefix(INTMAX_MAX + 1ull, 1, buf, 0));
-    sprintf(gold, "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
+    snprintf(gold, sizeof(gold), "%.2fEi", ((double)(INTMAX_MAX + 1ull)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
     impericize_ncmetric(UINTMAX_MAX - 1, 1, buf, 0, 1024, 'i');
     CHECK(!strcmp("16.00Ei", buf));
     impericize_ncmetric(UINTMAX_MAX, 1, buf, 0, 1024, 'i');
     CHECK(!strcmp("16.00Ei", buf));
     ncbprefix(UINTMAX_MAX - (1ull << 53), 1, buf, 0);
-    sprintf(gold, "%.2fEi", ((double)UINTMAX_MAX - (1ull << 53)) / (1ull << 60));
+    snprintf(gold, sizeof(gold), "%.2fEi", ((double)UINTMAX_MAX - (1ull << 53)) / (1ull << 60));
     CHECK(!strcmp(gold, buf));
   }
 
