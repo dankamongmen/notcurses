@@ -167,7 +167,7 @@ directly:
 
 * Per-release [News](NEWS.md) for packagers, developers, and users.
 * The `TERM` environment variable and [various terminal emulators](TERMINALS.md).
-* Notes on [contributing](doc/CONTRIBUTING.md) and [hacking](doc/HACKING.md).
+* Notes on [contributing](CONTRIBUTING.md) and [hacking](doc/HACKING.md).
 * There's a semi-complete [reference guide](USAGE.md).
 * A list of [other TUI libraries](doc/OTHERS.md).
 * Abbreviated [history](doc/HISTORY.md) and thanks.
