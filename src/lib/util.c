@@ -39,11 +39,24 @@ char* notcurses_accountname(void){
     return strdup(un);
   }
   uid_t uid = getuid();
-  struct passwd* p = getpwuid(uid);
-  if(p == NULL){
+  struct passwd p;
+  struct passwd* pret;
+  long blen = sysconf(_SC_GETPW_R_SIZE_MAX);
+  if(blen < 0){
+    logwarn("couldn't get getpwuid sysconf");
+    blen = 4096;
+  }
+  char* buf = malloc(blen);
+  if(buf == NULL){
     return NULL;
   }
-  return strdup(p->pw_name);
+  if(getpwuid_r(uid, &p, buf, blen, &pret) || !pret){
+    free(buf);
+    return NULL;
+  }
+  char* ret = strdup(p.pw_name);
+  free(buf);
+  return ret;
 #else
   DWORD unlen = UNLEN + 1;
   char* un = malloc(unlen);
