@@ -20,11 +20,11 @@ typedef struct nccell {
   uint64_t channels;
 } nccell;
 
-#define CELL_TRIVIAL_INITIALIZER \
+#define NCCELL_TRIVIAL_INITIALIZER \
  { .gcluster = '\0', .stylemask = 0, .channels = 0, }
-#define CELL_SIMPLE_INITIALIZER(c) \
+#define NCCELL_CHAR_INITIALIZER(c) \
  { .gcluster = (c), .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) \
+#define NCCELL_INITIALIZER(c, s, chan) \
  { .gcluster = (c), .stylemask = (s), .channels = (chan), }
 
 #define NCALPHA_HIGHCONTRAST  0x30000000ull
