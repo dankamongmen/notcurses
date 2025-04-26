@@ -1969,7 +1969,10 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
           return -1;
         }
       }
-      ++n->x;
+      // don't do any further expansion of the plane here; just break
+      if(++n->x >= n->lenx){
+        break;
+      }
     }
   }
   if(scrolled){
