@@ -1,12 +1,15 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.14 (not yet released)
+* 3.0.14 (2025-04-26)
   * `ncplane_family_destroy()` has been added to the API.
   * Added some `foot` capabilities. Recognize `ghostty` and bless its
      quadrants/sextants implementations.
   * A bug introduced sometime in 2022 that caused unpredictable
     hangs on exit was resolved (#2837), yay!
+  * Fix bug identified by @kmarius on github where we core out if printing
+     a tab at the end of an ncplane whose x dimension is not a multiple
+     of the tab stop (#2870), thanks for the report!
   * We now require CMake 3.21 (vs 3.14) and C17 (vs C11).
 
 * 3.0.13 (2025-01-11)

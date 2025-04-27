@@ -1,6 +1,6 @@
 % notcurses_fds(3)
 % nick black <nickblack@linux.com>
-% v3.0.13
+% v3.0.14
 
 # NAME
 
