@@ -1,6 +1,7 @@
 #include <vector>
 #include "main.h"
 #include "lib/egcpool.h"
+#include "lib/egcpool.c"
 
 TEST_CASE("EGCpool") {
   egcpool pool_{};
