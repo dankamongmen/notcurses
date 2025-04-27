@@ -478,6 +478,8 @@ static int ncvisual_translate_and_crop(const ncvisual* orig, const struct ncvisu
   if(!dst){
     dst_vopts->begx = 0;
     dst_vopts->begy = 0;
+    dst_vopts->lenx = 0;
+    dst_vopts->leny = 0;
     return 0;
   }
 
@@ -515,7 +517,7 @@ int ncvisual_geom(const notcurses* nc, const ncvisual* n_orig,
                   const struct ncvisual_options* vopts_orig, ncvgeom* geom){
   ncvisual n_temp;
   struct ncvisual_options vopts_temp;
-  if(ncvisual_translate_and_crop(n_orig, vopts_orig, &n_temp, &vopts_temp) < 0){
+  if(ncvisual_translate_and_crop(n_orig, vopts_orig, n_orig ? &n_temp : NULL,  &vopts_temp) < 0){
     return -1;
   }
   const struct blitset* bset;
