@@ -1949,7 +1949,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
       return -1;
     }
   }
-//fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, nccell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
+  //loginfo("%08x %016lx %c %d %d", targ->gcluster, targ->channels, nccell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
   if(*egc != '\n'){
     ++n->x;
     // if wide, set our right hand columns wide, and check for further damage
@@ -2473,7 +2473,6 @@ void ncplane_erase(ncplane* n){
   char* egc = nccell_strdup(n, &n->basecell);
   memset(n->fb, 0, sizeof(*n->fb) * n->leny * n->lenx);
   egcpool_dump(&n->pool);
-  egcpool_init(&n->pool);
   // we need to zero out the EGC before handing this off to nccell_load, but
   // we don't want to lose the channels/attributes, so explicit gcluster load.
   n->basecell.gcluster = 0;
