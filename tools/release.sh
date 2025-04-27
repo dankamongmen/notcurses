@@ -72,7 +72,8 @@ echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releas
 echo "The bastards are trying to immanentize the Eschaton"
 
 # restrict to files beginning with n* to leave out shared objects
-tar czvf notcurses-doc-$VERSION.tar.gz -C "$BUILDDIR" n*.1 t*.1 n*.3 *.html
+cd $BUILDDIR && find . -name n\*1 -o -name t\*1 -o -name n\*3 -o -name \*html \
+  | xargs tar czvf notcurses-doc-$VERSION.tar.gz -C "$BUILDDIR"
 # requires token in ~/.netrc
 gh release create v$VERSION --title "v$VERSION—$QUIP" $TARBALL.asc notcurses-doc-$VERSION.tar.gz
 rm $TARBALL.asc notcurses-doc-$VERSION.tar.gz
@@ -83,7 +84,8 @@ sudo make install
 cd ../cffi
 python3 setup.py sdist
 python3 setup.py build
-twine upload -s -udankamongmen dist/*
+# requires an apitoken in ~/.pypirc
+twine upload -s dist/*
 
 cd "../$BUILDDIR"
 cat install_manifest.txt | sudo xargs rm
