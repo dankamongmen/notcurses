@@ -488,7 +488,7 @@ insert_path(automaton* a, const char* seq){
       }
       eptr = esctrie_from_idx(a, eidx);
       eptr = esctrie_from_idx(a, eptr->trie[c]);
-      logtrace("added fixed %c %u as %u", c, c, esctrie_idx(a, eptr));
+      logtrace("added fixed 0x%08u %u as %u", c, c, esctrie_idx(a, eptr));
     }
   }
   if(inescape){
