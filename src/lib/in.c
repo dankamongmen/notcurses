@@ -2162,6 +2162,10 @@ prep_all_keys(inputctx* ictx){
 }
 
 // populate |buf| with any new data from the specified file descriptor |fd|.
+// bufused indicates the offset into buf at which to begin reading, and is
+// updated to reflect data read. buflen is the length of the total buffer
+// (including any skipped material). the read is nonblocking, and only one is
+// performed. this is used by the input thread.
 static void
 read_input_nblock(int fd, unsigned char* buf, size_t buflen, int *bufused,
                   unsigned* goteof){
@@ -2472,6 +2476,66 @@ int ncinput_shovel(inputctx* ictx, const void* buf, int len){
   return 0;
 }
 
+#ifndef __MINGW32__
+static int
+runpoll(inputctx* ictx, struct pollfd* pfds, int pfdcount, unsigned nonblock,
+        unsigned *rtfd, unsigned *rifd){
+  int events;
+#if defined(__APPLE__) || defined(__MINGW32__)
+  int timeoutms = nonblock ? 0 : -1;
+  while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
+#else
+  sigset_t smask;
+  sigfillset(&smask);
+  sigdelset(&smask, SIGCONT);
+  sigdelset(&smask, SIGWINCH);
+#ifdef SIGTHR
+  // freebsd uses SIGTHR for thread cancellation; need this to ensure wakeup
+  // on exit (in cancel_and_join()).
+  sigdelset(&smask, SIGTHR);
+#endif
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0, };
+  struct timespec* pts = nonblock ? &ts : NULL;
+  while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
+#endif
+    if(errno == EINTR){
+      loginfo("interrupted by signal");
+      return resize_seen;
+    }else if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
+      logerror("error polling (%s)", strerror(errno));
+      return -1;
+    }
+    loginfo("poll returned %d", events);
+  }
+  loginfo("poll returned %d", events);
+  int pfdidx = 0;
+  // traverse pfds array looking for action. we can stop once we've exhausted
+  // the events (or, of course, the pfds, but we ought never have events left
+  // over).
+  while(events && pfdidx < pfdcount){
+    if(pfds[pfdidx].revents){
+      if(pfds[pfdidx].fd == ictx->stdinfd){
+        *rifd = 1;
+      }else if(pfds[pfdidx].fd == ictx->termfd){
+        *rtfd = 1;
+      }else if(pfds[pfdidx].fd == ictx->ipipes[0]){
+        char c;
+        while(read(ictx->ipipes[0], &c, sizeof(c)) == 1){
+          // FIXME accelerate?
+        }
+      }else{
+        logerror("unknown fd %d in poll results", pfds[pfdidx].fd);
+      }
+      --events;
+    }
+    else{logerror("NO EVENTS FOR %d", pfds[pfdidx].fd);}
+    ++pfdidx;
+  }
+  loginfo("got events: %c%c leftover: %d", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i', events);
+  return events;
+}
+#endif
+
 // here, we always block for an arbitrarily long time, or not at all,
 // doing the latter only when ictx->midescape is set. |rtfd| and/or |rifd|
 // are set high iff they are ready for reading, and otherwise cleared.
@@ -2507,14 +2571,13 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
   }
   return -1;
 #else
-  int inevents = POLLIN;
-#ifdef POLLRDHUP
-  inevents |= POLLRDHUP;
-#endif
+  // do *not* use POLLRDHUP; it is not necessary, and causes trouble on BSD
+  const int inevents = POLLIN;
   struct pollfd pfds[2];
   int pfdcount = 0;
   if(!ictx->stdineof){
     if(ictx->ibufvalid != sizeof(ictx->ibuf)){
+      loginfo("blocking on stdin %d", ictx->stdinfd);
       pfds[pfdcount].fd = ictx->stdinfd;
       pfds[pfdcount].events = inevents;
       pfds[pfdcount].revents = 0;
@@ -2522,91 +2585,44 @@ block_on_input(inputctx* ictx, unsigned* rtfd, unsigned* rifd){
     }
   }
   if(pfdcount == 0){
-    loginfo("output queues full; blocking on ipipes");
+    loginfo("output queues full; blocking on ipipes %d", ictx->ipipes[0]);
     pfds[pfdcount].fd = ictx->ipipes[0];
     pfds[pfdcount].events = inevents;
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
   if(ictx->termfd >= 0){
+    loginfo("blocking on term %d", ictx->termfd);
     pfds[pfdcount].fd = ictx->termfd;
     pfds[pfdcount].events = inevents;
     pfds[pfdcount].revents = 0;
     ++pfdcount;
   }
-  logtrace("waiting on %d fds (ibuf: %u/%"PRIuPTR")", pfdcount, ictx->ibufvalid, sizeof(ictx->ibuf));
-  sigset_t smask;
-  sigfillset(&smask);
-  sigdelset(&smask, SIGCONT);
-  sigdelset(&smask, SIGWINCH);
-#ifdef SIGTHR
-  // freebsd uses SIGTHR for thread cancellation; need this to ensure wakeup
-  // on exit (in cancel_and_join()).
-  sigdelset(&smask, SIGTHR);
-#endif
-  int events;
-#if defined(__APPLE__) || defined(__MINGW32__)
-  int timeoutms = nonblock ? 0 : -1;
-  while((events = poll(pfds, pfdcount, timeoutms)) < 0){ // FIXME smask?
-#else
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = 0, };
-  struct timespec* pts = nonblock ? &ts : NULL;
-  while((events = ppoll(pfds, pfdcount, pts, &smask)) < 0){
-#endif
-    if(errno == EINTR){
-      loginfo("interrupted by signal");
-      return resize_seen;
-    }else if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
-      logerror("error polling (%s)", strerror(errno));
-      return -1;
-    }
-  }
-  loginfo("poll returned %d", events);
-  pfdcount = 0;
-  while(events){
-    if(pfds[pfdcount].revents){
-      if(pfds[pfdcount].fd == ictx->stdinfd){
-        *rifd = 1;
-      }else if(pfds[pfdcount].fd == ictx->termfd){
-        *rtfd = 1;
-      }else if(pfds[pfdcount].fd == ictx->ipipes[0]){
-        char c;
-        while(read(ictx->ipipes[0], &c, sizeof(c)) == 1){
-          // FIXME accelerate?
-        }
-      }
-      --events;
-    }
-    ++pfdcount;
-  }
-  loginfo("got events: %c%c", *rtfd ? 'T' : 't', *rifd ? 'I' : 'i');
-  return events;
+  logtrace("%s on %d fds (ibuf: %u/%"PRIuPTR")",
+      nonblock ? "checking" : "blocking",
+      pfdcount, ictx->ibufvalid, sizeof(ictx->ibuf));
+  return runpoll(ictx, pfds, pfdcount, nonblock, rtfd, rifd);
 #endif
 }
 
-// populate the ibuf with any new data, up through its size, but do not block.
-// don't loop around this call without some kind of readiness notification.
+// read data from the stdin or terminal fd (either or both), blocking until
+// some is available. populate the ibuf with any new data, up through its
+// size. this is the core of the input thread.
 static void
 read_inputs_nblock(inputctx* ictx){
   unsigned rtfd, rifd;
+  // discover which input file descriptors are readable.
   block_on_input(ictx, &rtfd, &rifd);
-  // first we read from the terminal, if that's a distinct source.
+  // first we read from the terminal, if it's ready and distinct.
   if(rtfd){
     read_input_nblock(ictx->termfd, ictx->tbuf, sizeof(ictx->tbuf),
                       &ictx->tbufvalid, NULL);
   }
-  // now read bulk, possibly with term escapes intermingled within (if there
-  // was not a distinct terminal source).
+  // now read input, possibly with term escapes intermingled (if there was not
+  // a distinct terminal source). only here can we get a meaningful EOF.
   if(rifd){
-    unsigned eof = ictx->stdineof;
     read_input_nblock(ictx->stdinfd, ictx->ibuf, sizeof(ictx->ibuf),
                       &ictx->ibufvalid, &ictx->stdineof);
-    // did we switch from non-EOF state to EOF? if so, mark us ready
-    if(!eof && ictx->stdineof){
-      // we hit EOF; write an event to the readiness fd
-      mark_pipe_ready(ictx->readypipes);
-      pthread_cond_broadcast(&ictx->icond);
-    }
   }
 }
 
@@ -2622,7 +2638,14 @@ input_thread(void* vmarshall){
   for(;;){
     read_inputs_nblock(ictx);
     // process anything we've read
+    unsigned eof = ictx->stdineof;
     process_ibuf(ictx);
+    // did we switch from non-EOF state to EOF? if so, mark us ready
+    if(!eof && ictx->stdineof){
+      // we hit EOF; write an event to the readiness fd
+      mark_pipe_ready(ictx->readypipes);
+      pthread_cond_broadcast(&ictx->icond);
+    }
   }
   return NULL;
 }
@@ -2679,12 +2702,11 @@ cleanup_mutex(void* v){
 static inline uint32_t
 internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
   uint32_t id;
+  if(ni){
+    memset(ni, 0, sizeof(*ni));
+  }
   if(ictx->drain){
     logerror("input is being drained");
-    if(ni){
-      memset(ni, 0, sizeof(*ni));
-      ni->id = (uint32_t)-1;
-    }
     return (uint32_t)-1;
   }
   pthread_mutex_lock(&ictx->ilock);
@@ -2693,7 +2715,6 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       pthread_mutex_unlock(&ictx->ilock);
       logwarn("read eof on stdin");
       if(ni){
-        memset(ni, 0, sizeof(*ni));
         ni->id = NCKEY_EOF;
       }
       return NCKEY_EOF;
@@ -2709,14 +2730,10 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(r){
       pthread_mutex_unlock(&ictx->ilock);
       if(r == ETIMEDOUT){
-        if(ni){
-          memset(ni, 0, sizeof(*ni));
-        }
         return 0;
       }else{
         inc_input_errors(ictx);
         if(ni){
-          memset(ni, 0, sizeof(*ni));
           ni->id = (uint32_t)-1;
         }
         return (uint32_t)-1;
@@ -2729,7 +2746,9 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
     if(notcurses_ucs32_to_utf8(&ni->id, 1, (unsigned char*)ni->utf8, sizeof(ni->utf8)) < 0){
       ni->utf8[0] = 0;
     }
-    if (ni->eff_text[0]==0) ni->eff_text[0]=ni->id;
+    if(ni->eff_text[0] == 0){
+      ni->eff_text[0] = ni->id;
+    }
   }
   if(++ictx->iread == ictx->isize){
     ictx->iread = 0;
@@ -2754,6 +2773,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
       // FIXME accelerate?
     }*/
 #endif
+    logtrace("done draining event readiness pipe %d", ictx->ivalid);
   }
   pthread_mutex_unlock(&ictx->ilock);
   if(sendsignal){
@@ -2765,6 +2785,7 @@ internal_get(inputctx* ictx, const struct timespec* ts, ncinput* ni){
 // infp has already been set non-blocking
 uint32_t notcurses_get(notcurses* nc, const struct timespec* absdl, ncinput* ni){
   uint32_t ret = internal_get(nc->tcache.ictx, absdl, ni);
+  logtrace("got id %08x %" PRIu32, ret, ret);
   return ret;
 }
 
