@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 3.0.15 (not yet released)
+* 3.0.15 (2025-04-29)
   * Fix bug on FreeBSD where we could stop processing input (#2873).
 
 * 3.0.14 (2025-04-26)

@@ -3,7 +3,7 @@
     <!-- need 4.9.0+ for SPDX license expressions -->
     <metadata minClientVersion="4.9.0">
         <id>Notcurses</id>
-        <version>3.0.14</version>
+        <version>3.0.15</version>
         <title>Notcurses TUI/CLI library</title>
         <description>Library for blingful TUIs and character graphics</description>
         <authors>nick black</authors>
