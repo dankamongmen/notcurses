@@ -448,7 +448,7 @@ amata_next_numeric(automaton* amata, const char* prefix, char follow){
 // either a match failure or an alloc failure.
 static char*
 amata_next_string(automaton* amata, const char* prefix){
-  return amata_next_kleene(amata, prefix, '\x1b');
+  return amata_next_kleene(amata, prefix, NCKEY_ESC);
 }
 
 static inline void
@@ -2203,6 +2203,14 @@ ictx_independent_p(const inputctx* ictx){
   return ictx->termfd >= 0;
 }
 
+static inline void
+walk_escape_automaton(inputctx* ictx, const unsigned char* start){
+  ictx->amata.matchstart = start;
+  ictx->amata.state = ictx->amata.escapes;
+  ictx->amata.used = 1;
+  logtrace("initialized automaton to %u", ictx->amata.state);
+}
+
 // try to lex a single control sequence off of buf. return the number of bytes
 // consumed if we do so. otherwise, return the negative number of bytes
 // examined. set ictx->midescape if we're uncertain. we preserve a->used,
@@ -2229,10 +2237,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     // an escape always resets the trie (unless we're in the middle of an
     // ST-terminated string), as does a NULL transition.
     if(candidate == NCKEY_ESC && !ictx->amata.instring){
-      ictx->amata.matchstart = buf + ictx->amata.used - 1;
-      ictx->amata.state = ictx->amata.escapes;
-      logtrace("initialized automaton to %u", ictx->amata.state);
-      ictx->amata.used = 1;
+      walk_escape_automaton(ictx, buf + ictx->amata.used - 1);
       if(used > 1){ // we got reset; replay as input
         return -(used - 1);
       }
@@ -2243,13 +2248,14 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
     }else{
       ncinput ni = {0};
       int w = walk_automaton(&ictx->amata, ictx, candidate, &ni);
-      logdebug("walk result on %u (%c): %d %u", candidate,
+      logdebug("walk result on 0x%02x (%c): %d %u", candidate,
                isprint(candidate) ? candidate : ' ', w, ictx->amata.state);
       if(w > 0){
         if(ni.id){
           load_ncinput(ictx, &ni);
         }
         ictx->amata.used = 0;
+        ictx->amata.state = 0;
         return used;
       }else if(w < 0){
         // all inspected characters are invalid; return full negative "used"
@@ -2271,7 +2277,7 @@ process_escape(inputctx* ictx, const unsigned char* buf, int buflen){
 static void
 process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   int offset = 0;
-  while(*bufused){
+  while(*bufused > 0){
     int consumed = process_escape(ictx, buf + offset, *bufused);
     // negative |consumed| means either that we're not sure whether it's an
     // escape, or it definitely is not.
@@ -2303,7 +2309,7 @@ process_escapes(inputctx* ictx, unsigned char* buf, int* bufused){
   }
   // move any leftovers to the front; only happens if we fill output queue,
   // or ran out of input data mid-escape
-  if(*bufused){
+  if(*bufused > 0){
     ictx->amata.matchstart = buf;
     memmove(buf, buf + offset, *bufused);
   }
@@ -2382,7 +2388,7 @@ process_bulk(inputctx* ictx, unsigned char* buf, int* bufused){
     offset += consumed;
   }
   // move any leftovers to the front
-  if(*bufused){
+  if(*bufused > 0){
     memmove(buf, buf + offset, *bufused);
   }
 }
@@ -2400,7 +2406,7 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
     logdebug("input %d (%u)/%d [0x%02x] (%c)", offset, ictx->amata.used,
              *bufused, buf[offset], isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
-    if(buf[offset] == '\x1b'){
+    if(buf[offset] == NCKEY_ESC){
       consumed = process_escape(ictx, buf + offset, *bufused);
       if(consumed < 0){
         if(ictx->midescape){
