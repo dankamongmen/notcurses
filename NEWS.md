@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.16 (2025-05-04)
+  * Fix several bugs in input handling that could lead to invalid
+    memory reads (#2875)
+
 * 3.0.15 (2025-04-29)
   * Fix bug on FreeBSD where we could stop processing input (#2873).
 

@@ -3,7 +3,7 @@
 ProjectFileVersion = 1.1
 [General]
 Program name = Notcurses
-Program version = 3.0.15
+Program version = 3.0.16
 Windows 2000 = 0
 Windows XP = 0
 Windows Server 2003 = 0
@@ -55,7 +55,7 @@ Time = 2
 PlaySound = 0
 Allow = 0
 [Build]
-File = C:\msys64\home\niblack\src\notcurses\notcurses-3.0.15.exe
+File = C:\msys64\home\niblack\src\notcurses\notcurses-3.0.16.exe
 SetupIconPath = C:\msys64\home\niblack\src\notcurses\doc\icon.ico
 UninstallIconPath = C:\msys64\home\niblack\src\notcurses\doc\icon.ico
 CompressionMethod = 0

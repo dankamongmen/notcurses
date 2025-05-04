@@ -1,6 +1,6 @@
 # 3.21.0 introduced C17 support
 cmake_minimum_required(VERSION 3.21.0)
-project(notcurses VERSION 3.0.15
+project(notcurses VERSION 3.0.16
   DESCRIPTION "Blingful UI for modern terminal emulators"
   HOMEPAGE_URL "https://nick-black.com/dankwiki/index.php/notcurses"
   LANGUAGES C)
