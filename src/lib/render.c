@@ -948,11 +948,15 @@ clean_sprixels(notcurses* nc, ncpile* p, fbuf* f, int scrolls){
 // method involves a lot of unnecessary copying.
 static void
 scroll_lastframe(notcurses* nc, unsigned rows){
+  if(rows == 0){
+    return;
+  }
   // the top |rows| rows need be released (though not more than the actual
   // number of rows!)
   if(rows > nc->lfdimy){
     rows = nc->lfdimy;
   }
+  // first, release the contents of rows being scrolled out
   for(unsigned targy = 0 ; targy < rows ; ++targy){
     for(unsigned targx = 0 ; targx < nc->lfdimx ; ++targx){
       const size_t damageidx = targy * nc->lfdimx + targx;
@@ -960,9 +964,9 @@ scroll_lastframe(notcurses* nc, unsigned rows){
       pool_release(&nc->pool, c);
     }
   }
-  // now for all rows subsequent, up through lfdimy - rows, move them back.
-  // if we scrolled all rows, we will not move anything (and we just
-  // released everything).
+  // we have zero or more rows to copy up, targeting the first rows. we're
+  // moving all but the rows we just eliminated. if we scrolled all rows, we
+  // will not move anything (and we just released everything).
   for(unsigned targy = 0 ; targy < nc->lfdimy - rows ; ++targy){
     const size_t dstidx = targy * nc->lfdimx;
     nccell* dst = &nc->lastframe[dstidx];
@@ -970,13 +974,11 @@ scroll_lastframe(notcurses* nc, unsigned rows){
     const nccell* src = &nc->lastframe[srcidx];
     memcpy(dst, src, sizeof(*dst) * nc->lfdimx);
   }
-  // now for the last |rows| rows, initialize them to 0.
-  unsigned targy = nc->lfdimy - rows;
-  while(targy < nc->lfdimy){
+  // now initialize the last |rows| rows to 0
+  for(unsigned targy = nc->lfdimy - rows ; targy < nc->lfdimy ; ++targy){
     const size_t dstidx = targy * nc->lfdimx;
     nccell* dst = &nc->lastframe[dstidx];
     memset(dst, 0, sizeof(*dst) * nc->lfdimx);
-    ++targy;
   }
 }
 
