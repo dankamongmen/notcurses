@@ -179,7 +179,7 @@ query_rgb(void){
   if(!rgb){
     // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not
     // commonly found in terminal entries today. COLORTERM, however, is a
-    // de-facto (if imperfect/kludgy) standard way of indicating TrueColor
+    // de facto (if imperfect/kludgy) standard way of indicating TrueColor
     // support for a terminal. The variable takes one of two case-sensitive
     // values:
     //
