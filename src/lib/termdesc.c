@@ -1663,10 +1663,14 @@ int putenv_term(const char* tname){
   if(oldterm && strcmp(oldterm, tname) == 0){
     return 0;
   }
-  char* buf = malloc(strlen(tname) + strlen(ENVVAR) + 1);
+  // we're making a string of the form ENVVAR=tname
+  char* buf = malloc(strlen(tname) + strlen(ENVVAR) + 2);
   if(buf == NULL){
     return -1;
   }
+  char* p = stpcpy(buf, ENVVAR);
+  *p = '=';
+  stpcpy(p + 1, tname);
   int c = putenv(buf);
   if(c){
     logerror("couldn't export %s", buf);
