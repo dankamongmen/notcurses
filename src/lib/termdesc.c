@@ -1652,29 +1652,22 @@ int cbreak_mode(tinfo* ti){
 }
 
 // replace or populate the TERM environment variable with 'termname'
+// (for the benefit of subprocesses)
+#define ENVVAR "TERM"
 int putenv_term(const char* tname){
-  #define ENVVAR "TERM"
   const char* oldterm = getenv(ENVVAR);
   if(oldterm){
-    logdebug("replacing %s value %s with %s", ENVVAR, oldterm, tname);
+    if(strcmp(oldterm, tname) == 0){
+      return 0;
+    }
+    logdebug("replacing " ENVVAR " value %s with %s", oldterm, tname);
   }else{
-    loginfo("provided %s value %s", ENVVAR, tname);
+    loginfo("providing " ENVVAR "=%s", tname);
   }
-  if(oldterm && strcmp(oldterm, tname) == 0){
-    return 0;
-  }
-  // we're making a string of the form ENVVAR=tname
-  char* buf = malloc(strlen(tname) + strlen(ENVVAR) + 2);
-  if(buf == NULL){
+  if(setenv(ENVVAR, tname, 1)){
+    logerror("error exporting " ENVVAR "=%s (%s)", tname, strerror(errno));
     return -1;
   }
-  char* p = stpcpy(buf, ENVVAR);
-  *p = '=';
-  stpcpy(p + 1, tname);
-  int c = putenv(buf);
-  if(c){
-    logerror("couldn't export %s", buf);
-  }
-  free(buf);
-  return c;
+  return 0;
 }
+#undef ENVVAR
