@@ -30,8 +30,7 @@ class ManPageGenerator(install):
         outfile = 'ncdirect-pydemo.1'
         pypandoc.convert_file(os.path.join(here, 'ncdirect-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
         files.append(outfile)
-        # this breaks when using --user without --prefix
-        ipage = (os.path.join(self.prefix, 'share', 'man', 'man1'), files)
+        ipage = (os.path.join('share', 'man', 'man1'), files)
         self.distribution.data_files.append(ipage)
         print("data_files: ", self.distribution.data_files)
         super().run()
