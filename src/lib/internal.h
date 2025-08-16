@@ -1739,6 +1739,10 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
   if(ret == NULL){
     return NULL;
   }
+  if (srows == drows && scols == dcols && sstride == dstride) {
+    memcpy(ret, bmap, size);
+    return ret;
+  }
   float xrat = (float)dcols / scols;
   float yrat = (float)drows / srows;
   int dy = 0;
