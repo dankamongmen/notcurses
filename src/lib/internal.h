@@ -1815,10 +1815,7 @@ typedef struct ncvisual_implementation {
 // populated by libnotcurses.so if linked with multimedia
 API extern ncvisual_implementation* visual_implementation;
 
-// within unix, we can just use isatty(3). on windows, things work
-// differently. for a true Windows Terminal, we'll have HANDLE pointers
-// rather than file descriptors. in cygwin/msys2, isatty(3) always fails.
-// so for __MINGW32__, always return true. otherwise return isatty(fd).
+// in cygwin/msys2, isatty(3) always fails, so use _isatty() from UCRT.
 static inline int
 tty_check(int fd){
 #ifdef __MINGW32__
