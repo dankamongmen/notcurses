@@ -7,6 +7,10 @@
 #include "internal.h"
 #include "windows.h"
 #include "linux.h"
+#ifdef _WIN32
+// On Windows, map setenv to the non-standard _putenv
+#define setenv(name, value, overwrite) _putenv_s(name, value)
+#endif
 
 // tlen -- size of escape table. tused -- used bytes in same.
 // returns -1 if the starting location is >= 65535. otherwise,
