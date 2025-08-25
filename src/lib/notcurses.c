@@ -1489,7 +1489,6 @@ int notcurses_stop(notcurses* nc){
     free(altstack);
 #endif
   }
-  logdebug("returning value");
   return ret;
 }
 
