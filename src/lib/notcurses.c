@@ -1485,8 +1485,11 @@ int notcurses_stop(notcurses* nc){
     ret |= pthread_mutex_destroy(&nc->pilelock);
     fbuf_free(&nc->rstate.f);
     free(nc);
+#ifndef __MINGW32__
     free(altstack);
+#endif
   }
+  logdebug("returning value");
   return ret;
 }
 
