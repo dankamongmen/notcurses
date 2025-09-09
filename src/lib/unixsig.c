@@ -17,7 +17,6 @@ int unblock_signals(const sigset_t* old_blocked_signals){
   return 0;
 }
 
-// altstack is *not* used/allocated in MINGW32, so it must *not* be freed by the caller!
 int drop_signals(void* nc, void** altstack){
   void* expected = nc;
   if(!altstack){
