@@ -8,8 +8,7 @@
 #include "windows.h"
 #include "linux.h"
 #ifdef _WIN32
-// On Windows, map setenv to the non-standard _putenv
-#define setenv(name, value, overwrite) _putenv_s(name, value)
+#define setenv(name, value, override) SetEnvironmentVariable(name, value)
 #endif
 
 // tlen -- size of escape table. tused -- used bytes in same.
