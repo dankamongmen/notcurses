@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_COMPAT
 #define NOTCURSES_COMPAT
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,6 +71,10 @@ path_separator(void){
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 // get the default data directory (heap-allocated). on unix, this is compiled

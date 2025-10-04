@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_NCPORT
 #define NOTCURSES_NCPORT
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Platform-dependent preprocessor material (includes and definitions) needed
 // to compile against Notcurses. A critical definition is htole(), which forces
 // 32-bit values to little-endian (as used in the nccell gcluster field). This
@@ -34,10 +30,6 @@ extern "C" {
 #else                                             // BSDs
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
-#endif
-
-#ifdef __cplusplus
-} // extern "C"
 #endif
 
 #endif

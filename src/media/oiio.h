@@ -1,11 +1,11 @@
 #ifndef MEDIA_OIIO
 #define MEDIA_OIIO
 
+#include "lib/internal.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "lib/internal.h"
 
 int oiio_decode(ncvisual* nc);
 struct ncvisual_details* oiio_details_init(void);

@@ -1,11 +1,11 @@
 #ifndef NOTCURSES_BLITSET
 #define NOTCURSES_BLITSET
 
+#include "blit.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "blit.h"
 
 // number of pixels that map to a single cell, height-wise
 static inline int

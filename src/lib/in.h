@@ -1,13 +1,13 @@
 #ifndef NOTCURSES_IN
 #define NOTCURSES_IN
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // internal header, not installed
-
-#include <stdio.h>
 
 struct tinfo;
 struct inputctx;

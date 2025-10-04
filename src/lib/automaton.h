@@ -1,11 +1,11 @@
 #ifndef NOTCURSES_AUTOMATON
 #define NOTCURSES_AUTOMATON
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 struct ncinput;
 struct esctrie;

@@ -1,12 +1,12 @@
 #ifndef NOTCURSES_LINUX
 #define NOTCURSES_LINUX
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stddef.h>
-#include <stdbool.h>
 
 struct tinfo;
 

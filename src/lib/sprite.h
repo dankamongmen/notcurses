@@ -1,13 +1,13 @@
 #ifndef NOTCURSES_SPRITE
 #define NOTCURSES_SPRITE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "fbuf.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SIXEL_MAX_REGISTERS 65534 // 65535 is used for transparent
 

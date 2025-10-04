@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_MAN_PARSE
 #define NOTCURSES_MAN_PARSE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdint.h>
 
@@ -63,6 +59,10 @@ typedef struct pagedom {
   char* header;
   struct docstructure* ds;
 } pagedom;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static inline const char*
 dom_get_title(const pagedom* dom){

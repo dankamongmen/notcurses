@@ -1,15 +1,15 @@
 #ifndef NOTCURSES_VISUAL_DETAILS
 #define NOTCURSES_VISUAL_DETAILS
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "builddef.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct blitset;
 struct ncplane;

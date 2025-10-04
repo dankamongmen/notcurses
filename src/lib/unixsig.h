@@ -1,11 +1,11 @@
 #ifndef NOTCURSES_UNIXSIG
 #define NOTCURSES_UNIXSIG
 
+#include <signal.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <signal.h>
 
 int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
                   int(*handler)(void*, void**, int));

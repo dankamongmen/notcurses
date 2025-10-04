@@ -1,13 +1,13 @@
 #ifndef NOTCURSES_LIB_SIXEL
 #define NOTCURSES_LIB_SIXEL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <ctype.h>
 #include <stdlib.h>
 #include "logging.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 uint32_t* ncsixel_as_rgba(const char *sx, unsigned leny, unsigned lenx){
   if(!leny || !lenx){

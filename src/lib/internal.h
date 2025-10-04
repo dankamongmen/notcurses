@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_INTERNAL
 #define NOTCURSES_INTERNAL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "version.h"
 #include "builddef.h"
 #include "compat/compat.h"
@@ -413,6 +409,10 @@ struct blitset {
 };
 
 #include "blitset.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);

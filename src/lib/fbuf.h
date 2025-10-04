@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_FBUF
 #define NOTCURSES_FBUF
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
@@ -13,6 +9,10 @@ extern "C" {
 #include <inttypes.h>
 #include "compat/compat.h"
 #include "logging.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // a growable buffer into which one can perform formatted i/o, like the
 // ten thousand that came before it, and the ten trillion which shall

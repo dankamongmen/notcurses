@@ -1,10 +1,6 @@
 #ifndef NOTCURSES_TERMDESC
 #define NOTCURSES_TERMDESC
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // internal header, not installed
 
 #include "version.h"
@@ -17,6 +13,10 @@ extern "C" {
 #include "blit.h"
 #include "fbuf.h"
 #include "in.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // kitty keyboard protocol pop, used at end when kitty is verified.
 #define KKEYBOARD_POP  "\x1b[<u"
