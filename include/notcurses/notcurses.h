@@ -4259,7 +4259,7 @@ typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* curry);
 // it when the widget is destroyed. Returns the newly created widget. Returns
 // NULL on failure, also destroying 'n'.
 API ALLOC struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_options* opts)
-  __attribute ((nonnull (1)));
+  __attribute__ ((nonnull (1)));
 
 // Destroy an nctabbed widget. All memory belonging to 'nt' is deallocated,
 // including all tabs and their names. The plane associated with 'nt' is also
