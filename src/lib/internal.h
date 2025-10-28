@@ -1,24 +1,13 @@
 #ifndef NOTCURSES_INTERNAL
 #define NOTCURSES_INTERNAL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "lib/egcpool.h"
 #include "version.h"
 #include "builddef.h"
 #include "compat/compat.h"
 #include "notcurses/ncport.h"
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
-
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
-#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
-
 // KEY_EVENT is defined by both ncurses.h (prior to 6.3) and wincon.h. since we
 // don't use either definition, kill it before inclusion of ncurses.h.
 #undef KEY_EVENT
@@ -44,10 +33,21 @@ extern "C" {
 #include <langinfo.h>
 #endif
 #include "lib/termdesc.h"
-#include "lib/egcpool.h"
 #include "lib/sprite.h"
 #include "lib/fbuf.h"
 #include "lib/gpm.h"
+
+
+#ifndef __MINGW32__
+#define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct sixelmap;
 struct ncvisual_details;
