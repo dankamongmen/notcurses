@@ -1668,7 +1668,12 @@ int putenv_term(const char* tname){
   }else{
     loginfo("providing " ENVVAR "=%s", tname);
   }
+#ifndef __MINGW32__
   if(setenv(ENVVAR, tname, 1)){
+#else
+  SetEnvironmentVariable(ENVVAR, NULL); // clear it from environment
+  if(!SetEnvironmentVariable(ENVVAR, tname)){ // set it
+#endif
     logerror("error exporting " ENVVAR "=%s (%s)", tname, strerror(errno));
     return -1;
   }
