@@ -117,6 +117,7 @@ check_data_dir(){
 // ran, but we don't have the notcurses struct to destroy, so just do it raw).
 static void
 reset_terminal(){
+#ifndef __MINGW32__
   int fd = open("/dev/tty", O_RDWR|O_CLOEXEC);
   if(fd >= 0){
     struct termios tios;
@@ -143,6 +144,7 @@ reset_terminal(){
     fflush(stdout);
     close(fd);
   }
+#endif
 }
 
 auto lang_and_term() -> void {
