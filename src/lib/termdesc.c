@@ -1397,13 +1397,15 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     goto err;
   }
   tname = termname(); // longname() is also available
-#endif
   int linesigs_enabled = 1;
   if(ti->tpreserved){
     if(!(ti->tpreserved->c_lflag & ISIG)){
       linesigs_enabled = 0;
     }
   }
+#else
+  int linesigs_enabled = 0;
+#endif
   if(init_inputlayer(ti, stdin, lmargin, tmargin, rmargin, bmargin,
                      stats, draininput, linesigs_enabled)){
     goto err;
