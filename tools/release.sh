@@ -72,7 +72,7 @@ echo "Now uploadling the sig to https://github.com/dankamongmen/notcurses/releas
 echo "The bastards are trying to immanentize the Eschaton"
 
 # restrict to files beginning with n* to leave out shared objects
-cd "$BUILDDIR" && find . -name n\*1 -maxdepth 0 -o -name t\*1 -o -name n\*3 -o -name \*.html \
+cd "$BUILDDIR" && find . -maxdepth 1 -name n\*1 -o -name t\*1 -o -name n\*3 -o -name \*.html \
   | xargs tar czvf ../notcurses-doc-$VERSION.tar.gz --strip-components=1
 cd -
 # requires token in ~/.netrc
