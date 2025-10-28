@@ -102,7 +102,7 @@ typedef struct ncplane {
   struct ncplane* blist;  // head of list of bound planes
   struct ncplane* boundto;// plane to which we are bound (ourself for roots)
 
-  sprixel* sprite;       // pointer into the sprixel cache
+  struct sprixel* sprite;// pointer into the sprixel cache
   tament* tam;           // transparency-annihilation sprite matrix
 
   void* userptr;         // slot for the user to stick some opaque pointer
