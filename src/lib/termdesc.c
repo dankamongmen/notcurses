@@ -1,7 +1,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <curses.h>
-#include <termios.h>
 #ifdef __linux__
 #include <sys/utsname.h>
 #endif
