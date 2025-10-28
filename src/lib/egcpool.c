@@ -94,6 +94,6 @@ egcpool_stash(egcpool* pool, const char* egc, size_t ulen){
     }while(curpos != pool->poolwrite);
   }while( (searched = !searched) );
   free(duplicated);
-  logerror("error finding egcpool writepos (%zu)", ulen);
+  logerror("error finding egcpool writepos (%d)", len);
   return -1; // should never get here
 }
