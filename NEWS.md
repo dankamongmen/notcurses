@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 3.0.17 (2025-10-28)
+  * Fix build problems on Windows and Mac OSX.
+
 * 3.0.16 (2025-05-04)
   * Fix several bugs in input handling that could lead to invalid
     memory reads (#2875)

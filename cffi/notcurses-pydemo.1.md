@@ -1,6 +1,6 @@
 % notcurses-pydemo(1)
 % nick black <nickblack@linux.com>
-% v3.0.16
+% v3.0.17
 
 # NAME
 
