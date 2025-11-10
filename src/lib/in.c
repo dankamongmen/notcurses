@@ -184,15 +184,15 @@ prep_special_keys(inputctx* ictx){
     uint32_t key;
     bool shift, ctrl, alt;
   } keys[] = {
-    // backspace (kbs) is handled seperately at the end
     { .tinfo = "kbeg",  .key = NCKEY_BEGIN, },
+    // backspace (kbs) is handled seperately at the end, since it might not be
+    // an escape sequence
     { .tinfo = "kcbt",  .key = '\t', .shift = true, }, // "back-tab"
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
     { .tinfo = "kcuu1", .key = NCKEY_UP, },
     { .tinfo = "kcud1", .key = NCKEY_DOWN, },
     { .tinfo = "kdch1", .key = NCKEY_DEL, },
-    { .tinfo = "kbs",   .key = NCKEY_BACKSPACE, },
     { .tinfo = "kich1", .key = NCKEY_INS, },
     { .tinfo = "kend",  .key = NCKEY_END, },
     { .tinfo = "khome", .key = NCKEY_HOME, },

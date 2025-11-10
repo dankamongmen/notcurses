@@ -1,24 +1,13 @@
 #ifndef NOTCURSES_INTERNAL
 #define NOTCURSES_INTERNAL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "lib/egcpool.h"
 #include "version.h"
 #include "builddef.h"
 #include "compat/compat.h"
 #include "notcurses/ncport.h"
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
-
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
-#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
-
 // KEY_EVENT is defined by both ncurses.h (prior to 6.3) and wincon.h. since we
 // don't use either definition, kill it before inclusion of ncurses.h.
 #undef KEY_EVENT
@@ -44,10 +33,21 @@ extern "C" {
 #include <langinfo.h>
 #endif
 #include "lib/termdesc.h"
-#include "lib/egcpool.h"
 #include "lib/sprite.h"
 #include "lib/fbuf.h"
 #include "lib/gpm.h"
+
+
+#ifndef __MINGW32__
+#define API __attribute__((visibility("default")))
+#else
+#define API __declspec(dllexport)
+#endif
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct sixelmap;
 struct ncvisual_details;
@@ -102,7 +102,7 @@ typedef struct ncplane {
   struct ncplane* blist;  // head of list of bound planes
   struct ncplane* boundto;// plane to which we are bound (ourself for roots)
 
-  sprixel* sprite;       // pointer into the sprixel cache
+  struct sprixel* sprite;// pointer into the sprixel cache
   tament* tam;           // transparency-annihilation sprite matrix
 
   void* userptr;         // slot for the user to stick some opaque pointer
@@ -1815,10 +1815,7 @@ typedef struct ncvisual_implementation {
 // populated by libnotcurses.so if linked with multimedia
 API extern ncvisual_implementation* visual_implementation;
 
-// within unix, we can just use isatty(3). on windows, things work
-// differently. for a true Windows Terminal, we'll have HANDLE pointers
-// rather than file descriptors. in cygwin/msys2, isatty(3) always fails.
-// so for __MINGW32__, always return true. otherwise return isatty(fd).
+// in cygwin/msys2, isatty(3) always fails, so use _isatty() from UCRT.
 static inline int
 tty_check(int fd){
 #ifdef __MINGW32__

@@ -1364,6 +1364,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
 #endif
 #endif
   if(ti->ttyfd >= 0){
+#ifndef __MINGW32__
     if((ti->tpreserved = calloc(1, sizeof(*ti->tpreserved))) == NULL){
       return -1;
     }
@@ -1378,6 +1379,7 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
       free(ti->tpreserved);
       return -1;
     }
+#endif
     // if we already know our terminal (e.g. on the linux console), there's no
     // need to send the identification queries. the controls are sufficient.
     bool minimal = (ti->qterm != TERMINAL_UNKNOWN);
@@ -1395,13 +1397,15 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
     goto err;
   }
   tname = termname(); // longname() is also available
-#endif
   int linesigs_enabled = 1;
   if(ti->tpreserved){
     if(!(ti->tpreserved->c_lflag & ISIG)){
       linesigs_enabled = 0;
     }
   }
+#else
+  int linesigs_enabled = 0;
+#endif
   if(init_inputlayer(ti, stdin, lmargin, tmargin, rmargin, bmargin,
                      stats, draininput, linesigs_enabled)){
     goto err;
@@ -1664,7 +1668,12 @@ int putenv_term(const char* tname){
   }else{
     loginfo("providing " ENVVAR "=%s", tname);
   }
+#ifndef __MINGW32__
   if(setenv(ENVVAR, tname, 1)){
+#else
+  SetEnvironmentVariable(ENVVAR, NULL); // clear it from environment
+  if(!SetEnvironmentVariable(ENVVAR, tname)){ // set it
+#endif
     logerror("error exporting " ENVVAR "=%s (%s)", tname, strerror(errno));
     return -1;
   }

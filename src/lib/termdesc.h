@@ -27,7 +27,6 @@ extern "C" {
 #define XTMODKEYSUNDO "\x1b[>2m\x1b[>4m"
 
 struct ncpile;
-struct sprixel;
 struct notcurses;
 struct ncsharedstats;
 
@@ -135,24 +134,24 @@ typedef struct tinfo {
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_wipe)(struct sprixel* s, int y, int x);
+  int (*pixel_wipe)(sprixel* s, int y, int x);
   // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
-  int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
+  int (*pixel_rebuild)(sprixel* s, int y, int x, uint8_t* auxvec);
   // called in phase 1 when INVALIDATED; this damages cells that have been
   // redrawn in a sixel (when old was not transparent, and new is not opaque).
   // it leaves the sprixel in INVALIDATED so that it's drawn in phase 2.
-  void (*pixel_refresh)(const struct ncpile* p, struct sprixel* s);
+  void (*pixel_refresh)(const struct ncpile* p, sprixel* s);
   int (*pixel_remove)(int id, fbuf* f); // kitty only, issue actual delete command
   int (*pixel_init)(struct tinfo* ti, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
-                    struct sprixel* s, fbuf* f, int y, int x);
-  int (*pixel_draw_late)(const struct tinfo*, struct sprixel* s, int yoff, int xoff);
+                    sprixel* s, fbuf* f, int y, int x);
+  int (*pixel_draw_late)(const struct tinfo*, sprixel* s, int yoff, int xoff);
   // execute move (erase old graphic, place at new location) if non-NULL
-  int (*pixel_move)(struct sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
-  int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
+  int (*pixel_move)(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
+  int (*pixel_scrub)(const struct ncpile* p, sprixel* s);
   int (*pixel_clear_all)(fbuf* f);  // called during context startup
   // make a loaded graphic visible. only used with kitty.
-  int (*pixel_commit)(fbuf* f, struct sprixel* s, unsigned noscroll);
+  int (*pixel_commit)(fbuf* f, sprixel* s, unsigned noscroll);
   // scroll all graphics up. only used with fbcon.
   void (*pixel_scroll)(const struct ncpile* p, struct tinfo*, int rows);
   void (*pixel_cleanup)(struct tinfo*); // called at shutdown
