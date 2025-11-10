@@ -115,7 +115,10 @@ utf8_egcn_len(const char* gcluster, size_t maxbytes, int* colcount){
     r = mbrtowc(&wc, gcluster, maxbytes - ret, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
-      logerror("invalid UTF8: %s", gcluster);
+      logerror("aaaaa invalid UTF8 (%zu, %zu):", maxbytes, ret);
+      for(size_t i = 0; i < maxbytes - ret; i++) {
+      	logerror("  [%02x]", gcluster[i]);
+      }
       return -1;
     }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
@@ -151,7 +154,7 @@ utf8_egcn_len(const char* gcluster, size_t maxbytes, int* colcount){
     if(!prevw){
       prevw = wc;
     }
-  }while(r);
+  }while(r && ret < maxbytes);
   // FIXME what if injoin is set? incomplete EGC!
   return ret;
 }
