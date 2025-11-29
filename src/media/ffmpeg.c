@@ -2,7 +2,7 @@
 #ifdef USE_FFMPEG
 #include <inttypes.h>
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdlib.h>
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -24,19 +24,6 @@
 
 struct AVFormatContext;
 
-// Simple audio logging function - writes to /tmp/ncplayer_audio.log
-static void audio_log(const char* fmt, ...){
-  FILE* logfile = fopen("/tmp/ncplayer_audio.log", "a");
-  if(!logfile){
-    return;
-  }
-  va_list args;
-  va_start(args, fmt);
-  vfprintf(logfile, fmt, args);
-  va_end(args);
-  fflush(logfile);
-  fclose(logfile);
-}
 struct AVCodecContext;
 struct AVFrame;
 struct AVCodec;
@@ -497,35 +484,13 @@ ffmpeg_decode(ncvisual* n){
             int audio_ret = avcodec_send_packet(n->details->audiocodecctx, n->details->packet);
             if(audio_ret == 0){
               n->details->audio_packet_outstanding = true;
-              if(audio_packet_count <= 10 || audio_packet_count % 100 == 0){
-                audio_log("ffmpeg_decode: Sent audio packet %d successfully\n", audio_packet_count);
-              }
-              av_packet_unref(n->details->packet);
             }else if(audio_ret == AVERROR(EAGAIN)){
               // Decoder full - save this packet for next time
               if(audio_queue_enqueue(&n->details->pending_audio_packets, n->details->packet) == 0){
                 n->details->audio_packet_outstanding = true;
-                if(audio_packet_count <= 10 || audio_packet_count % 100 == 0){
-                  audio_log("ffmpeg_decode: Audio decoder full (EAGAIN), queuing packet %d (queued=%d)\n",
-                            audio_packet_count, n->details->pending_audio_packets.count);
-                }
-              }else{
-                // Already have pending packet - drop this one (queue full)
-                if(audio_packet_count <= 10 || audio_packet_count % 100 == 0){
-                  audio_log("ffmpeg_decode: Audio queue full, dropping packet %d\n", audio_packet_count);
-                }
               }
-              av_packet_unref(n->details->packet);
-            }else if(audio_ret == AVERROR_EOF){
-              // EOF - this is normal at end of stream
-              av_packet_unref(n->details->packet);
-            }else{
-              // Error - log it but don't crash
-              if(audio_packet_count <= 10){
-                audio_log("ffmpeg_decode: Error sending audio packet %d: %d (skipping)\n", audio_packet_count, audio_ret);
-              }
-              av_packet_unref(n->details->packet);
             }
+            av_packet_unref(n->details->packet);
 
             pthread_mutex_unlock(&n->details->audio_packet_mutex);
           }else{
@@ -1165,12 +1130,6 @@ ffmpeg_get_decoded_audio_frame(ncvisual* ncv){
       outstanding = false;
     }
     pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
-    if(receive_call_count <= 20 || receive_call_count % 100 == 0 || frame_counter % 50 == 0){
-      if(frame_counter <= 20 || frame_counter % 200 == 0){
-        audio_log("ffmpeg_get_decoded_audio_frame: Frame received, pending queue=%d, total_frames=%d\n",
-                  pending_after, frame_counter);
-      }
-    }
 
     // Check if this is a new frame (different PTS) or the same one we already processed
     int64_t current_pts = ncv->details->audio_frame->pts;
@@ -1179,16 +1138,9 @@ ffmpeg_get_decoded_audio_frame(ncvisual* ncv){
       // This can happen if avcodec_receive_frame is called multiple times
       // Note: avcodec_receive_frame should only return each frame once, so this
       // check is defensive. If we see this frequently, there's a bug elsewhere.
-      if(receive_call_count <= 20){
-        audio_log("ffmpeg_get_decoded_audio_frame: Duplicate PTS detected (call %d)\n", receive_call_count);
-      }
       return 0;
     }
     ncv->details->last_audio_frame_pts = current_pts;
-    if(receive_call_count <= 20 || receive_call_count % 100 == 0){
-      audio_log("ffmpeg_get_decoded_audio_frame: Received frame (call %d, samples=%d, pts=%" PRId64 ")\n",
-                receive_call_count, ncv->details->audio_frame->nb_samples, current_pts);
-    }
     return ncv->details->audio_frame->nb_samples;
   }else if(averr == AVERROR(EAGAIN)){
     pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
@@ -1198,11 +1150,9 @@ ffmpeg_get_decoded_audio_frame(ncvisual* ncv){
     return 0;
   }else if(averr == AVERROR_EOF){
     pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
-    audio_log("ffmpeg_get_decoded_audio_frame: EOF (call %d)\n", receive_call_count);
     return 1; // EOF
   }else{
     pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
-    audio_log("ffmpeg_get_decoded_audio_frame: Error %d (call %d)\n", averr, receive_call_count);
     return -1; // Error
   }
 }

@@ -10,12 +10,36 @@
 #include <unistd.h>
 #include <iostream>
 #include <inttypes.h>
+#include <cstdio>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <chrono>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavcodec/packet.h>
+#include <libavutil/frame.h>
+#include <libavutil/samplefmt.h>
+}
 #include <ncpp/Direct.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
 #include "compat/compat.h"
+#include "media/audio-output.h"
 
 using namespace ncpp;
+
+// Forward declarations for audio API functions from ffmpeg.c
+extern "C" {
+bool ffmpeg_has_audio(ncvisual* ncv);
+int ffmpeg_get_decoded_audio_frame(ncvisual* ncv);
+int ffmpeg_resample_audio(ncvisual* ncv, uint8_t** out_data, int* out_samples);
+AVFrame* ffmpeg_get_audio_frame(ncvisual* ncv);
+int ffmpeg_init_audio_resampler(ncvisual* ncv, int out_sample_rate, int out_channels);
+int ffmpeg_get_audio_sample_rate(ncvisual* ncv);
+int ffmpeg_get_audio_channels(ncvisual* ncv);
+void ffmpeg_audio_request_packets(ncvisual* ncv);
+}
 
 static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
@@ -42,6 +66,9 @@ struct marshal {
   int framecount;
   bool quiet;
   ncblitter_e blitter; // can be changed while streaming, must propagate out
+  uint64_t last_abstime_ns;
+  uint64_t avg_frame_ns;
+  uint64_t dropped_frames;
 };
 
 // frame count is in the curry. original time is kept in n's userptr.
@@ -75,6 +102,38 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
   }
+
+  const uint64_t target_ns = timespec_to_ns(abstime);
+  const uint64_t prev_ns = marsh->last_abstime_ns;
+  if(prev_ns > 0 && target_ns > prev_ns){
+    uint64_t delta = target_ns - prev_ns;
+    if(delta < NANOSECS_IN_SEC * 10){
+      if(marsh->avg_frame_ns == 0){
+        marsh->avg_frame_ns = delta;
+      }else{
+        marsh->avg_frame_ns = (marsh->avg_frame_ns * 7 + delta) / 8;
+      }
+    }
+  }
+  marsh->last_abstime_ns = target_ns;
+  const uint64_t default_frame_ns = 41666667ull; // ~24fps
+  const uint64_t expected_frame_ns = marsh->avg_frame_ns ? marsh->avg_frame_ns : default_frame_ns;
+
+  struct timespec nowts;
+  clock_gettime(CLOCK_MONOTONIC, &nowts);
+  uint64_t now_ns = timespec_to_ns(&nowts);
+  int64_t lag_ns = (int64_t)now_ns - (int64_t)target_ns;
+  const uint64_t drop_threshold_ns = expected_frame_ns * 3 / 2; // drop once 1.5 frames behind
+  if(lag_ns > (int64_t)drop_threshold_ns){
+    marsh->dropped_frames++;
+    return 0;
+  }
+  if(lag_ns < 0){
+    struct timespec sleep_ts;
+    ns_to_timespec((uint64_t)(-lag_ns), &sleep_ts);
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep_ts, NULL);
+  }
+
   struct ncplane* subp = ncvisual_subtitle_plane(*stdn, ncv);
   const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
@@ -106,7 +165,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       keyp = nc.get(false, &ni);
     }
     if(keyp == 0){
+      // Timeout - check if we should continue
       break;
+    }
+    // Check for 'q' key immediately to allow quitting
+    if(keyp == 'q' && ni.evtype != EvType::Release){
+      ncplane_destroy(subp);
+      return 1;
     }
     // we don't care about key release events, especially the enter
     // release that starts so many interactive programs under Kitty
@@ -297,6 +362,112 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   return optind;
 }
 
+// Audio thread data structure
+struct audio_thread_data {
+  ncvisual* ncv;
+  audio_output* ao;
+  std::atomic<bool>* running;
+  std::mutex* mutex;
+};
+
+// Audio thread function - processes decoded frames (video decoder reads packets)
+static void audio_thread_func(audio_thread_data* data) {
+  ncvisual* ncv = data->ncv;
+  audio_output* ao = data->ao;
+  std::atomic<bool>* running = data->running;
+
+  if(!ffmpeg_has_audio(ncv) || !ao){
+    return;
+  }
+
+  // Initialize resampler - convert FROM codec format TO output format
+  int out_sample_rate = audio_output_get_sample_rate(ao);
+  if(out_sample_rate <= 0){
+    out_sample_rate = 44100;
+  }
+  int out_channels = audio_output_get_channels(ao);
+  if(out_channels <= 0){
+    out_channels = ffmpeg_get_audio_channels(ncv);
+  }
+  // Limit to stereo max for output
+  if(out_channels > 2){
+    out_channels = 2;
+  }
+
+  if(ffmpeg_init_audio_resampler(ncv, out_sample_rate, out_channels) < 0){
+    return;
+  }
+
+  int frame_count = 0;
+  int consecutive_eagain = 0;
+  auto last_log = std::chrono::steady_clock::now();
+  int frames_since_log = 0;
+  while(*running){
+    ffmpeg_audio_request_packets(ncv);
+    // Get decoded audio frame (packets are read by video decoder)
+    // IMPORTANT: avcodec_receive_frame can only return each frame once
+    // So we must process the frame immediately and not call get_decoded_audio_frame again
+    // until we've finished processing
+    int samples = ffmpeg_get_decoded_audio_frame(ncv);
+    if(samples > 0){
+      do{
+        consecutive_eagain = 0;
+        uint8_t* out_data = nullptr;
+        int out_samples = 0;
+        int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
+        if(bytes > 0 && out_data){
+          audio_output_write(ao, out_data, bytes);
+          frame_count++;
+          frames_since_log++;
+          auto now = std::chrono::steady_clock::now();
+          auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log).count();
+          if(elapsed >= 1000){
+            frames_since_log = 0;
+            last_log = now;
+          }
+          free(out_data);
+        }
+        samples = ffmpeg_get_decoded_audio_frame(ncv);
+      }while(samples > 0 && audio_output_needs_data(ao));
+      if(!audio_output_needs_data(ao)){
+        usleep(1000);
+      }
+      continue;
+    }else if(samples == 1){
+      // EOF - don't break, just wait for more data (video might still be playing)
+      consecutive_eagain = 0;
+      usleep(10000); // 10ms delay on EOF
+    }else if(samples < 0){
+      // Error
+      break;
+    }else{
+      consecutive_eagain++;
+      ffmpeg_audio_request_packets(ncv);
+      if(!audio_output_needs_data(ao)){
+        usleep(1000);
+      }
+    }
+  }
+
+  // Flush any remaining frames at EOF
+  int flush_count = 0;
+  while(*running){
+    int samples = ffmpeg_get_decoded_audio_frame(ncv);
+    if(samples > 0){
+      uint8_t* out_data = nullptr;
+      int out_samples = 0;
+      int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
+      if(bytes > 0 && out_data){
+        audio_output_write(ao, out_data, bytes);
+        free(out_data);
+        flush_count++;
+      }
+    }else{
+      break; // No more frames
+    }
+  }
+}
+
 int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                ncscale_e scalemode, ncblitter_e blitter,
                                bool quiet, bool loop,
@@ -318,6 +489,14 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
   ncplane* n = nullptr;
   ncplane* clin = nullptr;
+
+  // Audio-related variables (declared at function scope for cleanup)
+  audio_output* ao = nullptr;
+  std::thread* audio_thread = nullptr;
+  std::atomic<bool> audio_running(false);
+  std::mutex audio_mutex;
+  audio_thread_data* audio_data = nullptr;
+
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
@@ -359,13 +538,53 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       ncplane_scrollup_child(*stdn, clin);
     }
     ncplane_erase(n);
+
+    // Initialize audio if available
+    ncvisual* raw_ncv = *ncv;  // Get underlying ncvisual pointer
+    if(ffmpeg_has_audio(raw_ncv)){
+      // Use fixed output format for audio output (resampler will convert)
+      int sample_rate = 44100; // Fixed output sample rate
+      int channels = ffmpeg_get_audio_channels(raw_ncv);
+      // Limit to stereo max for output
+      if(channels > 2){
+        channels = 2;
+      }
+
+      ao = audio_output_init(sample_rate, channels, AV_SAMPLE_FMT_S16);
+      if(ao){
+        audio_running = true;
+        audio_data = new audio_thread_data{raw_ncv, ao, &audio_running, &audio_mutex};
+        audio_thread = new std::thread(audio_thread_func, audio_data);
+        audio_output_start(ao);
+      }
+    }
+
     do{
       struct marshal marsh = {
         .framecount = 0,
         .quiet = quiet,
         .blitter = vopts.blitter,
+        .last_abstime_ns = 0,
+        .avg_frame_ns = 0,
+        .dropped_frames = 0,
       };
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
+      // Stop audio thread
+      if(audio_thread){
+        audio_running = false;
+        audio_thread->join();
+        delete audio_thread;
+        audio_thread = nullptr;
+      }
+      if(audio_data){
+        delete audio_data;
+        audio_data = nullptr;
+      }
+      if(ao){
+        audio_output_destroy(ao);
+        ao = nullptr;
+      }
+
       free(stdn->get_userptr());
       stdn->set_userptr(nullptr);
       if(r == 0){
@@ -425,6 +644,21 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   return 0;
 
 err:
+  // Cleanup audio resources
+  if(audio_thread){
+    audio_running = false;
+    audio_thread->join();
+    delete audio_thread;
+    audio_thread = nullptr;
+  }
+  if(audio_data){
+    delete audio_data;
+    audio_data = nullptr;
+  }
+  if(ao){
+    audio_output_destroy(ao);
+    ao = nullptr;
+  }
   free(ncplane_userptr(n));
   ncplane_destroy(n);
   return -1;

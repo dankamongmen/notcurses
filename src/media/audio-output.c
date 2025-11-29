@@ -10,8 +10,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
+#include <stdlib.h>
 #include <stddef.h>
+#include <errno.h>
 #include <unistd.h>
 #include "lib/internal.h"
 
@@ -80,27 +81,10 @@ static audio_output* g_audio = NULL;
 static bool sdl_initialized = false;
 
 static void audio_callback(void* userdata, uint8_t* stream, int len) {
-  static int callback_count = 0;
-  callback_count++;
   audio_output* ao = (audio_output*)userdata;
   if (!ao || !ao->playing) {
     memset(stream, 0, len);
-    if(callback_count <= 10){
-      FILE* logfile = fopen("/tmp/ncplayer_audio.log", "a");
-      if(logfile){
-        fprintf(logfile, "audio_callback: Not playing (call %d, ao=%p, playing=%d)\n", callback_count, ao, ao ? ao->playing : 0);
-        fclose(logfile);
-      }
-    }
     return;
-  }
-
-  if(callback_count <= 10 || callback_count % 1000 == 0){
-    FILE* logfile = fopen("/tmp/ncplayer_audio.log", "a");
-    if(logfile){
-      fprintf(logfile, "audio_callback: Call %d, len=%d, buffer_used=%zu\n", callback_count, len, ao->buffer_used);
-      fclose(logfile);
-    }
   }
 
   pthread_mutex_lock(&ao->mutex);
@@ -267,11 +251,6 @@ API void audio_output_start(audio_output* ao) {
   ao->paused = false;
   if(sdl2.SDL_PauseAudioDevice){
     sdl2.SDL_PauseAudioDevice(ao->device_id, 0);
-    FILE* logfile = fopen("/tmp/ncplayer_audio.log", "a");
-    if(logfile){
-      fprintf(logfile, "audio_output_start: SDL_PauseAudioDevice called, device_id=%u\n", ao->device_id);
-      fclose(logfile);
-    }
   }
 }
 
