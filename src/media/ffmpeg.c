@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -19,6 +20,8 @@
 #include <libavformat/avformat.h>
 #include <libavutil/samplefmt.h>
 #include <libavutil/channel_layout.h>
+#include <libavutil/cpu.h>
+#include <unistd.h>
 #include "lib/visual-details.h"
 #include "lib/internal.h"
 #include <notcurses/api.h>
@@ -39,6 +42,41 @@ typedef struct audio_packet_queue {
   int tail;
   int count;
 } audio_packet_queue;
+
+static int
+ffmpeg_detect_thread_count(void){
+  static int cached = 0;
+  if(cached > 0){
+    return cached;
+  }
+  int threads = 0;
+  const char* env = getenv("NCPLAYER_FFMPEG_THREADS");
+  if(env && *env){
+    char* endptr = NULL;
+    long parsed = strtol(env, &endptr, 10);
+    if(endptr != env && parsed > 0 && parsed < INT_MAX){
+      threads = (int)parsed;
+    }
+  }
+  if(threads <= 0){
+    int avcpus = av_cpu_count();
+    if(avcpus > 0){
+      threads = avcpus;
+    }else{
+#ifdef _SC_NPROCESSORS_ONLN
+      long syscpus = sysconf(_SC_NPROCESSORS_ONLN);
+      if(syscpus > 0 && syscpus < INT_MAX){
+        threads = (int)syscpus;
+      }
+#endif
+    }
+  }
+  if(threads <= 0){
+    threads = 1;
+  }
+  cached = threads;
+  return cached;
+}
 
 typedef struct ncvisual_details {
   struct AVFormatContext* fmtctx;
@@ -669,6 +707,15 @@ ffmpeg_from_file(const char* filename){
   }
   if(avcodec_parameters_to_context(ncv->details->codecctx, st->codecpar) < 0){
     goto err;
+  }
+  int vthreads = ffmpeg_detect_thread_count();
+  if(vthreads > 1){
+    ncv->details->codecctx->thread_count = vthreads;
+    if(ncv->details->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS){
+      ncv->details->codecctx->thread_type = FF_THREAD_FRAME;
+    }else{
+      ncv->details->codecctx->thread_type = FF_THREAD_SLICE;
+    }
   }
   if(avcodec_open2(ncv->details->codecctx, ncv->details->codec, NULL) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
