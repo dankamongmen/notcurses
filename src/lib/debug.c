@@ -1,10 +1,5 @@
 #include "internal.h"
-
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
+#include <notcurses/api.h>
 
 API ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
 

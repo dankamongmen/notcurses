@@ -7,13 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-
-// Define API macro for visibility export
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
+#include <notcurses/api.h>
 
 #ifdef __cplusplus
 extern "C" {

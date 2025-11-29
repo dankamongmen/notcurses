@@ -21,6 +21,7 @@
 #include <libavutil/channel_layout.h>
 #include "lib/visual-details.h"
 #include "lib/internal.h"
+#include <notcurses/api.h>
 
 struct AVFormatContext;
 
@@ -1067,11 +1068,6 @@ ffmpeg_destroy(ncvisual* ncv){
 
 // Public API functions for audio handling (called from play.cpp)
 // Define API macro for visibility export
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
 
 API void
 ffmpeg_audio_request_packets(ncvisual* ncv){

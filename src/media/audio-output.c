@@ -15,13 +15,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "lib/internal.h"
-
-// Define API macro for visibility export
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
+#include <notcurses/api.h>
 
 #define AUDIO_BUFFER_SIZE 4096
 
