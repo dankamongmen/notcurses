@@ -116,6 +116,7 @@ pkg_check_modules(AVDEVICE REQUIRED libavdevice>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(SWSCALE REQUIRED libswscale>=5.0)
+pkg_check_modules(SWRESAMPLE REQUIRED libswresample>=4.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND FFMpeg)
 elseif(${USE_OIIO})
 pkg_check_modules(OPENIMAGEIO REQUIRED OpenImageIO>=2.1)
@@ -320,6 +321,9 @@ endif()
 ############################################################################
 # libnotcurses (multimedia shared library+static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
+# Exclude audio-output.c from libnotcurses to avoid SDL2 being loaded at library load time
+# audio-output.c will be compiled separately for ncplayer only
+list(REMOVE_ITEM NCSRCS "${CMAKE_SOURCE_DIR}/src/media/audio-output.c")
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
 # can't build binaries against static notcurses until ffmpeg linking issues
@@ -378,6 +382,7 @@ target_include_directories(notcurses
     "${AVFORMAT_INCLUDE_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
+    "${SWRESAMPLE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
   PRIVATE
@@ -386,6 +391,7 @@ target_include_directories(notcurses-static
     "${AVFORMAT_STATIC_INCLUDE_DIRS}"
     "${AVUTIL_STATIC_INCLUDE_DIRS}"
     "${SWSCALE_STATIC_INCLUDE_DIRS}"
+    "${SWRESAMPLE_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
@@ -393,6 +399,7 @@ target_link_libraries(notcurses
     "${AVDEVICE_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
+    "${SWRESAMPLE_LIBRARIES}"
     "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
@@ -401,6 +408,7 @@ target_link_libraries(notcurses-static
     "${AVDEVICE_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
+    "${SWRESAMPLE_STATIC_LIBRARIES}"
     "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
@@ -409,6 +417,7 @@ target_link_directories(notcurses
     "${AVDEVICE_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
+    "${SWRESAMPLE_LIBRARY_DIRS}"
     "${AVUTIL_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-static
@@ -417,6 +426,7 @@ target_link_directories(notcurses-static
     "${AVDEVICE_STATIC_LIBRARY_DIRS}"
     "${AVFORMAT_STATIC_LIBRARY_DIRS}"
     "${SWSCALE_STATIC_LIBRARY_DIRS}"
+    "${SWRESAMPLE_STATIC_LIBRARY_DIRS}"
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
 elseif(${USE_OIIO})
@@ -851,10 +861,23 @@ target_include_directories(ncplayer
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
+if(${USE_FFMPEG})
+target_sources(ncplayer PRIVATE "${CMAKE_SOURCE_DIR}/src/media/audio-output.c")
+endif()
 target_link_libraries(ncplayer
   PRIVATE
     notcurses++
+    notcurses
 )
+if(${USE_FFMPEG})
+target_link_libraries(ncplayer
+  PRIVATE
+    "${AVCODEC_LIBRARIES}"
+    "${AVFORMAT_LIBRARIES}"
+    "${AVUTIL_LIBRARIES}"
+    "${SWRESAMPLE_LIBRARIES}"
+)
+endif()
 endif()
 endif()
 else()
