@@ -117,6 +117,8 @@ destroy_plane_runtime(ncplane* n){
   }
 }
 
+static void attach_plane_runtime(ncplane* n);
+
 static int player_plane_resize_cb(struct ncplane* n){
   if(auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n))){
     runtime->resize_pending.store(true, std::memory_order_release);
@@ -129,6 +131,15 @@ static int player_cli_resize_cb(struct ncplane* n){
     runtime->resize_pending.store(true, std::memory_order_release);
   }
   return ncplane_resize_marginalized(n);
+}
+
+static void
+attach_plane_runtime(ncplane* n){
+  if(n == nullptr){
+    return;
+  }
+  init_plane_runtime(n);
+  ncplane_set_resizecb(n, player_plane_resize_cb);
 }
 
 struct marshal {
@@ -288,7 +299,12 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     stdn->printf(0, NCAlign::Right, "%02" PRId64 ":%02" PRId64 ":%02" PRId64 ".%04" PRId64,
                  h, m, s, remaining / 1000000);
   }
+  if(marsh->resize_restart_pending){
+    destroy_subtitle_plane();
+    return 2;
+  }
   if(!nc.render()){
+    destroy_subtitle_plane();
     return -1;
   }
   if(pop_async_resize()){
@@ -760,7 +776,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         vopts.x = NCALIGN_CENTER;
         vopts.n = n;
       }
-      init_plane_runtime(vopts.n);
+      attach_plane_runtime(vopts.n);
       ncplane_erase(n);
       logdebug("[resize] planes ready main=%ux%u", ncplane_dim_x(vopts.n), ncplane_dim_y(vopts.n));
       return true;
@@ -862,6 +878,10 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
           }
           delta = pending_seek_value - current;
           pending_seek_absolute = false;
+        }
+        if(marsh.resize_restart_pending){
+          logdebug("[resize] clearing pending restart");
+          marsh.resize_restart_pending = false;
         }
         logdebug("[seek] request delta=%f (absolute=%d)", delta, was_absolute ? 1 : 0);
         if(ncvisual_seek(*ncv, delta) == 0){
