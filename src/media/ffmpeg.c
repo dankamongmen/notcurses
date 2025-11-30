@@ -1,10 +1,14 @@
 #include "builddef.h"
 #ifdef USE_FFMPEG
+#include <ctype.h>
 #include <inttypes.h>
+#include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <libavutil/error.h>
+#include <libavutil/avutil.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
@@ -24,7 +28,12 @@
 #include <unistd.h>
 #include "lib/visual-details.h"
 #include "lib/internal.h"
+#include "lib/logging.h"
 #include <notcurses/api.h>
+
+#define SUBLOG_INFO(fmt, ...)  loginfo("[subtitle] " fmt, ##__VA_ARGS__)
+#define SUBLOG_DEBUG(fmt, ...) logdebug("[subtitle] " fmt, ##__VA_ARGS__)
+#define SUBLOG_WARN(fmt, ...)  logwarn("[subtitle] " fmt, ##__VA_ARGS__)
 
 struct AVFormatContext;
 
@@ -34,6 +43,8 @@ struct AVCodec;
 struct AVCodecParameters;
 struct AVPacket;
 
+double ffmpeg_get_video_position_seconds(const ncvisual* ncv);
+
 #define AUDIO_PACKET_QUEUE_SIZE 8
 
 typedef struct audio_packet_queue {
@@ -42,6 +53,52 @@ typedef struct audio_packet_queue {
   int tail;
   int count;
 } audio_packet_queue;
+
+static int
+ass_detect_text_field(const uint8_t* header, size_t size){
+  if(!header || size == 0){
+    return 9;
+  }
+  const char* data = (const char*)header;
+  const char* end = data + size;
+  const int default_index = 9;
+  while(data < end){
+    const char* line_start = data;
+    const char* linebreak = memchr(line_start, '\n', end - line_start);
+    size_t linelen = linebreak ? (size_t)(linebreak - line_start) : (size_t)(end - line_start);
+    if(linelen >= 7 && !strncasecmp(line_start, "Format:", 7)){
+      const char* cursor = line_start + 7;
+      while(cursor < line_start + linelen && isspace((unsigned char)*cursor)){
+        ++cursor;
+      }
+      int field = 0;
+      const char* token = cursor;
+      for(const char* p = cursor ; p <= line_start + linelen ; ++p){
+        if(p == line_start + linelen || *p == ',' || *p == '\r'){
+          const char* t = token;
+          while(t < p && isspace((unsigned char)*t)){
+            ++t;
+          }
+          const char* q = p;
+          while(q > t && isspace((unsigned char)*(q - 1))){
+            --q;
+          }
+          if(q > t){
+            size_t toklen = q - t;
+            if(!strncasecmp(t, "Text", toklen)){
+              return field;
+            }
+          }
+          ++field;
+          token = p + 1;
+        }
+      }
+      return default_index;
+    }
+    data = linebreak ? linebreak + 1 : end;
+  }
+  return default_index;
+}
 
 static int
 ffmpeg_detect_thread_count(void){
@@ -94,6 +151,12 @@ typedef struct ncvisual_details {
   struct SwrContext* swrctx;           // audio resampler context
   int audio_out_channels;              // output channel count for resampler (1 or 2)
   AVSubtitle subtitle;
+  bool subtitle_active;
+  double subtitle_start_time;
+  double subtitle_end_time;
+  double subtitle_time_base;
+  int subtitle_text_field;
+  bool subtitle_logged;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
   int audio_stream_index;  // audio stream index, can be < 0 if no audio
@@ -247,59 +310,126 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
 }*/
 
 static char*
-deass(const char* ass){
-  // SSA/ASS formats:
-  // Dialogue: Marked=0,0:02:40.65,0:02:41.79,Wolf main,Cher,0000,0000,0000,,Et les enregistrements de ses ondes delta ?
-  // FIXME more
-  if(strncmp(ass, "Dialogue:", strlen("Dialogue:"))){
+deass(const char* ass, int text_field_index){
+  if(!ass){
     return NULL;
   }
-  const char* delim = strchr(ass, ',');
-  int commas = 0; // we want 8
-  while(delim && commas < 8){
-    delim = strchr(delim + 1, ',');
-    ++commas;
+  const char* dialog = strstr(ass, "Dialogue:");
+  const char* payload = dialog ? dialog + strlen("Dialogue:") : ass;
+  while(*payload == ' '){
+    ++payload;
   }
-  if(!delim){
-    return NULL;
-  }
-  // handle ASS syntax...\i0, \b0, etc.
-  char* dup = strdup(delim + 1);
-  char* c = dup;
-  while(*c){
-    if(*c == '\\'){
-      *c = ' ';
-      ++c;
-      if(*c){
-        *c = ' ';;
+  const char* text = payload;
+  int field = 0;
+  bool in_field_brace = false;
+  bool found_field = false;
+  for(const char* src = payload ; *src ; ++src){
+    if(*src == '{'){
+      in_field_brace = true;
+    }else if(*src == '}'){
+      in_field_brace = false;
+    }
+    if(!in_field_brace && *src == ','){
+      ++field;
+      if(field == text_field_index){
+        text = src + 1;
+        found_field = true;
+        break;
       }
     }
-    ++c;
   }
-  return dup;
+  if(!found_field){
+    const char* lastcomma = strrchr(payload, ',');
+    if(lastcomma){
+      text = lastcomma + 1;
+    }
+  }
+  while(*text == ' ' || *text == '\t'){
+    ++text;
+  }
+  size_t textlen = strlen(text);
+  char* buf = malloc(textlen + 1);
+  if(!buf){
+    return NULL;
+  }
+  char* dst = buf;
+  bool in_brace = false;
+  for(const char* src = text ; *src ; ++src){
+    if(in_brace){
+      if(*src == '}'){
+        in_brace = false;
+      }
+      continue;
+    }
+    if(*src == '{'){
+      in_brace = true;
+      continue;
+    }
+    if(*src == '\\'){
+      ++src;
+      if(!*src){
+        break;
+      }
+      if(*src == 'N' || *src == 'n'){
+        *dst++ = '\n';
+      }
+      continue;
+    }
+    *dst++ = *src;
+  }
+  *dst = '\0';
+  char* trimmed = buf;
+  while(*trimmed && isspace((unsigned char)*trimmed)){
+    ++trimmed;
+  }
+  size_t len = strlen(trimmed);
+  while(len > 0 && isspace((unsigned char)trimmed[len - 1])){
+    trimmed[--len] = '\0';
+  }
+  char* out = len ? strdup(trimmed) : NULL;
+  free(buf);
+  return out;
 }
 
 static struct ncplane*
-subtitle_plane_from_text(ncplane* parent, const char* text){
-  if(parent == NULL){
-//logerror("need a parent plane\n");
+subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
+  if(parent == NULL || text == NULL){
     return NULL;
   }
-  int width = ncstrwidth(text, NULL, NULL);
-  if(width <= 0){
-//logwarn("couldn't extract subtitle from %s\n", text);
+  char* dup = strdup(text);
+  if(!dup){
     return NULL;
   }
-  int rows = (width + ncplane_dim_x(parent) - 1) / ncplane_dim_x(parent);
+  char* trimmed = dup;
+  while(*trimmed && isspace((unsigned char)*trimmed)){
+    ++trimmed;
+  }
+  size_t len = strlen(trimmed);
+  while(len > 0 && isspace((unsigned char)trimmed[len - 1])){
+    trimmed[--len] = '\0';
+  }
+  if(len == 0){
+    free(dup);
+    return NULL;
+  }
+  int linecount = 1;
+  for(size_t i = 0 ; i < len ; ++i){
+    if(trimmed[i] == '\n' || trimmed[i] == '\r'){
+      ++linecount;
+      if(trimmed[i] == '\r' && trimmed[i + 1] == '\n'){
+        ++i;
+      }
+    }
+  }
   struct ncplane_options nopts = {
-    .y = ncplane_dim_y(parent) - (rows + 1),
-    .rows = rows,
+    .y = ncplane_dim_y(parent) - (linecount + 1),
+    .rows = linecount,
     .cols = ncplane_dim_x(parent),
     .name = "subt",
   };
   struct ncplane* n = ncplane_create(parent, &nopts);
   if(n == NULL){
-//logerror("error creating subtitle plane\n");
+    free(dup);
     return NULL;
   }
   uint64_t channels = 0;
@@ -307,34 +437,61 @@ subtitle_plane_from_text(ncplane* parent, const char* text){
   ncchannels_set_fg_rgb8(&channels, 0x88, 0x88, 0x88);
   ncplane_stain(n, -1, -1, 0, 0, channels, channels, channels, channels);
   ncchannels_set_fg_default(&channels);
-  ncplane_puttext(n, 0, NCALIGN_LEFT, text, NULL);
+  if(logged_flag && !*logged_flag){
+    SUBLOG_DEBUG("rendering subtitle text: \"%s\"", trimmed);
+    *logged_flag = true;
+  }
+  ncplane_puttext(n, 0, NCALIGN_CENTER, trimmed, NULL);
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
+  free(dup);
   return n;
 }
 
 static uint32_t palette[NCPALETTESIZE];
 
 struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
+  if(!ncv->details->subtitle_active || ncv->details->subtitle.num_rects == 0){
+    return NULL;
+  }
+  double now = ffmpeg_get_video_position_seconds(ncv);
+  if(now >= 0.0){
+    if(now < ncv->details->subtitle_start_time){
+      return NULL;
+    }
+    if(now > ncv->details->subtitle_end_time){
+      SUBLOG_DEBUG("subtitle expired at %.3f (end %.3f)", now, ncv->details->subtitle_end_time);
+      avsubtitle_free(&ncv->details->subtitle);
+      ncv->details->subtitle_active = false;
+      return NULL;
+    }
+  }
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
     // it is possible that there are more than one subtitle rects present,
     // but we only bother dealing with the first one we find FIXME?
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
-      char* ass = deass(rect->ass);
-      struct ncplane* n = NULL;
-      if(ass){
-        n = subtitle_plane_from_text(parent, ass);
+      char* ass = rect->ass ? deass(rect->ass, ncv->details->subtitle_text_field) : NULL;
+      if(!ass && rect->text){
+        ass = strdup(rect->text);
+      }
+      if(!ass){
+        SUBLOG_DEBUG("ASS subtitle missing text, skipping");
+        return NULL;
+      }
+      struct ncplane* n = subtitle_plane_from_text(parent, ass, &ncv->details->subtitle_logged);
+      if(!n){
+        SUBLOG_WARN("failed to render ASS subtitle: \"%s\"", ass);
       }
       free(ass);
       return n;
-    }else if(rect->type == SUBTITLE_TEXT){;
-      return subtitle_plane_from_text(parent, rect->text);
+    }else if(rect->type == SUBTITLE_TEXT){
+      return subtitle_plane_from_text(parent, rect->text, &ncv->details->subtitle_logged);
     }else if(rect->type == SUBTITLE_BITMAP){
       // there are technically up to AV_NUM_DATA_POINTERS planes, but we
       // only try to work with the first FIXME?
       if(rect->linesize[0] != rect->w){
-//logwarn("bitmap subtitle size %d != width %d\n", rect->linesize[0], rect->w);
+        SUBLOG_WARN("bitmap data linesize %d != width %d", rect->linesize[0], rect->w);
         continue;
       }
       struct notcurses* nc = ncplane_notcurses(parent);
@@ -347,6 +504,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
                                                 rect->w, rect->w,
                                                 NCPALETTESIZE, 1, palette);
       if(v == NULL){
+        SUBLOG_WARN("failed to construct ncvisual for bitmap subtitle");
         return NULL;
       }
       int rows = (rect->h + cellpxx - 1) / cellpxy;
@@ -359,6 +517,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       struct ncplane* vn = ncplane_create(parent, &nopts);
       if(vn == NULL){
         ncvisual_destroy(v);
+        SUBLOG_WARN("failed to allocate ncplane for bitmap subtitle");
         return NULL;
       }
       struct ncvisual_options vopts = {
@@ -369,6 +528,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       if(ncvisual_blit(nc, v, &vopts) == NULL){
         ncplane_destroy(vn);
         ncvisual_destroy(v);
+        SUBLOG_WARN("failed to blit bitmap subtitle rect");
         return NULL;
       }
       ncvisual_destroy(v);
@@ -490,11 +650,52 @@ ffmpeg_decode(ncvisual* n){
 
         // Handle subtitle packets
         if(n->details->packet->stream_index == n->details->sub_stream_index){
-          int result = 0, ret;
-          avsubtitle_free(&n->details->subtitle);
-          ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
+          int result = 0;
+          AVSubtitle decoded = {0};
+          int ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &decoded, &result, n->details->packet);
           if(ret >= 0 && result){
-            // FIXME?
+            SUBLOG_DEBUG("packet pts=%" PRId64 " produced %u rects (format %d)",
+                         n->details->packet->pts, decoded.num_rects,
+                         decoded.format);
+            avsubtitle_free(&n->details->subtitle);
+            n->details->subtitle = decoded;
+            if(decoded.num_rects > 0){
+              double base_time = ffmpeg_get_video_position_seconds(n);
+              int64_t subtitle_pts = decoded.pts;
+              if(subtitle_pts == AV_NOPTS_VALUE){
+                subtitle_pts = n->details->packet->pts;
+              }
+              if(subtitle_pts != AV_NOPTS_VALUE && n->details->subtitle_time_base > 0.0){
+                base_time = subtitle_pts * n->details->subtitle_time_base;
+              }
+              if(base_time < 0.0){
+                base_time = 0.0;
+              }
+              const double start_offset = decoded.start_display_time / 1000.0;
+              double end_offset = decoded.end_display_time / 1000.0;
+              double start_time = base_time + start_offset;
+              double end_time = (end_offset > 0.0) ? base_time + end_offset
+                                                   : start_time + 5.0;
+              if(end_time <= start_time){
+                end_time = start_time + 5.0;
+              }
+              n->details->subtitle_start_time = start_time;
+              n->details->subtitle_end_time = end_time;
+              n->details->subtitle_active = true;
+              n->details->subtitle_logged = false;
+              SUBLOG_DEBUG("subtitle scheduled start=%.3f end=%.3f pts=%" PRId64
+                           " start_ms=%u end_ms=%u base=%.3f tb=%.6f",
+                           start_time, end_time, subtitle_pts,
+                           decoded.start_display_time, decoded.end_display_time,
+                           base_time, n->details->subtitle_time_base);
+            }else{
+              n->details->subtitle_active = false;
+            }
+          }else{
+            if(ret < 0){
+              SUBLOG_WARN("decode failure (%d) on pts=%" PRId64, ret, n->details->packet->pts);
+            }
+            avsubtitle_free(&decoded);
           }
           continue; // Continue reading, this wasn't a video packet
         }
@@ -625,6 +826,12 @@ ffmpeg_details_init(void){
       free(deets);
       return NULL;
     }
+    deets->subtitle_active = false;
+    deets->subtitle_start_time = 0.0;
+    deets->subtitle_end_time = 0.0;
+    deets->subtitle_time_base = 0.0;
+    deets->subtitle_text_field = 9;
+    deets->subtitle_logged = false;
   }
   return deets;
 }
@@ -672,11 +879,35 @@ ffmpeg_from_file(const char* filename){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       goto err;
     }
-    // FIXME do we need avcodec_parameters_to_context() here?
+    AVStream* sst = ncv->details->fmtctx->streams[ncv->details->sub_stream_index];
+    ncv->details->subtitle_time_base = av_q2d(sst->time_base);
+    if(ncv->details->subtitle_time_base <= 0.0){
+      ncv->details->subtitle_time_base = 1.0 / AV_TIME_BASE;
+    }
+    if(ncv->details->subtcodecctx->subtitle_header &&
+       ncv->details->subtcodecctx->subtitle_header_size > 0){
+      ncv->details->subtitle_text_field =
+        ass_detect_text_field(ncv->details->subtcodecctx->subtitle_header,
+                              ncv->details->subtcodecctx->subtitle_header_size);
+    }
+    if(avcodec_parameters_to_context(ncv->details->subtcodecctx, sst->codecpar) < 0){
+      goto err;
+    }
     if(avcodec_open2(ncv->details->subtcodecctx, ncv->details->subtcodec, NULL) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       goto err;
     }
+    const char* subtitle_codec_name = "unknown";
+    int subtitle_codec_id = -1;
+    if(ncv->details->subtcodec){
+      subtitle_codec_id = (int)ncv->details->subtcodec->id;
+      if(ncv->details->subtcodec->name){
+        subtitle_codec_name = ncv->details->subtcodec->name;
+      }
+    }
+    SUBLOG_INFO("stream %d (%s) discovered with codec id %d",
+                ncv->details->sub_stream_index,
+                subtitle_codec_name, subtitle_codec_id);
   }else{
     ncv->details->sub_stream_index = -1;
   }
