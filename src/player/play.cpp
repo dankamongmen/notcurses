@@ -185,7 +185,10 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep_ts, NULL);
   }
 
-  struct ncplane* subp = ncvisual_subtitle_plane(*stdn, ncv);
+  auto recreate_subtitle_plane = [&]() -> struct ncplane* {
+    return ncvisual_subtitle_plane(*stdn, ncv);
+  };
+  struct ncplane* subp = recreate_subtitle_plane();
   int64_t remaining = display_ns;
   const int64_t h = remaining / (60 * 60 * NANOSECS_IN_SEC);
   remaining -= h * (60 * 60 * NANOSECS_IN_SEC);
@@ -241,7 +244,15 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }
     // if we just hit a non-space character to unpause, ignore it
     if(keyp == NCKey::Resize){
-      return 0;
+      if(!nc.refresh(&dimy, &dimx)){
+        ncplane_destroy(subp);
+        return -1;
+      }
+      if(subp){
+        ncplane_destroy(subp);
+      }
+      subp = recreate_subtitle_plane();
+      continue;
     }else if(keyp == ' '){ // space for unpause
       continue;
     }else if(keyp == 'L' && ncinput_ctrl_p(&ni) && !ncinput_alt_p(&ni)){
