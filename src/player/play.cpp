@@ -74,6 +74,63 @@ enum class PlaybackRequest {
   Seek,
 };
 
+struct plane_runtime {
+  struct timespec start;
+  std::atomic<bool> resize_pending;
+};
+
+static plane_runtime*
+init_plane_runtime(ncplane* n){
+  if(n == nullptr){
+    return nullptr;
+  }
+  auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n));
+  if(runtime == nullptr){
+    runtime = new plane_runtime{};
+    ncplane_set_userptr(n, runtime);
+  }
+  clock_gettime(CLOCK_MONOTONIC, &runtime->start);
+  runtime->resize_pending.store(false, std::memory_order_relaxed);
+  return runtime;
+}
+
+static plane_runtime*
+get_plane_runtime(ncplane* n){
+  if(n == nullptr){
+    return nullptr;
+  }
+  auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n));
+  if(runtime == nullptr){
+    runtime = init_plane_runtime(n);
+  }
+  return runtime;
+}
+
+static void
+destroy_plane_runtime(ncplane* n){
+  if(n == nullptr){
+    return;
+  }
+  if(auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n))){
+    delete runtime;
+    ncplane_set_userptr(n, nullptr);
+  }
+}
+
+static int player_plane_resize_cb(struct ncplane* n){
+  if(auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n))){
+    runtime->resize_pending.store(true, std::memory_order_release);
+  }
+  return 0;
+}
+
+static int player_cli_resize_cb(struct ncplane* n){
+  if(auto runtime = static_cast<plane_runtime*>(ncplane_userptr(n))){
+    runtime->resize_pending.store(true, std::memory_order_release);
+  }
+  return ncplane_resize_marginalized(n);
+}
+
 struct marshal {
   int framecount;
   bool quiet;
@@ -87,6 +144,7 @@ struct marshal {
   PlaybackRequest request;
   double seek_delta;
   bool seek_absolute;
+  bool resize_restart_pending;
 };
 
 static constexpr double kNcplayerSeekSeconds = 5.0;
@@ -96,12 +154,9 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vmarshal) -> int {
   struct marshal* marsh = static_cast<struct marshal*>(vmarshal);
   NotCurses &nc = NotCurses::get_instance();
-  auto start = static_cast<struct timespec*>(ncplane_userptr(vopts->n));
-  if(!start){
-    // FIXME how do we get this free()d at the end?
-    start = static_cast<struct timespec*>(malloc(sizeof(struct timespec)));
-    clock_gettime(CLOCK_MONOTONIC, start);
-    ncplane_set_userptr(vopts->n, start);
+  auto* runtime = get_plane_runtime(vopts->n);
+  if(runtime == nullptr){
+    return -1;
   }
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
   static auto last_fps_sample = std::chrono::steady_clock::now();
@@ -135,7 +190,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   }else{
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
-    display_ns = timespec_to_ns(&now) - timespec_to_ns(start);
+    display_ns = timespec_to_ns(&now) - timespec_to_ns(&runtime->start);
   }
   if(display_ns < 0){
     display_ns = 0;
@@ -192,6 +247,36 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     return ncvisual_subtitle_plane(*stdn, ncv);
   };
   struct ncplane* subp = recreate_subtitle_plane();
+  auto destroy_subtitle_plane = [&](){
+    if(subp){
+      ncplane_destroy(subp);
+      subp = nullptr;
+    }
+  };
+  auto pop_async_resize = [&]() -> bool {
+    if(runtime && runtime->resize_pending.load(std::memory_order_acquire)){
+      runtime->resize_pending.store(false, std::memory_order_release);
+      return true;
+    }
+    return false;
+  };
+  auto request_resize_restart = [&](const char* src) -> int {
+    if(marsh->resize_restart_pending){
+      logdebug("[resize] restart already pending, ignoring %s", src ? src : "unknown");
+      return 0;
+    }
+    marsh->resize_restart_pending = true;
+    double resume = ffmpeg_get_video_position_seconds(ncv);
+    if(!std::isfinite(resume)){
+      resume = static_cast<double>(display_ns) / 1e9;
+    }
+    marsh->request = PlaybackRequest::Seek;
+    marsh->seek_delta = resume;
+    marsh->seek_absolute = true;
+    destroy_subtitle_plane();
+    logdebug("[resize] async restart due to %s", src ? src : "unknown");
+    return 2;
+  };
   int64_t remaining = display_ns;
   const int64_t h = remaining / (60 * 60 * NANOSECS_IN_SEC);
   remaining -= h * (60 * 60 * NANOSECS_IN_SEC);
@@ -206,11 +291,24 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(!nc.render()){
     return -1;
   }
+  if(pop_async_resize()){
+    int restart = request_resize_restart("plane resize callback");
+    if(restart != 0){
+      return restart;
+    }
+  }
   unsigned dimx, dimy, oldx, oldy;
   nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(vopts->n, &oldy, &oldx);
   uint64_t absnow = timespec_to_ns(abstime);
   for( ; ; ){
+    if(pop_async_resize()){
+      int restart = request_resize_restart("pending resize");
+      if(restart != 0){
+        return restart;
+      }
+      continue;
+    }
     struct timespec interval;
     clock_gettime(CLOCK_MONOTONIC, &interval);
     uint64_t nsnow = timespec_to_ns(&interval);
@@ -229,7 +327,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     // Check for 'q' key immediately to allow quitting
     if((keyp == 'q' || keyp == 'Q') && ni.evtype != EvType::Release){
       marsh->request = PlaybackRequest::Quit;
-      ncplane_destroy(subp);
+      destroy_subtitle_plane();
       return 1;
     }
     // we don't care about key release events, especially the enter
@@ -240,27 +338,27 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(keyp == ' '){
       do{
         if((keyp = nc.get(true, &ni)) == (uint32_t)-1){
-          ncplane_destroy(subp);
+          destroy_subtitle_plane();
           return -1;
         }
       }while(ni.id != 'q' && (ni.evtype == EvType::Release || ni.id != ' '));
     }
     // if we just hit a non-space character to unpause, ignore it
     if(keyp == NCKey::Resize){
+      if(marsh->resize_restart_pending){
+        logdebug("[resize] restart already pending, skipping key resize");
+        continue;
+      }
       if(!nc.refresh(&dimy, &dimx)){
-        ncplane_destroy(subp);
+        destroy_subtitle_plane();
         return -1;
       }
       logdebug("[resize] resize event captured (%ux%u)", dimx, dimy);
-      double resume = ffmpeg_get_video_position_seconds(ncv);
-      if(!std::isfinite(resume)){
-        resume = static_cast<double>(display_ns) / 1e9;
+      int restart = request_resize_restart("key resize");
+      if(restart != 0){
+        return restart;
       }
-      marsh->request = PlaybackRequest::Seek;
-      marsh->seek_delta = resume;
-      marsh->seek_absolute = true;
-      ncplane_destroy(subp);
-      return 2;
+      continue;
     }else if(keyp == ' '){ // space for unpause
       continue;
     }else if(keyp == 'L' && ncinput_ctrl_p(&ni) && !ncinput_alt_p(&ni)){
@@ -279,33 +377,34 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = -kNcplayerSeekMinutes;
       marsh->seek_absolute = false;
-      ncplane_destroy(subp);
+      destroy_subtitle_plane();
       return 2;
     }else if(keyp == NCKey::Down){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = kNcplayerSeekMinutes;
       marsh->seek_absolute = false;
-      ncplane_destroy(subp);
+      destroy_subtitle_plane();
       return 2;
     }else if(keyp == NCKey::Right){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = kNcplayerSeekSeconds;
       marsh->seek_absolute = false;
-      ncplane_destroy(subp);
+      destroy_subtitle_plane();
       return 2;
     }else if(keyp == NCKey::Left){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = -kNcplayerSeekSeconds;
       marsh->seek_absolute = false;
-      ncplane_destroy(subp);
+      destroy_subtitle_plane();
       return 2;
     }else if(keyp != 'q'){
       continue;
     }
-    ncplane_destroy(subp);
+      destroy_subtitle_plane();
     return 1;
   }
-  ncplane_destroy(subp);
+    destroy_subtitle_plane();
+  destroy_subtitle_plane();
   return 0;
 }
 
@@ -572,8 +671,13 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   stdn->set_base("", 0, transchan);
   struct ncplane_options nopts{};
   nopts.name = "play";
-  nopts.resizecb = ncplane_resize_marginalized;
-  nopts.flags = NCPLANE_OPTION_MARGINALIZED;
+  if(climode){
+    nopts.resizecb = player_cli_resize_cb;
+    nopts.flags = NCPLANE_OPTION_MARGINALIZED;
+  }else{
+    nopts.resizecb = player_plane_resize_cb;
+    nopts.flags = NCPLANE_OPTION_FIXED;
+  }
   ncplane* n = nullptr;
   ncplane* clin = nullptr;
 
@@ -602,11 +706,28 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
 
     auto recreate_visual_planes = [&](const char* reason) -> bool {
       logdebug("[resize] recreating planes due to %s", reason ? reason : "unknown");
+      unsigned stdrows, stdcols;
+      ncplane_dim_yx(*stdn, &stdrows, &stdcols);
+      if(stdrows == 0 || stdcols == 0){
+        logerror("[resize] stdn has zero dimensions (%u x %u)", stdrows, stdcols);
+        return false;
+      }
+      nopts.y = 0;
+      nopts.x = 0;
+      if(climode){
+        nopts.rows = 0;
+        nopts.cols = 0;
+      }else{
+        nopts.rows = stdrows;
+        nopts.cols = stdcols;
+      }
       if(n){
+        destroy_plane_runtime(n);
         ncplane_destroy(n);
         n = nullptr;
       }
       if(clin){
+        destroy_plane_runtime(clin);
         ncplane_destroy(clin);
         clin = nullptr;
       }
@@ -639,7 +760,9 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         vopts.x = NCALIGN_CENTER;
         vopts.n = n;
       }
+      init_plane_runtime(vopts.n);
       ncplane_erase(n);
+      logdebug("[resize] planes ready main=%ux%u", ncplane_dim_x(vopts.n), ncplane_dim_y(vopts.n));
       return true;
     };
 
@@ -651,7 +774,10 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     bool needs_plane_recreate = false;
     double pending_seek_value = 0.0;
     bool pending_seek_absolute = false;
+    bool preserve_audio = false;
+    int stream_iteration = 0;
     while(true){
+      logdebug("[stream] begin iteration %d (need_recreate=%d, audio=%d)", stream_iteration++, needs_plane_recreate ? 1 : 0, audio_thread ? 1 : 0);
       bool restart_stream = false;
       if(needs_plane_recreate){
         logdebug("[resize] applying pending plane recreate");
@@ -661,7 +787,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         needs_plane_recreate = false;
       }
       /* capture needs_plane_recreate and apply before next stream */
-      if(ffmpeg_has_audio(*ncv)){
+      if(ffmpeg_has_audio(*ncv) && audio_thread == nullptr){
         int sample_rate = 44100;
         int channels = ffmpeg_get_audio_channels(*ncv);
         if(channels > 2){
@@ -669,10 +795,13 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         }
         ao = audio_output_init(sample_rate, channels, AV_SAMPLE_FMT_S16);
         if(ao){
+          logdebug("[audio] starting audio thread");
           audio_running = true;
           audio_data = new audio_thread_data{*ncv, ao, &audio_running, &audio_mutex};
           audio_thread = new std::thread(audio_thread_func, audio_data);
           audio_output_start(ao);
+        }else{
+          logerror("[audio] failed to init audio output");
         }
       }
 
@@ -689,27 +818,35 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         .request = PlaybackRequest::None,
         .seek_delta = 0.0,
         .seek_absolute = false,
+        .resize_restart_pending = false,
       };
+      logdebug("[stream] starting ncvisual_stream iteration with %ux%u plane", vopts.n ? ncplane_dim_x(vopts.n) : 0, vopts.n ? ncplane_dim_y(vopts.n) : 0);
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
+      logdebug("[stream] ncvisual_stream returned %d", r);
       pending_request = marsh.request;
       if(pending_request == PlaybackRequest::Seek){
         pending_seek_value = marsh.seek_delta;
         pending_seek_absolute = marsh.seek_absolute;
       }
       show_fps_overlay = marsh.show_fps;
-      if(audio_thread){
+      if(audio_thread && !preserve_audio){
+        logdebug("[audio] stopping audio thread");
         audio_running = false;
         audio_thread->join();
         delete audio_thread;
         audio_thread = nullptr;
       }
-      if(audio_data){
+      if(audio_data && !preserve_audio){
         delete audio_data;
         audio_data = nullptr;
       }
-      if(ao){
+      if(ao && !preserve_audio){
         audio_output_destroy(ao);
         ao = nullptr;
+      }
+      if(preserve_audio){
+        logdebug("[resize] preserving audio thread during resize restart");
+        preserve_audio = false;
       }
 
       free(stdn->get_userptr());
@@ -726,14 +863,18 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
           delta = pending_seek_value - current;
           pending_seek_absolute = false;
         }
+        logdebug("[seek] request delta=%f (absolute=%d)", delta, was_absolute ? 1 : 0);
         if(ncvisual_seek(*ncv, delta) == 0){
           pending_request = PlaybackRequest::None;
           restart_stream = true;
           pending_seek_value = 0.0;
+          logdebug("[seek] success");
           if(was_absolute){
             needs_plane_recreate = true;
+            preserve_audio = true;
           }
         }else{
+          logerror("[seek] ncvisual_seek failed");
           pending_request = PlaybackRequest::None;
         }
       }
@@ -792,6 +933,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       }
     }
     if(clin){
+      destroy_plane_runtime(clin);
       ncplane_destroy(clin);
       clin = nullptr;
     }
@@ -799,7 +941,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       std::cerr << "Error while playing " << argv[i] << std::endl;
       goto err;
     }
-    free(ncplane_userptr(n));
+    destroy_plane_runtime(n);
     ncplane_destroy(n);
     if(pending_request == PlaybackRequest::Quit){
       return 0;
@@ -850,7 +992,12 @@ err:
     audio_output_destroy(ao);
     ao = nullptr;
   }
-  free(ncplane_userptr(n));
+  if(clin){
+    destroy_plane_runtime(clin);
+    ncplane_destroy(clin);
+    clin = nullptr;
+  }
+  destroy_plane_runtime(n);
   ncplane_destroy(n);
   return -1;
 }

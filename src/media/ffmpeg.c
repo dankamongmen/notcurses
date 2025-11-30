@@ -89,6 +89,7 @@ ass_detect_text_field(const uint8_t* header, size_t size){
           if(q > t){
             size_t toklen = q - t;
             if(!strncasecmp(t, "Text", toklen)){
+              logdebug("[ass] format text field index=%d column=\"%.*s\"", field, (int)toklen, t);
               return field;
             }
           }
@@ -100,6 +101,7 @@ ass_detect_text_field(const uint8_t* header, size_t size){
     }
     data = linebreak ? linebreak + 1 : end;
   }
+  logerror("[ass] no [Events] Format line found");
   return default_index;
 }
 
