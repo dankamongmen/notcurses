@@ -39,6 +39,7 @@ int ffmpeg_init_audio_resampler(ncvisual* ncv, int out_sample_rate, int out_chan
 int ffmpeg_get_audio_sample_rate(ncvisual* ncv);
 int ffmpeg_get_audio_channels(ncvisual* ncv);
 void ffmpeg_audio_request_packets(ncvisual* ncv);
+double ffmpeg_get_video_position_seconds(const ncvisual* ncv);
 }
 
 static void usage(std::ostream& os, const char* name, int exitcode)
@@ -62,6 +63,15 @@ void usage(std::ostream& o, const char* name, int exitcode){
   exit(exitcode);
 }
 
+enum class PlaybackRequest {
+  None,
+  Quit,
+  NextFile,
+  PrevFile,
+  RestartFile,
+  Seek,
+};
+
 struct marshal {
   int framecount;
   bool quiet;
@@ -69,8 +79,15 @@ struct marshal {
   uint64_t last_abstime_ns;
   uint64_t avg_frame_ns;
   uint64_t dropped_frames;
+  bool show_fps;
+  double current_fps;
+  double current_drop_pct;
+  PlaybackRequest request;
+  double seek_delta;
 };
 
+static constexpr double kNcplayerSeekSeconds = 5.0;
+static constexpr double kNcplayerSeekMinutes = 2.0 * 60.0;
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vmarshal) -> int {
@@ -84,14 +101,42 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     ncplane_set_userptr(vopts->n, start);
   }
   std::unique_ptr<Plane> stdn(nc.get_stdplane());
+  static auto last_fps_sample = std::chrono::steady_clock::now();
+  static int frames_since_sample = 0;
   // negative framecount means don't print framecount/timing (quiet mode)
   if(marsh->framecount >= 0){
-    ++marsh->framecount;
+    ++frames_since_sample;
+    int64_t idx = ncvisual_frame_index(ncv);
+    if(idx >= 0){
+      marsh->framecount = idx;
+    }else{
+      ++marsh->framecount;
+    }
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_fps_sample).count();
+    if(elapsed >= 1000){
+      if(elapsed > 0){
+        marsh->current_fps = frames_since_sample * 1000.0 / elapsed;
+        const uint64_t total_attempted = marsh->framecount + marsh->dropped_frames;
+        marsh->current_drop_pct = total_attempted ? (100.0 * marsh->dropped_frames / total_attempted) : 0.0;
+      }
+      frames_since_sample = 0;
+      last_fps_sample = now;
+    }
   }
   stdn->set_fg_rgb(0x80c080);
-  struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC, &now);
-  int64_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  int64_t display_ns;
+  double media_seconds = ffmpeg_get_video_position_seconds(ncv);
+  if(media_seconds >= 0.0){
+    display_ns = (int64_t)(media_seconds * (double)NANOSECS_IN_SEC);
+  }else{
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    display_ns = timespec_to_ns(&now) - timespec_to_ns(start);
+  }
+  if(display_ns < 0){
+    display_ns = 0;
+  }
   marsh->blitter = vopts->blitter;
   if(marsh->blitter == NCBLIT_DEFAULT){
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
@@ -99,8 +144,14 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(!marsh->quiet){
     // FIXME put this on its own plane if we're going to be erase()ing it
     stdn->erase();
-    stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
-                 notcurses_str_blitter(vopts->blitter));
+    if(marsh->show_fps){
+      stdn->printf(0, NCAlign::Left, "frame %06d FPS %.2f drops %.1f%% (%s)",
+                   marsh->framecount, marsh->current_fps, marsh->current_drop_pct,
+                   notcurses_str_blitter(vopts->blitter));
+    }else{
+      stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
+                   notcurses_str_blitter(vopts->blitter));
+    }
   }
 
   const uint64_t target_ns = timespec_to_ns(abstime);
@@ -135,15 +186,16 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   }
 
   struct ncplane* subp = ncvisual_subtitle_plane(*stdn, ncv);
-  const int64_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
-  ns -= h * (60 * 60 * NANOSECS_IN_SEC);
-  const int64_t m = ns / (60 * NANOSECS_IN_SEC);
-  ns -= m * (60 * NANOSECS_IN_SEC);
-  const int64_t s = ns / NANOSECS_IN_SEC;
-  ns -= s * NANOSECS_IN_SEC;
+  int64_t remaining = display_ns;
+  const int64_t h = remaining / (60 * 60 * NANOSECS_IN_SEC);
+  remaining -= h * (60 * 60 * NANOSECS_IN_SEC);
+  const int64_t m = remaining / (60 * NANOSECS_IN_SEC);
+  remaining -= m * (60 * NANOSECS_IN_SEC);
+  const int64_t s = remaining / NANOSECS_IN_SEC;
+  remaining -= s * NANOSECS_IN_SEC;
   if(!marsh->quiet){
     stdn->printf(0, NCAlign::Right, "%02" PRId64 ":%02" PRId64 ":%02" PRId64 ".%04" PRId64,
-                 h, m, s, ns / 1000000);
+                 h, m, s, remaining / 1000000);
   }
   if(!nc.render()){
     return -1;
@@ -169,7 +221,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       break;
     }
     // Check for 'q' key immediately to allow quitting
-    if(keyp == 'q' && ni.evtype != EvType::Release){
+    if((keyp == 'q' || keyp == 'Q') && ni.evtype != EvType::Release){
+      marsh->request = PlaybackRequest::Quit;
       ncplane_destroy(subp);
       return 1;
     }
@@ -200,18 +253,29 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       continue;
     }else if(keyp >= '7' && keyp <= '9' && !ncinput_alt_p(&ni) && !ncinput_ctrl_p(&ni)){
       continue; // don't error out
+    }else if(keyp == 'f' || keyp == 'F'){
+      marsh->show_fps = !marsh->show_fps;
+      continue;
     }else if(keyp == NCKey::Up){
-      // FIXME move backwards significantly
-      continue;
+      marsh->request = PlaybackRequest::Seek;
+      marsh->seek_delta = -kNcplayerSeekMinutes;
+      ncplane_destroy(subp);
+      return 2;
     }else if(keyp == NCKey::Down){
-      // FIXME move forwards significantly
-      continue;
+      marsh->request = PlaybackRequest::Seek;
+      marsh->seek_delta = kNcplayerSeekMinutes;
+      ncplane_destroy(subp);
+      return 2;
     }else if(keyp == NCKey::Right){
-      // FIXME move forwards
-      continue;
+      marsh->request = PlaybackRequest::Seek;
+      marsh->seek_delta = kNcplayerSeekSeconds;
+      ncplane_destroy(subp);
+      return 2;
     }else if(keyp == NCKey::Left){
-      // FIXME move backwards
-      continue;
+      marsh->request = PlaybackRequest::Seek;
+      marsh->seek_delta = -kNcplayerSeekSeconds;
+      ncplane_destroy(subp);
+      return 2;
     }else if(keyp != 'q'){
       continue;
     }
@@ -490,6 +554,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   ncplane* n = nullptr;
   ncplane* clin = nullptr;
 
+  bool show_fps_overlay = false;
   // Audio-related variables (declared at function scope for cleanup)
   audio_output* ao = nullptr;
   std::thread* audio_thread = nullptr;
@@ -539,27 +604,24 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     }
     ncplane_erase(n);
 
-    // Initialize audio if available
-    ncvisual* raw_ncv = *ncv;  // Get underlying ncvisual pointer
-    if(ffmpeg_has_audio(raw_ncv)){
-      // Use fixed output format for audio output (resampler will convert)
-      int sample_rate = 44100; // Fixed output sample rate
-      int channels = ffmpeg_get_audio_channels(raw_ncv);
-      // Limit to stereo max for output
-      if(channels > 2){
-        channels = 2;
+    PlaybackRequest pending_request = PlaybackRequest::None;
+    while(true){
+      bool restart_stream = false;
+      if(ffmpeg_has_audio(*ncv)){
+        int sample_rate = 44100;
+        int channels = ffmpeg_get_audio_channels(*ncv);
+        if(channels > 2){
+          channels = 2;
+        }
+        ao = audio_output_init(sample_rate, channels, AV_SAMPLE_FMT_S16);
+        if(ao){
+          audio_running = true;
+          audio_data = new audio_thread_data{*ncv, ao, &audio_running, &audio_mutex};
+          audio_thread = new std::thread(audio_thread_func, audio_data);
+          audio_output_start(ao);
+        }
       }
 
-      ao = audio_output_init(sample_rate, channels, AV_SAMPLE_FMT_S16);
-      if(ao){
-        audio_running = true;
-        audio_data = new audio_thread_data{raw_ncv, ao, &audio_running, &audio_mutex};
-        audio_thread = new std::thread(audio_thread_func, audio_data);
-        audio_output_start(ao);
-      }
-    }
-
-    do{
       struct marshal marsh = {
         .framecount = 0,
         .quiet = quiet,
@@ -567,9 +629,15 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         .last_abstime_ns = 0,
         .avg_frame_ns = 0,
         .dropped_frames = 0,
+        .show_fps = show_fps_overlay,
+        .current_fps = 0.0,
+        .current_drop_pct = 0.0,
+        .request = PlaybackRequest::None,
+        .seek_delta = 0.0,
       };
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
-      // Stop audio thread
+      pending_request = marsh.request;
+      show_fps_overlay = marsh.show_fps;
       if(audio_thread){
         audio_running = false;
         audio_thread->join();
@@ -587,7 +655,18 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
 
       free(stdn->get_userptr());
       stdn->set_userptr(nullptr);
-      if(r == 0){
+      restart_stream = false;
+      if(pending_request == PlaybackRequest::Seek){
+        double delta = marsh.seek_delta;
+        if(ncvisual_seek(*ncv, delta) == 0){
+          pending_request = PlaybackRequest::None;
+          restart_stream = true;
+        }else{
+          pending_request = PlaybackRequest::None;
+        }
+      }
+
+      if(!restart_stream && r == 0){
         vopts.blitter = marsh.blitter;
         if(!loop){
           if(displaytime < 0){
@@ -608,13 +687,13 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                 nc.refresh(nullptr, nullptr);
               }else if(ni.id >= '0' && ni.id <= '6'){
                 blitter = vopts.blitter = static_cast<ncblitter_e>(ni.id - '0');
-                --i; // rerun same input with the new blitter
+                --i;
                 break;
               }else if(ni.id >= '7' && ni.id <= '9'){
-                --i; // just absorb the input
+                --i;
                 break;
               }else if(ni.id == NCKey::Resize){
-                --i; // rerun with the new size
+                --i;
                 if(!nc.refresh(&dimy, &dimx)){
                   goto err;
                 }
@@ -622,7 +701,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               }
             }while(ni.id != ' ');
           }else{
-            // FIXME do we still want to honor keybindings when timing out?
             struct timespec ts;
             ts.tv_sec = displaytime;
             ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
@@ -631,15 +709,56 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         }else{
           ncv->decode_loop();
         }
-        ncplane_destroy(clin);
+
+        if(loop && pending_request == PlaybackRequest::None){
+          restart_stream = true;
+        }
       }
-    }while(loop && r == 0);
+
+      if(!restart_stream){
+        break;
+      }
+    }
+    if(clin){
+      ncplane_destroy(clin);
+      clin = nullptr;
+    }
     if(r < 0){ // positive is intentional abort
       std::cerr << "Error while playing " << argv[i] << std::endl;
       goto err;
     }
     free(ncplane_userptr(n));
     ncplane_destroy(n);
+    if(pending_request == PlaybackRequest::Quit){
+      return 0;
+    }
+    if(pending_request == PlaybackRequest::PrevFile){
+      if(i >= 1){
+        i -= 2;
+      }else{
+        i = -1;
+      }
+      continue;
+    }
+    if(pending_request == PlaybackRequest::RestartFile){
+      if(i >= 0){
+        --i;
+      }
+      continue;
+    }
+    if(pending_request == PlaybackRequest::Quit){
+      return 0;
+    }else if(pending_request == PlaybackRequest::PrevFile){
+      if(i >= 1){
+        i -= 2;
+      }else{
+        i = -1;
+      }
+      continue;
+    }else if(pending_request == PlaybackRequest::RestartFile){
+      --i;
+      continue;
+    }
   }
   return 0;
 

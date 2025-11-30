@@ -3431,6 +3431,15 @@ API int ncvisual_decode(struct ncvisual* nc)
 API int ncvisual_decode_loop(struct ncvisual* nc)
   __attribute__ ((nonnull (1)));
 
+// Seek within a visual by the provided number of seconds. Positive values move
+// forward, negative backwards. Not all backends support seeking.
+API int ncvisual_seek(struct ncvisual* n, double seconds)
+  __attribute__ ((nonnull (1)));
+
+// Return zero-based index of last decoded frame, or -1 if unavailable
+API int64_t ncvisual_frame_index(const struct ncvisual* n)
+  __attribute__ ((nonnull (1)));
+
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are supported at
 // the moment, but this might change in the future.
 API int ncvisual_rotate(struct ncvisual* n, double rads)

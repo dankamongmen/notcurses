@@ -1803,6 +1803,8 @@ typedef struct ncvisual_implementation {
   int rowalign; // rowstride base, can be 0 for no padding
   // do a persistent resize, changing the ncv itself
   int (*visual_resize)(struct ncvisual* ncv, unsigned rows, unsigned cols);
+  int (*visual_seek)(struct ncvisual* ncv, double seconds);
+  int64_t (*visual_frame_index)(const struct ncvisual* ncv);
   void (*visual_destroy)(struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;

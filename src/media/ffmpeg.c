@@ -101,6 +101,8 @@ typedef struct ncvisual_details {
   bool audio_packet_outstanding; // whether we have an audio packet waiting to be decoded
   audio_packet_queue pending_audio_packets; // audio packets waiting to be sent
   int64_t last_audio_frame_pts; // PTS of last processed audio frame (to prevent reprocessing)
+  int64_t last_video_frame_pts; // PTS of last displayed video frame
+  int64_t decoded_frames;
   pthread_mutex_t packet_mutex;  // mutex for thread-safe packet reading
   pthread_mutex_t audio_packet_mutex; // mutex for audio packet queue
 } ncvisual_details;
@@ -571,7 +573,23 @@ ffmpeg_decode(ncvisual* n){
 //fprintf(stderr, "good decode! %d/%d %d %p\n", n->details->frame->height, n->details->frame->width, n->rowstride, f->data);
   ncvisual_set_data(n, f->data[0], false);
   force_rgba(n);
+  int64_t vpts = f->pts;
+  if(vpts == AV_NOPTS_VALUE){
+    vpts = f->best_effort_timestamp;
+  }
+  n->details->last_video_frame_pts = vpts;
+  if(n->details->decoded_frames >= 0){
+    ++n->details->decoded_frames;
+  }
   return 0;
+}
+
+static int64_t
+ffmpeg_frame_index(const ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return -1;
+  }
+  return ncv->details->decoded_frames;
 }
 
 static ncvisual_details*
@@ -583,6 +601,8 @@ ffmpeg_details_init(void){
     deets->sub_stream_index = -1;
     deets->audio_stream_index = -1;
     deets->last_audio_frame_pts = AV_NOPTS_VALUE; // No frame processed yet
+    deets->last_video_frame_pts = AV_NOPTS_VALUE;
+    deets->decoded_frames = 0;
     deets->audio_out_channels = 0; // Will be set when resampler is initialized
     audio_queue_init(&deets->pending_audio_packets);
     if(pthread_mutex_init(&deets->packet_mutex, NULL) != 0){
@@ -1113,6 +1133,31 @@ ffmpeg_destroy(ncvisual* ncv){
   }
 }
 
+// Public API functions used by ncplayer
+API double
+ffmpeg_get_video_position_seconds(const ncvisual* ncv){
+  if(!ncv || !ncv->details || !ncv->details->fmtctx){
+    return -1.0;
+  }
+  int stream_index = ncv->details->stream_index;
+  if(stream_index < 0 || stream_index >= (int)ncv->details->fmtctx->nb_streams){
+    return -1.0;
+  }
+  AVStream* stream = ncv->details->fmtctx->streams[stream_index];
+  if(!stream){
+    return -1.0;
+  }
+  double time_base = av_q2d(stream->time_base);
+  if(time_base <= 0.0){
+    return -1.0;
+  }
+  int64_t pts = ncv->details->last_video_frame_pts;
+  if(pts == AV_NOPTS_VALUE){
+    return -1.0;
+  }
+  return pts * time_base;
+}
+
 // Public API functions for audio handling (called from play.cpp)
 // Define API macro for visibility export
 
@@ -1303,6 +1348,78 @@ ffmpeg_get_audio_channels(ncvisual* ncv){
   return channels > 0 ? channels : 2; // Default stereo
 }
 
+API int
+ffmpeg_seek_relative(ncvisual* ncv, double seconds){
+  if(!ncv || !ncv->details || !ncv->details->fmtctx || seconds == 0.0){
+    return 0;
+  }
+  if(!ncv->details->codecctx){
+    return -1;
+  }
+  AVFormatContext* fmt = ncv->details->fmtctx;
+  int stream_index = ncv->details->stream_index;
+  if(stream_index < 0 || stream_index >= (int)fmt->nb_streams){
+    return -1;
+  }
+  AVStream* stream = fmt->streams[stream_index];
+  double time_base = av_q2d(stream->time_base);
+  if(time_base == 0.0){
+    return -1;
+  }
+  int64_t current = ncv->details->last_video_frame_pts;
+  if(current == AV_NOPTS_VALUE){
+    current = (stream->start_time != AV_NOPTS_VALUE) ? stream->start_time : 0;
+  }
+  int64_t offset = seconds / time_base;
+  int64_t target = current + offset;
+  if(target < 0){
+    target = 0;
+  }
+  int flags = 0;
+  if(seconds < 0){
+    flags |= AVSEEK_FLAG_BACKWARD;
+  }
+  if(av_seek_frame(fmt, stream_index, target, flags) < 0){
+    // clamp to valid duration if available
+    if(stream->duration > 0 && target > stream->duration){
+      target = stream->duration;
+      if(av_seek_frame(fmt, stream_index, target, AVSEEK_FLAG_BACKWARD) < 0){
+        return -1;
+      }
+    }else{
+      return -1;
+    }
+  }
+  avcodec_flush_buffers(ncv->details->codecctx);
+  ncv->details->packet_outstanding = false;
+  av_packet_unref(ncv->details->packet);
+  ncv->details->last_video_frame_pts = target;
+  double frame_rate = av_q2d(stream->avg_frame_rate);
+  if(frame_rate <= 0.0){
+    frame_rate = 1.0 / av_q2d(stream->time_base);
+    if(frame_rate <= 0.0){
+      frame_rate = 30.0;
+    }
+  }
+  double seconds_pos = target * time_base;
+  if(seconds_pos < 0){
+    seconds_pos = 0;
+  }
+  ncv->details->decoded_frames = (int64_t)(seconds_pos * frame_rate);
+  if(ncv->details->audiocodecctx){
+    avcodec_flush_buffers(ncv->details->audiocodecctx);
+    pthread_mutex_lock(&ncv->details->audio_packet_mutex);
+    audio_queue_clear(&ncv->details->pending_audio_packets);
+    ncv->details->audio_packet_outstanding = false;
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    ncv->details->last_audio_frame_pts = AV_NOPTS_VALUE;
+  }
+  if(ffmpeg_decode(ncv) < 0){
+    return -1;
+  }
+  return 0;
+}
+
 ncvisual_implementation local_visual_implementation = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
@@ -1315,6 +1432,8 @@ ncvisual_implementation local_visual_implementation = {
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
   .visual_resize = ffmpeg_resize,
+  .visual_seek = ffmpeg_seek_relative,
+  .visual_frame_index = ffmpeg_frame_index,
   .visual_destroy = ffmpeg_destroy,
   .rowalign = 64, // ffmpeg wants multiples of IMGALIGN (64)
   .canopen_images = true,
