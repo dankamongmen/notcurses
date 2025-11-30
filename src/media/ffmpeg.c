@@ -383,8 +383,11 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     free(dup);
     return NULL;
   }
-  int xpos = 0;
-  int cols = parent_cols;
+  int cols = maxwidth;
+  if(cols > parent_cols){
+    cols = parent_cols;
+  }
+  int xpos = (parent_cols - cols) / 2;
 
   struct ncplane_options nopts = {
     .y = ncplane_dim_y(parent) - (linecount + 1),
@@ -411,7 +414,20 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     SUBLOG_DEBUG("rendering subtitle text (trimmed): \"%s\"", trimmed);
     *logged_flag = true;
   }
-  ncplane_puttext(n, 0, NCALIGN_CENTER, trimmed, NULL);
+  char* linewalker = trimmed;
+  for(int line = 0 ; line < linecount ; ++line){
+    char* next = strchr(linewalker, '\n');
+    if(next){
+      *next = '\0';
+    }
+    ncplane_putstr_yx(n, line, 0, linewalker);
+    if(next){
+      *next = '\n';
+      linewalker = next + 1;
+    }else{
+      break;
+    }
+  }
   free(dup);
   return n;
 }
