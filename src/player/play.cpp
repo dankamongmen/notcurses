@@ -586,10 +586,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
-    if((n = ncplane_create(*stdn, &nopts)) == nullptr){
-      return -1;
-    }
-    ncplane_move_bottom(n);
     struct ncvisual_options vopts{};
     int r;
     if(noninterp){
@@ -599,35 +595,66 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       vopts.flags |= NCVISUAL_OPTION_ADDALPHA;
     }
     vopts.transcolor = transcolor & 0xffffffull;
-    vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
-    if(!climode){
-      vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
-      vopts.y = NCALIGN_CENTER;
-      vopts.x = NCALIGN_CENTER;
-    }else{
-      ncvgeom geom;
-      if(ncvisual_geom(nc, *ncv, &vopts, &geom)){
-        return -1;
+
+    auto recreate_visual_planes = [&]() -> bool {
+      if(n){
+        ncplane_destroy(n);
+        n = nullptr;
       }
-      struct ncplane_options cliopts{};
-      cliopts.y = stdn->cursor_y();
-      cliopts.x = stdn->cursor_x();
-      cliopts.rows = geom.rcelly;
-      cliopts.cols = geom.rcellx;
-      clin = ncplane_create(n, &cliopts);
-      if(!clin){
-        return -1;
+      if(clin){
+        ncplane_destroy(clin);
+        clin = nullptr;
       }
-      vopts.n = clin;
-      ncplane_scrollup_child(*stdn, clin);
+      n = ncplane_create(*stdn, &nopts);
+      if(n == nullptr){
+        return false;
+      }
+      ncplane_move_bottom(n);
+      vopts.n = n;
+      if(climode){
+        ncvgeom geom;
+        if(ncvisual_geom(nc, *ncv, &vopts, &geom)){
+          return false;
+        }
+        struct ncplane_options cliopts{};
+        cliopts.y = stdn->cursor_y();
+        cliopts.x = stdn->cursor_x();
+        cliopts.rows = geom.rcelly;
+        cliopts.cols = geom.rcellx;
+        clin = ncplane_create(n, &cliopts);
+        if(!clin){
+          return false;
+        }
+        vopts.n = clin;
+        ncplane_scrollup_child(*stdn, clin);
+      }else{
+        vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+        vopts.y = NCALIGN_CENTER;
+        vopts.x = NCALIGN_CENTER;
+        vopts.n = n;
+      }
+      ncplane_erase(n);
+      return true;
+    };
+
+    if(!recreate_visual_planes()){
+      return -1;
     }
-    ncplane_erase(n);
 
     PlaybackRequest pending_request = PlaybackRequest::None;
+    bool needs_plane_recreate = false;
+    double pending_seek_value = 0.0;
+    bool pending_seek_absolute = false;
     while(true){
       bool restart_stream = false;
+      if(needs_plane_recreate){
+        if(!recreate_visual_planes()){
+          goto err;
+        }
+        needs_plane_recreate = false;
+      }
       if(ffmpeg_has_audio(*ncv)){
         int sample_rate = 44100;
         int channels = ffmpeg_get_audio_channels(*ncv);
@@ -659,6 +686,10 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       };
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
       pending_request = marsh.request;
+      if(pending_request == PlaybackRequest::Seek){
+        pending_seek_value = marsh.seek_delta;
+        pending_seek_absolute = marsh.seek_absolute;
+      }
       show_fps_overlay = marsh.show_fps;
       if(audio_thread){
         audio_running = false;
@@ -679,19 +710,23 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       stdn->set_userptr(nullptr);
       restart_stream = false;
       if(pending_request == PlaybackRequest::Seek){
-        double delta = marsh.seek_delta;
-        if(marsh.seek_absolute){
+        double delta = pending_seek_value;
+        bool was_absolute = pending_seek_absolute;
+        if(pending_seek_absolute){
           double current = ffmpeg_get_video_position_seconds(*ncv);
           if(!std::isfinite(current)){
             current = 0.0;
           }
-          delta = marsh.seek_delta - current;
-          marsh.seek_absolute = false;
+          delta = pending_seek_value - current;
+          pending_seek_absolute = false;
         }
         if(ncvisual_seek(*ncv, delta) == 0){
           pending_request = PlaybackRequest::None;
           restart_stream = true;
-          marsh.seek_delta = 0.0;
+          pending_seek_value = 0.0;
+          if(was_absolute){
+            needs_plane_recreate = true;
+          }
         }else{
           pending_request = PlaybackRequest::None;
         }
