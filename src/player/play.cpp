@@ -15,6 +15,7 @@
 #include <atomic>
 #include <mutex>
 #include <chrono>
+#include <cmath>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavcodec/packet.h>
@@ -84,6 +85,7 @@ struct marshal {
   double current_drop_pct;
   PlaybackRequest request;
   double seek_delta;
+  bool seek_absolute;
 };
 
 static constexpr double kNcplayerSeekSeconds = 5.0;
@@ -248,11 +250,15 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
         ncplane_destroy(subp);
         return -1;
       }
-      if(subp){
-        ncplane_destroy(subp);
+      double resume = ffmpeg_get_video_position_seconds(ncv);
+      if(!std::isfinite(resume)){
+        resume = static_cast<double>(display_ns) / 1e9;
       }
-      subp = recreate_subtitle_plane();
-      continue;
+      marsh->request = PlaybackRequest::Seek;
+      marsh->seek_delta = resume;
+      marsh->seek_absolute = true;
+      ncplane_destroy(subp);
+      return 2;
     }else if(keyp == ' '){ // space for unpause
       continue;
     }else if(keyp == 'L' && ncinput_ctrl_p(&ni) && !ncinput_alt_p(&ni)){
@@ -270,21 +276,25 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else if(keyp == NCKey::Up){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = -kNcplayerSeekMinutes;
+      marsh->seek_absolute = false;
       ncplane_destroy(subp);
       return 2;
     }else if(keyp == NCKey::Down){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = kNcplayerSeekMinutes;
+      marsh->seek_absolute = false;
       ncplane_destroy(subp);
       return 2;
     }else if(keyp == NCKey::Right){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = kNcplayerSeekSeconds;
+      marsh->seek_absolute = false;
       ncplane_destroy(subp);
       return 2;
     }else if(keyp == NCKey::Left){
       marsh->request = PlaybackRequest::Seek;
       marsh->seek_delta = -kNcplayerSeekSeconds;
+      marsh->seek_absolute = false;
       ncplane_destroy(subp);
       return 2;
     }else if(keyp != 'q'){
@@ -645,6 +655,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         .current_drop_pct = 0.0,
         .request = PlaybackRequest::None,
         .seek_delta = 0.0,
+        .seek_absolute = false,
       };
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
       pending_request = marsh.request;
@@ -669,9 +680,18 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       restart_stream = false;
       if(pending_request == PlaybackRequest::Seek){
         double delta = marsh.seek_delta;
+        if(marsh.seek_absolute){
+          double current = ffmpeg_get_video_position_seconds(*ncv);
+          if(!std::isfinite(current)){
+            current = 0.0;
+          }
+          delta = marsh.seek_delta - current;
+          marsh.seek_absolute = false;
+        }
         if(ncvisual_seek(*ncv, delta) == 0){
           pending_request = PlaybackRequest::None;
           restart_stream = true;
+          marsh.seek_delta = 0.0;
         }else{
           pending_request = PlaybackRequest::None;
         }
