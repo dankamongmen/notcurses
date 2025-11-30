@@ -100,6 +100,19 @@ ass_detect_text_field(const uint8_t* header, size_t size){
   return default_index;
 }
 
+static int64_t
+ass_text_hash(const char* text){
+  if(!text){
+    return 0;
+  }
+  int64_t hash = 1469598103934665603ull;
+  while(*text){
+    hash ^= (unsigned char)(*text++);
+    hash *= 1099511628211ull;
+  }
+  return hash;
+}
+
 static int
 ffmpeg_detect_thread_count(void){
   static int cached = 0;
@@ -157,6 +170,7 @@ typedef struct ncvisual_details {
   double subtitle_time_base;
   int subtitle_text_field;
   bool subtitle_logged;
+  int64_t subtitle_last_logged_hash;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
   int audio_stream_index;  // audio stream index, can be < 0 if no audio
@@ -414,17 +428,56 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
   }
   int linecount = 1;
   for(size_t i = 0 ; i < len ; ++i){
-    if(trimmed[i] == '\n' || trimmed[i] == '\r'){
+    if(trimmed[i] == '\r'){
+      trimmed[i] = '\n';
+    }
+    if(trimmed[i] == '\n'){
       ++linecount;
-      if(trimmed[i] == '\r' && trimmed[i + 1] == '\n'){
-        ++i;
-      }
     }
   }
+
+  int parent_cols = ncplane_dim_x(parent);
+  if(parent_cols <= 0){
+    free(dup);
+    return NULL;
+  }
+  int maxwidth = 0;
+  char* walker = trimmed;
+  for(int line = 0 ; line < linecount ; ++line){
+    char* next = strchr(walker, '\n');
+    if(next){
+      *next = '\0';
+    }
+    int w = ncstrwidth(walker, NULL, NULL);
+    if(w > maxwidth){
+      maxwidth = w;
+    }
+    if(next){
+      *next = '\n';
+      walker = next + 1;
+    }else{
+      break;
+    }
+  }
+  if(maxwidth <= 0){
+    free(dup);
+    return NULL;
+  }
+  int cols = maxwidth + 2;
+  if(cols > parent_cols){
+    cols = parent_cols;
+  }
+  if(cols <= 0){
+    free(dup);
+    return NULL;
+  }
+  int xpos = (parent_cols - cols) / 2;
+
   struct ncplane_options nopts = {
     .y = ncplane_dim_y(parent) - (linecount + 1),
+    .x = xpos,
     .rows = linecount,
-    .cols = ncplane_dim_x(parent),
+    .cols = cols,
     .name = "subt",
   };
   struct ncplane* n = ncplane_create(parent, &nopts);
@@ -433,17 +486,18 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     return NULL;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, NCALPHA_HIGHCONTRAST);
-  ncchannels_set_fg_rgb8(&channels, 0x88, 0x88, 0x88);
-  ncplane_stain(n, -1, -1, 0, 0, channels, channels, channels, channels);
-  ncchannels_set_fg_default(&channels);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncplane_set_base(n, " ", 0, channels);
+
+  ncplane_set_fg_alpha(n, NCALPHA_HIGHCONTRAST);
+  ncplane_set_fg_rgb8(n, 0x88, 0x88, 0x88);
+  ncplane_set_bg_alpha(n, NCALPHA_TRANSPARENT);
   if(logged_flag && !*logged_flag){
     SUBLOG_DEBUG("rendering subtitle text: \"%s\"", trimmed);
     *logged_flag = true;
   }
-  ncplane_puttext(n, 0, NCALIGN_CENTER, trimmed, NULL);
-  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-  ncplane_set_base(n, " ", 0, channels);
+  ncplane_puttext(n, 0, NCALIGN_LEFT, trimmed, NULL);
   free(dup);
   return n;
 }
@@ -471,6 +525,13 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
     // but we only bother dealing with the first one we find FIXME?
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
+      if(rect->ass){
+        int64_t hash = ass_text_hash(rect->ass);
+        if(hash != ncv->details->subtitle_last_logged_hash){
+          SUBLOG_DEBUG("raw ASS text: \"%s\"", rect->ass);
+          ncv->details->subtitle_last_logged_hash = hash;
+        }
+      }
       char* ass = rect->ass ? deass(rect->ass, ncv->details->subtitle_text_field) : NULL;
       if(!ass && rect->text){
         ass = strdup(rect->text);
@@ -832,6 +893,7 @@ ffmpeg_details_init(void){
     deets->subtitle_time_base = 0.0;
     deets->subtitle_text_field = 9;
     deets->subtitle_logged = false;
+    deets->subtitle_last_logged_hash = 0;
   }
   return deets;
 }
