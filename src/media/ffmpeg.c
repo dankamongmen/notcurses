@@ -324,6 +324,17 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     return NULL;
   }
   char* trimmed = dup;
+  const char* raw = dup;
+  int commas = 0;
+  for(; *trimmed ; ++trimmed){
+    if(*trimmed == ','){
+      ++commas;
+      if(commas == 8){
+        ++trimmed;
+        break;
+      }
+    }
+  }
   while(*trimmed && isspace((unsigned char)*trimmed)){
     ++trimmed;
   }
@@ -372,15 +383,8 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     free(dup);
     return NULL;
   }
-  int cols = maxwidth + 2;
-  if(cols > parent_cols){
-    cols = parent_cols;
-  }
-  if(cols <= 0){
-    free(dup);
-    return NULL;
-  }
-  int xpos = (parent_cols - cols) / 2;
+  int xpos = 0;
+  int cols = parent_cols;
 
   struct ncplane_options nopts = {
     .y = ncplane_dim_y(parent) - (linecount + 1),
@@ -403,10 +407,11 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
   ncplane_set_fg_rgb8(n, 0x88, 0x88, 0x88);
   ncplane_set_bg_alpha(n, NCALPHA_TRANSPARENT);
   if(logged_flag && !*logged_flag){
-    SUBLOG_DEBUG("rendering subtitle text: \"%s\"", trimmed);
+    SUBLOG_DEBUG("rendering subtitle text (raw): \"%s\"", raw);
+    SUBLOG_DEBUG("rendering subtitle text (trimmed): \"%s\"", trimmed);
     *logged_flag = true;
   }
-  ncplane_puttext(n, 0, NCALIGN_LEFT, trimmed, NULL);
+  ncplane_puttext(n, 0, NCALIGN_CENTER, trimmed, NULL);
   free(dup);
   return n;
 }
