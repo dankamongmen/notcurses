@@ -27,6 +27,7 @@ extern "C" {
 #include <ncpp/NotCurses.hh>
 #include "compat/compat.h"
 #include "media/audio-output.h"
+#include "lib/logging.h"
 
 using namespace ncpp;
 
@@ -250,6 +251,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
         ncplane_destroy(subp);
         return -1;
       }
+      logdebug("[resize] resize event captured (%ux%u)", dimx, dimy);
       double resume = ffmpeg_get_video_position_seconds(ncv);
       if(!std::isfinite(resume)){
         resume = static_cast<double>(display_ns) / 1e9;
@@ -598,7 +600,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
 
-    auto recreate_visual_planes = [&]() -> bool {
+    auto recreate_visual_planes = [&](const char* reason) -> bool {
+      logdebug("[resize] recreating planes due to %s", reason ? reason : "unknown");
       if(n){
         ncplane_destroy(n);
         n = nullptr;
@@ -609,6 +612,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       }
       n = ncplane_create(*stdn, &nopts);
       if(n == nullptr){
+        logerror("[resize] failed to create main plane");
         return false;
       }
       ncplane_move_bottom(n);
@@ -639,7 +643,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       return true;
     };
 
-    if(!recreate_visual_planes()){
+    if(!recreate_visual_planes("initial create")){
       return -1;
     }
 
@@ -650,11 +654,13 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     while(true){
       bool restart_stream = false;
       if(needs_plane_recreate){
-        if(!recreate_visual_planes()){
+        logdebug("[resize] applying pending plane recreate");
+        if(!recreate_visual_planes("pending resize")){
           goto err;
         }
         needs_plane_recreate = false;
       }
+      /* capture needs_plane_recreate and apply before next stream */
       if(ffmpeg_has_audio(*ncv)){
         int sample_rate = 44100;
         int channels = ffmpeg_get_audio_channels(*ncv);
