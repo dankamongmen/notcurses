@@ -402,13 +402,16 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     return NULL;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_rgb8(&channels, 0xff, 0xff, 0xff);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_OPAQUE);
+  ncchannels_set_bg_rgb8(&channels, 0x20, 0x20, 0x20);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_BLEND);
   ncplane_set_base(n, " ", 0, channels);
 
-  ncplane_set_fg_alpha(n, NCALPHA_HIGHCONTRAST);
-  ncplane_set_fg_rgb8(n, 0x88, 0x88, 0x88);
-  ncplane_set_bg_alpha(n, NCALPHA_TRANSPARENT);
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg_alpha(n, NCALPHA_OPAQUE);
+  ncplane_set_bg_rgb8(n, 0x20, 0x20, 0x20);
+  ncplane_set_bg_alpha(n, NCALPHA_BLEND);
   if(logged_flag && !*logged_flag){
     SUBLOG_DEBUG("rendering subtitle text (raw): \"%s\"", raw);
     SUBLOG_DEBUG("rendering subtitle text (trimmed): \"%s\"", trimmed);
