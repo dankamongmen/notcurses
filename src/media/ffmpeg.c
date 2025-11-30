@@ -62,11 +62,14 @@ ass_detect_text_field(const uint8_t* header, size_t size){
   const char* data = (const char*)header;
   const char* end = data + size;
   const int default_index = 9;
+  bool in_events = false;
   while(data < end){
     const char* line_start = data;
     const char* linebreak = memchr(line_start, '\n', end - line_start);
     size_t linelen = linebreak ? (size_t)(linebreak - line_start) : (size_t)(end - line_start);
-    if(linelen >= 7 && !strncasecmp(line_start, "Format:", 7)){
+    if(linelen >= 8 && !strncasecmp(line_start, "[Events]", 8)){
+      in_events = true;
+    }else if(in_events && linelen >= 7 && !strncasecmp(line_start, "Format:", 7)){
       const char* cursor = line_start + 7;
       while(cursor < line_start + linelen && isspace((unsigned char)*cursor)){
         ++cursor;
@@ -98,19 +101,6 @@ ass_detect_text_field(const uint8_t* header, size_t size){
     data = linebreak ? linebreak + 1 : end;
   }
   return default_index;
-}
-
-static int64_t
-ass_text_hash(const char* text){
-  if(!text){
-    return 0;
-  }
-  int64_t hash = 1469598103934665603ull;
-  while(*text){
-    hash ^= (unsigned char)(*text++);
-    hash *= 1099511628211ull;
-  }
-  return hash;
 }
 
 static int
@@ -170,7 +160,8 @@ typedef struct ncvisual_details {
   double subtitle_time_base;
   int subtitle_text_field;
   bool subtitle_logged;
-  int64_t subtitle_last_logged_hash;
+  int64_t subtitle_last_hash;
+  char* subtitle_cached_text;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
   int audio_stream_index;  // audio stream index, can be < 0 if no audio
@@ -323,88 +314,6 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->quality);
 }*/
 
-static char*
-deass(const char* ass, int text_field_index){
-  if(!ass){
-    return NULL;
-  }
-  const char* dialog = strstr(ass, "Dialogue:");
-  const char* payload = dialog ? dialog + strlen("Dialogue:") : ass;
-  while(*payload == ' '){
-    ++payload;
-  }
-  const char* text = payload;
-  int field = 0;
-  bool in_field_brace = false;
-  bool found_field = false;
-  for(const char* src = payload ; *src ; ++src){
-    if(*src == '{'){
-      in_field_brace = true;
-    }else if(*src == '}'){
-      in_field_brace = false;
-    }
-    if(!in_field_brace && *src == ','){
-      ++field;
-      if(field == text_field_index){
-        text = src + 1;
-        found_field = true;
-        break;
-      }
-    }
-  }
-  if(!found_field){
-    const char* lastcomma = strrchr(payload, ',');
-    if(lastcomma){
-      text = lastcomma + 1;
-    }
-  }
-  while(*text == ' ' || *text == '\t'){
-    ++text;
-  }
-  size_t textlen = strlen(text);
-  char* buf = malloc(textlen + 1);
-  if(!buf){
-    return NULL;
-  }
-  char* dst = buf;
-  bool in_brace = false;
-  for(const char* src = text ; *src ; ++src){
-    if(in_brace){
-      if(*src == '}'){
-        in_brace = false;
-      }
-      continue;
-    }
-    if(*src == '{'){
-      in_brace = true;
-      continue;
-    }
-    if(*src == '\\'){
-      ++src;
-      if(!*src){
-        break;
-      }
-      if(*src == 'N' || *src == 'n'){
-        *dst++ = '\n';
-      }
-      continue;
-    }
-    *dst++ = *src;
-  }
-  *dst = '\0';
-  char* trimmed = buf;
-  while(*trimmed && isspace((unsigned char)*trimmed)){
-    ++trimmed;
-  }
-  size_t len = strlen(trimmed);
-  while(len > 0 && isspace((unsigned char)trimmed[len - 1])){
-    trimmed[--len] = '\0';
-  }
-  char* out = len ? strdup(trimmed) : NULL;
-  free(buf);
-  return out;
-}
-
 static struct ncplane*
 subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
   if(parent == NULL || text == NULL){
@@ -525,26 +434,16 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
     // but we only bother dealing with the first one we find FIXME?
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
-      if(rect->ass){
-        int64_t hash = ass_text_hash(rect->ass);
-        if(hash != ncv->details->subtitle_last_logged_hash){
-          SUBLOG_DEBUG("raw ASS text: \"%s\"", rect->ass);
-          ncv->details->subtitle_last_logged_hash = hash;
-        }
-      }
-      char* ass = rect->ass ? deass(rect->ass, ncv->details->subtitle_text_field) : NULL;
-      if(!ass && rect->text){
-        ass = strdup(rect->text);
-      }
-      if(!ass){
+      const char* render_text = NULL;
+      render_text = rect->ass ? rect->ass : rect->text;
+      if(!render_text){
         SUBLOG_DEBUG("ASS subtitle missing text, skipping");
         return NULL;
       }
-      struct ncplane* n = subtitle_plane_from_text(parent, ass, &ncv->details->subtitle_logged);
+      struct ncplane* n = subtitle_plane_from_text(parent, render_text, &ncv->details->subtitle_logged);
       if(!n){
-        SUBLOG_WARN("failed to render ASS subtitle: \"%s\"", ass);
+        SUBLOG_WARN("failed to render ASS subtitle: \"%s\"", render_text);
       }
-      free(ass);
       return n;
     }else if(rect->type == SUBTITLE_TEXT){
       return subtitle_plane_from_text(parent, rect->text, &ncv->details->subtitle_logged);
@@ -893,7 +792,8 @@ ffmpeg_details_init(void){
     deets->subtitle_time_base = 0.0;
     deets->subtitle_text_field = 9;
     deets->subtitle_logged = false;
-    deets->subtitle_last_logged_hash = 0;
+    deets->subtitle_last_hash = 0;
+    deets->subtitle_cached_text = NULL;
   }
   return deets;
 }
@@ -951,6 +851,9 @@ ffmpeg_from_file(const char* filename){
       ncv->details->subtitle_text_field =
         ass_detect_text_field(ncv->details->subtcodecctx->subtitle_header,
                               ncv->details->subtcodecctx->subtitle_header_size);
+      if(ncv->details->subtitle_text_field < 1){
+        ncv->details->subtitle_text_field = 9;
+      }
     }
     if(avcodec_parameters_to_context(ncv->details->subtcodecctx, sst->codecpar) < 0){
       goto err;
@@ -1410,6 +1313,7 @@ ffmpeg_details_destroy(ncvisual_details* deets){
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
   avsubtitle_free(&deets->subtitle);
+  free(deets->subtitle_cached_text);
   pthread_mutex_destroy(&deets->audio_packet_mutex);
   pthread_mutex_destroy(&deets->packet_mutex);
   free(deets);
