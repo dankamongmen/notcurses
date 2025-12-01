@@ -318,6 +318,86 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->quality);
 }*/
 
+static void
+ass_apply_tag_controls(const char* tag, size_t len, bool* italic){
+  const char* cursor = tag;
+  const char* end = tag + len;
+  while(cursor < end){
+    if(*cursor == '\\'){
+      ++cursor;
+    }
+    if(cursor >= end){
+      break;
+    }
+    if((*cursor == 'i' || *cursor == 'I') && cursor + 1 < end){
+      char state = cursor[1];
+      if(state == '0'){
+        *italic = false;
+      }else if(state == '1'){
+        *italic = true;
+      }
+      cursor += 2;
+      continue;
+    }
+    while(cursor < end && *cursor != '\\'){
+      ++cursor;
+    }
+  }
+}
+
+static bool
+ass_extract_text_and_styles(char* text, unsigned char** styles_out, size_t* len_out){
+  size_t rawlen = strlen(text);
+  unsigned char* styles = malloc(rawlen ? rawlen : 1);
+  if(!styles){
+    return false;
+  }
+  size_t src = 0;
+  size_t dst = 0;
+  bool italic = false;
+  while(text[src]){
+    if(text[src] == '\\'){
+      char next = text[src + 1];
+      if(next == 'N' || next == 'n'){
+        text[dst] = '\n';
+        styles[dst++] = italic;
+        src += 2;
+        continue;
+      }else if(next == 'h' || next == 'H'){
+        text[dst] = ' ';
+        styles[dst++] = italic;
+        src += 2;
+        continue;
+      }
+    }
+    if(text[src] == '{'){
+      char* closing = strchr(text + src, '}');
+      if(closing){
+        ass_apply_tag_controls(text + src + 1, (size_t)(closing - (text + src + 1)), &italic);
+        src = (closing - text) + 1;
+        continue;
+      }
+    }
+    if(text[src] == '\r'){
+      ++src;
+      continue;
+    }
+    text[dst] = text[src];
+    styles[dst] = italic;
+    ++dst;
+    ++src;
+  }
+  text[dst] = '\0';
+  if(dst == 0){
+    free(styles);
+    return false;
+  }
+  *len_out = dst;
+  unsigned char* resized = realloc(styles, dst);
+  *styles_out = resized ? resized : styles;
+  return true;
+}
+
 static struct ncplane*
 subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
   if(parent == NULL || text == NULL){
@@ -350,11 +430,15 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     free(dup);
     return NULL;
   }
+  unsigned char* style_map = NULL;
+  size_t processed_len = 0;
+  if(!ass_extract_text_and_styles(trimmed, &style_map, &processed_len)){
+    free(dup);
+    return NULL;
+  }
+  len = processed_len;
   int linecount = 1;
   for(size_t i = 0 ; i < len ; ++i){
-    if(trimmed[i] == '\r'){
-      trimmed[i] = '\n';
-    }
     if(trimmed[i] == '\n'){
       ++linecount;
     }
@@ -362,15 +446,37 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
 
   int parent_cols = ncplane_dim_x(parent);
   if(parent_cols <= 0){
+    free(style_map);
     free(dup);
     return NULL;
   }
   int maxwidth = 0;
   char* walker = trimmed;
+  size_t offset = 0;
+  size_t* line_offsets = malloc(sizeof(*line_offsets) * linecount);
+  size_t* line_lengths = malloc(sizeof(*line_lengths) * linecount);
+  if(line_offsets == NULL || line_lengths == NULL){
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
+    free(dup);
+    return NULL;
+  }
   for(int line = 0 ; line < linecount ; ++line){
+    line_offsets[line] = offset;
     char* next = strchr(walker, '\n');
     if(next){
       *next = '\0';
+      line_lengths[line] = (size_t)(next - walker);
+    }else{
+      line_lengths[line] = strlen(walker);
+      if(line != linecount - 1){
+        free(line_offsets);
+        free(line_lengths);
+        free(style_map);
+        free(dup);
+        return NULL;
+      }
     }
     int w = ncstrwidth(walker, NULL, NULL);
     if(w > maxwidth){
@@ -379,11 +485,16 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     if(next){
       *next = '\n';
       walker = next + 1;
+      offset += line_lengths[line] + 1;
     }else{
+      offset += line_lengths[line];
       break;
     }
   }
   if(maxwidth <= 0){
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
     free(dup);
     return NULL;
   }
@@ -402,6 +513,9 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
   };
   struct ncplane* n = ncplane_create(parent, &nopts);
   if(n == NULL){
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
     free(dup);
     return NULL;
   }
@@ -421,20 +535,36 @@ subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
     SUBLOG_DEBUG("rendering subtitle text (trimmed): \"%s\"", trimmed);
     *logged_flag = true;
   }
-  char* linewalker = trimmed;
   for(int line = 0 ; line < linecount ; ++line){
-    char* next = strchr(linewalker, '\n');
-    if(next){
-      *next = '\0';
+    size_t line_len = line_lengths[line];
+    if(line_len == 0){
+      continue;
     }
-    ncplane_putstr_yx(n, line, 0, linewalker);
-    if(next){
-      *next = '\n';
-      linewalker = next + 1;
-    }else{
-      break;
+    size_t base = line_offsets[line];
+    size_t cursor = 0;
+    int line_xpos = 0;
+    while(cursor < line_len){
+      bool italic = style_map[base + cursor];
+      size_t chunk_end = cursor + 1;
+      while(chunk_end < line_len && style_map[base + chunk_end] == italic){
+        ++chunk_end;
+      }
+      char saved = trimmed[base + chunk_end];
+      trimmed[base + chunk_end] = '\0';
+      if(italic){
+        ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x00);
+      }else{
+        ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+      }
+      ncplane_putstr_yx(n, line, line_xpos, trimmed + base + cursor);
+      line_xpos += ncstrwidth(trimmed + base + cursor, NULL, NULL);
+      trimmed[base + chunk_end] = saved;
+      cursor = chunk_end;
     }
   }
+  free(line_offsets);
+  free(line_lengths);
+  free(style_map);
   free(dup);
   return n;
 }
