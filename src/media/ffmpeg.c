@@ -24,6 +24,7 @@
 #include <libavformat/avformat.h>
 #include <libavutil/samplefmt.h>
 #include <libavutil/channel_layout.h>
+#include <stdatomic.h>
 #include <libavutil/cpu.h>
 #include <unistd.h>
 #include "lib/visual-details.h"
@@ -169,6 +170,7 @@ typedef struct ncvisual_details {
   int audio_stream_index;  // audio stream index, can be < 0 if no audio
   bool packet_outstanding;
   bool audio_packet_outstanding; // whether we have an audio packet waiting to be decoded
+  atomic_bool audio_enabled;
   audio_packet_queue pending_audio_packets; // audio packets waiting to be sent
   int64_t last_audio_frame_pts; // PTS of last processed audio frame (to prevent reprocessing)
   int64_t last_video_frame_pts; // PTS of last displayed video frame
@@ -702,6 +704,11 @@ ffmpeg_decode(ncvisual* n){
               continue;
             }
 
+            if(!atomic_load_explicit(&n->details->audio_enabled, memory_order_relaxed)){
+              av_packet_unref(n->details->packet);
+              continue;
+            }
+
             static int audio_packet_count = 0;
             audio_packet_count++;
 
@@ -792,6 +799,7 @@ ffmpeg_details_init(void){
     deets->decoded_frames = 0;
     deets->audio_out_channels = 0; // Will be set when resampler is initialized
     audio_queue_init(&deets->pending_audio_packets);
+    atomic_init(&deets->audio_enabled, true);
     if(pthread_mutex_init(&deets->packet_mutex, NULL) != 0){
       free(deets);
       return NULL;
@@ -1390,8 +1398,42 @@ ffmpeg_audio_request_packets(ncvisual* ncv){
     return;
   }
   pthread_mutex_lock(&ncv->details->audio_packet_mutex);
+  if(!atomic_load_explicit(&ncv->details->audio_enabled, memory_order_relaxed)){
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    return;
+  }
   ffmpeg_drain_pending_audio_locked(ncv->details);
   pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+}
+
+API void
+ffmpeg_set_audio_enabled(ncvisual* ncv, bool enabled){
+  if(!ncv || !ncv->details || ncv->details->audio_stream_index < 0){
+    return;
+  }
+  ncvisual_details* deets = ncv->details;
+  bool current = atomic_load_explicit(&deets->audio_enabled, memory_order_relaxed);
+  if(current == enabled){
+    return;
+  }
+  pthread_mutex_lock(&deets->audio_packet_mutex);
+  atomic_store_explicit(&deets->audio_enabled, enabled, memory_order_relaxed);
+  if(!enabled){
+    audio_queue_clear(&deets->pending_audio_packets);
+    deets->audio_packet_outstanding = false;
+    if(deets->audiocodecctx){
+      avcodec_flush_buffers(deets->audiocodecctx);
+    }
+  }
+  pthread_mutex_unlock(&deets->audio_packet_mutex);
+}
+
+API bool
+ffmpeg_is_audio_enabled(ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return false;
+  }
+  return atomic_load_explicit(&ncv->details->audio_enabled, memory_order_relaxed);
 }
 
 // Check if the visual has an audio stream

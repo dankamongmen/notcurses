@@ -42,6 +42,8 @@ int ffmpeg_init_audio_resampler(ncvisual* ncv, int out_sample_rate, int out_chan
 int ffmpeg_get_audio_sample_rate(ncvisual* ncv);
 int ffmpeg_get_audio_channels(ncvisual* ncv);
 void ffmpeg_audio_request_packets(ncvisual* ncv);
+void ffmpeg_set_audio_enabled(ncvisual* ncv, bool enabled);
+bool ffmpeg_is_audio_enabled(ncvisual* ncv);
 double ffmpeg_get_video_position_seconds(const ncvisual* ncv);
 }
 
@@ -315,6 +317,11 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(updated != original){
       marsh->volume_percent->store(updated, std::memory_order_relaxed);
       logdebug("[audio] volume set to %d%%", updated);
+    }
+    bool want_audio = marsh->volume_percent->load(std::memory_order_relaxed) > 0;
+    bool audio_enabled = ffmpeg_is_audio_enabled(ncv);
+    if(want_audio != audio_enabled){
+      ffmpeg_set_audio_enabled(ncv, want_audio);
     }
     marsh->volume_overlay_until = std::chrono::steady_clock::now() +
                                   std::chrono::milliseconds(kNcplayerVolumeOverlayMs);
@@ -681,16 +688,24 @@ static void audio_thread_func(audio_thread_data* data) {
   auto last_log = std::chrono::steady_clock::now();
   int frames_since_log = 0;
   while(*running){
-    ffmpeg_audio_request_packets(ncv);
-    int current_volume = volume_percent ? volume_percent->load(std::memory_order_relaxed) : 100;
-    bool muted = current_volume <= 0;
-    if(muted && !ao_paused){
-      audio_output_pause(ao);
-      audio_output_flush(ao);
-      ao_paused = true;
-    }else if(!muted && ao_paused){
+    bool audio_enabled = ffmpeg_is_audio_enabled(ncv);
+    if(!audio_enabled){
+      if(!ao_paused){
+        audio_output_pause(ao);
+        audio_output_flush(ao);
+        ao_paused = true;
+      }
+      usleep(10000);
+      continue;
+    }else if(ao_paused){
       audio_output_resume(ao);
       ao_paused = false;
+    }
+    ffmpeg_audio_request_packets(ncv);
+    int current_volume = volume_percent ? volume_percent->load(std::memory_order_relaxed) : 100;
+    if(current_volume <= 0){
+      ffmpeg_set_audio_enabled(ncv, false);
+      continue;
     }
     // Get decoded audio frame (packets are read by video decoder)
     // IMPORTANT: avcodec_receive_frame can only return each frame once
@@ -698,33 +713,26 @@ static void audio_thread_func(audio_thread_data* data) {
     // until we've finished processing
     int samples = ffmpeg_get_decoded_audio_frame(ncv);
     if(samples > 0){
-      if(muted){
-        do{
-          consecutive_eagain = 0;
-          samples = ffmpeg_get_decoded_audio_frame(ncv);
-        }while(samples > 0);
-      }else{
-        do{
-          consecutive_eagain = 0;
-          uint8_t* out_data = nullptr;
-          int out_samples = 0;
-          int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
-          if(bytes > 0 && out_data){
-            apply_volume(out_data, bytes);
-            audio_output_write(ao, out_data, bytes);
-            frame_count++;
-            frames_since_log++;
-            auto now = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log).count();
-            if(elapsed >= 1000){
-              frames_since_log = 0;
-              last_log = now;
-            }
-            free(out_data);
+      do{
+        consecutive_eagain = 0;
+        uint8_t* out_data = nullptr;
+        int out_samples = 0;
+        int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
+        if(bytes > 0 && out_data){
+          apply_volume(out_data, bytes);
+          audio_output_write(ao, out_data, bytes);
+          frame_count++;
+          frames_since_log++;
+          auto now = std::chrono::steady_clock::now();
+          auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log).count();
+          if(elapsed >= 1000){
+            frames_since_log = 0;
+            last_log = now;
           }
-          samples = ffmpeg_get_decoded_audio_frame(ncv);
-        }while(samples > 0 && audio_output_needs_data(ao));
-      }
+          free(out_data);
+        }
+        samples = ffmpeg_get_decoded_audio_frame(ncv);
+      }while(samples > 0 && audio_output_needs_data(ao));
       if(!audio_output_needs_data(ao)){
         usleep(1000);
       }
@@ -805,6 +813,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
+    ffmpeg_set_audio_enabled(*ncv, clamped_volume > 0);
     struct ncvisual_options vopts{};
     int r;
     if(noninterp){
