@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <cinttypes>
@@ -48,7 +49,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] [ -n ] [ -a color ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] [ -n ] [ -a color ] [ -v volume ] files" << '\n';
   o << " -h: display help and exit with success\n";
   o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
@@ -60,6 +61,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'oct', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -a color: replace color with a transparent channel\n";
+  o << " -v volume: initial audio volume percentage (0-100, default 100)\n";
   o << " -n: force non-interpolative scaling\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
@@ -156,10 +158,14 @@ struct marshal {
   double seek_delta;
   bool seek_absolute;
   bool resize_restart_pending;
+  std::atomic<int>* volume_percent;
+  std::chrono::steady_clock::time_point volume_overlay_until;
 };
 
 static constexpr double kNcplayerSeekSeconds = 5.0;
 static constexpr double kNcplayerSeekMinutes = 2.0 * 60.0;
+static constexpr int kNcplayerVolumeOverlayMs = 1000;
+static constexpr int kNcplayerVolumeStep = 5;
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vmarshal) -> int {
@@ -210,6 +216,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(marsh->blitter == NCBLIT_DEFAULT){
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
   }
+  const int current_volume = marsh->volume_percent ? marsh->volume_percent->load(std::memory_order_relaxed) : 100;
   if(!marsh->quiet){
     // FIXME put this on its own plane if we're going to be erase()ing it
     stdn->erase();
@@ -220,6 +227,17 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else{
       stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                    notcurses_str_blitter(vopts->blitter));
+    }
+    bool show_volume_overlay = false;
+    if(marsh->volume_percent && marsh->volume_overlay_until.time_since_epoch().count() > 0){
+      auto now_overlay = std::chrono::steady_clock::now();
+      show_volume_overlay = now_overlay < marsh->volume_overlay_until;
+    }
+    if(show_volume_overlay){
+      unsigned rows, cols;
+      ncplane_dim_yx(*stdn, &rows, &cols);
+      int center_row = rows > 0 ? static_cast<int>(rows / 2) : 0;
+      stdn->printf(center_row, NCAlign::Center, "vol %3d%%", current_volume);
     }
   }
 
@@ -287,6 +305,19 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     destroy_subtitle_plane();
     logdebug("[resize] async restart due to %s", src ? src : "unknown");
     return 2;
+  };
+  auto adjust_volume = [&](int delta){
+    if(marsh->volume_percent == nullptr){
+      return;
+    }
+    int original = marsh->volume_percent->load(std::memory_order_relaxed);
+    int updated = std::clamp(original + delta, 0, 100);
+    if(updated != original){
+      marsh->volume_percent->store(updated, std::memory_order_relaxed);
+      logdebug("[audio] volume set to %d%%", updated);
+    }
+    marsh->volume_overlay_until = std::chrono::steady_clock::now() +
+                                  std::chrono::milliseconds(kNcplayerVolumeOverlayMs);
   };
   int64_t remaining = display_ns;
   const int64_t h = remaining / (60 * 60 * NANOSECS_IN_SEC);
@@ -360,6 +391,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       }while(ni.id != 'q' && (ni.evtype == EvType::Release || ni.id != ' '));
     }
     // if we just hit a non-space character to unpause, ignore it
+    const bool shift_pressed = ncinput_shift_p(&ni);
     if(keyp == NCKey::Resize){
       if(marsh->resize_restart_pending){
         logdebug("[resize] restart already pending, skipping key resize");
@@ -390,26 +422,20 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       marsh->show_fps = !marsh->show_fps;
       continue;
     }else if(keyp == NCKey::Up){
-      marsh->request = PlaybackRequest::Seek;
-      marsh->seek_delta = -kNcplayerSeekMinutes;
-      marsh->seek_absolute = false;
-      destroy_subtitle_plane();
-      return 2;
+      adjust_volume(kNcplayerVolumeStep);
+      continue;
     }else if(keyp == NCKey::Down){
-      marsh->request = PlaybackRequest::Seek;
-      marsh->seek_delta = kNcplayerSeekMinutes;
-      marsh->seek_absolute = false;
-      destroy_subtitle_plane();
-      return 2;
+      adjust_volume(-kNcplayerVolumeStep);
+      continue;
     }else if(keyp == NCKey::Right){
       marsh->request = PlaybackRequest::Seek;
-      marsh->seek_delta = kNcplayerSeekSeconds;
+      marsh->seek_delta = shift_pressed ? kNcplayerSeekMinutes : kNcplayerSeekSeconds;
       marsh->seek_absolute = false;
       destroy_subtitle_plane();
       return 2;
     }else if(keyp == NCKey::Left){
       marsh->request = PlaybackRequest::Seek;
-      marsh->seek_delta = -kNcplayerSeekSeconds;
+      marsh->seek_delta = shift_pressed ? -kNcplayerSeekMinutes : -kNcplayerSeekSeconds;
       marsh->seek_absolute = false;
       destroy_subtitle_plane();
       return 2;
@@ -428,13 +454,17 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                  float* timescale, ncscale_e* scalemode, ncblitter_e* blitter,
                  float* displaytime, bool* loop, bool* noninterp,
-                 uint32_t* transcolor, bool* climode)
+                 uint32_t* transcolor, bool* climode, int* volume_percent)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
   *displaytime = -1;
+  if(volume_percent){
+    *volume_percent = std::clamp(*volume_percent, 0, 100);
+  }
+  bool volume_seen = false;
   int c;
-  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kLa:n")) != -1){
+  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kLa:nv:")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -549,6 +579,25 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         }
         opts.loglevel = static_cast<ncloglevel_e>(ll);
         break;
+      }case 'v':{
+        if(volume_percent == nullptr){
+          break;
+        }
+        if(volume_seen){
+          std::cerr << "Provided -v twice!" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        std::stringstream ss;
+        ss << optarg;
+        int vol;
+        ss >> vol;
+        if(ss.fail() || vol < 0 || vol > 100){
+          std::cerr << "Invalid volume [" << optarg << "] (wanted [0..100])\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        *volume_percent = vol;
+        volume_seen = true;
+        break;
       }default:
         usage(std::cerr, argv[0], EXIT_FAILURE);
         break;
@@ -570,6 +619,7 @@ struct audio_thread_data {
   audio_output* ao;
   std::atomic<bool>* running;
   std::mutex* mutex;
+  std::atomic<int>* volume_percent;
 };
 
 // Audio thread function - processes decoded frames (video decoder reads packets)
@@ -577,6 +627,32 @@ static void audio_thread_func(audio_thread_data* data) {
   ncvisual* ncv = data->ncv;
   audio_output* ao = data->ao;
   std::atomic<bool>* running = data->running;
+  std::atomic<int>* volume_percent = data->volume_percent;
+  bool ao_paused = false;
+
+  auto apply_volume = [&](uint8_t* buffer, int byte_count){
+    if(buffer == nullptr || byte_count <= 0 || volume_percent == nullptr){
+      return;
+    }
+    int vol = volume_percent->load(std::memory_order_relaxed);
+    if(vol >= 100){
+      return;
+    }
+    int16_t* samples = reinterpret_cast<int16_t*>(buffer);
+    size_t sample_count = static_cast<size_t>(byte_count) / sizeof(int16_t);
+    if(sample_count == 0){
+      std::memset(buffer, 0, byte_count);
+      return;
+    }
+    if(vol <= 0){
+      std::fill(samples, samples + sample_count, 0);
+      return;
+    }
+    for(size_t idx = 0 ; idx < sample_count ; ++idx){
+      int scaled = (samples[idx] * vol) / 100;
+      samples[idx] = static_cast<int16_t>(std::clamp(scaled, -32768, 32767));
+    }
+  };
 
   if(!ffmpeg_has_audio(ncv) || !ao){
     return;
@@ -606,31 +682,49 @@ static void audio_thread_func(audio_thread_data* data) {
   int frames_since_log = 0;
   while(*running){
     ffmpeg_audio_request_packets(ncv);
+    int current_volume = volume_percent ? volume_percent->load(std::memory_order_relaxed) : 100;
+    bool muted = current_volume <= 0;
+    if(muted && !ao_paused){
+      audio_output_pause(ao);
+      audio_output_flush(ao);
+      ao_paused = true;
+    }else if(!muted && ao_paused){
+      audio_output_resume(ao);
+      ao_paused = false;
+    }
     // Get decoded audio frame (packets are read by video decoder)
     // IMPORTANT: avcodec_receive_frame can only return each frame once
     // So we must process the frame immediately and not call get_decoded_audio_frame again
     // until we've finished processing
     int samples = ffmpeg_get_decoded_audio_frame(ncv);
     if(samples > 0){
-      do{
-        consecutive_eagain = 0;
-        uint8_t* out_data = nullptr;
-        int out_samples = 0;
-        int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
-        if(bytes > 0 && out_data){
-          audio_output_write(ao, out_data, bytes);
-          frame_count++;
-          frames_since_log++;
-          auto now = std::chrono::steady_clock::now();
-          auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log).count();
-          if(elapsed >= 1000){
-            frames_since_log = 0;
-            last_log = now;
+      if(muted){
+        do{
+          consecutive_eagain = 0;
+          samples = ffmpeg_get_decoded_audio_frame(ncv);
+        }while(samples > 0);
+      }else{
+        do{
+          consecutive_eagain = 0;
+          uint8_t* out_data = nullptr;
+          int out_samples = 0;
+          int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
+          if(bytes > 0 && out_data){
+            apply_volume(out_data, bytes);
+            audio_output_write(ao, out_data, bytes);
+            frame_count++;
+            frames_since_log++;
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log).count();
+            if(elapsed >= 1000){
+              frames_since_log = 0;
+              last_log = now;
+            }
+            free(out_data);
           }
-          free(out_data);
-        }
-        samples = ffmpeg_get_decoded_audio_frame(ncv);
-      }while(samples > 0 && audio_output_needs_data(ao));
+          samples = ffmpeg_get_decoded_audio_frame(ncv);
+        }while(samples > 0 && audio_output_needs_data(ao));
+      }
       if(!audio_output_needs_data(ao)){
         usleep(1000);
       }
@@ -660,6 +754,7 @@ static void audio_thread_func(audio_thread_data* data) {
       int out_samples = 0;
       int bytes = ffmpeg_resample_audio(ncv, &out_data, &out_samples);
       if(bytes > 0 && out_data){
+        apply_volume(out_data, bytes);
         audio_output_write(ao, out_data, bytes);
         free(out_data);
         flush_count++;
@@ -675,7 +770,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                bool quiet, bool loop,
                                double timescale, double displaytime,
                                bool noninterp, uint32_t transcolor,
-                               bool climode){
+                               bool climode, int initial_volume){
   unsigned dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   if(climode){
@@ -704,6 +799,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   std::atomic<bool> audio_running(false);
   std::mutex audio_mutex;
   audio_thread_data* audio_data = nullptr;
+  const int clamped_volume = std::clamp(initial_volume, 0, 100);
+  std::atomic<int> volume_percent(clamped_volume);
 
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
@@ -813,7 +910,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         if(ao){
           logdebug("[audio] starting audio thread");
           audio_running = true;
-          audio_data = new audio_thread_data{*ncv, ao, &audio_running, &audio_mutex};
+          audio_data = new audio_thread_data{*ncv, ao, &audio_running, &audio_mutex, &volume_percent};
           audio_thread = new std::thread(audio_thread_func, audio_data);
           audio_output_start(ao);
         }else{
@@ -835,6 +932,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         .seek_delta = 0.0,
         .seek_absolute = false,
         .resize_restart_pending = false,
+        .volume_percent = &volume_percent,
+        .volume_overlay_until = std::chrono::steady_clock::time_point::min(),
       };
       logdebug("[stream] starting ncvisual_stream iteration with %ux%u plane", vopts.n ? ncplane_dim_x(vopts.n) : 0, vopts.n ? ncplane_dim_y(vopts.n) : 0);
       r = ncv->stream(&vopts, timescale, perframe, &marsh);
@@ -1027,7 +1126,7 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
                          bool quiet, bool loop,
                          double timescale, double displaytime,
                          bool noninterp, uint32_t transcolor,
-                         bool climode){
+                         bool climode, int initial_volume){
   // no -k, we're using full rendered mode (and the alternate screen).
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   if(quiet){
@@ -1043,7 +1142,7 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
     r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
                                    quiet, loop, timescale, displaytime,
-                                   noninterp, transcolor, climode);
+                                   noninterp, transcolor, climode, initial_volume);
     if(!nc.stop()){
       return -1;
     }
@@ -1071,14 +1170,15 @@ auto main(int argc, char** argv) -> int {
   bool loop = false;
   bool noninterp = false;
   bool climode = false;
+  int initial_volume = 100;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &displaytime, &loop, &noninterp, &transcolor,
-                            &climode);
+                            &climode, &initial_volume);
   // if -k was provided, we use CLI mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
                           quiet, loop, timescale, displaytime, noninterp,
-                          transcolor, climode)){
+                          transcolor, climode, initial_volume)){
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
