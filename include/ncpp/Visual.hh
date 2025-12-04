@@ -91,6 +91,16 @@ namespace ncpp
 			return error_guard (ncvisual_simple_streamer (visual, vopts, tspec, curry), -1);
 		}
 
+		bool seek (double seconds) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncvisual_seek (visual, seconds), -1);
+		}
+
+		int64_t frame_index () const NOEXCEPT_MAYBE
+		{
+			return ncvisual_frame_index (visual);
+		}
+
 		int polyfill (int y, int x, uint32_t rgba) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncvisual_polyfill_yx (visual, y, x, rgba), -1);

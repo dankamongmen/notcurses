@@ -15,6 +15,7 @@
 #include <notcurses/ncport.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncseqs.h>
+#include <notcurses/api.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,11 +29,6 @@ extern "C" {
 #define static API
 #endif
 
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 // Get a human-readable string describing the running Notcurses version.
@@ -3433,6 +3429,15 @@ API int ncvisual_decode(struct ncvisual* nc)
 // will render the first frame, as if the ncvisual had been closed and reopened.
 // the return values remain the same as those of ncvisual_decode().
 API int ncvisual_decode_loop(struct ncvisual* nc)
+  __attribute__ ((nonnull (1)));
+
+// Seek within a visual by the provided number of seconds. Positive values move
+// forward, negative backwards. Not all backends support seeking.
+API int ncvisual_seek(struct ncvisual* n, double seconds)
+  __attribute__ ((nonnull (1)));
+
+// Return zero-based index of last decoded frame, or -1 if unavailable
+API int64_t ncvisual_frame_index(const struct ncvisual* n)
   __attribute__ ((nonnull (1)));
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are supported at

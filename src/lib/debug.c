@@ -1,6 +1,7 @@
 #include "internal.h"
+#include <notcurses/api.h>
 
-ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
+API ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
 
 void notcurses_debug(const notcurses* nc, FILE* debugfp){
   fbuf f;

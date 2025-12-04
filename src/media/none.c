@@ -10,6 +10,7 @@ printbanner(fbuf* f){
 
 ncvisual_implementation local_visual_implementation = {
   .visual_printbanner = printbanner,
+  .visual_frame_index = NULL,
 };
 
 #endif
