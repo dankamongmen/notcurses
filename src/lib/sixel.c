@@ -1,8 +1,8 @@
 #include <math.h>
+#include <stdlib.h>  // for getenv()
 #include <stdatomic.h>
 #include "internal.h"
 #include "fbuf.h"
-#include "in.h"  // for TERMINAL_TMUX
 
 #define RGBSIZE 3
 
@@ -1539,7 +1539,8 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
     }
   }
   // Check if running inside tmux - use DCS passthrough to send sixel to outer terminal
-  if(ti && ti->qterm == TERMINAL_TMUX){
+  // Use TMUX env var as it's more reliable than terminal query detection
+  if(getenv("TMUX") != NULL){
     int ret = sixel_write_tmux_passthrough(f, s->glyph.buf, s->glyph.used);
     if(ret < 0){
       return -1;

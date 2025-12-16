@@ -827,6 +827,25 @@ apply_mlterm_heuristics(tinfo* ti){
   return "MLterm";
 }
 
+// tmux doesn't respond to sixel capability queries, but can pass through sixel
+// to the outer terminal via DCS passthrough. Force sixel support when running
+// inside tmux (TMUX env var is set) to enable passthrough rendering.
+static const char*
+apply_tmux_heuristics(tinfo* ti){
+  // Check if we're actually running inside tmux
+  if(getenv("TMUX") != NULL){
+    // Force sixel color registers to enable sixel setup
+    // The outer terminal (e.g., Ghostty, iTerm2) will actually render the sixel
+    if(ti->color_registers == 0){
+      ti->color_registers = 256;
+      loginfo("tmux detected - forcing sixel color_registers to 256 for passthrough");
+    }
+    ti->caps.rgb = true;
+    ti->caps.quadrants = true;
+  }
+  return "tmux";
+}
+
 static const char*
 apply_wezterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
   ti->caps.rgb = true;
@@ -1004,7 +1023,7 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
                                       forcesdm, invertsixel);
       break;
     case TERMINAL_TMUX:
-      newname = "tmux"; // FIXME what, oh what to do with tmux?
+      newname = apply_tmux_heuristics(ti);
       break;
     case TERMINAL_GNUSCREEN:
       newname = apply_gnuscreen_heuristics(ti);
@@ -1522,6 +1541,24 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &forcesdm, &invertsixel, nonewfonts)){
     goto err;
+  }
+  // If running in tmux, check if outer terminal supports kitty graphics.
+  // Ghostty and Kitty use kitty protocol, not sixel. tmux doesn't report
+  // kitty graphics support, but we can detect the outer terminal via env vars.
+  if(ti->qterm == TERMINAL_TMUX){
+    const char* term_program = getenv("TERM_PROGRAM");
+    const char* ghostty_resources = getenv("GHOSTTY_RESOURCES_DIR");
+    const char* kitty_window_id = getenv("KITTY_WINDOW_ID");
+    if((term_program && (strcmp(term_program, "ghostty") == 0 ||
+                         strcmp(term_program, "Ghostty") == 0 ||
+                         strcmp(term_program, "kitty") == 0)) ||
+       ghostty_resources != NULL || kitty_window_id != NULL){
+      // Outer terminal is Ghostty or Kitty - use kitty graphics with passthrough
+      loginfo("tmux: outer terminal supports kitty graphics, using passthrough");
+      kitty_graphics = 1;
+      // Don't use sixel for these terminals (they don't support it)
+      ti->color_registers = 0;
+    }
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){
