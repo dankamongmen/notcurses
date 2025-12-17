@@ -450,12 +450,14 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    PIXELMOUSEQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    "\x1b[?1;3;1024S" /* try to set 1024 cregs */ \
-                   KITTYQUERY \
                    CREGSXTSM \
                    GEOMXTSM \
                    GEOMPIXEL \
                    GEOMCELL \
                    PRIDEVATTR
+// KITTYQUERY is sent separately in send_initial_directives() to allow
+// skipping it in tmux (where we detect kitty graphics via env vars and
+// the response would leak to the application with DRAIN_INPUT)
 
 // kitty keyboard push, used at start
 #define KKEYBOARD_PUSH "\x1b[>u"
@@ -505,6 +507,16 @@ send_initial_directives(queried_terminals_e qterm, int fd){
     return -1;
   }
   total += strlen(DIRECTIVES);
+  // Send KITTYQUERY only when NOT in tmux. In tmux, we detect kitty graphics
+  // support via environment variables (TERM_PROGRAM, GHOSTTY_RESOURCES_DIR,
+  // KITTY_WINDOW_ID), and the query response would leak to applications using
+  // DRAIN_INPUT since tmux doesn't properly consume it.
+  if(qterm != TERMINAL_TMUX){
+    if(blocking_write(fd, KITTYQUERY, strlen(KITTYQUERY))){
+      return -1;
+    }
+    total += strlen(KITTYQUERY);
+  }
   return total;
 }
 
@@ -1141,6 +1153,12 @@ build_supported_styles(tinfo* ti){
 // i'm likewise unsure what we're supposed to do should you ssh anywhere =[.
 static queried_terminals_e
 macos_early_matches(void){
+  // Detect tmux early via TMUX environment variable. This is important for
+  // skipping KITTYQUERY (whose response would leak with DRAIN_INPUT) since
+  // we detect kitty graphics support in tmux via env vars instead.
+  if(getenv("TMUX") != NULL){
+    return TERMINAL_TMUX;
+  }
   const char* tp = getenv("TERM_PROGRAM");
   if(tp == NULL){
     return TERMINAL_UNKNOWN;
@@ -1162,6 +1180,12 @@ macos_early_matches(void){
 // replies, and don't bother sending any identification requests.
 static queried_terminals_e
 unix_early_matches(const char* term){
+  // Detect tmux early via TMUX environment variable. This is important for
+  // skipping KITTYQUERY (whose response would leak with DRAIN_INPUT) since
+  // we detect kitty graphics support in tmux via env vars instead.
+  if(getenv("TMUX") != NULL){
+    return TERMINAL_TMUX;
+  }
   if(term == NULL){
     return TERMINAL_UNKNOWN;
   }
