@@ -958,9 +958,16 @@ apply_konsole_heuristics(tinfo* ti){
 }
 
 static const char*
-apply_ghostty_heuristics(tinfo* ti){
+apply_ghostty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // Ghostty supports kitty graphics protocol
   ti->caps.quadrants = true;
   ti->caps.sextants = true;
+  ti->caps.rgb = true;
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
+  // Ghostty uses kitty graphics protocol (static mode for compatibility)
+  setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
   return "ghostty";
 }
 
@@ -1080,7 +1087,7 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_konsole_heuristics(ti);
       break;
     case TERMINAL_GHOSTTY:
-      newname = apply_ghostty_heuristics(ti);
+      newname = apply_ghostty_heuristics(ti, tablelen, tableused);
       break;
     default:
       logwarn("no match for qterm %d tname %s", qterm, tname);
