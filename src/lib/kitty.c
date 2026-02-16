@@ -1,10 +1,84 @@
 #include "internal.h"
 #include "base64.h"
+#include "in.h"  // for TERMINAL_TMUX
 #ifdef USE_DEFLATE
 #include <libdeflate.h>
 #else
 #include <zlib.h>
 #endif
+
+// Check if we're running in tmux and need passthrough
+static inline bool
+kitty_in_tmux(const tinfo* ti){
+  return ti && ti->qterm == TERMINAL_TMUX;
+}
+
+// Write a single APC sequence with tmux DCS passthrough wrapping.
+// In tmux passthrough, all ESC (0x1b) bytes must be doubled.
+static int
+kitty_write_single_passthrough(fbuf* f, const char* buf, size_t len){
+  // tmux DCS passthrough prefix: ESC P tmux ;
+  if(fbuf_puts(f, "\x1bPtmux;") < 0){
+    return -1;
+  }
+  // Write data with doubled ESC bytes
+  size_t written = 0;
+  for(size_t i = 0; i < len; i++){
+    if(buf[i] == '\x1b'){
+      // Double the ESC byte for tmux passthrough
+      if(fbuf_putc(f, '\x1b') != 1){
+        return -1;
+      }
+      written++;
+    }
+    if(fbuf_putc(f, buf[i]) != 1){
+      return -1;
+    }
+    written++;
+  }
+  // tmux DCS passthrough suffix: ESC backslash (ST)
+  if(fbuf_puts(f, "\x1b\\") < 0){
+    return -1;
+  }
+  return written;
+}
+
+// Write kitty graphics data with tmux DCS passthrough wrapping.
+// The buffer may contain multiple APC sequences (chunks).
+// Each APC sequence (ESC _ ... ESC \) must be wrapped in its own passthrough.
+static int
+kitty_write_tmux_passthrough(fbuf* f, const char* buf, size_t len){
+  size_t total_written = 0;
+  size_t i = 0;
+
+  while(i < len){
+    // Look for APC start: ESC _
+    if(buf[i] == '\x1b' && i + 1 < len && buf[i + 1] == '_'){
+      // Find the end of this APC sequence: ESC \ (ST)
+      size_t apc_start = i;
+      i += 2; // skip ESC _
+      while(i < len){
+        if(buf[i] == '\x1b' && i + 1 < len && buf[i + 1] == '\\'){
+          // Found ST - end of APC
+          size_t apc_end = i + 2;
+          size_t apc_len = apc_end - apc_start;
+          int ret = kitty_write_single_passthrough(f, buf + apc_start, apc_len);
+          if(ret < 0){
+            return -1;
+          }
+          total_written += ret;
+          i = apc_end;
+          break;
+        }
+        i++;
+      }
+    }else{
+      // Not an APC sequence - skip this byte (shouldn't happen for valid kitty data)
+      i++;
+    }
+  }
+  return total_written;
+}
 
 // Kitty has its own bitmap graphics protocol, rather superior to DEC Sixel.
 // A header is written with various directives, followed by a number of
@@ -531,16 +605,49 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
   return -1;
 }
 
-int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll){
+int kitty_commit(const tinfo* ti, fbuf* f, sprixel* s, unsigned noscroll){
   loginfo("committing Kitty graphic id %u", s->id);
-  int i;
-  if(s->pxoffx || s->pxoffy){
-    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s,q=2\e\\", s->id,
-                    s->pxoffx, s->pxoffy, noscroll ? ",C=1" : "");
-  }else{
-    i = fbuf_printf(f, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
+  int ret;
+
+  // In tmux, we need to send cursor positioning through passthrough
+  // because the outer terminal has a different cursor position than tmux
+  if(kitty_in_tmux(ti) && s->n && s->n->pile && s->n->pile->nc){
+    int y, x;
+    ncplane_abs_yx(s->n, &y, &x);
+    // Add margins to get actual screen position (same as render.c does)
+    const struct notcurses* nc = s->n->pile->nc;
+    int screen_y = y + nc->margin_t;
+    int screen_x = x + nc->margin_l;
+    // Send cursor position through passthrough: CSI row;col H
+    // Note: CSI uses 1-based coordinates
+    char cup[32];
+    int cuplen = snprintf(cup, sizeof(cup), "\e[%d;%dH", screen_y + 1, screen_x + 1);
+    if(cuplen > 0 && cuplen < (int)sizeof(cup)){
+      ret = kitty_write_single_passthrough(f, cup, cuplen);
+      if(ret < 0){
+        return -1;
+      }
+    }
   }
-  if(i < 0){
+
+  char cmd[128];
+  int cmdlen;
+  if(s->pxoffx || s->pxoffy){
+    cmdlen = snprintf(cmd, sizeof(cmd), "\e_Ga=p,i=%u,p=1,X=%u,Y=%u%s,q=2\e\\",
+                      s->id, s->pxoffx, s->pxoffy, noscroll ? ",C=1" : "");
+  }else{
+    cmdlen = snprintf(cmd, sizeof(cmd), "\e_Ga=p,i=%u,p=1,q=2%s\e\\",
+                      s->id, noscroll ? ",C=1" : "");
+  }
+  if(cmdlen < 0 || cmdlen >= (int)sizeof(cmd)){
+    return -1;
+  }
+  if(kitty_in_tmux(ti)){
+    ret = kitty_write_tmux_passthrough(f, cmd, cmdlen);
+  }else{
+    ret = fbuf_putn(f, cmd, cmdlen);
+  }
+  if(ret < 0){
     return -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
@@ -783,7 +890,11 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
       // alas. see https://github.com/dankamongmen/notcurses/issues/1910 =[.
       // parse_start isn't used in animation mode, so no worries about the
       // fact that this doesn't complete the header in that case.
-      *parse_start = fbuf_printf(f, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s",
+      // NOTE: Removed p=1 from a=t command. With p=1, kitty creates a placement
+      // immediately at cursor position during transmit. Without p=1, image is
+      // only stored in memory and displayed later with a=p (kitty_commit).
+      // This is needed for tmux passthrough where cursor position is unreliable.
+      *parse_start = fbuf_printf(f, "\e_Gf=32,s=%d,v=%d,i=%d,a=t,%s",
                                  lenx, leny, s->id,
                                  animated ? "q=2" : chunks ? "m=1;" : "q=2;");
       if(*parse_start < 0){
@@ -1127,12 +1238,20 @@ int kitty_blit_selfref(ncplane* n, int linesize, const void* data,
                          NCPIXEL_KITTY_SELFREF);
 }
 
-int kitty_remove(int id, fbuf* f){
+int kitty_remove(const tinfo* ti, int id, fbuf* f){
   loginfo("removing graphic %u", id);
-  if(fbuf_printf(f, "\e_Ga=d,d=I,i=%d\e\\", id) < 0){
+  char cmd[64];
+  int cmdlen = snprintf(cmd, sizeof(cmd), "\e_Ga=d,d=I,i=%d\e\\", id);
+  if(cmdlen < 0 || cmdlen >= (int)sizeof(cmd)){
     return -1;
   }
-  return 0;
+  int ret;
+  if(kitty_in_tmux(ti)){
+    ret = kitty_write_tmux_passthrough(f, cmd, cmdlen);
+  }else{
+    ret = fbuf_putn(f, cmd, cmdlen);
+  }
+  return ret < 0 ? -1 : 0;
 }
 
 // damages cells underneath the graphic which were OPAQUE
@@ -1169,8 +1288,9 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 // returns the number of bytes written
 int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
                int yoff, int xoff){
-  (void)ti;
   (void)p;
+  (void)yoff;
+  (void)xoff;
   bool animated = false;
   if(s->animating){ // active animation
     s->animating = false;
@@ -1179,8 +1299,43 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
   int ret = s->glyph.used;
   logdebug("dumping %" PRIu64 "b for %u at %d %d", s->glyph.used, s->id, yoff, xoff);
   if(ret){
-    if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
-      ret = -1;
+    // Check if running inside tmux - use DCS passthrough to send kitty graphics to outer terminal
+    if(ti && ti->qterm == TERMINAL_TMUX){
+      int screen_y = 0, screen_x = 0;
+      // Get screen position for cursor
+      if(s->n && s->n->pile && s->n->pile->nc){
+        int y, x;
+        ncplane_abs_yx(s->n, &y, &x);
+        const struct notcurses* nc = s->n->pile->nc;
+        screen_y = y + nc->margin_t;
+        screen_x = x + nc->margin_l;
+      }
+      // Send kitty graphics data through passthrough (without p=1, so no display yet)
+      ret = kitty_write_tmux_passthrough(f, s->glyph.buf, s->glyph.used);
+      if(ret < 0){
+        return -1;
+      }
+      // Now send a=p (placement) with cursor position through passthrough.
+      // Image is in memory, this displays it at specified position.
+      char place_cmd[128];
+      int place_len = snprintf(place_cmd, sizeof(place_cmd),
+                               "\e[%d;%dH\e_Ga=p,i=%u,p=1,q=2\e\\",
+                               screen_y + 1, screen_x + 1, s->id);
+      if(place_len > 0 && place_len < (int)sizeof(place_cmd)){
+        if(kitty_write_single_passthrough(f, place_cmd, place_len) < 0){
+          return -1;
+        }
+      }
+      s->invalidated = SPRIXEL_QUIESCENT; // Mark as done, skip kitty_commit
+      if(animated){
+        fbuf_free(&s->glyph);
+      }
+      return ret; // Early return for tmux - don't overwrite invalidated state
+    }else{
+      // Normal kitty output (not in tmux)
+      if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
+        ret = -1;
+      }
     }
   }
   if(animated){
@@ -1191,26 +1346,43 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
 }
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
-int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
+int kitty_move(const tinfo* ti, sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff){
   const int targy = s->n->absy;
   const int targx = s->n->absx;
   logdebug("moving %u to %d %d", s->id, targy, targx);
   int ret = 0;
   if(goto_location(ncplane_notcurses(s->n), f, targy + yoff, targx + xoff, s->n)){
     ret = -1;
-  }else if(fbuf_printf(f, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
-                       noscroll ? ",C=1" : "") < 0){
-    ret = -1;
+  }else{
+    char cmd[64];
+    int cmdlen = snprintf(cmd, sizeof(cmd), "\e_Ga=p,i=%d,p=1,q=2%s\e\\",
+                          s->id, noscroll ? ",C=1" : "");
+    if(cmdlen < 0 || cmdlen >= (int)sizeof(cmd)){
+      ret = -1;
+    }else if(kitty_in_tmux(ti)){
+      if(kitty_write_tmux_passthrough(f, cmd, cmdlen) < 0){
+        ret = -1;
+      }
+    }else{
+      if(fbuf_putn(f, cmd, cmdlen) < 0){
+        ret = -1;
+      }
+    }
   }
   s->invalidated = SPRIXEL_QUIESCENT;
   return ret;
 }
 
 // clears all kitty bitmaps
-int kitty_clear_all(fbuf* f){
+int kitty_clear_all(const tinfo* ti, fbuf* f){
 //fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
-  if(fbuf_putn(f, "\x1b_Ga=d,q=2\x1b\\", 12) < 0){
-    return -1;
+  const char cmd[] = "\x1b_Ga=d,q=2\x1b\\";
+  const size_t cmdlen = sizeof(cmd) - 1;  // exclude null terminator
+  int ret;
+  if(kitty_in_tmux(ti)){
+    ret = kitty_write_tmux_passthrough(f, cmd, cmdlen);
+  }else{
+    ret = fbuf_putn(f, cmd, cmdlen);
   }
-  return 0;
+  return ret < 0 ? -1 : 0;
 }

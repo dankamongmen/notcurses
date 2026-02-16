@@ -1056,7 +1056,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, fbuf* f){
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
       if(nc->tcache.pixel_remove){
-        if(nc->tcache.pixel_remove(s->id, f) < 0){
+        if(nc->tcache.pixel_remove(&nc->tcache, s->id, f) < 0){
           return -1;
         }
         if( (*parent = s->next) ){

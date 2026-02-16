@@ -141,17 +141,17 @@ typedef struct tinfo {
   // redrawn in a sixel (when old was not transparent, and new is not opaque).
   // it leaves the sprixel in INVALIDATED so that it's drawn in phase 2.
   void (*pixel_refresh)(const struct ncpile* p, sprixel* s);
-  int (*pixel_remove)(int id, fbuf* f); // kitty only, issue actual delete command
+  int (*pixel_remove)(const struct tinfo*, int id, fbuf* f); // kitty only, issue actual delete command
   int (*pixel_init)(struct tinfo* ti, int fd); // called when support is detected
   int (*pixel_draw)(const struct tinfo*, const struct ncpile* p,
                     sprixel* s, fbuf* f, int y, int x);
   int (*pixel_draw_late)(const struct tinfo*, sprixel* s, int yoff, int xoff);
   // execute move (erase old graphic, place at new location) if non-NULL
-  int (*pixel_move)(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
+  int (*pixel_move)(const struct tinfo*, sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
   int (*pixel_scrub)(const struct ncpile* p, sprixel* s);
-  int (*pixel_clear_all)(fbuf* f);  // called during context startup
+  int (*pixel_clear_all)(const struct tinfo*, fbuf* f);  // called during context startup
   // make a loaded graphic visible. only used with kitty.
-  int (*pixel_commit)(fbuf* f, sprixel* s, unsigned noscroll);
+  int (*pixel_commit)(const struct tinfo*, fbuf* f, sprixel* s, unsigned noscroll);
   // scroll all graphics up. only used with fbcon.
   void (*pixel_scroll)(const struct ncpile* p, struct tinfo*, int rows);
   void (*pixel_cleanup)(struct tinfo*); // called at shutdown
