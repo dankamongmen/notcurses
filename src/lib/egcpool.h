@@ -93,15 +93,17 @@ utf8_codepoint_length(unsigned char c){
   }
 }
 
-// Eat an EGC from the UTF-8 string input, counting bytes and columns. We use
-// libunistring's uc_is_grapheme_break() to segment EGCs. Writes the number of
-// columns to '*colcount'. Returns the number of bytes consumed, not including
-// any NUL terminator. Neither the number of bytes nor columns is necessarily
-// equal to the number of decoded code points. Such are the ways of Unicode.
-// uc_is_grapheme_break() wants UTF-32, which is fine, because we need wchar_t
-// to use wcwidth() anyway FIXME except this doesn't work with 16-bit wchar_t!
+
+// Eat an EGC from the UTF-8 string input (examining at most 'maxbytes' bytes),
+// counting bytes and columns. We use libunistring's uc_is_grapheme_break() to
+// segment EGCs. Writes the number of columns to '*colcount'. Returns the number
+// of bytes consumed, not including any NUL terminator. Neither the number of
+// bytes nor columns is necessarily equal to the number of decoded code points.
+// Such are the ways of Unicode. uc_is_grapheme_break() wants UTF-32, which is
+// fine, because we need wchar_t to use wcwidth() anyway FIXME except this doesn't
+// work with 16-bit wchar_t!
 static inline int
-utf8_egc_len(const char* gcluster, int* colcount){
+utf8_egcn_len(const char* gcluster, size_t maxbytes, int* colcount){
   size_t ret = 0;
   *colcount = 0;
   int r;
@@ -110,10 +112,13 @@ utf8_egc_len(const char* gcluster, int* colcount){
   wchar_t wc, prevw = 0;
   bool injoin = false;
   do{
-    r = mbrtowc(&wc, gcluster, MB_LEN_MAX, &mbt);
+    r = mbrtowc(&wc, gcluster, maxbytes - ret, &mbt);
     if(r < 0){
       // FIXME probably ought escape this somehow
-      logerror("invalid UTF8: %s", gcluster);
+      logerror("aaaaa invalid UTF8 (%zu, %zu):", maxbytes, ret);
+      for(size_t i = 0; i < maxbytes - ret; i++) {
+      	logerror("  [%02x]", gcluster[i]);
+      }
       return -1;
     }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
@@ -149,9 +154,18 @@ utf8_egc_len(const char* gcluster, int* colcount){
     if(!prevw){
       prevw = wc;
     }
-  }while(r);
+  }while(r && ret < maxbytes);
   // FIXME what if injoin is set? incomplete EGC!
   return ret;
+}
+
+
+// Same as utf8_egcn_len, except the input UTF8 string should contain only
+// valid UTF-8 for at least MB_LEN_MAX bytes, because that is how many bytes
+// mbrtowc will examine.
+static inline int
+utf8_egc_len(const char* gcluster, int* colcount){
+  return utf8_egcn_len(gcluster, MB_LEN_MAX, colcount);
 }
 
 // stash away the provided UTF8, NUL-terminated grapheme cluster. the cluster
