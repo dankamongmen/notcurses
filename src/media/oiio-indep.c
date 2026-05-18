@@ -17,7 +17,6 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
                 ncstreamcb streamer, const struct ncvisual_options* vopts,
                 void* curry){
   (void)timescale; // FIXME
-  int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   ncplane* newn = NULL;
@@ -63,7 +62,6 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
       }
       return r;
     }
-    ++frame;
   }while((ncerr = oiio_decode(ncv)) == 0);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
