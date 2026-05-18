@@ -200,7 +200,8 @@ int ncplane_gradient2x1(ncplane* n, int y, int x, unsigned ylen, unsigned xlen,
     for(unsigned xx = xstart ; xx < xstart + xlen ; ++xx){
       nccell* targc = ncplane_cell_ref_yx(n, yy, xx);
       targc->channels = 0;
-      if(pool_blit_direct(&n->pool, targc, "▀", strlen("▀"), 1) <= 0){
+      // U+2580 UPPER HALF BLOCK
+      if(pool_blit_direct(&n->pool, targc, "\xe2\x96\x80", 3, 1) <= 0){
         return -1;
       }
       calc_highgradient(targc, ul, ur, ll, lr, yy - ystart, xx - xstart, ylen * 2, xlen);
