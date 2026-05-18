@@ -25,6 +25,7 @@ jobs:
             doctest \
             ffmpeg \
             libunistring \
+            libdeflate \
             ncurses \
             pkg-config
 
