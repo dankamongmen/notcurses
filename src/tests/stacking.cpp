@@ -72,8 +72,8 @@ TEST_CASE("Stacking") {
     if(notcurses_canutf8(nc_)){
       CHECK(0x808080 == ncchannels_fg_rgb(channels));
       // FIXME we're not yet this advanced, and use space instead
-      // CHECK(0 == strcmp(u8"\u2588", rblit));
-      CHECK(0 == strcmp(u8" ", rblit));
+      // CHECK(0 == strcmp("\u2588", rblit));
+      CHECK(0 == strcmp(" ", rblit));
     }else{
       CHECK(0 == strcmp(" ", rblit));
       CHECK(0x808080 == ncchannels_bg_rgb(channels));
@@ -118,7 +118,7 @@ TEST_CASE("Stacking") {
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp(u8" ", egc));
+    CHECK(0 == strcmp(" ", egc));
     free(egc);
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
@@ -159,7 +159,7 @@ TEST_CASE("Stacking") {
     uint64_t channels;
     auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp(u8" ", egc));
+    CHECK(0 == strcmp(" ", egc));
     free(egc);
     CHECK(0xffffff == ncchannels_fg_rgb(channels));
     CHECK(0xffffff == ncchannels_bg_rgb(channels));
@@ -201,7 +201,7 @@ TEST_CASE("Stacking") {
       uint64_t channels;
       auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
       REQUIRE(nullptr != egc);
-      CHECK(0 == strcmp(u8" ", egc));
+      CHECK(0 == strcmp(" ", egc));
       free(egc);
       CHECK(0x00ff00 == ncchannels_fg_rgb(channels));
       CHECK(0x00ff00 == ncchannels_bg_rgb(channels));
@@ -246,7 +246,7 @@ TEST_CASE("Stacking") {
       uint64_t channels;
       auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
       REQUIRE(nullptr != egc);
-      CHECK(0 == strcmp(u8" ", egc)); // quadrant upper left and lower right
+      CHECK(0 == strcmp(" ", egc)); // quadrant upper left and lower right
       free(egc);
       CHECK(0xffffff == ncchannels_fg_rgb(channels));
       CHECK(0xffffff == ncchannels_bg_rgb(channels));
