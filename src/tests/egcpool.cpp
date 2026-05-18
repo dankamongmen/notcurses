@@ -3,12 +3,6 @@
 #include "lib/egcpool.h"
 #include "lib/egcpool.c"
 
-// Forwards its arguments to egcpool_stash(), but accepts plain char *.
-static inline int
-egcpool_sstash(egcpool* pool, const char* egc, size_t ulen){
-  return egcpool_stash(pool, reinterpret_cast<const unsigned char*>(egc), ulen);
-}
-
 TEST_CASE("EGCpool") {
   egcpool pool_{};
 
@@ -56,7 +50,7 @@ TEST_CASE("EGCpool") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
     auto ulen = nccell_load(n_, &c, wstr);
     CHECK(1 == nccell_cols(&c)); // not considered wide, believe it or not
-    REQUIRE(0 <= egcpool_sstash(&pool_, wstr, ulen));
+    REQUIRE(0 <= egcpool_stash(&pool_, wstr, ulen));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool, wstr));
     CHECK(0 < pool_.poolsize);
@@ -76,8 +70,8 @@ TEST_CASE("EGCpool") {
     nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
     auto u2 = nccell_load(n_, &c2, wstr);
-    int o1 = egcpool_sstash(&pool_, wstr, u1);
-    int o2 = egcpool_sstash(&pool_, wstr, u2);
+    int o1 = egcpool_stash(&pool_, wstr, u1);
+    int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(0 <= o1);
     REQUIRE(o1 < o2);
     CHECK(2 == nccell_cols(&c1));
@@ -101,8 +95,8 @@ TEST_CASE("EGCpool") {
     nccell c2 = NCCELL_TRIVIAL_INITIALIZER;
     auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
     auto u2 = nccell_load(n_, &c2, wstr);
-    int o1 = egcpool_sstash(&pool_, wstr, u1);
-    int o2 = egcpool_sstash(&pool_, wstr, u2);
+    int o1 = egcpool_stash(&pool_, wstr, u1);
+    int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(o1 < o2);
     CHECK(2 == nccell_cols(&c1));
     CHECK(nccell_cols(&c2) == nccell_cols(&c1));
@@ -135,7 +129,7 @@ TEST_CASE("EGCpool") {
       }
       REQUIRE(sizeof(mb) >= r);
       mb[r] = '\0';
-      candidates.push_back(egcpool_sstash(&pool_, mb, r));
+      candidates.push_back(egcpool_stash(&pool_, mb, r));
       REQUIRE((1u << 24u) > candidates[i]);
       if(!firstalloc){
         firstalloc = pool_.pool;
@@ -174,7 +168,7 @@ TEST_CASE("EGCpool") {
       }
       REQUIRE(sizeof(mb) >= r);
       mb[r] = '\0';
-      candidates.push_back(egcpool_sstash(&pool_, mb, r));
+      candidates.push_back(egcpool_stash(&pool_, mb, r));
 
       REQUIRE((1u << 24u) > candidates[i]);
       if(pool_.pool != curpool){
@@ -231,7 +225,7 @@ TEST_CASE("EGCpoolLong" * doctest::skip(true)) {
       CHECK(0 < r);
       REQUIRE(sizeof(mb) >= r);
       mb[r] = '\0';
-      int loc = egcpool_sstash(&pool_, mb, r);
+      int loc = egcpool_stash(&pool_, mb, r);
       if(loc < 0){
         break;
       }

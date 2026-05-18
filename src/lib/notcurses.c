@@ -1166,7 +1166,7 @@ ncpixelimpl_e notcurses_check_pixel_support(const notcurses* nc){
 //  * creates and zeroes out the notcurses struct
 //  * ensures that we're using ASCII or UTF8 and calls setlocale(3)
 //  * checks the environment for NOTCURSES_LOGLEVEL and sets ret->loglevel
-//  * writes TERM to the environment, if specified via opts->termtype
+//  * sets TERM in the environment, if specified via opts->termtype
 //
 // iff we're using UTF8, |utf8| will be set to 1. it is otherwise set to 0.
 __attribute__ ((nonnull (2))) static notcurses*
