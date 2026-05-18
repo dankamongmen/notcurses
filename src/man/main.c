@@ -258,11 +258,11 @@ putpara(struct ncplane* p, const char* text){
           } macros[] = {
             { "aq]", "'", },
             { "dq]", "\"", },
-            { "lq]", u8"\u201c", }, // left double quote
-            { "rq]", u8"\u201d", }, // right double quote
-            { "em]", u8"\u2014", }, // em dash
-            { "en]", u8"\u2013", }, // en dash
-            { "rg]", "®", },
+            { "lq]", "\xe2\x80\x9c", }, // left double quote
+            { "rq]", "\xe2\x80\x9d", }, // right double quote
+            { "em]", "\xe2\x80\x94", }, // em dash
+            { "en]", "\xe2\x80\x93", }, // en dash
+            { "rg]", "\xc2\xae", },     // registered trademark sign
             { "rs]", "\\", },
             { "ti]", "~", },
             { NULL, NULL, }
