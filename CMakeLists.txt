@@ -1,4 +1,3 @@
-# 3.21.0 introduced C17 support
 cmake_minimum_required(VERSION 3.21.0)
 project(notcurses VERSION 3.0.17
   DESCRIPTION "Blingful UI for modern terminal emulators"
@@ -62,11 +61,11 @@ if(${USE_CXX})
 endif()
 if(${USE_CXX})
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 endif()
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
@@ -133,7 +132,7 @@ endif()
 add_compile_options(-Wformat -Werror=format-security)
 endif()
 if(MSVC)
-add_compile_options(/W4)
+add_compile_options(/W4 /utf-8)
 else()
 add_compile_options(-Wall -Wextra -W -Wshadow -Wvla -Wstrict-aliasing=2)
 # -ffast-math dies on NaNs we draw from libav (by -ffinite-math-only)
