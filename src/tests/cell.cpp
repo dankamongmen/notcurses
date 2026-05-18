@@ -15,28 +15,28 @@ TEST_CASE("Cell") {
 
   SUBCASE("EGCs") {
     nccell c = NCCELL_TRIVIAL_INITIALIZER;
-    CHECK(2 == nccell_load(n_, &c, u8"é"));
+    CHECK(2 == nccell_load(n_, &c, "\xc3\xa9")); // U+00E9 LATIN SMALL LETTER E WITH ACUTE
     CHECK(1 == nccell_cols(&c));
-    int cols;
-    CHECK(3 == nccell_load(n_, &c, u8"\x41\u0301"));
+    CHECK(3 == nccell_load(n_, &c, "\x41\u0301")); // U+0041 LATIN CAPITAL LETTER A
     CHECK(1 == nccell_cols(&c));
-    CHECK(4 == nccell_load(n_, &c, " ி"));
-    cols = nccell_cols(&c);
-    CHECK(1 == cols);
-    CHECK(4 == nccell_load(n_, &c, " ि"));
-    cols = nccell_cols(&c);
-    CHECK(1 == cols);
+    CHECK(3 == nccell_load(n_, &c, "\xe0\xae\xbf"));// U+0BBF TAMIL VOWEL SIGN I
+    CHECK(1 == nccell_cols(&c));
+    CHECK(3 == nccell_load(n_, &c, "\xe0\xa4\xbf")); // U+093F DEVANAGARI VOWEL SIGN I
+    CHECK(1 == nccell_cols(&c));
     // musl+s390x (alpine) is reporting these EGCs to be 0 columns wide (they
     // ought be 1). not sure whether i've got a bug (s390x is big-endian), or
     // whether it does. just relaxed the tests for now FIXME.
-    CHECK(5 == nccell_load(n_, &c, u8"◌̈"));
+    CHECK(5 == nccell_load(n_, &c, "\xe2\x97\x8c\xcc\x88")); // U+25CC DOTTED CIRCLE
+                                                             // U+0308 COMBINING DIAERESIS
     WARN(1 == nccell_cols(&c));
-    CHECK(9 == nccell_load(n_, &c, u8"นี้"));
+    CHECK(9 == nccell_load(n_, &c, "\xe0\xb8\x99\xe0\xb8\xb5\xe0\xb9\x89")); // U+0E19 THAI CHARACTER NO NU
+                                                                             // U+0E35 THAI CHARACTER SARA II
+                                                                             // U+0E49 THAI CHARACTER MAI THO
     WARN(1 == nccell_cols(&c));
 
     // type-3 woman playing water polo, 17 bytes (5 characters, 2 columns)
 #ifdef __linux__
-    CHECK(17 == nccell_load(n_, &c, u8"\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
+    CHECK(17 == nccell_load(n_, &c, "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
     WARN(2 == nccell_cols(&c));
     nccell_release(n_, &c);
 #endif
@@ -50,21 +50,21 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("MultibyteWidth") {
-    CHECK(0 == ncstrwidth(u8"", NULL, NULL));       // zero bytes, zero columns
-    CHECK(-1 == ncstrwidth(u8"\x7", NULL, NULL));   // single byte, non-printable
-    CHECK(1 == ncstrwidth(u8" ", NULL, NULL));      // single byte, one column
-    CHECK(5 == ncstrwidth(u8"abcde", NULL, NULL));  // single byte, one column
-    CHECK(1 == ncstrwidth(u8"µ", NULL, NULL));      // two bytes, one column
-    CHECK(1 <= ncstrwidth(u8"\U0001f982", NULL, NULL));     // four bytes, two columns
-    CHECK(3 <= ncstrwidth(u8"平仮名", NULL, NULL)); // nine bytes, six columns
-    CHECK(1 == ncstrwidth(u8"\U00012008", NULL, NULL)); // four bytes, 1 column
+    CHECK(0 == ncstrwidth("", NULL, NULL));       // zero bytes, zero columns
+    CHECK(-1 == ncstrwidth("\x7", NULL, NULL));   // single byte, non-printable
+    CHECK(1 == ncstrwidth(" ", NULL, NULL));      // single byte, one column
+    CHECK(5 == ncstrwidth("abcde", NULL, NULL));  // single byte, one column
+    CHECK(1 == ncstrwidth("\xc2\xb5", NULL, NULL));   // two bytes, one column
+    CHECK(1 <= ncstrwidth("\U0001f982", NULL, NULL)); // four bytes, two columns
+    CHECK(3 <= ncstrwidth("\u5e73\u4eee\u540d", NULL, NULL)); // nine bytes, six columns
+    CHECK(1 == ncstrwidth("\U00012008", NULL, NULL)); // four bytes, 1 column
   }
 
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
-    CHECK(2 == ncstrwidth(u8"\U0001F471", NULL, NULL));
-    CHECK(2 == ncstrwidth(u8"\U0001F471\u200D", NULL, NULL));
-    CHECK(2 == ncstrwidth(u8"\U0001F471\u200D\u2640", NULL, NULL));
+    CHECK(2 == ncstrwidth("\U0001F471", NULL, NULL));
+    CHECK(2 == ncstrwidth("\U0001F471\u200D", NULL, NULL));
+    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640", NULL, NULL));
   }
 
   SUBCASE("SetItalic") {
