@@ -502,7 +502,7 @@ drawpalette(struct notcurses* nc){
         if(ncplane_set_fg_palindex(n, (y * showpl * scale + truex + showpl) % psize)){
           return -1;
         }
-        if(ncplane_putegc(n, u8"▄", NULL) == EOF){
+        if(ncplane_putegc(n, "\xe2\x96\x84", NULL) == EOF){
           return -1;
         }
       }else{
