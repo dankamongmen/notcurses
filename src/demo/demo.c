@@ -403,7 +403,7 @@ summary_table(struct notcurses* nc, const char* spec, bool canimage, bool canvid
   notcurses_render(nc);
   const char* sep;
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    sep = u8"│";
+    sep = "\xe2\x94\x82"; // U+2502 BOX DRAWINGS LIGHT VERTICAL
   }else{
     sep = "|";
   }
