@@ -47,7 +47,7 @@ jobs:
       - name: ctest
         run: |
           cd build
-          ctest -V --output-on-failure --stop-on-failure
+          ctest --output-on-failure --stop-on-failure
 
       - name: make install
         run: |
