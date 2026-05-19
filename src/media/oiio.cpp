@@ -152,7 +152,6 @@ int oiio_blit(const ncvisual* ncv, unsigned rows, unsigned cols,
   int stride;
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(ncv->details->ibuf && (ncv->pixx != cols || ncv->pixy != rows)){ // scale it
-    // FIXME need to honor leny/lenx and begy/begx
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *ncv->details->ibuf, "", 0, roi)){
       return -1;

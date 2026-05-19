@@ -370,8 +370,6 @@ typedef struct notcurses {
 } notcurses;
 
 typedef struct blitterargs {
-  // FIXME begy/begx are really only of interest to scaling; they ought be
-  // consumed there, and blitters ought always work with the scaled output.
   int begy;            // upper left start within visual
   int begx;
   int leny;            // number of source pixels to use
