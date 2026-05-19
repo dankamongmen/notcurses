@@ -116,6 +116,10 @@ utf8_egc_len(const char* gcluster, int* colcount){
       logerror("invalid UTF8: %s", gcluster);
       return -1;
     }
+    // Handle NUL
+    if(r == 0){
+      break;
+    }
     if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }

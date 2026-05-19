@@ -329,6 +329,7 @@ linux_ncneofetch(fetched_info* fi){
 
 typedef enum {
   NCNEO_LINUX,
+  NCNEO_OPENBSD,
   NCNEO_FREEBSD,
   NCNEO_DRAGONFLY,
   NCNEO_XNU,
@@ -348,6 +349,8 @@ get_kernel(fetched_info* fi){
   fi->kernver = strdup(uts.release);
   if(strcmp(uts.sysname, "Linux") == 0){
     return NCNEO_LINUX;
+  }else if(strcmp(uts.sysname, "OpenBSD") == 0){
+    return NCNEO_OPENBSD;
   }else if(strcmp(uts.sysname, "FreeBSD") == 0){
     return NCNEO_FREEBSD;
   }else if(strcmp(uts.sysname, "DragonFly") == 0){
@@ -424,6 +427,17 @@ windows_ncneofetch(fetched_info* fi){
   mswin.logofile = find_data("Windows10Logo.png"),
   fi->neologo = get_neofetch_art("Windows");
   return &mswin;
+}
+
+static const distro_info*
+openbsd_ncneofetch(fetched_info* fi){
+  static distro_info obsd = {
+    .name = "OpenBSD",
+  };
+  obsd.logofile = find_data("freebsd.png"),
+  fi->neologo = get_neofetch_art("OpenBSD");
+  fi->distro_pretty = NULL;
+  return &obsd;
 }
 
 static const distro_info*
@@ -568,6 +582,15 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi,
   ncbprefix(sinfo.totalram - sinfo.freeram, 1, usedmet, 1);
   ncplane_printf_aligned(infop, 2, NCALIGN_RIGHT, "Processes: %hu ", sinfo.procs);
   ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB/%sB", usedmet, totalmet);
+#elif defined(__OpenBSD__)
+  int mib[2] = { CTL_HW, HW_PHYSMEM64 };
+  int64_t ram;
+  size_t oldlenp = sizeof(ram);
+  if(sysctl(mib, 2, &ram, &oldlenp, NULL, 0) == 0){
+    char tram[NCBPREFIXSTRLEN + 1];
+    ncbprefix(ram, 1, tram, 1);
+    ncplane_printf_aligned(infop, 2, NCALIGN_LEFT, " RAM: %sB", tram);
+  }
 #elif defined(BSD)
   uint64_t ram;
   size_t oldlenp = sizeof(ram);
@@ -776,6 +799,9 @@ ncneofetch(struct notcurses* nc){
   switch(kern){
     case NCNEO_LINUX:
       fi.distro = linux_ncneofetch(&fi);
+      break;
+    case NCNEO_OPENBSD:
+      fi.distro = openbsd_ncneofetch(&fi);
       break;
     case NCNEO_FREEBSD:
       fi.distro = freebsd_ncneofetch(&fi);
