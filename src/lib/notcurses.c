@@ -10,9 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <unistr.h>
 #include <locale.h>
-#include <uniwbrk.h>
 #include <inttypes.h>
 #include "compat/compat.h"
 #include "unixsig.h"
@@ -3302,10 +3300,7 @@ int ncplane_putwstr_stained(ncplane* n, const wchar_t* gclustarr){
 
 int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
                             unsigned char* resultbuf, size_t buflen){
-  if(u32_to_u8(ucs32, ucs32count, resultbuf, &buflen) == NULL){
-    return -1;
-  }
-  return buflen;
+  return ncunicode_ucs32_to_utf8(ucs32, ucs32count, resultbuf, buflen);
 }
 
 int ncstrwidth(const char* egcs, int* validbytes, int* validwidth){

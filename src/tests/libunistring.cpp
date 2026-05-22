@@ -1,9 +1,9 @@
 #include "main.h"
 
-// some simple tests to ensure the libunistring we've compiled/linked against
-// behaves as expected.
+// some simple tests to ensure the selected Unicode backend behaves as
+// expected.
 
-TEST_CASE("Libunistring") {
+TEST_CASE("Unicode backend") {
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;
