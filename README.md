@@ -107,7 +107,7 @@ may well be possible to use still older versions. Let me know of any successes!
 * (build) CMake 3.21.0+ and a C17 compiler
 * (OPTIONAL) (OpenImageIO, testing, C++ bindings): A C++17 compiler
 * (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
-* (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
+* (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+ by default, or [utf8proc](https://juliastrings.github.io/utf8proc/) when configured with `-DUSE_UTF8PROC=ON`
 * (OPTIONAL) (build+runtime) [libgpm](https://www.nico.schottelius.org/software/gpm/) 1.20+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+, libavdevice 57.0+

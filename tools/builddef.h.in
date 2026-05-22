@@ -8,6 +8,7 @@
 #cmakedefine USE_DEFLATE
 #cmakedefine USE_GPM
 #cmakedefine USE_QRCODEGEN
+#cmakedefine USE_UTF8PROC
 // exclusive with USE_OIIO
 #cmakedefine USE_FFMPEG
 // exclusive with USE_FFMPEG

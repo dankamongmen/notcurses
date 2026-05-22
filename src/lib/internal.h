@@ -28,7 +28,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 #include <inttypes.h>
-#include <unictype.h>
+#include "lib/unicode.h"
 #ifndef __MINGW32__
 #include <langinfo.h>
 #endif
@@ -1492,15 +1492,12 @@ islinebreak(wchar_t wchar){
   if(wchar == L'\n' || wchar == L'\v' || wchar == L'\f'){
     return true;
   }
-  const uint32_t mask = UC_CATEGORY_MASK_Zl | UC_CATEGORY_MASK_Zp;
-  return uc_is_general_category_withtable(wchar, mask);
+  return ncunicode_islinebreak(wchar);
 }
 
 static inline bool
 iswordbreak(wchar_t wchar){
-  const uint32_t mask = UC_CATEGORY_MASK_Z |
-                        UC_CATEGORY_MASK_Zs;
-  return uc_is_general_category_withtable(wchar, mask);
+  return ncunicode_iswordbreak(wchar);
 }
 
 // the heart of damage detection. compare two nccells (from two different
