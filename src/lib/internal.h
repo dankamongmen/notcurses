@@ -28,7 +28,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 #include <inttypes.h>
-#include "lib/unicode.h"
+#include "unicode.h"
 #ifndef __MINGW32__
 #include <langinfo.h>
 #endif

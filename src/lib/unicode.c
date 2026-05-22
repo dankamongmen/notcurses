@@ -1,5 +1,6 @@
 #include "unicode.h"
 
+#include <limits.h>
 #include <string.h>
 
 int ncunicode_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
@@ -24,7 +25,10 @@ int ncunicode_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
   if(written < buflen){
     resultbuf[written] = '\0';
   }
-  return written;
+  if(written > INT_MAX){
+    return -1;
+  }
+  return (int)written;
 #else
   if(u32_to_u8(ucs32, ucs32count, resultbuf, &buflen) == NULL){
     return -1;

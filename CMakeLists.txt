@@ -170,10 +170,11 @@ endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
 # this is going to be true for anything lacking pkg-config/CMake support.
+set(_saved_required_includes ${CMAKE_REQUIRED_INCLUDES})
 if(${USE_UTF8PROC})
 unset(HAVE_UTF8PROC_H CACHE)
 find_path(UTF8PROC_INCLUDE utf8proc.h)
-set(CMAKE_REQUIRED_INCLUDES ${UTF8PROC_INCLUDE})
+list(APPEND CMAKE_REQUIRED_INCLUDES ${UTF8PROC_INCLUDE})
 check_include_file("utf8proc.h" HAVE_UTF8PROC_H)
 if(NOT "${HAVE_UTF8PROC_H}")
   message(FATAL_ERROR "Couldn't find utf8proc.h from utf8proc")
@@ -187,7 +188,7 @@ else()
 # unigbrk.h was introduced in libunistring 0.9.4, 2010-02-14.
 unset(HAVE_UNISTRING_H CACHE)
 find_path(UNISTRING_INCLUDE unigbrk.h)
-set(CMAKE_REQUIRED_INCLUDES ${UNISTRING_INCLUDE})
+list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTRING_INCLUDE})
 check_include_file("unigbrk.h" HAVE_UNISTRING_H)
 if(NOT "${HAVE_UNISTRING_H}")
   message(FATAL_ERROR "Couldn't find unigbrk.h from GNU libunistring")
@@ -198,6 +199,8 @@ set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
 set(UNICODE_LIBRARY "${unistring}")
 set(PKGCONF_UNICODE_LIBS_PRIVATE "-lunistring")
 endif()
+set(CMAKE_REQUIRED_INCLUDES ${_saved_required_includes})
+unset(_saved_required_includes)
 
 # optional dependencies lacking pkg-config support
 # libdeflate has had pkgconf support since 1.9, where is it on ubuntu? FIXME
