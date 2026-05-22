@@ -1835,7 +1835,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?1;2S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3S", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?1;3;S", NULL, }, // iterm2 negative cregs XTSMGRAPHICS
-    { "[?1;3;0S", NULL, }, // negative cregs XTSMGRAPHICS
+    { "[?1;3;\\NS", NULL, }, // negative cregs XTSMGRAPHICS
     { "[?2;1S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;2S", NULL, }, // negative pixels XTSMGRAPHICS
     { "[?2;3S", NULL, }, // negative pixels XTSMGRAPHICS
@@ -1845,6 +1845,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
+    { "[?1;2;\\Nc", da1_attrs_cb, }, // tmux 3.4+ DA1 reply (3 numeric fields)
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
     // CSI ? 1 2 ; Ps c ("VT125")
     // CSI ? 6 0 ; Ps c (kmscon)
