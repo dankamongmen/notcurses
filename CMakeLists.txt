@@ -157,9 +157,11 @@ elseif(NOT APPLE)
   find_library(LIBM m REQUIRED)
   find_library(LIBRT rt REQUIRED)
 endif()
+set(NOTCURSES_EXTRA_INCLUDE_DIRS "")
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   include_directories(/usr/local/include)
   link_directories(/usr/local/lib)
+  list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS /usr/local/include)
   set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
 endif()
 
@@ -174,6 +176,7 @@ set(_saved_required_includes ${CMAKE_REQUIRED_INCLUDES})
 if(${USE_UTF8PROC})
 unset(HAVE_UTF8PROC_H CACHE)
 find_path(UTF8PROC_INCLUDE utf8proc.h)
+list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS ${UTF8PROC_INCLUDE})
 list(APPEND CMAKE_REQUIRED_INCLUDES ${UTF8PROC_INCLUDE})
 check_include_file("utf8proc.h" HAVE_UTF8PROC_H)
 if(NOT "${HAVE_UTF8PROC_H}")
@@ -188,6 +191,7 @@ else()
 # unigbrk.h was introduced in libunistring 0.9.4, 2010-02-14.
 unset(HAVE_UNISTRING_H CACHE)
 find_path(UNISTRING_INCLUDE unigbrk.h)
+list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS ${UNISTRING_INCLUDE})
 list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTRING_INCLUDE})
 check_include_file("unigbrk.h" HAVE_UNISTRING_H)
 if(NOT "${HAVE_UNISTRING_H}")
@@ -199,6 +203,7 @@ set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
 set(UNICODE_LIBRARY "${unistring}")
 set(PKGCONF_UNICODE_LIBS_PRIVATE "-lunistring")
 endif()
+list(REMOVE_DUPLICATES NOTCURSES_EXTRA_INCLUDE_DIRS)
 set(CMAKE_REQUIRED_INCLUDES ${_saved_required_includes})
 unset(_saved_required_includes)
 
@@ -280,7 +285,7 @@ target_include_directories(notcurses-core
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${DEFLATE_INCLUDE_DIRS}"
@@ -291,7 +296,7 @@ target_include_directories(notcurses-core-static
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${DEFLATE_STATIC_INCLUDE_DIRS}"
@@ -361,7 +366,7 @@ target_include_directories(notcurses
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -370,7 +375,7 @@ target_include_directories(notcurses-static
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -473,7 +478,7 @@ target_include_directories(notcurses-ffi
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${DEFLATE_INCLUDE_DIRS}"
@@ -711,7 +716,7 @@ target_include_directories(notcurses-demo
     include
     src
     "${TERMINFO_INCLUDE_DIRS}"
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-demo
@@ -735,7 +740,7 @@ target_include_directories(notcurses-info
   PRIVATE
     src
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -754,7 +759,7 @@ target_include_directories(notcurses-input
   BEFORE
   PRIVATE
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-input
@@ -772,7 +777,7 @@ target_include_directories(nctetris
   PRIVATE
     src
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(nctetris
@@ -796,7 +801,7 @@ target_include_directories(tfman
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${DEFLATE_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
@@ -826,7 +831,7 @@ target_include_directories(ncneofetch
   BEFORE
   PRIVATE
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     src
 )
@@ -851,7 +856,7 @@ target_include_directories(ncls
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncls
@@ -868,7 +873,7 @@ target_include_directories(ncplayer
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncplayer
@@ -894,7 +899,7 @@ target_include_directories(notcurses-tester
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
