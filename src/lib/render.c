@@ -865,7 +865,7 @@ emit_bg_palindex(notcurses* nc, fbuf* f, const nccell* srccell){
     ++nc->stats.s.bgemissions;
     nc->rstate.bgpalelidable = true;
   }
-  nc->rstate.lastr = palbg;
+  nc->rstate.lastbr = palbg;
   nc->rstate.bgdefelidable = false;
   nc->rstate.bgelidable = false;
   return 0;
