@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <notcurses/api.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,11 +13,6 @@ extern "C" {
 #define static API
 #endif
 
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 // Synthesized input events, i.e. any input event we can report that isn't

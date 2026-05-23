@@ -1,6 +1,14 @@
 #include "builddef.h"
 #ifdef USE_FFMPEG
+#include <ctype.h>
+#include <inttypes.h>
+#include <string.h>
+#include <strings.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 #include <libavutil/error.h>
+#include <libavutil/avutil.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
@@ -9,34 +17,254 @@
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 #include <libswscale/version.h>
+#include <libswresample/swresample.h>
+#include <libswresample/version.h>
 #include <libavdevice/avdevice.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
+#include <libavutil/samplefmt.h>
+#include <libavutil/channel_layout.h>
+#include <stdatomic.h>
+#include <libavutil/cpu.h>
+#include <unistd.h>
 #include "lib/visual-details.h"
 #include "lib/internal.h"
+#include "lib/logging.h"
+#include <notcurses/api.h>
+
+#define SUBLOG_INFO(fmt, ...)  loginfo("[subtitle] " fmt, ##__VA_ARGS__)
+#define SUBLOG_DEBUG(fmt, ...) logdebug("[subtitle] " fmt, ##__VA_ARGS__)
+#define SUBLOG_WARN(fmt, ...)  logwarn("[subtitle] " fmt, ##__VA_ARGS__)
 
 struct AVFormatContext;
+
 struct AVCodecContext;
 struct AVFrame;
 struct AVCodec;
 struct AVCodecParameters;
 struct AVPacket;
 
+double ffmpeg_get_video_position_seconds(const ncvisual* ncv);
+
+#define AUDIO_PACKET_QUEUE_SIZE 8
+
+typedef struct audio_packet_queue {
+  AVPacket* packets[AUDIO_PACKET_QUEUE_SIZE];
+  int head;
+  int tail;
+  int count;
+} audio_packet_queue;
+
+static int
+ass_detect_text_field(const uint8_t* header, size_t size){
+  if(!header || size == 0){
+    return 9;
+  }
+  const char* data = (const char*)header;
+  const char* end = data + size;
+  const int default_index = 9;
+  bool in_events = false;
+  while(data < end){
+    const char* line_start = data;
+    const char* linebreak = memchr(line_start, '\n', end - line_start);
+    size_t linelen = linebreak ? (size_t)(linebreak - line_start) : (size_t)(end - line_start);
+    if(linelen >= 8 && !strncasecmp(line_start, "[Events]", 8)){
+      in_events = true;
+    }else if(in_events && linelen >= 7 && !strncasecmp(line_start, "Format:", 7)){
+      const char* cursor = line_start + 7;
+      while(cursor < line_start + linelen && isspace((unsigned char)*cursor)){
+        ++cursor;
+      }
+      int field = 0;
+      const char* token = cursor;
+      for(const char* p = cursor ; p <= line_start + linelen ; ++p){
+        if(p == line_start + linelen || *p == ',' || *p == '\r'){
+          const char* t = token;
+          while(t < p && isspace((unsigned char)*t)){
+            ++t;
+          }
+          const char* q = p;
+          while(q > t && isspace((unsigned char)*(q - 1))){
+            --q;
+          }
+          if(q > t){
+            size_t toklen = q - t;
+            if(!strncasecmp(t, "Text", toklen)){
+              logdebug("[ass] format text field index=%d column=\"%.*s\"", field, (int)toklen, t);
+              return field;
+            }
+          }
+          ++field;
+          token = p + 1;
+        }
+      }
+      return default_index;
+    }
+    data = linebreak ? linebreak + 1 : end;
+  }
+  logerror("[ass] no [Events] Format line found");
+  return default_index;
+}
+
+static int
+ffmpeg_detect_thread_count(void){
+  static int cached = 0;
+  if(cached > 0){
+    return cached;
+  }
+  int threads = 0;
+  const char* env = getenv("NCPLAYER_FFMPEG_THREADS");
+  if(env && *env){
+    char* endptr = NULL;
+    long parsed = strtol(env, &endptr, 10);
+    if(endptr != env && parsed > 0 && parsed < INT_MAX){
+      threads = (int)parsed;
+    }
+  }
+  if(threads <= 0){
+    int avcpus = av_cpu_count();
+    if(avcpus > 0){
+      threads = avcpus;
+    }else{
+#ifdef _SC_NPROCESSORS_ONLN
+      long syscpus = sysconf(_SC_NPROCESSORS_ONLN);
+      if(syscpus > 0 && syscpus < INT_MAX){
+        threads = (int)syscpus;
+      }
+#endif
+    }
+  }
+  if(threads <= 0){
+    threads = 1;
+  }
+  cached = threads;
+  return cached;
+}
+
 typedef struct ncvisual_details {
   struct AVFormatContext* fmtctx;
   struct AVCodecContext* codecctx;     // video codec context
   struct AVCodecContext* subtcodecctx; // subtitle codec context
+  struct AVCodecContext* audiocodecctx; // audio codec context
   struct AVFrame* frame;               // frame as read/loaded/converted
+  struct AVFrame* audio_frame;         // decoded audio frame
   struct AVCodec* codec;
   struct AVCodec* subtcodec;
+  struct AVCodec* audiocodec;
   struct AVPacket* packet;
   struct SwsContext* swsctx;
   struct SwsContext* rgbactx;
+  struct SwrContext* swrctx;           // audio resampler context
+  int audio_out_channels;              // output channel count for resampler (1 or 2)
   AVSubtitle subtitle;
+  bool subtitle_active;
+  double subtitle_start_time;
+  double subtitle_end_time;
+  double subtitle_time_base;
+  int subtitle_text_field;
+  bool subtitle_logged;
+  int64_t subtitle_last_hash;
+  char* subtitle_cached_text;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
+  int audio_stream_index;  // audio stream index, can be < 0 if no audio
   bool packet_outstanding;
+  bool audio_packet_outstanding; // whether we have an audio packet waiting to be decoded
+  atomic_bool audio_enabled;
+  audio_packet_queue pending_audio_packets; // audio packets waiting to be sent
+  int64_t last_audio_frame_pts; // PTS of last processed audio frame (to prevent reprocessing)
+  int64_t last_video_frame_pts; // PTS of last displayed video frame
+  int64_t decoded_frames;
+  pthread_mutex_t packet_mutex;  // mutex for thread-safe packet reading
+  pthread_mutex_t audio_packet_mutex; // mutex for audio packet queue
 } ncvisual_details;
+
+#define AUDIO_LOG_QUEUE_OPS 1
+
+static void
+audio_queue_init(audio_packet_queue* q){
+  memset(q, 0, sizeof(*q));
+}
+
+static void
+audio_queue_clear(audio_packet_queue* q){
+  while(q->count > 0){
+    av_packet_free(&q->packets[q->head]);
+    q->packets[q->head] = NULL;
+    q->head = (q->head + 1) % AUDIO_PACKET_QUEUE_SIZE;
+    q->count--;
+  }
+  q->head = q->tail = 0;
+}
+
+static int
+audio_queue_enqueue(audio_packet_queue* q, const AVPacket* pkt){
+  if(q->count >= AUDIO_PACKET_QUEUE_SIZE){
+    return -1;
+  }
+  AVPacket* copy = av_packet_alloc();
+  if(!copy){
+    return -1;
+  }
+  if(av_packet_ref(copy, pkt) < 0){
+    av_packet_free(&copy);
+    return -1;
+  }
+  q->packets[q->tail] = copy;
+  q->tail = (q->tail + 1) % AUDIO_PACKET_QUEUE_SIZE;
+  q->count++;
+  return 0;
+}
+
+static AVPacket*
+audio_queue_peek(audio_packet_queue* q){
+  if(q->count == 0){
+    return NULL;
+  }
+  return q->packets[q->head];
+}
+
+static void
+audio_queue_pop(audio_packet_queue* q){
+  if(q->count == 0){
+    return;
+  }
+  av_packet_free(&q->packets[q->head]);
+  q->packets[q->head] = NULL;
+  q->head = (q->head + 1) % AUDIO_PACKET_QUEUE_SIZE;
+  q->count--;
+}
+
+static void
+ffmpeg_drain_pending_audio_locked(ncvisual_details* deets){
+  if(!deets->audiocodecctx){
+    audio_queue_clear(&deets->pending_audio_packets);
+    deets->audio_packet_outstanding = false;
+    return;
+  }
+  while(deets->pending_audio_packets.count > 0){
+    AVPacket* pkt = audio_queue_peek(&deets->pending_audio_packets);
+    if(!pkt){
+      break;
+    }
+    int ret = avcodec_send_packet(deets->audiocodecctx, pkt);
+    if(ret == 0){
+      audio_queue_pop(&deets->pending_audio_packets);
+      deets->audio_packet_outstanding = true;
+      continue;
+    }else if(ret == AVERROR(EAGAIN)){
+      // Decoder still full; keep outstanding flag set because queue still populated.
+      deets->audio_packet_outstanding = true;
+      return;
+    }else{
+      // Drop problematic packet and keep trying remaining ones.
+      audio_queue_pop(&deets->pending_audio_packets);
+    }
+  }
+  if(deets->pending_audio_packets.count == 0){
+    deets->audio_packet_outstanding = false;
+  }
+}
 
 #define IMGALLOCALIGN 64
 
@@ -90,95 +318,298 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
           f->quality);
 }*/
 
-static char*
-deass(const char* ass){
-  // SSA/ASS formats:
-  // Dialogue: Marked=0,0:02:40.65,0:02:41.79,Wolf main,Cher,0000,0000,0000,,Et les enregistrements de ses ondes delta ?
-  // FIXME more
-  if(strncmp(ass, "Dialogue:", strlen("Dialogue:"))){
-    return NULL;
+static void
+ass_apply_tag_controls(const char* tag, size_t len, bool* italic){
+  const char* cursor = tag;
+  const char* end = tag + len;
+  while(cursor < end){
+    if(*cursor == '\\'){
+      ++cursor;
+    }
+    if(cursor >= end){
+      break;
+    }
+    if((*cursor == 'i' || *cursor == 'I') && cursor + 1 < end){
+      char state = cursor[1];
+      if(state == '0'){
+        *italic = false;
+      }else if(state == '1'){
+        *italic = true;
+      }
+      cursor += 2;
+      continue;
+    }
+    while(cursor < end && *cursor != '\\'){
+      ++cursor;
+    }
   }
-  const char* delim = strchr(ass, ',');
-  int commas = 0; // we want 8
-  while(delim && commas < 8){
-    delim = strchr(delim + 1, ',');
-    ++commas;
+}
+
+static bool
+ass_extract_text_and_styles(char* text, unsigned char** styles_out, size_t* len_out){
+  size_t rawlen = strlen(text);
+  unsigned char* styles = malloc(rawlen ? rawlen : 1);
+  if(!styles){
+    return false;
   }
-  if(!delim){
-    return NULL;
-  }
-  // handle ASS syntax...\i0, \b0, etc.
-  char* dup = strdup(delim + 1);
-  char* c = dup;
-  while(*c){
-    if(*c == '\\'){
-      *c = ' ';
-      ++c;
-      if(*c){
-        *c = ' ';;
+  size_t src = 0;
+  size_t dst = 0;
+  bool italic = false;
+  while(text[src]){
+    if(text[src] == '\\'){
+      char next = text[src + 1];
+      if(next == 'N' || next == 'n'){
+        text[dst] = '\n';
+        styles[dst++] = italic;
+        src += 2;
+        continue;
+      }else if(next == 'h' || next == 'H'){
+        text[dst] = ' ';
+        styles[dst++] = italic;
+        src += 2;
+        continue;
       }
     }
-    ++c;
+    if(text[src] == '{'){
+      char* closing = strchr(text + src, '}');
+      if(closing){
+        ass_apply_tag_controls(text + src + 1, (size_t)(closing - (text + src + 1)), &italic);
+        src = (closing - text) + 1;
+        continue;
+      }
+    }
+    if(text[src] == '\r'){
+      ++src;
+      continue;
+    }
+    text[dst] = text[src];
+    styles[dst] = italic;
+    ++dst;
+    ++src;
   }
-  return dup;
+  text[dst] = '\0';
+  if(dst == 0){
+    free(styles);
+    return false;
+  }
+  *len_out = dst;
+  unsigned char* resized = realloc(styles, dst);
+  *styles_out = resized ? resized : styles;
+  return true;
 }
 
 static struct ncplane*
-subtitle_plane_from_text(ncplane* parent, const char* text){
-  if(parent == NULL){
-//logerror("need a parent plane\n");
+subtitle_plane_from_text(ncplane* parent, const char* text, bool* logged_flag){
+  if(parent == NULL || text == NULL){
     return NULL;
   }
-  int width = ncstrwidth(text, NULL, NULL);
-  if(width <= 0){
-//logwarn("couldn't extract subtitle from %s\n", text);
+  char* dup = strdup(text);
+  if(!dup){
     return NULL;
   }
-  int rows = (width + ncplane_dim_x(parent) - 1) / ncplane_dim_x(parent);
+  char* trimmed = dup;
+  const char* raw = dup;
+  int commas = 0;
+  for(; *trimmed ; ++trimmed){
+    if(*trimmed == ','){
+      ++commas;
+      if(commas == 8){
+        ++trimmed;
+        break;
+      }
+    }
+  }
+  while(*trimmed && isspace((unsigned char)*trimmed)){
+    ++trimmed;
+  }
+  size_t len = strlen(trimmed);
+  while(len > 0 && isspace((unsigned char)trimmed[len - 1])){
+    trimmed[--len] = '\0';
+  }
+  if(len == 0){
+    free(dup);
+    return NULL;
+  }
+  unsigned char* style_map = NULL;
+  size_t processed_len = 0;
+  if(!ass_extract_text_and_styles(trimmed, &style_map, &processed_len)){
+    free(dup);
+    return NULL;
+  }
+  len = processed_len;
+  int linecount = 1;
+  for(size_t i = 0 ; i < len ; ++i){
+    if(trimmed[i] == '\n'){
+      ++linecount;
+    }
+  }
+
+  int parent_cols = ncplane_dim_x(parent);
+  if(parent_cols <= 0){
+    free(style_map);
+    free(dup);
+    return NULL;
+  }
+  int maxwidth = 0;
+  char* walker = trimmed;
+  size_t offset = 0;
+  size_t* line_offsets = malloc(sizeof(*line_offsets) * linecount);
+  size_t* line_lengths = malloc(sizeof(*line_lengths) * linecount);
+  if(line_offsets == NULL || line_lengths == NULL){
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
+    free(dup);
+    return NULL;
+  }
+  for(int line = 0 ; line < linecount ; ++line){
+    line_offsets[line] = offset;
+    char* next = strchr(walker, '\n');
+    if(next){
+      *next = '\0';
+      line_lengths[line] = (size_t)(next - walker);
+    }else{
+      line_lengths[line] = strlen(walker);
+      if(line != linecount - 1){
+        free(line_offsets);
+        free(line_lengths);
+        free(style_map);
+        free(dup);
+        return NULL;
+      }
+    }
+    int w = ncstrwidth(walker, NULL, NULL);
+    if(w > maxwidth){
+      maxwidth = w;
+    }
+    if(next){
+      *next = '\n';
+      walker = next + 1;
+      offset += line_lengths[line] + 1;
+    }else{
+      offset += line_lengths[line];
+      break;
+    }
+  }
+  if(maxwidth <= 0){
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
+    free(dup);
+    return NULL;
+  }
+  int cols = maxwidth;
+  if(cols > parent_cols){
+    cols = parent_cols;
+  }
+  int xpos = (parent_cols - cols) / 2;
+
   struct ncplane_options nopts = {
-    .y = ncplane_dim_y(parent) - (rows + 1),
-    .rows = rows,
-    .cols = ncplane_dim_x(parent),
+    .y = ncplane_dim_y(parent) - (linecount + 1),
+    .x = xpos,
+    .rows = linecount,
+    .cols = cols,
     .name = "subt",
   };
   struct ncplane* n = ncplane_create(parent, &nopts);
   if(n == NULL){
-//logerror("error creating subtitle plane\n");
+    free(line_offsets);
+    free(line_lengths);
+    free(style_map);
+    free(dup);
     return NULL;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, NCALPHA_HIGHCONTRAST);
-  ncchannels_set_fg_rgb8(&channels, 0x88, 0x88, 0x88);
-  ncplane_stain(n, -1, -1, 0, 0, channels, channels, channels, channels);
-  ncchannels_set_fg_default(&channels);
-  ncplane_puttext(n, 0, NCALIGN_LEFT, text, NULL);
-  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_rgb8(&channels, 0xff, 0xff, 0xff);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_OPAQUE);
+  ncchannels_set_bg_rgb8(&channels, 0x20, 0x20, 0x20);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_BLEND);
   ncplane_set_base(n, " ", 0, channels);
+
+  ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+  ncplane_set_fg_alpha(n, NCALPHA_OPAQUE);
+  ncplane_set_bg_rgb8(n, 0x20, 0x20, 0x20);
+  ncplane_set_bg_alpha(n, NCALPHA_BLEND);
+  if(logged_flag && !*logged_flag){
+    SUBLOG_DEBUG("rendering subtitle text (raw): \"%s\"", raw);
+    SUBLOG_DEBUG("rendering subtitle text (trimmed): \"%s\"", trimmed);
+    *logged_flag = true;
+  }
+  for(int line = 0 ; line < linecount ; ++line){
+    size_t line_len = line_lengths[line];
+    if(line_len == 0){
+      continue;
+    }
+    size_t base = line_offsets[line];
+    size_t cursor = 0;
+    int line_xpos = 0;
+    while(cursor < line_len){
+      bool italic = style_map[base + cursor];
+      size_t chunk_end = cursor + 1;
+      while(chunk_end < line_len && style_map[base + chunk_end] == italic){
+        ++chunk_end;
+      }
+      char saved = trimmed[base + chunk_end];
+      trimmed[base + chunk_end] = '\0';
+      if(italic){
+        ncplane_set_fg_rgb8(n, 0xff, 0xff, 0x00);
+      }else{
+        ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
+      }
+      ncplane_putstr_yx(n, line, line_xpos, trimmed + base + cursor);
+      line_xpos += ncstrwidth(trimmed + base + cursor, NULL, NULL);
+      trimmed[base + chunk_end] = saved;
+      cursor = chunk_end;
+    }
+  }
+  free(line_offsets);
+  free(line_lengths);
+  free(style_map);
+  free(dup);
   return n;
 }
 
 static uint32_t palette[NCPALETTESIZE];
 
 struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
+  if(!ncv->details->subtitle_active || ncv->details->subtitle.num_rects == 0){
+    return NULL;
+  }
+  double now = ffmpeg_get_video_position_seconds(ncv);
+  if(now >= 0.0){
+    if(now < ncv->details->subtitle_start_time){
+      return NULL;
+    }
+    if(now > ncv->details->subtitle_end_time){
+      SUBLOG_DEBUG("subtitle expired at %.3f (end %.3f)", now, ncv->details->subtitle_end_time);
+      avsubtitle_free(&ncv->details->subtitle);
+      ncv->details->subtitle_active = false;
+      return NULL;
+    }
+  }
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
     // it is possible that there are more than one subtitle rects present,
     // but we only bother dealing with the first one we find FIXME?
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
-      char* ass = deass(rect->ass);
-      struct ncplane* n = NULL;
-      if(ass){
-        n = subtitle_plane_from_text(parent, ass);
+      const char* render_text = NULL;
+      render_text = rect->ass ? rect->ass : rect->text;
+      if(!render_text){
+        SUBLOG_DEBUG("ASS subtitle missing text, skipping");
+        return NULL;
       }
-      free(ass);
+      struct ncplane* n = subtitle_plane_from_text(parent, render_text, &ncv->details->subtitle_logged);
+      if(!n){
+        SUBLOG_WARN("failed to render ASS subtitle: \"%s\"", render_text);
+      }
       return n;
-    }else if(rect->type == SUBTITLE_TEXT){;
-      return subtitle_plane_from_text(parent, rect->text);
+    }else if(rect->type == SUBTITLE_TEXT){
+      return subtitle_plane_from_text(parent, rect->text, &ncv->details->subtitle_logged);
     }else if(rect->type == SUBTITLE_BITMAP){
       // there are technically up to AV_NUM_DATA_POINTERS planes, but we
       // only try to work with the first FIXME?
       if(rect->linesize[0] != rect->w){
-//logwarn("bitmap subtitle size %d != width %d\n", rect->linesize[0], rect->w);
+        SUBLOG_WARN("bitmap data linesize %d != width %d", rect->linesize[0], rect->w);
         continue;
       }
       struct notcurses* nc = ncplane_notcurses(parent);
@@ -191,6 +622,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
                                                 rect->w, rect->w,
                                                 NCPALETTESIZE, 1, palette);
       if(v == NULL){
+        SUBLOG_WARN("failed to construct ncvisual for bitmap subtitle");
         return NULL;
       }
       int rows = (rect->h + cellpxx - 1) / cellpxy;
@@ -203,6 +635,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       struct ncplane* vn = ncplane_create(parent, &nopts);
       if(vn == NULL){
         ncvisual_destroy(v);
+        SUBLOG_WARN("failed to allocate ncplane for bitmap subtitle");
         return NULL;
       }
       struct ncvisual_options vopts = {
@@ -213,6 +646,7 @@ struct ncplane* ffmpeg_subtitle(ncplane* parent, const ncvisual* ncv){
       if(ncvisual_blit(nc, v, &vopts) == NULL){
         ncplane_destroy(vn);
         ncvisual_destroy(v);
+        SUBLOG_WARN("failed to blit bitmap subtitle rect");
         return NULL;
       }
       ncvisual_destroy(v);
@@ -322,22 +756,117 @@ ffmpeg_decode(ncvisual* n){
           av_packet_unref(n->details->packet);
         }
         int averr;
-        if((averr = av_read_frame(n->details->fmtctx, n->details->packet)) < 0){
+        // Single point for reading packets - no mutex needed as only video decoder reads
+        averr = av_read_frame(n->details->fmtctx, n->details->packet);
+        if(averr < 0){
           /*if(averr != AVERROR_EOF){
             fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(averr));
           }*/
           return averr2ncerr(averr);
         }
         unref = true;
+
+        // Handle subtitle packets
         if(n->details->packet->stream_index == n->details->sub_stream_index){
-          int result = 0, ret;
-          avsubtitle_free(&n->details->subtitle);
-          ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
+          int result = 0;
+          AVSubtitle decoded = {0};
+          int ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &decoded, &result, n->details->packet);
           if(ret >= 0 && result){
-            // FIXME?
+            SUBLOG_DEBUG("packet pts=%" PRId64 " produced %u rects (format %d)",
+                         n->details->packet->pts, decoded.num_rects,
+                         decoded.format);
+            avsubtitle_free(&n->details->subtitle);
+            n->details->subtitle = decoded;
+            if(decoded.num_rects > 0){
+              double base_time = ffmpeg_get_video_position_seconds(n);
+              int64_t subtitle_pts = decoded.pts;
+              if(subtitle_pts == AV_NOPTS_VALUE){
+                subtitle_pts = n->details->packet->pts;
+              }
+              if(subtitle_pts != AV_NOPTS_VALUE && n->details->subtitle_time_base > 0.0){
+                base_time = subtitle_pts * n->details->subtitle_time_base;
+              }
+              if(base_time < 0.0){
+                base_time = 0.0;
+              }
+              const double start_offset = decoded.start_display_time / 1000.0;
+              double end_offset = decoded.end_display_time / 1000.0;
+              double start_time = base_time + start_offset;
+              double end_time = (end_offset > 0.0) ? base_time + end_offset
+                                                   : start_time + 5.0;
+              if(end_time <= start_time){
+                end_time = start_time + 5.0;
+              }
+              n->details->subtitle_start_time = start_time;
+              n->details->subtitle_end_time = end_time;
+              n->details->subtitle_active = true;
+              n->details->subtitle_logged = false;
+              SUBLOG_DEBUG("subtitle scheduled start=%.3f end=%.3f pts=%" PRId64
+                           " start_ms=%u end_ms=%u base=%.3f tb=%.6f",
+                           start_time, end_time, subtitle_pts,
+                           decoded.start_display_time, decoded.end_display_time,
+                           base_time, n->details->subtitle_time_base);
+            }else{
+              n->details->subtitle_active = false;
+            }
+          }else{
+            if(ret < 0){
+              SUBLOG_WARN("decode failure (%d) on pts=%" PRId64, ret, n->details->packet->pts);
+            }
+            avsubtitle_free(&decoded);
           }
+          continue; // Continue reading, this wasn't a video packet
         }
-      }while(n->details->packet->stream_index != n->details->stream_index);
+
+        // Handle audio packets - send them to audio decoder (audio thread will receive frames)
+        if(n->details->packet->stream_index == n->details->audio_stream_index){
+          if(n->details->audiocodecctx){
+            // Validate packet and codec context before sending
+            if(!n->details->packet || !n->details->audiocodecctx){
+              av_packet_unref(n->details->packet);
+              continue;
+            }
+
+            // Check packet validity - must have data and size
+            if(n->details->packet->size <= 0 || !n->details->packet->data){
+              // Empty or invalid packet - skip it
+              av_packet_unref(n->details->packet);
+              continue;
+            }
+
+            if(!atomic_load_explicit(&n->details->audio_enabled, memory_order_relaxed)){
+              av_packet_unref(n->details->packet);
+              continue;
+            }
+
+            static int audio_packet_count = 0;
+            audio_packet_count++;
+
+            pthread_mutex_lock(&n->details->audio_packet_mutex);
+            ffmpeg_drain_pending_audio_locked(n->details);
+
+            // Now try to send the new packet
+            int audio_ret = avcodec_send_packet(n->details->audiocodecctx, n->details->packet);
+            if(audio_ret == 0){
+              n->details->audio_packet_outstanding = true;
+            }else if(audio_ret == AVERROR(EAGAIN)){
+              // Decoder full - save this packet for next time
+              if(audio_queue_enqueue(&n->details->pending_audio_packets, n->details->packet) == 0){
+                n->details->audio_packet_outstanding = true;
+              }
+            }
+            av_packet_unref(n->details->packet);
+
+            pthread_mutex_unlock(&n->details->audio_packet_mutex);
+          }else{
+            av_packet_unref(n->details->packet);
+          }
+          continue; // Continue reading, this wasn't a video packet
+        }
+
+        // This is a video packet - break out of loop to process it
+        break;
+      }while(1);
       n->details->packet_outstanding = true;
       int averr = avcodec_send_packet(n->details->codecctx, n->details->packet);
       if(averr < 0){
@@ -368,7 +897,23 @@ ffmpeg_decode(ncvisual* n){
 //fprintf(stderr, "good decode! %d/%d %d %p\n", n->details->frame->height, n->details->frame->width, n->rowstride, f->data);
   ncvisual_set_data(n, f->data[0], false);
   force_rgba(n);
+  int64_t vpts = f->pts;
+  if(vpts == AV_NOPTS_VALUE){
+    vpts = f->best_effort_timestamp;
+  }
+  n->details->last_video_frame_pts = vpts;
+  if(n->details->decoded_frames >= 0){
+    ++n->details->decoded_frames;
+  }
   return 0;
+}
+
+static int64_t
+ffmpeg_frame_index(const ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return -1;
+  }
+  return ncv->details->decoded_frames;
 }
 
 static ncvisual_details*
@@ -378,10 +923,41 @@ ffmpeg_details_init(void){
     memset(deets, 0, sizeof(*deets));
     deets->stream_index = -1;
     deets->sub_stream_index = -1;
-    if((deets->frame = av_frame_alloc()) == NULL){
+    deets->audio_stream_index = -1;
+    deets->last_audio_frame_pts = AV_NOPTS_VALUE; // No frame processed yet
+    deets->last_video_frame_pts = AV_NOPTS_VALUE;
+    deets->decoded_frames = 0;
+    deets->audio_out_channels = 0; // Will be set when resampler is initialized
+    audio_queue_init(&deets->pending_audio_packets);
+    atomic_init(&deets->audio_enabled, true);
+    if(pthread_mutex_init(&deets->packet_mutex, NULL) != 0){
       free(deets);
       return NULL;
     }
+    if(pthread_mutex_init(&deets->audio_packet_mutex, NULL) != 0){
+      pthread_mutex_destroy(&deets->packet_mutex);
+      free(deets);
+      return NULL;
+    }
+    if((deets->frame = av_frame_alloc()) == NULL){
+      pthread_mutex_destroy(&deets->packet_mutex);
+      free(deets);
+      return NULL;
+    }
+    if((deets->audio_frame = av_frame_alloc()) == NULL){
+      av_frame_free(&deets->frame);
+      pthread_mutex_destroy(&deets->packet_mutex);
+      free(deets);
+      return NULL;
+    }
+    deets->subtitle_active = false;
+    deets->subtitle_start_time = 0.0;
+    deets->subtitle_end_time = 0.0;
+    deets->subtitle_time_base = 0.0;
+    deets->subtitle_text_field = 9;
+    deets->subtitle_logged = false;
+    deets->subtitle_last_hash = 0;
+    deets->subtitle_cached_text = NULL;
   }
   return deets;
 }
@@ -429,13 +1005,61 @@ ffmpeg_from_file(const char* filename){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       goto err;
     }
-    // FIXME do we need avcodec_parameters_to_context() here?
+    AVStream* sst = ncv->details->fmtctx->streams[ncv->details->sub_stream_index];
+    ncv->details->subtitle_time_base = av_q2d(sst->time_base);
+    if(ncv->details->subtitle_time_base <= 0.0){
+      ncv->details->subtitle_time_base = 1.0 / AV_TIME_BASE;
+    }
+    if(ncv->details->subtcodecctx->subtitle_header &&
+       ncv->details->subtcodecctx->subtitle_header_size > 0){
+      ncv->details->subtitle_text_field =
+        ass_detect_text_field(ncv->details->subtcodecctx->subtitle_header,
+                              ncv->details->subtcodecctx->subtitle_header_size);
+      if(ncv->details->subtitle_text_field < 1){
+        ncv->details->subtitle_text_field = 9;
+      }
+    }
+    if(avcodec_parameters_to_context(ncv->details->subtcodecctx, sst->codecpar) < 0){
+      goto err;
+    }
     if(avcodec_open2(ncv->details->subtcodecctx, ncv->details->subtcodec, NULL) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       goto err;
     }
+    const char* subtitle_codec_name = "unknown";
+    int subtitle_codec_id = -1;
+    if(ncv->details->subtcodec){
+      subtitle_codec_id = (int)ncv->details->subtcodec->id;
+      if(ncv->details->subtcodec->name){
+        subtitle_codec_name = ncv->details->subtcodec->name;
+      }
+    }
+    SUBLOG_INFO("stream %d (%s) discovered with codec id %d",
+                ncv->details->sub_stream_index,
+                subtitle_codec_name, subtitle_codec_id);
   }else{
     ncv->details->sub_stream_index = -1;
+  }
+  // Find audio stream (similar to subtitle detection)
+  if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_AUDIO, -1, -1,
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+                                  (const AVCodec**)&ncv->details->audiocodec, 0)) >= 0){
+#else
+                                  &ncv->details->audiocodec, 0)) >= 0){
+#endif
+    ncv->details->audio_stream_index = averr;
+    AVStream* ast = ncv->details->fmtctx->streams[ncv->details->audio_stream_index];
+    if((ncv->details->audiocodecctx = avcodec_alloc_context3(ncv->details->audiocodec)) == NULL){
+      goto err;
+    }
+    if(avcodec_parameters_to_context(ncv->details->audiocodecctx, ast->codecpar) < 0){
+      goto err;
+    }
+    if(avcodec_open2(ncv->details->audiocodecctx, ncv->details->audiocodec, NULL) < 0){
+      goto err;
+    }
+  }else{
+    ncv->details->audio_stream_index = -1;
   }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details->frame);
   if((ncv->details->packet = av_packet_alloc()) == NULL){
@@ -464,6 +1088,15 @@ ffmpeg_from_file(const char* filename){
   if(avcodec_parameters_to_context(ncv->details->codecctx, st->codecpar) < 0){
     goto err;
   }
+  int vthreads = ffmpeg_detect_thread_count();
+  if(vthreads > 1){
+    ncv->details->codecctx->thread_count = vthreads;
+    if(ncv->details->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS){
+      ncv->details->codecctx->thread_type = FF_THREAD_FRAME;
+    }else{
+      ncv->details->codecctx->thread_type = FF_THREAD_SLICE;
+    }
+  }
   if(avcodec_open2(ncv->details->codecctx, ncv->details->codec, NULL) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
@@ -479,6 +1112,119 @@ ffmpeg_from_file(const char* filename){
 err:
   ncvisual_destroy(ncv);
   return NULL;
+}
+
+// Decode audio packet and return number of samples decoded
+// Returns: >0 = samples decoded, 0 = need more data, <0 = error
+// This function is safe to call - it doesn't interfere with video decoding
+static int
+ffmpeg_decode_audio_internal(ncvisual* ncv, AVPacket* packet){
+  if(!ncv->details->audiocodecctx || ncv->details->audio_stream_index < 0){
+    return -1;
+  }
+
+  // Send packet to decoder if provided
+  if(packet && packet->stream_index == ncv->details->audio_stream_index){
+    int averr = avcodec_send_packet(ncv->details->audiocodecctx, packet);
+    if(averr < 0 && averr != AVERROR(EAGAIN) && averr != AVERROR_EOF){
+      return averr2ncerr(averr);
+    }
+    ncv->details->audio_packet_outstanding = (averr == 0);
+  }
+
+  // If no packet outstanding, return 0 (need more data)
+  if(!ncv->details->audio_packet_outstanding){
+    return 0;
+  }
+
+  // Receive decoded frame
+  int averr = avcodec_receive_frame(ncv->details->audiocodecctx, ncv->details->audio_frame);
+  if(averr == 0){
+    ncv->details->audio_packet_outstanding = false;
+    return ncv->details->audio_frame->nb_samples;
+  }else if(averr == AVERROR(EAGAIN)){
+    return 0; // need more packets
+  }else if(averr == AVERROR_EOF){
+    return 1; // EOF
+  }else{
+    return averr2ncerr(averr);
+  }
+}
+
+// Initialize audio resampler for converting to output format
+// Returns 0 on success, <0 on error
+// This function is safe to call - it doesn't interfere with video decoding
+static int
+ffmpeg_init_audio_resampler_internal(ncvisual* ncv, int out_sample_rate, int out_channels){
+  if(!ncv->details->audiocodecctx || ncv->details->audio_stream_index < 0){
+    return -1;
+  }
+
+  AVCodecContext* acodecctx = ncv->details->audiocodecctx;
+
+  // Free existing resampler if any
+  if(ncv->details->swrctx){
+    swr_free(&ncv->details->swrctx);
+  }
+
+  // Use older API with channel masks (more stable)
+  uint64_t in_channel_mask = 0;
+  uint64_t out_channel_mask = 0;
+
+  // Get input channel count
+  int in_ch_count = 0;
+  if(acodecctx->ch_layout.nb_channels > 0){
+    in_ch_count = acodecctx->ch_layout.nb_channels;
+  }else{
+    // Fallback for older FFmpeg versions
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    in_ch_count = acodecctx->channels;
+    #pragma GCC diagnostic pop
+  }
+
+  // Map channel count to standard layout masks
+  if(in_ch_count == 1){
+    in_channel_mask = AV_CH_LAYOUT_MONO;
+  }else if(in_ch_count == 2){
+    in_channel_mask = AV_CH_LAYOUT_STEREO;
+  }else if(in_ch_count == 6){
+    in_channel_mask = AV_CH_LAYOUT_5POINT1;
+  }else if(in_ch_count == 4){
+    in_channel_mask = AV_CH_LAYOUT_QUAD;
+  }else if(in_ch_count == 8){
+    in_channel_mask = AV_CH_LAYOUT_7POINT1;
+  }else{
+    // Default to stereo for unknown channel counts
+    in_channel_mask = AV_CH_LAYOUT_STEREO;
+    in_ch_count = 2;
+  }
+
+  out_channel_mask = (out_channels == 1) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
+
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  ncv->details->swrctx = swr_alloc_set_opts(
+    NULL,
+    out_channel_mask, AV_SAMPLE_FMT_S16, out_sample_rate,
+    in_channel_mask, acodecctx->sample_fmt, acodecctx->sample_rate,
+    0, NULL);
+  #pragma GCC diagnostic pop
+
+  if(!ncv->details->swrctx){
+    return -1;
+  }
+
+  int ret = swr_init(ncv->details->swrctx);
+  if(ret < 0){
+    swr_free(&ncv->details->swrctx);
+    return -1;
+  }
+
+  // Store output channel count for buffer size calculations
+  ncv->details->audio_out_channels = out_channels;
+
+  return 0;
 }
 
 // iterate over the decoded frames, calling streamer() with curry for each.
@@ -719,13 +1465,21 @@ static void
 ffmpeg_details_destroy(ncvisual_details* deets){
   // avcodec_close() is deprecated; avcodec_free_context() suffices
   avcodec_free_context(&deets->subtcodecctx);
+  avcodec_free_context(&deets->audiocodecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
+  av_frame_free(&deets->audio_frame);
+  audio_queue_clear(&deets->pending_audio_packets);
+  av_frame_free(&deets->audio_frame);
+  swr_free(&deets->swrctx);
   sws_freeContext(deets->rgbactx);
   sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
   avsubtitle_free(&deets->subtitle);
+  free(deets->subtitle_cached_text);
+  pthread_mutex_destroy(&deets->audio_packet_mutex);
+  pthread_mutex_destroy(&deets->packet_mutex);
   free(deets);
 }
 
@@ -740,6 +1494,327 @@ ffmpeg_destroy(ncvisual* ncv){
   }
 }
 
+// Public API functions used by ncplayer
+API double
+ffmpeg_get_video_position_seconds(const ncvisual* ncv){
+  if(!ncv || !ncv->details || !ncv->details->fmtctx){
+    return -1.0;
+  }
+  int stream_index = ncv->details->stream_index;
+  if(stream_index < 0 || stream_index >= (int)ncv->details->fmtctx->nb_streams){
+    return -1.0;
+  }
+  AVStream* stream = ncv->details->fmtctx->streams[stream_index];
+  if(!stream){
+    return -1.0;
+  }
+  double time_base = av_q2d(stream->time_base);
+  if(time_base <= 0.0){
+    return -1.0;
+  }
+  int64_t pts = ncv->details->last_video_frame_pts;
+  if(pts == AV_NOPTS_VALUE){
+    return -1.0;
+  }
+  return pts * time_base;
+}
+
+// Public API functions for audio handling (called from play.cpp)
+// Define API macro for visibility export
+
+API void
+ffmpeg_audio_request_packets(ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return;
+  }
+  pthread_mutex_lock(&ncv->details->audio_packet_mutex);
+  if(!atomic_load_explicit(&ncv->details->audio_enabled, memory_order_relaxed)){
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    return;
+  }
+  ffmpeg_drain_pending_audio_locked(ncv->details);
+  pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+}
+
+API void
+ffmpeg_set_audio_enabled(ncvisual* ncv, bool enabled){
+  if(!ncv || !ncv->details || ncv->details->audio_stream_index < 0){
+    return;
+  }
+  ncvisual_details* deets = ncv->details;
+  bool current = atomic_load_explicit(&deets->audio_enabled, memory_order_relaxed);
+  if(current == enabled){
+    return;
+  }
+  pthread_mutex_lock(&deets->audio_packet_mutex);
+  atomic_store_explicit(&deets->audio_enabled, enabled, memory_order_relaxed);
+  if(!enabled){
+    audio_queue_clear(&deets->pending_audio_packets);
+    deets->audio_packet_outstanding = false;
+    if(deets->audiocodecctx){
+      avcodec_flush_buffers(deets->audiocodecctx);
+    }
+  }
+  pthread_mutex_unlock(&deets->audio_packet_mutex);
+}
+
+API bool
+ffmpeg_is_audio_enabled(ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return false;
+  }
+  return atomic_load_explicit(&ncv->details->audio_enabled, memory_order_relaxed);
+}
+
+// Check if the visual has an audio stream
+API bool
+ffmpeg_has_audio(ncvisual* ncv){
+  return ncv && ncv->details && ncv->details->audio_stream_index >= 0 &&
+         ncv->details->audiocodecctx != NULL;
+}
+
+// Decode audio packet (public wrapper)
+API int
+ffmpeg_decode_audio(ncvisual* ncv, AVPacket* packet){
+  return ffmpeg_decode_audio_internal(ncv, packet);
+}
+
+// Initialize audio resampler (public wrapper)
+API int
+ffmpeg_init_audio_resampler(ncvisual* ncv, int out_sample_rate, int out_channels){
+  return ffmpeg_init_audio_resampler_internal(ncv, out_sample_rate, out_channels);
+}
+
+// Try to get a decoded audio frame (packets are read by video decoder)
+// Returns: >0 = samples decoded, 0 = no frame available, <0 = error
+// This function is called by the audio thread - it doesn't read packets
+// IMPORTANT: avcodec_receive_frame can only return a frame once per packet sent
+API int
+ffmpeg_get_decoded_audio_frame(ncvisual* ncv){
+  if(!ncv || !ncv->details || ncv->details->audio_stream_index < 0){
+    return -1;
+  }
+
+  // Try to receive a decoded frame (non-blocking)
+  // This will only return a frame once per packet - subsequent calls return EAGAIN
+  static int receive_call_count = 0;
+  receive_call_count++;
+  int pending_after = 0;
+  bool outstanding = false;
+  pthread_mutex_lock(&ncv->details->audio_packet_mutex);
+  int averr = avcodec_receive_frame(ncv->details->audiocodecctx, ncv->details->audio_frame);
+  pending_after = ncv->details->pending_audio_packets.count;
+  outstanding = ncv->details->audio_packet_outstanding;
+  if(averr == 0){
+    static int frame_counter = 0;
+    frame_counter++;
+    if(pending_after == 0){
+      ncv->details->audio_packet_outstanding = false;
+      outstanding = false;
+    }
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+
+    // Check if this is a new frame (different PTS) or the same one we already processed
+    int64_t current_pts = ncv->details->audio_frame->pts;
+    if(current_pts == ncv->details->last_audio_frame_pts && current_pts != AV_NOPTS_VALUE){
+      // Same frame as before - don't process again
+      // This can happen if avcodec_receive_frame is called multiple times
+      // Note: avcodec_receive_frame should only return each frame once, so this
+      // check is defensive. If we see this frequently, there's a bug elsewhere.
+      return 0;
+    }
+    ncv->details->last_audio_frame_pts = current_pts;
+    return ncv->details->audio_frame->nb_samples;
+  }else if(averr == AVERROR(EAGAIN)){
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    // Need more packets - video decoder will provide them
+    // This is normal - the decoder needs more packets before it can produce a frame
+    (void)outstanding;
+    return 0;
+  }else if(averr == AVERROR_EOF){
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    return 1; // EOF
+  }else{
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    return -1; // Error
+  }
+}
+
+// Resample audio frame to output format
+// Returns: number of samples output, <0 on error
+// NOTE: This should be called immediately after ffmpeg_get_decoded_audio_frame returns >0
+// The frame data is only valid until the next call to avcodec_receive_frame
+API int
+ffmpeg_resample_audio(ncvisual* ncv, uint8_t** out_data, int* out_samples){
+  if(!ncv || !ncv->details || !ncv->details->swrctx || !ncv->details->audio_frame){
+    return -1;
+  }
+
+  AVFrame* frame = ncv->details->audio_frame;
+  if(frame->nb_samples <= 0){
+    return 0;
+  }
+
+  // Calculate output buffer size
+  int64_t out_count = swr_get_out_samples(ncv->details->swrctx, frame->nb_samples);
+  if(out_count < 0){
+    return -1;
+  }
+
+  // Use OUTPUT channel count (from resampler), not input channel count
+  int out_channels = ncv->details->audio_out_channels;
+  if(out_channels <= 0){
+    // Fallback: use input channel count, but limit to 2
+    out_channels = ncv->details->audiocodecctx->ch_layout.nb_channels;
+    if(out_channels == 0){
+      // Fallback for older FFmpeg
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      out_channels = ncv->details->audiocodecctx->channels;
+      #pragma GCC diagnostic pop
+    }
+    // Limit to stereo max
+    if(out_channels > 2){
+      out_channels = 2;
+    }
+  }
+
+  int out_size = av_samples_get_buffer_size(NULL, out_channels, out_count,
+                                            AV_SAMPLE_FMT_S16, 1);
+  if(out_size < 0){
+    return -1;
+  }
+
+  // Allocate output buffer
+  *out_data = malloc(out_size);
+  if(!*out_data){
+    return -1;
+  }
+
+  // Perform resampling
+  uint8_t* out_ptr = *out_data;
+  int samples_out = swr_convert(ncv->details->swrctx, &out_ptr, out_count,
+                                (const uint8_t**)frame->data, frame->nb_samples);
+
+  if(samples_out < 0){
+    free(*out_data);
+    *out_data = NULL;
+    return -1;
+  }
+
+  *out_samples = samples_out;
+  return samples_out * out_channels * sizeof(int16_t); // Return bytes
+}
+
+// Get the decoded audio frame (for getting sample rate, channels, etc.)
+API AVFrame*
+ffmpeg_get_audio_frame(ncvisual* ncv){
+  if(!ncv || !ncv->details){
+    return NULL;
+  }
+  return ncv->details->audio_frame;
+}
+
+// Get audio sample rate from codec context
+API int
+ffmpeg_get_audio_sample_rate(ncvisual* ncv){
+  if(!ncv || !ncv->details || !ncv->details->audiocodecctx){
+    return 44100; // Default
+  }
+  return ncv->details->audiocodecctx->sample_rate > 0 ?
+         ncv->details->audiocodecctx->sample_rate : 44100;
+}
+
+// Get audio channel count from codec context
+API int
+ffmpeg_get_audio_channels(ncvisual* ncv){
+  if(!ncv || !ncv->details || !ncv->details->audiocodecctx){
+    return 2; // Default stereo
+  }
+  AVCodecContext* acodecctx = ncv->details->audiocodecctx;
+  int channels = acodecctx->ch_layout.nb_channels;
+  if(channels == 0){
+    // Fallback for older FFmpeg
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    channels = acodecctx->channels;
+    #pragma GCC diagnostic pop
+  }
+  return channels > 0 ? channels : 2; // Default stereo
+}
+
+API int
+ffmpeg_seek_relative(ncvisual* ncv, double seconds){
+  if(!ncv || !ncv->details || !ncv->details->fmtctx || seconds == 0.0){
+    return 0;
+  }
+  if(!ncv->details->codecctx){
+    return -1;
+  }
+  AVFormatContext* fmt = ncv->details->fmtctx;
+  int stream_index = ncv->details->stream_index;
+  if(stream_index < 0 || stream_index >= (int)fmt->nb_streams){
+    return -1;
+  }
+  AVStream* stream = fmt->streams[stream_index];
+  double time_base = av_q2d(stream->time_base);
+  if(time_base == 0.0){
+    return -1;
+  }
+  int64_t current = ncv->details->last_video_frame_pts;
+  if(current == AV_NOPTS_VALUE){
+    current = (stream->start_time != AV_NOPTS_VALUE) ? stream->start_time : 0;
+  }
+  int64_t offset = seconds / time_base;
+  int64_t target = current + offset;
+  if(target < 0){
+    target = 0;
+  }
+  int flags = 0;
+  if(seconds < 0){
+    flags |= AVSEEK_FLAG_BACKWARD;
+  }
+  if(av_seek_frame(fmt, stream_index, target, flags) < 0){
+    // clamp to valid duration if available
+    if(stream->duration > 0 && target > stream->duration){
+      target = stream->duration;
+      if(av_seek_frame(fmt, stream_index, target, AVSEEK_FLAG_BACKWARD) < 0){
+        return -1;
+      }
+    }else{
+      return -1;
+    }
+  }
+  avcodec_flush_buffers(ncv->details->codecctx);
+  ncv->details->packet_outstanding = false;
+  av_packet_unref(ncv->details->packet);
+  ncv->details->last_video_frame_pts = target;
+  double frame_rate = av_q2d(stream->avg_frame_rate);
+  if(frame_rate <= 0.0){
+    frame_rate = 1.0 / av_q2d(stream->time_base);
+    if(frame_rate <= 0.0){
+      frame_rate = 30.0;
+    }
+  }
+  double seconds_pos = target * time_base;
+  if(seconds_pos < 0){
+    seconds_pos = 0;
+  }
+  ncv->details->decoded_frames = (int64_t)(seconds_pos * frame_rate);
+  if(ncv->details->audiocodecctx){
+    avcodec_flush_buffers(ncv->details->audiocodecctx);
+    pthread_mutex_lock(&ncv->details->audio_packet_mutex);
+    audio_queue_clear(&ncv->details->pending_audio_packets);
+    ncv->details->audio_packet_outstanding = false;
+    pthread_mutex_unlock(&ncv->details->audio_packet_mutex);
+    ncv->details->last_audio_frame_pts = AV_NOPTS_VALUE;
+  }
+  if(ffmpeg_decode(ncv) < 0){
+    return -1;
+  }
+  return 0;
+}
+
 ncvisual_implementation local_visual_implementation = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
@@ -752,6 +1827,8 @@ ncvisual_implementation local_visual_implementation = {
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
   .visual_resize = ffmpeg_resize,
+  .visual_seek = ffmpeg_seek_relative,
+  .visual_frame_index = ffmpeg_frame_index,
   .visual_destroy = ffmpeg_destroy,
   .rowalign = 64, // ffmpeg wants multiples of IMGALIGN (64)
   .canopen_images = true,
