@@ -450,12 +450,14 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                    PIXELMOUSEQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    "\x1b[?1;3;1024S" /* try to set 1024 cregs */ \
-                   KITTYQUERY \
                    CREGSXTSM \
                    GEOMXTSM \
                    GEOMPIXEL \
                    GEOMCELL \
                    PRIDEVATTR
+// KITTYQUERY is sent separately in send_initial_directives() to allow
+// skipping it in tmux (where we detect kitty graphics via env vars and
+// the response would leak to the application with DRAIN_INPUT)
 
 // kitty keyboard push, used at start
 #define KKEYBOARD_PUSH "\x1b[>u"
@@ -505,6 +507,16 @@ send_initial_directives(queried_terminals_e qterm, int fd){
     return -1;
   }
   total += strlen(DIRECTIVES);
+  // Send KITTYQUERY only when NOT in tmux. In tmux, we detect kitty graphics
+  // support via environment variables (TERM_PROGRAM, GHOSTTY_RESOURCES_DIR,
+  // KITTY_WINDOW_ID), and the query response would leak to applications using
+  // DRAIN_INPUT since tmux doesn't properly consume it.
+  if(qterm != TERMINAL_TMUX){
+    if(blocking_write(fd, KITTYQUERY, strlen(KITTYQUERY))){
+      return -1;
+    }
+    total += strlen(KITTYQUERY);
+  }
   return total;
 }
 
@@ -827,6 +839,25 @@ apply_mlterm_heuristics(tinfo* ti){
   return "MLterm";
 }
 
+// tmux doesn't respond to sixel capability queries, but can pass through sixel
+// to the outer terminal via DCS passthrough. Force sixel support when running
+// inside tmux (TMUX env var is set) to enable passthrough rendering.
+static const char*
+apply_tmux_heuristics(tinfo* ti){
+  // Check if we're actually running inside tmux
+  if(getenv("TMUX") != NULL){
+    // Force sixel color registers to enable sixel setup
+    // The outer terminal (e.g., Ghostty, iTerm2) will actually render the sixel
+    if(ti->color_registers == 0){
+      ti->color_registers = 256;
+      loginfo("tmux detected - forcing sixel color_registers to 256 for passthrough");
+    }
+    ti->caps.rgb = true;
+    ti->caps.quadrants = true;
+  }
+  return "tmux";
+}
+
 static const char*
 apply_wezterm_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
   ti->caps.rgb = true;
@@ -927,9 +958,16 @@ apply_konsole_heuristics(tinfo* ti){
 }
 
 static const char*
-apply_ghostty_heuristics(tinfo* ti){
+apply_ghostty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // Ghostty supports kitty graphics protocol
   ti->caps.quadrants = true;
   ti->caps.sextants = true;
+  ti->caps.rgb = true;
+  if(add_smulx_escapes(ti, tablelen, tableused)){
+    return NULL;
+  }
+  // Ghostty uses kitty graphics protocol (static mode for compatibility)
+  setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_STATIC);
   return "ghostty";
 }
 
@@ -1004,7 +1042,7 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
                                       forcesdm, invertsixel);
       break;
     case TERMINAL_TMUX:
-      newname = "tmux"; // FIXME what, oh what to do with tmux?
+      newname = apply_tmux_heuristics(ti);
       break;
     case TERMINAL_GNUSCREEN:
       newname = apply_gnuscreen_heuristics(ti);
@@ -1049,7 +1087,7 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       newname = apply_konsole_heuristics(ti);
       break;
     case TERMINAL_GHOSTTY:
-      newname = apply_ghostty_heuristics(ti);
+      newname = apply_ghostty_heuristics(ti, tablelen, tableused);
       break;
     default:
       logwarn("no match for qterm %d tname %s", qterm, tname);
@@ -1122,6 +1160,12 @@ build_supported_styles(tinfo* ti){
 // i'm likewise unsure what we're supposed to do should you ssh anywhere =[.
 static queried_terminals_e
 macos_early_matches(void){
+  // Detect tmux early via TMUX environment variable. This is important for
+  // skipping KITTYQUERY (whose response would leak with DRAIN_INPUT) since
+  // we detect kitty graphics support in tmux via env vars instead.
+  if(getenv("TMUX") != NULL){
+    return TERMINAL_TMUX;
+  }
   const char* tp = getenv("TERM_PROGRAM");
   if(tp == NULL){
     return TERMINAL_UNKNOWN;
@@ -1143,6 +1187,12 @@ macos_early_matches(void){
 // replies, and don't bother sending any identification requests.
 static queried_terminals_e
 unix_early_matches(const char* term){
+  // Detect tmux early via TMUX environment variable. This is important for
+  // skipping KITTYQUERY (whose response would leak with DRAIN_INPUT) since
+  // we detect kitty graphics support in tmux via env vars instead.
+  if(getenv("TMUX") != NULL){
+    return TERMINAL_TMUX;
+  }
   if(term == NULL){
     return TERMINAL_UNKNOWN;
   }
@@ -1522,6 +1572,24 @@ int interrogate_terminfo(tinfo* ti, FILE* out, unsigned utf8,
   if(apply_term_heuristics(ti, tname, ti->qterm, &tablelen, &tableused,
                            &forcesdm, &invertsixel, nonewfonts)){
     goto err;
+  }
+  // If running in tmux, check if outer terminal supports kitty graphics.
+  // Ghostty and Kitty use kitty protocol, not sixel. tmux doesn't report
+  // kitty graphics support, but we can detect the outer terminal via env vars.
+  if(ti->qterm == TERMINAL_TMUX){
+    const char* term_program = getenv("TERM_PROGRAM");
+    const char* ghostty_resources = getenv("GHOSTTY_RESOURCES_DIR");
+    const char* kitty_window_id = getenv("KITTY_WINDOW_ID");
+    if((term_program && (strcmp(term_program, "ghostty") == 0 ||
+                         strcmp(term_program, "Ghostty") == 0 ||
+                         strcmp(term_program, "kitty") == 0)) ||
+       ghostty_resources != NULL || kitty_window_id != NULL){
+      // Outer terminal is Ghostty or Kitty - use kitty graphics with passthrough
+      loginfo("tmux: outer terminal supports kitty graphics, using passthrough");
+      kitty_graphics = 1;
+      // Don't use sixel for these terminals (they don't support it)
+      ti->color_registers = 0;
+    }
   }
   build_supported_styles(ti);
   if(ti->pixel_draw == NULL && ti->pixel_draw_late == NULL){

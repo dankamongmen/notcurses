@@ -379,6 +379,15 @@ int update_term_dimensions(unsigned* rows, unsigned* cols, tinfo* tcache,
     tcache->cellpxx = cpixx;
     *pgeo_changed = 1;
   }
+  // Fallback for tmux: use reasonable default cell pixel values
+  // so that sixel passthrough can work. Common terminal fonts are ~9x18 to 10x20.
+  if((tcache->cellpxy == 0 || tcache->cellpxx == 0) && getenv("TMUX") != NULL){
+    tcache->cellpxy = 20;
+    tcache->cellpxx = 10;
+    *pgeo_changed = 1;
+    loginfo("tmux detected with no cell pixel info, using defaults %ux%u",
+            tcache->cellpxx, tcache->cellpxy);
+  }
   if(tcache->cellpxy == 0 || tcache->cellpxx == 0){
     tcache->pixel_draw = NULL; // disable support
   }
