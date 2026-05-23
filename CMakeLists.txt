@@ -226,6 +226,7 @@ file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/*.c)
 # libnotcurses-core (core shared library, core static library)
 file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c)
 add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC})
+add_library(Notcurses::NotcursesCore ALIAS notcurses-core)
 if(${USE_STATIC})
 add_library(notcurses-core-static STATIC ${NCCORESRCS} ${COMPATSRC})
 else()
@@ -249,6 +250,7 @@ endif()
 set_target_properties(notcurses-core PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
+  EXPORT_NAME NotcursesCore
 )
 set_target_properties(notcurses-core-static PROPERTIES
   VERSION ${PROJECT_VERSION}
@@ -256,6 +258,8 @@ set_target_properties(notcurses-core-static PROPERTIES
 )
 target_include_directories(notcurses-core
   BEFORE
+  PUBLIC
+    $<INSTALL_INTERFACE:include>
   PRIVATE
     include
     src
@@ -320,6 +324,7 @@ endif()
 # libnotcurses (multimedia shared library+static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
+add_library(Notcurses::Notcurses ALIAS notcurses)
 if(${USE_STATIC})
 # can't build binaries against static notcurses until ffmpeg linking issues
 # are resolved (USE_STATIC_BINARIES) FIXME
@@ -330,6 +335,7 @@ endif()
 set_target_properties(notcurses PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
+  EXPORT_NAME Notcurses
 )
 set_target_properties(notcurses-static PROPERTIES
   VERSION ${PROJECT_VERSION}
@@ -337,6 +343,8 @@ set_target_properties(notcurses-static PROPERTIES
 )
 target_include_directories(notcurses
   BEFORE
+  PUBLIC
+    $<INSTALL_INTERFACE:include>
   PRIVATE
     include
     src
@@ -500,6 +508,7 @@ set(NCPP_SOURCES
   )
 
 add_library(notcurses++ SHARED ${NCPP_SOURCES})
+add_library(Notcurses::Notcurses++ ALIAS notcurses++)
 if(${USE_STATIC})
 add_library(notcurses++-static STATIC ${NCPP_SOURCES})
 else()
@@ -514,7 +523,9 @@ set_target_properties(
   notcurses++ PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
-  OUTPUT_NAME "notcurses++")
+  OUTPUT_NAME "notcurses++"
+  EXPORT_NAME Notcurses++
+)
 
 set(NCPP_INCLUDE_DIRS
     "include"
@@ -525,7 +536,10 @@ set(NCPP_INCLUDE_DIRS
 
 target_include_directories(notcurses++
   BEFORE
-  PRIVATE ${NCPP_INCLUDE_DIRS}
+  PUBLIC
+    $<INSTALL_INTERFACE:include>
+  PRIVATE
+    ${NCPP_INCLUDE_DIRS}
   )
 
 target_include_directories(notcurses++-static
@@ -619,17 +633,17 @@ file(GLOB NCPP_INTERNAL_HEADERS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/ncpp/internal/*.hh)
 
-install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
-install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
-
-export(PACKAGE notcurses)
-
 file(GLOB NOTCURSES_HEADERS
   CONFIGURE_DEPENDS
   LIST_DIRECTORIES false
   ${PROJECT_SOURCE_DIR}/include/notcurses/*.h
   ${CMAKE_CURRENT_BINARY_DIR}/include/version.h)
+
+install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
+install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcurses)
+
+export(PACKAGE notcurses)
 
 # tiny proofs of concept, one binary per source file
 if(USE_POC)
@@ -1062,23 +1076,15 @@ if(${USE_CXX})
   @ONLY
 )
 endif()
-include(CMakePackageConfigHelpers)
+
 configure_file(tools/version.h.in include/version.h)
 configure_file(tools/builddef.h.in include/builddef.h)
 
-configure_package_config_file(tools/NotcursesConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses
-)
+include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
-)
-
-configure_package_config_file(tools/NotcursesCoreConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NotcursesCore
 )
 
 write_basic_package_version_file(
@@ -1087,11 +1093,6 @@ write_basic_package_version_file(
 )
 
 if(${USE_CXX})
-configure_package_config_file(tools/Notcurses++Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++
-)
-
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
@@ -1100,20 +1101,20 @@ endif()
 
 # Installation
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake"
+  "tools/NotcursesCoreConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/NotcursesCore"
 )
 
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake"
+  "tools/NotcursesConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses"
 )
 
 if(${USE_CXX})
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake"
+  "tools/Notcurses++Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++"
 )
@@ -1175,24 +1176,68 @@ endif()
 endif() # BUILD_EXECUTABLES
 
 if(${BUILD_FFI_LIBRARY})
-LIST(APPEND INSTLIBS notcurses-ffi)
-endif()
-LIST(APPEND INSTLIBS notcurses-core notcurses)
-if(${USE_STATIC})
-LIST(APPEND INSTLIBS notcurses-core-static notcurses-static)
-endif()
-if(${USE_CXX})
-LIST(APPEND INSTLIBS notcurses++)
-if(${USE_STATIC})
-LIST(APPEND INSTLIBS notcurses++-static)
-endif()
-endif()
-
-install(TARGETS ${INSTLIBS}
+install(TARGETS notcurses-ffi
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
     NAMELINK_COMPONENT Development
+)
+endif()
+
+if(${USE_STATIC})
+install(TARGETS notcurses-core-static notcurses-static
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+)
+if(${USE_CXX})
+install(TARGETS notcurses++-static
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT Libraries
+    NAMELINK_COMPONENT Development
+)
+endif()
+endif()
+
+install(TARGETS notcurses-core
+	EXPORT NotcursesCoreExport
+	LIBRARY
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		COMPONENT Libraries
+		NAMELINK_COMPONENT Development
+)
+install(EXPORT NotcursesCoreExport
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NotcursesCore
+	NAMESPACE Notcurses::
+	FILE NotcursesCoreTargets.cmake
+)
+
+install(TARGETS notcurses
+	EXPORT NotcursesExport
+	LIBRARY
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		COMPONENT Libraries
+		NAMELINK_COMPONENT Development
+)
+install(EXPORT NotcursesExport
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses
+	NAMESPACE Notcurses::
+	FILE NotcursesTargets.cmake
+)
+
+install(TARGETS notcurses++
+	EXPORT Notcurses++Export
+	LIBRARY
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		COMPONENT Libraries
+		NAMELINK_COMPONENT Development
+)
+install(EXPORT Notcurses++Export
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++
+	NAMESPACE Notcurses::
+	FILE Notcurses++Targets.cmake
 )
 
 option(DUMMY_PYTHON "Build dummy python module used for compile check and Clangd" OFF)
