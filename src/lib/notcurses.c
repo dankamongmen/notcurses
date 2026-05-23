@@ -540,7 +540,7 @@ static inline size_t  ncplane_sizeof_cellarray( size_t rows, size_t cols)
 {
   // check if multiplication would overflow
   // calloc will deal with overflow due to sizeof(nccell)
-  if( ! rows || (cols > SIZE_MAX / rows)) 
+  if( ! rows || (cols > SIZE_MAX / rows))
     return 0;
   return rows * cols;
 }
@@ -2010,6 +2010,20 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, size_t* sbyt
 //fprintf(stderr, "glust: %s cols: %d wcs: %d\n", gclust, cols, bytes);
   return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
+
+int ncplane_putegcn_yx(ncplane* n, int y, int x, const char* gclust, size_t maxbytes, size_t* sbytes){
+  int cols;
+  int bytes = utf8_egcn_len(gclust, maxbytes, &cols);
+  if(bytes < 0){
+    return -1;
+  }
+  if(sbytes){
+    *sbytes = bytes;
+  }
+//fprintf(stderr, "glust: %s cols: %d wcs: %d\n", gclust, cols, bytes);
+  return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
+}
+
 
 int ncplane_putchar_stained(ncplane* n, char c){
   uint64_t channels = n->channels;
