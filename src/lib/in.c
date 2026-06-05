@@ -2407,10 +2407,17 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
              *bufused, buf[offset], isprint(buf[offset]) ? buf[offset] : ' ');
     int consumed = 0;
     if(buf[offset] == NCKEY_ESC){
+      // amata.used before process_escape() tells us whether this escape is
+      // resuming from a previous read; ictx->initdata tells us whether we're
+      // still awaiting interrogation replies. either way an in-flight escape
+      // must be allowed to span reads rather than be misread as input. see
+      // midescape_standalone_input_p().
+      unsigned continuation = ictx->amata.used;
       consumed = process_escape(ictx, buf + offset, *bufused);
       if(consumed < 0){
         if(ictx->midescape){
-          if(*bufused != -consumed || *bufused == origlen){
+          if(midescape_standalone_input_p(*bufused, consumed, origlen,
+                                          continuation, ictx->initdata != NULL)){
             // not at the end; treat it as input. no need to move between
             // buffers; simply ensure we process it as input, and don't mark
             // anything as consumed.
