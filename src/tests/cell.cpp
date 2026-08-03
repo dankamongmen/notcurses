@@ -34,6 +34,12 @@ TEST_CASE("Cell") {
                                                                              // U+0E49 THAI CHARACTER MAI THO
     WARN(1 == nccell_cols(&c));
 
+    // a keycap "<base> U+FE0F U+20E3" is a SINGLE grapheme cluster (7 bytes, 1 column). the
+    // VS16 must not end the cluster and orphan the U+20E3 into its own zero-width EGC --
+    // put_egc() advances a column for such an orphan, over-counting runs of keycaps.
+    CHECK(7 == nccell_load(n_, &c, "9\xef\xb8\x8f\xe2\x83\xa3")); // '9' U+FE0F U+20E3
+    CHECK(1 == nccell_cols(&c));
+
     // type-3 woman playing water polo, 17 bytes (5 characters, 2 columns)
 #ifdef __linux__
     CHECK(17 == nccell_load(n_, &c, "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
