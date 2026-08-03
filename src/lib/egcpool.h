@@ -123,8 +123,15 @@ utf8_egc_len(const char* gcluster, int* colcount){
     if(uc_is_property_variation_selector(wc)){ // ends EGC
       ret += r;
       break;
-    }else if(wc == L'\u200d' || injoin){ // ZWJ is iswcntrl, so check it first
+    }else if(wc == L'\u200d'){ // ZWJ joins to the next pictographic. iswcntrl, so check first
       injoin = true;
+      cols = 0;
+    }else if(injoin){ // the pictographic joined by the preceding ZWJ; the join ends here.
+      // GB11 is "\p{Extended_Pictographic} Extend* ZWJ x \p{Extended_Pictographic}": a ZWJ
+      // suppresses the break before exactly ONE following pictographic. Clear injoin so the
+      // NEXT code point is eligible to break again -- otherwise a ZWJ emoji not terminated by
+      // a variation selector (e.g. U+1F62E U+200D U+1F4A8) would swallow all following EGCs.
+      injoin = false;
       cols = 0;
     }else{
       cols = wcwidth(wc);

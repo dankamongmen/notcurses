@@ -65,6 +65,17 @@ TEST_CASE("Cell") {
     CHECK(2 == ncstrwidth("\U0001F471", NULL, NULL));
     CHECK(2 == ncstrwidth("\U0001F471\u200D", NULL, NULL));
     CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640", NULL, NULL));
+    // a ZWJ emoji NOT terminated by a variation selector must end its cluster after the
+    // pictographic it joins, and must not swallow following EGCs (regression: it used to
+    // leave injoin set forever, collapsing all trailing emoji into one width-2 cluster).
+    // U+1F62E U+200D U+1F4A8 (face exhaling) is a self-contained 2-column ZWJ emoji.
+    CHECK(2 == ncstrwidth("\U0001F62E\u200D\U0001F4A8", NULL, NULL));
+    CHECK(4 == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F925", NULL, NULL));
+    CHECK(6 == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F925\U0001FAE5", NULL, NULL));
+    // sanity: the per-emoji sum must equal the whole-string width for a mixed run.
+    CHECK(ncstrwidth("\U0001F62E\u200D\U0001F4A8", NULL, NULL)
+          + ncstrwidth("\U0001F60F", NULL, NULL)
+          == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F60F", NULL, NULL));
   }
 
   SUBCASE("SetItalic") {
