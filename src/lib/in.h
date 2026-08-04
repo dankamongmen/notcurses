@@ -53,6 +53,7 @@ typedef enum {
     TERMINAL_MINTTY,        // XTVERSION == 'mintty ver' MinTTY (Cygwin, MSYS2)
     TERMINAL_KONSOLE,       // TDA: "~KDE" (7e4b4445)
     TERMINAL_GHOSTTY,       // XTVERSION == 'ghostty '
+    TERMINAL_ABSOLUTETELNETSSH, // XTVERSION == 'AbsoluteTelnet/SSH ver'
 } queried_terminals_e;
 
 // after spawning the input layer, send initial queries to the terminal. its
