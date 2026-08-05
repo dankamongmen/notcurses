@@ -246,6 +246,18 @@ dostring(struct ncplane* n, const char** s, uint32_t rgb,
       idx += eaten;
       continue;
     }
+    // wrap when the next EGC won't fit, accounting for its WIDTH. the x >= maxx
+    // test above only catches single-column overflow; a double-width glyph
+    // landing on the last column of the last row slips through it, and letting
+    // ncplane_putegc() write it there overflows the line and scrolls the (we
+    // set it scrolling) standard plane -- corrupting the frame. wrap it instead,
+    // breaking if that would leave the plane.
+    if(x + wcwidth(wcs) > maxx){
+      x = 0;
+      if(++y >= maxy){
+        break;
+      }
+    }
     size_t ulen = 0;
     int r = 0;
     if((r = ncplane_putegc(n, &(*s)[idx], &ulen)) <= 0){
