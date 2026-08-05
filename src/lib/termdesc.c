@@ -765,6 +765,31 @@ apply_kitty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 static const char*
+apply_absolutetelnet_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused){
+  // AbsoluteTelnet/SSH (Windows SSH/telnet client) implements the kitty graphics protocol.
+  // Unlike apply_kitty_heuristics we declare only what AbsoluteTelnet actually supports, and
+  // deliberately do NOT inherit kitty's quirks: it honors DEC 2026 synchronized output, so we
+  // must NOT kill_appsync_escapes(), and it needs no gratuitous_hpa.
+  ti->caps.rgb = true;
+  ti->caps.sextants = true;   // owner-drawn 2x3 legacy-computing cells (U+1FB00..)
+  ti->caps.quadrants = true;  // owner-drawn 2x2 blocks
+  if(add_smulx_escapes(ti, tablelen, tableused)){ // styled underlines (SGR 4:2/3/4/5)
+    return NULL;
+  }
+  // AbsoluteTelnet 14.0 was the first release to both owner-draw the 2x4 block octants
+  // (U+1CD00-1CDE5; before that they fell back to whatever the font happened to supply) and
+  // support kitty graphics -- and kitty shipped already using the bandwidth-efficient ANIMATED
+  // ops (a=f offset-composite of only the changed cells; there was never a whole-image-only
+  // STATIC generation). Production is tagged 14.01. Older versions get neither: no octant cap,
+  // and no pixel blitter here (they fall through to generic sixel detection).
+  if(compare_versions(ti->termversion, "14.0") >= 0){
+    ti->caps.octants = true;  // owner-drawn U+1CD00-1CDE5 (+ sixteenths 1CE90-1CEAF)
+    setup_kitty_bitmaps(ti, ti->ttyfd, NCPIXEL_KITTY_ANIMATED);
+  }
+  return "AbsoluteTelnet";
+}
+
+static const char*
 apply_alacritty_heuristics(tinfo* ti, size_t* tablelen, size_t* tableused,
                            bool* forcesdm, bool* invertsixel){
   ti->caps.quadrants = true;
@@ -1050,6 +1075,9 @@ apply_term_heuristics(tinfo* ti, const char* tname, queried_terminals_e qterm,
       break;
     case TERMINAL_GHOSTTY:
       newname = apply_ghostty_heuristics(ti);
+      break;
+    case TERMINAL_ABSOLUTETELNETSSH:
+      newname = apply_absolutetelnet_heuristics(ti, tablelen, tableused);
       break;
     default:
       logwarn("no match for qterm %d tname %s", qterm, tname);

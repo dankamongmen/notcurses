@@ -1562,6 +1562,7 @@ xtversion_cb(inputctx* ictx){
     { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
     { .prefix = "mintty ", .suffix = 0, .term = TERMINAL_MINTTY, },
     { .prefix = "terminology ", .suffix = 0, .term = TERMINAL_TERMINOLOGY, },
+    { .prefix = "AbsoluteTelnet/SSH ", .suffix = 0, .term = TERMINAL_ABSOLUTETELNETSSH, },
     { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
   }, *xtv;
   for(xtv = xtvers ; xtv->prefix ; ++xtv){
