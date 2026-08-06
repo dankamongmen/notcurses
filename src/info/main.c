@@ -324,6 +324,14 @@ unicodedumper(struct notcurses* nc, struct ncplane* n, const char* indent){
     emoji_viz(n);
     unsigned y, x;
     ncplane_cursor_yx(n, &y, &x);
+    // emoji_viz() only emits a trailing newline when dimx > 80; at exactly 80
+    // columns it fills the last cell and leaves the cursor pending-wrap on the
+    // emoji's row instead of advancing. normalize so y is always "the row past
+    // the final line", which the stain/URL offsets below are written against --
+    // otherwise the gradient sits one row high and loses the box's bottom row.
+    if(x >= ncplane_dim_x(n)){
+      ++y;
+    }
     ncpalette* npal = ncpalette_new(nc);
     unsigned r, g, b;
     // if we weren't able to detect the palette, we'll just have a black
@@ -517,6 +525,31 @@ int main(int argc, const char** argv){
   ncplane_set_fg_alpha(stdn, NCALPHA_HIGHCONTRAST);
   ncplane_set_fg_rgb(stdn, 0xffffff);
   ncplane_set_scrolling(stdn, true);
+  // Reserve room for the whole dump up front so the stdplane never has to scroll
+  // *during* rendering. A mid-render scroll shifts the terminal out from under
+  // the colorized second pass (the gradient stain applied in unicodedumper()),
+  // which then repaints one row too low -- ghosting the monochrome first pass
+  // and, from a bottom-of-screen launch, painting over the final line. If the
+  // remaining output won't fit below the cursor, scroll the existing content
+  // (banner included) up by the shortfall and drop back into the freshly-opened
+  // space, so the entire dump paints top-to-bottom without a single scroll.
+  {
+    // rows emitted below: caps(1) + styles(2) + bitmaps(2) + unicode dump(10)
+    // + emoji(1), plus one row of slack so the last line's newline doesn't
+    // itself scroll. keep this in sync if the dump's line count changes.
+    const unsigned needed = 17;
+    const unsigned dumprows = ncplane_dim_y(stdn);
+    unsigned cy, cx;
+    ncplane_cursor_yx(stdn, &cy, &cx);
+    if(needed <= dumprows && cy + needed > dumprows){
+      const unsigned deficit = cy + needed - dumprows;
+      ncplane_cursor_move_yx(stdn, dumprows - 1, 0);
+      for(unsigned i = 0 ; i < deficit ; ++i){
+        ncplane_putchar(stdn, '\n'); // scrolls the (blank) stdplane up one row
+      }
+      ncplane_cursor_move_yx(stdn, dumprows - needed, 0);
+    }
+  }
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
