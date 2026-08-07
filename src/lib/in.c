@@ -1845,6 +1845,7 @@ build_cflow_automaton(inputctx* ictx){
     { "[?7c", da1_cb, },   // CSI ? 7 c ("VT131")
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
+    { "[?1;2;4c", da1_cb, }, // CSI ? 1 ; 2 ; 4 c (sixel-enabled tmux)
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
     // CSI ? 1 2 ; Ps c ("VT125")
     // CSI ? 6 0 ; Ps c (kmscon)
