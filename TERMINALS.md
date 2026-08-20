@@ -66,6 +66,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 
 | Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
+| [AbsoluteTelnet/SSH](https://www.celestialsoftware.net/new-notcurses-support) | ✅ | ✅ |✅ | `TERM=xterm-256color` `COLORTERM=truecolor` | Supports both kitty and sixel graphics, emoji and grapheme clustering.  Everything needed for Notcurses. |
 | [Alacritty](https://github.com/alacritty/alacritty)       | ✅         |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
 | [cool-retro-term](https://github.com/Swordfish90/cool-retro-term) | ❌ | ❌ |✅ | `TERM=xterm-256color` `COLORTERM=24bit` | Accepts RGB. No `initc` despite claiming to be XTerm. |
 | [Contour](https://github.com/christianparpart/contour)    | ✅         |  ✅   |✅       |`TERM=contour`             | Sixel support.             |
