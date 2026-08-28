@@ -2162,6 +2162,25 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, unsigned len,
     logerror("passed invalid length %u", len);
     return -1;
   }
+  // ncplane_hline() supplies the cell's channels as both endpoints. Preserve
+  // non-RGB channel state (notably palette indexes) when no interpolation is
+  // necessary.
+  if(c1 == c2){
+    nccell dupc = NCCELL_TRIVIAL_INITIALIZER;
+    if(nccell_duplicate(n, &dupc, c) < 0){
+      return -1;
+    }
+    nccell_set_channels(&dupc, c1);
+    unsigned ret;
+    for(ret = 0 ; ret < len ; ++ret){
+      if(ncplane_putc(n, &dupc) <= 0){
+        nccell_release(n, &dupc);
+        return -1;
+      }
+    }
+    nccell_release(n, &dupc);
+    return ret;
+  }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
@@ -2217,6 +2236,28 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, unsigned len,
   if(len <= 0){
     logerror("passed invalid length %u", len);
     return -1;
+  }
+  // ncplane_vline() supplies the cell's channels as both endpoints. Preserve
+  // non-RGB channel state (notably palette indexes) when no interpolation is
+  // necessary.
+  if(c1 == c2){
+    unsigned ypos, xpos;
+    ncplane_cursor_yx(n, &ypos, &xpos);
+    nccell dupc = NCCELL_TRIVIAL_INITIALIZER;
+    if(nccell_duplicate(n, &dupc, c) < 0){
+      return -1;
+    }
+    nccell_set_channels(&dupc, c1);
+    unsigned ret;
+    for(ret = 0 ; ret < len ; ++ret){
+      if(ncplane_cursor_move_yx(n, ypos + ret, xpos) ||
+         ncplane_putc(n, &dupc) <= 0){
+        nccell_release(n, &dupc);
+        return -1;
+      }
+    }
+    nccell_release(n, &dupc);
+    return ret;
   }
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
