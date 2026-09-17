@@ -3473,7 +3473,14 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
     return NULL;
   }
   uint64_t channels = NCCHANNELS_INITIALIZER(0xf0, 0xa0, 0xf0, 0x10, 0x10, 0x60);
-  if(ncplane_perimeter_rounded(n, 0, channels, NCBOXMASK_RIGHT) < 0){
+  // The right side was masked off in 2020 to hide wcwidth() inaccuracies. We
+  // want them: a row is emitted as its emoji run, then the base cell's spaces
+  // padding out the interior, then this bar -- contiguously, with no cursor
+  // addressing anywhere in between. So the bar lands wherever the terminal's
+  // own width accounting put the cursor, not where we think column 63 is. Get
+  // a glyph's width wrong and the bar misses the corner above it, which is the
+  // whole point of the demo.
+  if(ncplane_perimeter_rounded(n, 0, channels, 0) < 0){
     ncplane_destroy(n);
     return NULL;
   }
@@ -3632,6 +3639,12 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     if(bytes < 0){
       break;
     }
+    // wrap if this EGC would land on (or through) the right border's column;
+    // we must not clobber the bar we're measuring against
+    if(x + (int)nccell_cols(&c) > planewidth - 1){
+      ++y;
+      x = 1;
+    }
     int w = ncplane_putc_yx(n, y, x, &c);
     nccell_release(n, &c);
     if(w < 0){
@@ -3640,10 +3653,6 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
     }
     emoji += bytes;
     x += w;
-    if(x >= planewidth - 1){ // leave some wiggle room for wcwidth() problems
-      ++y;
-      x = 1;
-    }
   }
   return n;
 }
