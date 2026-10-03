@@ -1353,11 +1353,13 @@ sixel_reblit(sprixel* s){
 // write out the sixel header after having quantized the palette.
 static inline int
 sixel_blit_inner(qstate* qs, sixelmap* smap, const blitterargs* bargs, tament* tam){
-  fbuf f;
-  if(fbuf_init(&f)){
+  sprixel* s = bargs->u.pixel.spx;
+  fbuf* f = &s->glyph;
+  if(f->buf){
+    fbuf_reset(f);
+  }else if(fbuf_init_small(f)){
     return -1;
   }
-  sprixel* s = bargs->u.pixel.spx;
   const int cellpxy = bargs->u.pixel.cellpxy;
   const int cellpxx = bargs->u.pixel.cellpxx;
   int outy = qs->leny;
@@ -1365,9 +1367,9 @@ sixel_blit_inner(qstate* qs, sixelmap* smap, const blitterargs* bargs, tament* t
     outy += 6 - (qs->leny % 6);
     smap->p2 = SIXEL_P2_TRANS;
   }
-  int parse_start = write_sixel_header(qs, &f, outy);
+  int parse_start = write_sixel_header(qs, f, outy);
   if(parse_start < 0){
-    fbuf_free(&f);
+    fbuf_free(f);
     return -1;
   }
   // we don't write out the payload yet -- set wipes_outstanding high, and
@@ -1375,9 +1377,8 @@ sixel_blit_inner(qstate* qs, sixelmap* smap, const blitterargs* bargs, tament* t
   // occurred before it was displayed. otherwise, such a wipe would require
   // two emissions, one of which would be thrown away.
   scrub_tam_boundaries(tam, outy, qs->lenx, cellpxy, cellpxx);
-  // take ownership of buf on success
-  if(plane_blit_sixel(s, &f, outy, qs->lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
-    fbuf_free(&f);
+  if(plane_blit_sixel(s, f, outy, qs->lenx, parse_start, tam, SPRIXEL_INVALIDATED) < 0){
+    fbuf_free(f);
     return -1;
   }
   s->smap = smap;

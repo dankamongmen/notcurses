@@ -21,6 +21,28 @@ TEST_CASE("Fbuf") {
     fbuf_free(&f);
   }
 
+  // a sized fbuf starts between the small and large sizes, and grows as needed
+  SUBCASE("FbufInitSized") {
+    fbuf f{};
+    CHECK(0 == fbuf_init_sized(&f, 1));
+    CHECK(FBUF_SMALL_SIZE == f.size);
+    fbuf_free(&f);
+    CHECK(0 == fbuf_init_sized(&f, UINT64_MAX));
+    CHECK(FBUF_LARGE_SIZE == f.size);
+    fbuf_free(&f);
+    const size_t want = 3 * FBUF_SMALL_SIZE + 1;
+    CHECK(0 == fbuf_init_sized(&f, want));
+    CHECK(want == f.size);
+    auto erp = new char[want + 2];
+    memset(erp, 'X', want + 1);
+    erp[want + 1] = '\0';
+    CHECK(want + 1 == fbuf_puts(&f, erp));
+    delete[] erp;
+    CHECK(want + 1 == f.used);
+    CHECK(want < f.size);
+    fbuf_free(&f);
+  }
+
   // fill the fbuf a character at a time
   SUBCASE("FbufPutcCover") {
     fbuf f{};

@@ -198,15 +198,15 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
   return max;
 }
 
-// if there is no mstreamfp open, create one, using glyph and glyphlen as the
-// base. we're blowing away the glyph.
+// we're blowing away the glyph; keep its buffer if it still has one.
 static int
 init_sprixel_animation(sprixel* s){
   if(s->animating){
     return 0;
   }
-  fbuf_free(&s->glyph);
-  if(fbuf_init(&s->glyph)){
+  if(s->glyph.buf){
+    fbuf_reset(&s->glyph);
+  }else if(fbuf_init_small(&s->glyph)){
     return -1;
   }
   s->animating = true;
