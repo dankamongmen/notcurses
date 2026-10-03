@@ -459,6 +459,7 @@ ncpile_destroy(ncpile* pile){
     pile->prev->next = pile->next;
     pile->next->prev = pile->prev;
     free_sprixels(pile);
+    fbuf_free(&pile->kittywipe);
     free(pile->crender);
     free(pile);
   }
@@ -529,6 +530,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->crender = NULL;
     ret->crenderlen = 0;
     ret->sprixelcache = NULL;
+    ret->kittywipe.buf = NULL;
     ret->scrolls = 0;
   }
   n->pile = ret;

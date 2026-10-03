@@ -348,41 +348,54 @@ uint8_t* kitty_trans_auxvec(const ncpile* p){
   return a;
 }
 
+static int deflate_buf(void* buf, fbuf* f, int dimy, int dimx);
+
+// a transparent cell, deflated and encoded as the payload of a frame edit.
+// deflating isn't cheap, so we keep it with the pile until the geometry changes.
+static int
+kitty_wipe_payload(ncpile* p){
+  if(p->kittywipe.buf && p->wipey == p->cellpxy && p->wipex == p->cellpxx){
+    return 0;
+  }
+  fbuf_free(&p->kittywipe);
+  void* transparent = calloc((size_t)p->cellpxy * p->cellpxx, 4);
+  if(transparent == NULL){
+    return -1;
+  }
+  if(fbuf_init_small(&p->kittywipe)){
+    free(transparent);
+    return -1;
+  }
+  if(deflate_buf(transparent, &p->kittywipe, (int)p->cellpxy, (int)p->cellpxx)){
+    fbuf_free(&p->kittywipe);
+    free(transparent);
+    return -1;
+  }
+  free(transparent);
+  p->wipey = p->cellpxy;
+  p->wipex = p->cellpxx;
+  return 0;
+}
+
 // just dump the wipe into the fbuf -- don't manipulate any state. used both
 // by the wipe proper, and when blitting a new frame with annihilations.
 static int
 kitty_blit_wipe_selfref(sprixel* s, fbuf* f, int ycell, int xcell){
-  const int cellpxx = ncplane_pile(s->n)->cellpxx;
-  const int cellpxy = ncplane_pile(s->n)->cellpxy;
-  if(fbuf_printf(f, "\x1b_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2;",
-                 xcell * cellpxx, ycell * cellpxy, cellpxx, cellpxy, s->id) < 0){
+  ncpile* p = ncplane_pile(s->n);
+  const int cellpxx = p->cellpxx;
+  const int cellpxy = p->cellpxy;
+  if(kitty_wipe_payload(p)){
     return -1;
   }
   // FIXME ought be smaller around the fringes!
-  int totalp = cellpxy * cellpxx;
-  // FIXME preserve so long as cellpixel geom stays constant?
-  #define TRINULLALPHA "AAAAAAAAAAAAAAAA"
-  for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    if(fbuf_putn(f, TRINULLALPHA, strlen(TRINULLALPHA)) < 0){
-      return -1;
-    }
+  if(fbuf_printf(f, "\x1b_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=2,c=1,q=2",
+                 xcell * cellpxx, ycell * cellpxy, cellpxx, cellpxy, s->id) < 0){
+    return -1;
   }
-  #undef TRINULLALPHA
-  if(totalp % 3 == 1){
-  #define UNUMNULLALPHA "AAAAAA=="
-    if(fbuf_putn(f, UNUMNULLALPHA, strlen(UNUMNULLALPHA)) < 0){
-      return -1;
-    }
-  #undef UNUMNULLALPHA
-  }else if(totalp % 3 == 2){
-  #define DUONULLALPHA "AAAAAAAAAAA="
-    if(fbuf_putn(f, DUONULLALPHA, strlen(DUONULLALPHA)) < 0){
-      return -1;
-    }
-  #undef DUONULLALPHA
+  if(fbuf_putn(f, p->kittywipe.buf, p->kittywipe.used) < 0){
+    return -1;
   }
-  // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_printf(f, "\x1b\\\x1b_Ga=a,i=%d,c=2,q=2\x1b\\", s->id) < 0){
+  if(fbuf_printf(f, "\x1b_Ga=a,i=%d,c=2,q=2\x1b\\", s->id) < 0){
     return -1;
   }
   return 0;
