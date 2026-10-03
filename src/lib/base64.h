@@ -47,7 +47,7 @@ base64_rgba3(const uint32_t pixels[static 3], size_t pcount,
     a = 0;
   }
   b64[0] = b64subs[(r & 0xfc) >> 2];
-  b64[1] = b64subs[(r & 0x3 << 4) | ((g & 0xf0) >> 4)];
+  b64[1] = b64subs[((r & 0x3) << 4) | ((g & 0xf0) >> 4)];
   b64[2] = b64subs[((g & 0xf) << 2) | ((b & 0xc0) >> 6)];
   b64[3] = b64subs[b & 0x3f];
   b64[4] = b64subs[(a & 0xfc) >> 2];
@@ -63,7 +63,7 @@ base64_rgba3(const uint32_t pixels[static 3], size_t pcount,
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
-  a = wipe[1] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : 255;
+  a = wipe[1] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : ncpixel_a(pixel);
   b64[5] = b64subs[b64[5] | ((r & 0xf0) >> 4)];
   b64[6] = b64subs[((r & 0xf) << 2) | ((g & 0xc0) >> 6u)];
   b64[7] = b64subs[g & 0x3f];
@@ -80,7 +80,7 @@ base64_rgba3(const uint32_t pixels[static 3], size_t pcount,
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
-  a = wipe[2] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : 255;
+  a = wipe[2] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : ncpixel_a(pixel);
   b64[10] = b64subs[b64[10] | ((r & 0xc0) >> 6)];
   b64[11] = b64subs[r & 0x3f];
   b64[12] = b64subs[(g & 0xfc) >> 2];
