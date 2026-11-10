@@ -8,10 +8,37 @@ extern "C" {
 // internal header, not installed
 
 #include <stdio.h>
+#include <stdbool.h>
 
 struct tinfo;
 struct inputctx;
 struct ncsharedstats;
+
+// When lexing input, an escape sequence can run out of buffer before we know
+// whether it's a complete control sequence: we set "midescape" and wait for
+// more bytes. process_melange() must then decide whether to keep waiting, or
+// to give up and reinterpret the bytes as standalone input (e.g. a lone
+// Escape, or Alt+key). this is that decision, factored out so it can be tested.
+//
+//  - |bufused| is the bytes remaining in the buffer at this point.
+//  - |consumed| is process_escape()'s return (negative: bytes examined).
+//  - |origlen| is the buffer length when process_melange() began.
+//  - |continuation| is amata.used *before* process_escape() ran; nonzero means
+//    this escape began in an earlier read and is resuming across reads.
+//  - |interrogating| is true while we still await our initial query replies.
+//
+// a resuming escape, or any escape still in flight during interrogation, must
+// be allowed to span reads until it completes, otherwise a query reply (e.g.
+// a DA1) that the terminal dribbles out across multiple reads is lost as bogus
+// input, hanging notcurses_init() forever (observed under Windows Terminal's ConPTY).
+static inline bool
+midescape_standalone_input_p(int bufused, int consumed, int origlen,
+                             unsigned continuation, bool interrogating){
+  if(continuation != 0 || interrogating){
+    return false;
+  }
+  return bufused != -consumed || bufused == origlen;
+}
 
 int init_inputlayer(struct tinfo* ti, FILE* infp, int lmargin, int tmargin,
                     int rmargin, int bmargin, struct ncsharedstats* stats,
