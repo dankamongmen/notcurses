@@ -1574,7 +1574,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
       if(n->tcache.pixel_remove){
         fbuf f = {0};
         fbuf_init_small(&f);
-        if(n->tcache.pixel_remove(lastid, &f)){
+        if(n->tcache.pixel_remove(&n->tcache, lastid, &f)){
           fbuf_free(&f);
           ncvisual_destroy(ncv);
           return -1;

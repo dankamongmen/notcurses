@@ -736,7 +736,7 @@ sprite_redraw(notcurses* nc, const ncpile* p, sprixel* s, fbuf* f, int y, int x)
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information.
     bool noscroll = !ti->sixel_maxy_pristine;
-    return ti->pixel_move(s, f, noscroll, y, x);
+    return ti->pixel_move(ti, s, f, noscroll, y, x);
   }else{
     if(!ti->pixel_draw){
       return 0;
@@ -758,7 +758,7 @@ sprite_commit(tinfo* ti, fbuf* f, sprixel* s, unsigned forcescroll){
     // not emit it. we use sixel_maxy_pristine as a side channel to encode
     // this version information. direct mode, meanwhile, sets forcescroll.
     bool noscroll = !ti->sixel_maxy_pristine && !forcescroll;
-    if(ti->pixel_commit(f, s, noscroll) < 0){
+    if(ti->pixel_commit(ti, f, s, noscroll) < 0){
       return -1;
     }
   }

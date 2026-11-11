@@ -1846,13 +1846,11 @@ build_cflow_automaton(inputctx* ictx){
     { "[?1;0c", da1_cb, }, // CSI ? 1 ; 0 c ("VT101 with No Options")
     { "[?1;2c", da1_cb, }, // CSI ? 1 ; 2 c ("VT100 with Advanced Video Option")
     { "[?4;6c", da1_cb, }, // CSI ? 4 ; 6 c ("VT132 with Advanced Video and Graphics")
-    // CSI ? 1 2 ; Ps c ("VT125")
-    // CSI ? 6 0 ; Ps c (kmscon)
-    // CSI ? 6 2 ; Ps c ("VT220")
-    // CSI ? 6 3 ; Ps c ("VT320")
-    // CSI ? 6 4 ; Ps c ("VT420")
-    // CSI ? 6 5 ; Ps c (WezTerm, VT5xx?)
-    { "[?\\N;\\Dc", da1_attrs_cb, },
+    { "[?1;2;\\Dc", da1_attrs_cb, }, // CSI ? 1 ; 2 ; Ps... c (VT100 with extended attrs, e.g. tmux sixel)
+    { "[?62;\\Dc", da1_attrs_cb, },  // CSI ? 6 2 ; Ps c ("VT220", Ghostty)
+    { "[?63;\\Dc", da1_attrs_cb, },  // CSI ? 6 3 ; Ps c ("VT320")
+    { "[?64;\\Dc", da1_attrs_cb, },  // CSI ? 6 4 ; Ps c ("VT420", iTerm2)
+    { "[?65;\\Dc", da1_attrs_cb, },  // CSI ? 6 5 ; Ps c ("VT520", WezTerm)
     { "[?1;0;\\NS", xtsmgraphics_cregs_cb, },
     { "[?2;0;\\N;\\NS", xtsmgraphics_sixel_cb, },
     { "[>83;\\N;0c", da2_screen_cb, },

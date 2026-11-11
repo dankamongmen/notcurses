@@ -190,18 +190,18 @@ int sixel_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
 int kitty_draw(const struct tinfo* ti, const struct ncpile *p, sprixel* s,
                fbuf* f, int yoff, int xoff);
-int kitty_move(sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
+int kitty_move(const struct tinfo* ti, sprixel* s, fbuf* f, unsigned noscroll, int yoff, int xoff);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
 int fbcon_scrub(const struct ncpile* p, sprixel* s);
-int kitty_remove(int id, fbuf* f);
-int kitty_clear_all(fbuf* f);
+int kitty_remove(const struct tinfo* ti, int id, fbuf* f);
+int kitty_clear_all(const struct tinfo* ti, fbuf* f);
 int sixel_init_forcesdm(struct tinfo* ti, int fd);
 int sixel_init_inverted(struct tinfo* ti, int fd);
 int sixel_init(struct tinfo* ti, int fd);
 uint8_t* sixel_trans_auxvec(const struct ncpile* p);
 uint8_t* kitty_trans_auxvec(const struct ncpile* p);
-int kitty_commit(fbuf* f, sprixel* s, unsigned noscroll);
+int kitty_commit(const struct tinfo* ti, fbuf* f, sprixel* s, unsigned noscroll);
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit(struct ncplane* nc, int linesize, const void* data,
