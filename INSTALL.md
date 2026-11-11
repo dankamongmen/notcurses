@@ -51,6 +51,19 @@ you can omit 'archivers/libdeflate'; build with `-DUSE_DEFLATE=off` in this
 case. If you don't want to generate QR codes, you can omit
 'graphics/qr-code-generator'.
 
+### Conan
+
+You can install pre-built binaries for Notcurses or build it from source using
+[Conan](https://conan.io/). Use the following command:
+
+```bash
+conan install --requires="notcurses/[*]" --build=missing
+```
+
+The Notcurses Conan recipe is kept up to date by Conan maintainers and community contributors.
+If the version is out of date, please [create an issue or pull request](https://github.com/conan-io/conan-center-index)
+on the ConanCenterIndex repository.
+
 ### Microsoft Windows
 
 Building on Windows requires [MSYS2](https://www.msys2.org/) in its
