@@ -25,7 +25,7 @@ Run `make test` with your changes, and ensure all tests pass. Run
 demo code).
 
 ## C standard
-Notcurses targets the ISO C17 standard. This means you should avoid using
+Notcurses targets the ISO C23 standard. This means you should avoid using
 GNU C extensions as they might not work outside GCC/Clang. To verify your
-standard compliance on GCC and Clang you can compile with `-std=c17 -pedantic`
+standard compliance on GCC and Clang you can compile with `-std=c2x -pedantic`
 command line arguments.
