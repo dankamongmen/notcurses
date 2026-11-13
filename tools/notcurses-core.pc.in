@@ -10,5 +10,5 @@ Version: @PROJECT_VERSION@
 Requires:
 Requires.private: @PKGCONF_REQ_PRIV@
 Libs: -L${libdir} -lnotcurses-core
-Libs.private: -lunistring -lm
+Libs.private: @PKGCONF_UNICODE_LIBS_PRIVATE@ -lm
 Cflags: -I${includedir}

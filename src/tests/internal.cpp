@@ -1,6 +1,7 @@
 #include <string>
 #include <cstdlib>
 #include <clocale>
+#include <cstring>
 #include "main.h"
 
 TEST_CASE("Internals") {
@@ -63,6 +64,32 @@ TEST_CASE("Internals") {
         CHECK(15 < c256);
       }
     }
+  }
+
+  SUBCASE("UCS32toUTF8RejectsInvalidCodepoints") {
+    const uint32_t invalid[] = { 0x110000 };
+    unsigned char utf8[5] = { 0 };
+
+    CHECK(-1 == notcurses_ucs32_to_utf8(invalid, 1, utf8, 4));
+  }
+
+  SUBCASE("UCS32toUTF8AllowsExactFitBuffers") {
+    const uint32_t unicode[] = { 0x1f600 };
+    const unsigned char expected[] = { 0xf0, 0x9f, 0x98, 0x80 };
+    unsigned char utf8[4] = { 0 };
+
+    CHECK(4 == notcurses_ucs32_to_utf8(unicode, 1, utf8, sizeof(utf8)));
+    CHECK(0 == std::memcmp(utf8, expected, sizeof(expected)));
+  }
+
+  SUBCASE("UCS32toUTF8HandlesMultipleCodepoints") {
+    const uint32_t unicode[] = { 'A', 0x1f600 };
+    const unsigned char expected[] = { 'A', 0xf0, 0x9f, 0x98, 0x80 };
+    unsigned char utf8[8] = { 0 };
+
+    CHECK(5 == notcurses_ucs32_to_utf8(unicode, 2, utf8, sizeof(utf8)));
+    CHECK(0 == std::memcmp(utf8, expected, sizeof(expected)));
+    CHECK(0 == utf8[5]);
   }
 
 }
