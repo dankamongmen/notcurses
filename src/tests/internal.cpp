@@ -1,9 +1,43 @@
 #include <string>
 #include <cstdlib>
 #include <clocale>
+#include <cerrno>
+#include <fcntl.h>
 #include "main.h"
 
 TEST_CASE("Internals") {
+
+#ifndef __MINGW32__
+  SUBCASE("CloseOnExec") {
+    int fd = open("/dev/null", O_RDONLY);
+    REQUIRE(fd >= 0);
+    unsigned oldstate = 0;
+    CHECK(0 == set_fd_cloexec(fd, 1, &oldstate));
+    CHECK(0 == oldstate);
+    CHECK(FD_CLOEXEC == fcntl(fd, F_GETFD));
+    CHECK(0 == set_fd_cloexec(fd, 1, &oldstate));
+    CHECK(FD_CLOEXEC == oldstate);
+    CHECK(0 == set_fd_cloexec(fd, 0, &oldstate));
+    CHECK(FD_CLOEXEC == oldstate);
+    CHECK(0 == fcntl(fd, F_GETFD));
+    CHECK(0 == set_fd_cloexec(fd, 0, &oldstate));
+    CHECK(0 == oldstate);
+    CHECK(0 == set_fd_cloexec(fd, 1, nullptr));
+    CHECK(FD_CLOEXEC == fcntl(fd, F_GETFD));
+    CHECK(0 == set_fd_cloexec(fd, 0, nullptr));
+    CHECK(0 == fcntl(fd, F_GETFD));
+    CHECK(0 == close(fd));
+  }
+
+  SUBCASE("CloseOnExecInvalidFd") {
+    unsigned oldstate = 123;
+    errno = 0;
+    CHECK(-1 == set_fd_cloexec(-1, 1, &oldstate));
+    CHECK(EBADF == errno);
+    CHECK(123 == oldstate);
+  }
+#endif
+
 
   SUBCASE("RGBtoANSIWhiteGreyBlack") {
     unsigned r;
