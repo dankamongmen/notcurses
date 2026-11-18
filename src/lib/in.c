@@ -2424,7 +2424,7 @@ process_melange(inputctx* ictx, const unsigned char* buf, int* bufused){
     if(consumed <= 0 && !ictx->midescape){
       consumed = process_ncinput(ictx, buf + offset, *bufused);
     }
-    if(consumed < 0){
+    if(consumed <= 0){
       break;
     }
     *bufused -= consumed;
