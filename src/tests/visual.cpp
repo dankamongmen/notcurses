@@ -301,6 +301,64 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_destroy(n));
   }
 
+  // begy/begx must select a sub-region, not the top-left corner.
+  SUBCASE("BlitSubregionOffset") {
+    constexpr int dim = 8;
+    constexpr int half = dim / 2;
+    // const, not constexpr: glibc htole isn't constexpr-clean.
+    const uint32_t RED   = htole(0xffff0000u);
+    const uint32_t GREEN = htole(0xff00ff00u);
+    const uint32_t BLUE  = htole(0xff0000ffu);
+    const uint32_t WHITE = htole(0xffffffffu);
+    std::vector<uint32_t> src(dim * dim);
+    for(int y = 0 ; y < dim ; ++y){
+      for(int x = 0 ; x < dim ; ++x){
+        uint32_t c;
+        if(y < half && x < half)      c = RED;
+        else if(y < half)             c = GREEN;
+        else if(x < half)             c = BLUE;
+        else                          c = WHITE;
+        src[y * dim + x] = c;
+      }
+    }
+    auto ncv = ncvisual_from_rgba(src.data(), dim,
+                                  dim * sizeof(decltype(src)::value_type),
+                                  dim);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = n_,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = static_cast<unsigned>(half),
+      .begx = static_cast<unsigned>(half),
+      .leny = static_cast<unsigned>(half),
+      .lenx = static_cast<unsigned>(half),
+      .blitter = NCBLIT_1x1,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .transcolor = 0,
+      .pxoffy = 0, .pxoffx = 0,
+    };
+    auto n = ncvisual_blit(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    CHECK(static_cast<unsigned>(half) == ncplane_dim_y(n));
+    CHECK(static_cast<unsigned>(half) == ncplane_dim_x(n));
+    for(int y = 0 ; y < half ; ++y){
+      for(int x = 0 ; x < half ; ++x){
+        uint16_t stylemask;
+        uint64_t channels;
+        auto egc = ncplane_at_yx(n, y, x, &stylemask, &channels);
+        REQUIRE(nullptr != egc);
+        free(egc);
+        uint32_t rgb = htole(ncchannels_bg_rgb(channels));
+        CHECK(0xff == ncpixel_r(rgb));
+        CHECK(0xff == ncpixel_g(rgb));
+        CHECK(0xff == ncpixel_b(rgb));
+      }
+    }
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+  }
+
   // ensure that NCSCALE_STRETCH gives us a full plane, and that we write
   // everywhere within that plane
   SUBCASE("Stretch") {
