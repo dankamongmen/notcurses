@@ -923,8 +923,16 @@ add_test(
   NAME input-text
   COMMAND sh -c "./notcurses-input < ${CMAKE_SOURCE_DIR}/COPYRIGHT"
 )
+# provide 3-byte UTF-8 characters beyond one read, so that a read ends in the
+# middle of a character (a power-of-two BUFSIZ is never a multiple of 3).
+# without a controlling terminal, this input goes through process_melange().
+add_test(
+  NAME input-utf8-split
+  COMMAND sh -c "awk 'BEGIN { for(i = 0; i < 4096; ++i) printf \"\\346\\227\\245\" }' | ./notcurses-input"
+)
+set_tests_properties(input-utf8-split PROPERTIES TIMEOUT 60)
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS notcurses-input)
-LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-text)
+LIST(APPEND TESTBINS ncpp_build ncpp_build_exceptions input-devnull input-text input-utf8-split)
 endif()
 add_test(
   NAME sgr-direct
