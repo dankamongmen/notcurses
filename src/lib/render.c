@@ -1240,7 +1240,7 @@ rasterize_core(notcurses* nc, const ncpile* p, fbuf* f, unsigned phase){
         }else{
           ++nc->rstate.x;
         }
-        if((int)y > nc->rstate.logendy || ((int)y == nc->rstate.logendy && (int)x > nc->rstate.logendx)){
+        if((int)y > nc->rstate.logendy || ((int)y == nc->rstate.logendy && (int)x >= nc->rstate.logendx)){
           if((int)y > nc->rstate.logendy){
 //fprintf(stderr, "**************8NATURAL PLACEMENT AT %u/ %u\n", y, x);
             nc->rstate.logendy = y;
