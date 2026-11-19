@@ -326,6 +326,8 @@ typedef struct ncpile {
   unsigned cellpxx, cellpxy;  // cell-pixel geometry at last render/creation
   int scrolls;                // how many real lines need be scrolled at raster
   sprixel* sprixelcache;      // sorted list of sprixels, assembled during paint
+  fbuf kittywipe;             // encoded transparent cell for kitty wipes
+  unsigned wipey, wipex;      // cell-pixel geometry of kittywipe
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.
