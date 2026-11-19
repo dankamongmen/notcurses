@@ -990,14 +990,15 @@ rasterize_scrolls(const ncpile* p, fbuf* f){
     return 0;
   }
   logdebug("order-%d scroll", scrolls);
-  /*if(p->nc->rstate.logendy >= 0){
+  // Adjust logendy after scrolling so the post-render cursor parks at
+  // the correct position. Without this, logendy drifts after each scroll.
+  if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= scrolls;
     if(p->nc->rstate.logendy < 0){
       p->nc->rstate.logendy = 0;
       p->nc->rstate.logendx = 0;
     }
-  }*/
-  // FIXME probably need this to take place at the end of cycle...
+  }
   if(p->nc->tcache.pixel_scroll){
     p->nc->tcache.pixel_scroll(p, &p->nc->tcache, scrolls);
   }
@@ -1286,6 +1287,15 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
   if(sprixelbytes < 0){
     return -1;
   }
+  // Emit scroll commands before glyph phase 1. Previously, glyphs were
+  // emitted at their post-scroll positions before the terminal actually
+  // scrolled, causing the subsequent scroll to shift them up and desync
+  // lastframe from reality. Fixes #2577 (disappearing strings in CLI mode).
+  logdebug("scroll phase");
+  if(rasterize_scrolls(p, f)){
+    return -1;
+  }
+  p->scrolls = 0;
   logdebug("glyph phase 1");
   if(rasterize_core(nc, p, f, 0)){
     return -1;
@@ -1300,10 +1310,6 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, fbuf* f, unsigned* asu){
     nc->stats.s.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->stats.lock);
   logdebug("glyph phase 2");
-  if(rasterize_scrolls(p, f)){
-    return -1;
-  }
-  p->scrolls = 0;
   if(rasterize_core(nc, p, f, 1)){
     return -1;
   }
