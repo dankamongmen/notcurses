@@ -123,18 +123,18 @@ int set_fd_cloexec(int fd, unsigned state, unsigned* oldstate){
     return -1;
   }
   if(oldstate){
-    *oldstate = flags & O_CLOEXEC;
+    *oldstate = flags & FD_CLOEXEC;
   }
   if(state){
-    if(flags & O_CLOEXEC){
+    if(flags & FD_CLOEXEC){
       return 0;
     }
-    flags |= O_CLOEXEC;
+    flags |= FD_CLOEXEC;
   }else{
-    if(!(flags & O_CLOEXEC)){
+    if(!(flags & FD_CLOEXEC)){
       return 0;
     }
-    flags &= ~O_CLOEXEC;
+    flags &= ~FD_CLOEXEC;
   }
   if(fcntl(fd, F_SETFD, flags)){
     return -1;
