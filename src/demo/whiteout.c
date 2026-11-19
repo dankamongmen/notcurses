@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <unictype.h>
 #include "demo.h"
 
 // Fill up the screen with as much crazy Unicode as we can, and then set a

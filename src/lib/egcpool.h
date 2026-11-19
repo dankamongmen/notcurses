@@ -10,8 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <unigbrk.h>
-#include <unictype.h>
+#include "unicode.h"
 #include "notcurses/notcurses.h"
 #include "compat/compat.h"
 #include "logging.h"
@@ -94,12 +93,12 @@ utf8_codepoint_length(unsigned char c){
 }
 
 // Eat an EGC from the UTF-8 string input, counting bytes and columns. We use
-// libunistring's uc_is_grapheme_break() to segment EGCs. Writes the number of
-// columns to '*colcount'. Returns the number of bytes consumed, not including
-// any NUL terminator. Neither the number of bytes nor columns is necessarily
-// equal to the number of decoded code points. Such are the ways of Unicode.
-// uc_is_grapheme_break() wants UTF-32, which is fine, because we need wchar_t
-// to use wcwidth() anyway FIXME except this doesn't work with 16-bit wchar_t!
+// the selected Unicode backend to segment EGCs. Writes the number of columns
+// to '*colcount'. Returns the number of bytes consumed, not including any NUL
+// terminator. Neither the number of bytes nor columns is necessarily equal to
+// the number of decoded code points. Such are the ways of Unicode. The backend
+// wants UTF-32, which is fine, because we need wchar_t to use wcwidth() anyway
+// FIXME except this doesn't work with 16-bit wchar_t!
 static inline int
 utf8_egc_len(const char* gcluster, int* colcount){
   size_t ret = 0;
@@ -116,11 +115,11 @@ utf8_egc_len(const char* gcluster, int* colcount){
       logerror("invalid UTF8: %s", gcluster);
       return -1;
     }
-    if(prevw && !injoin && uc_is_grapheme_break(prevw, wc)){
+    if(prevw && !injoin && ncunicode_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
     int cols;
-    if(uc_is_property_variation_selector(wc)){ // ends EGC
+    if(ncunicode_variation_selector(wc)){ // ends EGC
       ret += r;
       break;
     }else if(wc == L'\u200d' || injoin){ // ZWJ is iswcntrl, so check it first

@@ -10,5 +10,5 @@ Version: @PROJECT_VERSION@
 Requires: notcurses-ffi
 Requires.private:
 Libs: -L${libdir} -lnotcurses-ffi
-Libs.private: -lunistring -lm
+Libs.private: @PKGCONF_UNICODE_LIBS_PRIVATE@ -lm
 Cflags: -I${includedir}

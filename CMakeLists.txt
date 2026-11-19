@@ -22,6 +22,7 @@ option(USE_DEFLATE "Use libdeflate instead of libz" ON)
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_GPM "Enable libgpm console mouse support" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
+option(USE_UTF8PROC "Use utf8proc instead of GNU libunistring" OFF)
 option(BUILD_EXECUTABLES "Build executables" ON)
 option(BUILD_FFI_LIBRARY "Build ffi library (containing all symbols which are static inline)" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
@@ -156,9 +157,11 @@ elseif(NOT APPLE)
   find_library(LIBM m REQUIRED)
   find_library(LIBRT rt REQUIRED)
 endif()
+set(NOTCURSES_EXTRA_INCLUDE_DIRS "")
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   include_directories(/usr/local/include)
   link_directories(/usr/local/lib)
+  list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS /usr/local/include)
   set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
 endif()
 
@@ -169,10 +172,27 @@ endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
 # this is going to be true for anything lacking pkg-config/CMake support.
+set(_saved_required_includes ${CMAKE_REQUIRED_INCLUDES})
+if(${USE_UTF8PROC})
+unset(HAVE_UTF8PROC_H CACHE)
+find_path(UTF8PROC_INCLUDE utf8proc.h)
+list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS ${UTF8PROC_INCLUDE})
+list(APPEND CMAKE_REQUIRED_INCLUDES ${UTF8PROC_INCLUDE})
+check_include_file("utf8proc.h" HAVE_UTF8PROC_H)
+if(NOT "${HAVE_UTF8PROC_H}")
+  message(FATAL_ERROR "Couldn't find utf8proc.h from utf8proc")
+endif()
+find_library(utf8proc utf8proc REQUIRED)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND utf8proc)
+set_package_properties(utf8proc PROPERTIES TYPE REQUIRED)
+set(UNICODE_LIBRARY "${utf8proc}")
+set(PKGCONF_UNICODE_LIBS_PRIVATE "-lutf8proc")
+else()
 # unigbrk.h was introduced in libunistring 0.9.4, 2010-02-14.
 unset(HAVE_UNISTRING_H CACHE)
 find_path(UNISTRING_INCLUDE unigbrk.h)
-set(CMAKE_REQUIRED_INCLUDES ${UNISTRING_INCLUDE})
+list(APPEND NOTCURSES_EXTRA_INCLUDE_DIRS ${UNISTRING_INCLUDE})
+list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTRING_INCLUDE})
 check_include_file("unigbrk.h" HAVE_UNISTRING_H)
 if(NOT "${HAVE_UNISTRING_H}")
   message(FATAL_ERROR "Couldn't find unigbrk.h from GNU libunistring")
@@ -180,6 +200,12 @@ endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
 set_package_properties(libunistring PROPERTIES TYPE REQUIRED)
+set(UNICODE_LIBRARY "${unistring}")
+set(PKGCONF_UNICODE_LIBS_PRIVATE "-lunistring")
+endif()
+list(REMOVE_DUPLICATES NOTCURSES_EXTRA_INCLUDE_DIRS)
+set(CMAKE_REQUIRED_INCLUDES ${_saved_required_includes})
+unset(_saved_required_includes)
 
 # optional dependencies lacking pkg-config support
 # libdeflate has had pkgconf support since 1.9, where is it on ubuntu? FIXME
@@ -259,7 +285,7 @@ target_include_directories(notcurses-core
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${DEFLATE_INCLUDE_DIRS}"
@@ -270,7 +296,7 @@ target_include_directories(notcurses-core-static
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${DEFLATE_STATIC_INCLUDE_DIRS}"
@@ -280,7 +306,7 @@ target_link_libraries(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
-    "${unistring}"
+    "${UNICODE_LIBRARY}"
     "${gpm}"
     "${DEFLATE_LIBRARIES}"
     "${ZLIB_LIBRARIES}"
@@ -292,7 +318,7 @@ target_link_libraries(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
-    "${unistring}"
+    "${UNICODE_LIBRARY}"
     "${gpm}"
     "${DEFLATE_STATIC_LIBRARIES}"
     "${ZLIB_STATIC_LIBRARIES}"
@@ -340,7 +366,7 @@ target_include_directories(notcurses
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -349,7 +375,7 @@ target_include_directories(notcurses-static
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -452,7 +478,7 @@ target_include_directories(notcurses-ffi
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${DEFLATE_INCLUDE_DIRS}"
@@ -465,7 +491,7 @@ target_link_libraries(notcurses-ffi
     "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
-    "${unistring}"
+    "${UNICODE_LIBRARY}"
     "${gpm}"
     "notcurses-core"
   PUBLIC
@@ -690,7 +716,7 @@ target_include_directories(notcurses-demo
     include
     src
     "${TERMINFO_INCLUDE_DIRS}"
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-demo
@@ -714,7 +740,7 @@ target_include_directories(notcurses-info
   PRIVATE
     src
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
@@ -733,7 +759,7 @@ target_include_directories(notcurses-input
   BEFORE
   PRIVATE
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-input
@@ -751,7 +777,7 @@ target_include_directories(nctetris
   PRIVATE
     src
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(nctetris
@@ -775,7 +801,7 @@ target_include_directories(tfman
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${DEFLATE_INCLUDE_DIRS}"
     "${ZLIB_INCLUDE_DIRS}"
@@ -805,7 +831,7 @@ target_include_directories(ncneofetch
   BEFORE
   PRIVATE
     include
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     src
 )
@@ -830,7 +856,7 @@ target_include_directories(ncls
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncls
@@ -847,7 +873,7 @@ target_include_directories(ncplayer
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncplayer
@@ -873,14 +899,14 @@ target_include_directories(notcurses-tester
   PRIVATE
     include
     src
-    "${CMAKE_REQUIRED_INCLUDES}"
+    "${NOTCURSES_EXTRA_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-tester
   PRIVATE
     notcurses++
-    "${unistring}"
+    "${UNICODE_LIBRARY}"
     "${TERMINFO_LIBRARIES}"
 )
 target_link_directories(notcurses-tester
