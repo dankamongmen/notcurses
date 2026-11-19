@@ -18,6 +18,66 @@ TEST_CASE("Multiselectors") {
     REQUIRE(nullptr == ns);
   }
 
+  SUBCASE("SelectedItems") {
+    ncmselector_item items[] = {
+      {"first", "first item", true},
+      {"second", "second item", false},
+      {"third", "third item", true},
+      {nullptr, nullptr, false},
+    };
+    ncmultiselector_options s{};
+    s.items = items;
+    struct ncplane_options nopts{};
+    nopts.rows = 1;
+    nopts.cols = 1;
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    auto ns = ncmultiselector_create(ncp, &s);
+    REQUIRE(ns);
+    bool selected[] = {false, true, false};
+    CHECK(0 == ncmultiselector_selected(ns, selected, 3));
+    CHECK(selected[0]);
+    CHECK_FALSE(selected[1]);
+    CHECK(selected[2]);
+
+    ncinput space{};
+    space.id = ' ';
+    CHECK(ncmultiselector_offer_input(ns, &space));
+    CHECK(0 == ncmultiselector_selected(ns, selected, 3));
+    CHECK_FALSE(selected[0]);
+    CHECK_FALSE(selected[1]);
+    CHECK(selected[2]);
+    CHECK(-1 == ncmultiselector_selected(ns, selected, 0));
+    CHECK(-1 == ncmultiselector_selected(ns, selected, 2));
+    CHECK(-1 == ncmultiselector_selected(ns, selected, 4));
+    ncmultiselector_destroy(ns);
+  }
+
+  SUBCASE("SelectedSingleItem") {
+    ncmselector_item items[] = {
+      {"only", "single item", false},
+      {nullptr, nullptr, false},
+    };
+    ncmultiselector_options s{};
+    s.items = items;
+    struct ncplane_options nopts{};
+    nopts.rows = 1;
+    nopts.cols = 1;
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    auto ns = ncmultiselector_create(ncp, &s);
+    REQUIRE(ns);
+    bool selected = true;
+    CHECK(0 == ncmultiselector_selected(ns, &selected, 1));
+    CHECK_FALSE(selected);
+    ncinput space{};
+    space.id = ' ';
+    CHECK(ncmultiselector_offer_input(ns, &space));
+    CHECK(0 == ncmultiselector_selected(ns, &selected, 1));
+    CHECK(selected);
+    ncmultiselector_destroy(ns);
+  }
+
   // create a multiselector, but don't explicitly destroy it, thus testing the
   // context shutdown cleanup path
   SUBCASE("ImplicitDestroy") {
