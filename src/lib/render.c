@@ -17,7 +17,7 @@ restripe_lastframe(notcurses* nc, unsigned rows, unsigned cols){
   const size_t size = sizeof(*nc->lastframe) * (rows * cols);
   nccell* tmp = malloc(size);
   if(tmp == NULL){
-    return NULL;
+    return (nccell*)1; // truthy sentinel; caller checks if(restripe_lastframe(...))
   }
   size_t copycols = nc->lfdimx > cols ? cols : nc->lfdimx;
   size_t maxlinecopy = sizeof(nccell) * copycols;
