@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdlib.h>  // for getenv()
 #include <stdatomic.h>
 #include "internal.h"
 #include "fbuf.h"
@@ -1473,10 +1474,39 @@ int sixel_scrub(const ncpile* p, sprixel* s){
   return 1;
 }
 
+// Write sixel data with tmux DCS passthrough wrapping.
+// In tmux passthrough, all ESC (0x1b) bytes must be doubled.
+static int
+sixel_write_tmux_passthrough(fbuf* f, const char* buf, size_t len){
+  // tmux DCS passthrough prefix: ESC P tmux ;
+  if(fbuf_puts(f, "\x1bPtmux;") < 0){
+    return -1;
+  }
+  // Write sixel data with doubled ESC bytes
+  size_t written = 0;
+  for(size_t i = 0; i < len; i++){
+    if(buf[i] == '\x1b'){
+      // Double the ESC byte for tmux passthrough
+      if(fbuf_putc(f, '\x1b') != 1){
+        return -1;
+      }
+      written++;
+    }
+    if(fbuf_putc(f, buf[i]) != 1){
+      return -1;
+    }
+    written++;
+  }
+  // tmux DCS passthrough suffix: ESC backslash (ST)
+  if(fbuf_puts(f, "\x1b\\") < 0){
+    return -1;
+  }
+  return written;
+}
+
 // returns the number of bytes written
 int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
                int yoff, int xoff){
-  (void)ti;
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
@@ -1508,6 +1538,17 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, fbuf* f,
       }
     }
   }
+  // Check if running inside tmux - use DCS passthrough to send sixel to outer terminal
+  // Use TMUX env var as it's more reliable than terminal query detection
+  if(getenv("TMUX") != NULL){
+    int ret = sixel_write_tmux_passthrough(f, s->glyph.buf, s->glyph.used);
+    if(ret < 0){
+      return -1;
+    }
+    s->invalidated = SPRIXEL_QUIESCENT;
+    return ret;
+  }
+  // Normal sixel output (not in tmux)
   if(fbuf_putn(f, s->glyph.buf, s->glyph.used) < 0){
     return -1;
   }

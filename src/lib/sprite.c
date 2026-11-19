@@ -205,7 +205,7 @@ int sprite_clear_all(const tinfo* t, fbuf* f){
   if(t->pixel_clear_all == NULL){
     return 0;
   }
-  return t->pixel_clear_all(f);
+  return t->pixel_clear_all(t, f);
 }
 
 // we don't want to seed the process-wide prng, but we do want to stir in a
