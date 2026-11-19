@@ -482,7 +482,7 @@ mark_pipe_ready(ipipe pipes[static 2]){
 // any lowercase letter with its uppercase form, to maintain compatibility with
 // other input methods.
 //
-// note that this w orks entirely off 'modifiers', not the obsolete
+// note that this works entirely off 'modifiers', not the obsolete
 // shift/alt/ctrl booleans, which it neither sets nor tests!
 static void
 load_ncinput(inputctx* ictx, ncinput *tni){
