@@ -81,20 +81,20 @@ fbuf_grow(fbuf* f, size_t n){
   return -1;
 }
 
-// prepare (a significant amount of) initial space for the fbuf.
-// pass 1 for |small| if it ought be...small.
+#define FBUF_SMALL_SIZE (4096 > BUFSIZ ? 4096 : BUFSIZ)
+// 2MiB, the huge page size on all of x86+PAE, ARMv7+LPAE, ARMv8, and x86-64.
+// FIXME use GetLargePageMinimum() and sysconf
+#define FBUF_LARGE_SIZE 0x200000lu
+
+// prepare |size| bytes of initial space for the fbuf.
 static inline int
-fbuf_initgrow(fbuf* f, unsigned small){
+fbuf_initgrow(fbuf* f, size_t size){
   assert(NULL == f->buf);
   assert(0 == f->used);
   assert(0 == f->size);
-  // we start with 2MiB, the huge page size on all of x86+PAE,
-  // ARMv7+LPAE, ARMv8, and x86-64.
-  // FIXME use GetLargePageMinimum() and sysconf
-  size_t size = small ? (4096 > BUFSIZ ? 4096 : BUFSIZ) : 0x200000lu;
 #if defined(__linux__)
   /*static bool hugepages_failed = false; // FIXME atomic
-  if(!hugepages_failed && !small){
+  if(!hugepages_failed && size >= FBUF_LARGE_SIZE){
     // hugepages don't seem to work with mremap() =[
     // mmap(2): hugetlb results in automatic stretch out to cover hugepage
     f->buf = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_HUGETLB |
@@ -129,7 +129,7 @@ fbuf_init_small(fbuf* f){
   f->used = 0;
   f->size = 0;
   f->buf = NULL;
-  return fbuf_initgrow(f, 1);
+  return fbuf_initgrow(f, FBUF_SMALL_SIZE);
 }
 
 // prepare f with a large initial buffer.
@@ -138,7 +138,17 @@ fbuf_init(fbuf* f){
   f->used = 0;
   f->size = 0;
   f->buf = NULL;
-  return fbuf_initgrow(f, 0);
+  return fbuf_initgrow(f, FBUF_LARGE_SIZE);
+}
+
+// prepare f with about |want| bytes, between the small and large sizes.
+static inline int
+fbuf_init_sized(fbuf* f, uint64_t want){
+  f->used = 0;
+  f->size = 0;
+  f->buf = NULL;
+  return fbuf_initgrow(f, want < FBUF_SMALL_SIZE ? FBUF_SMALL_SIZE :
+                          want > FBUF_LARGE_SIZE ? FBUF_LARGE_SIZE : want);
 }
 
 // reset usage, but don't shrink the buffer or anything

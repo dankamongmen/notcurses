@@ -114,13 +114,25 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   }
 }
 
+// kitty's uncompressed payload: RGBA in base64, plus room for escapes.
+// only a starting size; the glyph grows if a backend needs more.
+static uint64_t
+glyph_estimate(const ncplane* n, int dimy, int dimx){
+  const ncpile* p = ncplane_pile_const(n);
+  if(p == NULL || p->cellpxy == 0 || p->cellpxx == 0){
+    return FBUF_LARGE_SIZE;
+  }
+  const uint64_t rgba = (uint64_t)dimy * p->cellpxy * (uint64_t)dimx * p->cellpxx * 4;
+  return (rgba + 2) / 3 * 4 + FBUF_SMALL_SIZE;
+}
+
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret == NULL){
     return NULL;
   }
   memset(ret, 0, sizeof(*ret));
-  if(fbuf_init(&ret->glyph)){
+  if(fbuf_init_sized(&ret->glyph, glyph_estimate(n, dimy, dimx))){
     free(ret);
     return NULL;
   }
