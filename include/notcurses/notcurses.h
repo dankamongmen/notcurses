@@ -1218,8 +1218,8 @@ typedef struct ncinput {
   ncintype_e evtype;
   unsigned modifiers;// bitmask over NCKEY_MOD_*
   int ypx, xpx;      // pixel offsets within cell, -1 for undefined
-  uint32_t eff_text[NCINPUT_MAX_EFF_TEXT_CODEPOINTS];  // Effective 
-                     // utf32 representation, taking modifier 
+  uint32_t eff_text[NCINPUT_MAX_EFF_TEXT_CODEPOINTS];  // Effective
+                     // utf32 representation, taking modifier
                      // keys into account. This can be multiple
                      // codepoints. Array is zero-terminated.
 } ncinput;
@@ -2207,6 +2207,13 @@ API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust,
                           size_t* sbytes)
   __attribute__ ((nonnull (1, 4)));
 
+// Same as 'ncplane_putegc_yx', except at most 'maxbytes' bytes are examined
+// from the 'gclust' array.
+API int ncplane_putegcn_yx(struct ncplane* n, int y, int x, const char* gclust,
+                           size_t maxbytes, size_t* sbytes)
+  __attribute__ ((nonnull (1, 4)));
+
+
 // Call ncplane_putegc_yx() at the current cursor location.
 static inline int
 ncplane_putegc(struct ncplane* n, const char* gclust, size_t* sbytes){
@@ -2336,6 +2343,7 @@ ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
 API int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* str)
   __attribute__ ((nonnull (1, 5)));
 
+
 // Write a series of EGCs to the current location, using the current style.
 // They will be interpreted as a series of columns (according to the definition
 // of ncplane_putc()). Advances the cursor by some positive number of columns
@@ -2369,6 +2377,38 @@ ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclust
 static inline int
 ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr){
   return ncplane_putnstr_yx(n, -1, -1, s, gclustarr);
+}
+
+
+// Same as 'ncplane_putnstr_yx', except that no more than 'sin' bytes will be read
+// from 'gclusters'.
+static inline int
+ncplane_putnstrn_yx(struct ncplane* n, int y, int x, size_t sout, const char* gclusters, size_t sin){
+  int ret = 0;
+  size_t offset = 0;
+//fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
+  while(offset < sin && offset < sout && gclusters[offset]){
+    size_t wcs;
+    int cols = ncplane_putegcn_yx(n, y, x, gclusters + offset, sin - offset, &wcs);
+    if(cols < 0){
+      return -ret;
+    }
+    if(wcs == 0){
+      break;
+    }
+    // after the first iteration, just let the cursor code control where we
+    // print, so that scrolling is taken into account
+    y = -1;
+    x = -1;
+    offset += wcs;
+    ret += cols;
+  }
+  return ret;
+}
+
+static inline int
+ncplane_putnstrn(struct ncplane* n, size_t sout, const char* gclustarr, size_t sin){
+  return ncplane_putnstrn_yx(n, -1, -1, sout, gclustarr, sin);
 }
 
 // ncplane_putstr(), but following a conversion from wchar_t to UTF-8 multibyte.
