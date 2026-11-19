@@ -120,11 +120,24 @@ utf8_egc_len(const char* gcluster, int* colcount){
       break; // starts a new EGC, exit and do not claim
     }
     int cols;
-    if(uc_is_property_variation_selector(wc)){ // ends EGC
-      ret += r;
-      break;
-    }else if(wc == L'\u200d' || injoin){ // ZWJ is iswcntrl, so check it first
+    if(uc_is_property_variation_selector(wc)){
+      // A variation selector (VS15/VS16) is Grapheme_Extend: it selects the preceding
+      // character's presentation but does NOT end the grapheme. Keep it in the cluster at
+      // zero width so a following combining mark is not orphaned into its own EGC. This used
+      // to `break` here, splitting e.g. a keycap "<base> U+FE0F U+20E3" into "<base> VS16"
+      // plus a lone zero-width U+20E3, and a ZWJ flag "U+1F3F3 U+FE0F U+200D U+1F308" into
+      // two EGCs; put_egc() then advanced a column for the empty trailing EGC, so a run of
+      // such glyphs was over-counted by one column apiece even though ncstrwidth() was right.
+      cols = 0;
+    }else if(wc == L'\u200d'){ // ZWJ joins to the next pictographic. iswcntrl, so check first
       injoin = true;
+      cols = 0;
+    }else if(injoin){ // the pictographic joined by the preceding ZWJ; the join ends here.
+      // GB11 is "\p{Extended_Pictographic} Extend* ZWJ x \p{Extended_Pictographic}": a ZWJ
+      // suppresses the break before exactly ONE following pictographic. Clear injoin so the
+      // NEXT code point is eligible to break again -- otherwise a ZWJ emoji not terminated by
+      // a variation selector (e.g. U+1F62E U+200D U+1F4A8) would swallow all following EGCs.
+      injoin = false;
       cols = 0;
     }else{
       cols = wcwidth(wc);

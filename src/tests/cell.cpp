@@ -34,6 +34,12 @@ TEST_CASE("Cell") {
                                                                              // U+0E49 THAI CHARACTER MAI THO
     WARN(1 == nccell_cols(&c));
 
+    // a keycap "<base> U+FE0F U+20E3" is a SINGLE grapheme cluster (7 bytes, 1 column). the
+    // VS16 must not end the cluster and orphan the U+20E3 into its own zero-width EGC --
+    // put_egc() advances a column for such an orphan, over-counting runs of keycaps.
+    CHECK(7 == nccell_load(n_, &c, "9\xef\xb8\x8f\xe2\x83\xa3")); // '9' U+FE0F U+20E3
+    CHECK(1 == nccell_cols(&c));
+
     // type-3 woman playing water polo, 17 bytes (5 characters, 2 columns)
 #ifdef __linux__
     CHECK(17 == nccell_load(n_, &c, "\U0001f93d\U0001f3fc\u200d\u2640\ufe0f"));
@@ -65,6 +71,17 @@ TEST_CASE("Cell") {
     CHECK(2 == ncstrwidth("\U0001F471", NULL, NULL));
     CHECK(2 == ncstrwidth("\U0001F471\u200D", NULL, NULL));
     CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640", NULL, NULL));
+    // a ZWJ emoji NOT terminated by a variation selector must end its cluster after the
+    // pictographic it joins, and must not swallow following EGCs (regression: it used to
+    // leave injoin set forever, collapsing all trailing emoji into one width-2 cluster).
+    // U+1F62E U+200D U+1F4A8 (face exhaling) is a self-contained 2-column ZWJ emoji.
+    CHECK(2 == ncstrwidth("\U0001F62E\u200D\U0001F4A8", NULL, NULL));
+    CHECK(4 == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F925", NULL, NULL));
+    CHECK(6 == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F925\U0001FAE5", NULL, NULL));
+    // sanity: the per-emoji sum must equal the whole-string width for a mixed run.
+    CHECK(ncstrwidth("\U0001F62E\u200D\U0001F4A8", NULL, NULL)
+          + ncstrwidth("\U0001F60F", NULL, NULL)
+          == ncstrwidth("\U0001F62E\u200D\U0001F4A8\U0001F60F", NULL, NULL));
   }
 
   SUBCASE("SetItalic") {
