@@ -8,6 +8,7 @@
 #include "notcurses/ncport.h"
 #include "notcurses/notcurses.h"
 #include "notcurses/direct.h"
+#include <notcurses/api.h>
 // KEY_EVENT is defined by both ncurses.h (prior to 6.3) and wincon.h. since we
 // don't use either definition, kill it before inclusion of ncurses.h.
 #undef KEY_EVENT
@@ -38,11 +39,6 @@
 #include "lib/gpm.h"
 
 
-#ifndef __MINGW32__
-#define API __attribute__((visibility("default")))
-#else
-#define API __declspec(dllexport)
-#endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 #ifdef __cplusplus
@@ -1807,6 +1803,8 @@ typedef struct ncvisual_implementation {
   int rowalign; // rowstride base, can be 0 for no padding
   // do a persistent resize, changing the ncv itself
   int (*visual_resize)(struct ncvisual* ncv, unsigned rows, unsigned cols);
+  int (*visual_seek)(struct ncvisual* ncv, double seconds);
+  int64_t (*visual_frame_index)(const struct ncvisual* ncv);
   void (*visual_destroy)(struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;

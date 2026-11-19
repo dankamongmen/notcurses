@@ -50,6 +50,20 @@ int ncvisual_decode_loop(ncvisual* nc){
   return visual_implementation->visual_decode_loop(nc);
 }
 
+int ncvisual_seek(ncvisual* nc, double seconds){
+  if(!visual_implementation->visual_seek){
+    return -1;
+  }
+  return visual_implementation->visual_seek(nc, seconds);
+}
+
+int64_t ncvisual_frame_index(const ncvisual* nc){
+  if(!visual_implementation->visual_frame_index){
+    return -1;
+  }
+  return visual_implementation->visual_frame_index(nc);
+}
+
 ncvisual* ncvisual_from_file(const char* filename){
   if(!visual_implementation->visual_from_file){
     return NULL;
