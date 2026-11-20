@@ -70,6 +70,85 @@ TEST_CASE("Resize") {
     CHECK(0 == ncplane_destroy(testn));
   }
 
+  SUBCASE("Marginalized") {
+    ncplane_options parentopts{};
+    parentopts.y = 3;
+    parentopts.x = 5;
+    parentopts.rows = 20;
+    parentopts.cols = 40;
+    auto parent = ncplane_create(n_, &parentopts);
+    REQUIRE(parent);
+    ncplane_options opts{};
+    opts.y = 1;
+    opts.x = 2;
+    opts.margin_b = 3;
+    opts.margin_r = 4;
+    opts.flags = NCPLANE_OPTION_MARGINALIZED;
+    opts.resizecb = ncplane_resize_marginalized;
+    auto child = ncplane_create(parent, &opts);
+    REQUIRE(child);
+    CHECK(ncplane_dim_y(child) == 16);
+    CHECK(ncplane_dim_x(child) == 34);
+    REQUIRE(ncplane_putchar_yx(child, 0, 0, 'A') == 1);
+    for(auto [rows, cols] : {std::pair{10u, 20u}, {24u, 50u}, {2u, 3u}, {20u, 40u}}){
+      REQUIRE(ncplane_resize_simple(parent, rows, cols) == 0);
+      CHECK(ncplane_y(child) == 1);
+      CHECK(ncplane_x(child) == 2);
+      CHECK(ncplane_dim_y(child) == (rows > 4 ? rows - 4 : 1));
+      CHECK(ncplane_dim_x(child) == (cols > 6 ? cols - 6 : 1));
+      uint16_t style;
+      uint64_t channels;
+      char* egc = ncplane_at_yx(child, 0, 0, &style, &channels);
+      REQUIRE(egc);
+      CHECK(std::string(egc) == "A");
+      free(egc);
+    }
+    CHECK(ncplane_destroy(child) == 0);
+    opts.y = opts.x = 0;
+    opts.margin_b = opts.margin_r = 0;
+    child = ncplane_create(parent, &opts);
+    REQUIRE(child);
+    CHECK(ncplane_dim_y(child) == 20);
+    CHECK(ncplane_dim_x(child) == 40);
+    REQUIRE(ncplane_resize_simple(parent, 10, 20) == 0);
+    CHECK(ncplane_dim_y(child) == 10);
+    CHECK(ncplane_dim_x(child) == 20);
+    CHECK(ncplane_y(child) == 0);
+    CHECK(ncplane_x(child) == 0);
+    CHECK(ncplane_destroy(child) == 0);
+    opts.y = 1;
+    opts.x = 2;
+    opts.margin_b = 100;
+    opts.margin_r = 100;
+    child = ncplane_create(parent, &opts);
+    REQUIRE(child);
+    CHECK(ncplane_dim_y(child) == 1);
+    CHECK(ncplane_dim_x(child) == 1);
+    CHECK(ncplane_destroy(child) == 0);
+    CHECK(ncplane_destroy(parent) == 0);
+  }
+
+  SUBCASE("MarginalizedRoot") {
+    ncplane_options opts{};
+    opts.y = 1;
+    opts.x = 2;
+    opts.margin_b = 3;
+    opts.margin_r = 4;
+    opts.flags = NCPLANE_OPTION_MARGINALIZED;
+    auto root = ncpile_create(nc_, &opts);
+    REQUIRE(root);
+    CHECK(ncplane_dim_y(root) == (dimy > 4 ? dimy - 4 : 1));
+    CHECK(ncplane_dim_x(root) == (dimx > 6 ? dimx - 6 : 1));
+    for(int repeat = 0 ; repeat < 2 ; ++repeat){
+      REQUIRE(ncplane_resize_marginalized(root) == 0);
+      CHECK(ncplane_y(root) == 1);
+      CHECK(ncplane_x(root) == 2);
+      CHECK(ncplane_dim_y(root) == (dimy > 4 ? dimy - 4 : 1));
+      CHECK(ncplane_dim_x(root) == (dimx > 6 ? dimx - 6 : 1));
+    }
+    CHECK(ncplane_destroy(root) == 0);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
