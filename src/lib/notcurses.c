@@ -545,6 +545,14 @@ static inline size_t  ncplane_sizeof_cellarray( size_t rows, size_t cols)
   return rows * cols;
 }
 
+// Margins are best-effort: always leave at least one cell. Widen before
+// subtraction so an oversized margin cannot wrap an unsigned dimension.
+static unsigned
+marginalized_dimension(unsigned dimension, int origin, unsigned margin){
+  int64_t available = (int64_t)dimension - origin - margin;
+  return available > 0 ? available : 1;
+}
+
 // create a new ncplane at the specified location (relative to the true screen,
 // having origin at 0,0), having the specified size, and put it at the top of
 // the planestack. its cursor starts at its origin; its style starts as null.
@@ -593,12 +601,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     }else{ // use pile size
       notcurses_term_dim_yx(nc, &p->leny, &p->lenx);
     }
-    if((p->leny -= p->margin_b) <= 0){
-      p->leny = 1;
-    }
-    if((p->lenx -= p->margin_r) <= 0){
-      p->lenx = 1;
-    }
+    p->leny = marginalized_dimension(p->leny, nopts->y, nopts->margin_b);
+    p->lenx = marginalized_dimension(p->lenx, nopts->x, nopts->margin_r);
   }else{
     p->leny = nopts->rows;
     p->lenx = nopts->cols;
@@ -647,7 +651,6 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     *p->bprev = p;
     p->boundto = n;
   }
-  // FIXME handle top/left margins
   p->resizecb = nopts->resizecb;
   p->stylemask = 0;
   p->channels = 0;
@@ -2736,23 +2739,13 @@ int ncplane_resize_marginalized(ncplane* n){
   }else{
     ncplane_dim_yx(parent, &maxy, &maxx);
   }
-  if((maxy -= (n->margin_b + (n->absy - n->boundto->absy))) < 1){
-    maxy = 1;
-  }
-  if((maxx -= (n->margin_r + (n->absx - n->boundto->absx))) < 1){
-    maxx = 1;
-  }
+  maxy = marginalized_dimension(maxy, ncplane_y(n), n->margin_b);
+  maxx = marginalized_dimension(maxx, ncplane_x(n), n->margin_r);
   unsigned oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   unsigned keepleny = oldy > maxy ? maxy : oldy;
   unsigned keeplenx = oldx > maxx ? maxx : oldx;
-  if(ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx)){
-    return -1;
-  }
-  int targy = maxy - n->margin_b;
-  int targx = maxx - n->margin_b;
-  loginfo("marg %d/%d, pdim %d/%d, move %d/%d", n->margin_b, n->margin_r, maxy, maxx, targy, targx);
-  return ncplane_move_yx(n, targy, targx);
+  return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx);
 }
 
 int ncplane_resize_maximize(ncplane* n){
