@@ -103,6 +103,44 @@ TEST_CASE("Palette") {
     nccell_release(n_, &r);
   }
 
+  SUBCASE("HorizontalLineAttrs") {
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
+    REQUIRE(1 == nccell_load_char(n_, &c, '-'));
+    REQUIRE(0 == nccell_set_fg_palindex(&c, 6));
+    REQUIRE(0 == nccell_set_bg_palindex(&c, 8));
+    REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    REQUIRE(3 == ncplane_hline(n_, &c, 3));
+    nccell_release(n_, &c);
+    for(int x = 0 ; x < 3 ; ++x){
+      nccell r = NCCELL_TRIVIAL_INITIALIZER;
+      REQUIRE(1 == ncplane_at_yx_cell(n_, 0, x, &r));
+      CHECK(nccell_fg_palindex_p(&r));
+      CHECK(nccell_bg_palindex_p(&r));
+      CHECK(6 == nccell_fg_palindex(&r));
+      CHECK(8 == nccell_bg_palindex(&r));
+      nccell_release(n_, &r);
+    }
+  }
+
+  SUBCASE("VerticalLineAttrs") {
+    nccell c = NCCELL_TRIVIAL_INITIALIZER;
+    REQUIRE(1 == nccell_load_char(n_, &c, '|'));
+    REQUIRE(0 == nccell_set_fg_palindex(&c, 6));
+    REQUIRE(0 == nccell_set_bg_palindex(&c, 8));
+    REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
+    REQUIRE(3 == ncplane_vline(n_, &c, 3));
+    nccell_release(n_, &c);
+    for(int y = 0 ; y < 3 ; ++y){
+      nccell r = NCCELL_TRIVIAL_INITIALIZER;
+      REQUIRE(1 == ncplane_at_yx_cell(n_, y, 0, &r));
+      CHECK(nccell_fg_palindex_p(&r));
+      CHECK(nccell_bg_palindex_p(&r));
+      CHECK(6 == nccell_fg_palindex(&r));
+      CHECK(8 == nccell_bg_palindex(&r));
+      nccell_release(n_, &r);
+    }
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
 }
