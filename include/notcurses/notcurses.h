@@ -12,9 +12,6 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <notcurses/ncport.h>
-#include <notcurses/nckeys.h>
-#include <notcurses/ncseqs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +31,10 @@ extern "C" {
 #define API __declspec(dllexport)
 #endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
+#include <notcurses/ncport.h>
+#include <notcurses/nckeys.h>
+#include <notcurses/ncseqs.h>
 
 // Get a human-readable string describing the running Notcurses version.
 API const char* notcurses_version(void);
