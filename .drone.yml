@@ -21,7 +21,7 @@ steps:
     - ctest --output-on-failure
     - make install
     - ldconfig
-    - apt-get install -y python3-setuptools python3-wheel python3-pip python3-pypandoc python3-cffi-backend python3-pycparser
+    - apt-get install -y python3-setuptools python3-wheel python3-pip python3-pypandoc python3-cffi-backend python3-pycparser python3.14-dev
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
