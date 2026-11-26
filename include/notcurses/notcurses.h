@@ -13,6 +13,8 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <notcurses/ncport.h>
+
 #ifdef __cplusplus
 extern "C" {
 #define RESTRICT
@@ -32,7 +34,6 @@ extern "C" {
 #endif
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
-#include <notcurses/ncport.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncseqs.h>
 
