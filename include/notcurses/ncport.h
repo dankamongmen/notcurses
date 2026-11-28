@@ -31,6 +31,9 @@ extern "C" {
 #define wcwidth(w) 1 // FIXME lol, no
 #define wcswidth(w, s) (int)(wcslen(w)) // FIXME lol, no
 #define htole(x) (x) // FIXME are all windows installs LE? ugh
+#elif defined(__OpenBSD__)
+#include <endian.h>
+#define htole(x) (swap32(htonl(x)))
 #else                                             // BSDs
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
